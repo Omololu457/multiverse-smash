@@ -63,6 +63,7 @@ export const REKKA = [
   { key: "pain",                driver: "updatePainCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "+ Fwd+Light jab; forward-locked" },
   { key: "minato",              driver: "updateMinatoCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "" },
   { key: "obito",               driver: "updateObitoCommandCombat",        opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "staff 2-stage; Grab = Kamui" },
+  { key: "omololu",             driver: "updateOmoluCommandCombat",        opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "ported from Obito (no Kamui grab)" },
   { key: "saiki",               driver: "updateSaikiCommandCombat",        opener: "fwd+heavy", retap: "heavy", stages: 4, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "projectile-gated hit (bolt must land)" },
   { key: "samurai_red_ranger",  driver: "updateSamuraiRangerCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms",   note: "shared samurai driver (red/gold/green)" },
   { key: "gold_samurai_ranger", driver: "updateSamuraiRangerCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms",   note: "shared samurai driver" },
@@ -157,7 +158,7 @@ export const STANDARD_STRING = {
   // Stage D rollout: every remaining un-built MELEE char (each has light + upAttack). Art-free, 1 line each.
   // + The Handler (JJK): single ground combo string (punch→punch→blade-drawn launcher) — same grammar as
   //   the removed Megumi; carved from megumi_attack_punches_kicks.png.
-  added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "omololu", "handler"],
+  added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "handler"],   // omololu MOVED to the rekka table above (ported Obito Fwd+Heavy command combo)
 }
 
 // ── SINGLE-POKE (NO combo string of either grammar) ─────────────────────────────────────────────
@@ -243,14 +244,14 @@ export function classify(key) {
 
 // Expected classification counts — the baseline the harness asserts.
 export const EXPECTED_COUNTS = {
-  rekkaTotal:      REKKA.length,   // 70 (34 original + 36 Stage-G roster-drift coverage adds)
-  conforms:        54,             // 26 original + 28 Stage-G conforms (driver + Fwd idiom + requireHit source-verified)
+  rekkaTotal:      REKKA.length,   // 71 (34 original + 36 Stage-G roster-drift + omololu ported from Obito)
+  conforms:        55,             // 26 original + 28 Stage-G + omololu (ported Obito Fwd+Heavy rekka, requireHit)
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
   exception:       16,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
-  standardStringAdded:  9,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu) + handler (JJK)
-  standardStringTotal:  14,
+  standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
+  standardStringTotal:  13,
   zoner:                19,         // 16 + 3 Spider-Man variants (spiderman_raimi web-specials, spiderman_ssf2/mci normals-only) — no rekka chain, not standard-string
-  rosterTotal:          103,       // 70 rekka + 14 standard-string + 19 single-poke = 103 = live roster (3 Spider-Man variant standalone builds added)
+  rosterTotal:          103,       // 71 rekka + 13 standard-string + 19 single-poke = 103 = live roster (omololu moved standard→rekka, total unchanged)
 }

@@ -270,6 +270,9 @@ export function updateDomains(fighters = [], hitEffects = []) {
         fighter.hitstun = Math.max(fighter.hitstun || 0, 4)   // continuously re-applied → can't act
         fighter.vx = 0
       } else {
+        // Omololu's "The Genesis Threshold" domain lands here (speedPenalty 1.0 = no-op) — the foe is
+        // NOT frozen by the domain; the rhythm gauntlet holds them via its own per-frame tick (game.js
+        // tickOmololuDomain), which is what makes their WASD input actually matter.
         fighter.vx = (fighter.vx || 0) * domain.speedPenalty
         fighter.vy = (fighter.vy || 0) * Math.max(0.85, domain.speedPenalty)
       }
@@ -328,6 +331,9 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
       break
     case "hashirama":
       _drawSealingDomain(ctx, cw, ch)
+      break
+    case "omololu":
+      _drawOmololuDomain(ctx, cw, ch, domain)
       break
     default:
       _drawGenericDomain(ctx, cw, ch, domain)
@@ -569,6 +575,131 @@ function _drawGenericDomain(ctx, cw, ch, domain) {
   ctx.fillRect(0, 0, cw, ch)
 
   _drawDomainLabel(ctx, cw, ch, domain?.name || "Domain Expansion", "#d8b4fe")
+}
+
+// Omololu has TWO domains sharing rosterKey "omololu": neutral+U = "The Genesis Threshold" (this bespoke
+// Omololu's ONE domain — "The Genesis Threshold" (the WASD rhythm gauntlet). Its backdrop IS the user's
+// reference photo IMG_3608, drawn via the SAME image-backed domain-swap technique Gojo's Unlimited Void
+// uses for its video/still — cover-fit + a domain STYLIZATION pass (darken + warm duotone + glow rings +
+// vignette) so it reads as a mystical domain, not a raw photo. Falls back to the procedural Ankara field
+// only while the image is still decoding (or if it fails to load), so the domain is never blank.
+function _drawOmololuDomain(ctx, cw, ch, domain) {
+  _drawGenesisThreshold(ctx, cw, ch)
+}
+
+// IMG_3608 → omololu_genesis_bg.jpg (HEIC isn't canvas-decodable, so it's converted at build time).
+// Lazily decoded once, like Gojo's video (_ensureGojoVideo).
+let _genesisImg = null, _genesisImgReady = false, _genesisImgFailed = false
+function _ensureGenesisImg() {
+  if (_genesisImg || _genesisImgFailed) return
+  if (typeof Image === "undefined") { _genesisImgFailed = true; return }
+  try {
+    const img = new Image()
+    img.onload  = () => { _genesisImgReady = true }
+    img.onerror = () => { _genesisImgFailed = true }   // 404/decode → clean procedural fallback, never blank
+    img.src = "./omololu_genesis_bg.jpg"
+    _genesisImg = img
+  } catch (_) { _genesisImgFailed = true }
+}
+// Verification hook: true once the IMG_3608 photo has decoded (vs the procedural fallback still showing).
+export function genesisImageReady() { return _genesisImgReady && !!_genesisImg && _genesisImg.naturalWidth > 0 }
+function _coverDrawImg(ctx, img, iw, ih, cw, ch) {
+  const s = Math.max(cw / iw, ch / ih)
+  const w = iw * s, h = ih * s
+  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h)
+}
+function _drawGenesisThreshold(ctx, cw, ch) {
+  const t = (typeof performance !== "undefined" ? performance.now() : 0) * 0.001
+  _ensureGenesisImg()
+  if (_genesisImgReady && _genesisImg && _genesisImg.naturalWidth > 0) {
+    // (1) the ACTUAL reference photo (IMG_3608), cover-fit to the viewport
+    _coverDrawImg(ctx, _genesisImg, _genesisImg.naturalWidth, _genesisImg.naturalHeight, cw, ch)
+    // (2) domain stylization: darken + a warm crimson→gold→crimson OVERLAY wash (from the shirt's palette)
+    ctx.save()
+    ctx.fillStyle = "rgba(9,4,3,0.50)"; ctx.fillRect(0, 0, cw, ch)
+    ctx.globalCompositeOperation = "overlay"
+    const wash = ctx.createLinearGradient(0, 0, cw, ch)
+    wash.addColorStop(0, "rgba(163,42,32,0.60)"); wash.addColorStop(0.5, "rgba(232,185,35,0.34)"); wash.addColorStop(1, "rgba(110,20,40,0.60)")
+    ctx.fillStyle = wash; ctx.fillRect(0, 0, cw, ch)
+    ctx.restore()
+  } else {
+    _drawGenesisFallback(ctx, cw, ch)   // procedural Ankara field until the photo decodes / if it 404s
+  }
+  // (3) shared domain treatment over EITHER base: pulsing gold "threshold" glow rings + vignette + label
+  const cx = cw / 2, cy = ch * 0.52, R = Math.min(cw, ch) * 0.30
+  ctx.save()
+  for (let k = 0; k < 3; k++) {
+    const pr = ((t * 0.3 + k / 3) % 1)
+    ctx.globalAlpha = 0.20 * (1 - pr); ctx.strokeStyle = "#e8b923"; ctx.lineWidth = 3
+    ctx.beginPath(); ctx.arc(cx, cy, R * (0.8 + pr * 1.8), 0, Math.PI * 2); ctx.stroke()
+  }
+  ctx.restore()
+  const vg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.34, cw / 2, ch / 2, Math.max(cw, ch) * 0.72)
+  vg.addColorStop(0, "transparent"); vg.addColorStop(1, "rgba(0,0,0,0.6)")
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  _drawDomainLabel(ctx, cw, ch, "The Genesis Threshold", "#e8b923")
+}
+
+// Procedural Ankara / African-wax-print FALLBACK base (bold concentric crimson/gold/orange medallions +
+// radiating geometry — the same motif as the photo). Base only; the wrapper adds glow/vignette/label.
+const _ANK = { crimson: "#8f1d1d", red: "#c0392b", orange: "#e07a1f", gold: "#e8b923", cream: "#f2d9a0", ink: "#120a08" }
+function _ankMedallion(ctx, cx, cy, R, rot, t) {
+  // concentric wax-print rings (record-like), then a scalloped sunburst rim + radial spokes
+  const rings = [_ANK.ink, _ANK.crimson, _ANK.gold, _ANK.red, _ANK.orange, _ANK.gold, _ANK.ink]
+  for (let i = 0; i < rings.length; i++) {
+    const rr = R * (1 - i / rings.length)
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2)
+    ctx.fillStyle = rings[i]; ctx.fill()
+  }
+  // radial spokes (batik rays)
+  const spokes = 24
+  ctx.strokeStyle = _ANK.ink; ctx.lineWidth = Math.max(1, R * 0.02)
+  for (let s = 0; s < spokes; s++) {
+    const a = rot + (s / spokes) * Math.PI * 2
+    ctx.beginPath(); ctx.moveTo(cx, cy)
+    ctx.lineTo(cx + Math.cos(a) * R * 0.86, cy + Math.sin(a) * R * 0.86); ctx.stroke()
+  }
+  // scalloped outer petals (the sunburst edge on the shirt print)
+  const petals = 16
+  for (let p = 0; p < petals; p++) {
+    const a = -rot * 0.6 + (p / petals) * Math.PI * 2
+    const px = cx + Math.cos(a) * R, py = cy + Math.sin(a) * R
+    ctx.beginPath(); ctx.arc(px, py, R * 0.11, 0, Math.PI * 2)
+    ctx.fillStyle = p % 2 ? _ANK.gold : _ANK.orange; ctx.fill()
+  }
+  // bright core
+  ctx.beginPath(); ctx.arc(cx, cy, R * 0.10 + Math.sin(t * 3) * R * 0.015, 0, Math.PI * 2)
+  ctx.fillStyle = _ANK.cream; ctx.fill()
+}
+function _drawGenesisFallback(ctx, cw, ch) {
+  const t = (typeof performance !== "undefined" ? performance.now() : 0) * 0.001
+  // deep warm base
+  const g = ctx.createRadialGradient(cw / 2, ch * 0.52, 40, cw / 2, ch * 0.52, Math.max(cw, ch) * 0.75)
+  g.addColorStop(0, "#3a0f0c"); g.addColorStop(0.55, "#210806"); g.addColorStop(1, "#0c0403")
+  ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch)
+
+  // woven diamond lattice (wax-print border geometry), faint
+  ctx.save(); ctx.globalAlpha = 0.10; ctx.strokeStyle = _ANK.gold; ctx.lineWidth = 1
+  const step = 46
+  for (let x = -ch; x < cw + ch; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + ch, ch); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(x + ch, 0); ctx.lineTo(x, ch); ctx.stroke()
+  }
+  ctx.restore()
+
+  // a big central medallion + satellites, slowly rotating/pulsing
+  const cx = cw / 2, cy = ch * 0.52
+  const R = Math.min(cw, ch) * (0.30 + Math.sin(t * 0.8) * 0.012)
+  const sats = [
+    { x: cw * 0.16, y: ch * 0.26, r: R * 0.42, s: 1 },
+    { x: cw * 0.86, y: ch * 0.30, r: R * 0.46, s: -1 },
+    { x: cw * 0.18, y: ch * 0.80, r: R * 0.40, s: -1 },
+    { x: cw * 0.83, y: ch * 0.82, r: R * 0.44, s: 1 },
+  ]
+  ctx.save(); ctx.globalAlpha = 0.9
+  for (const m of sats) _ankMedallion(ctx, m.x, m.y, m.r, t * 0.4 * m.s, t)
+  _ankMedallion(ctx, cx, cy, R, t * 0.25, t)
+  ctx.restore()
 }
 
 function _drawDomainLabel(ctx, cw, ch, name, color) {

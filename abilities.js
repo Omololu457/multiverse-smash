@@ -9,6 +9,8 @@ import { sound }      from "./sound.js"
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
+import { startOmololuDomain } from "./omololuDomain.js"   // Omololu's Domain Expansion: The Genesis Threshold (self-contained; imports domains.js+combat.js → no cycle)
+import { pickOmololuVoice } from "./omololuVoice.js"   // Omololu special-cast + ultimate-activation voice pools (audio-only, EN)
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateMinatoKurama } from "./minatoKurama.js"   // Minato ult cinematic (self-contained, no cycle)
 import { activateObitoJuubi } from "./obitoJuubiCinematic.js"   // Obito ult cinematic — giant Ten-Tails Bijūdama (self-contained, no cycle)
@@ -3253,37 +3255,274 @@ function executeSukunaUltimate(fighter, context) {
 
 // ── OMOLOLU ───────────────────────────────────────────────────────
 // Specials: Analysis Strike (reads opponent, deals bonus damage based on combo count)
-// Ultimate: Full Analysis (stacks damage multiplier each hit during window)
-function executeOmoluSpecial(fighter, context) {
-  const getOpponent = getTargetResolver(context)
-  const target      = getOpponent(fighter)
-  if (!spendEnergy(fighter, 30)) return false
+// ═════════════════════════════════════════════════════════════════
+// OMOLOLU — kit PORTED from Obito (COPY-ONLY; Obito's own functions/files are never modified) + a NEW
+// Killua-slow-time "Flash Time". Reuses Obito's PROJECTILE art (obito_*_proj) directly and omololu's OWN
+// recolored cast/teleport/Kamui poses (animationData keys reuse Obito's pose-key names → the existing
+// char-agnostic sprite.js MOVE_TO_ACTION identity maps resolve them). No obito-voice calls (omololu has no
+// voice pool → they'd bleed Obito's). Costs mirror Obito's special-tier band.
+//   SPECIAL:  neutral = Shuriken (air = diagonal)  ·  Fwd = Rod  ·  Up = Giant Shuriken
+//             Down = Kamui Warp  ·  Back = Flash Time (toggle)
+//   CHARGE P: tap = Kamui Intangibility toggle  ·  hold→release = Kamui Dimension (void-swap + barrage)
+//   Fwd+Heavy = rekka  ·  Ultimate = Domain Expansion (unchanged)
+// ═════════════════════════════════════════════════════════════════
+const OMO_PORTAL_DIST = 520, OMO_PORTAL_DROP = 44
+const OMO_KAMUI_DRAIN = 1.2, OMO_KAMUI_COOLDOWN = 600
+const OMO_KDIM_COST = 45, OMO_KDIM_FRAMES = 60, OMO_KDIM_CD = 480, OMO_KDIM_SHURIKEN = 5, OMO_KDIM_DMG = 28
+const OMO_FLASH_COST = 30, OMO_FLASH_DRAIN = 0.4, OMO_FLASH_OPP_SLOW = 0.35, OMO_FLASH_ATKSPD = 1.2, OMO_FLASH_DASH = 26
 
-  // Damage scales with how long the fight has gone (combo counter acts as analysis depth)
-  const analysisBonus = Math.min(fighter.comboCounter || 0, 8) * 8
-  const attack = createAttackFromMove(fighter, "analysisStrike", {
-    damage:     130 + analysisBonus,
-    startup:    10, active: 5, recovery: 20,
-    hitstun:    22, knockbackX: 8, knockbackY: -2,
-    rangeX: 88, rangeY: 52
+// SPECIAL dispatch — direction-branched (mirror of executeObitoSpecial, minus the grab / portal-reflect /
+// banishment branches omololu doesn't port). Intangibility + Kamui Dimension live on the P key (game.js).
+function executeOmoluSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "D")             return fireOmoluKamuiPortal(fighter, context)     // Down = Kamui Warp
+  if (dir === "B" && grounded) return toggleOmoluFlashTime(fighter, context)     // Back = Flash Time (toggle)
+  if (!grounded)               return fireOmoluShuriken(fighter, context, true)  // airborne = diagonal air-throw
+  if (dir === "F")             return fireOmoluRod(fighter, context)             // Forward = rod throw
+  if (dir === "U")             return fireOmoluGiantShuriken(fighter, context)   // Up = giant shuriken
+  return fireOmoluShuriken(fighter, context, false)                             // neutral = ground shuriken
+}
+
+function fireOmoluShuriken(fighter, context, airborne) {
+  if (!spendEnergy(fighter, fighter.specials?.shurikenThrow?.cost ?? 18)) return false
+  fighter._spriteCastMove  = airborne ? "obitoShurCastAir" : "obitoShurCast"
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "obito_shuriken", {
+      sheet: "./obito_shur_proj_uniform.png", spriteFrames: 4, spriteW: 35, spriteH: 32, spriteSpeed: 2, spriteScale: 1.4,
+      damage: airborne ? 38 : 40, speed: airborne ? 12 : 14, hitstun: 16, knockbackX: 6, knockbackY: airborne ? 2 : -1,
+      w: 34, h: 32, color: "#3a3a44", lifetime: 120, isSpecial: true,
+      vx: face * (airborne ? 12 : 14), vy: airborne ? 5 : 0,
+      spawnY: fighter.y + (fighter.h || 100) * (airborne ? 0.30 : 0.38)
+    }, context)
   })
-  setAttackState(fighter, attack, 22)
-  focusCameraOnAction(context, fighter, target, 0.99, 8)
+  try { shakeCamera(context, 2, 5) } catch (_) {}
   return true
 }
 
+function fireOmoluRod(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.rodThrow?.cost ?? 22)) return false
+  fighter._spriteCastMove  = "obitoRodCast"
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "obito_rod", {
+      sheet: "./obito_rod_throwprojectile.png.png", spriteFrames: 1, spriteW: 22, spriteH: 21, spriteScale: 1.7,
+      damage: 46, speed: 17, hitstun: 18, knockbackX: 8, knockbackY: -1,
+      w: 34, h: 16, color: "#2a2a2e", lifetime: 110, isSpecial: true,
+      vx: face * 17, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+function fireOmoluGiantShuriken(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.giantShuriken?.cost ?? 34)) return false
+  fighter._spriteCastMove  = "obitoShurCast"
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "obito_giant_shuriken", {
+      sheet: "./obito_giantshur_proj_uniform.png", spriteFrames: 4, spriteW: 51, spriteH: 37, spriteSpeed: 2, spriteScale: 2.2,
+      damage: 70, speed: 10, hitstun: 24, knockbackX: 12, knockbackY: -3,
+      w: 82, h: 60, color: "#2a2a2e", lifetime: 140, isSpecial: true,
+      vx: face * 10, spawnY: fighter.y + (fighter.h || 100) * 0.36
+    }, context)
+  })
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+
+// KAMUI WARP (Down+Special) — self-teleport a long distance (mirror of fireObitoKamuiPortal). Reuses the
+// shared Kamui portal FX + omololu's teleport pose. No damage, no i-frames (pure mobility).
+function fireOmoluKamuiPortal(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, fighter.specials?.kamuiPortal?.cost ?? 20)) return false
+  const worldW = getWorldWidth(context)
+  const w      = fighter.w || 60
+  const face   = fighter.facing || 1
+  let destX    = fighter.x + face * OMO_PORTAL_DIST
+  destX        = Math.max(0, Math.min(worldW - w, destX))
+  const floor  = fighter.groundY != null ? fighter.groundY : (context?.groundY ?? (fighter.y + (fighter.h || 100)))
+  spawnObitoPortalFx(fighter, context, fighter.x, fighter.y)
+  fighter.x         = destX
+  fighter.y         = floor - (fighter.h || 100) - OMO_PORTAL_DROP
+  fighter.vx = 0; fighter.vy = 0
+  fighter.onGround = false; fighter.grounded = false
+  fighter.isLaunched = true; fighter.jumpCount = 0
+  fighter.teleportFlash    = 14
+  fighter._spriteCastMove  = "obitoTeleport"
+  fighter._spriteCastTimer = 16
+  fighter.attackCooldown   = getAttackDuration(18, fighter)
+  spawnObitoPortalFx(fighter, context, destX, fighter.y)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  try { sound.playSfxFile?.(pickOmololuVoice("kamuiWarp"), null) } catch (_) {}   // "Catch me if you can."
+  return true
+}
+
+// KAMUI DIMENSION (P-HOLD→release) — void-swap + shuriken barrage (SPECIAL-tier, NOT the ultimate). Mirror
+// of fireObitoKamuiDimension. Sets _kamuiDimActive → game.js _drawKamuiDimensionBg (char-agnostic) swaps in
+// the void backdrop, and the EXISTING char-agnostic updateObitoKamuiDimension freezes the foe + ticks the
+// timer (so no omololu per-frame twin is needed — avoids a double-decrement). Barrage reuses shuriken art.
+export function fireOmoluKamuiDimension(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return false
+  if (fighter._kamuiDimActive) return false
+  if ((fighter._kamuiDimCd || 0) > 0) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0) return false
+  if (!spendEnergy(fighter, OMO_KDIM_COST)) return false
+  fighter._kamuiDimActive = true
+  fighter._kamuiDimTimer  = OMO_KDIM_FRAMES
+  fighter._kamuiDimMax    = OMO_KDIM_FRAMES
+  fighter._kamuiDimCd     = OMO_KDIM_CD
+  fighter._spriteCastMove = "obitoShurCast"; fighter._spriteCastTimer = OMO_KDIM_FRAMES
+  fighter.attackCooldown  = OMO_KDIM_FRAMES
+  fighter.vx = 0
+  try { sound.playSfxFile?.(pickOmololuVoice("kamuiDimension"), null) } catch (_) {}   // "Say goodbye to the background."
+  const face = fighter.facing || 1
+  for (let i = 0; i < OMO_KDIM_SHURIKEN; i++) {
+    schedulePendingSpawn(6 + i * 9, () => {
+      if (!fighter._kamuiDimActive) return
+      spawnProjectile(fighter, "obito_shuriken", {
+        sheet: "./obito_shur_proj_uniform.png", spriteFrames: 4, spriteW: 35, spriteH: 32, spriteSpeed: 2, spriteScale: 1.4,
+        damage: OMO_KDIM_DMG, speed: 20, hitstun: 8, knockbackX: 2, knockbackY: -1,
+        w: 34, h: 32, color: "#3a3a44", lifetime: 90, isSpecial: true,
+        vx: (fighter.facing || face) * 20, spawnY: fighter.y + (fighter.h || 100) * (0.30 + (i % 3) * 0.09)
+      }, context)
+    })
+  }
+  try { shakeCamera(context, 8, 14) } catch (_) {}
+  return true
+}
+
+// KAMUI INTANGIBILITY (P-tap toggle) — phase through attacks (mirror of toggleObitoKamui/updateObitoKamui,
+// gated to omololu so it's independent of Obito's). Continuous chakra drain → auto-drop at 0; a 10s cooldown
+// after; sustains the i-frame phase via invulnTimer (the generic negate combat reads). _kamuiPhased drives
+// omololu's own aura draw (game.js) — NOT Obito's (that's rosterKey-gated), so no cross-bleed.
+export function toggleOmoluKamui(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return false
+  if (fighter._kamuiIntangible) { deactivateOmoluKamui(fighter); return true }
+  if ((fighter._kamuiCooldown || 0) > 0) return false
+  if ((fighter.energy || 0) <= 1) return false
+  fighter._kamuiIntangible = true
+  fighter._kamuiPhased     = true
+  fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._spriteCastMove  = "obitoKamuiActivate"
+  fighter._spriteCastTimer = 14
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  try { sound.playSfxFile?.(pickOmololuVoice("kamuiIntangibility"), null) } catch (_) {}   // "Right through you." (ON only; silent off)
+  return true
+}
+export function deactivateOmoluKamui(fighter) {
+  if (!fighter) return
+  const wasActive = fighter._kamuiIntangible
+  fighter._kamuiIntangible = false
+  fighter._kamuiPhased     = false
+  if (wasActive) fighter._kamuiCooldown = OMO_KAMUI_COOLDOWN
+}
+export function updateOmoluKamui(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return
+  if ((fighter._kamuiCooldown || 0) > 0) fighter._kamuiCooldown--
+  if (!fighter._kamuiIntangible) { fighter._kamuiPhased = false; return }
+  fighter.energy = Math.max(0, (fighter.energy || 0) - OMO_KAMUI_DRAIN)
+  if (fighter.energy <= 0) { deactivateOmoluKamui(fighter); return }
+  fighter._kamuiPhased = true
+  fighter._kamuiClock  = (fighter._kamuiClock || 0) + 1
+  fighter.invulnTimer  = Math.max(fighter.invulnTimer || 0, 3)
+}
+
+// FLASH TIME (Back+Special toggle) — the NEW move. Reuses Killua's slow-time ENGINE directly: it sets
+// fighter._omoOppTimeScale, which game.js _oppTimeScaleOf reads generically → the OPPONENT runs at ~1/3
+// frame-rate while omololu keeps full speed (+ snappier attacks + a big dash). NO electric aura, NO
+// afterimage trail (none of Killua/Flash's visual functions are touched) — just a brief activation flash.
+function enterOmoluFlashTime(fighter) {
+  if (fighter._omoFlashActive) return false
+  if (!spendEnergy(fighter, OMO_FLASH_COST)) return false
+  fighter._omoFlashActive       = true
+  fighter._omoFtBaseDash        = fighter.dashSpeed
+  fighter.attackSpeedMultiplier = OMO_FLASH_ATKSPD
+  fighter.dashSpeed             = OMO_FLASH_DASH
+  fighter._omoOppTimeScale      = OMO_FLASH_OPP_SLOW
+  fighter.teleportFlash         = Math.max(fighter.teleportFlash || 0, 14)
+  try { sound.playSfxFile?.(pickOmololuVoice("flashTime"), null) } catch (_) {}   // "Everything just... slowed down."
+  return true
+}
+export function revertOmoluFlashTime(fighter) {
+  if (!fighter || !fighter._omoFlashActive) return
+  fighter._omoFlashActive       = false
+  fighter.attackSpeedMultiplier = 1
+  if (fighter._omoFtBaseDash != null) { fighter.dashSpeed = fighter._omoFtBaseDash; fighter._omoFtBaseDash = null }
+  fighter._omoOppTimeScale      = 0
+}
+function toggleOmoluFlashTime(fighter, context) {
+  if (fighter._omoFlashActive) { revertOmoluFlashTime(fighter); return true }
+  return enterOmoluFlashTime(fighter)
+}
+// Per-frame drain + auto-revert (game.updateFighterState). No trail recording, no aura.
+export function applyOmoluFlashTime(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return
+  if (!fighter._omoFlashActive) return
+  fighter.energy = Math.max(0, (fighter.energy || 0) - OMO_FLASH_DRAIN)
+  if (fighter.energy <= 2) revertOmoluFlashTime(fighter)
+}
+
+// REKKA (Fwd+Heavy) — "Kamui Rod Combo" 3-hit chain, cancel-on-hit (mirror of updateObitoCommandCombat +
+// OBITO_ROD, minus the Kamui grab branch omololu doesn't port). Pose keys reuse obitoRod1/2/3.
+const OMO_ROD = {
+  obitoRod1: { damage: 32, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 2, knockbackY: 0,   rangeX: 92,  rangeY: 50, rekkaNext: "obitoRod2" },
+  obitoRod2: { damage: 38, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 2, knockbackY: 0,   rangeX: 104, rangeY: 52, rekkaNext: "obitoRod3" },
+  obitoRod3: { damage: 60, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 5, knockbackY: -10, launch: 11, rangeX: 98, rangeY: 68, category: "heavy" },
+}
+function fireOmoluCommand(fighter, key, context) {
+  const md = OMO_ROD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false
+  fighter.vx = (fighter.facing || 1) * (key === "obitoRod3" ? 5 : 4)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+export function updateOmoluCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireOmoluCommand(fighter, next, context)
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (heavyEdge && forward) return fireOmoluCommand(fighter, "obitoRod1", context)
+  return false
+}
+
 function executeOmoluUltimate(fighter, context) {
-  if (!spendEnergy(fighter, 100)) return false
-
-  // Full Analysis — 8 second window where each hit stacks damage multiplier
-  fighter.isUltimateActive  = true
-  fighter.ultimateTimer     = 480  // 8 seconds @ 60fps
-  fighter.damageMultiplier  = (fighter.damageMultiplier || 1) * 1.2
-  fighter.analysisStacking  = true  // flag checked in updateUltimates
-
-  fighter.teleportFlash  = 12
-  fighter.attackCooldown = getAttackDuration(28, fighter)
-  shakeCamera(context, 8, 10)
+  // THE GENESIS THRESHOLD — Omololu's Domain Expansion is a RHYTHM / REFLEX GAUNTLET (NOT a cinematic
+  // freeze): it expands a domain (backdrop = the IMG_3608 reference photo) and forces the trapped foe to
+  // hit a ~20s stream of RANDOM W/A/S/D prompts, each judged in a tight window — CORRECT in-window = no
+  // damage that beat, WRONG or MISSED = real chip damage. The per-beat judging REUSES Naoya's Planned
+  // Route window sizes + hit/miss logic (omololuDomain.js, adapted from NAOYA_ROUTE; Naoya's own code is
+  // untouched). startOmololuDomain spends the meter + swaps in the domain background; the cadence is
+  // ticked per-frame from game.js (tickOmololuDomain). Obito's Ten-Tails ult is a SEPARATE function.
+  const target = getTargetResolver(context)(fighter)
+  if (!target || target.eliminated) return false
+  if (!startOmololuDomain(fighter, target, context)) return false
+  fighter.teleportFlash  = 14
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  focusCameraOnAction(context, fighter, target, 0.92, 20)   // brief domain-open camera push-in (Gojo/Obito-model beat)
+  shakeCamera(context, 12, 16)
+  try { sound.playSfxFile?.(pickOmololuVoice("domainActivate"), null) } catch (_) {}   // "Welcome to my dimension."
   return true
 }
 
@@ -20093,7 +20332,7 @@ const STANDARD_STRING_CHARS = {
   // to every remaining un-built MELEE character (each has light + upAttack normals → art-free, reuses their
   // own basic_attacks; no per-char driver). True zoners (rickPrime/evilMorty/beerus/piccolo/frieza) are
   // deliberately excluded — they stay single-poke by design.
-  itachi: {}, yuji: {}, goku_black: {}, cell: {}, tobi: {}, morty: {}, albedo: {}, omololu: {},
+  itachi: {}, yuji: {}, goku_black: {}, cell: {}, tobi: {}, morty: {}, albedo: {},   // omololu REMOVED — it now has a real Fwd+Heavy rekka (ported from Obito), so it's rekka-only like Obito (not a light-string char)
   // The Handler (JJK) — single ground combo string (megumi_attack_punches_kicks.png): the shared
   // Light→Light→Heavy(launcher) dial-a-combo = "punch→punch→blade-drawn strike". Reuses its own
   // basic_attacks (light + upAttack), no per-char driver. Mirrors the removed Megumi's grammar.

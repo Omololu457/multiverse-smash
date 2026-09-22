@@ -301,26 +301,31 @@ export const KITS = {
   },
   // ── ORIGINAL ─────────────────────────────────────────────────
   omololu: {
-    type: "Ramp Bruiser / Adaptive", energy: "Stamina", difficulty: "Medium",
-    summary: "A patient analyst who reads the opponent's patterns over the match, ramping his damage with every exchange until his weak-point strikes become lethal.",
-    passive: { name: "Combat Analysis", effect: "Every 300 frames of combat grants a small permanent attack boost — the longer Omololu fights, the more dangerous he becomes." },
+    type: "Kamui Zoner / Space-Time", energy: "Chakra", difficulty: "Hard",
+    summary: "A self-insert who inherited Obito's Kamui arsenal — shuriken/rod zoning, a warp blink, phase-through intangibility and a void-swap barrage — plus a Flash-Time slow-field. His Domain forces the foe to dance a WASD rhythm gauntlet.",
+    passive: { name: "—", effect: "No special passive." },
     basics: [
-      { name: "Jab",        input: "Light",                    desc: "measured poke" },
-      { name: "Heavy Blow", input: "Heavy",                    desc: "knockback strike" },
-      { name: "Launcher",   input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike", input: "Air (jump + Light)",       desc: "aerial poke" },
-      { name: "Dive",       input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",       input: "Grab",                     desc: "throw" }
+      { name: "Rod Spin",     input: "Light",                    desc: "quick staff poke" },
+      { name: "Staff Thrust", input: "Heavy",                    desc: "long-reach knockback thrust" },
+      { name: "Rising Staff", input: "Up-Attack",                desc: "launcher — starts air combos" },
+      { name: "Air Strike",   input: "Air (jump + Light)",       desc: "aerial rod strike" },
+      { name: "Dive Spike",   input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
+      { name: "Grab",         input: "Grab",                     desc: "throw" }
     ],
     specials: [
-      { name: "Analysis Strike", input: "Special",       cost: 30, desc: "reads the opponent's pattern and strikes a weak point; bonus damage scales with combo count" },
-      { name: "Counter Read",    input: "Down + Special", cost: 20, desc: "a brief defensive read that punishes the enemy's next attack" }
+      { name: "Shuriken Throw",      input: "Special (neutral; air = diagonal)", cost: 18, desc: "a spinning shuriken; airborne throws it down-forward" },
+      { name: "Chakra Rod",          input: "Forward + Special",   cost: 22, desc: "a fast, long-reach thrown rod" },
+      { name: "Giant Shuriken",      input: "Up + Special",        cost: 34, desc: "a massive, slow, heavy fūma-style shuriken" },
+      { name: "Kamui Warp",          input: "Down + Special",      cost: 20, desc: "blink a long distance (self-mobility, no damage)" },
+      { name: "Flash Time",          input: "Back + Special",      cost: 30, desc: "time-slow: the foe runs at ~1/3 speed while you move normally (drains meter; press again to end)" },
+      { name: "Kamui Intangibility", input: "Charge (tap)",        cost: 0,  desc: "phase through all attacks; drains chakra while active, auto-drops when empty" },
+      { name: "Kamui Dimension",     input: "Charge (hold→release)", cost: 45, desc: "void-swap: freeze the foe and unload a rapid shuriken barrage" }
     ],
-    mobility: { name: "Predictive Step", input: "Forward + Special", cost: 10, desc: "an analysis-driven dash that closes toward the opponent's anticipated position" },
-    ultimate: { name: "Full Analysis", input: "Ultimate (full meter)", cost: 100, desc: "opens an 8-second window where every landed hit stacks his damage multiplier" },
+    mobility: { name: "Kamui Blink", input: "Double-tap toward", cost: 0, desc: "instant teleport to the opponent's side" },
+    ultimate: { name: "Domain Expansion: The Genesis Threshold", input: "Ultimate (full meter)", cost: 100, desc: "trap the foe in a domain and force them to hit a random ~20s WASD cadence — every fumbled beat deals real damage" },
     combos: [
-      { name: "Read & Strike", sequence: "Light, Light, Heavy, Analysis Strike", desc: "build combo count, then cash the weak-point hit" },
-      { name: "Snowball",      sequence: "Full Analysis, Light, Light, Heavy, Analysis Strike", desc: "stack the multiplier under ultimate" }
+      { name: "Bread & Butter", sequence: "Forward + Heavy, Heavy, Heavy", desc: "Kamui Rod Combo — re-tap Heavy on hit to link into the launcher finisher" },
+      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",     desc: "launcher into aerial pressure" }
     ]
   },
 

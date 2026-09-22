@@ -865,7 +865,18 @@
     "test:narrow-kit-specials": "node harness/narrow_kit_specials_live.mjs",
     "test:miles-kurapika-reverify": "node harness/miles_kurapika_reverify.mjs",
     "test:camera-ultrawide": "node harness/camera_ultrawide.test.mjs",
-    "test:camera-ultrawide-live": "node harness/camera_ultrawide_live.mjs"
+    "test:camera-ultrawide-live": "node harness/camera_ultrawide_live.mjs",
+    "test:omololu-domain": "node harness/omololu_domain_verify.mjs",
+    "test:omololu-live": "node harness/omololu_live.mjs",
+    "test:omololu-stage2": "node harness/omololu_stage2_live.mjs",
+    "test:omololu-scale": "node harness/omololu_scale_measure.mjs",
+    "test:omololu-genesis-redo": "node harness/omololu_genesis_redo.mjs",
+    "test:omololu-kit": "node harness/omololu_kit_live.mjs",
+    "test:omololu-skin": "node harness/omololu_skin_live.mjs",
+    "test:omololu-voice": "node harness/omololu_voice.test.mjs",
+    "test:omololu-matchup": "node harness/omololu_matchup.test.mjs",
+    "test:announcer-diagnose": "node harness/announcer_diagnose.mjs",
+    "test:announcer-voice": "node harness/announcer_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1",

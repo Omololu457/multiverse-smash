@@ -1,0 +1,20 @@
+OMOLOLU CHARACTER VOICE SCRIPT — for matching against clips in this folder
+(31 raw clips were split from your recording; the script has 15 lines,
+so some lines likely got split into 2 pieces at a natural pause/breath —
+listen through and note which clip numbers belong to which line below.)
+
+1. INTRO: "Alright, let's see what you've got."
+2. INTRO: "Careful — I picked up a few tricks."
+3. WIN: "That's the game. Literally."
+4. WIN: "I built this world. Don't expect to beat me in it."
+5. TAUNT: "You're not even trying."
+6. LOW HEALTH: "Okay — okay, I'm still here."
+7. HIT: "Agh!"
+8. HIT: "Not bad."
+9. HIT: "That actually hurt."
+10. SPECIAL (Flash Time): "Everything just... slowed down."
+11. SPECIAL (Kamui Warp): "Catch me if you can."
+12. SPECIAL (Kamui Intangibility): "Right through you."
+13. SPECIAL (Kamui Dimension): "Say goodbye to the background."
+14. ULTIMATE activation (Domain Expansion): "Welcome to my dimension."
+15. ULTIMATE mid-sequence (Domain Expansion): "Keep up!"

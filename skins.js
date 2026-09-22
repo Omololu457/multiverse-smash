@@ -924,6 +924,19 @@ export const SKINS = {
     { id: "obitoMarbledPhantom", name: "Marbled Phantom", unlockLevel: 0, portrait: "./obito_portrait__obitoMarbledPhantom.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "obitoMarbledPhantom") }
   ],
 
+  // Omololu (original self-insert; Obito-recolor sheets). REQUIRED default entry — WITHOUT it applySkin()
+  // pulls the getSkins() spriteScale:1 fallback (skins.js getSkins), which clobbers characters.omololu's
+  // 1.30 → the sprite renders at native ~100px (visibly ~26% smaller than the roster's ~128–149 band).
+  // With this entry, applySkin resolves the real 1.30 → ~130px, in-band (identical to obito). The default
+  // sheet set IS omololu_*_uniform.png; the second skin is a WHITE/BLACK unified bodysuit with black seam
+  // linework (tools/gen_omololu_suit_recolor.py → omololu_*__webweave.png). Face kept visible (no mask),
+  // no emblem — only the neutral hair/outfit region is remapped to the suit; the brown face/hands + red
+  // eye are untouched. spriteScale mirrors the default so the size is unchanged.
+  omololu: [
+    { id: "default",          name: "Default",         unlockLevel: 0, portrait: characters.omololu?.portrait,               spriteScale: characters.omololu?.spriteScale, animationData: null },
+    { id: "omololuWebWeave",  name: "Web-Weave Suit",  unlockLevel: 0, portrait: recolorPortrait("omololu", "webweave"),     spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "webweave") }
+  ],
+
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. Same gate: WITHOUT a
   // default skin, applySkin() pulls the getSkins() spriteScale:1 fallback → native ~57px (half
   // size). Sources his real spriteScale (1.90) from the character. No portrait yet (procedural-box

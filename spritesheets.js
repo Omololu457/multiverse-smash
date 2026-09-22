@@ -112,6 +112,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./obito_idle_uniform.png" }
   },
 
+  // Omololu (original self-insert). Recolored duplicate of Obito's sheet set — GATES spritesReady()
+  // only (decodes idle → flips from box to sprite); per-action rendering reads the `sheet` paths from
+  // characters.js → omololu.animationData (omololu_*_uniform.png). Obito's registry above is untouched.
+  omololu: {
+    actions: { idle: "./omololu_idle_uniform.png" }
+  },
+
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. GATES spritesReady() only
   // (decodes idle → flips Tobi from box to sprite); per-action rendering reads the `sheet` paths
   // from characters.js → tobi.animationData (tools/reslice_tobi.py'd masked_man_*_uniform copies).

@@ -200,6 +200,7 @@ import {
   updateAoiTodoClap,             // Aoi Todo "Boogie Woogie" Clap — Charge + dir → cameo summon/swap / enemy-swap / fake / self-swap (+ Black Flash arm/resolve)
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   fireObitoKamuiDimension, updateObitoKamuiDimension,   // Obito "Kamui Dimension" (NEW: Charge-HOLD→release) — domain-freeze + shuriken barrage + void-bg swap
+  updateOmoluCommandCombat, toggleOmoluKamui, updateOmoluKamui, fireOmoluKamuiDimension, applyOmoluFlashTime, revertOmoluFlashTime,   // OMOLOLU — ported Obito kit (rekka / Kamui Intangibility / Kamui Dimension) + Flash Time slow-time apply
   updateTobiCombat,              // Tobi (masked Obito alias) — per-frame combat watcher: Stage-2 air-kunai projectile spawn (own `_tobi*` state, no Obito coupling)
   updateTobiChainGrab,           // Tobi Stage-3 Chain Grab scripted state machine (whip→reach→snatched→smash, all `_tobiChain*`)
   updateTobiKamui, toggleTobiKamui, deactivateTobiKamui,   // Tobi Stage-4 Kamui Intangibility (own `_tobi*` state; independent of Obito's `_kamui*`)
@@ -338,7 +339,7 @@ import {
 import {
   activeDomains,
   activateDomain, updateDomains, drawDomains, clearDomains,
-  drawDomainBackground, getDomainHUDData
+  drawDomainBackground, getDomainHUDData, genesisImageReady
 } from "./domains.js"
 import {
   spawnCubeTrap, updateCubeTraps, drawCubeTraps, clearCubeTraps, cubeTrapState
@@ -346,6 +347,9 @@ import {
 import {
   spawnObitoDimension, updateObitoDimensions, drawObitoDimensions, clearObitoDimensions, obitoDimensionState
 } from "./obitoDimension.js"   // "Obito_dimension" Kamui banishment (Obito Back+Special / Tobi Up+Special; cubeTrap sibling)
+import {
+  tickOmololuDomain, isOmololuDomainActive, getOmololuDomainView, OMO_DOMAIN
+} from "./omololuDomain.js"   // Omololu "Domain Expansion: The Genesis Threshold" — trapped-foe WASD cadence (Naoya window judging + domains.js background)
 import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffects } from "./effects.js"
 import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate,
@@ -485,6 +489,7 @@ import {
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
+import { pickAnnouncer, ANNOUNCER_VOICE } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
@@ -531,6 +536,7 @@ import { pickLightVoice, LIGHT_VOICE } from "./lightVoice.js"   // Light Yagami 
 import { pickHashiramaVoice, HASHIRAMA_VOICE } from "./hashiramaVoice.js"   // Hashirama intro(+taunt)/win/clone voice pools (audio-only, JA)
 import { pickPainVoice, PAIN_VOICE } from "./painVoice.js"   // Pain intro(+taunt)/win voice pools (audio-only, JA)
 import { pickObitoVoice, OBITO_VOICE } from "./obitoVoice.js"   // Obito intro(+taunt)/win voice pools (audio-only, JA)
+import { pickOmololuVoice, OMOLOLU_VOICE, pickOmololuMatchup } from "./omololuVoice.js"   // Omololu intro(+taunt)/win/special/ult voice pools + per-opponent matchup trash talk (audio-only, EN, ./clips/ + ./combined/)
 import { TOBI_VOICE } from "./tobiVoice.js"                     // Tobi (masked Obito alias) intro voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice, ZARAKI_VOICE } from "./zarakiVoice.js"   // Zaraki intro/taunt/win voice pools (audio-only, JA)
 import { pickIchigoVoice, ICHIGO_VOICE } from "./ichigoVoice.js"   // Ichigo intro(+taunt)/win voice pools (audio-only, JA)
@@ -1403,6 +1409,23 @@ const COMBO_RANKS = [
 const IMPACT_HIT_TIER = { light: 0, heavy: 1, special: 1, ultimate: 2 }   // weightier hits recolor a notch harder
 function _impactTierFromHitstop(hs) { return hs >= 24 ? "ultimate" : hs >= 15 ? "special" : hs >= 9 ? "heavy" : "light" }
 function _impactComboTier(combo) { return combo >= 15 ? 3 : combo >= 9 ? 2 : combo >= 5 ? 1 : 0 }   // mirrors the 5/9/15 combo-counter colour tiers
+
+// ── ANNOUNCER (audio-only; generic VO over match-flow moments; NEVER touches the sim/determinism) ──
+// One announcer CHANNEL (fixed sentinel owner → a new line stops the previous, never overlaps itself; a
+// non-fighter owner so it never cross-cuts a character's voice). A time-gap keeps rapid events (combos,
+// KO→victory) from stomping each other; priority:true bypasses the gap for the big beats (Fight/KO/victory).
+const ANNOUNCER_OWNER = { announcer: true }
+let _announcerAt = 0
+function announce(pool, opts = {}) {
+  if (sound?._sfxMuted) return
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now())
+  const gap = opts.minGap != null ? opts.minGap : 1600
+  if (!opts.priority && (now - _announcerAt) < gap) return
+  const clip = pickAnnouncer(pool)
+  if (!clip) return
+  try { sound?.playSfxFile?.(clip, null, { owner: ANNOUNCER_OWNER, volumeMult: opts.volumeMult ?? 1 }) } catch (_) {}
+  _announcerAt = now
+}
 // Stamp the Black-Flash marker on one fighter (render-only field, like _shActive/_idSwapActive — sprite.js
 // reads it for the palette swap, _tickImpactFlash clears it; never read by the sim → determinism-safe).
 function _stampImpactFlash(f, level, dur, tier, combo, comboTier) {
@@ -1417,6 +1440,10 @@ function triggerImpactFrame(attacker, combo) {
   const hs    = Math.max(attacker.hitstop || 0, opp?.hitstop || 0)
   const tier  = _impactTierFromHitstop(hs)
   const ct    = _impactComboTier(combo)
+  // ANNOUNCER — combo milestones: fire ONCE per tier CROSSING (combo hits 5 / 9 / 15). Resets when the
+  // combo drops below 5. priority so it isn't swallowed by the anti-stomp gap mid-combo.
+  if (ct === 0) attacker._announcedComboTier = 0
+  else if (ct > (attacker._announcedComboTier || 0)) { attacker._announcedComboTier = ct; announce("comboMilestone", { priority: true, minGap: 700 }) }
   const level = Math.min(3, ct + (IMPACT_HIT_TIER[tier] || 0))   // 0..3 recolor extremity (combo tier + hit weight)
   const dur   = 4 + level * 2                                    // ESCALATED: 4/6/8/10f — longer HOLD at EVERY tier (was 2..5)
   // Both fighters flash: the struck opponent (primary) and the attacker landing it (the "connection").
@@ -3337,6 +3364,9 @@ const INTRO_VOICE = {
   // Obito picks ONE of his pre-fight / taunt lines at random per match. No taunt action → intro + taunt
   // pools combine and fire on the intro beat only (see obitoVoice.js). JA.
   obito: { pool: [...OBITO_VOICE.intro, ...OBITO_VOICE.taunt], gateReveal: false },
+  // Omololu picks ONE of his pre-fight / taunt lines at random per match. No taunt action → intro + taunt
+  // pools combine and fire on the intro beat only (obito pattern; see omololuVoice.js). EN.
+  omololu: { pool: [...OMOLOLU_VOICE.intro, ...OMOLOLU_VOICE.taunt], gateReveal: false },
   tobi: { pool: TOBI_VOICE.intro, gateReveal: false },   // Tobi goofy pre-match banter (own pool; independent of Obito's)
   // Ichigo picks ONE of his pre-fight lines at random per match ("Let's get started." / "I've come to
   // stop you." / "I'll protect everyone." / "Come and get me."). No taunt action → intro + taunt pools
@@ -3380,6 +3410,16 @@ const INTRO_VOICE = {
 }
 function maybeFireIntroVoice(fighter) {
   if (!fighter || fighter._introVoiceDone) return
+  // OMOLOLU: his intro line IS a per-opponent matchup taunt. Fired here on the same reveal beat (reusing the
+  // single voice channel + timing), so it naturally REPLACES the generic intro pool. Named, non-excluded
+  // opponent → that character's specific line; unnamed / hard-excluded (apparent minors) → a generic jeer.
+  if (fighter.rosterKey === "omololu") {
+    fighter._introVoiceDone = true
+    const opp = (fighter === p1) ? p2 : (fighter === p2) ? p1 : null
+    const clip = pickOmololuMatchup(opp?.rosterKey)
+    if (clip) sound.playSfxFile?.(clip, null)
+    return
+  }
   // Per-skin OVERRIDE takes priority (Gojo "Limitless" young pack); null under any other
   // skin → fall through to the base INTRO_VOICE entry (base Gojo has none → nothing plays).
   const skinClip = pickSkinVoice(fighter.rosterKey, fighter.skinId, "intro")
@@ -3811,6 +3851,7 @@ function startMatch() {
   beginNamecallSequence()   // pre-countdown P1→P2 character announcement (skipped if unmapped)
   matchIntroTimer = 90
   gameState       = GAME_STATES.INTRO
+  announce("vs", { priority: true })   // ANNOUNCER — VS-screen hype line over the matchup intro
   // BUG_9: play the intro/transform strip during the intro window (cleared when
   // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
   // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
@@ -3916,6 +3957,7 @@ function _applyHomeStageDefault() {
 }
 
 function proceedAfterCharacter(side) {
+  announce("charLock", { priority: true })   // ANNOUNCER — "Locked in." on a character confirm (before advancing to skin select)
   skinSelectSide = side
   hoverSkinIndex = 0
   _skinConfirm = null                       // clear any stale confirm hold from a prior skin pick
@@ -4989,6 +5031,7 @@ function _checkMatchOver() {
     // WIN/LOSS lines are INTENTIONAL post-match audio → mark them persistent so the round-end/menu
     // stopAllSfx (which already cut the combat audio above) can't silence them on the victory screen.
     sound._forcePersistent = true
+    announce("victory", { priority: true })   // ANNOUNCER — victory-screen callout ("Victory!" / "That's the match."), layered with the winner's own quip below
     // BEERUS win voice — random 50/50 between his two victory lines (coin flip, like pickIntroVariant's
     // Math.random). Fires only when the WINNER is Beerus; independent of whether the win-pose art is
     // dedicated or shared (his batch shipped no win/lose sprite → shared win state, audio wired anyway).
@@ -5144,6 +5187,10 @@ function _checkMatchOver() {
       // OBITO win voice — random pick from his victory pool. Fires only when the WINNER is Obito. JA.
       if (winFighter?.rosterKey === "obito") {
         sound.playSfxFile?.(pickObitoVoice("win"), null)
+      }
+      // OMOLOLU win voice — "That's the game. Literally." / "I built this world…". WINNER only. EN.
+      if (winFighter?.rosterKey === "omololu") {
+        sound.playSfxFile?.(pickOmololuVoice("win"), null)
       }
       // ICHIGO win voice — random pick from his victory pool ("It's my win." / "That was fun." /
       // "Let's end this."). Fires only when the WINNER is Ichigo. JA.
@@ -5953,6 +6000,9 @@ function handleChargeRelease(fighter, key) {
   // gate below, exactly like GL/Onoki/Rengoku's hold-release moves). A quick TAP falls through to the generic
   // toggle branch (Kamui Intangibility — unchanged).
   if (fighter.rosterKey === "obito" && wasHeld && !wasTap) { fireObitoKamuiDimension(fighter, getAbilityContext()); return }
+  // OMOLOLU mirrors Obito's charge idiom: HOLD→release fires "Kamui Dimension" (void-swap + barrage);
+  // a quick TAP falls through to the toggle chain below → Kamui Intangibility. (Ported, Obito untouched.)
+  if (fighter.rosterKey === "omololu" && wasHeld && !wasTap) { fireOmoluKamuiDimension(fighter, getAbilityContext()); return }
 
   if (!wasTap) return
   // FLIGHT toggle (Omni-Man + Superman, any traits.canFly char): a quick P-TAP engages/disengages
@@ -5987,6 +6037,9 @@ function handleChargeRelease(fighter, key) {
     // Tobi — KAMUI INTANGIBILITY toggle (own `_tobi*` implementation; identical idiom to Obito's,
     // fully independent state). Silent deactivation (asymmetry).
     toggleTobiKamui(fighter, getAbilityContext())
+  } else if (fighter.rosterKey === "omololu") {
+    // Omololu — P-TAP toggles KAMUI INTANGIBILITY (ported; own gated `updateOmoluKamui` drives it).
+    toggleOmoluKamui(fighter, getAbilityContext())
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }
@@ -6052,9 +6105,12 @@ const SPEED_TIER_THRESHOLD = 98
 //   • netero — "Speed of God" (Hyakushiki self-boost); canonically the fastest Hunter (speed 94)
 //   • hisoka — precision Bungee-Gum-assisted repositioning / burst closing speed (speed 91)
 //   • beerus — God of Destruction reaction speed (his dash sprite is already a Hakai energy streak) (speed 95)
+//   • omololu — Obito-derived kit (Kamui blink lineage); granted the IDENTICAL speed-tier teleport-dash as
+//     obito (same 240ms double-tap trigger, same blink-beside-foe destination, same 48f cooldown, own dash pose)
 const SPEED_TIER_TELEPORT_KEYS = new Set([
   "obito", "tobi", "pain",                                       // Stage-0 originals (Kamui / gravity feats)
-  "naruto", "madara", "zaraki", "killua", "netero", "hisoka", "beerus"   // Stage-2 speed-blitz additions
+  "naruto", "madara", "zaraki", "killua", "netero", "hisoka", "beerus",   // Stage-2 speed-blitz additions
+  "omololu"   // Obito-recolor self-insert — same Kamui-lineage blink feat as obito (falls through to its own dash pose)
 ])
 function isSpeedTierTeleport(fighter) {
   const key = (fighter?.rosterKey || fighter?.id || "").toLowerCase()
@@ -6786,6 +6842,12 @@ function _updatePlayerCombatBody(fighter) {
     inputState.air = false; inputState.downAir = false; inputState.airHeavy = false
     inputState.special = false; inputState.grab = false
   }
+  // OMOLOLU — same rule while its ported Kamui Intangibility is up: can't attack (only move/guard/drop it via P).
+  if ((fighter.rosterKey || "").toLowerCase() === "omololu" && fighter._kamuiIntangible) {
+    inputState.light = false; inputState.heavy = false; inputState.upAttack = false
+    inputState.air = false; inputState.downAir = false; inputState.airHeavy = false
+    inputState.special = false; inputState.grab = false
+  }
 
   // NAOYA — 24FPS SNARE enforcement: a snared fighter (any character) must HOLD NEUTRAL. Read here, with the
   // fighter's own live inputState and AFTER the hitstun/blockstun early-return above (so the snare only enforces
@@ -6793,6 +6855,19 @@ function _updatePlayerCombatBody(fighter) {
   // updateNaoyaSnare applies a hard 1s freeze and returns true; we then early-return so the rule-break input
   // itself resolves to nothing (they're frozen). Holding neutral ticks the window down → it expires harmlessly.
   if ((fighter._naoyaSnare || 0) > 0 && updateNaoyaSnare(fighter, inputState)) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
+  }
+
+  // OMOLOLU — DOMAIN EXPANSION: The Genesis Threshold. Same integration shape as the Naoya snare above.
+  // If THIS fighter is the trapped victim, tickOmololuDomain judges its live inputState for the current
+  // beat (correct in-window = safe, wrong/missed = real chip damage) and returns true while trapped →
+  // early-return so no normal action leaks. If THIS fighter is the CASTER, it's locked into conducting
+  // the cadence and likewise takes no action. Obito/Naoya code is untouched.
+  if (fighter._omoDomainOwner && tickOmololuDomain(fighter._omoDomainOwner, fighter, inputState, getAbilityContext())) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
+  }
+  if (isOmololuDomainActive(fighter)) {   // caster — conducting the domain, cannot act
+    fighter.vx = 0
     updateCombat(fighter, getOpponent(fighter), {}, opts); return
   }
 
@@ -6892,8 +6967,10 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "light") {
     fighter._ultVariant = (betaHeldDirFromInput(inputState, fighter.facing) === "D") ? "scythe" : "writing"
   }
+  // OMOLOLU — the Ultimate is a single domain, "The Genesis Threshold" (the WASD rhythm gauntlet), on any
+  // Ultimate press (no directional variant). executeOmoluUltimate → startOmololuDomain (omololuDomain.js).
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
-  if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { triggerUltimate(fighter, getAbilityContext()); return }
+  if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }
 
   // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
   // fire the Phase-1 placeholder light. Consumes the grounded light/heavy/up press when it
@@ -7237,6 +7314,10 @@ function _updatePlayerCombatBody(fighter) {
   // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
   if ((fighter.rosterKey || "").toLowerCase() === "obito" && !charging &&
       updateObitoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // OMOLOLU — ported "Kamui Rod Combo" (same Fwd+Heavy rekka; no Kamui grab). Consumes on fire.
+  if ((fighter.rosterKey || "").toLowerCase() === "omololu" && !charging &&
+      updateOmoluCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // PAIN — Fwd+Light → painJab (single); Fwd+Heavy → 3-stage rekka painCombo1→2→3 (re-tap Heavy on a
   // clean hit to advance). Consumes the input only when it fires; neutral light/heavy/up/air/air_heavy/
@@ -12081,6 +12162,8 @@ function updateFighterState(fighter) {
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
   updateObitoKamui(updated)          // Obito Kamui Intangibility: continuous chakra drain + auto-deactivate at 0 + melee-drop/reactivate + sustains the i-frame phase
+  updateOmoluKamui(updated)          // OMOLOLU (ported) Kamui Intangibility: continuous chakra drain + auto-off at 0 + i-frame phase (own gated driver)
+  applyOmoluFlashTime(updated)       // OMOLOLU Flash Time: continuous drain + auto-revert (slow-time flag read generically by _oppTimeScaleOf; no aura)
   updateTobiChainGrab(updated, getAbilityContext())   // Tobi Chain Grab: scripted whip→reach→snatched→smash grab-combo state machine (own `_tobiChain*` state)
   updateTobiKamui(updated)           // Tobi Kamui Intangibility: continuous chakra drain + auto-off at 0 + melee-drop/reactivate + i-frame phase (own `_tobi*` state)
   updatePortalReflectStance(updated) // Obito/Tobi Kamui Portal-Reflect: startup→active→recovery phase machine (reflect works while `_portalActive`)
@@ -12475,6 +12558,7 @@ function checkRoundEnd() {
   // whole roster passes through here; no character-specific data is touched.
   if (!_koBeatFired) {
     _koBeatFired = true
+    announce("ko", { priority: true })   // ANNOUNCER — "K.O.!" on the knockout beat (layers over the KO camera/freeze)
     knockoutFlash = 18; _koStamp = _koStampMax = 48   // Stage 9: fire the K.O. stamp on the knockout frame
     const koLoser = (p1.health <= 0) ? p1 : p2
     camera.shake?.(KO_SHAKE_STRENGTH, KO_SHAKE_FRAMES)
@@ -12489,6 +12573,12 @@ function checkRoundEnd() {
   else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
   else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
   recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
+  // ANNOUNCER — PERFECT round callout when the winner never dropped below their round-start HP (same
+  // condition recordRoundEnd uses for perfectRounds). Mirrors the KO/perfect priority over the plain KO line.
+  if (rw && (rw === "p1" ? (p1?.health || 0) >= (matchStats?.roundStartHealth?.p1 || 0)
+                         : (p2?.health || 0) >= (matchStats?.roundStartHealth?.p2 || 0))) {
+    announce("perfect", { priority: true })
+  }
   if (aiVsAiState.active) {
     const method = (p1.health <= 0 && p2.health <= 0) ? "double_ko" : "ko"
     logRoundEnd(aiVsAiState.session, { round: roundNumber, winner: rw || "draw", method, p1Health: p1?.health || 0, p2Health: p2?.health || 0, frame: globalFrameCount })
@@ -12568,6 +12658,7 @@ function _oppTimeScaleOf(user) {
   if (!user) return 0
   if (user._godspeedActive) return GODSPEED_OPP_TIMESCALE
   if (user._flashTimeActive) return user._ftOppTimeScale || 0.34
+  if (user._omoFlashActive) return user._omoOppTimeScale || 0.35   // OMOLOLU "Flash Time" — reuses this exact slow-time engine (no aura)
   return 0
 }
 function _updateGodspeedTimeSlow() {
@@ -12609,6 +12700,7 @@ function updateMusicIntensity() {
   const want  = _matchIsFinalRound() || lowHP
   if (want === _musicIntensityOn) return
   _musicIntensityOn = want
+  if (want && lowHP) announce("lowHealth")   // ANNOUNCER — "He's on the ropes." on the SAME low-HP trigger as the music crossfade (not on the final-round-only case)
   try {
     if (want) sound.setMusicIntensity?.(true, resolveIntenseTrack(getStageTheme()))
     else      sound.setMusicIntensity?.(false)
@@ -15173,6 +15265,58 @@ function _drawDomainHUDBar() {
   ctx.restore()
 }
 
+// OMOLOLU DOMAIN — the WASD cadence prompt (screen-space overlay). A big glyph for the current beat,
+// a shrinking timing bar while its input window is open, and a running HIT/MISS tally. Presentation
+// only (reads the domain view; never mutates sim state), so Date.now()-driven pulsing is fine here.
+function _drawOmololuDomainHUD() {
+  const caster = isOmololuDomainActive(p1) ? p1 : (isOmololuDomainActive(p2) ? p2 : null)
+  if (!caster) return
+  const v = getOmololuDomainView(caster)
+  if (!v) return
+  const cw = canvas.width, cx = cw / 2, cy = canvas.height * 0.30
+  const flashing = v.flash > 0
+  const hitTint  = "#48e08a", missTint = "#ff5b6e", openTint = "#5ad6ff", waitTint = "rgba(230,230,240,0.85)"
+  let ring = flashing ? (v.lastEvent === "hit" ? hitTint : missTint) : (v.windowOpen ? openTint : waitTint)
+
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+
+  // Title + time-remaining
+  ctx.font = "700 13px Arial"; ctx.fillStyle = "rgba(200,180,255,0.9)"
+  ctx.fillText("DOMAIN — THE GENESIS THRESHOLD", cx, cy - 74)
+  const secLeft = Math.ceil(Math.max(0, v.framesLeft) / 60)
+  ctx.font = "600 10px Arial"; ctx.fillStyle = "rgba(255,255,255,0.55)"
+  ctx.fillText(`${secLeft}s`, cx, cy - 58)
+
+  // Prompt plate
+  const plate = 74
+  ctx.fillStyle = "rgba(0,0,0,0.55)"
+  _rrectFill(ctx, cx - plate / 2, cy - plate / 2, plate, plate, 12)
+  ctx.lineWidth = 4; ctx.strokeStyle = ring
+  _rrectStroke(ctx, cx - plate / 2, cy - plate / 2, plate, plate, 12)
+
+  // The WASD glyph
+  ctx.font = "800 46px Arial"
+  ctx.fillStyle = flashing ? ring : "#ffffff"
+  ctx.fillText(v.glyph, cx, cy + 2)
+
+  // Timing bar: telegraph = approach (fills), window = drain (empties)
+  const barW = 96, barH = 8, bx = cx - barW / 2, by = cy + plate / 2 + 12
+  ctx.fillStyle = "rgba(255,255,255,0.10)"; _rrectFill(ctx, bx, by, barW, barH, 4)
+  let ratio, barCol
+  if (v.phase === "telegraph") { ratio = 1 - v.t / OMO_DOMAIN.telegraph; barCol = waitTint }
+  else if (v.windowOpen)       { ratio = Math.max(0, v.t / v.winMax);    barCol = openTint }
+  else                         { ratio = 0;                              barCol = ring }
+  ctx.fillStyle = barCol; _rrectFill(ctx, bx, by, barW * ratio, barH, 4)
+
+  // HIT / MISS tally
+  ctx.font = "700 12px Arial"
+  ctx.fillStyle = hitTint;  ctx.fillText(`HIT ${v.hits}`,  cx - 34, by + 26)
+  ctx.fillStyle = missTint; ctx.fillText(`MISS ${v.misses}`, cx + 36, by + 26)
+
+  ctx.restore()
+}
+
 function _drawKOFlash() {
   if (knockoutFlash <= 0) return
   // STAGE 2 fix: during the KO freeze-frame HOLD, don't wash the frozen scene white — keep the characters
@@ -15259,6 +15403,7 @@ function drawBattle() {
   _drawDamageNumbers()
   _drawComboCounters()
   _drawDomainHUDBar()
+  _drawOmololuDomainHUD()   // Omololu domain — the WASD cadence prompt + HIT/MISS tally
   _drawKOFlash()
   _drawKoStamp()   // Stage 9: angular K.O. slam over the flash
   _drawBrutality()   // stylized finishing-move overlay (gore burst + flash + "BRUTALITY!" stamp), when active
@@ -16562,6 +16707,8 @@ function handleMenuClicks() {
     case GAME_STATES.GAMEPLAY_SELECT: {
       const c = getGameplaySelectRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c) break
+      // ANNOUNCER — "entering a mode" beat when the player commits to a real mode (every card except Back).
+      if (c.id !== "back") announce("modeEntry")
       if (c.id === "training") chooseMode("training")
       else if (c.id === "comboTrials") openComboTrialsScreen(GAME_STATES.GAMEPLAY_SELECT)
       else if (c.id === "vs")  chooseMode("vs")
@@ -17048,7 +17195,25 @@ function _drawNavBackButton() {
 // MAIN LOOP
 // ------------------------------------------------------------------
 let _prevGridState = null
+// Screen-ENTRY announcer pools (fired ONCE on the transition into each state, from updateCurrentState).
+const _ANNOUNCE_ON_ENTER = {
+  [GAME_STATES.MAIN_MENU]:        "mainMenu",
+  [GAME_STATES.GAMEPLAY_SELECT]:  "modeSelect",
+  [GAME_STATES.SELECT_CHARACTER]: "charSelect",
+  [GAME_STATES.SELECT_SKIN]:      "skinSelect",
+  [GAME_STATES.SELECT_STAGE]:     "stageSelect",
+  [GAME_STATES.PAUSED]:           "pause",
+}
+let _announcerPrevState = null
 function updateCurrentState() {
+  // ANNOUNCER — fire a screen-entry line once when the game state CHANGES into a mapped screen (menus /
+  // selects / pause). Match-flow events (VS, Fight, combo, low-HP, KO, perfect, victory) are wired at their
+  // own event sites. Audio-only; never touches the sim.
+  if (gameState !== _announcerPrevState) {
+    const pool = _ANNOUNCE_ON_ENTER[gameState]
+    if (pool) announce(pool)
+    _announcerPrevState = gameState
+  }
   // FIRST-BOOT TUTORIAL gate: the very first time a real player lands on the main
   // menu with no "seen tutorial" flag, force the interactive walkthrough (once).
   // Catches every path into the menu. Skipped under ?harness (tests drive their own
@@ -17137,6 +17302,7 @@ function updateCurrentState() {
         updateDebugInputToggles(); updateTrainingMode(); updateCPUInput()
         if (countdown === 1) {
           sound.play?.(SFX.UI_MATCH_START)
+          announce("fight", { priority: true })   // ANNOUNCER — "Fight!" LAYERED over the go-fanfare (the fanfare stays as the impact sting)
           // SASUKE battle-start voice — "Let's go." Fires at the GO frame of ROUND 1 only (post-intro,
           // first actionable beat = "start of the match"), once, for whichever side is Sasuke.
           if (roundNumber === 1) {
@@ -17814,6 +17980,8 @@ gameLoop()
     grabTeleport:     !!f._grabTeleport,         // pending Kamui opponent-teleport payload (shared combat contract, per-instance)
     grabTimer:        f.grabTimer || 0,          // frames until the grab's pop-up-and-drop throw resolves
     baseSpeed:        f.baseSpeed || f.speed || 0,   // base speed STAT (Toji-speed-tier threshold audit)
+    drawW:            f._lastDrawW || 0,             // actual RENDERED sprite width  (scale audit — on-screen bbox)
+    drawH:            f._lastDrawH || 0,             // actual RENDERED sprite height (scale audit — on-screen bbox)
     dashCooldownMax:  f.dashCooldownMax || 0,        // Stage 4b: per-archetype dash cooldown (speed-tiered)
     dashCooldown:     f.dashCooldown || 0,           // frames until the next dash is available
     dashTimer:        f.dashTimer || 0,              // active-dash frames remaining
@@ -18431,6 +18599,7 @@ gameLoop()
       state: () => gameState,
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
+      gameplaySelectRects: () => getGameplaySelectRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
       pushToast: (text, opts) => { pushToast(text, opts); return _toasts.length },
       toastCount: () => _toasts.length,
       padType: () => padGlyphs().label,
@@ -18447,6 +18616,77 @@ gameLoop()
       }
     },
     // BRUTALITIES (stylized finisher) — drive + inspect for verification. Toggles are independent of blood.
+    // ANNOUNCER (generic VO) verification hooks.
+    announcer: {
+      pools: () => Object.fromEntries(Object.entries(ANNOUNCER_VOICE).map(([k, v]) => [k, v.slice()])),
+      fire:  (pool) => { announce(pool, { priority: true }); return pool },   // force-fire a pool (bypasses the anti-stomp gap)
+    },
+
+    // OMOLOLU — Domain Expansion: The Genesis Threshold verification hooks.
+    omololu: {
+      active: () => isOmololuDomainActive(p1) || isOmololuDomainActive(p2),
+      caster: () => isOmololuDomainActive(p1) ? "p1" : (isOmololuDomainActive(p2) ? "p2" : null),
+      state:  () => getOmololuDomainView(p1) || getOmololuDomainView(p2) || null,
+      tuning: () => ({ ...OMO_DOMAIN }),
+      // Force-end any active Genesis Threshold domain (test cleanup so a later KO/win isn't held up by it).
+      endDomain: () => { for (const f of [p1, p2]) { if (f && f._omoDomain) { const v = f._omoDomain.victim; if (v) { v._omoDomainOwner = null; v._omoTrapped = false } f._omoDomain = null } } return true },
+      // Clear every ported-move state + refill meter/cooldowns, for clean between-move verification.
+      resetKit: (who = "p1") => {
+        const f = who === "p2" ? p2 : p1
+        if (!f) return null
+        f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.currentMove = null; f.currentAttack = null
+        f.energy = f.maxEnergy || 200
+        f._kamuiIntangible = false; f._kamuiPhased = false; f._kamuiCooldown = 0
+        f._kamuiDimActive = false; f._kamuiDimTimer = 0; f._kamuiDimCd = 0
+        if (f._omoFlashActive) { f._omoFlashActive = false; f.attackSpeedMultiplier = 1; if (f._omoFtBaseDash != null) { f.dashSpeed = f._omoFtBaseDash; f._omoFtBaseDash = null } f._omoOppTimeScale = 0 }
+        f._rekkaNext = null; f._cmdPrevHeavy = false; f._spriteCastMove = null; f._spriteCastTimer = 0
+        return true
+      },
+      // PORTED-KIT verification probes. `kit` = a full snapshot of every ported-move's live state for who="p1".
+      kit: (who = "p1") => {
+        const f = who === "p2" ? p2 : p1, o = who === "p2" ? p1 : p2
+        if (!f) return null
+        return {
+          x: Math.round(f.x), energy: Math.round(f.energy || 0), castMove: f._spriteCastMove || null,
+          kamuiIntangible: !!f._kamuiIntangible, kamuiPhased: !!f._kamuiPhased, invulnTimer: f.invulnTimer || 0, kamuiCd: f._kamuiCooldown || 0,
+          kamuiDimActive: !!f._kamuiDimActive, kamuiDimTimer: f._kamuiDimTimer || 0, kamuiDimCd: f._kamuiDimCd || 0,
+          flashActive: !!f._omoFlashActive, oppTimeScale: f._omoOppTimeScale || 0, foeSlowFlag: !!(o && o._timeSlowFlag),
+          rekkaNext: f._rekkaNext || null, currentMove: f.currentMove || null,
+          projectiles: activeProjectiles.filter(p => p.owner === f).length,
+          foeHealth: o ? Math.round(o.health) : null, foeFrozen: !!(o && o.domainFrozen),
+        }
+      },
+      // Force-cast The Genesis Threshold domain (fills meter first). The 2nd arg is ignored (kept for
+      // back-compat with older tests — there is now a single domain, the rhythm gauntlet). Returns { cast, view }.
+      trigger: (who = "p1", _variant) => {
+        const f = who === "p2" ? p2 : p1
+        if (!f) return null
+        f.energy = f.maxEnergy || 200; f.ultimateCooldown = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0
+        const cast = triggerUltimate(f, getAbilityContext())
+        return { cast: !!cast, view: getOmololuDomainView(f) }
+      },
+      // Read the active domain's identity (name/bg) + whether the IMG_3608 backdrop photo has decoded.
+      domainInfo: () => {
+        const active = activeDomains[0] || null
+        if (!active) return null
+        return { name: active.name, rosterKey: active.rosterKey, timer: active.timer, range: active.range, bgImageReady: (typeof genesisImageReady === "function" ? genesisImageReady() : null), casterZoom: (typeof camera !== "undefined" && camera.zoom) || null }
+      },
+      // Drive ONE cadence frame with a scripted victim input (dir: "up"|"left"|"down"|"right"|null=no press).
+      // Exercises the REAL judging path (tickOmololuDomain) headlessly so a test can assert
+      // damage-only-on-miss. Caller must NOT also be stepping the game loop (would double-tick).
+      tick: (dir = null) => {
+        const caster = isOmololuDomainActive(p1) ? p1 : (isOmololuDomainActive(p2) ? p2 : null)
+        if (!caster || !caster._omoDomain) return null
+        const victim = caster._omoDomain.victim
+        const inp = { up: false, left: false, down: false, right: false }
+        if (dir && Object.prototype.hasOwnProperty.call(inp, dir)) inp[dir] = true
+        const before = victim ? victim.health : 0
+        const consumed = tickOmololuDomain(caster, victim, inp, getAbilityContext())
+        const after = victim ? victim.health : 0
+        return { consumed, dmg: Math.round((before - after) * 100) / 100, view: getOmololuDomainView(caster), victimHp: after }
+      },
+    },
+
     brutality: {
       setBlood:     (on) => { setBloodFx(!!on); return bloodFx },
       setBrutality: (on) => { setBrutalityFx(!!on); return brutalityFx },
@@ -19967,6 +20207,10 @@ gameLoop()
       // Fire the once-per-intro voice line now (the sequential p1/p2 update branches — which normally call
       // maybeFireIntroVoice — are skipped while introStage is "done", so drive it directly for this hook).
       if (p1) try { maybeFireIntroVoice(p1) } catch (_) {}
-    }
+    },
+    // Fire the intro-voice beat for EITHER side (the real per-frame intro loop is skipped under the harness'
+    // straight-to-battle boot). Drives the same maybeFireIntroVoice path the live INTRO state uses — used to
+    // verify omololu's per-opponent matchup line works when he is P2, not just P1.
+    fireIntroVoice: side => { const f = side === "p2" ? p2 : p1; if (f) { f._introVoiceDone = false; try { maybeFireIntroVoice(f) } catch (_) {} } }
   }
 })()

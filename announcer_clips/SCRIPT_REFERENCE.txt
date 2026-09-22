@@ -1,0 +1,352 @@
+ANNOUNCER SCRIPT — for matching against clips in this folder.
+Clips are numbered in the order they were spoken/recorded (announcer_001,
+announcer_002, etc.) — if you read the full script in order when
+recording, clip N should roughly correspond to line N below, though a
+few lines may have split into 2 clips at a natural pause, or a few
+short lines may have merged into 1 clip if said quickly with no gap.
+
+--- GAME BOOT / TITLE SCREEN ---
+Multiverse Smash.
+Press any button to start.
+Welcome back.
+Welcome, challenger.
+
+--- MAIN MENU ---
+Where do you want to go?
+Choose your path.
+What'll it be?
+
+--- MODE SELECT ---
+Story Mode.
+Arcade.
+Versus.
+Tower Challenge.
+Free For All.
+Training.
+Online — local network.
+Combo Trials.
+
+--- SETTINGS / OPTIONS ---
+Settings.
+Adjust as you like.
+
+--- CHARACTER SELECT — ENTERING SCREEN ---
+Choose your fighter.
+Pick your champion.
+Who's it going to be?
+
+--- CHARACTER SELECT — HOVER / BROWSE ---
+Interesting.
+A solid pick.
+Bold choice.
+Now we're talking.
+Classic.
+Underrated.
+Dangerous in the right hands.
+
+--- CHARACTER SELECT — LOCK IN ---
+Locked in.
+Confirmed.
+Ready.
+
+--- CHARACTER SELECT — RANDOM PICK ---
+Random selected.
+Let fate decide.
+
+--- SKIN SELECT ---
+Choose your look.
+Suit up.
+
+--- STAGE SELECT ---
+Choose your battlefield.
+Pick the arena.
+Where will this happen?
+
+--- STAGE SELECT — HOVER ---
+Good choice of arena.
+This stage has history.
+
+--- VS SCREEN ---
+[Character One]... versus... [Character Two].
+This is going to be good.
+Let's see what you've got.
+Two legends enter.
+Only one walks away.
+This matchup has been a long time coming.
+The stage is set.
+
+--- PRE-ROUND COUNTDOWN ---
+Get ready.
+Here we go.
+Brace yourselves.
+
+--- ROUND START ---
+Round one.
+Round two.
+Round three.
+Final round.
+Sudden death.
+Fight!
+
+--- ROUND START — SPECIAL MODIFIERS ---
+Modifier active — expect the unexpected.
+This round comes with a twist.
+
+--- EARLY NEUTRAL / POKING ---
+They're feeling each other out.
+Testing the waters.
+Patient start.
+
+--- FIRST HIT LANDED ---
+First blood.
+There's the opener.
+And we're underway.
+
+--- BLOCKED ATTACK / WHIFF ---
+Blocked.
+No good.
+Denied.
+Whiffed — punishable.
+
+--- PARRY ---
+Perfect parry!
+Read like a book.
+Incredible timing.
+
+--- CLASH ---
+Clash!
+Even trade.
+Neither backs down.
+
+--- COUNTER-HIT ---
+Counter hit!
+Caught him clean.
+He never saw it coming.
+
+--- MID-MATCH HYPE ---
+Incredible!
+Devastating!
+What a hit!
+He's on fire!
+Unstoppable!
+That had to hurt.
+Massive damage!
+Right on the money.
+
+--- COMBO START ---
+He's got him started.
+Combo initiated.
+
+--- COMBO MILESTONES ---
+Nice!
+Great combo!
+Brutal!
+Savage!
+Godlike!
+Absurd!
+He's not stopping!
+
+--- COMBO DROPPED / ESCAPED ---
+Combo broken!
+He fought his way out!
+Escaped — barely.
+
+--- LAUNCHER / JUGGLE ---
+Sent him skyward!
+Up and away!
+Juggling now.
+
+--- SPECIAL MOVE LANDED ---
+Special connects!
+There's the technique.
+
+--- SPECIAL MOVE WHIFFED ---
+Missed the window.
+Overcommitted.
+
+--- ULTIMATE ACTIVATED ---
+Ultimate incoming!
+He's going all in!
+This changes everything.
+
+--- ULTIMATE CONNECTS ---
+Direct hit!
+That's game-changing.
+Massive!
+
+--- ULTIMATE WHIFFED / BLOCKED ---
+Wasted!
+He'll regret that.
+All that meter, for nothing.
+
+--- TRANSFORMATION / FORM CHANGE ---
+Something's happening...
+He's transforming!
+A new form emerges.
+Power levels rising.
+
+--- DOMAIN / SPECIAL CINEMATIC TRIGGERED ---
+It's happening!
+There's no escape now.
+Welcome to his world.
+
+--- GRAB / COMMAND GRAB ---
+Grabbed!
+Nowhere to run.
+Caught!
+
+--- THROW ESCAPE ---
+Escaped the grab!
+Slipped free!
+
+--- KNOCKDOWN ---
+He's down!
+Hit the ground hard.
+
+--- WAKE-UP / GETTING BACK UP ---
+He's getting back up.
+Not done yet.
+
+--- LOW HEALTH WARNING ---
+He's on the ropes.
+This could be it.
+One more hit.
+Danger zone.
+Living on borrowed time.
+
+--- CRITICAL HEALTH ---
+Anyone's game now.
+One mistake ends this.
+Nerves of steel needed here.
+
+--- COMEBACK / CLUTCH MOMENT ---
+What a comeback!
+Down but not out!
+Never count him out!
+Absolutely refusing to lose!
+
+--- CHIP DAMAGE FINISH ---
+Chipped away — that's the end!
+
+--- ROUND END / K.O. ---
+K.O.!
+And it's over.
+That's the round.
+Lights out.
+Down and out.
+
+--- PERFECT ROUND ---
+A perfect victory!
+Flawless!
+Untouched.
+Didn't even land a hit — perfect.
+
+--- BRUTALITY / GORE FINISH ---
+Ruthless.
+That was brutal.
+He didn't hold back.
+No mercy.
+Absolutely savage.
+
+--- ROUND TRANSITION ---
+One round down.
+Even at one apiece.
+Match point.
+
+--- DOUBLE KO / DRAW ---
+Double knockout!
+It's a draw.
+Nobody wins that exchange.
+
+--- TIME OVER ---
+Time's up.
+Judges' decision.
+Down to the numbers.
+
+--- MATCH END / VICTORY SCREEN ---
+[Character] wins.
+Your winner...
+Victory!
+GG.
+That's the match.
+Dominant performance.
+A hard-fought win.
+Closer than it looked.
+
+--- REMATCH / CONTINUE PROMPT ---
+Run it back?
+One more round?
+Rematch?
+
+--- RETURNING TO MENU ---
+Until next time.
+See you back here soon.
+
+--- SPECIAL MODES — ENTRY ---
+Welcome to Training Mode.
+Tower Challenge — good luck.
+Arcade Mode. Let's begin.
+Free For All — everyone's fair game.
+Story Mode begins.
+Combo Trials — show me what you've got.
+
+--- ARCADE — FIGHT PROGRESSION ---
+One down.
+The gauntlet continues.
+Final boss.
+Arcade complete!
+
+--- TOWER MODE — FLOOR PROGRESSION ---
+Floor cleared.
+Onward and upward.
+The tower awaits.
+Top of the tower!
+
+--- FREE FOR ALL — ELIMINATION ---
+Eliminated!
+One down, more to go.
+Last one standing wins.
+
+--- FREE FOR ALL — VICTORY ---
+Survived them all!
+Last fighter standing!
+
+--- TEAM MODE ---
+Team battle.
+Advantage — [team].
+
+--- TRAINING MODE ---
+Reset.
+Take your time.
+Practice makes perfect.
+
+--- DAILY CHALLENGE / COMBO TRIAL — SUCCESS ---
+Challenge complete!
+Trial cleared!
+Flawless execution.
+
+--- DAILY CHALLENGE / COMBO TRIAL — FAILURE ---
+Not quite.
+So close.
+Try again.
+
+--- LEVEL UP / XP GAIN ---
+Level up!
+Growing stronger.
+
+--- UNLOCK ---
+New fighter unlocked!
+New skin available.
+New arena unlocked.
+
+--- PAUSE MENU ---
+Paused.
+Take a breather.
+
+--- DISCONNECT / MATCH INTERRUPTED ---
+Connection lost.
+Match interrupted.
+
+--- IDLE / NO INPUT ---
+Still there?
+Take your time.

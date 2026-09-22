@@ -935,27 +935,85 @@ const aoiTodo = {
   }
 }
 
+// OMOLOLU — the "self-insert" original fighter. Sprites are a duplicate-and-recolor of Obito's
+// sheet set (omololu_*_uniform.png, copied then recolored: dark-brown skin + matte near-black hair,
+// Obito's outfit/silhouette kept as the base structure — tools/gen_omololu_recolor.py). Obito's own
+// files are NEVER touched (copy-FROM only). Stats are roster-average placeholders. The one built move
+// is the domain-tier ULTIMATE below (Domain Expansion: Recursive Cadence, omololuDomain.js).
 const omololu = {
-  rosterKey: "omololu", name: "Omololu", universe: "original", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
+  rosterKey: "omololu", name: "Omololu", universe: "original", isPlayable: true,
+  portrait: "./omololu_portrait.png",
   archetypes: ["melee", "analysis"],
   primary: "melee", secondary: ["analysis"],
   traits: { hasEnergy: true, energyType: "stamina", mobility: "medium", scaling: "ramp", animeMovement: true },
-  stats: { maxHealth: 1210, maxEnergy: 180, attack: 88, defense: 90, speed: 80, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 40 },
+  // Roster-average placeholder stats (computed across the 102-char roster: HP≈1148, EN≈161,
+  // ATK≈90, DEF≈84, SPD≈89). maxEnergy bumped to 180 for clean domain-cost headroom (cost 100).
+  stats: { maxHealth: 1150, maxEnergy: 180, attack: 90, defense: 84, speed: 89, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  movement: { runWhenAdvancing: true },
   basic_attacks: {
     light:     { damage: 44, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 84, startup: 9, active: 4, recovery: 18, hitstun: 18, knockbackX: 5, knockbackY: 1 },
-    upAttack:  { damage: 68, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    upAttack:  { type: "launcher", damage: 68, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
     airAttack: { damage: 58, startup: 6, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 74, startup: 9, active: 4, recovery: 14, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 30, startup: 7, active: 3, recovery: 15, hitstun: 18, throwForceX: 5, throwForceY: -3 }
   },
+  // Kit PORTED 1:1 from Obito (copy-only — Obito's own files are never modified) + a new Killua-slow-time
+  // "Flash Time". Direction-branched off SPECIAL (abilities.js executeOmoluSpecial): neutral = Shuriken
+  // (air = diagonal), Forward = Chakra Rod, Up = Giant Shuriken, Down = Kamui Warp, Back = Flash Time.
+  // Kamui Intangibility = P-TAP toggle; Kamui Dimension (void-swap + barrage) = P-HOLD→release (special-
+  // tier, NOT the ultimate). Rekka = Fwd+Heavy. Costs mirror Obito's special-tier band.
   specials: {
-    analysisStrike: { cost: 30, damage: 130, startup: 12, active: 5, recovery: 20, hitstun: 22, knockbackX: 8, knockbackY: -1, effect: "reads opponent pattern and strikes weak point" }
+    shurikenThrow: { cost: 18, description: "Shuriken Throw (neutral; airborne = diagonal down-forward air-throw)." },
+    rodThrow:      { cost: 22, description: "Chakra Rod Throw (Forward) — fast, long reach." },
+    giantShuriken: { cost: 34, description: "Giant Shuriken (Up) — slow, heavy." },
+    kamuiPortal:   { cost: 20, description: "Kamui Warp (Down) — teleport a long distance (self-mobility, no damage)." },
+    flashTime:     { cost: 30, description: "Flash Time (Back) — Killua-style time-slow: the foe runs at ~1/3 speed while you move normally (drains meter; press again to end)." },
+    kamuiDimension:{ cost: 45, description: "Kamui Dimension (P-HOLD→release) — void-swap: freeze the foe + a rapid shuriken barrage (special-tier)." }
   },
-  ultimate: { name: "Full Analysis", cost: 100, duration: 8, effect: "Damage multiplier stacks each hit for 8s" },
+  // Domain-tier ULTIMATE (input: Ultimate / 'u'). Expands a full-screen domain and forces the trapped
+  // foe to dance a RANDOM ~20s WASD cadence — reuses Naoya's per-beat timing-window judging: a correct
+  // in-window input is safe, a wrong/missed beat lands real chip damage. See omololuDomain.js.
+  ultimate: { name: "Domain Expansion: Recursive Cadence", cost: 100, duration: 20, effect: "Trap the foe in a domain; they must hit a random WASD cadence — every fumbled beat deals real damage." },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // Identical reslice geometry to Obito (the sheets are recolored copies): bottom-aligned cells,
+  // spriteScale 1.30 + anchorY:0 plants feet across every standing action. Standard action keys only
+  // (no obito-specific rekka/cast poses — this fighter has just normals + the domain ultimate).
+  spriteScale: 1.30,
+  animationData: {
+    idle:      { frames: 5, width: 40, height: 85, speed: 6, anchorY: 0, sheet: "./omololu_idle_uniform.png" },
+    walk:      { frames: 6, width: 74, height: 65, speed: 6, anchorY: 0, sheet: "./omololu_run_uniform.png" },
+    run:       { frames: 6, width: 74, height: 65, speed: 4, anchorY: 0, sheet: "./omololu_run_uniform.png" },
+    dash:      { frames: 3, width: 65, height: 87, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_dash_uniform.png" },
+    jump:      { frames: 3, width: 61, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_jump_uniform.png" },
+    fall:      { frames: 1, width: 61, height: 79, speed: 5, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./omololu_jump_uniform.png" },
+    guard:     { frames: 1, width: 49, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_block_uniform.png" },
+    light:     { frames: 6, width: 90, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_light_uniform.png" },
+    heavy:     { frames: 5, width: 87, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_heavy_uniform.png" },
+    up:        { frames: 6, width: 91, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_up_uniform.png" },
+    air:       { frames: 5, width: 76, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_air_uniform.png" },
+    down_air:  { frames: 4, width: 72, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_downair_uniform.png" },
+    hurt:      { frames: 2, width: 55, height: 84, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_hit1_uniform.png" },
+    hurt_air:  { frames: 3, width: 53, height: 86, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_hit2_uniform.png" },
+    knockdown: { frames: 2, width: 87, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_hit3_uniform.png" },
+    getup:     { frames: 2, width: 54, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_hit4_uniform.png" },
+    crouch:    { frames: 3, width: 58, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_crouch_uniform.png" },
+    backDash:  { frames: 1, width: 55, height: 73, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_back_dash_uniform.png" },
+    blockAir:  { frames: 1, width: 48, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_block_air_uniform.png" },
+    // ── PORTED-KIT cast / rekka / teleport poses. Keys REUSE Obito's pose-key NAMES so the existing
+    //    sprite.js MOVE_TO_ACTION identity maps (char-agnostic) resolve them — but the sheets are
+    //    omololu's OWN recolored copies (tools/gen_omololu_recolor.py). Dims mirror Obito's exactly.
+    obitoRod1:        { frames: 6, width: 90, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_light_uniform.png" },   // rekka opener (reuses light)
+    obitoRod2:        { frames: 5, width: 87, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_heavy_uniform.png" },   // rekka mid (reuses heavy)
+    obitoRod3:        { frames: 5, width: 76, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_air_uniform.png" },     // rekka finisher/launcher (reuses air)
+    obitoShurCast:    { frames: 3, width: 49, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_shurcast_uniform.png" },      // shuriken GROUND / giant-shuriken cast
+    obitoShurCastAir: { frames: 4, width: 59, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_shurcast_air_uniform.png" },  // shuriken AIR cast
+    obitoRodCast:     { frames: 4, width: 67, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_rodcast_uniform.png" },        // chakra rod cast
+    obitoTeleport:    { frames: 6, width: 92, height: 131, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_teleport_uniform.png" },      // Kamui Warp blink pose
+    obitoKamuiActivate:{ frames: 2, width: 59, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omololu_kamui_activate_uniform.png" }  // Kamui Intangibility initiation pose
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import { physics } from "./physics.js"
 import { poolAcquire } from "./pool.js"   // Stage 22C: recycle hit-spark objects (spawned in bursts during ultimates)
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
+import { pickOmololuVoice } from "./omololuVoice.js"   // Omololu hit-react + low-health voice pools (audio-only)
 import { pickKilluaVoice } from "./killuaVoice.js"
 import { pickGonVoice } from "./gonVoice.js"
 import { pickHisokaVoice } from "./hisokaVoice.js"
@@ -1419,6 +1420,26 @@ function applyRengokuLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * RENGOKU_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickRengokuVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── OMOLOLU VOICE (audio-only; EN pack, ./clips/, transcription-matched — omololuVoice.js) ──
+// DEFENDER hit-react ("Agh!" / "Not bad." / "That actually hurt." / "Ugh."). One line per _hitVoiceCd
+// window; unblocked hits only. Same pattern as Rengoku (own low-health pool below).
+function applyOmololuHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "omololu" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickOmololuVoice("hit"), null) } catch (_) {}
+}
+// LOW-HEALTH bark ("Okay — okay, I'm still here.") — fires ONCE on first crossing the threshold.
+const OMOLOLU_LOW_HEALTH_RATIO = 0.25
+function applyOmololuLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "omololu" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * OMOLOLU_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickOmololuVoice("lowHealth"), null) } catch (_) {}
   }
 }
 
@@ -3380,6 +3401,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
     applyZenitsuHitVoice(defender, cat, dmg)
     applyRengokuHitVoice(defender, cat, dmg)
+    applyOmololuHitVoice(defender, cat, dmg)   // Omololu "Agh!" / "Not bad." / "That actually hurt." (one per hit-voice window)
     // SHINOBU hit-reaction voice — strong-hit reaction pool / light-hit exertion grunt (split by cat).
     applyShinobuHitVoice(defender, cat, dmg)
     applyInosukeHitVoice(defender, cat, dmg)
@@ -3471,6 +3493,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyGhostfaceLowHealthVoice(defender)   // Ghostface "I always do" / "first reel" (once, on crossing the low-HP line)
     applyZenitsuLowHealthVoice(defender)   // Zenitsu "This can't be done yet!" (once, on crossing the low-HP line)
     applyRengokuLowHealthVoice(defender)   // Rengoku "I'm feeling energized!" / "Unbelievable!" (once, on crossing the low-HP line)
+    applyOmololuLowHealthVoice(defender)   // Omololu "Okay — okay, I'm still here." (once, on crossing the low-HP line)
     applyShinobuLowHealthVoice(defender)   // Shinobu "This is... oh no." (once, on crossing the low-HP line)
     applyInosukeLowHealthVoice(defender)   // Inosuke "I won't lose." (once, on crossing the low-HP line)
     applyNezukoLowHealthVoice(defender)    // Nezuko strained low-HP grunt (once, on crossing the low-HP line)

@@ -47,6 +47,7 @@
     "test:aivsai": "node harness/aivsai.test.mjs",
     "test:hitstop": "node harness/hitstop.test.mjs",
     "test:impact-frame": "node harness/impact_frame_live.mjs",
+    "test:impact-hit": "node harness/impact_hit_live.mjs",
     "test:speed-lines": "node harness/speed_lines_live.mjs",
     "test:ko-hangtime": "node harness/ko_hangtime_live.mjs",
     "test:ult-zoomcrop": "node harness/ult_zoomcrop_live.mjs",

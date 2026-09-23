@@ -84,6 +84,18 @@ const IMPACT_FLASH_RED       = "#e0142e";                       // Black-Flash r
 const IMPACT_FLASH_RED_ALPHA = [0.45, 0.55, 0.65, 0.75];        // MULTIPLY-tint strength — modulates the ink, never a flat fill
 function _impactFlashTint(fl) { return IMPACT_FLASH_TINTS[Math.max(0, Math.min(3, (fl && fl.level) | 0))]; }
 function _impactFlashLevel(fl) { return Math.max(0, Math.min(3, (fl && fl.level) | 0)); }
+// Silhouette-overlay params, keyed on the OPTIONAL `phase` field (set ONLY by the Impact Hit cascade so the
+// SAME recolor infra cycles the sprite black→red→white alongside the bg wash). Per-hit Black Flash callers
+// don't set `phase` → the default branch = the classic cursed-red MULTIPLY, i.e. unchanged behaviour.
+function _impactFlashOverlay(fl) {
+  switch (fl && fl.phase) {
+    case "black": return { color: "#05060b", alpha: 0.60, op: "multiply" };     // deepen the inked sprite to near-black
+    case "red":   return { color: IMPACT_FLASH_RED, alpha: 0.82, op: "multiply" };  // stark cursed-red wash
+    case "white": return { color: "#eef4ff", alpha: 0.86, op: "source-over" };   // blow the silhouette out to white
+    case "hold":  return { color: IMPACT_FLASH_RED, alpha: 0.58, op: "multiply" };  // settle on red (matches the bg hold)
+    default:      return { color: IMPACT_FLASH_RED, alpha: IMPACT_FLASH_RED_ALPHA[_impactFlashLevel(fl)], op: "multiply" };
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -1059,9 +1071,10 @@ export class SpriteHandler {
     // IMPACT FRAME (Black Flash) — flat cursed-RED silhouette washed over the charcoal-filtered body (same
     // source-in mask as the identity tint above). Only while _impactFlash is live; alpha scales with level.
     const impFl = (fighter._impactFlash && fighter._impactFlash.timer > 0) ? fighter._impactFlash : null;
-    let impactTintCanvas = null, impactRedAlpha = 0;
+    const impOv = impFl ? _impactFlashOverlay(impFl) : null;   // phase-driven overlay colour/alpha/composite (red multiply by default)
+    let impactTintCanvas = null, impactRedAlpha = 0, impactTintOp = "multiply";
     if (impFl && _sheetReady(sheet)) {
-      impactRedAlpha = IMPACT_FLASH_RED_ALPHA[_impactFlashLevel(impFl)];
+      impactRedAlpha = impOv.alpha; impactTintOp = impOv.op;
       const tc = this._impactTintCanvas || (this._impactTintCanvas = document.createElement("canvas"));
       if (tc.width !== drawWidth)  tc.width  = drawWidth;
       if (tc.height !== drawHeight) tc.height = drawHeight;
@@ -1071,22 +1084,58 @@ export class SpriteHandler {
       tctx.globalCompositeOperation = "source-over";
       tctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, 0, 0, drawWidth, drawHeight);
       tctx.globalCompositeOperation = "source-in";   // fill ONLY where the sprite is opaque → its silhouette
-      tctx.fillStyle = IMPACT_FLASH_RED;
+      tctx.fillStyle = impOv.color;
       tctx.fillRect(0, 0, drawWidth, drawHeight);
       tctx.globalCompositeOperation = "source-over";
       impactTintCanvas = tc;
     }
 
+    // STAGE 1 — WOODCUT / SCREEN-PRINT posterize: crush the frame to 2-3 FLAT grayscale tones (a hard
+    // threshold, no smooth shading) on an offscreen canvas — a true posterize (ctx.filter has no posterize,
+    // and SVG url() filters don't apply here). The flat red silhouette (above, multiply) then reads as the
+    // second print colour. This is procedural, not bespoke line art — see the report caveat.
+    let impactPostCanvas = null;
+    if (impFl && _sheetReady(sheet)) {
+      const lvl = _impactFlashLevel(impFl);
+      const tones = lvl >= 2 ? 2 : 3;                 // 2-tone (harder) at high tiers, 3-tone at low
+      const contrast = 1.35 + lvl * 0.28;             // pre-emphasis so the flat shapes read boldly
+      const pc = this._impactPostCanvas || (this._impactPostCanvas = document.createElement("canvas"));
+      if (pc.width !== drawWidth)  pc.width  = drawWidth;
+      if (pc.height !== drawHeight) pc.height = drawHeight;
+      const pctx = pc.getContext("2d", { willReadFrequently: true });
+      pctx.clearRect(0, 0, drawWidth, drawHeight);
+      pctx.imageSmoothingEnabled = false;
+      pctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, 0, 0, drawWidth, drawHeight);
+      const img = pctx.getImageData(0, 0, drawWidth, drawHeight);
+      const d = img.data, step = tones - 1;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 8) continue;                   // preserve the sprite's alpha silhouette
+        let l = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) / 255;
+        l = (l - 0.5) * contrast + 0.5;               // contrast around mid-grey
+        l = l < 0 ? 0 : l > 1 ? 1 : l;
+        const v = (Math.round(l * step) / step * 255) | 0;   // QUANTIZE to `tones` flat levels
+        d[i] = d[i + 1] = d[i + 2] = v;
+      }
+      pctx.putImageData(img, 0, 0);
+      impactPostCanvas = pc;
+      fighter._lastSpriteFilter = "posterize" + tones + "tone";   // honest diagnostic (the ctx.filter charcoal is now the fallback)
+    }
+    // While posterizing, draw the flat offscreen frame (source 0,0) with NO ctx.filter; otherwise the sheet.
+    const _spr    = impactPostCanvas || sheet;
+    const _sprX   = impactPostCanvas ? 0 : sx;
+    const _sprY   = impactPostCanvas ? 0 : sy;
+    const _sprFilter = impactPostCanvas ? "none" : spriteFilter;
+
     if (_sheetReady(sheet)) {
-      if (spriteFilter !== "none") ctx.filter = spriteFilter;
+      if (_sprFilter !== "none") ctx.filter = _sprFilter;
 
       if ((fighter.facing ?? 1) === -1) {
         ctx.scale(-1, 1);
 
         ctx.drawImage(
-          sheet,
-          sx,
-          sy,
+          _spr,
+          _sprX,
+          _sprY,
           drawWidth,         // source rect = native frame size
           drawHeight,
           -fighter.x + offsetX - dstW,   // flip math uses SCALED width
@@ -1100,15 +1149,15 @@ export class SpriteHandler {
           ctx.globalAlpha = 1;
         }
         if (impactTintCanvas) {
-          ctx.filter = "none"; ctx.globalCompositeOperation = "multiply"; ctx.globalAlpha = impactRedAlpha;   // MULTIPLY = tint the ink, keep edges/pose
+          ctx.filter = "none"; ctx.globalCompositeOperation = impactTintOp; ctx.globalAlpha = impactRedAlpha;   // phase overlay: multiply (black/red) tints the ink; source-over (white) washes it out
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
         }
       } else {
         ctx.drawImage(
-          sheet,
-          sx,
-          sy,
+          _spr,
+          _sprX,
+          _sprY,
           drawWidth,         // source rect = native frame size
           drawHeight,
           fighter.x - offsetX,
@@ -1122,7 +1171,7 @@ export class SpriteHandler {
           ctx.globalAlpha = 1;
         }
         if (impactTintCanvas) {
-          ctx.filter = "none"; ctx.globalCompositeOperation = "multiply"; ctx.globalAlpha = impactRedAlpha;   // MULTIPLY = tint the ink, keep edges/pose
+          ctx.filter = "none"; ctx.globalCompositeOperation = impactTintOp; ctx.globalAlpha = impactRedAlpha;   // phase overlay: multiply (black/red) tints the ink; source-over (white) washes it out
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
         }

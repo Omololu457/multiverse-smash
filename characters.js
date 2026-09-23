@@ -2754,9 +2754,15 @@ const rickPrime = {
     annihilationMine: { cost: 30, damage: 110, startup: 13, active: 8, recovery: 22, hitstun: 20, knockbackX: 7,  knockbackY: -2, effect: "portal-tech charge that detonates" },
     primePortal:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 12, hitstun: 12, knockbackX: 4,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "instant high-speed portal warp" },
     // Up+Special — NEW anti-air (fills Rick Prime's missing vertical threat; his blast+mine+warp are all horizontal). Rising portal-energy launcher.
-    primeSkyshot:     { cost: 30, damage: 100, startup: 8,  active: 6, recovery: 20, hitstun: 24, knockbackX: 3,  knockbackY: -13, rangeX: 82, rangeY: 130, launcher: true, isSpecial: true, effect: "Portal Skyshot — a rising portal-energy burst that launches (Up+Special); the anti-air the zoner lacked" }
+    primeSkyshot:     { cost: 30, damage: 100, startup: 8,  active: 6, recovery: 20, hitstun: 24, knockbackX: 3,  knockbackY: -13, rangeX: 82, rangeY: 130, launcher: true, isSpecial: true, effect: "Portal Skyshot — a rising portal-energy burst that launches (Up+Special); the anti-air the zoner lacked" },
+    // Down+Special — NEW "Energy Siphon" (a read). Reaches through a portal and STEALS the opponent's own projectile:
+    // if the foe has a projectile special AND enough energy, THEY pay its cost and Rick fires a copy of THEIR exact
+    // projectile back at them; else a green fizzle (no damage). Rick's cost is only the modest read — the projectile's
+    // real cost is paid by the target. Damage/art come from whichever projectile is captured (reads their kit, never mutates it).
+    energySiphon:     { cost: 15, subtype: "steal", effect: "Energy Siphon (Back+Special — hold AWAY from the opponent) — steal + fire back the foe's own projectile (they pay its cost); fizzles vs a foe with no projectile or too little energy" },
+    pauseTime:        { cost: 55, subtype: "timestop", effect: "Pause Time (Down+Special) — freeze the opponent in place for ~2.2s while Rick keeps moving/attacking freely; cooldown-gated (a SPECIAL, not the ultimate)" }
   },
-  ultimate: { name: "Rick Prime's Supremacy", cost: 100, duration: 10, effect: "Massive speed, attack boost, and random gadget chaos" },
+  ultimate: { name: "Temporal Rewind", cost: 150, effect: "Rewinds the whole match ~10s (both fighters' health/position/energy + the round timer roll back to a buffered snapshot) then ADDS 10s bonus time on top. Blocked while either side is mid-cinematic; restores to a clean neutral stance. (game.js-owned rewind buffer)" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   portrait: "./rick_portrait__rickprime.png",   // base Rick's stand-crop recolored (dark jacket / red accent) — see tools/gen_rickprime_recolor.py

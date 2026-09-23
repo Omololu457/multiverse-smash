@@ -818,6 +818,290 @@ function _resolveBrutalityFinisher(wKey, move) {
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// RICK PRIME — "TEMPORAL REWIND" ULTIMATE (Rick Prime ONLY). Rewinds the whole match state to a buffered
+// snapshot ~10s prior, then ADDS bonus time on top. Built on the Stage-11 replay checkpoint PATTERN
+// (replay.js recordState samples [x,y,health,energy] every 60f during a recording) — but that is sparse
+// AND replay-only, and captures NO round timer / status / cinematic state. So this is a PARALLEL rolling
+// buffer that runs EVERY match, samples ~10× more often, and records the round timer + a `safe` flag.
+// ── HIGH-RISK / STATE-CONSISTENCY NOTES ──
+//  • Determinism: sampling is a READ-ONLY copy of already-deterministic sim state (no RNG/Date) → cannot
+//    perturb the sim. The rewind itself is triggered by the deterministic input stream, so a replay of the
+//    same inputs reproduces the same rewind at the same frame. `_replayFrame` (the input clock) is NOT
+//    rewound — only match STATE resets — so the input/net stream stays monotonic (no desync).
+//  • Safe restore: positions/health/energy/facing/round-timer restore exactly. Mid-animation/mid-form state
+//    is NOT reconstructed — both fighters snap to a CLEAN NEUTRAL grounded stance and all cinematics/domains/
+//    projectiles/effects/forms are torn down (belt-and-suspenders: even an undetected cinematic restores clean).
+//  • Edge case (opponent mid-cinematic): samples are ONLY taken when NO uninterruptible cinematic is active
+//    (`_rewindUnsafeNow` guard) → the buffer can NEVER contain a mid-cinematic snapshot. Activation is ALSO
+//    blocked while any such state is live. So a rewind can neither start during, nor restore into, a cinematic.
+const REWIND_SAMPLE_INTERVAL = 6                                   // frames between samples (0.1s @60fps)
+const REWIND_BUFFER_FRAMES   = 20 * 60                             // keep ~20s of history
+const REWIND_MAX_SAMPLES     = Math.ceil(REWIND_BUFFER_FRAMES / REWIND_SAMPLE_INTERVAL)   // ~200
+const REWIND_TARGET_FRAMES   = 10 * 60                             // rewind to ~10s prior
+const REWIND_BONUS_FRAMES    = 10 * 60                             // ADDED time on top (★config: 20*60 for 20s if 10 feels short)
+const REWIND_ULT_COST        = 150                                 // high ultimate-tier cost (Rick maxEnergy 180)
+const REWIND_ULT_COOLDOWN    = 1200                                // 20s, matches abilities.ULTIMATE_COOLDOWN_FRAMES
+// Cinematic beats (frames @60fps): a slow, deliberate "rewind time" sequence —
+//   BEAT 1 ZOOM-IN  [0 .. ZOOMIN_END)     — camera pushes in tight on the opponent (dramatic)
+//   BEAT 2 WATCH     [ZOOMIN_END .. WATCH_END) — holds on the opponent (a beat of anticipation)
+//   BEAT 3 PLAYBACK  [WATCH_END .. PLAYBACK_END) — SLOWLY replays their last ~10s backward (state restore lands here)
+//   BEAT 4 SETTLE    [PLAYBACK_END .. TOTAL_FRAMES) — brief hold, then combat resumes
+// The loop is strictly 60Hz-gated (see FIXED_DT), so these frame counts ARE wall-clock: 60 = 1 second.
+// The replay runs at ~AVERAGE speed (a touch slower than 1×) — the opponent retraces ~10s of moves over ~9s.
+const REWIND_ZOOMIN_END      = 54                                  // ~0.9s push-in on the opponent
+const REWIND_WATCH_END       = 84                                  // ~0.5s watch beat
+const REWIND_PLAYBACK_END    = 624                                 // ~9s backward replay of the opponent's last ~10s (average speed)
+const REWIND_PANBACK_END     = 690                                 // ~1.1s pan the camera BACK onto Rick Prime
+const REWIND_TOTAL_FRAMES    = 714                                 // ~11.9s total, then the match resumes normally
+const REWIND_TIGHT_ZOOM      = 1.6                                 // tight zoom on the opponent (BEAT 1/2; set directly, past the 1.15 camera clamp)
+const REWIND_PLAY_ZOOM       = 1.4                                 // playback zoom — stays on the opponent and PANS with them as they rewind
+const REWIND_REVFRAME_HOLD   = 6                                   // cinematic frames per reversed sprite frame (average-paced reverse animation)
+function _rwEase(t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return t * t * (3 - 2 * t) }   // smoothstep for cinematic easing
+let rewindBuffer = []                                              // rolling [{ f, roundTimer, safe, a:{fighterSnap}, b:{fighterSnap} }]
+const rewindState = { active: false, phase: "idle", timer: 0, snapIndex: -1, targetFrame: 0, casterSide: "p1", oppSide: "p2", restored: false, blockedReason: null }
+
+// Is any uninterruptible cinematic / finisher / domain currently live? (Used to gate BOTH sampling and activation.)
+function _rewindUnsafeNow() {
+  if (brutalityState.active) return true
+  if (activeDomains.length > 0) return true
+  if (domainCine.timer > 0 || domainCine.caster) return true
+  if (isChrolloSkillHunterCinematicActive()) return true
+  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
+}
+
+function _rewindFighterSnap(f) {
+  return f ? { x: f.x, y: f.y, facing: f.facing, health: f.health, energy: f.energy } : null
+}
+function _captureRewindSample(frame) {
+  rewindBuffer.push({ f: frame, roundTimer, safe: true, a: _rewindFighterSnap(p1), b: _rewindFighterSnap(p2) })
+  if (rewindBuffer.length > REWIND_MAX_SAMPLES) rewindBuffer.shift()
+}
+function _resetRewindBuffer() { rewindBuffer.length = 0; rewindState.active = false; rewindState.phase = "idle"; rewindState.restored = false; rewindState.blockedReason = null }
+
+// Nearest SAFE buffered sample to the ~10s-ago target frame (all captured samples are safe by construction, but
+// the flag is honored defensively). If the match is younger than 10s, this returns the oldest sample = a
+// best-effort partial rewind to the earliest state available.
+function _pickRewindSnapshot(targetFrame) {
+  let best = -1, bestDist = Infinity
+  for (let i = 0; i < rewindBuffer.length; i++) {
+    if (!rewindBuffer[i].safe) continue
+    const d = Math.abs(rewindBuffer[i].f - targetFrame)
+    if (d < bestDist) { bestDist = d; best = i }
+  }
+  return best
+}
+
+// Try to START the rewind (called from the ultimate-input intercept in updatePlayerCombat). Returns true if it fired.
+function tryStartRickPrimeRewind(fighter) {
+  if (!fighter || rewindState.active) return false
+  if (fighter.attacking || fighter.currentMove) return false
+  if ((fighter.ultimateCooldown || 0) > 0) return false
+  if ((fighter.energy || 0) < REWIND_ULT_COST) return false
+  // EDGE CASE (A): never START the rewind while any uninterruptible cinematic/finisher/domain is live.
+  if (_rewindUnsafeNow()) { rewindState.blockedReason = "cinematic_active"; return false }
+  if (rewindBuffer.length < 2) { rewindState.blockedReason = "no_history"; return false }
+  const idx = _pickRewindSnapshot(_replayFrame - REWIND_TARGET_FRAMES)
+  if (idx < 0) { rewindState.blockedReason = "no_safe_snapshot"; return false }   // (all-unsafe buffer — can't happen given the sample guard, but blocks defensively)
+  // COMMIT — spend the meter + arm the cooldown, freeze Rick in a hold pose, start the cinematic.
+  fighter.energy -= REWIND_ULT_COST
+  fighter.ultimateCooldown = REWIND_ULT_COOLDOWN
+  fighter.attacking = false; fighter.attackCooldown = 0; fighter.vx = 0
+  fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = REWIND_TOTAL_FRAMES   // distinct held cast pose
+  fighter.colorFlash = 12
+  rewindState.active = true; rewindState.phase = "focus"; rewindState.timer = 0; rewindState.restored = false
+  rewindState.snapIndex = idx; rewindState.snap = rewindBuffer[idx]; rewindState.targetFrame = rewindBuffer[idx].f   // hold the snapshot OBJECT (survives any buffer reshuffle)
+  rewindState.casterSide = (fighter === p1) ? "p1" : "p2"
+  rewindState.oppSide    = (fighter === p1) ? "p2" : "p1"
+  rewindState.blockedReason = null
+  return true
+}
+
+// Tear down all transient match FX before restoring a snapshot. MIRRORS the resetRound cinematic/effect clears
+// (kept a separate list ON PURPOSE so the shared round-reset path is untouched → no other character is affected;
+// ★keep in sync with resetRound if new cinematics are added). Every fn here is already imported (resetRound uses them).
+function _rewindTeardown() {
+  clearAbilityState()                                  // activeProjectiles (shared) + summons + pending clones
+  clearEffects()                                       // timed buffs / stuns / regen (reverts each first)
+  clearDomains(); clearCubeTraps(); clearObitoDimensions()
+  clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
+  clearSasukeCinematic(); clearSSJRoseCinematic(); clearFormActivationCinematic()
+  clearGokuBlackSwordCinematic(); clearRedRangerPowerSwordCinematic(); clearSamuraiFlameSmasherCinematic()
+  clearKilluaGodspeedCinematic()
+  clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
+  clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
+  clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
+  clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
+  clearHashiramaSealingJutsuCinematic(); clearPainChibakuTenseiCinematic(); clearYujiUltimateCinematic()
+  clearShinobuButterflyCinematic(); clearInosukeBeastCinematic(); clearGhostfaceFinalActCinematic()
+  clearMiwaUltimateCinematic(); clearIchigoGetsugaCinematic(); clearMakiShibuyaCinematic()
+  clearEdoTenseiCinematic(); clearChrolloSkillHunterCinematic()
+  brutalityState.active = false; brutalityState.parts.length = 0
+  activeDomains.length = 0; hitSparks.length = 0
+  endDomainCinematic()
+}
+
+// Restore ONE fighter to a buffered snapshot as a clean, grounded, neutral-stance actor (no mid-animation state).
+// keepPosition = true for the CASTER (Rick) — he STAYS anchored at the spot where he called the rewind (his health/
+// energy still roll back, but his x/y/facing are left as-is), while the opponent is fully rewound.
+function _restoreRewoundFighter(f, s, keepPosition = false) {
+  if (!f || !s) return
+  if (!keepPosition) {
+    f.x = s.x; f.facing = s.facing
+    f.y = (f.groundY != null) ? f.groundY - (f.h || 0) : s.y          // reground at the captured x
+  } else if (f.groundY != null) {
+    f.y = f.groundY - (f.h || 0)                                       // Rick keeps his x/facing; just re-ground him cleanly
+  }
+  f.health = Math.max(1, Math.min(f.maxHealth || s.health, s.health))
+  f.energy = Math.max(0, Math.min(f.maxEnergy || s.energy, s.energy))
+  f.vx = 0; f.vy = 0
+  f.onGround = true; f.grounded = true; f.isLaunched = false
+  f.attacking = false; f.currentMove = null; f.attackCooldown = 0
+  f.hitstun = 0; f.hitstop = 0; f.blockstun = 0; f.isBlocking = false
+  f.knockdownState = false; f.knockdownTimer = 0; f.airHits = 0
+  f.comboCounter = 0; f.comboTimer = 0; f.invulnTimer = 0; f.isCharging = false
+  f._spriteCastMove = null; f._spriteCastTimer = 0; f._forceAction = null; f._animFrozen = false   // release the reverse-anim freeze
+  if (typeof clearInputBuffers === "function") clearInputBuffers([f])
+}
+
+// Apply the snapshot: tear down FX, roll BOTH fighters' health/energy + the round timer back — but the CASTER keeps
+// his position (he anchored the rewind), only the opponent's position is rewound. One-shot at the playback end.
+function _applyRewindSnapshot(snap) {
+  if (!snap) return
+  const casterIsP1 = rewindState.casterSide === "p1"
+  _rewindTeardown()
+  _restoreRewoundFighter(p1, snap.a, casterIsP1)    // caster (Rick) stays put; opponent's position rewinds
+  _restoreRewoundFighter(p2, snap.b, !casterIsP1)
+  roundTimer = snap.roundTimer + REWIND_BONUS_FRAMES                  // rewound clock + bonus → MORE time than the round would have had
+  // (per-fighter combo state is already reset in _restoreRewoundFighter; no module-level combo counter exists.
+  //  Do NOT call camera.update(p1,p2) here — it re-centers/repositions the fighters.)
+}
+
+// The opponent's interpolated position at rewind-playback progress p∈[0,1]: p=0 → their most-recent buffered spot,
+// p=1 → the ~10s-ago target. Scrubbing this each frame RETRACES their last 10s backward (Rick, the caster, is never
+// touched → he stays anchored).
+function _rewindScrubOppPos(p) {
+  const s = rewindState, last = rewindBuffer.length - 1
+  if (last < 0) return null
+  const idxF = last - Math.max(0, Math.min(1, p)) * (last - s.snapIndex)
+  const i0 = Math.max(s.snapIndex, Math.min(last, Math.floor(idxF)))
+  const i1 = Math.max(s.snapIndex, Math.min(last, Math.ceil(idxF)))
+  const frac = idxF - i0
+  const A = s.oppSide === "p1" ? rewindBuffer[i0].a : rewindBuffer[i0].b
+  const B = s.oppSide === "p1" ? rewindBuffer[i1].a : rewindBuffer[i1].b
+  if (!A || !B) return null
+  return { x: A.x + (B.x - A.x) * frac, y: A.y + (B.y - A.y) * frac, facing: A.facing }
+}
+
+// Per-frame cinematic driver (freezes combat while active — updateBattle returns after calling this).
+function updateRewind() {
+  const s = rewindState, t = s.timer
+  const opp = s.oppSide === "p1" ? p1 : p2
+  const caster = s.casterSide === "p1" ? p1 : p2
+  if (!opp || !caster) { s.timer++; if (s.timer >= REWIND_TOTAL_FRAMES) { s.active = false; _resetRewindBuffer() } return }
+  const ocx = (opp.x || 0) + (opp.w || 80) / 2, rcx = (caster.x || 0) + (caster.w || 80) / 2
+
+  // ── CAMERA ARC ──────────────────────────────────────────────────────────────────────────────────
+  let zTarget
+  if (t < REWIND_ZOOMIN_END) {                                   // BEAT 1 — push in tight on the opponent
+    const z = _rwEase(t / REWIND_ZOOMIN_END)
+    zTarget = 1.0 + (REWIND_TIGHT_ZOOM - 1.0) * z
+    s.phase = "zoomin"
+    if (camera.focusOnFighter) camera.focusOnFighter(opp, camera.maxZoom)
+    camera.targetX = (rcx + (ocx - rcx) * 0.5) * (1 - z) + ocx * z                          // drift centre from mid → the opponent
+  } else if (t < REWIND_WATCH_END) {                             // BEAT 2 — hold + WATCH the opponent
+    zTarget = REWIND_TIGHT_ZOOM; s.phase = "watch"
+    if (camera.focusOnFighter) camera.focusOnFighter(opp, camera.maxZoom)
+    camera.targetX = ocx
+  } else if (t < REWIND_PLAYBACK_END) {                          // BEAT 3 — replay: camera LOCKED ON the opponent, PANS with them as they rewind
+    zTarget = REWIND_PLAY_ZOOM; s.phase = "playback"
+    if (camera.focusOnFighter) camera.focusOnFighter(opp, camera.maxZoom)
+    camera.targetX = ocx                                                                   // follow the character being rewound
+  } else {                                                       // BEAT 4 — PAN BACK onto Rick Prime, then the match resumes
+    const pb = _rwEase((t - REWIND_PLAYBACK_END) / Math.max(1, REWIND_PANBACK_END - REWIND_PLAYBACK_END))
+    zTarget = REWIND_PLAY_ZOOM + (1.05 - REWIND_PLAY_ZOOM) * pb; s.phase = "panback"
+    if (camera.focusOnFighter) camera.focusOnFighter(caster, camera.maxZoom)
+    camera.targetX = ocx + (rcx - ocx) * pb                                                 // glide the centre from the opponent back to Rick
+  }
+  if (typeof camera.advance === "function") camera.advance(canvas)                          // smooth, world-bounded pan toward targetX
+  camera.zoom += (zTarget - camera.zoom) * 0.16; camera.targetZoom = camera.zoom            // cinematic zoom eased DIRECTLY past the 1.15 clamp
+
+  // ── BEAT 3 REPLAY — retrace the opponent backward along their buffered path (X *and* Y → moved forward reverses to
+  //    backward, knocked UP reverses to coming back DOWN) AND play their sprite frames in REVERSE. Rick is untouched.
+  if (t >= REWIND_WATCH_END && !s.restored) {
+    const p = (t - REWIND_WATCH_END) / Math.max(1, REWIND_PLAYBACK_END - REWIND_WATCH_END)   // LINEAR = constant, average-speed rewind (no fast middle)
+    const pos = _rewindScrubOppPos(p)
+    if (pos) {
+      const dx = pos.x - opp.x, dy = pos.y - opp.y
+      opp.x = pos.x; opp.y = pos.y; opp.facing = pos.facing                                 // ★use the recorded Y too — vertical (jumps/launches) rewind faithfully
+      opp.onGround = false                                                                  // let the recorded Y stand (don't snap to the floor mid-air)
+      opp.vx = -dx; opp.vy = -dy; opp.attacking = false; opp._spriteCastMove = null; opp._spriteCastTimer = 0
+      opp._animFrozen = true                                                                // stop the forward advance…
+      const sh = opp.spriteHandler
+      if (sh) { const total = (sh._actionDef && sh._actionDef.frames) || 1
+                const step = Math.floor((t - REWIND_WATCH_END) / REWIND_REVFRAME_HOLD) % total
+                sh.frameIndex = Math.max(0, Math.min(total - 1, total - 1 - step)) }        // …and drive frameIndex BACKWARD (clamped, no out-of-bounds slice)
+    }
+  }
+
+  s.timer++
+  if (!s.restored && s.timer >= REWIND_PLAYBACK_END) { _applyRewindSnapshot(s.snap || rewindBuffer[s.snapIndex]); s.restored = true }
+  if (s.timer >= REWIND_TOTAL_FRAMES) { s.active = false; s.phase = "idle"; _resetRewindBuffer() }   // fresh buffer builds from the restored state
+}
+
+// Draw: the opponent's recent-path "rewind trace" + fading afterimage GHOSTS along that path (motion trail being
+// un-wound) + a subtle cyan time wash + a reverse-spinning "rewinding time" ring around Rick (the caster/source).
+function _drawRewind() {
+  const s = rewindState; if (!s.active) return
+  const opp = s.oppSide === "p1" ? p1 : p2; if (!opp) return
+  const caster = s.casterSide === "p1" ? p1 : p2
+  const cw = canvas.width, ch = canvas.height
+  const ow = opp.w || 60, oh = opp.h || 100
+  ctx.save()
+  ctx.fillStyle = "rgba(60,150,220,0.12)"; ctx.fillRect(0, 0, cw, ch)                        // faint time-shift wash
+  const path = rewindBuffer.map(b => (s.oppSide === "p1" ? b.a : b.b)).filter(Boolean)
+  const reveal = Math.max(0, Math.min(1, s.timer / REWIND_PLAYBACK_END))
+  const cut = Math.max(2, Math.floor(path.length * reveal))
+  // Polyline through the opponent's buffered positions from NOW back toward the target.
+  ctx.strokeStyle = "rgba(140,235,255,0.8)"; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"
+  ctx.beginPath()
+  for (let i = path.length - 1, drawn = 0; i >= 0 && drawn < cut; i--, drawn++) {
+    const pt = _worldToScreen(path[i].x + ow / 2, path[i].y + oh * 0.45)
+    drawn === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)
+  }
+  ctx.stroke()
+  // Fading afterimage GHOSTS (translucent humanoid capsules) along the retrace — brighter near the opponent's CURRENT
+  // spot, fading toward the ~10s-ago target: reads as their motion being un-wound.
+  for (let i = path.length - 1, drawn = 0; i >= 0 && drawn < cut; i -= 2, drawn += 2) {
+    const a = 0.30 * (1 - drawn / Math.max(1, cut))
+    if (a < 0.02) continue
+    const tp = _worldToScreen(path[i].x + ow / 2, path[i].y)
+    const bp = _worldToScreen(path[i].x + ow / 2, path[i].y + oh)
+    const hw = (ow * 0.30) * camera.zoom
+    ctx.fillStyle = `rgba(150,230,255,${a})`
+    ctx.beginPath(); ctx.ellipse(tp.x, (tp.y + bp.y) / 2, hw, (bp.y - tp.y) / 2, 0, 0, Math.PI * 2); ctx.fill()
+  }
+  // Ghost node at the target (destination of the rewind).
+  const tgt = s.oppSide === "p1" ? rewindBuffer[s.snapIndex]?.a : rewindBuffer[s.snapIndex]?.b
+  if (tgt) { const g = _worldToScreen(tgt.x + ow / 2, tgt.y + oh * 0.45); ctx.fillStyle = "rgba(180,245,255,0.9)"; ctx.beginPath(); ctx.arc(g.x, g.y, 6, 0, Math.PI * 2); ctx.fill() }
+  // "Rewinding time" ring around Rick — two reverse-spinning arcs (counter-clockwise) mark him as the anchor/source.
+  if (caster) {
+    const c = _worldToScreen(caster.x + (caster.w || 80) / 2, caster.y + (caster.h || 100) * 0.42)
+    const R = (caster.h || 100) * 0.55 * camera.zoom
+    const spin = -(s.timer * 0.14)                                                          // negative = counter-clockwise (rewind)
+    ctx.strokeStyle = "rgba(150,230,255,0.85)"; ctx.lineWidth = 3; ctx.lineCap = "round"
+    for (let k = 0; k < 2; k++) {
+      const a0 = spin + k * Math.PI
+      ctx.beginPath(); ctx.arc(c.x, c.y, R, a0, a0 + Math.PI * 0.7); ctx.stroke()
+      const hx = c.x + Math.cos(a0) * R, hy = c.y + Math.sin(a0) * R                          // a small arrowhead trailing CCW
+      ctx.fillStyle = "rgba(180,245,255,0.9)"; ctx.beginPath(); ctx.arc(hx, hy, 3.2, 0, Math.PI * 2); ctx.fill()
+    }
+  }
+  ctx.restore()
+}
+
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
 // So we hook mouseup directly: if the click lands on the MAIN MENU "SAVE FILE" button,
@@ -2795,149 +3079,8 @@ function getAbilityContext() {
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
-    triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null },
-    // Rick Prime "Rewind" ultimate: rewindBlockedNow() = an uninterruptible cinematic is active (refuse);
-    // rewind(caster) = restore the whole match state ~10s prior + timer bonus (returns a result object).
-    rewindBlockedNow: () => _rewindCinematicActive(),
-    rewind: (caster) => performRickPrimeRewind(caster)
+    triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════════════════════
-// RICK PRIME — "REWIND" ULTIMATE state buffer + restore (HIGH-RISK: touches core match state).
-// Foundation: modelled on replay.js's periodic recordState() checkpoint pattern, but a PARALLEL,
-// denser, deeper buffer (the replay hash is [x,y,health,energy] @60f — too sparse/shallow to rewind).
-// DETERMINISM CONTRACT: recording is a PURE READ (no sim mutation, no RNG). The restore is a PURE
-// COPY-BACK (no gameRng calls) → identical on both LAN sides since it runs off the deterministic sim +
-// is triggered by an input in the lockstep stream. FX (trace/camera) are render-only (excluded from the
-// determinism hash, same as camera shake / particle scatter). The buffer only records while a Rick Prime
-// is in the match, so every other matchup is byte-for-byte untouched.
-const REWIND_SAMPLE_INTERVAL = 15     // frames between samples (~4/sec) — dense enough for a clean rewind
-const REWIND_WINDOW_FRAMES   = 1200   // ~20s of history retained
-const REWIND_TARGET_FRAMES   = 600    // rewind to ~10s prior
-const REWIND_TIMER_BONUS     = 600    // +10s ADDED on top of the rewound timer (config: 1200 = +20s)
-const REWIND_FX_FRAMES       = 48     // render-only trace/camera beat duration
-const REWIND_MAX_SAMPLES     = Math.ceil(REWIND_WINDOW_FRAMES / REWIND_SAMPLE_INTERVAL) + 2
-let _rewindBuf             = []       // ring buffer, oldest→newest
-let _rewindLastSampleFrame = -99999
-let _rewindFxTimer         = 0        // render-only
-let _rewindFxTrail         = null     // opponent's recent positions, drawn as the "rewound movement" trace
-
-function _rewindActive() { return (p1 && p1.rosterKey === "rickPrime") || (p2 && p2.rosterKey === "rickPrime") }
-
-// Any UNINTERRUPTIBLE cinematic in progress (brutality finisher / domain / Kamui Dimension / Edo Tensei /
-// a fighter frozen inside a domain). Used BOTH to (a) block the rewind's activation and (b) tag each
-// sample as un-SAFE so we never RESTORE the match into the middle of another character's cinematic.
-let _rewindForceCine = false   // harness-only: force the cinematic-active gate on, to test the edge-case refusal
-function _rewindCinematicActive() {
-  if (_rewindForceCine) return true
-  if (brutalityState.active) return true
-  if (domainCine && domainCine.caster) return true
-  if (activeDomains && activeDomains.length > 0) return true
-  if (_kamuiDimActive()) return true
-  if ((p1 && p1.domainFrozen) || (p2 && p2.domainFrozen)) return true
-  try { if (getEdoTenseiCinematicStatus && getEdoTenseiCinematicStatus().active) return true } catch (_) {}
-  return false
-}
-
-function _rewindSnapFighter(f) {
-  if (!f) return null
-  return { health: f.health, x: f.x, y: f.y, energy: f.energy, vx: f.vx || 0, vy: f.vy || 0,
-           facing: f.facing, onGround: !!(f.onGround ?? f.grounded), groundY: f.groundY }
-}
-
-// Per-frame (only while a Rick Prime is present): push a full sample every REWIND_SAMPLE_INTERVAL frames.
-function recordRewindSample() {
-  if (!_rewindActive()) return
-  if (globalFrameCount - _rewindLastSampleFrame < REWIND_SAMPLE_INTERVAL) return
-  _rewindLastSampleFrame = globalFrameCount
-  _rewindBuf.push({ clock: globalFrameCount, roundTimer, safe: !_rewindCinematicActive(),
-                    p1: _rewindSnapFighter(p1), p2: _rewindSnapFighter(p2) })
-  while (_rewindBuf.length > REWIND_MAX_SAMPLES) _rewindBuf.shift()
-  // Harness-only: FRAME-EXACT rewind trigger (fires IN-SIM the tick the buffer first reaches _rewindArmLen)
-  // + captures the restored-state hash on the SAME tick. This is how LAN fires (an exact frame in the input
-  // stream), so two identical runs produce a bit-identical hash — the real determinism proof.
-  if (_rewindArmLen != null && _rewindBuf.length >= _rewindArmLen) {
-    _rewindArmLen = null
-    const caster = (p1 && p1.rosterKey === "rickPrime") ? p1 : ((p2 && p2.rosterKey === "rickPrime") ? p2 : null)
-    const res = caster ? performRickPrimeRewind(caster) : { ok: false, reason: "no-caster" }
-    const rd = v => Math.round((v || 0) * 1e4) / 1e4
-    _rewindArmResult = { ok: !!res.ok, hash: (p1 && p2) ? [rd(p1.x), rd(p1.y), p1.health, rd(p1.energy), rd(p2.x), rd(p2.y), p2.health, rd(p2.energy), roundTimer].join("|") : null }
-  }
-}
-let _rewindArmLen = null, _rewindArmResult = null
-
-function resetRewindBuffer() { _rewindBuf.length = 0; _rewindLastSampleFrame = -99999; _rewindFxTimer = 0; _rewindFxTrail = null }
-
-// Pick the SAFE snapshot to restore to: the newest safe sample at/before ~10s ago; if the match is younger
-// than that, the OLDEST safe sample (graceful degrade); null if there is no safe sample at all → block.
-function _pickRewindTarget() {
-  if (_rewindBuf.length === 0) return null
-  const targetClock = globalFrameCount - REWIND_TARGET_FRAMES
-  let pick = null
-  for (const s of _rewindBuf) if (s.safe && s.clock <= targetClock) pick = s
-  if (!pick) pick = _rewindBuf.find(s => s.safe) || null
-  return pick
-}
-
-// Restore ONE fighter's sim-critical state + neutralise transient combat/animation state to a clean idle
-// stance (the "animation state where safely restorable" subset — sprite frame data is render-only and NOT
-// in the determinism hash, so resetting to idle is both safe and deterministic). Form/transformation state
-// is deliberately NOT reverted (fragile stat/sprite/timer coupling — documented limitation).
-function _rewindRestoreFighter(f, s) {
-  if (!f || !s) return
-  f.health = s.health; f.x = s.x; f.y = s.y; f.energy = s.energy
-  f.vx = s.vx; f.vy = s.vy; f.facing = s.facing
-  f.onGround = s.onGround; f.grounded = s.onGround; if (s.groundY != null) f.groundY = s.groundY
-  f.hitstun = 0; f.blockstun = 0; f.hitstop = 0; f.attackCooldown = 0
-  f.attacking = false; f.currentMove = null; f.currentAttack = null; f.moveTimer = 0; f.movePhase = null
-  f.isLaunched = false; f.isBlocking = false; f.knockdownState = false; f.knockdownTimer = 0
-  f.comboCounter = 0; f.comboTimer = 0; f.airHits = 0; f.invulnTimer = 0; f.isGrabbed = false; f.domainFrozen = false
-  if (f.spriteHandler) { f.spriteHandler.currentAction = null; f.spriteHandler.frameIndex = 0; f.spriteHandler.frameTimer = 0; f.spriteHandler.locked = false }
-}
-
-// Perform the rewind. Returns { ok, blocked?, reason?, restoredClock?, restoredRoundTimer?, agoFrames? }.
-// EDGE CASES (do not skip): (1) refuse if any uninterruptible cinematic is active NOW; (2) refuse if there
-// is no SAFE snapshot to land on — never restore into a broken/frozen mid-cinematic state.
-function performRickPrimeRewind(caster) {
-  if (!caster) return { ok: false, blocked: true, reason: "no-caster" }
-  if (_rewindCinematicActive()) return { ok: false, blocked: true, reason: "cinematic-active" }
-  const snap = _pickRewindTarget()
-  if (!snap) return { ok: false, blocked: true, reason: "no-safe-snapshot" }
-  const opp = getOpponent(caster)
-  // render-only trace: the opponent's recent positions from the buffer (restore-point → now)
-  _rewindFxTrail = _rewindBuf.filter(s => s.clock >= snap.clock)
-    .map(s => { const o = (opp === p1) ? s.p1 : s.p2; return o ? { x: o.x + 30, y: o.y + 50 } : null }).filter(Boolean)
-  _rewindFxTimer = REWIND_FX_FRAMES
-  // RESTORE both fighters (the whole match state rolls back)
-  _rewindRestoreFighter(p1, snap.p1)
-  _rewindRestoreFighter(p2, snap.p2)
-  // ROUND TIMER: the rewound value + a bonus → net MORE time than a normal round would have had here.
-  roundTimer = Math.min(ROUND_TIME + REWIND_TIMER_BONUS, (snap.roundTimer || roundTimer) + REWIND_TIMER_BONUS)
-  // WORLD CONSISTENCY: drop "future" artifacts so the rewound world is coherent (no orphan projectiles).
-  activeProjectiles.length = 0; damageNumbers.length = 0; hitSparks.length = 0
-  try { const ctx = getAbilityContext(); shakeCamera(ctx, 6, 14); focusCameraOnAction(ctx, caster, opp, 1.06, REWIND_FX_FRAMES) } catch (_) {}
-  return { ok: true, restoredClock: snap.clock, restoredRoundTimer: roundTimer, agoFrames: globalFrameCount - snap.clock }
-}
-
-// Render-only "rewound movement" trace over the opponent — a fading poly-line through their recent path
-// (reuses the same stroke primitives as the manga speed-lines). Ticked + drawn during battle render.
-function drawRewindTrace(ctx) {
-  if (_rewindFxTimer <= 0 || !_rewindFxTrail || _rewindFxTrail.length < 2 || !camera) return
-  const a = _rewindFxTimer / REWIND_FX_FRAMES
-  ctx.save()
-  ctx.globalAlpha = 0.55 * a
-  ctx.strokeStyle = "#8be04e"; ctx.lineWidth = 3; ctx.lineJoin = "round"
-  ctx.beginPath()
-  for (let i = 0; i < _rewindFxTrail.length; i++) {
-    const p = _rewindFxTrail[i]
-    if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y)
-  }
-  ctx.stroke()
-  // ghost dots at each sampled position — the "snapping back" read
-  ctx.fillStyle = "#c8f7a0"
-  for (const p of _rewindFxTrail) { ctx.globalAlpha = 0.5 * a; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill() }
-  ctx.restore()
 }
 
 // OMOLOLU FLASH TIME — sustained VISIBLE FX while active (render-only; reads _lastDraw* + globalFrameCount,
@@ -3216,7 +3359,6 @@ function resetRound() {
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
-  resetRewindBuffer()   // Rick Prime rewind history never crosses a round boundary
 
   matchStats.roundStartHealth = matchStats.roundStartHealth || {}
   matchStats.roundStartHealth.p1 = matchConfig.p1Char?.stats?.maxHealth || 1000
@@ -3322,6 +3464,7 @@ function resetRound() {
   hitSparks.length     = 0
   activeDomains.length = 0
   roundBreakTimer      = 0
+  _resetRewindBuffer()   // RICK PRIME rewind: drop last round's state buffer so a rewind can only target THIS round
 
   resetAIController(p2AI)
   if (matchConfig.mode === "aivsai") {
@@ -7241,11 +7384,15 @@ function _updatePlayerCombatBody(fighter) {
     fighter._ultVariant = (betaHeldDirFromInput(inputState, fighter.facing) === "D") ? "scythe" : "writing"
   }
   // OMOLOLU — the Ultimate is directional: NEUTRAL = the domain "The Genesis Threshold" (WASD rhythm
-  // gauntlet); DOWN = "Transformation Jutsu" (copy the live opponent's full kit). Stamp the held dir the
-  // frame Ultimate is pressed so executeOmoluUltimate picks the branch (mirrors the Light/Chrollo pattern).
+  // gauntlet); DOWN = "Transformation Jutsu" (copy the live opponent's full kit); UP = "Drone Swarm".
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "omololu") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
+  }
+  // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
+  // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "rickprime") {
+    tryStartRickPrimeRewind(fighter); return
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }
@@ -12943,6 +13090,17 @@ function _oppTimeScaleOf(user) {
 }
 function _updateGodspeedTimeSlow() {
   for (const [user, foe] of [[p1, p2], [p2, p1]]) {
+    // RICK PRIME — PAUSE TIME (special): fully freeze the foe (time stop) EVERY frame while active; Rick keeps
+    // acting. Reuses the same _timeSlowFlag frame-skip the block below uses, but unconditional (scale 0). Also
+    // ticks the pause timer + the cooldown down here (runs every frame, before the freeze gates consume the flag).
+    if (user) {
+      if ((user._pauseTimeCd || 0) > 0) user._pauseTimeCd--
+      if (user._pauseTimeActive) {
+        user._pauseTimeTimer = (user._pauseTimeTimer || 0) - 1
+        if (user._pauseTimeTimer <= 0) { user._pauseTimeActive = false; if (foe) { foe._timeSlowFlag = false; foe._timeSlowAcc = 0 } }
+        else if (foe && !foe.eliminated) { foe._timeSlowFlag = true; foe._timeSlowAcc = 0; continue }   // full freeze; overrides any other time-slow this pair
+      }
+    }
     const ts = _oppTimeScaleOf(user)
     if (ts > 0 && foe && !foe.eliminated) {
       foe._timeSlowAcc = (foe._timeSlowAcc || 0) + ts
@@ -13098,9 +13256,7 @@ function updateBattle() {
   // Uses the exported sasukeInSusanoo helper so this stays correct if the flag changes.
   const sustainedFormActive = sasukeInSusanoo(p1) || sasukeInSusanoo(p2)
   const prevRoundTimer = roundTimer
-  if (roundTimer > 0 && !sustainedFormActive) roundTimer--
-  recordRewindSample()                 // Rick Prime rewind buffer — pure read, no-op unless a Rick Prime is in the match
-  if (_rewindFxTimer > 0) _rewindFxTimer--   // render-only rewind trace beat
+  if (roundTimer > 0 && !sustainedFormActive && !rewindState.active) roundTimer--   // freeze the clock during the Temporal Rewind cinematic (it can't tick to 0 mid-rewind → no round-end interrupting it)
   // RICK timer-warning barks — fire ONCE at each crossing (prev>X && now<=X so a Susanoo stall
   // that parks the clock on the threshold can't re-fire it). Gated to the LOCAL PLAYER being Rick.
   // ROUND_TIME is 90s: 60s left = 3600f, 30s = 1800f, 10s = 600f.
@@ -13140,6 +13296,9 @@ function updateBattle() {
     replay.recordInputs(_replayFrame, replay.encodeInput(readRawControls(p1)), replay.encodeInput(readRawControls(p2)))
     if (_replayFrame % replay.HASH_INTERVAL === 0) replay.recordState(_replayFrame, _replaySnap(p1), _replaySnap(p2))
   }
+  // RICK PRIME rewind buffer: sample full match state every REWIND_SAMPLE_INTERVAL frames, but ONLY when no
+  // uninterruptible cinematic is live → the buffer can never hold a mid-cinematic snapshot (edge-case safety).
+  if (_replayFrame % REWIND_SAMPLE_INTERVAL === 0 && !_rewindUnsafeNow() && !rewindState.active) _captureRewindSample(_replayFrame)   // ★never mutate the buffer WHILE a rewind is playing (it would shift the held snapshot index mid-cinematic)
   _replayFrame++
 
   updateFacing()
@@ -13159,6 +13318,13 @@ function updateBattle() {
   // KURAMA ULTIMATE CINEMATIC: same freeze contract as the domain zoom beat —
   // the Tailed Beast Bomb sequence drives the camera + deals its guaranteed hit
   // while combat/physics are paused, then combat resumes when it ends.
+  // RICK PRIME TEMPORAL REWIND — same freeze contract: the rewind cinematic drives the camera + applies the
+  // state restore while combat/physics are paused, then resumes when it ends.
+  if (rewindState.active) {
+    updateRewind()
+    return                                     // skip movement/combat/physics this frame
+  }
+
   if (isKuramaCinematicActive()) {
     updateKuramaUltimate({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
@@ -15194,7 +15360,6 @@ function drawBattleScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
-  drawRewindTrace(ctx)   // Rick Prime "Rewind" — fading trace of the opponent's recent path (world space, over fighters)
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)
@@ -15684,6 +15849,7 @@ function drawBattle() {
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
+  _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -18765,21 +18931,6 @@ gameLoop()
     minatoVoidFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._voidFlashFX; return { seeded: !!fx, sparks: fx?.sparks?.length || 0, glows: fx?.glows?.length || 0, clock: f?._voidFlashClock || 0, skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
     gojoInfinityFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._gojoInfinityFX; return { seeded: !!fx, motes: fx?.motes?.length || 0, rings: fx?.rings?.length || 0, clock: f?._gojoInfinityClock || 0, skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
     alienXFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._alienXFX; return { seeded: !!fx, stars: fx?.stars?.length || 0, nebulae: fx?.nebulae?.length || 0, isAlienX: !!(typeof f?.skinId === "string" && f.skinId.endsWith("AlienX")), skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
-    // RICK PRIME "Rewind" ultimate — inspect the rolling state buffer + drive/verify the restore + edge cases.
-    rewind: {
-      buffer: () => ({ len: _rewindBuf.length, frame: globalFrameCount, targetClock: globalFrameCount - REWIND_TARGET_FRAMES,
-                       oldest: _rewindBuf[0]?.clock ?? null, newest: _rewindBuf[_rewindBuf.length - 1]?.clock ?? null,
-                       safeCount: _rewindBuf.filter(s => s.safe).length, fxTimer: _rewindFxTimer,
-                       pick: (() => { const s = _pickRewindTarget(); return s ? { clock: s.clock, roundTimer: s.roundTimer, ago: globalFrameCount - s.clock, health: { p1: s.p1?.health, p2: s.p2?.health }, x: { p1: s.p1?.x, p2: s.p2?.x } } : null })() }),
-      cinematicActive: () => _rewindCinematicActive(),
-      forceCinematic:  (on = true) => { _rewindForceCine = !!on; return _rewindCinematicActive() },
-      realCine:        (on = true) => { if (p2) p2.domainFrozen = !!on; return _rewindCinematicActive() },   // flip a REAL detector flag (domainFrozen) end-to-end
-      roundTimer:      () => roundTimer,
-      perform:         (who = "p1") => performRickPrimeRewind(who === "p2" ? p2 : p1),   // direct restore (bypasses the ult economy)
-      armAt:           (len) => { _rewindArmLen = len | 0; _rewindArmResult = null; return _rewindArmLen },   // FRAME-EXACT in-sim trigger at buffer.len===len
-      armResult:       () => _rewindArmResult,   // { ok, hash } captured on the SAME tick the armed rewind fired
-      constants:       () => ({ sampleInterval: REWIND_SAMPLE_INTERVAL, window: REWIND_WINDOW_FRAMES, target: REWIND_TARGET_FRAMES, bonus: REWIND_TIMER_BONUS })
-    },
     // Omega Ranger command-chain probe (mirrors vegCmd) — drive the kick-chain rekka precisely.
     orCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Combo-flow Stage 2: the SHARED cancel-window view for either fighter — proves every character's
@@ -19915,6 +20066,17 @@ gameLoop()
     setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
+    setP2Energy: (v = 0) => { if (p2) p2.energy = Math.max(0, v) },   // force P2 meter (Rick Prime Energy Siphon "target drained" case)
+    fillP2Energy: () => { if (p2) p2.energy = p2.maxEnergy },
+    // ── RICK PRIME "Temporal Rewind" ultimate (harness-only) ──
+    getRoundTimer: () => roundTimer,
+    setRoundTimer: (v) => { roundTimer = Math.max(0, v | 0); return roundTimer },
+    rickRewind: () => ({ active: rewindState.active, phase: rewindState.phase, timer: rewindState.timer, restored: rewindState.restored, blockedReason: rewindState.blockedReason, bufferLen: rewindBuffer.length, targetFrame: rewindState.targetFrame, oppSide: rewindState.oppSide, roundTimer, unsafeNow: _rewindUnsafeNow(), replayFrame: _replayFrame }),
+    rickRewindPreview: () => { const idx = _pickRewindSnapshot(_replayFrame - REWIND_TARGET_FRAMES); return idx < 0 ? null : { idx, f: rewindBuffer[idx].f, roundTimer: rewindBuffer[idx].roundTimer, a: rewindBuffer[idx].a, b: rewindBuffer[idx].b, bonusFrames: REWIND_BONUS_FRAMES } },   // the snapshot a rewind NOW would restore to
+    rickRewindFire: () => tryStartRickPrimeRewind(p1),   // drive the REAL activation path (self-gates: cost/cooldown/history/cinematic-safe)
+    rickPause: () => p1 ? { active: !!p1._pauseTimeActive, timer: p1._pauseTimeTimer || 0, cd: p1._pauseTimeCd || 0, energy: Math.round(p1.energy || 0), oppFrozen: !!(p2 && p2._timeSlowFlag), selfFrozen: !!p1._timeSlowFlag, oppX: Math.round(p2?.x || 0), oppY: Math.round(p2?.y || 0), oppVy: Math.round((p2?.vy || 0) * 100) / 100 } : null,   // Rick Prime "Pause Time" readout (harness-only)
+    p2Ultimate: (opts = {}) => { if (!p2) return null; p2.ultimateCooldown = 0; p2.attackCooldown = 0; p2.attacking = false; p2.isCharging = false; p2.hitstun = 0; p2.energy = p2.maxEnergy; const cast = triggerUltimate(p2, getAbilityContext(), opts); return { cast: !!cast, move: p2.currentMove || null } },   // fire the OPPONENT's ultimate (edge-case: rewind blocked while a cinematic is live)
+    rickSiphon: () => p1 ? { capture: p1._siphonCapture || null, fizzle: p1._siphonFizzle || 0, reason: p1._siphonFizzleReason || null, energy: Math.round(p1.energy || 0) } : null,   // Rick Prime Energy Siphon readout (harness-only)
     setMangekyou: (on = true, side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._mangekyouActive = !!on; return true } return false },   // toggle ONLY the Sharingan flag (Kakashi Raikiri empowerment gate / Itachi) — does NOT set buff/dodge
     mangekyouEnter: () => { if (!p1) return false; p1.energy = p1.maxEnergy; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; return enterMangekyou(p1) },   // REAL enter (sets buff mults + autoDodge + idle-swap) for tests
     mangekyouRevert: () => { if (p1) revertMangekyou(p1); return true },

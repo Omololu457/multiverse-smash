@@ -23987,11 +23987,125 @@ function fireRickPrimePortalBlast(fighter, context) {
   try { shakeCamera(context, 4, 8) } catch (_) {}
   return true
 }
+// ═════════════════════════════════════════════════════════════════════════════
+// RICK PRIME — "ENERGY SIPHON" (Down+Special). A ranged "read": Rick reaches through a portal and STEALS the
+// opponent's own projectile to fire back at them. Adapted from Chrollo's Skill Hunter architecture (read the
+// live opponent via the target resolver, resolve characters[key], then briefly ASSUME their kit so their REAL
+// handler runs) — but scoped to a single projectile cast instead of a 30s full-body copy:
+//   • The opponent must have a `subtype:"projectile"` special in their kit AND enough energy to cast it.
+//   • On a valid read: the OPPONENT pays that projectile's normal energy cost, and Rick fires a copy of THEIR
+//     EXACT projectile (their real handler → real art / damage / code), aimed back at them.
+//   • On a failed read (no projectile in the kit, or the target is too drained to cast it): a green portal
+//     FIZZLE, no damage, and Rick still pays the modest READ cost (the read is the committed action; whether the
+//     target has ammo isn't known until he commits — a partial refund would remove the risk, so no refund).
+// This ONLY READS other characters' move data (characters[key].specials + their handler); it never mutates them.
+const RICK_SIPHON_READ_COST = 15   // modest — Rick's own Portal Blast is 35; the projectile's real cost is paid by the target
+
+// Scan a fighter's kit for a castable projectile special. Returns { key, cost } of the first `subtype:"projectile"`
+// entry (the roster's signature projectile is its neutral special, which is what the borrow-fire below casts).
+function _rickPrimeFindOppProjectile(opp) {
+  const specials = opp?.specials
+  if (!specials || typeof specials !== "object") return null
+  let fallback = null
+  for (const [key, md] of Object.entries(specials)) {
+    if (!md || md.subtype !== "projectile") continue
+    const entry = { key, cost: md.cost ?? 0 }
+    if (md.motion === "neutral") return entry   // definitively the neutral projectile → its cost matches the borrow-fire
+    if (!fallback) fallback = entry             // else the first-listed projectile (signature/neutral for the vast majority)
+  }
+  return fallback
+}
+
+// Green portal sputter — the visible "failed read" tell. No projectile, no damage; Rick's read cost is already spent.
+function _rickPrimeSiphonFizzle(fighter, context, reason) {
+  fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 16
+  fighter.vx = 0
+  fighter.colorFlash = 10
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._siphonFizzle = 20; fighter._siphonFizzleReason = reason   // render/harness tell
+  fighter._siphonCapture = null
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+}
+
+// Briefly ASSUME the opponent's kit and invoke their REAL neutral Special so their genuine projectile spawns FROM
+// Rick (aimed at the opponent), then revert Rick's identity. Returns true iff a projectile was actually produced
+// (a spawn was scheduled/created), so the caller can refund the target if the borrow yielded nothing.
+function _rickPrimeBorrowFireProjectile(fighter, opp, context) {
+  const oppKey = (opp.rosterKey || "").toLowerCase()
+  const stash = {
+    rosterKey: fighter.rosterKey, specials: fighter.specials, energy: fighter.energy,
+    onGround: fighter.onGround, grounded: fighter.grounded, attackCooldown: fighter.attackCooldown,
+    attacking: fighter.attacking, _specialHeldDir: fighter._specialHeldDir, _rekkaNext: fighter._rekkaNext,
+  }
+  const before = pendingSpawns.length + (Array.isArray(context?.projectiles) ? context.projectiles.length : 0)
+  try {
+    fighter.rosterKey       = oppKey
+    fighter.specials        = opp.specials
+    fighter.facing          = (opp.x >= fighter.x) ? 1 : -1   // aim back at the target (kept — the deferred spawn reads facing)
+    fighter.energy          = fighter.maxEnergy || 200         // let the borrowed handler's spendEnergy succeed; the target is charged separately + Rick's energy is restored below
+    fighter.onGround = true; fighter.grounded = true           // force the neutral GROUND projectile branch
+    fighter.attackCooldown = 0; fighter.attacking = false; fighter._specialHeldDir = null
+    triggerSpecial(fighter, context)                           // → execute<Opp>Special(Rick) → schedules/spawns THEIR real projectile from Rick
+  } finally {
+    fighter.rosterKey = stash.rosterKey; fighter.specials = stash.specials
+    fighter.energy = stash.energy                              // Rick only pays the READ cost (charged before this call)
+    fighter.onGround = stash.onGround; fighter.grounded = stash.grounded
+    fighter._specialHeldDir = stash._specialHeldDir; fighter._rekkaNext = stash._rekkaNext
+  }
+  const after = pendingSpawns.length + (Array.isArray(context?.projectiles) ? context.projectiles.length : 0)
+  return after > before
+}
+
+// ENERGY SIPHON (Down+Special).
+function fireRickPrimeEnergySiphon(fighter, context) {
+  if (!spendEnergy(fighter, RICK_SIPHON_READ_COST)) return false   // can't afford even the read → no-op (no cooldown)
+  fighter.vx = 0
+  const getOpp = getTargetResolver(context)
+  const opp = getOpp ? getOpp(fighter) : null
+  const proj = opp ? _rickPrimeFindOppProjectile(opp) : null
+  if (!proj)                              { _rickPrimeSiphonFizzle(fighter, context, "no_projectile"); return true }  // kit has no projectile special
+  if ((opp.energy || 0) < proj.cost)      { _rickPrimeSiphonFizzle(fighter, context, "drained");      return true }  // target can't afford to cast it
+  // Valid read: charge the TARGET their projectile's cost, then fire their exact projectile from Rick.
+  spendEnergy(opp, proj.cost)
+  const fired = _rickPrimeBorrowFireProjectile(fighter, opp, context)
+  if (!fired) { opp.energy = Math.min(opp.maxEnergy || opp.energy, (opp.energy || 0) + proj.cost); _rickPrimeSiphonFizzle(fighter, context, "no_projectile"); return true }  // borrow yielded nothing → refund the target, fizzle
+  // Rick's own cast tell (the borrowed handler's gwen/etc. cast pose is meaningless on Rick's sheet → use his portal pose).
+  fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown  = getAttackDuration(28, fighter)
+  fighter.colorFlash = 12
+  fighter._siphonFizzle = 0; fighter._siphonFizzleReason = null
+  fighter._siphonCapture = { source: (opp.rosterKey || "").toLowerCase(), move: proj.key, cost: proj.cost }   // harness/HUD readout
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+
+// RICK PRIME — "PAUSE TIME" (Down+Special). A SPECIAL (not the ultimate): Rick freezes the opponent in place for a
+// short window (a time stop) while he keeps acting freely. Just sets the flags + spends meter; game.js's per-opponent
+// time-slow driver (_updateGodspeedTimeSlow, the SAME frame-skip idiom Godspeed/Flash Time use) reads _pauseTimeActive
+// and fully freezes the foe each frame, and ticks the timer + cooldown down. Cooldown-gated so it can't be spammed.
+const RICK_PAUSE_DURATION = 132   // ~2.2s "a little bit"
+const RICK_PAUSE_COST     = 55
+const RICK_PAUSE_COOLDOWN = 330   // ~5.5s lockout (special, but a time stop → gated so it isn't spammable)
+function fireRickPrimePauseTime(fighter, context) {
+  if ((fighter._pauseTimeCd || 0) > 0 || fighter._pauseTimeActive) return false
+  if (!spendEnergy(fighter, RICK_PAUSE_COST)) return false
+  fighter._pauseTimeActive = true
+  fighter._pauseTimeTimer  = RICK_PAUSE_DURATION
+  fighter._pauseTimeCd     = RICK_PAUSE_COOLDOWN
+  fighter._spriteCastMove  = "portalTravel"; fighter._spriteCastTimer = 20   // brief "snap fingers" cast tell
+  fighter.vx = 0; fighter.colorFlash = 16
+  try { shakeCamera(context, 5, 9) } catch (_) {}
+  return true
+}
+
 function executeRickPrimeSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "rickprime") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if ((fighter._specialHeldDir || null) === "U") return fireRickPrimeSkyshot(fighter, context)   // Up = NEW anti-air
-  return fireRickPrimePortalBlast(fighter, context)                                              // neutral = authored Portal Blast
+  const dir = fighter._specialHeldDir || null
+  if (dir === "U") return fireRickPrimeSkyshot(fighter, context)       // Up  = anti-air Skyshot
+  if (dir === "B") return fireRickPrimeEnergySiphon(fighter, context)  // BACK (away from the foe — the A/D key opposite the opponent) = "Energy Siphon" (steal the foe's projectile)
+  if (dir === "D") return fireRickPrimePauseTime(fighter, context)     // DOWN = NEW "Pause Time" (freeze the foe briefly while Rick keeps acting)
+  return fireRickPrimePortalBlast(fighter, context)                    // neutral = authored Portal Blast
 }
 
 export function triggerSpecial(fighter, context = {}) {

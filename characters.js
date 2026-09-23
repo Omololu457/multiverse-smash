@@ -967,9 +967,9 @@ const omololu = {
     shurikenThrow: { cost: 18, description: "Shuriken Throw (neutral; airborne = diagonal down-forward air-throw)." },
     rodThrow:      { cost: 22, description: "Chakra Rod Throw (Forward) — fast, long reach." },
     giantShuriken: { cost: 34, description: "Giant Shuriken (Up) — slow, heavy." },
-    kamuiPortal:   { cost: 20, description: "Kamui Warp (Down) — teleport a long distance (self-mobility, no damage)." },
-    flashTime:     { cost: 30, description: "Flash Time (Back) — Killua-style time-slow: the foe runs at ~1/3 speed while you move normally (drains meter; press again to end)." },
-    kamuiDimension:{ cost: 45, description: "Kamui Dimension (P-HOLD→release) — void-swap: freeze the foe + a rapid shuriken barrage (special-tier)." }
+    kamuiPortal:   { cost: 15, description: "Kamui Warp (Back) — teleport a long distance (self-mobility, no damage)." },
+    flashTime:     { cost: 0, description: "Flash Time (Down) — Killua Godspeed-style time-slow: the foe runs at ~1/3 speed while you move normally. NO upfront cost — drains meter slowly (~10s from full); press again to end." },
+    kamuiDimension:{ cost: 33, description: "Kamui Dimension (P-HOLD→release) — void-swap: freeze the foe + a rapid shuriken barrage (special-tier)." }
   },
   // Domain-tier ULTIMATE (input: Ultimate / 'u'). Expands a full-screen domain and forces the trapped
   // foe to dance a RANDOM ~20s WASD cadence — reuses Naoya's per-beat timing-window judging: a correct

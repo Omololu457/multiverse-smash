@@ -8,6 +8,7 @@
 // Screenshots: OMOLOLU_idle, OMOLOLU_attack, OMOLOLU_domain.
 import { chromium } from "playwright"
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
+import { OMO_DOMAIN } from "../omololuDomain.js"   // read the configured per-miss damage so the band tracks any tune
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const OUT = path.join(ROOT, "harness", "shots"); fs.mkdirSync(OUT, { recursive: true })
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".json": "application/json" }
@@ -86,7 +87,9 @@ try {
     return { dmg, beats, misses: H.state()?.misses }
   })
   check("wrong inputs over 5 live beats deal REAL damage each", missRun.dmg > 0 && missRun.misses >= 5, `dmg=${missRun.dmg}, misses=${missRun.misses}`)
-  check("live per-beat damage is in-band (not an outlier)", missRun.dmg / 5 <= 20, `${(missRun.dmg / 5).toFixed(1)}/beat`)
+  // per-beat EFF should match the configured RAW miss penalty through the global ×0.60 damage scale (tracks tunes)
+  const expPerBeat = OMO_DOMAIN.missDamage * 0.60
+  check("live per-beat damage matches the configured miss penalty", Math.abs(missRun.dmg / 5 - expPerBeat) <= 3, `${(missRun.dmg / 5).toFixed(1)}/beat vs expected ~${expPerBeat.toFixed(1)}`)
 
   section("STAGE 5D — domain resolves cleanly back to normal")
   const ended = await page.evaluate(() => {

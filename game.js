@@ -201,6 +201,8 @@ import {
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   fireObitoKamuiDimension, updateObitoKamuiDimension,   // Obito "Kamui Dimension" (NEW: Charge-HOLD→release) — domain-freeze + shuriken barrage + void-bg swap
   updateOmoluCommandCombat, toggleOmoluKamui, updateOmoluKamui, fireOmoluKamuiDimension, applyOmoluFlashTime, revertOmoluFlashTime,   // OMOLOLU — ported Obito kit (rekka / Kamui Intangibility / Kamui Dimension) + Flash Time slow-time apply
+  updateOmoluTransform, revertOmoluTransform, isOmoluTransformActive,   // OMOLOLU — "Transformation Jutsu" (Down+Ult): copy the live opponent's full kit; ghostface_exe-style revert (KO/hit/timeout)
+  updateOmoluDrones, clearOmoluDrones, isOmoluDroneActive,   // OMOLOLU — "Drone Swarm" (Up+Ult): bomb-drop AOE + crash contact + Flying-Raijin-style teleport markers
   updateTobiCombat,              // Tobi (masked Obito alias) — per-frame combat watcher: Stage-2 air-kunai projectile spawn (own `_tobi*` state, no Obito coupling)
   updateTobiChainGrab,           // Tobi Stage-3 Chain Grab scripted state machine (whip→reach→snatched→smash, all `_tobiChain*`)
   updateTobiKamui, toggleTobiKamui, deactivateTobiKamui,   // Tobi Stage-4 Kamui Intangibility (own `_tobi*` state; independent of Obito's `_kamui*`)
@@ -2793,7 +2795,189 @@ function getAbilityContext() {
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
-    triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
+    triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null },
+    // Rick Prime "Rewind" ultimate: rewindBlockedNow() = an uninterruptible cinematic is active (refuse);
+    // rewind(caster) = restore the whole match state ~10s prior + timer bonus (returns a result object).
+    rewindBlockedNow: () => _rewindCinematicActive(),
+    rewind: (caster) => performRickPrimeRewind(caster)
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// RICK PRIME — "REWIND" ULTIMATE state buffer + restore (HIGH-RISK: touches core match state).
+// Foundation: modelled on replay.js's periodic recordState() checkpoint pattern, but a PARALLEL,
+// denser, deeper buffer (the replay hash is [x,y,health,energy] @60f — too sparse/shallow to rewind).
+// DETERMINISM CONTRACT: recording is a PURE READ (no sim mutation, no RNG). The restore is a PURE
+// COPY-BACK (no gameRng calls) → identical on both LAN sides since it runs off the deterministic sim +
+// is triggered by an input in the lockstep stream. FX (trace/camera) are render-only (excluded from the
+// determinism hash, same as camera shake / particle scatter). The buffer only records while a Rick Prime
+// is in the match, so every other matchup is byte-for-byte untouched.
+const REWIND_SAMPLE_INTERVAL = 15     // frames between samples (~4/sec) — dense enough for a clean rewind
+const REWIND_WINDOW_FRAMES   = 1200   // ~20s of history retained
+const REWIND_TARGET_FRAMES   = 600    // rewind to ~10s prior
+const REWIND_TIMER_BONUS     = 600    // +10s ADDED on top of the rewound timer (config: 1200 = +20s)
+const REWIND_FX_FRAMES       = 48     // render-only trace/camera beat duration
+const REWIND_MAX_SAMPLES     = Math.ceil(REWIND_WINDOW_FRAMES / REWIND_SAMPLE_INTERVAL) + 2
+let _rewindBuf             = []       // ring buffer, oldest→newest
+let _rewindLastSampleFrame = -99999
+let _rewindFxTimer         = 0        // render-only
+let _rewindFxTrail         = null     // opponent's recent positions, drawn as the "rewound movement" trace
+
+function _rewindActive() { return (p1 && p1.rosterKey === "rickPrime") || (p2 && p2.rosterKey === "rickPrime") }
+
+// Any UNINTERRUPTIBLE cinematic in progress (brutality finisher / domain / Kamui Dimension / Edo Tensei /
+// a fighter frozen inside a domain). Used BOTH to (a) block the rewind's activation and (b) tag each
+// sample as un-SAFE so we never RESTORE the match into the middle of another character's cinematic.
+let _rewindForceCine = false   // harness-only: force the cinematic-active gate on, to test the edge-case refusal
+function _rewindCinematicActive() {
+  if (_rewindForceCine) return true
+  if (brutalityState.active) return true
+  if (domainCine && domainCine.caster) return true
+  if (activeDomains && activeDomains.length > 0) return true
+  if (_kamuiDimActive()) return true
+  if ((p1 && p1.domainFrozen) || (p2 && p2.domainFrozen)) return true
+  try { if (getEdoTenseiCinematicStatus && getEdoTenseiCinematicStatus().active) return true } catch (_) {}
+  return false
+}
+
+function _rewindSnapFighter(f) {
+  if (!f) return null
+  return { health: f.health, x: f.x, y: f.y, energy: f.energy, vx: f.vx || 0, vy: f.vy || 0,
+           facing: f.facing, onGround: !!(f.onGround ?? f.grounded), groundY: f.groundY }
+}
+
+// Per-frame (only while a Rick Prime is present): push a full sample every REWIND_SAMPLE_INTERVAL frames.
+function recordRewindSample() {
+  if (!_rewindActive()) return
+  if (globalFrameCount - _rewindLastSampleFrame < REWIND_SAMPLE_INTERVAL) return
+  _rewindLastSampleFrame = globalFrameCount
+  _rewindBuf.push({ clock: globalFrameCount, roundTimer, safe: !_rewindCinematicActive(),
+                    p1: _rewindSnapFighter(p1), p2: _rewindSnapFighter(p2) })
+  while (_rewindBuf.length > REWIND_MAX_SAMPLES) _rewindBuf.shift()
+  // Harness-only: FRAME-EXACT rewind trigger (fires IN-SIM the tick the buffer first reaches _rewindArmLen)
+  // + captures the restored-state hash on the SAME tick. This is how LAN fires (an exact frame in the input
+  // stream), so two identical runs produce a bit-identical hash — the real determinism proof.
+  if (_rewindArmLen != null && _rewindBuf.length >= _rewindArmLen) {
+    _rewindArmLen = null
+    const caster = (p1 && p1.rosterKey === "rickPrime") ? p1 : ((p2 && p2.rosterKey === "rickPrime") ? p2 : null)
+    const res = caster ? performRickPrimeRewind(caster) : { ok: false, reason: "no-caster" }
+    const rd = v => Math.round((v || 0) * 1e4) / 1e4
+    _rewindArmResult = { ok: !!res.ok, hash: (p1 && p2) ? [rd(p1.x), rd(p1.y), p1.health, rd(p1.energy), rd(p2.x), rd(p2.y), p2.health, rd(p2.energy), roundTimer].join("|") : null }
+  }
+}
+let _rewindArmLen = null, _rewindArmResult = null
+
+function resetRewindBuffer() { _rewindBuf.length = 0; _rewindLastSampleFrame = -99999; _rewindFxTimer = 0; _rewindFxTrail = null }
+
+// Pick the SAFE snapshot to restore to: the newest safe sample at/before ~10s ago; if the match is younger
+// than that, the OLDEST safe sample (graceful degrade); null if there is no safe sample at all → block.
+function _pickRewindTarget() {
+  if (_rewindBuf.length === 0) return null
+  const targetClock = globalFrameCount - REWIND_TARGET_FRAMES
+  let pick = null
+  for (const s of _rewindBuf) if (s.safe && s.clock <= targetClock) pick = s
+  if (!pick) pick = _rewindBuf.find(s => s.safe) || null
+  return pick
+}
+
+// Restore ONE fighter's sim-critical state + neutralise transient combat/animation state to a clean idle
+// stance (the "animation state where safely restorable" subset — sprite frame data is render-only and NOT
+// in the determinism hash, so resetting to idle is both safe and deterministic). Form/transformation state
+// is deliberately NOT reverted (fragile stat/sprite/timer coupling — documented limitation).
+function _rewindRestoreFighter(f, s) {
+  if (!f || !s) return
+  f.health = s.health; f.x = s.x; f.y = s.y; f.energy = s.energy
+  f.vx = s.vx; f.vy = s.vy; f.facing = s.facing
+  f.onGround = s.onGround; f.grounded = s.onGround; if (s.groundY != null) f.groundY = s.groundY
+  f.hitstun = 0; f.blockstun = 0; f.hitstop = 0; f.attackCooldown = 0
+  f.attacking = false; f.currentMove = null; f.currentAttack = null; f.moveTimer = 0; f.movePhase = null
+  f.isLaunched = false; f.isBlocking = false; f.knockdownState = false; f.knockdownTimer = 0
+  f.comboCounter = 0; f.comboTimer = 0; f.airHits = 0; f.invulnTimer = 0; f.isGrabbed = false; f.domainFrozen = false
+  if (f.spriteHandler) { f.spriteHandler.currentAction = null; f.spriteHandler.frameIndex = 0; f.spriteHandler.frameTimer = 0; f.spriteHandler.locked = false }
+}
+
+// Perform the rewind. Returns { ok, blocked?, reason?, restoredClock?, restoredRoundTimer?, agoFrames? }.
+// EDGE CASES (do not skip): (1) refuse if any uninterruptible cinematic is active NOW; (2) refuse if there
+// is no SAFE snapshot to land on — never restore into a broken/frozen mid-cinematic state.
+function performRickPrimeRewind(caster) {
+  if (!caster) return { ok: false, blocked: true, reason: "no-caster" }
+  if (_rewindCinematicActive()) return { ok: false, blocked: true, reason: "cinematic-active" }
+  const snap = _pickRewindTarget()
+  if (!snap) return { ok: false, blocked: true, reason: "no-safe-snapshot" }
+  const opp = getOpponent(caster)
+  // render-only trace: the opponent's recent positions from the buffer (restore-point → now)
+  _rewindFxTrail = _rewindBuf.filter(s => s.clock >= snap.clock)
+    .map(s => { const o = (opp === p1) ? s.p1 : s.p2; return o ? { x: o.x + 30, y: o.y + 50 } : null }).filter(Boolean)
+  _rewindFxTimer = REWIND_FX_FRAMES
+  // RESTORE both fighters (the whole match state rolls back)
+  _rewindRestoreFighter(p1, snap.p1)
+  _rewindRestoreFighter(p2, snap.p2)
+  // ROUND TIMER: the rewound value + a bonus → net MORE time than a normal round would have had here.
+  roundTimer = Math.min(ROUND_TIME + REWIND_TIMER_BONUS, (snap.roundTimer || roundTimer) + REWIND_TIMER_BONUS)
+  // WORLD CONSISTENCY: drop "future" artifacts so the rewound world is coherent (no orphan projectiles).
+  activeProjectiles.length = 0; damageNumbers.length = 0; hitSparks.length = 0
+  try { const ctx = getAbilityContext(); shakeCamera(ctx, 6, 14); focusCameraOnAction(ctx, caster, opp, 1.06, REWIND_FX_FRAMES) } catch (_) {}
+  return { ok: true, restoredClock: snap.clock, restoredRoundTimer: roundTimer, agoFrames: globalFrameCount - snap.clock }
+}
+
+// Render-only "rewound movement" trace over the opponent — a fading poly-line through their recent path
+// (reuses the same stroke primitives as the manga speed-lines). Ticked + drawn during battle render.
+function drawRewindTrace(ctx) {
+  if (_rewindFxTimer <= 0 || !_rewindFxTrail || _rewindFxTrail.length < 2 || !camera) return
+  const a = _rewindFxTimer / REWIND_FX_FRAMES
+  ctx.save()
+  ctx.globalAlpha = 0.55 * a
+  ctx.strokeStyle = "#8be04e"; ctx.lineWidth = 3; ctx.lineJoin = "round"
+  ctx.beginPath()
+  for (let i = 0; i < _rewindFxTrail.length; i++) {
+    const p = _rewindFxTrail[i]
+    if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y)
+  }
+  ctx.stroke()
+  // ghost dots at each sampled position — the "snapping back" read
+  ctx.fillStyle = "#c8f7a0"
+  for (const p of _rewindFxTrail) { ctx.globalAlpha = 0.5 * a; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill() }
+  ctx.restore()
+}
+
+// OMOLOLU FLASH TIME — sustained VISIBLE FX while active (render-only; reads _lastDraw* + globalFrameCount,
+// no sim/RNG effect). Omololu gets a pulsing cyan speed-aura + electric arcs (he's fast); the slowed foe
+// gets a soft blue "stasis" glow so the time-slow is obvious. Gated on omololu._omoFlashActive.
+function drawOmoluFlashFX(c) {
+  if (!c) return
+  const omo = (p1 && p1._omoFlashActive) ? p1 : (p2 && p2._omoFlashActive) ? p2 : null
+  if (!omo) return
+  const foe = (omo === p1) ? p2 : p1
+  const t = globalFrameCount
+  const ox = omo._lastDrawX, oy = omo._lastDrawY, ow = omo._lastDrawW, oh = omo._lastDrawH
+  if (ox != null && ow != null) {
+    const cx = ox + ow / 2, cy = oy + oh / 2, pulse = 0.5 + 0.5 * Math.sin(t * 0.35)
+    c.save()
+    c.globalAlpha = 0.30 + 0.18 * pulse   // cyan speed-glow
+    const g = c.createRadialGradient(cx, cy, ow * 0.15, cx, cy, ow * 0.95)
+    g.addColorStop(0, "rgba(150,235,255,0)"); g.addColorStop(0.68, "rgba(90,205,255,0.40)"); g.addColorStop(1, "rgba(90,205,255,0)")
+    c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy, ow * 0.9, oh * 0.66, 0, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = 0.55 + 0.4 * pulse; c.strokeStyle = "#cff4ff"; c.lineWidth = 2; c.shadowBlur = 7; c.shadowColor = "#7fe0ff"
+    for (let arc = 0; arc < 4; arc++) {   // orbiting electric zigzags (deterministic — no RNG)
+      const ang = t * 0.14 + arc * (Math.PI / 2)
+      c.beginPath()
+      for (let s = 0; s <= 5; s++) {
+        const r = ow * 0.5 * (0.72 + 0.14 * ((s % 2) ? 1 : -1))
+        const px = cx + Math.cos(ang + s * 0.55) * r, py = cy + Math.sin(ang + s * 0.55) * r * 0.72
+        if (s === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.stroke()
+    }
+    c.restore()
+  }
+  if (foe && foe._lastDrawX != null && foe._lastDrawW != null) {
+    const fcx = foe._lastDrawX + foe._lastDrawW / 2, fcy = foe._lastDrawY + foe._lastDrawH / 2
+    c.save()
+    c.globalAlpha = 0.22 + 0.08 * Math.sin(t * 0.12)   // slow "stasis" blue field on the crawling foe
+    const gf = c.createRadialGradient(fcx, fcy, foe._lastDrawW * 0.1, fcx, fcy, foe._lastDrawW * 0.9)
+    gf.addColorStop(0, "rgba(70,120,255,0.35)"); gf.addColorStop(1, "rgba(70,120,255,0)")
+    c.fillStyle = gf; c.beginPath(); c.ellipse(fcx, fcy, foe._lastDrawW * 0.8, foe._lastDrawH * 0.62, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
   }
 }
 
@@ -3032,6 +3216,7 @@ function resetRound() {
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
+  resetRewindBuffer()   // Rick Prime rewind history never crosses a round boundary
 
   matchStats.roundStartHealth = matchStats.roundStartHealth || {}
   matchStats.roundStartHealth.p1 = matchConfig.p1Char?.stats?.maxHealth || 1000
@@ -3109,7 +3294,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -4139,7 +4324,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -5499,7 +5684,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -6188,6 +6373,54 @@ function teleportToFlyingRaijinMark(fighter) {
   return true
 }
 
+// OMOLOLU DRONE SWARM — teleport to a live drone (Flying-Raijin architecture, reads _omoDrones instead of
+// _frMarks). Cycles to the next drone each warp so F→F is a repositioning MIX-UP during the swarm window.
+function teleportToOmoluDrone(fighter) {
+  const drones = fighter?._omoDrones
+  if (!fighter?._omoDroneActive || !drones || !drones.length) return false
+  const live = drones.filter(d => d.phase !== "done")
+  if (!live.length) return false
+  const sel = Math.min(Math.max(fighter._omoDroneSel || 0, 0), live.length - 1)
+  const d   = live[sel]
+  const sw  = getStageWorldWidth()
+  fighter.x = Math.max(0, Math.min(sw - fighter.w, d.x - fighter.w / 2))
+  const gy  = fighter.groundY != null ? fighter.groundY : fighter.y
+  fighter.y = Math.min(gy, d.y)                        // arrive at the drone's height (aerial reposition = drop mix-up)
+  fighter.vx = 0; fighter.vy = 0
+  fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false; fighter.jumpCount = 0
+  const target = getOpponent(fighter)
+  if (target) fighter.facing = target.x >= fighter.x ? 1 : -1
+  fighter.teleportFlash = 14
+  fighter._omoDroneSel  = (sel + 1) % live.length      // cycle for the next warp
+  if (typeof camera.focusOnFighter === "function") camera.focusOnFighter(fighter, 1.0, 10)
+  return true
+}
+
+// Render the active drones (ORIGINAL abstract quad-copter shapes, render-only, world space). Bomb drones =
+// dark body / cyan rotor glow; crash drones = red. Each carries a yellow teleport-marker ring (Minato-style),
+// white on the currently-selected warp target.
+function drawOmoluDrones(fighter) {
+  if (!fighter?._omoDroneActive) return
+  const drones = fighter._omoDrones || [], c = ctx, t = globalFrameCount
+  const liveIdx = drones.map((d, i) => ({ d, i })).filter(x => x.d.phase !== "done").map(x => x.i)
+  const sel = liveIdx.length ? liveIdx[Math.min(fighter._omoDroneSel || 0, liveIdx.length - 1)] : -1
+  for (let i = 0; i < drones.length; i++) {
+    const d = drones[i]; if (d.phase === "done") continue
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.3 + i), crash = d.role === "crash"
+    c.save()
+    c.globalAlpha = 0.5 + 0.3 * pulse                                   // teleport-marker ring
+    c.strokeStyle = (i === sel) ? "#ffffff" : "#fde047"; c.lineWidth = (i === sel) ? 2.5 : 1.5
+    c.beginPath(); c.ellipse(d.x, d.y + 15, 16, 6, 0, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = 0.9; c.strokeStyle = "#0c0e14"; c.lineWidth = 2     // rotor arms (X)
+    c.beginPath(); c.moveTo(d.x - 11, d.y - 5); c.lineTo(d.x + 11, d.y + 5); c.moveTo(d.x + 11, d.y - 5); c.lineTo(d.x - 11, d.y + 5); c.stroke()
+    c.globalAlpha = 1; c.fillStyle = crash ? "#c0392b" : "#2b2f3a"     // body (diamond)
+    c.beginPath(); c.moveTo(d.x, d.y - 8); c.lineTo(d.x + 9, d.y); c.lineTo(d.x, d.y + 8); c.lineTo(d.x - 9, d.y); c.closePath(); c.fill()
+    c.globalAlpha = 0.45 + 0.35 * pulse; c.fillStyle = crash ? "#ff7a5a" : "#8be0ff"   // rotor glow
+    c.beginPath(); c.arc(d.x, d.y, 4, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+}
+
 // Double-tap A/D = DASH (HOLD never dashes — see the e.repeat guard in keydown).
 // For the FAST characters (dashTeleport: Toji, Gojo, Sukuna) a double-tap TOWARD
 // the enemy is a TELEPORT-DASH: blink BEHIND the opponent, facing them, ready to
@@ -6220,6 +6453,13 @@ function detectDoubleTapDashTeleport(fighter, key) {
         // a blink" bug; Naruto never hits this — he has no dashTeleport). Spam is already gated
         // by the 48f dashTeleportCooldown above.
         fighter.attackCooldown = 0
+        return
+      }
+      // OMOLOLU DRONE SWARM: while drones are live, the F→F blink WARPS to a drone (Flying-Raijin style,
+      // cycling) instead of the normal blink-behind — a repositioning mix-up during the ultimate window.
+      if (fighter.rosterKey === "omololu" && isOmoluDroneActive(fighter) && teleportToOmoluDrone(fighter)) {
+        fighter._spriteCastMove = "obitoTeleport"; fighter._spriteCastTimer = 14
+        fighter.dashTeleportCooldown = 48; fighter.attackCooldown = 0
         return
       }
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
@@ -7000,8 +7240,13 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "light") {
     fighter._ultVariant = (betaHeldDirFromInput(inputState, fighter.facing) === "D") ? "scythe" : "writing"
   }
-  // OMOLOLU — the Ultimate is a single domain, "The Genesis Threshold" (the WASD rhythm gauntlet), on any
-  // Ultimate press (no directional variant). executeOmoluUltimate → startOmololuDomain (omololuDomain.js).
+  // OMOLOLU — the Ultimate is directional: NEUTRAL = the domain "The Genesis Threshold" (WASD rhythm
+  // gauntlet); DOWN = "Transformation Jutsu" (copy the live opponent's full kit). Stamp the held dir the
+  // frame Ultimate is pressed so executeOmoluUltimate picks the branch (mirrors the Light/Chrollo pattern).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "omololu") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
+  }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }
 
@@ -12227,6 +12472,8 @@ function updateFighterState(fighter) {
   if (updated._milesDashCd > 0)       updated._milesDashCd--         // Miles Down+B dash-kick cooldown (Charge O)
   applyGokuFormSystem(updated)       // Goku SSJ ladder: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   tickIdentitySwap(updated)          // ghostface_exe: borrowed-identity window — involuntary revert on timeout / real hit / KO
+  updateOmoluTransform(updated)      // OMOLOLU Transformation Jutsu: same revert model (timeout / real hit / KO), omololu-namespaced
+  updateOmoluDrones(updated, getAbilityContext())   // OMOLOLU Drone Swarm: fly / bomb-drop AOE / crash contact, + keep teleport markers live
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
@@ -12852,6 +13099,8 @@ function updateBattle() {
   const sustainedFormActive = sasukeInSusanoo(p1) || sasukeInSusanoo(p2)
   const prevRoundTimer = roundTimer
   if (roundTimer > 0 && !sustainedFormActive) roundTimer--
+  recordRewindSample()                 // Rick Prime rewind buffer — pure read, no-op unless a Rick Prime is in the match
+  if (_rewindFxTimer > 0) _rewindFxTimer--   // render-only rewind trace beat
   // RICK timer-warning barks — fire ONCE at each crossing (prev>X && now<=X so a Susanoo stall
   // that parks the clock on the threshold can't re-fire it). Gated to the LOCAL PLAYER being Rick.
   // ROUND_TIME is 90s: 60s left = 3600f, 30s = 1800f, 10s = 600f.
@@ -14945,6 +15194,8 @@ function drawBattleScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
+  drawRewindTrace(ctx)   // Rick Prime "Rewind" — fading trace of the opponent's recent path (world space, over fighters)
+  drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)
   // Shikigami/summons drawn AFTER the fighters (world space) so Megumi's Divine
@@ -14958,6 +15209,8 @@ function drawBattleScene() {
   drawObitoDimensions(ctx)   // Obito/Tobi "Obito_dimension" — WORLD space, OVER the (faded) banished foe: dark void rift + monolith silhouettes
   drawFlyingRaijinMarks(p1)
   drawFlyingRaijinMarks(p2)
+  drawOmoluDrones(p1)   // OMOLOLU Drone Swarm — hovering drones + teleport-marker rings (world space)
+  drawOmoluDrones(p2)
   _drawInfinityAura(p1)
   _drawInfinityAura(p2)
   _drawAbsoluteDefenseAura(p1)
@@ -18511,6 +18764,22 @@ gameLoop()
     // Minato Void Flash — golden Raijin spark overlay (drawVoidFlashOverlay, gated on skinId minatoVoidFlash).
     minatoVoidFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._voidFlashFX; return { seeded: !!fx, sparks: fx?.sparks?.length || 0, glows: fx?.glows?.length || 0, clock: f?._voidFlashClock || 0, skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
     gojoInfinityFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._gojoInfinityFX; return { seeded: !!fx, motes: fx?.motes?.length || 0, rings: fx?.rings?.length || 0, clock: f?._gojoInfinityClock || 0, skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
+    alienXFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._alienXFX; return { seeded: !!fx, stars: fx?.stars?.length || 0, nebulae: fx?.nebulae?.length || 0, isAlienX: !!(typeof f?.skinId === "string" && f.skinId.endsWith("AlienX")), skinId: f?.skinId || null, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
+    // RICK PRIME "Rewind" ultimate — inspect the rolling state buffer + drive/verify the restore + edge cases.
+    rewind: {
+      buffer: () => ({ len: _rewindBuf.length, frame: globalFrameCount, targetClock: globalFrameCount - REWIND_TARGET_FRAMES,
+                       oldest: _rewindBuf[0]?.clock ?? null, newest: _rewindBuf[_rewindBuf.length - 1]?.clock ?? null,
+                       safeCount: _rewindBuf.filter(s => s.safe).length, fxTimer: _rewindFxTimer,
+                       pick: (() => { const s = _pickRewindTarget(); return s ? { clock: s.clock, roundTimer: s.roundTimer, ago: globalFrameCount - s.clock, health: { p1: s.p1?.health, p2: s.p2?.health }, x: { p1: s.p1?.x, p2: s.p2?.x } } : null })() }),
+      cinematicActive: () => _rewindCinematicActive(),
+      forceCinematic:  (on = true) => { _rewindForceCine = !!on; return _rewindCinematicActive() },
+      realCine:        (on = true) => { if (p2) p2.domainFrozen = !!on; return _rewindCinematicActive() },   // flip a REAL detector flag (domainFrozen) end-to-end
+      roundTimer:      () => roundTimer,
+      perform:         (who = "p1") => performRickPrimeRewind(who === "p2" ? p2 : p1),   // direct restore (bypasses the ult economy)
+      armAt:           (len) => { _rewindArmLen = len | 0; _rewindArmResult = null; return _rewindArmLen },   // FRAME-EXACT in-sim trigger at buffer.len===len
+      armResult:       () => _rewindArmResult,   // { ok, hash } captured on the SAME tick the armed rewind fired
+      constants:       () => ({ sampleInterval: REWIND_SAMPLE_INTERVAL, window: REWIND_WINDOW_FRAMES, target: REWIND_TARGET_FRAMES, bonus: REWIND_TIMER_BONUS })
+    },
     // Omega Ranger command-chain probe (mirrors vegCmd) — drive the kick-chain rekka precisely.
     orCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Combo-flow Stage 2: the SHARED cancel-window view for either fighter — proves every character's
@@ -18679,6 +18948,18 @@ gameLoop()
 
     // OMOLOLU — Domain Expansion: The Genesis Threshold verification hooks.
     omololu: {
+      // Transformation Jutsu (Down+Ult) — trigger + inspect the live-opponent copy + drive the revert.
+      transform: {
+        trigger: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.energy = f.maxEnergy || 180; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.isCharging = false; f._ultVariant = "transform"; f.ultimateCooldown = 0; triggerUltimate(f, getAbilityContext()); return { active: !!f._omoTfActive, target: f._omoTfTarget || null, rosterKey: f.rosterKey } },
+        state:   (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { active: !!f._omoTfActive, target: f._omoTfTarget || null, rosterKey: f.rosterKey, name: f.name, timer: f._omoTfTimer || 0, tint: f._omoTfTint || null, reason: f._omoTfRevertReason || null, energy: Math.round(f.energy || 0), specialsKey: f.specials ? Object.keys(f.specials)[0] || null : null, ultName: f.ultimate?.name || null } : null },
+        revert:  (who = "p1", reason = "test") => { const f = who === "p2" ? p2 : p1; return revertOmoluTransform(f, reason) },
+      },
+      // Drone Swarm (Up+Ult) — trigger + inspect the drones + drive the teleport-to-drone.
+      drones: {
+        trigger:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.energy = f.maxEnergy || 180; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.isCharging = false; f.ultimateCooldown = 0; f._ultVariant = "drones"; triggerUltimate(f, getAbilityContext()); return { active: !!f._omoDroneActive, count: (f._omoDrones || []).length } },
+        state:    (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { active: !!f._omoDroneActive, timer: f._omoDroneTimer || 0, sel: f._omoDroneSel || 0, bombHits: f._omoBombHits || 0, crashHits: f._omoCrashHits || 0, drones: (f._omoDrones || []).map(d => ({ x: Math.round(d.x), y: Math.round(d.y), role: d.role, phase: d.phase })) } : null },
+        teleport: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const before = { x: Math.round(f.x), y: Math.round(f.y) }; const ok = teleportToOmoluDrone(f); return { ok, before, after: { x: Math.round(f.x), y: Math.round(f.y) } } },
+      },
       active: () => isOmololuDomainActive(p1) || isOmololuDomainActive(p2),
       caster: () => isOmololuDomainActive(p1) ? "p1" : (isOmololuDomainActive(p2) ? "p2" : null),
       state:  () => getOmololuDomainView(p1) || getOmololuDomainView(p2) || null,

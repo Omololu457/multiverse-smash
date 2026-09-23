@@ -41,22 +41,22 @@ try {
   k = await kit(); check("Giant Shuriken (Up+Special) spawns a projectile", k.projectiles >= 1, `proj=${k.projectiles} cast=${k.castMove}`)
   await frames(80); await reset()
 
-  section("KAMUI WARP (Down+Special) — teleport")
+  section("KAMUI WARP (Back+Special) — teleport")
   const beforeX = (await kit()).x
-  await spec("D"); await frames(3)
+  await spec("B"); await frames(3)
   k = await kit(); check("Kamui Warp moves omololu a long distance", Math.abs(k.x - beforeX) > 150, `Δx=${Math.abs(k.x - beforeX)} cast=${k.castMove}`)
   await page.screenshot({ path: path.join(OUT, "OMOLOLU_kit_warp.png") })
   await reset()
 
-  section("FLASH TIME (Back+Special) — Killua slow-time, NO aura")
-  await spec("B"); await frames(8)
+  section("FLASH TIME (Down+Special) — Killua slow-time + visible cyan speed-aura")
+  await spec("D"); await frames(8)
   k = await kit(); check("Flash Time activates (slow-time flag set)", k.flashActive === true && k.oppTimeScale > 0, `active=${k.flashActive} scale=${k.oppTimeScale}`)
   // The frame-skip flag is only true on the SKIPPED fraction of frames (by design), so sample across a few.
   let slowSeen = false
   for (let i = 0; i < 12 && !slowSeen; i++) { await frames(1); if ((await kit()).foeSlowFlag) slowSeen = true }
   check("the OPPONENT is being time-slowed (frame-skip observed)", slowSeen, `slowSeen=${slowSeen}`)
   await page.screenshot({ path: path.join(OUT, "OMOLOLU_kit_flashtime.png") })
-  await spec("B"); await frames(2)   // toggle off
+  await spec("D"); await frames(2)   // toggle off
   k = await kit(); check("Flash Time toggles OFF on a second press", k.flashActive === false)
   await reset()
 

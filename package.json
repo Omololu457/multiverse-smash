@@ -873,10 +873,15 @@
     "test:omololu-genesis-redo": "node harness/omololu_genesis_redo.mjs",
     "test:omololu-kit": "node harness/omololu_kit_live.mjs",
     "test:omololu-skin": "node harness/omololu_skin_live.mjs",
+    "test:omololu-underskins": "node harness/omololu_underskins_live.mjs",
     "test:omololu-voice": "node harness/omololu_voice.test.mjs",
     "test:omololu-matchup": "node harness/omololu_matchup.test.mjs",
+    "test:omololu-transform": "node harness/omololu_transform.test.mjs",
+    "test:omololu-drones": "node harness/omololu_drones.test.mjs",
+    "test:omololu-kamui-cost": "node harness/omololu_kamui_cost.test.mjs",
     "test:announcer-diagnose": "node harness/announcer_diagnose.mjs",
     "test:announcer-hover": "node harness/announcer_hover.test.mjs",
+    "test:rickprime-rewind": "node harness/rickprime_rewind.test.mjs",
     "test:announcer-voice": "node harness/announcer_voice.test.mjs"
   },
   "dependencies": {

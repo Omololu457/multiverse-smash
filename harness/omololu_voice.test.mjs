@@ -51,13 +51,13 @@ try {
   // SPECIALS
   const readyP1 = () => page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0 }, null, { timeout: 4000 }).catch(() => {})
   await page.evaluate(() => { window.__harness.fillEnergy(); window.__harness.resetFighterInput?.("p1") }); await readyP1(); await clearSpy()
-  await page.evaluate(() => window.__harness.p1SpecialDir("B")); await waitFrames(3)
-  ok(inPool(await spy(), "flashTime"), "SPECIAL Flash Time (Back+Special) → flashTime clip", (await spy()).join(","))
-  await page.evaluate(() => window.__harness.p1SpecialDir("B"))   // toggle off
+  await page.evaluate(() => window.__harness.p1SpecialDir("D")); await waitFrames(3)
+  ok(inPool(await spy(), "flashTime"), "SPECIAL Flash Time (Down+Special) → flashTime clip", (await spy()).join(","))
+  await page.evaluate(() => window.__harness.p1SpecialDir("D"))   // toggle off
 
   await page.evaluate(() => { window.__harness.fillEnergy(); window.__harness.resetFighterInput?.("p1") }); await readyP1(); await clearSpy()
-  await page.evaluate(() => window.__harness.p1SpecialDir("D")); await waitFrames(3)
-  ok(inPool(await spy(), "kamuiWarp"), "SPECIAL Kamui Warp (Down+Special) → kamuiWarp clip", (await spy()).join(","))
+  await page.evaluate(() => window.__harness.p1SpecialDir("B")); await waitFrames(3)
+  ok(inPool(await spy(), "kamuiWarp"), "SPECIAL Kamui Warp (Back+Special) → kamuiWarp clip", (await spy()).join(","))
 
   await page.evaluate(() => { window.__harness.fillEnergy(); window.__harness.resetFighterInput?.("p1") }); await readyP1(); await clearSpy()
   await page.keyboard.press("p"); await waitFrames(3)

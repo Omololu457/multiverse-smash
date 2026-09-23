@@ -934,7 +934,12 @@ export const SKINS = {
   // eye are untouched. spriteScale mirrors the default so the size is unchanged.
   omololu: [
     { id: "default",          name: "Default",         unlockLevel: 0, portrait: characters.omololu?.portrait,               spriteScale: characters.omololu?.spriteScale, animationData: null },
-    { id: "omololuWebWeave",  name: "Web-Weave Suit",  unlockLevel: 0, portrait: recolorPortrait("omololu", "webweave"),     spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "webweave") }
+    { id: "omololuWebWeave",  name: "Web-Weave Suit",  unlockLevel: 0, portrait: recolorPortrait("omololu", "webweave"),     spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "webweave") },
+    // Underskin trio (tools/gen_omololu_underskin.py). id "omololuAlienX" ENDS "AlienX" so game.js
+    // drawAlienXStarfield auto-gates the runtime starfield onto the matte-black void sheets.
+    { id: "omololuAlienX",    name: "Alien X",         unlockLevel: 0, portrait: recolorPortrait("omololu", "alienx"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "alienx") },
+    { id: "omololuBen10",     name: "Ben 10",          unlockLevel: 0, portrait: recolorPortrait("omololu", "ben10"),        spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "ben10") },
+    { id: "omololuAlbedo",    name: "Albedo",          unlockLevel: 0, portrait: recolorPortrait("omololu", "albedo"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "albedo") }
   ],
 
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. Same gate: WITHOUT a

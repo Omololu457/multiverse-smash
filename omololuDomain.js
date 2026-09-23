@@ -31,7 +31,7 @@ export const OMO_DOMAIN = {
   openWindow:  12,   // FIRST beat's input window — Naoya NAOYA_ROUTE.openWindow, reused verbatim
   stepWindow:  10,   // every subsequent beat's window — Naoya NAOYA_ROUTE.stepWindow, reused verbatim
   gap:         12,   // brief rest between beats
-  missDamage:  12,   // per-miss penalty — in-band with Naoya's snare (12) & smallest route beat; ~24 beats → ~288 raw max, an ultimate-tier ceiling only if EVERY beat is fumbled
+  missDamage:  60,   // per-miss penalty (RAW → applyScaledDamage ×0.60 = 36 EFF/miss). Buffed 12→36→60 for a HARD-HITTING domain: ~24 beats → ~1440 raw ≈ 864 EFF ceiling (near-full KO on total fumble; a clean-read victim still takes 0). Tune here.
   cost:        100,  // domain/ultimate-tier meter cost (matches the roster ultimate band: Batman/VG/Isshiki/Saitama = 100)
 }
 

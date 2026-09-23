@@ -3262,14 +3262,17 @@ function executeSukunaUltimate(fighter, context) {
 // char-agnostic sprite.js MOVE_TO_ACTION identity maps resolve them). No obito-voice calls (omololu has no
 // voice pool → they'd bleed Obito's). Costs mirror Obito's special-tier band.
 //   SPECIAL:  neutral = Shuriken (air = diagonal)  ·  Fwd = Rod  ·  Up = Giant Shuriken
-//             Down = Kamui Warp  ·  Back = Flash Time (toggle)
+//             Down = Flash Time (toggle)  ·  Back = Kamui Warp
 //   CHARGE P: tap = Kamui Intangibility toggle  ·  hold→release = Kamui Dimension (void-swap + barrage)
 //   Fwd+Heavy = rekka  ·  Ultimate = Domain Expansion (unchanged)
 // ═════════════════════════════════════════════════════════════════
 const OMO_PORTAL_DIST = 520, OMO_PORTAL_DROP = 44
-const OMO_KAMUI_DRAIN = 1.2, OMO_KAMUI_COOLDOWN = 600
-const OMO_KDIM_COST = 45, OMO_KDIM_FRAMES = 60, OMO_KDIM_CD = 480, OMO_KDIM_SHURIKEN = 5, OMO_KDIM_DMG = 28
-const OMO_FLASH_COST = 30, OMO_FLASH_DRAIN = 0.4, OMO_FLASH_OPP_SLOW = 0.35, OMO_FLASH_ATKSPD = 1.2, OMO_FLASH_DASH = 26
+const OMO_KAMUI_DRAIN = 0.1, OMO_KAMUI_COOLDOWN = 600   // Intangibility drain/frame — VERY LOW (was 1.2→0.9→0.1) so it's sustainable WHILE gaining meter: holding Charge (+0.5/f) nets +0.4, and even passive regen (~0.075/f) nearly offsets it → you can charge & phase at the same time
+const OMO_KDIM_COST = 33, OMO_KDIM_FRAMES = 60, OMO_KDIM_CD = 480, OMO_KDIM_SHURIKEN = 5, OMO_KDIM_DMG = 28   // Kamui Dimension activation cost (was 45, -27%)
+// EXACT Killua Godspeed energy model: NO upfront cost — a floor to ACTIVATE (like Killua's threshold, but
+// lower so it stays a usable Special, not an ult) + a pure 0.30/frame drain. From full 180 → ~10s (= Godspeed).
+const OMO_FLASH_MIN = 30, OMO_FLASH_DRAIN = 0.30, OMO_FLASH_OPP_SLOW = 0.35, OMO_FLASH_ATKSPD = 1.4, OMO_FLASH_DASH = 28
+const OMO_FLASH_TOGGLE_CD = 16   // frames a re-press is ignored after a toggle (> the ~10f Special input buffer) — one press = one toggle
 
 // SPECIAL dispatch — direction-branched (mirror of executeObitoSpecial, minus the grab / portal-reflect /
 // banishment branches omololu doesn't port). Intangibility + Kamui Dimension live on the P key (game.js).
@@ -3278,8 +3281,8 @@ function executeOmoluSpecial(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const dir = fighter._specialHeldDir || null
-  if (dir === "D")             return fireOmoluKamuiPortal(fighter, context)     // Down = Kamui Warp
-  if (dir === "B" && grounded) return toggleOmoluFlashTime(fighter, context)     // Back = Flash Time (toggle)
+  if (dir === "D" && grounded) return toggleOmoluFlashTime(fighter, context)     // Down = Flash Time (toggle, grounded)
+  if (dir === "B")             return fireOmoluKamuiPortal(fighter, context)     // Back = Kamui Warp
   if (!grounded)               return fireOmoluShuriken(fighter, context, true)  // airborne = diagonal air-throw
   if (dir === "F")             return fireOmoluRod(fighter, context)             // Forward = rod throw
   if (dir === "U")             return fireOmoluGiantShuriken(fighter, context)   // Up = giant shuriken
@@ -3444,7 +3447,7 @@ export function updateOmoluKamui(fighter) {
 // afterimage trail (none of Killua/Flash's visual functions are touched) — just a brief activation flash.
 function enterOmoluFlashTime(fighter) {
   if (fighter._omoFlashActive) return false
-  if (!spendEnergy(fighter, OMO_FLASH_COST)) return false
+  if ((fighter.energy || 0) < OMO_FLASH_MIN) return false   // energy FLOOR to activate — NO upfront cost is charged (Killua model); the drain below spends it over time
   fighter._omoFlashActive       = true
   fighter._omoFtBaseDash        = fighter.dashSpeed
   fighter.attackSpeedMultiplier = OMO_FLASH_ATKSPD
@@ -3462,15 +3465,21 @@ export function revertOmoluFlashTime(fighter) {
   fighter._omoOppTimeScale      = 0
 }
 function toggleOmoluFlashTime(fighter, context) {
+  // DEBOUNCE: the Special button's ~10f input buffer re-fires this toggle every frame it's held/buffered,
+  // which used to flip Flash on/off (and, with the old upfront cost, drained the whole bar instantly). One
+  // press = one toggle now — ignore re-fires until the cooldown clears (ticked in applyOmoluFlashTime).
+  if ((fighter._omoFlashToggleCd || 0) > 0) return false
+  fighter._omoFlashToggleCd = OMO_FLASH_TOGGLE_CD
   if (fighter._omoFlashActive) { revertOmoluFlashTime(fighter); return true }
   return enterOmoluFlashTime(fighter)
 }
 // Per-frame drain + auto-revert (game.updateFighterState). No trail recording, no aura.
 export function applyOmoluFlashTime(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return
+  if (fighter._omoFlashToggleCd > 0) fighter._omoFlashToggleCd--   // tick the toggle debounce even while inactive
   if (!fighter._omoFlashActive) return
   fighter.energy = Math.max(0, (fighter.energy || 0) - OMO_FLASH_DRAIN)
-  if (fighter.energy <= 2) revertOmoluFlashTime(fighter)
+  if (fighter.energy <= 0) revertOmoluFlashTime(fighter)   // run it all the way down (like Godspeed) — no early ≤2 cutoff
 }
 
 // REKKA (Fwd+Heavy) — "Kamui Rod Combo" 3-hit chain, cancel-on-hit (mirror of updateObitoCommandCombat +
@@ -3507,7 +3516,212 @@ export function updateOmoluCommandCombat(fighter, inputState, context, getPhase)
   return false
 }
 
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// OMOLOLU — "TRANSFORMATION JUTSU" (Down+Ultimate): transform into a live copy of the CURRENT OPPONENT,
+// gaining their FULL kit for a window. Copies two proven engines WITHOUT touching either:
+//   • the opponent-copy FIELD-SWAP from Chrollo's Skill Hunter (applySkillHunter) — same field list, but
+//     omololu-namespaced (_omoTf*) so Chrollo's _sh* state is never shared.
+//   • ghostface_exe's REVERT model (tickIdentitySwap): involuntary revert on KO / real hit / timeout + the
+//     recognition TINT (source-in silhouette wash in sprite.js) so it reads as a DISGUISED omololu.
+// Move dispatch is generic over rosterKey, so once swapped the copied kit "just works". ghostface_exe and
+// Chrollo files are READ-only references — their functions/state are never called or modified here.
+const OMO_TF_FIELDS = ["rosterKey", "name", "color", "basic_attacks", "animationData", "spriteScale", "traits", "ultimate", "dashTeleport", "runWhenAdvancing", "introPool", "maxEnergy", "energyType", "transformations", "transformationOrder", "specials", "passive", "archetypes", "primary", "secondary", "hasSprites"]
+const OMO_TF_WINDOW = 15 * 60   // 15s @60fps (between ghostface's ~11s and Chrollo/TJ's 20-30s) — also ends early on a real hit
+const OMO_TF_COST   = 100       // ULTIMATE-tier gate (full-kit swap)
+const OMO_TF_TINT   = "#8a5cf6" // violet recognition wash — reads as omololu's Transformation Jutsu, not the real fighter
+
+function applyOmoluTransform(fighter, targetKey) {
+  const target = characters[targetKey]
+  if (!target) return false
+  const stash = {}
+  for (const k of OMO_TF_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._omoTfStash = stash
+  fighter.rosterKey        = targetKey
+  fighter.name             = target.name || targetKey
+  fighter.color            = target.color || fighter.color
+  fighter.basic_attacks    = target.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = target.animationData || fighter.animationData
+  fighter.spriteScale      = target.spriteScale ?? fighter.spriteScale
+  fighter.traits           = target.traits || fighter.traits
+  fighter.ultimate         = target.ultimate || fighter.ultimate
+  fighter.specials         = target.specials || fighter.specials
+  fighter.passive          = target.passive || fighter.passive
+  fighter.archetypes       = target.archetypes || fighter.archetypes
+  fighter.primary          = target.primary || fighter.primary
+  fighter.secondary        = target.secondary || fighter.secondary
+  fighter.dashTeleport     = !!target.movement?.dashTeleport
+  fighter.runWhenAdvancing = !!target.movement?.runWhenAdvancing
+  fighter.introPool        = target.introPool || null
+  fighter.hasSprites       = target.hasSprites !== false
+  fighter.transformations     = target.transformations || null
+  fighter.transformationOrder = target.transformationOrder || null
+  fighter.currentForm         = (target.transformationOrder && target.transformationOrder[0]) || null
+  fighter.transformIndex      = target.transformationOrder ? 0 : null
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null
+  fighter.maxEnergy  = target.stats?.maxEnergy || fighter.maxEnergy || 130
+  fighter.energyType = target.traits?.energyType || fighter.energyType
+  fighter.energy     = fighter.maxEnergy   // fresh bar so the copied kit is usable
+  _edoClearTransient(fighter)
+  fighter._omoTfActive = true
+  fighter._omoTfTimer  = OMO_TF_WINDOW
+  fighter._omoTfTarget = targetKey
+  fighter._omoTfTint   = OMO_TF_TINT
+  fighter.ultimateCooldown = 0
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 12
+  return true
+}
+
+// Restore omololu (mirror of revertSkillHunter/revertIdentitySwap). reason = "expire" | "hit" | "ko".
+export function revertOmoluTransform(fighter, reason = "expire") {
+  if (!fighter?._omoTfActive || !fighter._omoTfStash) return false
+  const s = fighter._omoTfStash
+  _edoCleanseVesselState(fighter)   // wipe any copied form/buff BEFORE restoring omololu's fields
+  for (const k of OMO_TF_FIELDS) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
+  _edoClearTransient(fighter)   // clears own attack/cast (NOT hitstun/knockback → a hit-revert can't cancel a punish)
+  fighter._omoTfActive = false; fighter._omoTfStash = null; fighter._omoTfTarget = null; fighter._omoTfTimer = 0; fighter._omoTfTint = null
+  fighter._omoTfRevertReason = reason
+  fighter.energy = 0   // the jutsu is spent on revert (Skill Hunter economy)
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 14
+  return true
+}
+
+// Per-frame driver (game.updateFighterState) — ghostface_exe revert model. Survives the swap because
+// _omoTf* are underscore fields (not in OMO_TF_FIELDS), so they persist while rosterKey is the copy.
+export function updateOmoluTransform(fighter) {
+  if (!fighter || !fighter._omoTfActive) return
+  if ((fighter.health || 0) <= 0) { revertOmoluTransform(fighter, "ko");  return }   // KO
+  if ((fighter.hitstun || 0) > 0) { revertOmoluTransform(fighter, "hit"); return }   // took a REAL hit
+  if (--fighter._omoTfTimer <= 0) { revertOmoluTransform(fighter, "expire"); return } // window elapsed
+}
+export function isOmoluTransformActive(fighter) { return !!(fighter && fighter._omoTfActive) }
+
+// Down+Ultimate branch of executeOmoluUltimate — copy the LIVE opponent.
+function executeOmoluTransformUltimate(fighter, context) {
+  if (fighter._omoTfActive) return false
+  const opp = getTargetResolver(context)(fighter)
+  if (!opp || opp.eliminated) return false
+  const oppKey = (opp.rosterKey || "").toLowerCase()
+  if (!oppKey || oppKey === "omololu" || !characters[oppKey]) return false   // no self / mirror copy
+  if ((fighter.energy || 0) < OMO_TF_COST) return false   // ULT-tier gate (the swap overwrites energy → gate, don't pre-spend)
+  if (!applyOmoluTransform(fighter, oppKey)) return false
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  fighter.teleportFlash  = 16
+  try { shakeCamera(context, 8, 12); focusCameraOnAction(context, fighter, opp, 1.0, 16) } catch (_) {}
+  try { sound.playSfxFile?.(pickOmololuVoice("kamuiIntangibility"), null) } catch (_) {}   // reuse a transformation cast bark
+  return true
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// OMOLOLU — "DRONE SWARM" (Up+Ultimate): deploy a swarm of drones that (a) drop BOMBS (AOE, reuses Rick's
+// Self-Destruct proximity-blast pattern), (b) CRASH into the opponent for contact damage+knockback (reuses
+// the projectile-hit knockback pattern), and (c) act as Flying-Raijin-style TELEPORT MARKERS omololu can
+// warp to (game.teleportToOmoluDrone, F→F). Drones live on the fighter (_omoDrones[]) like Minato's _frMarks.
+// Minato/Beerus/Rick files are READ-only references — never called or modified.
+const OMO_DRONE_COUNT         = 4      // 2 bomb + 2 crash
+const OMO_DRONE_WINDOW        = 8 * 60 // 8s the swarm (and the teleport markers) stay live
+const OMO_DRONE_COST          = 100    // ULTIMATE-tier
+const OMO_DRONE_SPEED         = 9      // px/frame fly speed
+const OMO_DRONE_BOMB_R        = 130    // AOE radius (Rick's is 220 — scaled down for a per-drone bomb)
+const OMO_DRONE_BOMB_INTERVAL = 78     // frames between a hovering bomb-drone's drops
+const OMO_DRONE_BOMB_DMG      = 55     // RAW (×0.60 scale ≈ 33 EFF)
+const OMO_DRONE_CRASH_DMG     = 60     // RAW
+const OMO_DRONE_CRASH_KBX     = 14
+const OMO_DRONE_CRASH_KBY     = -8
+
+function _omoDroneToward(d, tx, ty, sp) { const dx = tx - d.x, dy = ty - d.y, m = Math.hypot(dx, dy) || 1; d.x += dx / m * Math.min(sp, m); d.y += dy / m * Math.min(sp, m) }
+
+function executeOmoluDroneSwarm(fighter, context) {
+  if (fighter._omoDroneActive) return false
+  const opp = getTargetResolver(context)(fighter)
+  if (!opp || opp.eliminated) return false
+  if ((fighter.energy || 0) < OMO_DRONE_COST) return false
+  if (!spendEnergy(fighter, OMO_DRONE_COST)) return false
+  const fx = fighter.x + (fighter.w || 60) / 2, fy = (fighter.y || 0) - 30
+  const drones = []
+  for (let i = 0; i < OMO_DRONE_COUNT; i++) {
+    drones.push({ x: fx + (i - 1.5) * 26, y: fy - i * 12, slot: i, role: (i % 2 === 0) ? "bomb" : "crash",
+                  phase: "fly", armT: 22 + i * 12, bombCd: 26 + i * 10, hitDone: false })
+  }
+  fighter._omoDrones      = drones
+  fighter._omoDroneActive = true
+  fighter._omoDroneTimer  = OMO_DRONE_WINDOW
+  fighter._omoDroneSel    = 0
+  fighter._omoBombHits    = 0; fighter._omoCrashHits = 0   // connect counters (verification)
+  fighter.attackCooldown  = getAttackDuration(18, fighter)
+  fighter.teleportFlash   = 14
+  try { shakeCamera(context, 6, 10); focusCameraOnAction(context, fighter, opp, 0.95, 14) } catch (_) {}
+  try { sound.playSfxFile?.(pickOmololuVoice("kamuiDimension"), null) } catch (_) {}
+  return true
+}
+
+// BOMB — Rick Self-Destruct proximity-blast reuse: visualOnly FX projectile + manual radius damage/knockback.
+function _omoDroneBomb(fighter, opp, d, context) {
+  const R = OMO_DRONE_BOMB_R
+  try { spawnProjectile(fighter, "omoDroneBomb", { visualOnly: true, damage: 0, lifetime: 18, vx: 0, vy: 0, spawnX: d.x, spawnY: d.y, w: R * 2, h: R * 2, radius: R, color: "#8be04e" }, context) } catch (_) {}
+  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {
+    const ocx = opp.x + (opp.w || 60) / 2, ocy = opp.y + (opp.h || 100) / 2
+    if (Math.hypot(ocx - d.x, ocy - d.y) <= R) {
+      let dmg = OMO_DRONE_BOMB_DMG
+      if (opp.isBlocking) { dmg = Math.floor(dmg * 0.2); opp.blockstun = 16 }
+      else { opp.hitstun = 24; opp.vx = (ocx >= d.x ? 1 : -1) * 10; opp.vy = -6; opp.colorFlash = 8 }
+      applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "omoDroneBomb" })
+      fighter._omoBombHits = (fighter._omoBombHits || 0) + 1
+    }
+  }
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+}
+
+// CRASH — projectile-hit knockback reuse: the drone body IS the hitbox; contact = damage + launch.
+function _omoDroneCrash(fighter, opp, d, context) {
+  if (!opp || opp.eliminated) return
+  const ocx = opp.x + (opp.w || 60) / 2
+  if (opp.isBlocking) { opp.blockstun = 18; applyScaledDamage(opp, Math.floor(OMO_DRONE_CRASH_DMG * 0.2), { source: "ability", attacker: fighter, move: "omoDroneCrash" }) }
+  else {
+    opp.hitstun = 30; opp.vx = (d.x <= ocx ? 1 : -1) * OMO_DRONE_CRASH_KBX; opp.vy = OMO_DRONE_CRASH_KBY; opp.colorFlash = 8; opp.isLaunched = true
+    applyScaledDamage(opp, OMO_DRONE_CRASH_DMG, { source: "ability", attacker: fighter, move: "omoDroneCrash" })
+    fighter._omoCrashHits = (fighter._omoCrashHits || 0) + 1
+  }
+  try { spawnProjectile(fighter, "omoDroneCrashFx", { visualOnly: true, damage: 0, lifetime: 12, vx: 0, vy: 0, spawnX: d.x, spawnY: d.y, w: 60, h: 60, radius: 30, color: "#c8f7a0" }, context) } catch (_) {}
+  try { shakeCamera(context, 7, 10) } catch (_) {}
+}
+
+// Per-frame driver (game.updateFighterState). Flies each drone to a hover point by the opponent, then bomb
+// drones periodically drop bombs (persist as markers) and crash drones dive into the live opponent.
+export function updateOmoluDrones(fighter, context) {
+  if (!fighter || !fighter._omoDroneActive) return
+  const opp = getTargetResolver(context)(fighter)
+  const drones = fighter._omoDrones || []
+  const OCX = opp ? opp.x + (opp.w || 60) / 2 : fighter.x
+  const OCY = opp ? opp.y + (opp.h || 100) * 0.4 : fighter.y
+  for (const d of drones) {
+    if (d.phase === "done") continue
+    const hx = OCX + (d.slot - (OMO_DRONE_COUNT - 1) / 2) * 64, hy = OCY - 96
+    if (d.phase === "fly") {
+      _omoDroneToward(d, hx, hy, OMO_DRONE_SPEED)
+      if (Math.hypot(hx - d.x, hy - d.y) < 20) d.phase = "hover"
+    } else if (d.phase === "hover") {
+      _omoDroneToward(d, hx, hy, OMO_DRONE_SPEED * 0.5)   // drift to track the moving opponent
+      if (d.role === "bomb") { if (--d.bombCd <= 0) { d.bombCd = OMO_DRONE_BOMB_INTERVAL; _omoDroneBomb(fighter, opp, d, context) } }
+      else if (--d.armT <= 0) d.phase = "dive"
+    } else if (d.phase === "dive") {
+      _omoDroneToward(d, OCX, OCY, OMO_DRONE_SPEED * 1.8)
+      const dist = Math.hypot(OCX - d.x, OCY - d.y)
+      if (opp && !d.hitDone && dist < 34 && (opp.invulnTimer || 0) <= 0) { _omoDroneCrash(fighter, opp, d, context); d.hitDone = true; d.phase = "done" }
+      else if (dist < 6) d.phase = "done"
+    }
+  }
+  if (--fighter._omoDroneTimer <= 0) clearOmoluDrones(fighter)
+}
+export function clearOmoluDrones(fighter) { if (!fighter) return; fighter._omoDroneActive = false; fighter._omoDrones = []; fighter._omoDroneTimer = 0; fighter._omoDroneSel = 0 }
+export function isOmoluDroneActive(fighter) { return !!(fighter && fighter._omoDroneActive && (fighter._omoDrones || []).some(d => d.phase !== "done")) }
+
 function executeOmoluUltimate(fighter, context) {
+  if (fighter._ultVariant === "transform") return executeOmoluTransformUltimate(fighter, context)   // Down+Ultimate
+  if (fighter._ultVariant === "drones")    return executeOmoluDroneSwarm(fighter, context)          // Up+Ultimate
   // THE GENESIS THRESHOLD — Omololu's Domain Expansion is a RHYTHM / REFLEX GAUNTLET (NOT a cinematic
   // freeze): it expands a domain (backdrop = the IMG_3608 reference photo) and forces the trapped foe to
   // hit a ~20s stream of RANDOM W/A/S/D prompts, each judged in a tight window — CORRECT in-window = no
@@ -24233,6 +24447,29 @@ function executeRickPrimeSpecial(fighter, context) {
   return fireRickPrimePortalBlast(fighter, context)                                              // neutral = authored Portal Blast
 }
 
+// RICK PRIME ULTIMATE — "Temporal Rewind": roll the ENTIRE match state back ~10s + bank extra round time.
+// HIGH-RISK (mutates core match state). The rolling state buffer + the actual restore live in game.js
+// (performRickPrimeRewind, via context.rewind) so they can reach roundTimer / activeProjectiles / p1 / p2;
+// this function owns only the ult ECONOMY, the cast pose, and the edge-case refusal.
+function executeRickPrimeUltimate(fighter, context) {
+  const COST = 100   // full ULT-tier meter
+  // EDGE CASE: refuse outright (NO energy spent, NO cooldown) while any uninterruptible cinematic is active
+  // (a brutality finisher / domain / Kamui Dimension / Edo Tensei) — never rewind mid-cinematic.
+  if (context.rewindBlockedNow && context.rewindBlockedNow()) return false
+  if ((fighter.energy || 0) < COST) return false           // gate up front; do NOT spend until the rewind commits
+  const res = context.rewind ? context.rewind(fighter) : null
+  if (!res || !res.ok) return false                         // no SAFE snapshot to land on → nothing happened, no cost
+  // The rewind restored BOTH fighters incl. the caster's energy — so deduct the cost from the RESTORED value,
+  // otherwise the ult would refund its own cost (infinite re-cast). This is the only post-restore mutation.
+  fighter.energy = Math.max(0, (fighter.energy || 0) - COST)
+  fighter._spriteCastMove  = "portalTravel"   // Rick Prime's recolored portal cast pose (freeze/hold)
+  fighter._spriteCastTimer = 34
+  fighter.attackCooldown   = getAttackDuration(28, fighter)   // brief recovery only (prevents an instant re-press)
+  fighter.vx = 0
+  try { sound.playSfxFile?.(pickRickVoice("ultActivate"), null) } catch (_) {}
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -24533,6 +24770,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
+      case "rickprime": cast = executeRickPrimeUltimate(fighter, context); break   // "Temporal Rewind" — restore whole match state ~10s prior + bank round time (game.js state buffer). Refuses mid-cinematic.
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic

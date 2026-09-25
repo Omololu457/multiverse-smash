@@ -1365,9 +1365,9 @@ export function getMainMenuRects(canvas) {
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
     { id: "playTutorial", label: "TUTORIAL", subLabel: "Interactive guided walkthrough — learn the basics" },
     { id: "story",    label: "STORY MODE", subLabel: "A dimensional narrative campaign — coming soon" },
-    // ONLINE is locked until a full-unlock code (dev OR beta) is entered (Task 5/6).
-    // isFullyUnlocked() flips it selectable (leads to a placeholder screen — no netcode yet).
-    { id: "online",   label: "ONLINE",    subLabel: isFullyUnlocked() ? "Unlocked (placeholder)" : "Coming soon — online play", locked: !isFullyUnlocked(), lockNote: "Online play is coming soon" },
+    // ONLINE opens the real LAN host/join flow (2-device match over the local network). No longer gated —
+    // the LAN netcode is live; this is the same destination as PLAY → "ONLINE (LAN)".
+    { id: "online",   label: "ONLINE (LAN)", subLabel: "Host or join a 2-device match on your local network" },
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },

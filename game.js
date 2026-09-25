@@ -17167,7 +17167,7 @@ function handleMenuClicks() {
       if (!c) break
       if (c.locked) break          // locked items (e.g. ONLINE pre-dev-unlock) — not selectable
       if      (c.id === "devcode")  { devCodeEntry = true; devCodeBuffer = ""; devCodeMessage = "" }
-      else if (c.id === "online")   gameState = GAME_STATES.ONLINE_PLACEHOLDER   // only reachable when dev-unlocked (unlocked above)
+      else if (c.id === "online")   openOnlineMenu()   // real LAN host/join (Stage 3) — same destination as PLAY → "ONLINE (LAN)"
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "playTutorial") startTutorial(GAME_STATES.MAIN_MENU)   // interactive guided walkthrough (replayable any time)
       else if (c.id === "story")    { gameState = GAME_STATES.STORY_MODE; startRiftTransition("#9a7bff") }   // Stage 14: styled placeholder (rift into it for consistency)

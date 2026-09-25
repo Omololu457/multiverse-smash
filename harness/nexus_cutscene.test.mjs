@@ -26,7 +26,7 @@ try {
   // Walk the whole thing, capturing key beat types + handling the 2 fights.
   const seen = { narration:0, oneChar:0, twoChar:0, zoom:0, fights:0 }
   let capturedZoom=false, capturedTwo=false, fightShotDone=false, guard=0
-  while (guard++ < 120) {
+  while (guard++ < 320) {   // Prologue + Act 1 + Act 2 = ~85 beats + 9 fights
     const g = await gs()
     if (g === "storyMode") break                                   // reached the end → chapter map
     if (g !== "cutscene") {                                        // a cutscene FIGHT launched (intro → battle)
@@ -59,7 +59,7 @@ try {
   }
   ck("playthrough reached the end (→ chapter map)", (await gs())==="storyMode", `final=${await gs()}`)
   ck("saw beat variety: narration + one-char + two-char", seen.narration>=3 && seen.oneChar>=3 && seen.twoChar>=3, JSON.stringify(seen))
-  ck("BOTH real fights triggered + returned", seen.fights===2, `fights=${seen.fights}`)
+  ck("all real fights triggered + returned (Act 1: 2, Act 2: 7)", seen.fights===9, `fights=${seen.fights}`)
   ck("captured a zoom beat + a two-character beat", capturedZoom && capturedTwo)
   ck("no page errors across the whole playthrough", errs.length===0, errs.slice(0,2).join(" | "))
 } catch(e){ console.log("EXCEPTION", e); F++ }

@@ -877,6 +877,7 @@
     "test:omololu-scale": "node harness/omololu_scale_measure.mjs",
     "test:omololu-genesis-redo": "node harness/omololu_genesis_redo.mjs",
     "test:omololu-kit": "node harness/omololu_kit_live.mjs",
+    "test:jesus-kit": "node harness/jesus_kit.test.mjs",
     "test:omololu-skin": "node harness/omololu_skin_live.mjs",
     "test:omololu-underskins": "node harness/omololu_underskins_live.mjs",
     "test:omololu-voice": "node harness/omololu_voice.test.mjs",

@@ -3781,6 +3781,155 @@ const VEGETA_SSJ_UP = {
   vgUpT2: { damage: 58, startup: 5, active: 4, recovery: 14, hitstun: 18, knockbackX: 2, knockbackY: -9,  rangeX: 66, rangeY: 82, upNext: "vgUpT3" },   // 2nd press
   vgUpT3: { damage: 85, startup: 7, active: 5, recovery: 22, hitstun: 24, knockbackX: 3, knockbackY: -14, rangeX: 72, rangeY: 92, launcher: true },     // super (launcher)
 }
+// ══════════════════════════════════════════════════════════════════════════════
+// JESUS — additive procedural kit (Stage 3 specials + Stage 4 ultimate). The body uses
+// the jesus_* sprites; every EFFECT here is PROCEDURAL (color/radius projectiles + direct
+// AOE) so no new effect art is required (an art pass can later swap in lion/fire/etc. sheets
+// via the render flags stamped below). Reuses ONLY the shared primitives (spawnProjectile,
+// applyScaledDamage, spendEnergy, getTargetResolver, schedulePendingSpawn) — no other engine
+// touched. HARD RULE: no gore hooks (jesus is NOT brutality-eligible).
+// Input map: neutral=Lion / Fwd=Holy Fire / Back=Faith Barrier / Up=Ascension /
+// Down=Blessed Roar (AOE + genuine lifesteal) / air=Holy Lightning.
+function executeJesusSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jesus") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded)    return fireJesusHolyLightning(fighter, context)   // airborne = bolt from above
+  if (dir === "F")  return fireJesusHolyFire(fighter, context)        // Fwd  = holy fire projectile
+  if (dir === "B")  return raiseJesusFaithBarrier(fighter, context)   // Back = green shield bubble
+  if (dir === "U")  return riseJesusAscension(fighter, context)       // Up   = cloud rise / anti-air
+  if (dir === "D")  return jesusBlessedRoar(fighter, context)         // Down = AOE roar + lifesteal
+  return summonJesusLion(fighter, context)                            // neutral = lion summon
+}
+
+function summonJesusLion(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.lionSummon?.cost ?? 30)) return false
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "jesusLion", {
+      damage: 62, speed: 10, lifetime: 96, hitstun: 24, knockbackX: 9, knockbackY: -3,
+      w: 96, h: 60, radius: 46, color: "#c9962e", isSpecial: true,
+      vx: face * 10, spawnY: fighter.y + (fighter.h || 100) * 0.46
+    }, context)
+  })
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+
+function fireJesusHolyFire(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.holyFire?.cost ?? 28)) return false
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "jesusHolyFire", {
+      damage: 42, speed: 15, lifetime: 84, hitstun: 18, knockbackX: 7, knockbackY: -1,
+      w: 40, h: 34, radius: 22, color: "#fb923c", isSpecial: true,
+      vx: face * 15, spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+function fireJesusHolyLightning(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.holyLightning?.cost ?? 28)) return false
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(5, () => {
+    spawnProjectile(fighter, "jesusHolyLightning", {
+      damage: 44, speed: 18, lifetime: 70, hitstun: 18, knockbackX: 6, knockbackY: 4,
+      w: 30, h: 44, radius: 20, color: "#a5b4fc", isSpecial: true,
+      vx: face * 16, vy: 6, spawnY: fighter.y + (fighter.h || 100) * 0.22
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+function riseJesusAscension(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.ascension?.cost ?? 26)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  // Self reposition: rise on a cloud + brief i-frames (anti-air / escape).
+  fighter.vy = -(fighter.jumpPower ? fighter.jumpPower * 0.9 : 26)
+  fighter.onGround = false; fighter.grounded = false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter._jesusAscend = 24   // render flag (cloud) for a later art pass
+  // Anti-air hit: launch an opponent caught in the rising column in front.
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {
+    const face = fighter.facing || 1
+    const dx = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+    const dy = Math.abs((opp.y + (opp.h || 100) / 2) - (fighter.y + (fighter.h || 100) / 2))
+    if (dx * face > -20 && dx * face < 120 && dy < 140) {
+      if (opp.isBlocking) { opp.blockstun = 18; applyScaledDamage(opp, 12, { source: "ability" }) }
+      else { opp.hitstun = 30; opp.vy = -13; opp.vx = face * 5; opp.colorFlash = 10; applyScaledDamage(opp, 58, { source: "ability" }) }
+    }
+  }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function jesusBlessedRoar(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.blessedRoar?.cost ?? 40)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._jesusRoar = 20   // render flag for a later art pass
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  schedulePendingSpawn(8, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    if (Math.hypot(tcx - cx, tcy - cy) > 240) return
+    let dmg = 66
+    if (opp.isBlocking) { dmg = Math.floor(dmg * 0.25); opp.blockstun = 24 }
+    else { opp.hitstun = 40; opp.vx = (tcx >= cx ? 1 : -1) * 8; opp.vy = -6; opp.colorFlash = 12 }
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    // GENUINE LIFESTEAL — Jesus heals for a fraction of the damage actually dealt.
+    const heal = Math.floor(dmg * 0.6)
+    fighter.health = Math.min(fighter.maxHealth || 1400, (fighter.health || 0) + heal)
+  })
+  try { shakeCamera(context, 4, 9) } catch (_) {}
+  return true
+}
+
+function raiseJesusFaithBarrier(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.faithBarrier?.cost ?? 35)) return false
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  // Green shield bubble — a timed defensive window of i-frames (combat reads invulnTimer).
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 48)
+  fighter._faithBarrier = 48   // render flag (green bubble) for a later art pass
+  try { shakeCamera(context, 1, 3) } catch (_) {}
+  return true
+}
+
+// STAGE 4 — ULTIMATE "Blessed Energy": a radiant sunburst — escalating light pulses that
+// harm any unblessed foe screen-wide ("harm to all who have evil in their hearts").
+// Ultimate-tier cost (100 = full bar) + damage (~290 raw across 3 pulses). Meter spent here
+// (callee-spends pattern, like Beerus); the dispatch adds the universal ult cooldown + cam beat.
+function executeJesusUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "jesus") return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(46, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 46)   // radiant during the cast
+  fighter._jesusUlt = 46   // render flag (escalating light burst) for a later art pass
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  ;[10, 22, 34].forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+      const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+      if (Math.hypot(tcx - cx, tcy - cy) > 900) return   // effectively screen-wide
+      const dmg = i < 2 ? 70 : 150                        // two build-up pulses + a final radiant burst
+      if (opp.isBlocking) { opp.blockstun = 22; applyScaledDamage(opp, Math.floor(dmg * 0.3), { source: "ability" }); return }
+      opp.hitstun = 44; opp.vx = (tcx >= cx ? 1 : -1) * (i < 2 ? 6 : 12); opp.vy = i < 2 ? -5 : -12; opp.colorFlash = 14
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    })
+  })
+  try { shakeCamera(context, 6, 16) } catch (_) {}
+  return true
+}
+
 function fireVegetaUpTier(fighter, key, context) {
   const md = VEGETA_SSJ_UP[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -24594,6 +24743,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "tobi":    return executeTobiSpecial(fighter, context)   // Stage 3: neutral Special = Chain Grab (multi-stage command grab); other dirs land later
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
+    case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
     case "rick":    return executeRickSpecial(fighter, context)
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
@@ -24864,6 +25014,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
 
       case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
+      case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break

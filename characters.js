@@ -9425,9 +9425,67 @@ const mciSpiderman = {
   introPool: ["idle"]   // no dedicated intro art → stand in idle (honest gap)
 }
 
+// ─────────────────────────────────────────────────────────────────
+// JESUS (jesus) — additive sprite character from the uploaded JUS sheet.
+// Deliberately TOP-OF-ROSTER stats (per explicit design request). NOT in BRUTALITY_ELIGIBLE (no gore
+// finishers). Voice/flavor kept heroic + earnest. Base-kit sprite art (idle/walk/run/light/heavy/hurt)
+// repacked feet-aligned from jesus_slices/ (see jesus_slices/ROW_MAP.md). Specials/ultimate DESCRIBED
+// here; full ability code (lion summon / lifesteal roar / elemental+bread projectiles / cloud / shield)
+// is a follow-up pass. Classified ZONER in comboStandard (projectile-forward kit, no L,L,H auto-combo).
+// ─────────────────────────────────────────────────────────────────
+const jesus = {
+  rosterKey: "jesus", name: "Jesus", universe: "divine", color: "#e8d48a",
+  portrait: "./jesus_portrait.png", homeStage: "Analysis Nexus",
+  archetypes: ["melee", "zoner"], primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "very_high", scaling: "aggressive", animeMovement: true },
+  // TOP-TIER by design (not an oversight): HP above Maki(1180)/Baki(1160); atk above Toji(96); def upper-band;
+  // spd 97 stays UNDER the 98 teleport-dash gate (grounded — he has no teleport art).
+  stats: { maxHealth: 1400, maxEnergy: 100, attack: 110, defense: 92, speed: 97, maxJumps: 2, jumpPower: 34, dashSpeed: 22, dashDuration: 11, dashCooldownMax: 24 },
+  basic_attacks: {
+    light:     { damage: 82,  startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 122, startup: 7, active: 4, recovery: 14, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 100, startup: 5, active: 3, recovery: 7, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -33, selfVy: -8, airOK: false },
+    airAttack: { damage: 90,  startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 110, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  // DESCRIBED here (object completeness); ability code is a follow-up pass. Inputs from the sheet's own B-MOVES.
+  specials: {
+    lionSummon:    { cost: 30, effect: "Neutral (B): summon a lion that charges the opponent (lion Walk/Run/Roar art)." },
+    holyFire:      { cost: 28, effect: "Fwd (B+Right): fire-burst projectile." },
+    holyLightning: { cost: 28, effect: "Back (B+Left): lightning-bolt projectile." },
+    ascension:     { cost: 26, effect: "Up (B+Up): rise on a cloud (anti-air / reposition)." },
+    blessedRoar:   { cost: 40, effect: "Down (B+Down): AOE roar — stops & damages enemies in range with blessed energy AND HEALS Jesus (lifesteal)." },
+    loaves:        { cost: 22, effect: "Bread multiplication — thrown loaf projectiles (aux)." },
+    faithBarrier:  { cost: 35, effect: "Green shield bubble — temporary damage-absorbing barrier (aux)." }
+  },
+  ultimate: { name: "Blessed Energy", cost: 100, description: "A radiant sunburst of blessed energy — high damage to all in range ('harm to all who have evil in their hearts'). Ultimate-tier cost + damage." },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  spriteScale: 1.95,   // idle content ~54px × 1.95 ≈ 105px on-screen (tall figure, top-tier presence). anchorY all 0.
+  introPool: ["idle"],  // no dedicated intro strip wired yet (honest gap; INTRO cross-art sliceable later)
+  animationData: {
+    // repacked feet-aligned uniform cells (tools/repack_jesus.py); anchorY 0. Actions without a strip fall back.
+    idle:  { frames: 4,  width: 27, height: 58, speed: 8, anchorY: 0, loop: true,  sheet: "./jesus_idle_uniform.png" },
+    walk:  { frames: 8,  width: 35, height: 57, speed: 6, anchorY: 0, loop: true,  sheet: "./jesus_walk_uniform.png" },
+    run:   { frames: 6,  width: 47, height: 54, speed: 4, anchorY: 0, loop: true,  sheet: "./jesus_run_uniform.png" },
+    jump:  { frames: 1,  width: 39, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_jump_uniform.png" },
+    guard: { frames: 3,  width: 44, height: 43, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_guard_uniform.png" },
+    light: { frames: 11, width: 63, height: 47, speed: 3, anchorY: 0, lockLastFrame: true, sheet: "./jesus_light_uniform.png" },
+    heavy: { frames: 3,  width: 56, height: 43, speed: 5, anchorY: 0, lockLastFrame: true, sheet: "./jesus_heavy_uniform.png" },
+    up:    { frames: 5,  width: 68, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_up_uniform.png" },     // slash-trail launcher (up-attack)
+    air:   { frames: 4,  width: 41, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_air_uniform.png" },    // flying-kick aerial
+    hurt:  { frames: 9,  width: 60, height: 51, speed: 5, anchorY: 0, sheet: "./jesus_hurt_uniform.png" },
+    intro: { frames: 9,  width: 56, height: 84, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_intro_uniform.png" },  // cross → descent → landing
+    taunt: { frames: 10, width: 34, height: 68, speed: 6, anchorY: 0, loop: false, sheet: "./jesus_taunt_uniform.png" },
+    win:   { frames: 5,  width: 37, height: 68, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_win_uniform.png" },    // halo victory pose
+    lose:  { frames: 2,  width: 36, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jesus_lose_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
-  gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, maki, toji, yuji, baki, naoya,
+  gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,

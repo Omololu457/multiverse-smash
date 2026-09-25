@@ -397,7 +397,7 @@ export const SOURCED_ART = {
 // its provenance is declared — either here, or in SOURCED_ART with a named artist.
 export const PROJECT_ART_KEYS = [
   "goku", "goku_black", "vegeta", "cell",   // frieza + piccolo MOVED to SOURCED_ART (now real ripped sprite sheets, no longer procedural project-art)
-  "sukuna", "omololu", "maki", "yuji",
+  "sukuna", "omololu", "maki", "yuji", "jesus",   // jesus: JUS-style sheet sliced/repacked in-repo (tools/reslice_jesus.py + repack_jesus.py) → project-adapted art
   "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "madara", "obito", "tobi",
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",
   "rick", "morty", "evilMorty", "rickPrime",

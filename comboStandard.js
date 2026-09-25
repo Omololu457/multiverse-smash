@@ -168,6 +168,7 @@ export const STANDARD_STRING = {
 // specials, no chain by design) and all-special zoners (brainiac). Membership here just records
 // "currently has no combo string" — it is NOT a runtime change (they already behave this way).
 export const ZONER = [
+  "jesus",   // additive JUS char: projectile-forward kit (lion/fire/lightning/bread/ultimate), no L,L,H auto-combo
   "rickPrime", "evilMorty", "beerus", "piccolo", "frieza",   // original ranged zoners
   // Stage-G coverage (2026-08-29): no command-combat driver + not in STANDARD_STRING_CHARS → single-poke.
   "brainiac",      // all-special zoner (no normal-tier art — schema exception)
@@ -252,6 +253,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                19,         // 16 + 3 Spider-Man variants (spiderman_raimi web-specials, spiderman_ssf2/mci normals-only) — no rekka chain, not standard-string
-  rosterTotal:          103,       // 71 rekka + 13 standard-string + 19 single-poke = 103 = live roster (omololu moved standard→rekka, total unchanged)
+  zoner:                20,         // 19 + jesus (additive JUS char, projectile-forward single-poke)
+  rosterTotal:          104,       // 71 rekka + 13 standard-string + 20 single-poke = 104 (jesus added)
 }

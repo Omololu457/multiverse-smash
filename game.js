@@ -2466,12 +2466,19 @@ function continueStory() {
 const CUTSCENE_TYPE_SPEED = 1.8    // characters revealed per frame (typewriter)
 const CUTSCENE_CAM_EASE   = 0.03   // very gentle camera lerp (combat uses ~0.12+)
 const CUTSCENE_GROUND     = 640    // world ground line the cutscene actors stand on
+// ── Polish pass (render-only, cheap): subtle life on top of the working engine ──
+const CUTSCENE_FADE_FRAMES = 10    // fade-through-black length on every beat cut (~0.17s)
+const CUTSCENE_DRIFT_X     = 7      // "breathing" camera sway, world px (barely-perceptible)
+const CUTSCENE_DRIFT_Y     = 5
+const CUTSCENE_DRIFT_ZOOM  = 0.006
+const CUTSCENE_PARALLAX    = 0.4    // two-char depth haze lags the camera at this fraction (<1 = behind the actors)
 const cutsceneState = {
   active: false, beats: null, idx: 0, onDone: null,
   reveal: 0, full: "",
   left: null, right: null,
   camX: 0, camXTarget: 0, camZoom: 1, camZoomTarget: 1,
   fightReturnIdx: -1,
+  fade: 0,   // 1 = fully black (just cut to this beat) → eases to 0 (fade up). Render-only overlay.
 }
 
 function _cutsceneActor(key, pose, x, facing) {
@@ -2509,6 +2516,7 @@ function _cutsceneLoad(i) {
   s.camZoom = zoomBase; s.camZoomTarget = (b.cam === "zoom") ? zoomBase + 0.20 : zoomBase
   if (b.cam === "pan") { s.camX = s.camXTarget - 130; s.camXTarget += 70 }
   s.full = b.text || ""; s.reveal = 0
+  s.fade = 1   // STAGE 2: start this beat under a black veil → updateCutscene fades it up (soft cut, not a hard one)
 }
 
 function _cutsceneFinish() {
@@ -2530,6 +2538,7 @@ function updateCutscene() {
   if (s.reveal < s.full.length) s.reveal = Math.min(s.full.length, s.reveal + CUTSCENE_TYPE_SPEED)
   s.camX    += (s.camXTarget - s.camX) * CUTSCENE_CAM_EASE
   s.camZoom += (s.camZoomTarget - s.camZoom) * CUTSCENE_CAM_EASE
+  if (s.fade > 0) s.fade = Math.max(0, s.fade - 1 / CUTSCENE_FADE_FRAMES)   // STAGE 2: fade up from black on each cut
 }
 
 // REAL FIGHT inside a cutscene: single decisive round (p2IsBoss → first-KO ends it, see _checkMatchOver),
@@ -2571,14 +2580,34 @@ function drawCutscene() {
   const s = cutsceneState; if (!s.active) return
   const b = s.beats && s.beats[s.idx]; if (!b) return
   const cw = canvas.width, ch = canvas.height
+  const two = !!(s.left && s.right)
+  // STAGE 1: a slow "breathing" drift so even a static beat feels alive, not frozen. Render-only,
+  // derived from globalFrameCount (incommensurate slow sines → no obvious loop), per-beat phase so
+  // adjacent beats don't breathe in lockstep. Amplitudes are tiny (a few world px / 0.006 zoom).
+  const t = globalFrameCount, ph = s.idx * 1.7
+  const driftX = Math.sin(t * 0.011 + ph) * CUTSCENE_DRIFT_X
+  const driftY = Math.cos(t * 0.008 + ph) * CUTSCENE_DRIFT_Y
+  const driftZoom = Math.sin(t * 0.006 + ph * 0.5) * CUTSCENE_DRIFT_ZOOM
+  s._driftX = driftX; s._driftZoom = driftZoom   // record the drift actually applied this frame (harness-observable proof it's live)
   // 1) dark backdrop
   const g = ctx.createLinearGradient(0, 0, 0, ch)
   g.addColorStop(0, "#0a0b16"); g.addColorStop(0.6, "#0f1122"); g.addColorStop(1, "#05060c")
   ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch); ctx.restore()
-  // 2) posed actors — world space via the battle camera transform (borrow + restore the camera)
+  // 1b) STAGE 3: two-character depth haze — a soft mid-depth glow that lags the camera (moves at
+  // CUTSCENE_PARALLAX of the actors' rate) so the pair reads as separated from the backdrop during
+  // any camera movement. One radial fill; very low alpha. Two-char beats only.
+  if (two) {
+    const hazeX = cw / 2 - driftX * (1 - CUTSCENE_PARALLAX) * s.camZoom   // behind the actors (full-motion) but ahead of the static gradient
+    const hazeY = ch * 0.52 - driftY * (1 - CUTSCENE_PARALLAX) * s.camZoom
+    const haze = ctx.createRadialGradient(hazeX, hazeY, 40, hazeX, hazeY, cw * 0.42)
+    haze.addColorStop(0, "rgba(120,110,190,0.09)"); haze.addColorStop(1, "rgba(120,110,190,0)")
+    ctx.save(); ctx.fillStyle = haze; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  }
+  // 2) posed actors — world space via the battle camera transform (borrow + restore the camera).
+  //    The breathing drift is layered onto the eased camera here (STAGE 1).
   if ((s.left || s.right) && typeof camera.applyTransform === "function") {
     const sv = { x: camera.x, y: camera.y, zoom: camera.zoom, tx: camera.targetX, ty: camera.targetY, tz: camera.targetZoom }
-    camera.x = s.camX; camera.y = CUTSCENE_GROUND - 150; camera.zoom = s.camZoom
+    camera.x = s.camX + driftX; camera.y = CUTSCENE_GROUND - 150 + driftY; camera.zoom = s.camZoom + driftZoom
     camera.targetX = camera.x; camera.targetY = camera.y; camera.targetZoom = camera.zoom
     camera.applyTransform(ctx, canvas)
     if (s.left)  renderHybridFighter(s.left)
@@ -2600,6 +2629,11 @@ function drawCutscene() {
     ctx.fillText("▸  press any key", boxX + boxW - 22, boxY + boxH - 16)
   }
   ctx.restore()
+  // STAGE 2: fade-through-black veil over the WHOLE frame — full on a fresh cut, eased up by
+  // updateCutscene. Softens every beat-to-beat transition into a quick dissolve instead of a hard cut.
+  if (s.fade > 0) {
+    ctx.save(); ctx.fillStyle = `rgba(3,4,10,${s.fade.toFixed(3)})`; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -19401,7 +19435,7 @@ gameLoop()
       // ── CUTSCENE ENGINE (Story Mode) drivers/inspectors ──
       startNexus: () => { startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.active },
       startCutsceneBeats: (which = "full") => { const b = which === "prologue" ? NEXUS_FRACTURE.prologue : which === "act1" ? NEXUS_FRACTURE.act1 : NEXUS_FRACTURE_FULL; startCutscene(b, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.beats.length },
-      cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight } },
+      cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight, fade: Math.round(s.fade * 1000) / 1000, driftX: Math.round((s._driftX || 0) * 1000) / 1000, driftZoom: Math.round((s._driftZoom || 0) * 100000) / 100000 } },
       cutsceneAdvance: () => { cutsceneAdvance(); return cutsceneState.idx },
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),

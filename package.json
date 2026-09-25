@@ -32,6 +32,7 @@
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",
     "test:story": "node harness/story_mode.test.mjs",
+    "test:nexus-cutscene": "node harness/nexus_cutscene.test.mjs",
     "test:ai-templates": "node harness/ai_templates.test.mjs",
     "test:story-live": "node harness/story_live.test.mjs",
     "test:unlocks": "node harness/unlocks.test.mjs",

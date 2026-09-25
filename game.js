@@ -319,6 +319,7 @@ import {
   arcadeFightRole, arcadeBossKey, arcadeDifficultyForFight, arcadeRivalKey, arcadeRivalDialogue, ARCADE_XP
 } from "./arcade.js"
 import { STORY_CHAPTERS, getChapter, chapterDifficulty, STORY_CHAPTER_COUNT } from "./story.js"
+import { NEXUS_FRACTURE, NEXUS_FRACTURE_FULL } from "./nexusFracture.js"   // Story Mode cutscene: THE NEXUS FRACTURE (Prologue + Act 1) — beat DATA for the cutscene engine
 import { getStoryProgress, isChapterUnlocked, completeStoryChapter } from "./storyProgress.js"
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
@@ -1484,6 +1485,7 @@ const GAME_STATES = {
   ONLINE_PLACEHOLDER: "onlinePlaceholder",   // dev-unlocked Online stub (no netcode)
   STORY_MODE:         "storyMode",           // Part 1: Story Mode chapter select (was a locked placeholder)
   STORY_INTRO:        "storyIntro",          // Part 1: two-line pre-fight beat (reuses the rival intro screen)
+  CUTSCENE:           "cutscene",            // generic cutscene-beat player (Story Mode: THE NEXUS FRACTURE)
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
@@ -2452,6 +2454,152 @@ function continueStory() {
   const active = matchConfig.mode === "story"
   resetToStart()                 // tear down the finished match
   if (active) gameState = GAME_STATES.STORY_MODE   // land back on the chapter map instead of the title
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// CUTSCENE ENGINE (Story Mode) — a generic beat player. A "beat" = one dialogue/narration line shown
+// with 0/1/2 EXISTING posed sprites over a dark backdrop, a gentle camera behavior, and a typewriter
+// text box; advance on any input. A { fight } beat launches a REAL single-round match and resumes at
+// the next beat afterward. Scenes are DATA (nexusFracture.js), not code. Reuses createFighter +
+// renderHybridFighter (the exact battle sprite pipeline, posed via _forceAction) + camera.applyTransform
+// (world→screen framing) + a much gentler eased-camera than combat. See [[camera zoom-crop]] lineage.
+const CUTSCENE_TYPE_SPEED = 1.8    // characters revealed per frame (typewriter)
+const CUTSCENE_CAM_EASE   = 0.03   // very gentle camera lerp (combat uses ~0.12+)
+const CUTSCENE_GROUND     = 640    // world ground line the cutscene actors stand on
+const cutsceneState = {
+  active: false, beats: null, idx: 0, onDone: null,
+  reveal: 0, full: "",
+  left: null, right: null,
+  camX: 0, camXTarget: 0, camZoom: 1, camZoomTarget: 1,
+  fightReturnIdx: -1,
+}
+
+function _cutsceneActor(key, pose, x, facing) {
+  const char = characters[key]
+  if (!char) return null
+  const f = createFighter(key, char, x, facing, {}, facing === 1 ? "p1" : "p2")
+  f.x = x; f.facing = facing
+  f.y = CUTSCENE_GROUND - (f.h || 100); f.groundY = CUTSCENE_GROUND
+  f.vx = 0; f.vy = 0; f.onGround = true; f.grounded = true
+  f.attacking = false; f.isBlocking = false; f.hitstun = 0; f.hitstop = 0
+  f._forceAction = (pose === "win" || pose === "lose") ? pose : null   // idle = the sprite handler's default action
+  return f
+}
+
+// Public entry: play a beat array; on the end call onDone (else return to the Story chapter map).
+function startCutscene(beats, onDone = null) {
+  cutsceneState.active = true; cutsceneState.beats = beats; cutsceneState.onDone = onDone
+  cutsceneState.idx = -1; cutsceneState.fightReturnIdx = -1
+  gameState = GAME_STATES.CUTSCENE
+  _cutsceneLoad(0)
+}
+
+function _cutsceneLoad(i) {
+  const s = cutsceneState
+  s.idx = i
+  const b = s.beats && s.beats[i]
+  if (!b) { _cutsceneFinish(); return }
+  if (b.fight) { _startCutsceneFight(b.fight, i); return }
+  const two = !!(b.left && b.right)
+  const baseX = 1600, gap = 205
+  s.left  = b.left  ? _cutsceneActor(b.left,  b.pose  || "idle", two ? baseX - gap : baseX,  1) : null
+  s.right = b.right ? _cutsceneActor(b.right, b.pose2 || "idle", two ? baseX + gap : baseX, -1) : null
+  const zoomBase = two ? 0.82 : (b.left || b.right) ? 1.08 : 1.0
+  s.camX = two ? baseX : baseX + 32; s.camXTarget = s.camX
+  s.camZoom = zoomBase; s.camZoomTarget = (b.cam === "zoom") ? zoomBase + 0.20 : zoomBase
+  if (b.cam === "pan") { s.camX = s.camXTarget - 130; s.camXTarget += 70 }
+  s.full = b.text || ""; s.reveal = 0
+}
+
+function _cutsceneFinish() {
+  const done = cutsceneState.onDone
+  cutsceneState.active = false; cutsceneState.left = null; cutsceneState.right = null
+  if (typeof done === "function") done()
+  else gameState = GAME_STATES.STORY_MODE
+}
+
+// Advance on input: first press completes the typewriter reveal; the next advances the beat.
+function cutsceneAdvance() {
+  const s = cutsceneState; if (!s.active) return
+  if (s.reveal < s.full.length) { s.reveal = s.full.length; return }
+  _cutsceneLoad(s.idx + 1)
+}
+
+function updateCutscene() {
+  const s = cutsceneState; if (!s.active) return
+  if (s.reveal < s.full.length) s.reveal = Math.min(s.full.length, s.reveal + CUTSCENE_TYPE_SPEED)
+  s.camX    += (s.camXTarget - s.camX) * CUTSCENE_CAM_EASE
+  s.camZoom += (s.camZoomTarget - s.camZoom) * CUTSCENE_CAM_EASE
+}
+
+// REAL FIGHT inside a cutscene: single decisive round (p2IsBoss → first-KO ends it, see _checkMatchOver),
+// no super-armor (storyBossProfile=null). On the victory-continue, resumeCutsceneAfterFight() picks up at i+1.
+function _startCutsceneFight(fight, beatIdx) {
+  cutsceneState.fightReturnIdx = beatIdx + 1
+  matchConfig.mode = "vs"
+  matchConfig.p1CharKey = fight.player;   matchConfig.p1Char = characters[fight.player]
+  matchConfig.p2CharKey = fight.opponent; matchConfig.p2Char = characters[fight.opponent]
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  matchConfig.aiDifficulty = "normal"
+  matchConfig.selectedStage = homeStageFor(fight.stageOf === "player" ? fight.player : fight.opponent)
+  matchConfig.p2IsBoss = true; matchConfig.storyBossProfile = null; matchConfig.storyBossName = null
+  matchConfig._cutsceneFight = true
+  cutsceneState.active = false   // PAUSE the cutscene during the match: no stray advance/update/draw can touch idx until resumeCutsceneAfterFight()
+  startMatch()
+}
+
+function resumeCutsceneAfterFight() {
+  const i = cutsceneState.fightReturnIdx
+  matchConfig._cutsceneFight = false; matchConfig.p2IsBoss = false
+  resetToStart()
+  cutsceneState.active = true
+  gameState = GAME_STATES.CUTSCENE
+  _cutsceneLoad(i)
+}
+
+function _cutsceneWrapText(c, text, x, y, maxW, lineH) {
+  const words = text.split(" "); let line = "", yy = y
+  for (const w of words) {
+    const test = line ? line + " " + w : w
+    if (c.measureText(test).width > maxW && line) { c.fillText(line, x, yy); line = w; yy += lineH }
+    else line = test
+  }
+  if (line) c.fillText(line, x, yy)
+}
+
+function drawCutscene() {
+  const s = cutsceneState; if (!s.active) return
+  const b = s.beats && s.beats[s.idx]; if (!b) return
+  const cw = canvas.width, ch = canvas.height
+  // 1) dark backdrop
+  const g = ctx.createLinearGradient(0, 0, 0, ch)
+  g.addColorStop(0, "#0a0b16"); g.addColorStop(0.6, "#0f1122"); g.addColorStop(1, "#05060c")
+  ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  // 2) posed actors — world space via the battle camera transform (borrow + restore the camera)
+  if ((s.left || s.right) && typeof camera.applyTransform === "function") {
+    const sv = { x: camera.x, y: camera.y, zoom: camera.zoom, tx: camera.targetX, ty: camera.targetY, tz: camera.targetZoom }
+    camera.x = s.camX; camera.y = CUTSCENE_GROUND - 150; camera.zoom = s.camZoom
+    camera.targetX = camera.x; camera.targetY = camera.y; camera.targetZoom = camera.zoom
+    camera.applyTransform(ctx, canvas)
+    if (s.left)  renderHybridFighter(s.left)
+    if (s.right) renderHybridFighter(s.right)
+    if (typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+    camera.x = sv.x; camera.y = sv.y; camera.zoom = sv.zoom; camera.targetX = sv.tx; camera.targetY = sv.ty; camera.targetZoom = sv.tz
+  }
+  // 3) dialogue / narration box (screen space)
+  const boxH = Math.round(ch * 0.25), boxY = ch - boxH - 22, boxX = 40, boxW = cw - 80
+  ctx.save()
+  ctx.fillStyle = "rgba(8,10,20,0.86)"; ctx.fillRect(boxX, boxY, boxW, boxH)
+  ctx.strokeStyle = "rgba(140,120,255,0.55)"; ctx.lineWidth = 2; ctx.strokeRect(boxX, boxY, boxW, boxH)
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"
+  if (b.speaker) { ctx.fillStyle = "rgba(163,143,255,0.98)"; ctx.font = "800 25px Arial"; ctx.fillText(b.speaker, boxX + 28, boxY + 42) }
+  ctx.fillStyle = "#eef0ff"; ctx.font = (b.speaker ? "400" : "italic 400") + " 24px Arial"
+  _cutsceneWrapText(ctx, s.full.slice(0, Math.floor(s.reveal)), boxX + 28, boxY + (b.speaker ? 80 : 54), boxW - 56, 33)
+  if (s.reveal >= s.full.length && Math.floor(globalFrameCount / 26) % 2 === 0) {
+    ctx.fillStyle = "rgba(200,205,255,0.8)"; ctx.font = "600 17px Arial"; ctx.textAlign = "right"
+    ctx.fillText("▸  press any key", boxX + boxW - 22, boxY + boxH - 16)
+  }
+  ctx.restore()
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3534,6 +3682,11 @@ function resetRound() {
     _applyBossProfile(p2, useStory ? { ...matchConfig.p2Char, bossProfile: matchConfig.storyBossProfile } : matchConfig.p2Char)
     if (useStory && matchConfig.storyBossName && p2) p2._bossName = matchConfig.storyBossName
   }
+  // Cutscene narrative fight: a single decisive round (first KO ends the match). Most opponents
+  // (ichigo/obito) have NO bossProfile, so _applyBossProfile is a no-op above and _isBoss stays
+  // unset → the match would run best-of-3 and a single KO would never end it. Force the single-round
+  // flag directly, WITHOUT any boss buffs (no super-armor / scale / free-meter). See _checkMatchOver.
+  if (matchConfig._cutsceneFight && p2) p2._isBoss = true
   // Edo Tensei vessel: stamp each Tobirama's chosen backup (falling back to a default so the
   // ultimate always has a body — e.g. an AI Tobirama, or a harness quick-start that skipped the UI).
   assignEdoBackup(p1, matchConfig.p1EdoBackup)
@@ -16827,6 +16980,7 @@ function renderCurrentState() {
     case GAME_STATES.ONLINE_PLACEHOLDER: _drawOnlinePlaceholder(); break
     case GAME_STATES.STORY_MODE: drawStoryModeScreen(ctx, canvas, { chapters: _buildStoryChapterView(), hoverIndex: hoverStoryIndex, hoverBack: _storyBackHover }); break
     case GAME_STATES.STORY_INTRO: drawStoryIntro(); break
+    case GAME_STATES.CUTSCENE:    drawCutscene(); break
     case GAME_STATES.TUTORIAL:
       // Source key labels from the SAME map the engine wires to fighters
       // (P1_CONTROLS) so the tutorial always matches real in-play bindings.
@@ -17156,6 +17310,7 @@ function handleMenuClicks() {
   sound.play?.(SFX.UI_SELECT)
 
   switch (gameState) {
+    case GAME_STATES.CUTSCENE: cutsceneAdvance(); break   // click advances the cutscene (mirrors any-key)
     case GAME_STATES.START: {
       if (pointInRect(mouse.x, mouse.y, settingsButtonRect)) { gameState = GAME_STATES.SETTINGS; break }
       const clicked = getStartMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
@@ -17170,7 +17325,7 @@ function handleMenuClicks() {
       else if (c.id === "online")   openOnlineMenu()   // real LAN host/join (Stage 3) — same destination as PLAY → "ONLINE (LAN)"
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "playTutorial") startTutorial(GAME_STATES.MAIN_MENU)   // interactive guided walkthrough (replayable any time)
-      else if (c.id === "story")    { gameState = GAME_STATES.STORY_MODE; startRiftTransition("#9a7bff") }   // Stage 14: styled placeholder (rift into it for consistency)
+      else if (c.id === "story")    { startRiftTransition("#9a7bff"); startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }) }   // Story Mode opens with THE NEXUS FRACTURE cutscene (Prologue + Act 1), then lands on the chapter map
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
@@ -17561,8 +17716,8 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
-      if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
-      if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
+      if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
+      if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
       if (action === "changeChar") _changeCharacter()   // Stage 24C: back to select, keep mode/stage
       break
@@ -17982,6 +18137,9 @@ function updateCurrentState() {
     case GAME_STATES.VICTORY:
       updateVictoryState?.(victoryState, mouse, canvas)
       break
+    case GAME_STATES.CUTSCENE:
+      updateCutscene()
+      break
     case GAME_STATES.FFA_BATTLE:
       updateFFABattle()
       break
@@ -18307,6 +18465,12 @@ window.addEventListener("keydown", e => {
     startMatch(); return
   }
 
+  // CUTSCENE: any key advances (first press completes the typewriter); Esc bails to the chapter map.
+  if (gameState === GAME_STATES.CUTSCENE) {
+    if (key === "escape") { e.preventDefault(); cutsceneState.active = false; gameState = GAME_STATES.STORY_MODE; return }
+    cutsceneAdvance(); return
+  }
+
   // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
   if (gameState === GAME_STATES.TUTORIAL) {
     if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
@@ -18345,8 +18509,8 @@ window.addEventListener("keydown", e => {
 
   if (gameState === GAME_STATES.VICTORY) {
     const action = handleVictoryKey?.(victoryState, key)
-    if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
-    if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
+    if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
+    if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
     return
   }
   handlePauseInput(key)
@@ -19234,6 +19398,11 @@ gameLoop()
     ui: {
       goto: (s) => { const st = GAME_STATES[s]; if (st) gameState = st; return gameState },
       state: () => gameState,
+      // ── CUTSCENE ENGINE (Story Mode) drivers/inspectors ──
+      startNexus: () => { startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.active },
+      startCutsceneBeats: (which = "full") => { const b = which === "prologue" ? NEXUS_FRACTURE.prologue : which === "act1" ? NEXUS_FRACTURE.act1 : NEXUS_FRACTURE_FULL; startCutscene(b, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.beats.length },
+      cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight } },
+      cutsceneAdvance: () => { cutsceneAdvance(); return cutsceneState.idx },
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
       gameplaySelectRects: () => getGameplaySelectRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),

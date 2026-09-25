@@ -28,8 +28,14 @@ what is / isn't in git, and a browser fallback.
 
 ## Prerequisites (the other PC needs these)
 
-- **Node.js 18 or newer** (LTS 20 or 22 recommended). Check: `node -v`.
-  Get it from https://nodejs.org (the LTS installer includes `npm`).
+- **Node.js LTS — use 20 or 22.** Check: `node -v`. Get it from
+  https://nodejs.org (pick the **LTS** button; it includes `npm`).
+  > ⚠️ **Avoid the bleeding-edge Node (24.x).** On Node 24 the one-time Electron
+  > download can install as a broken stub (`npm run desktop` then errors
+  > *"Electron failed to install correctly"*). Node **20 or 22 LTS** installs it
+  > cleanly. If you're stuck on Node 24, use the **browser build** (§2b below) —
+  > it needs no Electron and plays identically. (See Troubleshooting for a manual
+  > fix if you hit the stub.)
 - **~5 GB free disk** (repo checkout ≈ 3 GB of assets + ~1.6 GB git history +
   ~265 MB of `node_modules` after install).
 - **Git** (only if you use the clone method) — https://git-scm.com.
@@ -129,10 +135,15 @@ npm run desktop
 ```
 
 The game opens **fullscreen** as its own window (no browser, no menu bar). Click
-**PLAY / PRESS START** and you're in.
+**PLAY / PRESS START** and you're in. That single command is the whole launch —
+no URL to open, no IP to type.
 
+- **Play a 2-device LAN match:** it's built in and needs zero setup — `npm run
+  desktop` auto-starts the LAN relay. From the title: **PLAY → ONLINE (LAN) →
+  Host** (shows a join code) or **Join** (enter the code). Full walkthrough:
+  **[`ONLINE_QUICKSTART.md`](ONLINE_QUICKSTART.md)**.
 - Controls: keyboard by default; plug in an Xbox/PlayStation pad and it's
-  auto-detected on the title screen.
+  auto-detected on the title screen. On-screen touch controls are available too.
 - Progress auto-saves to a real file in the OS user-data folder (survives a hard
   crash).
 - Quit: `Alt+F4` (Windows) / `Cmd+Q` (macOS) / close from the OS.
@@ -185,6 +196,15 @@ and delivers the identical desktop experience.
 - `npm run desktop` errors about Electron → you skipped `npm install` in
   `electron/`, or copied `node_modules` from another machine (delete
   `electron/node_modules` and re-run `npm install` in `electron/`).
+- **"Electron failed to install correctly"** (a stub install) → the Electron
+  binary downloaded but didn't unpack. **Verified cause on this project: Node
+  24.x** — its `npm install` leaves `electron/node_modules/electron/dist/` as a
+  tiny stub (no `Electron Framework.framework`). **Fix:** install **Node 20 or 22
+  LTS** and re-run `npm install` in `electron/`. Quick manual unstick (any OS
+  with `unzip`): the full zip is already cached, so
+  `unzip -o "$(find ~/Library/Caches/electron -name 'electron-*.zip' | head -1)" -d electron/node_modules/electron/dist && printf 'Electron.app/Contents/MacOS/Electron' > electron/node_modules/electron/path.txt`
+  (adjust the `path.txt` target per OS: `electron` on Linux, `electron.exe` on
+  Windows). Or just use the **browser build (§2b)** — no Electron needed.
 - Black window / no assets → make sure you launched from the **project root**
   (`npm run desktop`), not from inside `electron/`.
 - Port 8000 in use (browser fallback) → `PORT=8080 npm run dev`.

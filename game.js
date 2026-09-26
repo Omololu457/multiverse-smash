@@ -5700,7 +5700,7 @@ function _checkMatchOver() {
       // UNLOCK TOASTS (Part 3 #17): surface each real unlock as a slide-in notification that carries
       // from the victory screen into the menus. Sources: fighters, features, and completed challenges.
       try {
-        for (const key of (victoryState.charUnlocks || [])) pushToast(`New fighter: ${characters[key]?.name || key}!`, { accent: "#fbbf24", icon: "★" })
+        for (const u of (victoryState.charUnlocks || [])) pushToast(_charUnlockToastText(u), { accent: "#fbbf24", icon: "★" })
         for (const f of (victoryState.xpResult?.newUnlocks || [])) pushToast(`Feature unlocked: ${f.label}`, { accent: "#7dd3fc", icon: "✦" })
         for (const c of (victoryState.challengesDone || [])) pushToast(`Challenge complete: ${c.label || c.id}`, { accent: "#86efac", icon: "✓" })
       } catch (_) {}
@@ -14499,6 +14499,13 @@ function pushToast(text, opts = {}) {
   _toasts.push({ text, accent: opts.accent || "#fbbf24", icon: opts.icon || "★", life: 0, ttl: opts.ttl || 240 })
   if (_toasts.length > 5) _toasts.shift()   // cap the stack
 }
+// The "New fighter" toast text for one charactersUnlockedBetween() entry. Those entries are OBJECTS
+// ({ key, name, level }) — not key strings — so use the resolved .name (with a defensive fallback).
+// (A bare `${obj}` here is what produced the "New fighter: [object Object]" glitch.)
+function _charUnlockToastText(u) {
+  const name = (u && (u.name || characters[u.key]?.name || u.key)) ?? u
+  return `New fighter: ${name}!`
+}
 function _drawToasts() {
   if (!_toasts.length) return
   const cw = canvas.width
@@ -19492,6 +19499,9 @@ gameLoop()
       primeSkinSelect: (key = "goku") => { skinSelectSide = "p1"; matchConfig.p1CharKey = key; gameState = GAME_STATES.SELECT_SKIN; return getSkins(key).length },
       pushToast: (text, opts) => { pushToast(text, opts); return _toasts.length },
       toastCount: () => _toasts.length,
+      toastTexts: () => _toasts.map(t => t.text),   // read the live toast stack (for the unlock-name fix)
+      // The exact "New fighter" toast text production emits for the real unlocks between two levels.
+      charUnlockToasts: (from = 0, to = 200) => charactersUnlockedBetween(from, to, characters).map(_charUnlockToastText),
       padType: () => padGlyphs().label,
       padGlyphs: () => padGlyphs(),
       getUiScale: () => uiScale,

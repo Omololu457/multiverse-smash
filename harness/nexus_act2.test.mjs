@@ -50,10 +50,10 @@ try {
   }
 
   ck("reached the end (→ chapter map)", (await gs())==="storyMode", `final=${await gs()}`)
-  ck("exactly 9 fights fired (Act 1: 2 + Act 2: 7)", seen.length===9, `count=${seen.length}`)
-  const order = seen.map(m=>m.join("/")).join(", ")
-  const matchOk = seen.length===EXPECT.length && EXPECT.every((e,i)=>seen[i] && seen[i][0]===e[0] && seen[i][1]===e[1])
-  ck("fights fired in the right matchups + order", matchOk, order)
+  ck("at least Act 1 + Act 2's 9 fights fired", seen.length>=9, `count=${seen.length}`)
+  const order = seen.slice(0,9).map(m=>m.join("/")).join(", ")
+  const matchOk = EXPECT.every((e,i)=>seen[i] && seen[i][0]===e[0] && seen[i][1]===e[1])   // prefix-match Act 1+2 (Act 3 follows)
+  ck("Act 1 + Act 2 fights fired in the right matchups + order", matchOk, order)
   ck("Act 2 fight gojo vs sukuna captured", fs.existsSync(path.join(OUT,"NEXUS_A2_fight_gojo_sukuna.png")))
   ck("Act 2 fight vegeta vs frieza captured", fs.existsSync(path.join(OUT,"NEXUS_A2_fight_vegeta_frieza.png")))
   ck("Act 2 two-character dialogue beat captured", capA2Dialogue)

@@ -19,7 +19,8 @@
 //      returns to the very next beat for the aftermath dialogue. stageOf = "player" | "opponent".
 //
 // Every rosterKey here is a fully-built fighter: omololu, rickPrime, genos, ichigo, obito (Act 1) +
-// gojo, sukuna, toji, beerus, frieza, vegeta, saitama, deathstroke (Act 2). All verified selectable.
+// gojo, sukuna, toji, beerus, frieza, vegeta, saitama, deathstroke (Act 2) + batman, madara, naruto,
+// superman, goku_black (Act 3). All verified selectable via the FFA roster.
 
 export const NEXUS_FRACTURE = {
   title: "THE NEXUS FRACTURE",
@@ -147,7 +148,83 @@ export const NEXUS_FRACTURE = {
     { speaker: "ICHIGO", left: "ichigo", pose: "idle", text: "Because it was. Rest while you can, anchor. Whatever he's really building — next time he won't be watching. He'll be finishing it.", cam: "zoom" },
     { speaker: "", text: "END OF ACT II", cam: "static" },
   ],
+
+  // ── ACT 3 — The Convergence ────────────────────────────────────────────────────────────────
+  // Scene 16 is a "quick cuts" montage: each cut = ONE representative single-round duel by the
+  // marquee fighter (a montage reads better crisp than split into full tag matches — cf. Act 2).
+  // 8 fights: vegeta/frieza, gojo/sukuna, batman/deathstroke, beerus/madara, naruto/madara,
+  // superman/frieza, saitama/goku_black, then Scene 17's final boss omololu/rickPrime.
+  act3: [
+    // Title card
+    { speaker: "", text: "ACT III  —  THE CONVERGENCE", cam: "static" },
+
+    // Scene 14 — Ìlẹ̀kùn (The Door)
+    { speaker: "", text: "There is a word for it in a language the Nexus never learned: Ìlẹ̀kùn. A door. The fracture was never a wound. It was a threshold — and it has been waiting for someone to open it.", cam: "pan" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "My grandmother used to say a door only opens for the one holding the key. I never asked what happens to the key after.", cam: "zoom" },
+    { speaker: "GENOS", left: "genos", right: "omololu", pose: "idle", pose2: "idle", text: "The collapse has a center now, and the center is a door. Rick Prime doesn't want to close the fracture. He wants to walk THROUGH it — and he needs the anchor to hold it open.", cam: "static" },
+
+    // Scene 15 — Choosing Sides
+    { speaker: "", text: "The Nexus splits one last time — not the ground this time, but the people standing on it. Every survivor has to decide what the last door is worth.", cam: "pan" },
+    { speaker: "ICHIGO", left: "ichigo", right: "omololu", pose: "idle", pose2: "idle", text: "Some of them are already walking toward him. Power calls to power, and he's the loudest thing in any world now. So I'll ask once: where do you stand, anchor?", cam: "static" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "On the threshold. Between him and the door. If he wants through, he goes through me first. That's where I stand.", cam: "zoom" },
+    { speaker: "GOJO", left: "gojo", right: "omololu", pose: "idle", pose2: "idle", text: "Good answer. Then the strongest of every world hold the line while you hold the door. Try not to die — I only just started finding you interesting.", cam: "static" },
+
+    // Scene 16 — The Convergence  (→ SEVEN quick-cut REAL FIGHTS)
+    { speaker: "", text: "And then every world arrives at once. The convergence. A hundred legends on one collapsing field, and the only rule left is: keep the line until the anchor seals the door.", cam: "zoom" },
+    { speaker: "VEGETA", left: "vegeta", right: "frieza", pose: "idle", pose2: "idle", text: "You crawled out of one more grave, Frieza. Allow me to dig the last one myself.", cam: "static" },
+    { fight: { player: "vegeta", opponent: "frieza", stageOf: "player" } },
+    { speaker: "", text: "— CUT. Across the field, a cursed king meets two sorcerers who fight as one. —", cam: "zoom" },
+    { fight: { player: "gojo", opponent: "sukuna", stageOf: "opponent" } },
+    { speaker: "", text: "— CUT. In the ruins of a borrowed Gotham, the mercenary meets the one man who plans faster than he does. —", cam: "zoom" },
+    { fight: { player: "batman", opponent: "deathstroke", stageOf: "player" } },
+    { speaker: "", text: "— CUT. A mountain of gathered stone falls from the sky. A god of destruction simply... disagrees with it. —", cam: "zoom" },
+    { fight: { player: "beerus", opponent: "madara", stageOf: "opponent" } },
+    { speaker: "", text: "— CUT. A ninja and the masked man who broke the world fight side by side against the ghost who taught them both. —", cam: "zoom" },
+    { fight: { player: "naruto", opponent: "madara", stageOf: "player" } },
+    { speaker: "", text: "— CUT. Two strongest-men-alive stand back to back against an emperor's endless army. —", cam: "zoom" },
+    { fight: { player: "superman", opponent: "frieza", stageOf: "opponent" } },
+    { speaker: "", text: "— CUT. And a bald man in a yellow suit walks up to a god who erases timelines, sighs, and raises one fist. —", cam: "zoom" },
+    { fight: { player: "saitama", opponent: "goku_black", stageOf: "opponent" } },
+    { speaker: "SAITAMA", left: "saitama", pose: "win", text: "Huh. Was that supposed to be the strong one? ...Anyone know if the sale's still on?", cam: "static" },
+    { speaker: "", text: "The line holds. Impossibly, gloriously, the line holds — every world buying the anchor the seconds it needs. Which leaves exactly one door, and one man walking calmly toward it.", cam: "pan" },
+
+    // Scene 17 — Omololu vs Rick Prime  (→ FINAL BOSS)
+    { speaker: "RICK PRIME", left: "rickPrime", right: "omololu", pose: "idle", pose2: "idle", text: "Everyone else is a distraction I arranged. You were always the only variable. Step aside from the door, anchor — or become the last thing the fracture ever measures.", cam: "zoom" },
+    { speaker: "OMOLOLU", left: "omololu", right: "rickPrime", pose: "idle", pose2: "idle", text: "You collapsed a multiverse to build a key. Congratulations. The key says no.", cam: "static" },
+    { speaker: "", text: "Everything the Nexus has left narrows to this: a boy who was nobody, and the oldest, coldest thing in creation, on the last piece of ground, in front of the last open door.", cam: "zoom" },
+    { fight: { player: "omololu", opponent: "rickPrime", stageOf: "opponent" } },
+    { speaker: "OMOLOLU", left: "omololu", pose: "win", text: "You spent forever looking for the one anchor that could hold the door. You found him. You just didn't think he'd hold it shut.", cam: "static" },
+    { speaker: "RICK PRIME", left: "rickPrime", pose: "lose", text: "...Every version of this. Every timeline. And it ends with a kid and a locked door. ...Fine. Seal it. Let's see if you can live with what that costs, too.", cam: "zoom" },
+
+    // Scene 18 — Going Home
+    { speaker: "", text: "The anchor holds. The door begins to close — and as it closes, it un-fractures: every borrowed world sliding back toward the timeline it was torn from. The Nexus is ending the only kind way it can. By sending everyone home.", cam: "pan" },
+    { speaker: "ICHIGO", left: "ichigo", right: "omololu", pose: "idle", pose2: "idle", text: "So this is it. The seams close, we all wake up where we started, and nobody back home believes a word of it. You did good, kid. Better than good.", cam: "static" },
+    { speaker: "GOJO", left: "gojo", right: "omololu", pose: "idle", pose2: "idle", text: "You held a door against the end of everything. Wherever you land — don't let them tell you you're normal. I'll know they're lying.", cam: "zoom" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "Will I remember? Any of you? Or does the door take that too?", cam: "zoom" },
+    { speaker: "", text: "No one answers. The light folds gently inward — not a tear this time, but a closing hand — and one by one, a hundred legends wink back into the worlds that need them. Last of all, the anchor.", cam: "pan" },
+    { speaker: "", text: "END OF ACT III", cam: "static" },
+  ],
+
+  // ── EPILOGUE / POST-CREDITS — no fights, pure closure ──────────────────────────────────────
+  epilogue: [
+    { speaker: "", text: "EPILOGUE", cam: "static" },
+    // Going home, for real
+    { speaker: "", text: "A normal room. A normal bed. A normal Tuesday, exactly where he left it — as if the air never opened at all.", cam: "zoom" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "...A dream. Obviously. Grocery stores in the void. A bald guy who ends gods. A door. Obviously a dream.", cam: "static" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "So why do my knuckles still hurt. And why do I miss people I've apparently never met.", cam: "zoom" },
+    // The crack in the ceiling
+    { speaker: "", text: "He almost believes it. He almost lets it go. And then he looks up — and there, running the length of his perfectly normal ceiling, is a hairline crack that was never there before. Faint. Patient. Widening by a single thread.", cam: "zoom" },
+    { speaker: "OMOLOLU", left: "omololu", pose: "idle", text: "...Okay. Not a dream.", cam: "static" },
+    // Post-credits — Rick Prime, alone
+    { speaker: "", text: "— POST-CREDITS —", cam: "static" },
+    { speaker: "", text: "Somewhere with no world attached to it — a place between the closed door and the next one — a single figure sits in the dark, unhurried, already working.", cam: "pan" },
+    { speaker: "RICK PRIME", left: "rickPrime", pose: "idle", text: "One anchor closed one door. There are others. There are always others.", cam: "zoom" },
+    { speaker: "RICK PRIME", left: "rickPrime", pose: "idle", text: "And now I know exactly what the right one is worth. ...Right on schedule.", cam: "zoom" },
+    { speaker: "", text: "THE NEXUS FRACTURE  —  to be continued", cam: "static" },
+  ],
 }
 
-// The full ordered playthrough (Prologue → Act 1 → Act 2), for a single start-to-finish run.
-export const NEXUS_FRACTURE_FULL = [...NEXUS_FRACTURE.prologue, ...NEXUS_FRACTURE.act1, ...NEXUS_FRACTURE.act2]
+// The full ordered playthrough (Prologue → Act 1 → Act 2 → Act 3 → Epilogue), start-to-finish.
+export const NEXUS_FRACTURE_FULL = [
+  ...NEXUS_FRACTURE.prologue, ...NEXUS_FRACTURE.act1, ...NEXUS_FRACTURE.act2, ...NEXUS_FRACTURE.act3, ...NEXUS_FRACTURE.epilogue,
+]

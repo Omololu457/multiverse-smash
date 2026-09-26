@@ -35,6 +35,7 @@
     "test:nexus-cutscene": "node harness/nexus_cutscene.test.mjs",
     "test:nexus-polish": "node harness/nexus_polish.test.mjs",
     "test:nexus-act2": "node harness/nexus_act2.test.mjs",
+    "test:nexus-story-victory": "node harness/nexus_story_victory.test.mjs",
     "test:ai-templates": "node harness/ai_templates.test.mjs",
     "test:story-live": "node harness/story_live.test.mjs",
     "test:unlocks": "node harness/unlocks.test.mjs",

@@ -5650,6 +5650,11 @@ function _checkMatchOver() {
       ls.roundsWon === 0 && ws.roundsWon > 0 && ws.perfectRounds === ws.roundsWon)
     victoryState.subtitle = ""
     victoryState.primaryLabel = "REMATCH"
+    // STORY CUTSCENE FIGHT: this isn't a standalone versus match — winning must continue the scene, so the
+    // primary button is "CONTINUE" (its click → the "rematch" action → resumeCutsceneAfterFight, below). None
+    // of the tower/arcade/bracket/story blocks fire here (mode is "vs"), so this default would otherwise leave
+    // a misleading "REMATCH" and Enter would drop the player to the menu. (See victory keydown handler.)
+    if (matchConfig._cutsceneFight) { victoryState.subtitle = "THE STORY CONTINUES"; victoryState.primaryLabel = "CONTINUE" }
     // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
     if (matchConfig.mode !== "training" && matchConfig.mode !== "aivsai") {
@@ -18542,7 +18547,12 @@ window.addEventListener("keydown", e => {
   }
 
   if (gameState === GAME_STATES.VICTORY) {
-    const action = handleVictoryKey?.(victoryState, key)
+    let action = handleVictoryKey?.(victoryState, key)
+    // STORY CUTSCENE FIGHT: the only sensible outcome is to continue the scene. A real player presses
+    // Enter/Space to proceed — which handleVictoryKey maps to "menu" (drop out) unless the CONTINUE button
+    // happens to be hovered. Force those confirm keys to "rematch" (→ resumeCutsceneAfterFight) so the story
+    // never drops to the title on a normal advance. Only the explicit MAIN MENU button / Escape still quits.
+    if (matchConfig._cutsceneFight && (key === "enter" || key === " " || key === "spacebar")) action = "rematch"
     if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
     if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
     return
@@ -19437,6 +19447,7 @@ gameLoop()
       startCutsceneBeats: (which = "full") => { const b = which === "prologue" ? NEXUS_FRACTURE.prologue : which === "act1" ? NEXUS_FRACTURE.act1 : NEXUS_FRACTURE_FULL; startCutscene(b, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.beats.length },
       cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight, fade: Math.round(s.fade * 1000) / 1000, driftX: Math.round((s._driftX || 0) * 1000) / 1000, driftZoom: Math.round((s._driftZoom || 0) * 100000) / 100000 } },
       cutsceneAdvance: () => { cutsceneAdvance(); return cutsceneState.idx },
+      victoryLabel: () => ({ primary: victoryState.primaryLabel, subtitle: victoryState.subtitle, active: victoryState.active, fadeAlpha: victoryState.fadeAlpha, csFight: !!matchConfig._cutsceneFight }),
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
       gameplaySelectRects: () => getGameplaySelectRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),

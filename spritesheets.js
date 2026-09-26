@@ -119,6 +119,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./omololu_idle_uniform.png" }
   },
 
+  // Jesus (original, "divine" universe). JUS sheet sliced/repacked in-repo. GATES spritesReady() only
+  // (decodes idle → flips from procedural box to sprite); per-action rendering reads the `sheet` paths
+  // from characters.js → jesus.animationData (jesus_*_uniform.png). Without this entry getSpriteSheets
+  // returns empty → spritesReady false → renderHybridFighter draws the procedural body (the bug).
+  jesus: {
+    actions: { idle: "./jesus_idle_uniform.png" }
+  },
+
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. GATES spritesReady() only
   // (decodes idle → flips Tobi from box to sprite); per-action rendering reads the `sheet` paths
   // from characters.js → tobi.animationData (tools/reslice_tobi.py'd masked_man_*_uniform copies).

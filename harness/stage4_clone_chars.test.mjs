@@ -76,9 +76,10 @@ section("MADARA — wood clones revert to LOGS on despawn (Mokuton, like Hashira
 }
 
 section("No drift on other characters");
-check("pre-existing clone chars still capable", ["naruto", "minato", "hashirama", "tobirama", "boruto", "kakashi", "itachi", "hiruzen"].every(k => isCloneCapable({ rosterKey: k })));
+check("other clone chars still capable", ["minato", "hashirama", "tobirama", "boruto", "kakashi", "itachi", "hiruzen"].every(k => isCloneCapable({ rosterKey: k })));
 check("a non-clone char (sasuke) is still not capable", isCloneCapable({ rosterKey: "sasuke" }) === false);
-check("naruto cap unchanged (4), minato (2)", getCloneCap({ rosterKey: "naruto" }) === 4 && getCloneCap({ rosterKey: "minato" }) === 2);
+// Naruto's persistent clones were REPLACED by the authored Uzumaki Barrage choreography (2026-09-26); other owners untouched.
+check("naruto no longer persistent-clone capable; minato cap unchanged (2)", isCloneCapable({ rosterKey: "naruto" }) === false && getCloneCap({ rosterKey: "minato" }) === 2);
 
 console.log(`\n${FAIL === 0 ? "✅" : "❌"}  stage4_clone_chars: ${PASS} passed, ${FAIL} failed`);
 process.exit(FAIL === 0 ? 0 : 1);

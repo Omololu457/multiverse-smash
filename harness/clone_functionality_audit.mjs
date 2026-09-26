@@ -29,7 +29,7 @@ async function boot(who){
 async function prep(gap){
   await page.waitForFunction(() => { const p=window.__harness.p1(); return p.grounded && !p.attacking; }, null, {timeout:6000,polling:16}).catch(()=>{});
   // aggro OFF: this audit verifies the clone is a real HITTABLE entity (spawn/move/hit-reveal) with the
-  // clone holding still for deterministic overlap. Its ACTIVE lunge-strike behavior is tested by clone_active_clips.
+  // clone holding still for deterministic overlap. Its ACTIVE lunge-strike behavior is tested by clone_observe (clone_behavior_observe.mjs).
   await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.dispelP1Clones?.(); window.__harness.setCloneAggro?.(false); });
   const a=await p1(); await page.evaluate(x=>window.__harness.setP2X(x), a.x+gap); await wf(2);
 }

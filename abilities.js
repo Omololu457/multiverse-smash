@@ -489,7 +489,9 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
 // one-frame Substitution teleport fires. Driven from game.js's "h"+direction handler for the 6 redesigned chars.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 const CLONE_ONESHOT = {
-  naruto:   { sheet: "./naruto_kcm_b_attack.png",              sf: 4, sw: 52, sh: 53, ss: 2.0,  cost: 22, strikeDmg: 60, projDmg: 46 },
+  // naruto: REMOVED 2026-09-26 — Naruto's clone systems (persistent mirror clones + these one-shot
+  // clone-assist specials) are replaced by the authored Uzumaki Barrage choreography (narutoChoreography.js).
+  // Other owners keep their one-shot clones untouched.
   minato:   { sheet: "./minato_foward_kick_uniform.png",       sf: 4, sw: 59, sh: 71, ss: 1.7,  cost: 22, strikeDmg: 56, projDmg: 44, back: "ftg" },
   tobirama: { sheet: "./tobirama_foward_water_slash_uniform.png", sf: 6, sw: 82, sh: 85, ss: 1.3, cost: 24, strikeDmg: 54, projDmg: 42, back: "waterwall" },
   hashirama:{ sheet: "./hashirama_foward_punch_uniform.png",   sf: 5, sw: 76, sh: 79, ss: 1.55, cost: 24, strikeDmg: 62, projDmg: 46, strikeArmor: true },
@@ -1822,7 +1824,7 @@ function spendCloneComboChakra(fighter, baseCost) {
 // combat.resolveProjectileHits connects it the same frame (no spacing/whiff), running the
 // normal damage pipeline (global scale, hit sparks, damage numbers). Reuses the Rasengan
 // orb FX. `dirSign` sets which side the hit knocks toward; `offsetX` places it front/back.
-function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {}) {
+export function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {}) {
   if (!target) return null
   const proj = spawnProjectile(fighter, type, {
     speed: 0, lifetime: opts.lifetime || 16,
@@ -2039,23 +2041,45 @@ export function updateNarutoRendanCombat(fighter, inputState, context, getPhase)
   return false
 }
 
+// Uzumaki Barrage (authored choreography) — cost + cooldown for the SIMPLE single-input trigger.
+const NARUTO_BARRAGE_COST = 40
+const NARUTO_BARRAGE_CD   = 90
+const NARUTO_SUMMON_COST  = 25   // summon-then-choose: flat cost paid at summon; select adds nothing
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // ELEVATED motion-input route — SHURIKEN-HIDDEN CLONE (double-QCB ↓←↓←). Checked before the
-  // single-QCB (D→B) clone-dispel below; a double needs 4 tokens so a single ↓← still dispels.
-  // Falls through on a failed gate (→ dispel), keeping the existing route intact.
-  if (detectMotion(fighter, "doubleQcb")) {
-    if (fireShurikenHiddenClone(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  // ── SUMMON-THEN-CHOOSE (ADDITIVE 2026-09-26) — an EXTRA access path. Placed above the direct
+  // Barrage trigger, but only fires in its own states, so the Down+Special Barrage path is unchanged. ──
+  // SELECT: while a formation is staged (window open), this Special press picks which sequence fires.
+  if ((fighter._narutoSelectWindow || 0) > 0) {
+    fighter._pendingNarutoSelect = fighter._specialHeldDir || "N"   // N (neutral) → Barrage
+    clearMotionHistory(fighter)
+    return true
+  }
+  // SUMMON: Up + Special → call clones into a holding FORMATION (no move yet), opening the select window.
+  if (fighter._specialHeldDir === "U") {
+    if ((fighter._choreoCd || 0) > 0) return false
+    if (!spendEnergy(fighter, NARUTO_SUMMON_COST)) return false
+    fighter._pendingNarutoSummon = true
+    fighter._choreoCd = 12          // brief lockout so one press can't double-fire
+    clearMotionHistory(fighter)
+    return true
   }
 
-  // ELEVATED motion-input route — checked FIRST so a double-QCF history [D,F,D,F] cannot fall
-  // through to the single-QCF (D→F) shadow-clone spawn below. Clone-independent; on a failed gate
-  // (e.g. not enough chakra) it falls through untouched, so every existing route is preserved.
-  if (detectMotion(fighter, "doubleQcf")) {
-    if (executeNarutoUzumakiBarrage(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  // ── UZUMAKI BARRAGE — SIMPLE single input: Down + Special (2026-09-26 rebuild). ──
+  // Replaces BOTH old clone motion-inputs (↓→↓→ double-QCF barrage AND ↓←↓← shuriken-hidden-clone).
+  // One press → game.js plays the whole AUTHORED choreography deterministically (narutoChoreography.js);
+  // the player does NOT execute a multi-step real-time sequence. Falls through if no chakra / on cooldown.
+  if (fighter._specialHeldDir === "D") {
+    if ((fighter._choreoCd || 0) > 0) return false
+    if (!spendEnergy(fighter, NARUTO_BARRAGE_COST)) return false
+    fighter._pendingNarutoChoreo = true          // game.js owns the render path + the real hit primitive
+    fighter._choreoCd = NARUTO_BARRAGE_CD
+    clearMotionHistory(fighter)
+    return true
   }
 
   // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Motion-input, additive;

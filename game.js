@@ -258,9 +258,13 @@ import {
   revertHiruzenEnma,           // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
   fireCloneOneShotStrike,      // one-shot clone (h): a clone appears in front, strikes once (launcher), vanishes
   fireCloneOneShotProjectile,  // one-shot clone (h+Fwd): a clone-shaped projectile flies forward, hits, vanishes
-  fireCloneSubstitution        // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
+  fireCloneSubstitution,       // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
+  spawnGuaranteedCloneHit      // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
+// Naruto-ONLY authored clone choreography (replaces his persistent + one-shot clone systems).
+import { startNarutoChoreo, updateNarutoChoreo, getNarutoChoreoBodies, isNarutoChoreoActive, clearNarutoChoreo, getNarutoChoreoState, holdNarutoChoreoAt,
+         startNarutoFormation, updateNarutoFormation, chooseNarutoSequence, isNarutoFormationActive, holdNarutoFormation, SELECT_MAP, SEQUENCES } from "./narutoChoreography.js"
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
@@ -3691,6 +3695,7 @@ function ensureTrainingOpponent() {
 
 function resetRound() {
   damageNumbers.length = 0
+  clearNarutoChoreo()   // release any in-flight Uzumaki Barrage (unlocks the caster) on a fresh round
   sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
@@ -7533,6 +7538,10 @@ function buildNormalControlState(fighter, vKeys) {
 
 function updatePlayerCombat(fighter) {
   if (!fighter) return
+  // Naruto Uzumaki Barrage: tick its cooldown, and while the authored choreography plays, LOCK input —
+  // the caster performs no self-driven actions (physics still runs so the finisher teleport-in descends).
+  if (fighter._choreoCd > 0) fighter._choreoCd--
+  if (fighter._choreoLock) return
   // Stamp the acting fighter as the AMBIENT voice owner for the duration of its combat/ability update, so
   // every cue it fires (attack barks, special/ultimate casts) auto-tags without touching each call site.
   // The owner is the single-voice-channel key: a newer line from this fighter stops its previous line
@@ -14030,6 +14039,48 @@ function updateBattle() {
   if (!_timeSlowFrozen(p1)) updatePlayerCombat(p1)
   if (!_timeSlowFrozen(p2)) updatePlayerCombat(p2)
 
+  // ── NARUTO UZUMAKI BARRAGE — authored clone choreography (Naruto-only clone rebuild) ──
+  // executeNarutoSpecial sets `_pendingNarutoChoreo` on a Down+Special press; start the run here, then
+  // advance the single active run one frame. Each beat's real game-effect is applied through the existing
+  // guaranteed-hit primitive (same launcher/knockback pipeline as every prior Naruto barrage beat).
+  for (const f of [p1, p2]) {
+    if (!f) continue
+    if (f._pendingNarutoChoreo) {   // direct Uzumaki Barrage (Down+Special) — UNCHANGED
+      f._pendingNarutoChoreo = false
+      if (!isNarutoChoreoActive()) startNarutoChoreo(f, getOpponent(f))
+    }
+    if (f._pendingNarutoSummon) {   // ADDITIVE: summon clones into formation (Up+Special)
+      f._pendingNarutoSummon = false
+      if (!isNarutoChoreoActive() && !isNarutoFormationActive()) startNarutoFormation(f, getOpponent(f))
+    }
+    if (f._pendingNarutoSelect) {   // ADDITIVE: pick a sequence from the staged formation
+      const dir = f._pendingNarutoSelect; f._pendingNarutoSelect = null
+      if (isNarutoFormationActive()) chooseNarutoSequence(SELECT_MAP[dir] || "barrage")
+    }
+  }
+  updateNarutoFormation()
+  // fireHit: Barrage + melee beats use the guaranteed-hit primitive (UNCHANGED path); the new
+  // Shuriken/Substitution beats carry hit.projectile → a traveling projectile from the acting body.
+  updateNarutoChoreo((caster, target, hit, dirSign, body) => {
+    if (hit.projectile) {
+      const src = body || caster
+      const proj = spawnProjectile(caster, "narutoBarrageShuriken", {
+        damage: hit.damage, hitstun: hit.hitstun,
+        knockbackX: hit.knockbackX || 6, knockbackY: hit.knockbackY || 0,
+        speed: 0, vx: dirSign * (hit.speed || 14), lifetime: hit.lifetime || 60,
+        w: hit.big ? 40 : 24, h: hit.big ? 40 : 24, color: "#e8f0ff",
+        spawnX: (src.x || 0) + (src.w || 0) / 2, spawnY: (src.y || 0) + (src.h || 100) * 0.4
+      }, {})
+      if (proj) { proj.x = (src.x || 0) + (src.w || 0) / 2; proj.y = (src.y || 0) + (src.h || 100) * 0.4; proj.vx = dirSign * (hit.speed || 14) }
+      return
+    }
+    spawnGuaranteedCloneHit(caster, target, "narutoBarrage", {
+      damage: hit.damage, hitstun: hit.hitstun,
+      knockbackX: hit.knockbackX || 0, knockbackY: hit.knockbackY || 0,
+      dirSign, w: 40, h: 60
+    }, {})
+  })
+
   // CLONE HIT-REVEAL (melee) — AUTHORITATIVE pass, run at the exact frame real hits resolved above so a
   // swing that overlaps an opponent's shadow clone reliably poofs it (fixes "clones are hit-or-miss").
   // Fighter-priority is built in: it no-ops if the swing already connected on the real fighter (hasHit),
@@ -15751,6 +15802,9 @@ function drawBattleScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
+  // Naruto Uzumaki Barrage clone GHOST BODIES — drawn through the EXACT SAME path as the real fighter
+  // (renderHybridFighter), so each clone is pixel-identical to Naruto. Only bodies whose beat window is open.
+  for (const g of getNarutoChoreoBodies()) renderHybridFighter(g)
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)
@@ -20588,6 +20642,16 @@ gameLoop()
       mirrorRenders: getCloneMirrorRenderCount(),
       clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ renderH: Math.round(s._renderH || 0), renderW: Math.round(s._renderW || 0), state: s._state, x: Math.round(s.x || 0), mirrorDx: s._mirrorDx != null ? Math.round(s._mirrorDx) : null })),
     }),
+    // ── NARUTO UZUMAKI BARRAGE (authored choreography) harness hooks ──
+    narutoChoreo: () => getNarutoChoreoState(),   // live run state: active/frame/finisher/bodies (each ghost renders via renderHybridFighter)
+    narutoChoreoHold: (frame = 20, seq = "barrage") => { if (!p1) return false; if (!isNarutoChoreoActive() && !isNarutoFormationActive()) startNarutoChoreo(p1, getOpponent(p1), SEQUENCES[seq] || SEQUENCES.barrage); return holdNarutoChoreoAt(frame); },   // freeze a posed tableau for screenshot proof (any sequence)
+    narutoBarrage: () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = "D"; p1._choreoCd = 0; return triggerSpecial(p1, getAbilityContext()); },   // trigger via the REAL Down+Special path
+    // ── SUMMON-THEN-CHOOSE harness hooks ──
+    narutoSeq: (seq = "barrage") => { if (!p1) return false; if (isNarutoChoreoActive() || isNarutoFormationActive()) return false; return startNarutoChoreo(p1, getOpponent(p1), SEQUENCES[seq] || SEQUENCES.barrage); },   // directly play any of the 5 sequences (per-move verify)
+    narutoSummon: () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = "U"; p1._choreoCd = 0; return triggerSpecial(p1, getAbilityContext()); },   // Up+Special → formation
+    narutoSelect: (dir = "N") => { if (!p1) return false; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir === "N" ? null : dir; return triggerSpecial(p1, getAbilityContext()); },   // pick a sequence from the staged formation
+    narutoFormationHold: () => holdNarutoFormation(),   // freeze the staged formation for a screenshot
+    narutoChoreoClear: () => { clearNarutoChoreo(); if (p1) { p1._choreoCd = 0; p1._pendingNarutoChoreo = false; p1._pendingNarutoSummon = false; p1._pendingNarutoSelect = null; } return true; },   // reset between sub-tests
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
     p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),
     p1SwapCd:  () => (p1 ? (p1._cloneSwapCd || 0) : -1),

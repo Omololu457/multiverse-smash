@@ -152,6 +152,14 @@ const GOJO_CHARGE = { blue: 16, red: 20, hollowPurple: 28 }
 // ─────────────────────────────────────────────────────────────────
 // UTIL
 // ─────────────────────────────────────────────────────────────────
+// ── BALANCE: ONE-SHOT ULTIMATE half-damage-on-block ─────────────────────────────────────────
+// A "one-shot" ultimate = a single guaranteed big-damage connect (the sure-hit cinematic ults that
+// apply their damage ONCE at a connect beat). SPECIFIC RULE for this category: a successful BLOCK
+// deals exactly HALF the unblocked damage — replacing each ult's own ad-hoc chip ratio (0.20-0.25),
+// and taking precedence over the generic block-chip formula (combat.js). See BALANCE report.
+const ONE_SHOT_ULT_BLOCK_MULT = 0.5
+function oneShotUltBlockedDmg(fullDmg) { return Math.round((fullDmg || 0) * ONE_SHOT_ULT_BLOCK_MULT) }
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
 }
@@ -1240,7 +1248,7 @@ function applyVegetaFinalFlashDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = fighter._ssjBlueActive ? VG_ULT.blueDmg : fighter._ssjActive ? VG_ULT.ssjDmg : VG_ULT.dmg   // base 340 < SSJ 420 < Blue 480
   if (blocked) {
-    dmg = Math.round(dmg * VG_ULT.blockRatio)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 18)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 28)
@@ -9361,7 +9369,7 @@ function applyOrochimaruSummonDamage(fighter, opp, context) {
   if (!opp || opp.eliminated) return
   const blocked = !!opp.isBlocking
   let dmg = OROCHIMARU_SUMMON.dmg
-  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  if (blocked) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
   else { opp.hitstun = Math.max(opp.hitstun || 0, 44); opp.vx = (fighter.facing || 1) * 10; opp.vy = -7 }
   applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~210 EFF (block 25%)
   opp.colorFlash = 12
@@ -10735,7 +10743,7 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = OMNIMAN_ULT.dmg
   if (blocked) {
-    dmg = Math.round(dmg * OMNIMAN_ULT.blockRatio)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 20)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 34)
@@ -10785,7 +10793,7 @@ function applySupermanUltimateDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = SUPERMAN_ULT.dmg
   if (blocked) {
-    dmg = Math.round(dmg * SUPERMAN_ULT.blockRatio)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 20)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 36)
@@ -12263,7 +12271,7 @@ function applyRengokuUltimateDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = RENGOKU_ULT_DMG
   if (blocked) {
-    dmg = Math.round(dmg * 0.25)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 20)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 36)
@@ -12306,7 +12314,7 @@ function applyMiwaUltimateDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = MIWA_ULT.dmg
   if (blocked) {
-    dmg = Math.round(dmg * 0.25)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 20)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 34)
@@ -12351,7 +12359,7 @@ function applyIchigoUltimateDamage(fighter, opp, cineCtx = {}) {
   const blocked = !!opp.isBlocking
   let dmg = ICHIGO_ULT.dmg
   if (blocked) {
-    dmg = Math.round(dmg * 0.25)
+    dmg = oneShotUltBlockedDmg(dmg)
     opp.blockstun = Math.max(opp.blockstun || 0, 22)
   } else {
     opp.hitstun = Math.max(opp.hitstun || 0, 36)
@@ -13350,7 +13358,7 @@ function applyHiruzenReaperDamage(fighter, opp, context) {
   if (!opp || opp.eliminated) return
   const blocked = !!opp.isBlocking
   let dmg = HIRUZEN_REAPER.dmg
-  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  if (blocked) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
   else {
     opp.hitstun = Math.max(opp.hitstun || 0, 40)
     opp.vx = (fighter.facing || 1) * 8; opp.vy = -6
@@ -17887,7 +17895,7 @@ function applyYamamotoUltimateDamage(fighter, opp, context) {
   if (!opp || opp.eliminated) return
   const blocked = !!opp.isBlocking
   let dmg = YAMAMOTO_ULT.dmg
-  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  if (blocked) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
   else { opp.hitstun = Math.max(opp.hitstun || 0, 46); opp.vx = (fighter.facing || 1) * 8; opp.vy = 12 }   // overhead SLAM → drive DOWN into the ground
   applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~204 EFF (block 25%)
   opp.colorFlash = 12
@@ -19917,7 +19925,7 @@ function executeSaikiUltimate(fighter, context) {
       const tcx = t.x + (t.w || 60) / 2, tcy = t.y + (t.h || 100) / 2
       if (Math.hypot(tcx - ex, tcy - ey) <= SAIKI_BOMB.radius) {
         let dmg = SAIKI_BOMB.dmg
-        if (t.isBlocking) { dmg = Math.floor(dmg * 0.2); t.blockstun = 24 }
+        if (t.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); t.blockstun = 24 }
         else { t.hitstun = SAIKI_BOMB.hitstun; t.vx = (tcx >= ex ? 1 : -1) * 16; t.vy = -10; t.colorFlash = 8 }
         applyScaledDamage(t, dmg, { source: "ability" })
       }
@@ -23372,7 +23380,7 @@ function executeNaoyaUltimate(fighter, context) {
       if (b.dmg > 0 && opp && !opp.eliminated) {
         const blocked = !!opp.isBlocking
         let dmg = b.dmg
-        if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 20) }
+        if (blocked) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 20) }
         applyScaledDamage(opp, dmg, { source: "naoya-ultimate", attacker: fighter, move: "ultimate" })   // honest ×0.60 → ~198 EFF total (block 25%) — attacker+move → Brutality killing-blow stamp (Naoya Frame-Trap)
         opp.colorFlash = 10
         if (!blocked) opp.hitstun = Math.max(opp.hitstun || 0, b.hitstun || 24)
@@ -24048,7 +24056,7 @@ function executeSupermanDcucUltimate(fighter, context) {
   schedulePendingSpawn(U.impactAt, () => {
     if (opp && !opp.eliminated) {
       let dmg = U.raw
-      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
       else {
         opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
         opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy
@@ -24103,7 +24111,7 @@ function executeSupermanNew52Ultimate(fighter, context) {
     fighter.vx = 0
     if (opp && !opp.eliminated) {
       let dmg = U.raw
-      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
       else {
         opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
         opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy
@@ -24157,7 +24165,7 @@ function executeKakashiUltimate(fighter, context) {
     fighter.vx = 0
     if (opp && !opp.eliminated) {
       let dmg = U.raw
-      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
       else {
         opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
         opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy

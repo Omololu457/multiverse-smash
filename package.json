@@ -42,6 +42,7 @@
     "test:ai-templates": "node harness/ai_templates.test.mjs",
     "test:story-live": "node harness/story_live.test.mjs",
     "test:unlocks": "node harness/unlocks.test.mjs",
+    "test:oneshot-ult-block": "node harness/oneshot_ult_block.test.mjs",
 
     "test:unlock-toast-name": "node harness/unlock_toast_name.test.mjs",
     "test:atlas": "node tools/atlas_pack.mjs",

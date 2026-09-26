@@ -23,7 +23,7 @@ try { startLanServer({ port: LAN_PORT, relay: true, log: () => {} }); LAN_RELAY_
 catch (e) { console.log(`[lan] relay failed to start on ${LAN_PORT}: ${e.message}`); }
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json",".woff":"font/woff",".woff2":"font/woff2",".svg":"image/svg+xml" };
+const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".m4a":"audio/mp4",".json":"application/json",".woff":"font/woff",".woff2":"font/woff2",".svg":"image/svg+xml" };
 
 // --- DURABLE SAVE TIER (/api/health + /api/save) -----------------------------------------------------
 // The game persists to localStorage, but Chromium flushes DOMStorage to disk LAZILY — a crash / force-quit

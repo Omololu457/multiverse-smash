@@ -320,6 +320,7 @@ import {
 } from "./arcade.js"
 import { STORY_CHAPTERS, getChapter, chapterDifficulty, STORY_CHAPTER_COUNT } from "./story.js"
 import { NEXUS_FRACTURE, NEXUS_FRACTURE_FULL } from "./nexusFracture.js"   // Story Mode cutscene: THE NEXUS FRACTURE (Prologue + Act 1) — beat DATA for the cutscene engine
+import { voiceClipName, NEXUS_VOICE_DIR } from "./nexusVoice.js"   // Story Mode cutscene TTS (macOS `say` clips) — per-line voice audio
 import { getStoryProgress, isChapterUnlocked, completeStoryChapter } from "./storyProgress.js"
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
@@ -2493,6 +2494,26 @@ function _cutsceneActor(key, pose, x, facing) {
   return f
 }
 
+// TTS VOICE (STAGE B): each beat's line has a pre-generated macOS-`say` clip (nexus_voice/, named by a
+// content hash via voiceClipName). Play it when the beat displays, alongside the typewriter text. Gated on
+// the SFX mute toggle. One clip at a time — a new beat stops the previous line.
+let _cutsceneVoiceAudio = null
+function _stopCutsceneVoice() {
+  if (_cutsceneVoiceAudio) { try { _cutsceneVoiceAudio.pause() } catch (_) {} try { _cutsceneVoiceAudio.src = "" } catch (_) {} _cutsceneVoiceAudio = null }
+}
+function _playCutsceneVoice(speaker, text) {
+  _stopCutsceneVoice()
+  if (typeof audioSettings !== "undefined" && audioSettings.sfxMuted) return
+  const name = voiceClipName(speaker, text)
+  if (!name || typeof Audio === "undefined") return
+  try {
+    const a = new Audio(`${NEXUS_VOICE_DIR}/${name}`)
+    a.volume = 0.9
+    _cutsceneVoiceAudio = a
+    a.play().catch(() => {})   // autoplay may reject until a gesture; entering Story is itself a click, so it plays
+  } catch (_) {}
+}
+
 // Public entry: play a beat array; on the end call onDone (else return to the Story chapter map).
 function startCutscene(beats, onDone = null) {
   cutsceneState.active = true; cutsceneState.beats = beats; cutsceneState.onDone = onDone
@@ -2517,10 +2538,12 @@ function _cutsceneLoad(i) {
   if (b.cam === "pan") { s.camX = s.camXTarget - 130; s.camXTarget += 70 }
   s.full = b.text || ""; s.reveal = 0
   s.fade = 1   // STAGE 2: start this beat under a black veil → updateCutscene fades it up (soft cut, not a hard one)
+  _playCutsceneVoice(b.speaker, b.text)   // STAGE B: speak this line (macOS-say clip) as the beat displays
 }
 
 function _cutsceneFinish() {
   const done = cutsceneState.onDone
+  _stopCutsceneVoice()
   cutsceneState.active = false; cutsceneState.left = null; cutsceneState.right = null
   if (typeof done === "function") done()
   else gameState = GAME_STATES.STORY_MODE
@@ -2554,6 +2577,7 @@ function _startCutsceneFight(fight, beatIdx) {
   matchConfig.p2IsBoss = true; matchConfig.storyBossProfile = null; matchConfig.storyBossName = null
   matchConfig._cutsceneFight = true
   cutsceneState.active = false   // PAUSE the cutscene during the match: no stray advance/update/draw can touch idx until resumeCutsceneAfterFight()
+  _stopCutsceneVoice()   // silence any in-progress line before the fight
   startMatch()
 }
 
@@ -18506,7 +18530,7 @@ window.addEventListener("keydown", e => {
 
   // CUTSCENE: any key advances (first press completes the typewriter); Esc bails to the chapter map.
   if (gameState === GAME_STATES.CUTSCENE) {
-    if (key === "escape") { e.preventDefault(); cutsceneState.active = false; gameState = GAME_STATES.STORY_MODE; return }
+    if (key === "escape") { e.preventDefault(); _stopCutsceneVoice(); cutsceneState.active = false; gameState = GAME_STATES.STORY_MODE; return }
     cutsceneAdvance(); return
   }
 
@@ -19448,6 +19472,7 @@ gameLoop()
       cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight, fade: Math.round(s.fade * 1000) / 1000, driftX: Math.round((s._driftX || 0) * 1000) / 1000, driftZoom: Math.round((s._driftZoom || 0) * 100000) / 100000 } },
       cutsceneAdvance: () => { cutsceneAdvance(); return cutsceneState.idx },
       victoryLabel: () => ({ primary: victoryState.primaryLabel, subtitle: victoryState.subtitle, active: victoryState.active, fadeAlpha: victoryState.fadeAlpha, csFight: !!matchConfig._cutsceneFight }),
+      cutsceneVoice: () => { const a = _cutsceneVoiceAudio; const b = cutsceneState.beats && cutsceneState.beats[cutsceneState.idx]; return { expected: b ? voiceClipName(b.speaker, b.text) : null, src: a ? (a.src.split("/").pop() || null) : null, paused: a ? a.paused : null, currentTime: a ? a.currentTime : null, duration: a ? (isNaN(a.duration) ? null : a.duration) : null, readyState: a ? a.readyState : null, error: a && a.error ? a.error.code : null } },
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
       gameplaySelectRects: () => getGameplaySelectRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),

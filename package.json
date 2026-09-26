@@ -37,6 +37,8 @@
     "test:nexus-act2": "node harness/nexus_act2.test.mjs",
     "test:nexus-story-victory": "node harness/nexus_story_victory.test.mjs",
     "test:nexus-full-playthrough": "node harness/nexus_full_playthrough.test.mjs",
+    "test:nexus-voice": "node harness/nexus_voice.test.mjs",
+    "voice:nexus": "node tools/gen_nexus_voice.mjs",
     "test:ai-templates": "node harness/ai_templates.test.mjs",
     "test:story-live": "node harness/story_live.test.mjs",
     "test:unlocks": "node harness/unlocks.test.mjs",

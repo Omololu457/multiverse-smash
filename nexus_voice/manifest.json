@@ -1,0 +1,693 @@
+{
+  "count": 112,
+  "voices": [
+    "Daniel",
+    "Rocko",
+    "Fred",
+    "Albert",
+    "Ralph",
+    "Reed",
+    "Aman",
+    "Grandpa",
+    "Eddy",
+    "Rishi",
+    "Junior",
+    "Sandy",
+    "Kathy",
+    "Shelley"
+  ],
+  "lines": [
+    {
+      "file": "line_10rcm08.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Every universe keeps its own time. Its own heroes. Its own endings."
+    },
+    {
+      "file": "line_1oldfw3.m4a",
+      "speaker": "OMOLOLU (V.O.)",
+      "voice": "Rocko",
+      "text": "Mine kept me. A normal kid. A normal room. A normal Tuesday."
+    },
+    {
+      "file": "line_10b2ude.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "...okay, that's the third time the lights flickered. Totally normal. Not ominous at all."
+    },
+    {
+      "file": "line_uvvgq3.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Wait. Why is the AIR opening?"
+    },
+    {
+      "file": "line_li8k4n.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The room folds inward. A seam of white light tears the world open — and swallows him whole."
+    },
+    {
+      "file": "line_rf773y.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "There he goes. Right on schedule."
+    },
+    {
+      "file": "line_2dux1g.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "Every anchor thinks the fracture chose them. None of them like the real answer."
+    },
+    {
+      "file": "line_1r1f0rq.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "ACT I  —  THE NEXUS FRACTURE"
+    },
+    {
+      "file": "line_jtb783.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "He wakes where all worlds bleed together: the Nexus. A bruise-colored sky over ground that remembers a hundred battlefields."
+    },
+    {
+      "file": "line_gqr25e.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Where... am I? This is definitely not Tuesday."
+    },
+    {
+      "file": "line_1lu362q.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Two of them. Already fighting. Great first impression, universe."
+    },
+    {
+      "file": "line_19yshg8.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "Identify yourself. This sector is unstable — and you are standing in it."
+    },
+    {
+      "file": "line_1j6i8nf.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "He's not the problem, tin man. Stand down and I'll explain."
+    },
+    {
+      "file": "line_13yd1o.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "Negotiation is inefficient."
+    },
+    {
+      "file": "line_ftx7kp.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "You done venting? Good. Now LISTEN."
+    },
+    {
+      "file": "line_1kv0oor.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "...Threat reassessed. You are not hostile. Logged."
+    },
+    {
+      "file": "line_f60vef.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The Nexus mimics whatever it devours. A whole aisle of a corner store hums under dead fluorescent light in the middle of nowhere."
+    },
+    {
+      "file": "line_nfic3b.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "A grocery store. In the void. With snacks. I'm either dreaming or dead — either way I'm starving."
+    },
+    {
+      "file": "line_139tkh1.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "Don't eat the void food, kid. Come on — there's a fire, and people who aren't trying to kill you. Mostly."
+    },
+    {
+      "file": "line_11fjvfd.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "A man in a spiral mask waits at the edge of the light. He does not blink. He does not need to."
+    },
+    {
+      "file": "line_1w8ztlq.m4a",
+      "speaker": "OBITO",
+      "voice": "Reed",
+      "text": "The new anchor. Small. Frightened. Perfect."
+    },
+    {
+      "file": "line_7trymx.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Anchor? Man, I don't even have a driver's license."
+    },
+    {
+      "file": "line_10029dt.m4a",
+      "speaker": "OBITO",
+      "voice": "Reed",
+      "text": "Then let me measure exactly what you're worth to the fracture."
+    },
+    {
+      "file": "line_1co84ir.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Okay. OKAY. I did a thing. A violent thing. And it WORKED."
+    },
+    {
+      "file": "line_1e4z5rd.m4a",
+      "speaker": "OBITO",
+      "voice": "Reed",
+      "text": "...You'll do. That was never a fight, boy. It was a measurement — and he was watching."
+    },
+    {
+      "file": "line_1tcxnyw.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Night, if the Nexus keeps nights. A campfire snaps. Strangers from a dozen dead worlds share its light."
+    },
+    {
+      "file": "line_b5amgb.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "You held your own against a masked freak on day one. That buys you a seat at the fire."
+    },
+    {
+      "file": "line_welq7n.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "So what IS this place? And why does everyone keep calling me an anchor?"
+    },
+    {
+      "file": "line_1tp9q69.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "No one answers right away. The fire pops. Somewhere past the light, Rick Prime is already writing the next chapter."
+    },
+    {
+      "file": "line_16jqk6m.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "END OF ACT I"
+    },
+    {
+      "file": "line_b8tym4.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "ACT II  —  THE SHRINKING GROUND"
+    },
+    {
+      "file": "line_9csqd1.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The Nexus is smaller today. Yesterday's horizon is this morning's wall. Whole dead worlds fold shut like books no one will reopen."
+    },
+    {
+      "file": "line_t6vcbx.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "The ground keeps... ending. Every night there's less of it. Less of us."
+    },
+    {
+      "file": "line_1tj1q2x.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "The fracture is contracting toward a single point. My sensors put us inside its collapse radius. We do not have long."
+    },
+    {
+      "file": "line_13omycl.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Where the strongest gather, the ground lasts longest — so the strongest come to fight over what's left. Two of them are already here."
+    },
+    {
+      "file": "line_fd2au.m4a",
+      "speaker": "GOJO",
+      "voice": "Aman",
+      "text": "Only one cursed king gets to hold this piece of the world, and it isn't going to be you."
+    },
+    {
+      "file": "line_1o1c188.m4a",
+      "speaker": "SUKUNA",
+      "voice": "Grandpa",
+      "text": "Then stand in my domain and be measured, sorcerer. I have been bored for a thousand years."
+    },
+    {
+      "file": "line_rytlkf.m4a",
+      "speaker": "GOJO",
+      "voice": "Aman",
+      "text": "Throughout heaven and earth... yeah. You know the rest."
+    },
+    {
+      "file": "line_1a2kj0v.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The killing blow never lands. A spear of cursed steel splits the air between them — and the man who fears nothing steps out of the dark."
+    },
+    {
+      "file": "line_1v1p1r3.m4a",
+      "speaker": "TOJI",
+      "voice": "Eddy",
+      "text": "Sorcerers. Kings. Same soft throat under all the talk. I'll take the ground — and the bounty on both your heads."
+    },
+    {
+      "file": "line_kcm4nj.m4a",
+      "speaker": "TOJI",
+      "voice": "Eddy",
+      "text": "No cursed energy. No tricks. Just a man who's better at this than you. Remember that."
+    },
+    {
+      "file": "line_1vmdsm5.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Elsewhere, four powers that could each end the others meet on the last wide plain. Nobody moves. Everybody is doing the math."
+    },
+    {
+      "file": "line_23pmk3.m4a",
+      "speaker": "BEERUS",
+      "voice": "Rishi",
+      "text": "A god of destruction, and... whatever you are. You don't even register to me. That's either an insult or a miracle."
+    },
+    {
+      "file": "line_1qd6t3u.m4a",
+      "speaker": "VEGETA",
+      "voice": "Junior",
+      "text": "Frieza. Of every ruin the multiverse could spit back at me, it had to be you. Good. I still owe you a death."
+    },
+    {
+      "file": "line_1o22o7q.m4a",
+      "speaker": "VEGETA",
+      "voice": "Junior",
+      "text": "That's twice now. Stay down this time — you're embarrassing us both."
+    },
+    {
+      "file": "line_susi2u.m4a",
+      "speaker": "SAITAMA",
+      "voice": "Sandy",
+      "text": "So you're a god, huh. Cool. I was gonna ask if the sale's still on, but... okay. One punch first."
+    },
+    {
+      "file": "line_1iozqu2.m4a",
+      "speaker": "BEERUS",
+      "voice": "Rishi",
+      "text": "...What ARE you. No mortal — no GOD — hits like that. Whis is going to have questions."
+    },
+    {
+      "file": "line_35ijpx.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Under the last intact roof in the Nexus, the survivors call a council. Heroes, monsters, gods — one table, one shrinking world."
+    },
+    {
+      "file": "line_146y52a.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "Everyone here has killed someone everyone else here loved. And we still have to pick a plan by morning."
+    },
+    {
+      "file": "line_17yzpx0.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "So the anchor gets a vote now? Yesterday nobody would even tell me what an anchor is."
+    },
+    {
+      "file": "line_6s7t1b.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "You ARE the vote. Every collapse curves toward you. Wherever you stand, the ground holds a little longer. That is what an anchor is."
+    },
+    {
+      "file": "line_14m4it4.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Beyond the firelight, something older than any world at the table watches the council decide. It has watched a thousand councils. None of them mattered."
+    },
+    {
+      "file": "line_189kb04.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "Cute. They think choosing together makes the choice theirs. Every anchor's little parliament ends the exact same way."
+    },
+    {
+      "file": "line_1qfzsb0.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "I don't have to break their alliance. I just have to be there when it breaks itself."
+    },
+    {
+      "file": "line_1sf0vh6.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "One face at the fire keeps finding yours across the flames. Not an enemy. Worse — a measure. The one you'd have to beat to matter here."
+    },
+    {
+      "file": "line_1fuej94.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "You've got the anchor's luck, kid, but luck isn't a spine. When the ground finally comes for us, I need to know you won't run."
+    },
+    {
+      "file": "line_1wuu6y1.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "I didn't run from the masked man. I'm not running from you. When it comes — I'll be on the last piece of ground there is."
+    },
+    {
+      "file": "line_if9jcu.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The alliance doesn't break itself. It's broken — from the dark, all at once. Three shapes drop through the collapsing sky with a plan and a list of names."
+    },
+    {
+      "file": "line_btst6v.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "There it is — the moment a parliament becomes a panic. Take the anchor last. I want it to watch its friends go first."
+    },
+    {
+      "file": "line_am1uhr.m4a",
+      "speaker": "DEATHSTROKE",
+      "voice": "Kathy",
+      "text": "Contract's simple, machine. Everyone here stops working. Starting with the one that never sleeps."
+    },
+    {
+      "file": "line_10mrhtg.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "Contract terminated. Threat two — reacquiring."
+    },
+    {
+      "file": "line_ckuvlt.m4a",
+      "speaker": "FRIEZA",
+      "voice": "Shelley",
+      "text": "A soul reaper. How quaint. I have unmade emperors, boy. Let me add a shinigami to the list."
+    },
+    {
+      "file": "line_iz4xe7.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "You talk like every villain I've ever buried. Get in line."
+    },
+    {
+      "file": "line_10hni5k.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Two of the three are down. And the oldest, coldest one hasn't moved — because it was only ever here for one of them."
+    },
+    {
+      "file": "line_tsh7z8.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "Just you and me now, anchor. No masked measurer. No tin man. Let's find out what the fracture actually built."
+    },
+    {
+      "file": "line_1kpethl.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "You've been in every shadow since my bedroom wall opened. Fine. Come find out. I'm done being measured."
+    },
+    {
+      "file": "line_6dgw6u.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "That's for the bedroom. And the Tuesday. And every single 'right on schedule.'"
+    },
+    {
+      "file": "line_tfvlje.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "...Good. GOOD. You hit like something worth collapsing a multiverse to catch. NOW you're worth the real conversation."
+    },
+    {
+      "file": "line_8y37y8.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Three attackers driven off. The ground you saved is smaller than the ground you lost saving it. This is what winning costs in the Nexus now."
+    },
+    {
+      "file": "line_utmu8b.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "We won. So why does it feel like he LET us? Like the whole ambush was just... one more measurement."
+    },
+    {
+      "file": "line_al2bhi.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "Because it was. Rest while you can, anchor. Whatever he's really building — next time he won't be watching. He'll be finishing it."
+    },
+    {
+      "file": "line_1ii7gl3.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "END OF ACT II"
+    },
+    {
+      "file": "line_sqt77c.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "ACT III  —  THE CONVERGENCE"
+    },
+    {
+      "file": "line_3jtnjn.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "There is a word for it in a language the Nexus never learned: Ìlẹ̀kùn. A door. The fracture was never a wound. It was a threshold — and it has been waiting for someone to open it."
+    },
+    {
+      "file": "line_1t1e7v2.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "My grandmother used to say a door only opens for the one holding the key. I never asked what happens to the key after."
+    },
+    {
+      "file": "line_ik7rl7.m4a",
+      "speaker": "GENOS",
+      "voice": "Albert",
+      "text": "The collapse has a center now, and the center is a door. Rick Prime doesn't want to close the fracture. He wants to walk THROUGH it — and he needs the anchor to hold it open."
+    },
+    {
+      "file": "line_1eojzyd.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The Nexus splits one last time — not the ground this time, but the people standing on it. Every survivor has to decide what the last door is worth."
+    },
+    {
+      "file": "line_10q0a2g.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "Some of them are already walking toward him. Power calls to power, and he's the loudest thing in any world now. So I'll ask once: where do you stand, anchor?"
+    },
+    {
+      "file": "line_twexo0.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "On the threshold. Between him and the door. If he wants through, he goes through me first. That's where I stand."
+    },
+    {
+      "file": "line_d24gjj.m4a",
+      "speaker": "GOJO",
+      "voice": "Aman",
+      "text": "Good answer. Then the strongest of every world hold the line while you hold the door. Try not to die — I only just started finding you interesting."
+    },
+    {
+      "file": "line_bgh480.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "And then every world arrives at once. The convergence. A hundred legends on one collapsing field, and the only rule left is: keep the line until the anchor seals the door."
+    },
+    {
+      "file": "line_1q0ex57.m4a",
+      "speaker": "VEGETA",
+      "voice": "Junior",
+      "text": "You crawled out of one more grave, Frieza. Allow me to dig the last one myself."
+    },
+    {
+      "file": "line_qi1jcz.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. Across the field, a cursed king meets two sorcerers who fight as one. —"
+    },
+    {
+      "file": "line_506llk.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. In the ruins of a borrowed Gotham, the mercenary meets the one man who plans faster than he does. —"
+    },
+    {
+      "file": "line_926ruv.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. A mountain of gathered stone falls from the sky. A god of destruction simply... disagrees with it. —"
+    },
+    {
+      "file": "line_18wah6z.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. A ninja and the masked man who broke the world fight side by side against the ghost who taught them both. —"
+    },
+    {
+      "file": "line_7ly31r.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. Two strongest-men-alive stand back to back against an emperor's endless army. —"
+    },
+    {
+      "file": "line_1konwk5.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— CUT. And a bald man in a yellow suit walks up to a god who erases timelines, sighs, and raises one fist. —"
+    },
+    {
+      "file": "line_1q9djwy.m4a",
+      "speaker": "SAITAMA",
+      "voice": "Sandy",
+      "text": "Huh. Was that supposed to be the strong one? ...Anyone know if the sale's still on?"
+    },
+    {
+      "file": "line_f5r7g7.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The line holds. Impossibly, gloriously, the line holds — every world buying the anchor the seconds it needs. Which leaves exactly one door, and one man walking calmly toward it."
+    },
+    {
+      "file": "line_714dmc.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "Everyone else is a distraction I arranged. You were always the only variable. Step aside from the door, anchor — or become the last thing the fracture ever measures."
+    },
+    {
+      "file": "line_5t2vvc.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "You collapsed a multiverse to build a key. Congratulations. The key says no."
+    },
+    {
+      "file": "line_a8d8we.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Everything the Nexus has left narrows to this: a boy who was nobody, and the oldest, coldest thing in creation, on the last piece of ground, in front of the last open door."
+    },
+    {
+      "file": "line_6phx40.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "You spent forever looking for the one anchor that could hold the door. You found him. You just didn't think he'd hold it shut."
+    },
+    {
+      "file": "line_cy0j81.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "...Every version of this. Every timeline. And it ends with a kid and a locked door. ...Fine. Seal it. Let's see if you can live with what that costs, too."
+    },
+    {
+      "file": "line_1wzkxh5.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "The anchor holds. The door begins to close — and as it closes, it un-fractures: every borrowed world sliding back toward the timeline it was torn from. The Nexus is ending the only kind way it can. By sending everyone home."
+    },
+    {
+      "file": "line_18fmjwi.m4a",
+      "speaker": "ICHIGO",
+      "voice": "Ralph",
+      "text": "So this is it. The seams close, we all wake up where we started, and nobody back home believes a word of it. You did good, kid. Better than good."
+    },
+    {
+      "file": "line_1cso3rx.m4a",
+      "speaker": "GOJO",
+      "voice": "Aman",
+      "text": "You held a door against the end of everything. Wherever you land — don't let them tell you you're normal. I'll know they're lying."
+    },
+    {
+      "file": "line_1op4zko.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "Will I remember? Any of you? Or does the door take that too?"
+    },
+    {
+      "file": "line_2h2g9h.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "No one answers. The light folds gently inward — not a tear this time, but a closing hand — and one by one, a hundred legends wink back into the worlds that need them. Last of all, the anchor."
+    },
+    {
+      "file": "line_mx0u00.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "END OF ACT III"
+    },
+    {
+      "file": "line_1k3bmuz.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "EPILOGUE"
+    },
+    {
+      "file": "line_cgsf6r.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "A normal room. A normal bed. A normal Tuesday, exactly where he left it — as if the air never opened at all."
+    },
+    {
+      "file": "line_1nwocu2.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "...A dream. Obviously. Grocery stores in the void. A bald guy who ends gods. A door. Obviously a dream."
+    },
+    {
+      "file": "line_1e73s9n.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "So why do my knuckles still hurt. And why do I miss people I've apparently never met."
+    },
+    {
+      "file": "line_1rxr5ke.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "He almost believes it. He almost lets it go. And then he looks up — and there, running the length of his perfectly normal ceiling, is a hairline crack that was never there before. Faint. Patient. Widening by a single thread."
+    },
+    {
+      "file": "line_1w03ku5.m4a",
+      "speaker": "OMOLOLU",
+      "voice": "Rocko",
+      "text": "...Okay. Not a dream."
+    },
+    {
+      "file": "line_zuuzka.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "— POST-CREDITS —"
+    },
+    {
+      "file": "line_crqbpo.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "Somewhere with no world attached to it — a place between the closed door and the next one — a single figure sits in the dark, unhurried, already working."
+    },
+    {
+      "file": "line_19vjlp5.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "One anchor closed one door. There are others. There are always others."
+    },
+    {
+      "file": "line_rkgblv.m4a",
+      "speaker": "RICK PRIME",
+      "voice": "Fred",
+      "text": "And now I know exactly what the right one is worth. ...Right on schedule."
+    },
+    {
+      "file": "line_1au67p4.m4a",
+      "speaker": "",
+      "voice": "Daniel",
+      "text": "THE NEXUS FRACTURE  —  to be continued"
+    }
+  ]
+}

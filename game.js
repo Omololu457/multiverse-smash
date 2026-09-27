@@ -788,11 +788,16 @@ const BRUTALITY_FINISHERS = {
     finalFlash: { name: "FINAL FLASH",  gore: "crush", palette: GORE_PURPLE, flash: "#7a2ad0" },
     bigBang:    { name: "BIG BANG",     gore: "pulp",  palette: GORE_PURPLE, flash: "#7a2ad0" },
   },
-  // PAIN — Deva-path gravity + black chakra rods. (heavy rod-thrust, painDederaBird proj, painSuperPushGround Almighty Push)
+  // PAIN — Deva-path gravity + black chakra rods. FIVE finishers: the two ORIGINALS (Black Rod rod-thrust,
+  // Summoning clay-bird beam) RESTORED alongside the GRAVITY trio (the SAME Almighty Push/Pull special, keyed
+  // per direction: Back=Pull, Neutral=Push, Down=Super Push). All reuse the proven sprite-bisection +
+  // wound-core(bone) + blood engine (no new primitives). Steel palette for the originals, red for gravity.
   pain: {
-    heavy:                { name: "BLACK ROD",       gore: "dismember", palette: GORE_STEEL, flash: "#5a5f78" },
-    painDederaBird:       { name: "SUMMONING",       gore: "beam",      palette: GORE_STEEL, flash: "#5a5f78" },
-    painSuperPushGround:  { name: "ALMIGHTY PUSH",   gore: "pulp",      palette: GORE_STEEL, flash: "#5a5f78" },
+    heavy:                { name: "BLACK ROD",       gore: "dismember", palette: GORE_STEEL, flash: "#5a5f78" },  // heavy chakra-rod thrust — impale + dismember
+    painDederaBird:       { name: "SUMMONING",       gore: "beam",      palette: GORE_STEEL, flash: "#5a5f78" },  // Dedera clay-bird detonation — beam-gore
+    painAlmightyPull:     { name: "TORN ASUNDER",    gore: "bisect",    palette: GORE_RED,   flash: "#c81028" },  // Bansho Ten'in (pull) — flanked + wrenched apart
+    painAlmightyPush:     { name: "CRUSHED",         gore: "crush",     palette: GORE_RED,   flash: "#8a0018" },  // Shinra Tensei (push) — compressed inward (pulp/crush)
+    painSuperPushGround:  { name: "SHATTERED FRAME", gore: "dice",      palette: GORE_RED,   flash: "#ff3030" },  // Hard Shinra Tensei — alternating tension → bone through flesh
   },
   // BYAKUYA — Senbonzakura's thousand petal-blades. (light thrust, heavy cleave, byakuyaPetal scatter special)
   byakuya: {
@@ -19678,7 +19683,11 @@ gameLoop()
       // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
       // leave them alive (time-over path). `move` stamps the winner's killing-blow move (as combat.js would),
       // so per-move finishers can be verified. Then run the REAL _tryStartBrutality gate. For clips/tests.
-      trigger:      (winner = "p1", ko = true, move = null) => { const winF = winner === "p1" ? p1 : p2; const loseF = winner === "p1" ? p2 : p1; if (winF) winF._killingBlowMove = move; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartBrutality(winner) }
+      trigger:      (winner = "p1", ko = true, move = null) => { const winF = winner === "p1" ? p1 : p2; const loseF = winner === "p1" ? p2 : p1; if (winF) winF._killingBlowMove = move; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartBrutality(winner) },
+      // Start Brutality from the LIVE killing-blow stamp WITHOUT overriding it — so a finisher produced by a
+      // real in-combat KO (e.g. the Pain below-threshold EXECUTION on Almighty Push/Pull) renders from its OWN
+      // stamp. (training suppresses the auto round-end→brutality flow; this runs the same _tryStartBrutality gate.)
+      startLive:    (winner = "p1") => { victoryState.active = false; return _tryStartBrutality(winner) }
     },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.

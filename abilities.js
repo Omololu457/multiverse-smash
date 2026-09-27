@@ -14753,13 +14753,34 @@ export function updatePainCommandCombat(fighter, inputState, context, getPhase) 
 // Almighty Push = GLOBAL (full-map) + ZERO damage — an invisible formless force that just blows the foe
 // downrange from ANY distance (canon Shinra Tensei is a repulsion, not a strike). Super Push KEEPS its
 // range + damage (the heavier, committal version). Almighty Pull = GLOBAL + ZERO damage reel-in.
-const PAIN_PUSH  = { cost: 30, global: true, dmg: 0,  knockX: 22, knockY: -5, hitstun: 22, cast: 22, fire: 8,  shake: 7 }
-const PAIN_SUPER = { cost: 55, reach: 230, dmg: 132, knockX: 27, knockY: -7, hitstun: 26, cast: 30, fire: 11, shake: 10 }
+const PAIN_PUSH  = { cost: 30, global: true, dmg: 0,  knockX: 22, knockY: -5, hitstun: 22, cast: 22, fire: 8,  shake: 7, moveKey: "painAlmightyPush" }
+const PAIN_SUPER = { cost: 55, reach: 230, dmg: 132, knockX: 27, knockY: -7, hitstun: 26, cast: 30, fire: 11, shake: 10, moveKey: "painSuperPushGround" }
 const PAIN_PULL  = { cost: 32, dmg: 0, hitstun: 22, gap: 44, reel: 30, cast: 22, fire: 6 }
 // Dedera Double Attack (Fwd+Special) — the Deidara-style clay-bird homage, one sequenced special:
 // cast (Deidara cameo) → rising follow-up (Pain hops into the throw) → clay-bird projectile → the
 // star-flash/fireball explosion blooms on the bird's connect (projectile `impact` payload).
 const PAIN_DEDERA = { cost: 42, cast: 14, rise: 12, fire: 20, hop: -7, dmg: 92 }
+
+// BELOW-HP-THRESHOLD EXECUTION (Stage 2). Almighty Push & Almighty Pull are 0-damage FORCE moves (canonical,
+// guarded by test:pain), so their finishers (CRUSHED / TORN ASUNDER) could never resolve from a normal KO —
+// they deal no damage to land a fatal blow. Narrow carve-out: ONLY when the foe is already at an EXECUTE
+// SLIVER (≤ this ratio of max HP) does landing the move finish them — routed through applyScaledDamage with
+// the finisher's move key so the Brutality engine keys the right finisher (the SAME fatal-blow stamp Super
+// Push uses). This is execute-ONLY: above the sliver the move deals ZERO damage exactly as before (the
+// test:pain invariant fires at full HP → never crosses this gate). No change to any normal-hit damage value.
+const PAIN_EXECUTE_HP_RATIO = 0.12   // a small sliver (12% of max HP), below the 0.25 low-health/comeback tier
+function painTryExecute(fighter, target, moveKey) {
+  if (!fighter || !target) return false
+  const max = target.maxHealth || 100
+  const hp  = target.health || 0
+  if (hp > 0 && hp <= max * PAIN_EXECUTE_HP_RATIO) {
+    // Deal exactly the remaining HP (bypassScale → no double-scale), stamping the move so _tryStartBrutality
+    // resolves this move's finisher. Above the sliver this branch is never entered → zero-damage invariant intact.
+    applyScaledDamage(target, hp, { attacker: fighter, move: moveKey, bypassScale: true, source: "pain-execute" })
+    return true
+  }
+  return false
+}
 
 // Direct radial repulsion — shove the opponent AWAY from Pain (facing points at the foe, so face*knockX
 // blows them further downrange). Range-checked at the RELEASE frame; a whiff just costs energy + the cast.
@@ -14778,7 +14799,12 @@ function painGravityShove(fighter, context, cfg) {
   target.vy = cfg.knockY
   target.hitstun = Math.max(target.hitstun || 0, cfg.hitstun)
   target.colorFlash = 8
-  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability" })   // 0 for Almighty Push (force-only)
+  // Damaging variant (Super Push): stamp attacker + the real move key so a fatal shove resolves the Pain
+  // BRUTALITY finisher (SHATTERED FRAME). Almighty Push stays 0-dmg force-only (no stamp — see test:pain)…
+  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability", attacker: fighter, move: cfg.moveKey })
+  // …EXCEPT the below-threshold EXECUTION (Stage 2): a 0-damage Almighty Push that lands on an execute-sliver
+  // foe finishes them → CRUSHED (painAlmightyPush). No effect above the sliver → normal hits stay 0-damage.
+  else painTryExecute(fighter, target, cfg.moveKey)
   try { shakeCamera(context, cfg.shake || 6, 8) } catch (_) {}
   return true
 }
@@ -14805,6 +14831,9 @@ function executePainSpecial(fighter, context) {
       target.vx = 0; target.vy = 0; target.colorFlash = 6
       fighter.attacking = false; fighter.currentAttack = null
       fighter._grabPull = { gap: PAIN_PULL.gap, dmg: 0, hitstun: PAIN_PULL.hitstun }   // dmg 0 = pure pull
+      // BELOW-THRESHOLD EXECUTION (Stage 2): a 0-damage Almighty Pull that reels in an execute-sliver foe
+      // finishes them → TORN ASUNDER (painAlmightyPull). No effect above the sliver → normal pulls stay 0-damage.
+      painTryExecute(fighter, target, "painAlmightyPull")
       try { shakeCamera(context, 3, 5) } catch (_) {}
     })
     return true

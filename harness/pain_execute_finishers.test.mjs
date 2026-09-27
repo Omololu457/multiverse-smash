@@ -77,7 +77,7 @@ try {
   await boot()
   await pg.evaluate(()=>window.__harness.fillEnergy?.())
   await pg.evaluate(h=>window.__harness.brutality.setHp("p2", h), sliver)
-  await pg.keyboard.down("a"); await wf(3); await pg.keyboard.press("l"); await wf(3); await pg.keyboard.up("a")   // Back+Special = Almighty Pull
+  await pg.keyboard.down("a"); await wf(8); await pg.keyboard.press("l"); await wf(6); await pg.keyboard.up("a")   // Back+Special = Almighty Pull
   await wf(40)
   const pullHp = (await p2()).health, pullKm = await pg.evaluate(()=>window.__harness.brutality.killMove("p1"))
   ck("Almighty Pull on an execute-sliver foe → KO", pullHp<=0, `p2hp ${sliver}→${Math.round(pullHp)}`)
@@ -99,7 +99,7 @@ try {
   await boot()
   await pg.evaluate(()=>window.__harness.fillEnergy?.())
   const pullFull0 = (await p2()).health
-  await pg.keyboard.down("a"); await wf(3); await pg.keyboard.press("l"); await wf(3); await pg.keyboard.up("a"); await wf(40)
+  await pg.keyboard.down("a"); await wf(8); await pg.keyboard.press("l"); await wf(6); await pg.keyboard.up("a"); await wf(40)
   const pullFull1 = (await p2()).health
   ck("Almighty Pull at full HP → ZERO damage (reels only, no execute)", Math.abs(pullFull1-pullFull0)<0.5, `Δhp=${Math.round(pullFull0-pullFull1)}`)
 

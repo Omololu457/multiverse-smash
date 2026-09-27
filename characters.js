@@ -1058,7 +1058,9 @@ const naruto = {
   // gate; the Tailed Beast Bomb sequence is a guaranteed sure-hit. The old
   // sageMode/kcmMode/baryonMode forms below are now UNUSED by the ultimate (kept as
   // dead data; executeNarutoUltimate no longer reads them).
-  ultimate: { name: "Kurama Avatar", cost: 100, duration: 3, effect: "Tailed Beast Bomb cinematic — guaranteed sure-hit blast" },
+  // DIRECTIONAL Ultimate (2026-09-26): neutral = Uzumaki Two Thousand Combo (authored clone-choreography
+  // flurry); Down+Ultimate = Kurama Avatar / Tailed Beast Bomb (guaranteed sure-hit cinematic blast).
+  ultimate: { name: "Uzumaki Two Thousand Combo", cost: 60, duration: 3, effect: "Clone-choreography flurry (neutral Ultimate). Hold ↓+Ultimate for Kurama Avatar / Tailed Beast Bomb (100 meter, guaranteed sure-hit blast).", variants: { neutral: "Uzumaki Two Thousand Combo", down: "Kurama Avatar" } },
   transformationOrder: ["base","sageMode","kcmMode","baryonMode"],
   transformations: {
     base:       { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },

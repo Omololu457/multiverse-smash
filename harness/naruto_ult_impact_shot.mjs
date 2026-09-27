@@ -55,8 +55,11 @@ try {
   const energyBefore = (await p1()).energy;
   console.log(`\n  Pre-cast: opponent HP=${hpBefore}, Naruto energy=${energyBefore}`);
 
-  // FIRE the ultimate (Kurama Avatar / TBB) — "u" is the ultimate button.
+  // FIRE Kurama Avatar / TBB. As of 2026-09-26 Naruto's Ultimate is DIRECTIONAL: neutral = Uzumaki Two
+  // Thousand Combo, DOWN + Ultimate = Kurama Avatar. So hold Down ("s") while pressing the Ultimate ("u").
+  await page.keyboard.down("s"); await waitFrames(1);
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await page.keyboard.up("s");
   await waitFrames(2);
 
   // On-cast numbers are set immediately in executeNarutoUltimate.

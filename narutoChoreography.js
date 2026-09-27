@@ -141,8 +141,10 @@ export const SEQUENCES = {
   substitution: SUBSTITUTION_ESCAPE,
   flank:        CLONE_FLANK_STRIKE,
 }
-// After the summon, the follow-up Special direction selects:
-export const SELECT_MAP = { N: "barrage", D: "twoThousand", B: "shuriken", U: "substitution", F: "flank" }
+// After the summon, the follow-up Special direction selects. NOTE (2026-09-26): Two Thousand Combo was
+// PROMOTED to Naruto's neutral Ultimate (single button), so it is REMOVED from this summon-select pool.
+// A Down-select now has no dedicated move → game.js falls back to Barrage.
+export const SELECT_MAP = { N: "barrage", B: "shuriken", U: "substitution", F: "flank" }
 
 // ── RUNTIME ─────────────────────────────────────────────────────────────────
 let _run = null   // the single active run (Naruto-only, one at a time) or null

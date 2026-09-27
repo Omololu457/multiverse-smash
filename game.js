@@ -265,6 +265,12 @@ import { spawnProjectileFromMove } from "./projectiles.js"
 // Naruto-ONLY authored clone choreography (replaces his persistent + one-shot clone systems).
 import { startNarutoChoreo, updateNarutoChoreo, getNarutoChoreoBodies, isNarutoChoreoActive, clearNarutoChoreo, getNarutoChoreoState, holdNarutoChoreoAt,
          startNarutoFormation, updateNarutoFormation, chooseNarutoSequence, isNarutoFormationActive, holdNarutoFormation, SELECT_MAP, SEQUENCES } from "./narutoChoreography.js"
+// GENERIC authored clone choreography for the rest of the Naruto-universe roster (everyone EXCEPT Naruto).
+import { startChoreo as startCloneChoreo, startFormation as startCloneFormation, chooseSequence as chooseCloneSequence,
+         updateChoreo as updateCloneChoreo, updateFormations as updateCloneFormations, getChoreoBodies as getCloneChoreoBodies,
+         isChoreoActiveFor, isFormationActiveFor as isCloneFormationActiveFor, clearChoreoFor, clearAllChoreo,
+         holdChoreoAt as holdCloneChoreoAt, holdFormation as holdCloneFormation, getChoreoState as getCloneChoreoState,
+         isChoreoSupported, choreoRoster, choreoKit, SELECT_MAP as CLONE_SELECT_MAP } from "./cloneChoreography.js"
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
@@ -338,7 +344,7 @@ import * as comboTrials from "./comboTrials.js"             // Combo Trials miss
 import * as tutorial from "./tutorial.js"                   // first-boot guided interactive tutorial (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
-import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
+import { recordMotionInput, detectMotion, getRecentMotions, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
   createSpectatorSession, startMatchLog, logMoveUsed, logHit, logRoundEnd, finalizeMatchLog,
   sessionToJSON, sessionToCSV, summarizeSession, downloadText,
@@ -1282,8 +1288,19 @@ canvas.addEventListener("wheel", e => {
     creditsScroll = Math.max(0, Math.min(_creditsMaxScroll(), creditsScroll + e.deltaY))
     return
   }
-  // MUSIC_LIBRARY (custom-playlist builder) consumes wheel to scroll the 103-song list.
+  // MUSIC_LIBRARY (custom-playlist builder) consumes wheel to scroll the full song list.
   if (gameState === GAME_STATES.MUSIC_LIBRARY) { e.preventDefault(); _mlScrollBy(e.deltaY); return }
+  // SETTINGS: wheel over the NOW-PLAYING panel scrolls the (possibly long) menu playlist so every
+  // saved/picked song is reachable — not just the first PLAYLIST_MAX_ROWS.
+  if (gameState === GAME_STATES.SETTINGS && MENU_PLAYLIST.length > PLAYLIST_MAX_ROWS) {
+    const panel = { x: PLAYLIST_X0, y: PLAYLIST_Y0 - 20, w: PLAYLIST_W, h: PLAYLIST_MAX_ROWS * PLAYLIST_ROW_H + 28 }
+    if (pointInRect(mouse.x, mouse.y, panel)) {
+      e.preventDefault()
+      _playlistScroll += e.deltaY > 0 ? 1 : -1
+      clampPlaylistScroll()
+      return
+    }
+  }
   // CODEX consumes wheel to scroll the franchise-grouped fighter list.
   if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
   // MOVE LIST — scroll the kit panel when the pointer is over it, else the (overflowing) fighter list.
@@ -1491,7 +1508,7 @@ const GAME_STATES = {
   STORY_MODE:         "storyMode",           // Part 1: Story Mode chapter select (was a locked placeholder)
   STORY_INTRO:        "storyIntro",          // Part 1: two-line pre-fight beat (reuses the rival intro screen)
   CUTSCENE:           "cutscene",            // generic cutscene-beat player (Story Mode: THE NEXUS FRACTURE)
-  MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
+  MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable whole-library checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
   THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
@@ -1583,14 +1600,21 @@ const resetBindRect = () => ({ x: canvas.width / 2 - 110, y: KEYBIND_Y0 + Math.c
 // Left-margin music panel. PLAYLIST_Y0 is pushed below the MUSIC SOURCE selector + Build button
 // that now sit above it (decoupled from KEYBIND_Y0 on purpose).
 const PLAYLIST_X0 = 24, PLAYLIST_W = 330, PLAYLIST_Y0 = 392, PLAYLIST_ROW_H = 34, PLAYLIST_BTN = 26
-// Cap visible rows so a long (e.g. personalized/custom 103-track) playlist can't overflow the panel.
-// The full list still plays in order — the panel just shows the head with a "+N more" footer.
+// Cap the number of rows drawn at once so a long (e.g. personalized/custom 100+-track) playlist can't
+// overflow the panel — but the panel is SCROLLABLE (mouse wheel over it) so EVERY picked song is
+// reachable, not just the head. This is what lets you review a big custom playlist after "Save Playlist".
 const PLAYLIST_MAX_ROWS = 7
+let _playlistScroll = 0   // first visible MENU_PLAYLIST index in the Settings reorder panel (row-based)
+function playlistMaxScroll() { return Math.max(0, MENU_PLAYLIST.length - PLAYLIST_MAX_ROWS) }
+function clampPlaylistScroll() { _playlistScroll = Math.max(0, Math.min(_playlistScroll, playlistMaxScroll())) }
 function getPlaylistRects() {
+  clampPlaylistScroll()
   const rects = []
-  const shown = Math.min(MENU_PLAYLIST.length, PLAYLIST_MAX_ROWS)
-  for (let i = 0; i < shown; i++) {
-    const y = PLAYLIST_Y0 + i * PLAYLIST_ROW_H
+  const start = _playlistScroll
+  const shown = Math.min(MENU_PLAYLIST.length - start, PLAYLIST_MAX_ROWS)
+  for (let slot = 0; slot < shown; slot++) {
+    const i = start + slot                       // TRUE playlist index (reorder/click use this)
+    const y = PLAYLIST_Y0 + slot * PLAYLIST_ROW_H // visible SLOT position
     rects.push({
       index: i,
       file:  MENU_PLAYLIST[i],
@@ -1627,19 +1651,21 @@ const SERIES_MUSIC = {
   jjk:         "JJK-Delirious.mp3",
   naruto:      "Naruto_fighting_sprit.mp3",
   dragonball:  "DB_3.mp3",   // only real DB track on disk; both DB stages share it (DB_1/DB_2 never existed)
-  demonslayer: null,   // TODO: e.g. "demonslayer_theme.mp3"
-  rickmorty:   null,   // TODO: e.g. "rickmorty_theme.mp3"
-  ben10:       null,   // TODO: e.g. "ben10_theme.mp3"
-  // Universe stages (added with the 8 gap-universe maps) — no track sourced yet → procedural theme.
-  bleach:       null,  // TODO: e.g. "bleach_theme.mp3"
-  dc:           null,  // TODO
-  horror:       null,  // TODO
-  hxh:          null,  // TODO
-  invincible:   null,  // TODO
-  powerrangers: null,  // TODO
-  saiki:        null,  // TODO
-  original:     null,  // TODO
-  other:       null
+  // Filled from the existing on-disk music library (verified present, case-exact). Swap any filename to
+  // retheme a series; a stage's own `music:` field still overrides this per-stage default.
+  demonslayer: "Cochise - Knicks (Official Video).mp3",
+  rickmorty:   "Cochise - Hatchback (Official Video).mp3",
+  ben10:       "Doja Cat - Gorgeous (Lyrics).mp3",
+  // Universe stages (added with the 8 gap-universe maps) — now given a real track (was procedural fallback).
+  bleach:       "Brent Faiyaz - ROLE MODEL [Official Audio].mp3",
+  dc:           "Future - Mask Off (Official Music Video).mp3",
+  horror:       "Bryson Tiller - Don't (Explicit Version).mp3",
+  hxh:          "Baby Keem - lost souls (Brent Faiyaz Only) Best Version.mp3",
+  invincible:   "Big Boogie - My Lil Sht (with 187 Cash) (Official Audio).mp3",
+  powerrangers: "Chris Brown - No Guidance (Audio) ft. Drake.mp3",
+  saiki:        "Amaarae - SAD GIRLZ LUV MONEY Remix ft Kali Uchis (Lyric Video).mp3",
+  original:     "Almeda.mp3",
+  other:        "Blue Dream.mp3"
 }
 
 // Dynamic "final round / low HP" INTENSITY tracks — the higher-energy counterpart that
@@ -3696,6 +3722,7 @@ function ensureTrainingOpponent() {
 function resetRound() {
   damageNumbers.length = 0
   clearNarutoChoreo()   // release any in-flight Uzumaki Barrage (unlocks the caster) on a fresh round
+  clearAllChoreo()      // release any in-flight GENERIC clone-choreography run/formation (rest of the roster)
   sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
@@ -7754,6 +7781,16 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "omololu") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
+  }
+  // NARUTO — the Ultimate is directional (2026-09-26): NEUTRAL = Uzumaki Two Thousand Combo (authored
+  // choreography ultimate); DOWN (hold ↓ + Ultimate) = Kurama Avatar / Tailed Beast Bomb. Both stay on the
+  // Ultimate button; executeNarutoUltimate reads _ultVariant to pick the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    // Kurama Avatar = Down+Ultimate; LONGER ALTERNATE (Part 2) = ↓←↓← (doubleQcb) + Ultimate. Neutral = Two Thousand Combo.
+    const _kuramaMotion = detectMotion(fighter, "doubleQcb")
+    if (_kuramaMotion) clearMotionHistory(fighter)
+    fighter._ultVariant = (_hd === "D" || _kuramaMotion) ? "kurama" : "twoThousand"
   }
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
@@ -14045,9 +14082,10 @@ function updateBattle() {
   // guaranteed-hit primitive (same launcher/knockback pipeline as every prior Naruto barrage beat).
   for (const f of [p1, p2]) {
     if (!f) continue
-    if (f._pendingNarutoChoreo) {   // direct Uzumaki Barrage (Down+Special) — UNCHANGED
+    if (f._pendingNarutoChoreo) {   // Uzumaki Barrage (Down+Special) OR Two Thousand Combo (neutral Ultimate)
       f._pendingNarutoChoreo = false
-      if (!isNarutoChoreoActive()) startNarutoChoreo(f, getOpponent(f))
+      const seq = f._pendingNarutoChoreoSeq || "barrage"; f._pendingNarutoChoreoSeq = null
+      if (!isNarutoChoreoActive()) startNarutoChoreo(f, getOpponent(f), SEQUENCES[seq] || SEQUENCES.barrage)
     }
     if (f._pendingNarutoSummon) {   // ADDITIVE: summon clones into formation (Up+Special)
       f._pendingNarutoSummon = false
@@ -14078,6 +14116,50 @@ function updateBattle() {
       damage: hit.damage, hitstun: hit.hitstun,
       knockbackX: hit.knockbackX || 0, knockbackY: hit.knockbackY || 0,
       dirSign, w: 40, h: 60
+    }, {})
+  })
+
+  // ── GENERIC CLONE CHOREOGRAPHY — rest of the Naruto-universe roster (Tobirama/Minato/…; NOT Naruto) ──
+  // Same summon-then-choose model as Naruto, but character-parameterized (cloneChoreography.js). The
+  // triggerSpecial/triggerUltimate intercepts set the pending flags below; start/advance runs here, per caster.
+  for (const f of [p1, p2]) {
+    if (!f) continue
+    if (f._pendingChoreoSummon) {   // ↓↑ + Special → stage the clone formation
+      f._pendingChoreoSummon = false
+      const rk = (f.rosterKey || "").toLowerCase()
+      if (isChoreoSupported(rk) && !isChoreoActiveFor(f) && !isCloneFormationActiveFor(f)) startCloneFormation(f, getOpponent(f), rk)
+    }
+    if (f._pendingChoreoSelect) {   // a Special direction (or Ultimate → "SWARM") picks the sequence
+      const dir = f._pendingChoreoSelect; f._pendingChoreoSelect = null
+      if (isCloneFormationActiveFor(f)) chooseCloneSequence(f, CLONE_SELECT_MAP[dir] || "pureAttack")
+    }
+    if (f._pendingChoreoDirect) {   // LIGHT-KIT (Sasuke/Obito): direct-trigger a specific sequence (no formation)
+      const seqKey = f._pendingChoreoDirect; f._pendingChoreoDirect = null
+      const rk = (f.rosterKey || "").toLowerCase()
+      if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
+    }
+  }
+  updateCloneFormations()
+  // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
+  // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
+  updateCloneChoreo((caster, target, hit, dirSign, body) => {
+    if (hit.projectile) {
+      const src = body || caster
+      const proj = spawnProjectile(caster, "cloneChoreoProjectile", {
+        damage: hit.damage, hitstun: hit.hitstun,
+        knockbackX: hit.knockbackX || 6, knockbackY: hit.knockbackY || 0,
+        speed: 0, vx: dirSign * (hit.speed || 14), lifetime: hit.lifetime || 60,
+        w: hit.w || (hit.big ? 40 : 24), h: hit.h || (hit.big ? 40 : 24), color: hit.color || "#e8f0ff",
+        sheet: hit.sheet, spawnX: (src.x || 0) + (src.w || 0) / 2, spawnY: (src.y || 0) + (src.h || 100) * 0.4
+      }, {})
+      if (proj) { proj.x = (src.x || 0) + (src.w || 0) / 2; proj.y = (src.y || 0) + (src.h || 100) * 0.4; proj.vx = dirSign * (hit.speed || 14) }
+      return
+    }
+    spawnGuaranteedCloneHit(caster, target, hit.fxType || "cloneChoreoHit", {
+      damage: hit.damage, hitstun: hit.hitstun,
+      knockbackX: hit.knockbackX || 0, knockbackY: hit.knockbackY || 0,
+      dirSign, w: 40, h: 60, color: hit.color, sheet: hit.sheet,
+      spriteFrames: hit.spriteFrames, spriteW: hit.spriteW, spriteH: hit.spriteH, spriteScale: hit.spriteScale
     }, {})
   })
 
@@ -15805,6 +15887,9 @@ function drawBattleScene() {
   // Naruto Uzumaki Barrage clone GHOST BODIES — drawn through the EXACT SAME path as the real fighter
   // (renderHybridFighter), so each clone is pixel-identical to Naruto. Only bodies whose beat window is open.
   for (const g of getNarutoChoreoBodies()) renderHybridFighter(g)
+  // GENERIC clone choreography ghost bodies (rest of the Naruto-universe roster) — same renderHybridFighter
+  // path, so each clone is pixel-identical to its real character (the Stage-0 visual-fidelity guarantee).
+  for (const g of getCloneChoreoBodies()) renderHybridFighter(g)
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)
@@ -16731,10 +16816,19 @@ function drawSettingsScreen() {
     drawArrow(r.upRect,   "▲", r.index > 0)
     drawArrow(r.downRect, "▼", r.index < MENU_PLAYLIST.length - 1)
   }
-  // Long (e.g. personalized) playlists show only the head — note the remainder plays in order.
+  // Long playlists are scrollable — show which slice is visible + a scroll hint so nothing is hidden.
   if (MENU_PLAYLIST.length > PLAYLIST_MAX_ROWS) {
+    clampPlaylistScroll()
+    const first = _playlistScroll + 1
+    const last  = Math.min(MENU_PLAYLIST.length, _playlistScroll + PLAYLIST_MAX_ROWS)
+    const fy = PLAYLIST_Y0 + PLAYLIST_MAX_ROWS * PLAYLIST_ROW_H + 4
     ctx.fillStyle = "#7f9dc4"; ctx.font = "11px Arial"; ctx.textAlign = "left"
-    ctx.fillText(`… +${MENU_PLAYLIST.length - PLAYLIST_MAX_ROWS} more (playing in personalized order)`, PLAYLIST_X0, PLAYLIST_Y0 + PLAYLIST_MAX_ROWS * PLAYLIST_ROW_H + 4)
+    ctx.fillText(`showing ${first}–${last} of ${MENU_PLAYLIST.length}  ·  scroll to see all`, PLAYLIST_X0, fy)
+    // Tiny arrows hint scroll direction (dimmed at the ends).
+    ctx.fillStyle = _playlistScroll > 0 ? "#9fc0e6" : "#3d4a5c"
+    ctx.fillText("▲", PLAYLIST_X0 + PLAYLIST_W - 26, fy)
+    ctx.fillStyle = _playlistScroll < playlistMaxScroll() ? "#9fc0e6" : "#3d4a5c"
+    ctx.fillText("▼", PLAYLIST_X0 + PLAYLIST_W - 12, fy)
   }
   ctx.textAlign = "center"
 
@@ -18330,6 +18424,7 @@ function applyActiveMusicSource() {
 // Amber when the chosen source couldn't be honored and default is playing instead.
 function _selectMusicSource(source) {
   musicLibrary.setActiveSource(source, getCurrentAccount())
+  _playlistScroll = 0   // new source → different track list; start the reorder panel at the top
   const res = applyActiveMusicSource()
   if (res.fellBack) { _musicSourceOk = false; _musicSourceMsg = res.message }
   else {
@@ -20259,7 +20354,14 @@ gameLoop()
       // for continuity). personalized=true only when the tracked profile actually drove it.
       pressPersonalize: () => { const r = _selectMusicSource("personalized"); return { msg: _musicSourceMsg, ok: _musicSourceOk, personalized: r.source === "personalized" && !r.fellBack, count: r.files.length } },
       personalizeMsg:   () => ({ msg: _musicSourceMsg, ok: _musicSourceOk }),
-      visibleRows:      () => getPlaylistRects().length   // panel row-cap (≤ PLAYLIST_MAX_ROWS) so a long list can't overflow
+      visibleRows:      () => getPlaylistRects().length,  // panel row-cap (≤ PLAYLIST_MAX_ROWS) so a long list can't overflow
+      // Settings NOW-PLAYING panel scroll: prove EVERY picked song is reachable (not just the head).
+      panelScroll:      () => _playlistScroll,
+      panelMaxScroll:   () => playlistMaxScroll(),
+      panelScrollTo:    (n) => { _playlistScroll = n; clampPlaylistScroll(); return _playlistScroll },
+      panelScrollBy:    (rows) => { _playlistScroll += rows; clampPlaylistScroll(); return _playlistScroll },
+      panelVisibleIndices: () => getPlaylistRects().map(r => r.index),   // true MENU_PLAYLIST indices on screen
+      panelResetScroll: () => { _playlistScroll = 0 }
     },
     // ── CUSTOM PLAYLIST library + source selection (account-INDEPENDENT — works for guests) ──
     library: {
@@ -20268,6 +20370,7 @@ gameLoop()
       source:    () => musicLibrary.getActiveSource(),
       setSource: (s) => { const r = _selectMusicSource(s); return { source: musicLibrary.getActiveSource(), fellBack: r.fellBack, msg: _musicSourceMsg, files: r.files.length } },
       getCustom: () => musicLibrary.getCustomPlaylist(),
+      files:     () => musicLibrary.getLibrary().map(s => s.file),   // full registered filename list (membership check)
       resolve:   () => musicLibrary.resolveActivePlaylist(),
       // Builder-screen drive (exercises the REAL open/toggle/save/cancel functions; no canvas clicks needed).
       open:      () => { _openMusicLibrary(); return { state: gameState, preChecked: [..._mlSel] } },
@@ -20651,7 +20754,35 @@ gameLoop()
     narutoSummon: () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = "U"; p1._choreoCd = 0; return triggerSpecial(p1, getAbilityContext()); },   // Up+Special → formation
     narutoSelect: (dir = "N") => { if (!p1) return false; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir === "N" ? null : dir; return triggerSpecial(p1, getAbilityContext()); },   // pick a sequence from the staged formation
     narutoFormationHold: () => holdNarutoFormation(),   // freeze the staged formation for a screenshot
-    narutoChoreoClear: () => { clearNarutoChoreo(); if (p1) { p1._choreoCd = 0; p1._pendingNarutoChoreo = false; p1._pendingNarutoSummon = false; p1._pendingNarutoSelect = null; } return true; },   // reset between sub-tests
+    narutoUltimate: (dir = "N") => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1._ultVariant = dir === "D" ? "kurama" : "twoThousand"; return triggerUltimate(p1, getAbilityContext()); },   // neutral=Two Thousand Combo · Down=Kurama Avatar
+    // Part 2 alt-input testing: deterministically feed a motion (control keys) into the buffer, no keyboard timing.
+    narutoFeedMotion: (keys = []) => { if (!p1) return null; clearMotionHistory(p1); for (const k of keys) recordMotionInput(p1, k); return getRecentMotions(p1); },
+    narutoChoreoClear: () => { clearNarutoChoreo(); if (p1) { p1._choreoCd = 0; p1._pendingNarutoChoreo = false; p1._pendingNarutoSummon = false; p1._pendingNarutoSelect = null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy || 200; try { clearMotionHistory(p1) } catch (_) {} } return true; },   // reset between sub-tests
+
+    // ── GENERIC CLONE CHOREOGRAPHY (rest of the Naruto-universe roster) harness hooks ──
+    cloneChoreo: (() => {
+      const pick = (who) => (who === "p2" ? p2 : p1)
+      const ready = (f) => { if (!f) return null; f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f._choreoCd = 0; return f }
+      return {
+        roster: () => choreoRoster(),   // characters with an authored kit
+        kit:    (who = "p1") => { const f = pick(who); return f ? choreoKit((f.rosterKey || "").toLowerCase()) : null; },   // {light, seqKeys, directMap}
+        state:  (who = "p1") => { const f = pick(who); return f ? getCloneChoreoState(f) : { active: false }; },
+        // DIRECT per-move play (per-move verify): start any sequence for the fighter's OWN rosterKey.
+        seq:    (seqKey = "pureAttack", who = "p1") => { const f = pick(who); if (!f) return false; return startCloneChoreo(f, getOpponent(f), (f.rosterKey || "").toLowerCase(), seqKey); },
+        hold:   (frame = 20, seqKey = "pureAttack", who = "p1") => { const f = pick(who); if (!f) return false; if (!isChoreoActiveFor(f) && !isCloneFormationActiveFor(f)) startCloneChoreo(f, getOpponent(f), (f.rosterKey || "").toLowerCase(), seqKey); return holdCloneChoreoAt(f, frame); },
+        // REAL-INPUT path: ↓↑ motion + Special → formation (exercises the dispatch-layer intercept).
+        summon: (who = "p1") => { const f = ready(pick(who)); if (!f) return false; try { clearMotionHistory(f); recordMotionInput(f, f.controls?.down); recordMotionInput(f, f.controls?.down); recordMotionInput(f, f.controls?.up); } catch (_) {} return triggerSpecial(f, getAbilityContext()); },
+        // REAL-INPUT select: a Special direction while the formation is staged picks the sequence.
+        select: (dir = "N", who = "p1") => { const f = pick(who); if (!f) return false; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f._specialHeldDir = dir === "N" ? null : dir; return triggerSpecial(f, getAbilityContext()); },
+        // REAL-INPUT swarm: pressing Ultimate while the formation is staged fires the Ultimate-Swarm.
+        swarm:  (who = "p1") => { const f = pick(who); if (!f) return false; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; return triggerUltimate(f, getAbilityContext()); },
+        // REAL-INPUT light-kit direct trigger (Sasuke/Obito): ↓↓↑ motion + a held direction → the chosen move.
+        direct: (dir = "N", who = "p1") => { const f = ready(pick(who)); if (!f) return false; f._specialHeldDir = dir === "N" ? null : dir; try { clearMotionHistory(f); recordMotionInput(f, f.controls?.down); recordMotionInput(f, f.controls?.down); recordMotionInput(f, f.controls?.up); } catch (_) {} return triggerSpecial(f, getAbilityContext()); },
+        formationHold: (who = "p1") => { const f = pick(who); return f ? holdCloneFormation(f) : false; },
+        clear: (who = "p1") => { const f = pick(who); if (f) { clearChoreoFor(f); f._choreoCd = 0; f._pendingChoreoSummon = false; f._pendingChoreoSelect = null; f._pendingChoreoDirect = null; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f.energy = f.maxEnergy || 200; try { clearMotionHistory(f) } catch (_) {} } return true; },
+        clearAll: () => { clearAllChoreo(); return true; },
+      }
+    })(),
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
     p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),
     p1SwapCd:  () => (p1 ? (p1._cloneSwapCd || 0) : -1),

@@ -19,7 +19,9 @@ const boot = async () => { await page.waitForFunction(() => !!window.__harness &
 const clear = () => P(() => window.__harness.narutoChoreoClear());
 
 const EXPECT = { barrage: "Uzumaki Barrage", twoThousand: "Two Thousand Combo", shuriken: "Shadow Clone Shuriken", substitution: "Substitution Escape", flank: "Clone Flank Strike" };
-const SELECT = { N: "Uzumaki Barrage", D: "Two Thousand Combo", B: "Shadow Clone Shuriken", U: "Substitution Escape", F: "Clone Flank Strike" };
+// Two Thousand Combo was PROMOTED to the neutral Ultimate (2026-09-26), so it's OUT of the select pool;
+// a Down-select now falls back to Barrage. The other 3 stay summon-then-select.
+const SELECT = { N: "Uzumaki Barrage", D: "Uzumaki Barrage", B: "Shadow Clone Shuriken", U: "Substitution Escape", F: "Clone Flank Strike" };
 
 try {
   await page.goto(`${base}/index.html?harness=1&p1=naruto&p2=sasuke`, { waitUntil: "load" });

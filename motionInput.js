@@ -16,7 +16,12 @@
 // The scoped roster. Matched case-insensitively on fighter.rosterKey. Every
 // other character never even allocates a motionHistory buffer (recordMotionInput
 // early-returns), so their input path is provably untouched.
-export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama"])
+// Naruto-universe fighters whose directional presses feed the classic motion buffer. Extended 2026-09-26
+// with the rest of the clone-choreography roster (hiruzen/kakashi/madara/boruto/pain/obito) so the ↓↓↑
+// cloneSummon motion works for them. SAFE: this set only gates motion recording/detection (no external
+// gameplay use), and these characters' execute*Special functions don't consume motions — only the
+// clone-choreography intercept does. (Isshiki/Orochimaru/Onoki/Kiba deliberately excluded from the rollout.)
+export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama", "hiruzen", "kakashi", "madara", "boruto", "pain", "obito"])
 
 export function isNarutoUniverse(fighter) {
   return !!fighter && NARUTO_UNIVERSE_KEYS.has(String(fighter.rosterKey || "").toLowerCase())
@@ -45,7 +50,10 @@ const MOTIONS = {
   dpb:       { seq: ["B", "D", "B"],      window: 800,  strays: 1 },   // ←↓←   all-back
   dbf:       { seq: ["D", "B", "F"],      window: 800,  strays: 1 },   // ↓←→   down-back-forward: THREE DISTINCT dirs (no double-tap → no dash), one forward (Minato-safe)
   doubleQcf: { seq: ["D", "F", "D", "F"], window: 1000, strays: 1 },   // ↓↘→↓↘→  double QCF (Uzumaki Barrage)
-  doubleQcb: { seq: ["D", "B", "D", "B"], window: 1000, strays: 1 }    // ↓↙←↓↙←  double QCB
+  doubleQcb: { seq: ["D", "B", "D", "B"], window: 1000, strays: 1 },   // ↓↙←↓↙←  double QCB
+  chargeUp:  { seq: ["D", "U"],           window: 700,  strays: 1 },   // ↓↑     charge down-then-up (Naruto summon alt)
+  cloneSummon: { seq: ["D", "D", "U"],    window: 800,  strays: 0 }    // ↓↓↑    GATHER-then-raise: clone-choreography SUMMON (rest of the Naruto-universe roster). strays:0 + a
+                                                                       //        distinctive 3-token shape so it never collides with a live special route (e.g. Minato's ↓←↑ B→U).
 }
 
 // Map a raw control key → cardinal direction token, exactly like game.js

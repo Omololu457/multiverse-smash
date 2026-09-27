@@ -788,11 +788,14 @@ const BRUTALITY_FINISHERS = {
     finalFlash: { name: "FINAL FLASH",  gore: "crush", palette: GORE_PURPLE, flash: "#7a2ad0" },
     bigBang:    { name: "BIG BANG",     gore: "pulp",  palette: GORE_PURPLE, flash: "#7a2ad0" },
   },
-  // PAIN — Deva-path gravity + black chakra rods. (heavy rod-thrust, painDederaBird proj, painSuperPushGround Almighty Push)
+  // PAIN — Deva-path gravity + black chakra rods. (heavy rod-thrust, painDederaBird proj + the GRAVITY special's
+  // three directional variants). ★ Gravity finishers: the SAME Almighty Push/Pull special, keyed per direction
+  // (Back=Pull, Neutral=Push, Down=Super Push) → three distinct finishers, all reusing the proven sprite-bisection
+  // + wound-core(bone) + blood engine (no new primitives). Red-toned gore palette. See the Pain brutality report.
   pain: {
-    heavy:                { name: "BLACK ROD",       gore: "dismember", palette: GORE_STEEL, flash: "#5a5f78" },
-    painDederaBird:       { name: "SUMMONING",       gore: "beam",      palette: GORE_STEEL, flash: "#5a5f78" },
-    painSuperPushGround:  { name: "ALMIGHTY PUSH",   gore: "pulp",      palette: GORE_STEEL, flash: "#5a5f78" },
+    painAlmightyPull:     { name: "TORN ASUNDER",    gore: "bisect",    palette: GORE_RED,   flash: "#c81028" },  // Bansho Ten'in (pull) — flanked + wrenched apart
+    painAlmightyPush:     { name: "CRUSHED",         gore: "crush",     palette: GORE_RED,   flash: "#8a0018" },  // Shinra Tensei (push) — compressed inward (pulp/crush)
+    painSuperPushGround:  { name: "SHATTERED FRAME", gore: "dice",      palette: GORE_RED,   flash: "#ff3030" },  // Hard Shinra Tensei — alternating tension → bone through flesh
   },
   // BYAKUYA — Senbonzakura's thousand petal-blades. (light thrust, heavy cleave, byakuyaPetal scatter special)
   byakuya: {

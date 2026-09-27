@@ -14745,8 +14745,8 @@ export function updatePainCommandCombat(fighter, inputState, context, getPhase) 
 // Almighty Push = GLOBAL (full-map) + ZERO damage — an invisible formless force that just blows the foe
 // downrange from ANY distance (canon Shinra Tensei is a repulsion, not a strike). Super Push KEEPS its
 // range + damage (the heavier, committal version). Almighty Pull = GLOBAL + ZERO damage reel-in.
-const PAIN_PUSH  = { cost: 30, global: true, dmg: 0,  knockX: 22, knockY: -5, hitstun: 22, cast: 22, fire: 8,  shake: 7 }
-const PAIN_SUPER = { cost: 55, reach: 230, dmg: 132, knockX: 27, knockY: -7, hitstun: 26, cast: 30, fire: 11, shake: 10 }
+const PAIN_PUSH  = { cost: 30, global: true, dmg: 0,  knockX: 22, knockY: -5, hitstun: 22, cast: 22, fire: 8,  shake: 7, moveKey: "painAlmightyPush" }
+const PAIN_SUPER = { cost: 55, reach: 230, dmg: 132, knockX: 27, knockY: -7, hitstun: 26, cast: 30, fire: 11, shake: 10, moveKey: "painSuperPushGround" }
 const PAIN_PULL  = { cost: 32, dmg: 0, hitstun: 22, gap: 44, reel: 30, cast: 22, fire: 6 }
 // Dedera Double Attack (Fwd+Special) — the Deidara-style clay-bird homage, one sequenced special:
 // cast (Deidara cameo) → rising follow-up (Pain hops into the throw) → clay-bird projectile → the
@@ -14770,7 +14770,9 @@ function painGravityShove(fighter, context, cfg) {
   target.vy = cfg.knockY
   target.hitstun = Math.max(target.hitstun || 0, cfg.hitstun)
   target.colorFlash = 8
-  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability" })   // 0 for Almighty Push (force-only)
+  // Damaging variant (Super Push): stamp attacker + the real move key so a fatal shove resolves the Pain
+  // BRUTALITY finisher (SHATTERED FRAME). Almighty Push stays 0-dmg force-only (no stamp — see test:pain).
+  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability", attacker: fighter, move: cfg.moveKey })
   try { shakeCamera(context, cfg.shake || 6, 8) } catch (_) {}
   return true
 }

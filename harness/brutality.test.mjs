@@ -49,7 +49,7 @@ const TABLE = {
   sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
   itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
   vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
-  pain:     { heavy:{n:"BLACK ROD",g:"dismember"}, painDederaBird:{n:"SUMMONING",g:"beam"}, painSuperPushGround:{n:"ALMIGHTY PUSH",g:"pulp"} },
+  pain:     { painAlmightyPull:{n:"TORN ASUNDER",g:"bisect"}, painAlmightyPush:{n:"CRUSHED",g:"crush"}, painSuperPushGround:{n:"SHATTERED FRAME",g:"dice"} },   // gravity finishers: Pull / Push / Super Push
   byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
 };

@@ -57,7 +57,9 @@ function mkLiveClone(owner, x = 160, y = 360) {
   return s;
 }
 
-const OWNER  = { rosterKey: "naruto", x: 800, y: 400, w: 50, h: 100, facing: -1 };
+// Owner fixture repointed naruto → minato (2026-09-26): Naruto's persistent clones were replaced by the
+// authored choreography, so a still-persistent-clone owner exercises the generic hit-reveal mechanic here.
+const OWNER  = { rosterKey: "minato", x: 800, y: 400, w: 50, h: 100, facing: -1 };
 const ENEMY_X = 100;   // attacker to the LEFT, facing right → hitbox at [150,210]x[420,460]
 
 // ── 1. THE FIX: a melee hitbox overlapping a live clone reliably poofs it ──
@@ -124,7 +126,7 @@ section("Your own swing never pops your own clones");
 {
   resetSummons();
   // OWNER swings; a clone OWNED BY OWNER overlaps. Position owner so its hitbox reaches its own clone.
-  const ownerAtk = { rosterKey: "naruto", x: ENEMY_X, y: 400, w: 50, h: 100, facing: 1,
+  const ownerAtk = { rosterKey: "minato", x: ENEMY_X, y: 400, w: 50, h: 100, facing: 1,
     currentAttack: { name: "light", rangeX: 60, rangeY: 40, total: 10, timer: 5, activeStart: 0, activeEnd: 10, hasHit: false } };
   const clone = mkLiveClone(ownerAtk);   // owner === attacker
   revealClonesHitByMelee(ownerAtk);
@@ -173,14 +175,15 @@ section("Regression — projectile reveal + clone-capability/caps unchanged");
   check("projectile still poofs an overlapping clone", clone._state === "hurt");
   check("projectile consumed (spent on the fake)", projectiles.length === 0);
 
-  const caps = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3 };
+  const caps = { hashirama: 4, minato: 2, tobirama: 3 };   // naruto dropped — no longer a persistent-clone owner
   let capsOk = true, capOut = [];
   for (const [k, v] of Object.entries(caps)) { const got = getCloneCap({ rosterKey: k }); capOut.push(`${k}=${got}`); if (got !== v) capsOk = false; }
   check("per-char clone caps unchanged", capsOk, capOut.join(" "));
   check("default cap is 3", getCloneCap({ rosterKey: "someone_else" }) === 3);
 
-  const capable = ["naruto", "minato", "hashirama", "tobirama"].every(k => isCloneCapable({ rosterKey: k }));
-  check("the 4 clone chars are still clone-capable", capable);
+  const capable = ["minato", "hashirama", "tobirama"].every(k => isCloneCapable({ rosterKey: k }));
+  check("the persistent-clone chars are still clone-capable", capable);
+  check("naruto is no longer persistent-clone capable (choreography rebuild)", isCloneCapable({ rosterKey: "naruto" }) === false);
   check("a non-clone char is not clone-capable", isCloneCapable({ rosterKey: "sasuke" }) === false);
 }
 

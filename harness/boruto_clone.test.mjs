@@ -69,9 +69,11 @@ section("Boruto supports the consciousness-swap");
 // ── 5. No collateral drift ──
 section("No drift on other characters");
 {
-  check("the original clone chars are still capable", ["naruto", "minato", "hashirama", "tobirama"].every(k => isCloneCapable({ rosterKey: k })));
+  check("the other clone chars are still capable", ["minato", "hashirama", "tobirama"].every(k => isCloneCapable({ rosterKey: k })));
   check("a non-clone char (sasuke) is still not capable", isCloneCapable({ rosterKey: "sasuke" }) === false);
-  check("naruto cap unchanged (4)", getCloneCap({ rosterKey: "naruto" }) === 4);
+  // Naruto's persistent clone system was REPLACED by the authored Uzumaki Barrage choreography (2026-09-26),
+  // so he is intentionally no longer in the persistent-clone capable set. Other owners are untouched.
+  check("naruto is no longer persistent-clone capable (choreography rebuild)", isCloneCapable({ rosterKey: "naruto" }) === false);
 }
 
 console.log(`\n${FAIL === 0 ? "✅" : "❌"}  boruto_clone: ${PASS} passed, ${FAIL} failed`);

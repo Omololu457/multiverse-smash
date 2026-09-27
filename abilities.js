@@ -54,6 +54,7 @@ import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension"
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
+import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
@@ -497,7 +498,9 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
 // one-frame Substitution teleport fires. Driven from game.js's "h"+direction handler for the 6 redesigned chars.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 const CLONE_ONESHOT = {
-  naruto:   { sheet: "./naruto_kcm_b_attack.png",              sf: 4, sw: 52, sh: 53, ss: 2.0,  cost: 22, strikeDmg: 60, projDmg: 46 },
+  // naruto: REMOVED 2026-09-26 — Naruto's clone systems (persistent mirror clones + these one-shot
+  // clone-assist specials) are replaced by the authored Uzumaki Barrage choreography (narutoChoreography.js).
+  // Other owners keep their one-shot clones untouched.
   minato:   { sheet: "./minato_foward_kick_uniform.png",       sf: 4, sw: 59, sh: 71, ss: 1.7,  cost: 22, strikeDmg: 56, projDmg: 44, back: "ftg" },
   tobirama: { sheet: "./tobirama_foward_water_slash_uniform.png", sf: 6, sw: 82, sh: 85, ss: 1.3, cost: 24, strikeDmg: 54, projDmg: 42, back: "waterwall" },
   hashirama:{ sheet: "./hashirama_foward_punch_uniform.png",   sf: 5, sw: 76, sh: 79, ss: 1.55, cost: 24, strikeDmg: 62, projDmg: 46, strikeArmor: true },
@@ -1830,7 +1833,7 @@ function spendCloneComboChakra(fighter, baseCost) {
 // combat.resolveProjectileHits connects it the same frame (no spacing/whiff), running the
 // normal damage pipeline (global scale, hit sparks, damage numbers). Reuses the Rasengan
 // orb FX. `dirSign` sets which side the hit knocks toward; `offsetX` places it front/back.
-function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {}) {
+export function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {}) {
   if (!target) return null
   const proj = spawnProjectile(fighter, type, {
     speed: 0, lifetime: opts.lifetime || 16,
@@ -2047,23 +2050,80 @@ export function updateNarutoRendanCombat(fighter, inputState, context, getPhase)
   return false
 }
 
+// Uzumaki Barrage (authored choreography) — cost + cooldown for the SIMPLE single-input trigger.
+const NARUTO_BARRAGE_COST = 40
+const NARUTO_BARRAGE_CD   = 90
+const NARUTO_SUMMON_COST  = 25   // summon-then-choose: flat cost paid at summon; select adds nothing
+
+// KURAMA CHAKRA-ARM STRIKE (2026-09-26) — an OFFENSIVE Nine-Tails chakra-arm punch on Forward+Special.
+// Distinct from the F→F shroud-3 chakra-arm GRAB: an ACCESSIBLE damaging strike that reuses the SAME
+// fox-arm FX (naruto_kcm_fx_fox_*) and the KCM/shroud Kurama-chakra tint already on Naruto — the chakra
+// arm itself is the traveling hitbox. Canon: in Kurama Chakra Mode the cloak forms chakra arms that lash
+// out and strike. Damage scales with the deeper Kurama shroud (deeper sync = stronger).
+const NARUTO_CHAKRA_ARM_COST = 30
+function fireNarutoChakraArmStrike(fighter, context, target) {
+  if (!spendEnergy(fighter, NARUTO_CHAKRA_ARM_COST)) return false
+  fighter._spriteCastMove  = "rasengan_cast"   // reach/cast pose (no dedicated chakra-arm strip)
+  fighter._spriteCastTimer = 18
+  const stage = fighter.shroudStage || 0
+  const arm = spawnProjectile(fighter, "narutoChakraArmStrike", {
+    damage: 70 + stage * 8, hitstun: 24, knockbackX: 11, knockbackY: -4,
+    speed: 0, vx: (fighter.facing >= 0 ? 1 : -1) * 13, lifetime: 22, w: 70, h: 46, color: "#f97316",
+    sheet: fighter.facing >= 0 ? "./naruto_kcm_fx_fox_right.png" : "./naruto_kcm_fx_fox_left.png",
+    spriteFrames: 1, spriteScale: 0.8, isSpecial: true
+  }, context)
+  if (arm) { arm.x = fighter.x + fighter.facing * (fighter.w || 60) * 0.6; arm.y = fighter.y + (fighter.h || 100) * 0.35 }
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  try { sound.playSfxFile?.("naruto_special_burst.mp3", null) } catch (_) {}
+  focusCameraOnAction(context, fighter, target, 0.99, 6)
+  shakeCamera(context, 5, 5)
+  return true
+}
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // ELEVATED motion-input route — SHURIKEN-HIDDEN CLONE (double-QCB ↓←↓←). Checked before the
-  // single-QCB (D→B) clone-dispel below; a double needs 4 tokens so a single ↓← still dispels.
-  // Falls through on a failed gate (→ dispel), keeping the existing route intact.
-  if (detectMotion(fighter, "doubleQcb")) {
-    if (fireShurikenHiddenClone(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  // ── PART 2: LONGER ALTERNATE INPUTS (2026-09-26, ADDITIVE) ──────────────────────────────────────
+  // Classic motion sequences that fire the SAME directional move as the simple held-direction input, for
+  // players who prefer a longer execution. On match, NORMALIZE _specialHeldDir to the equivalent direction
+  // so the EXISTING handler below fires the identical move. The original simple inputs (just holding the
+  // direction) are 100% unchanged. Avoids →↓← (hcb) / →↓→ (dp) — those are Transformation Jutsu.
+  if      (detectMotion(fighter, "doubleQcf")) { fighter._specialHeldDir = "D"; clearMotionHistory(fighter) }  // ↓→↓→ → Uzumaki Barrage (= Down+Special)
+  else if (detectMotion(fighter, "doubleQcb")) { fighter._specialHeldDir = "B"; clearMotionHistory(fighter) }  // ↓←↓← → Dark Rasengan   (= Back+Special)
+  else if (detectMotion(fighter, "hcf"))       { fighter._specialHeldDir = "F"; clearMotionHistory(fighter) }  // ←↓→  → Chakra-Arm Strike (= Forward+Special)
+  else if (detectMotion(fighter, "chargeUp"))  { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↑   → Summon formation  (= Up+Special)
+
+  // ── SUMMON-THEN-CHOOSE (ADDITIVE 2026-09-26) — an EXTRA access path. Placed above the direct
+  // Barrage trigger, but only fires in its own states, so the Down+Special Barrage path is unchanged. ──
+  // SELECT: while a formation is staged (window open), this Special press picks which sequence fires.
+  if ((fighter._narutoSelectWindow || 0) > 0) {
+    fighter._pendingNarutoSelect = fighter._specialHeldDir || "N"   // N (neutral) → Barrage
+    clearMotionHistory(fighter)
+    return true
+  }
+  // SUMMON: Up + Special → call clones into a holding FORMATION (no move yet), opening the select window.
+  if (fighter._specialHeldDir === "U") {
+    if ((fighter._choreoCd || 0) > 0) return false
+    if (!spendEnergy(fighter, NARUTO_SUMMON_COST)) return false
+    fighter._pendingNarutoSummon = true
+    fighter._choreoCd = 12          // brief lockout so one press can't double-fire
+    clearMotionHistory(fighter)
+    return true
   }
 
-  // ELEVATED motion-input route — checked FIRST so a double-QCF history [D,F,D,F] cannot fall
-  // through to the single-QCF (D→F) shadow-clone spawn below. Clone-independent; on a failed gate
-  // (e.g. not enough chakra) it falls through untouched, so every existing route is preserved.
-  if (detectMotion(fighter, "doubleQcf")) {
-    if (executeNarutoUzumakiBarrage(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  // ── UZUMAKI BARRAGE — SIMPLE single input: Down + Special (2026-09-26 rebuild). ──
+  // Replaces BOTH old clone motion-inputs (↓→↓→ double-QCF barrage AND ↓←↓← shuriken-hidden-clone).
+  // One press → game.js plays the whole AUTHORED choreography deterministically (narutoChoreography.js);
+  // the player does NOT execute a multi-step real-time sequence. Falls through if no chakra / on cooldown.
+  if (fighter._specialHeldDir === "D") {
+    if ((fighter._choreoCd || 0) > 0) return false
+    if (!spendEnergy(fighter, NARUTO_BARRAGE_COST)) return false
+    fighter._pendingNarutoChoreo = true          // game.js owns the render path + the real hit primitive
+    fighter._choreoCd = NARUTO_BARRAGE_CD
+    clearMotionHistory(fighter)
+    return true
   }
 
   // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Motion-input, additive;
@@ -2339,10 +2399,17 @@ function executeNarutoSpecial(fighter, context) {
     return true
   }
 
-  // Down + Special = DARK RASENGAN / Compressed TBB — close-range AOE that DETONATES
-  // IN PLACE (does not travel). A stationary createAttackFromMove hitbox bubbles around
-  // Naruto (wide rangeX/rangeY), plus a damage-less ring-bloom visual centred on him.
-  if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+  // KURAMA CHAKRA-ARM STRIKE — Forward+Special. Offensive Nine-Tails chakra arm (distinct from the F→F
+  // shroud-3 GRAB above, which is checked first so a true F→F double-tap still lands the grab). Reuses the
+  // fox-arm FX + KCM/shroud tint. Single-Forward (or F→F below shroud 3) → this accessible damaging strike.
+  if (fighter._specialHeldDir === "F") return fireNarutoChakraArmStrike(fighter, context, target)
+
+  // BACK + Special = DARK RASENGAN / Compressed TBB — close-range AOE that DETONATES IN PLACE (does not
+  // travel). A stationary createAttackFromMove hitbox bubbles around Naruto (wide rangeX/rangeY), plus a
+  // damage-less ring-bloom visual centred on him. RELOCATED from Down+Special to Back+Special (2026-09-26):
+  // Down+Special is now Uzumaki Barrage, which had silently shadowed this move. (The contextual clone-slam
+  // sub-branch below is inert now that Naruto has no persistent clones — kept harmless.)
+  if (fighter._specialHeldDir === "B") {
 
     // CLONE UZUMAKI BARRAGE — hard-knockdown FINISHER (contextual). ONLY when the opponent is
     // ALREADY in hitstun (mid-combo) AND ≥2 clones are in reserve does Down+Special become the
@@ -2842,7 +2909,20 @@ function executeMinatoSpecial(fighter, context) {
   return fireFlyingRaijinKunai(fighter, context)
 }
 
+const NARUTO_TTC_ULT_COST = 60   // Uzumaki Two Thousand Combo — the neutral Ultimate
+
 function executeNarutoUltimate(fighter, context) {
+  // DIRECTIONAL ULTIMATE (2026-09-26). NEUTRAL (no direction) = UZUMAKI TWO THOUSAND COMBO — the authored
+  // clone-choreography flurry, now Naruto's single-button ultimate (game.js starts the run from the flag).
+  // Kurama Avatar was relocated to DOWN + Ultimate so BOTH stay on the Ultimate button.
+  if (fighter._ultVariant !== "kurama") {
+    if (!spendEnergy(fighter, NARUTO_TTC_ULT_COST)) return false
+    fighter._pendingNarutoChoreo    = true
+    fighter._pendingNarutoChoreoSeq = "twoThousand"
+    return true   // triggerUltimate applies the universal ult cooldown
+  }
+
+  // ── DOWN + Ultimate ──
   // Kurama Avatar / Tailed Beast Bomb — CINEMATIC ultimate (kurama.js), built on
   // the Gojo/Sukuna domain-cinematic pattern. NOT a transformation/playable form.
   // Costs 50% of the max meter (fighters spawn at half): can't reliably open at
@@ -24751,12 +24831,50 @@ function executeRickPrimeSpecial(fighter, context) {
 }
 
 
+// GENERIC clone-choreography summon-then-choose (Naruto-universe EXCEPT Naruto). Intercept BEFORE the
+// per-char switch so no existing execute*Special is touched. Returns true only when it consumes the press.
+//   • SELECT: while a formation is staged (window open) any Special press picks a sequence (dir → SELECT_MAP).
+//   • SUMMON: ↓↑ (chargeUp) + Special stages the formation (collision-free — only Naruto uses chargeUp).
+function cloneChoreoInterceptSpecial(fighter) {
+  const key = (fighter.rosterKey || "").toLowerCase()
+  if (!isChoreoSupported(key)) return false
+  // LIGHT-KIT (Sasuke/Obito): ↓↓↑ + Special DIRECTLY plays their 1-2 clone moves — no formation staging.
+  if (isLightChoreo(key)) {
+    if (detectMotion(fighter, SUMMON_MOTION)) {
+      clearMotionHistory(fighter)
+      if ((fighter._choreoCd || 0) > 0) return true
+      if (!spendEnergy(fighter, SUMMON_COST)) return false
+      fighter._pendingChoreoDirect = lightDirectSeq(key, fighter._specialHeldDir)
+      fighter._choreoCd = SUMMON_CD
+      return true
+    }
+    return false
+  }
+  if ((fighter._choreoSelectWindow || 0) > 0) {
+    fighter._pendingChoreoSelect = fighter._specialHeldDir || "N"
+    clearMotionHistory(fighter)
+    return true
+  }
+  if (detectMotion(fighter, SUMMON_MOTION)) {
+    clearMotionHistory(fighter)
+    if ((fighter._choreoCd || 0) > 0) return true
+    if (!spendEnergy(fighter, SUMMON_COST)) return false   // not enough chakra → fall through to normal special
+    fighter._pendingChoreoSummon = true
+    fighter._choreoCd = SUMMON_CD
+    return true
+  }
+  return false
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
   if (fighter.attacking) return false
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
+
+  // ADDITIVE: Naruto-universe clone-choreography summon/select, intercepted before the signature-kit switch.
+  if (cloneChoreoInterceptSpecial(fighter)) return true
 
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
@@ -24987,6 +25105,13 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
+  // ADDITIVE: Naruto-universe clone-choreography — pressing Ultimate while a clone formation is staged fires
+  // the Ultimate-Swarm (the 6th move). Intercepted before the signature-ultimate switch, so the character's
+  // real ultimate is untouched when NO formation is staged. Metered by the summon cost already paid.
+  if ((fighter._choreoSelectWindow || 0) > 0 && isFormationActiveFor(fighter)) {
+    fighter._pendingChoreoSelect = "SWARM"
+    return true
+  }
   // LIGHT — the Ultimate has two variants (neutral = writing / Down = scythe). game.js stamps _ultVariant from
   // the live held direction at the press; the harness can force it via opts.variant. executeLightUltimate reads it.
   if (key === "light" && opts.variant) fighter._ultVariant = opts.variant

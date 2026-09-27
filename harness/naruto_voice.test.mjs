@@ -99,9 +99,10 @@ try {
   check("Big Ball does NOT play the plain-Rasengan voice line", !(await logHas("naruto_rasengan_cast.mp3")), `log=${JSON.stringify(await sfxLog())}`);
 
   // 17) DARK RASENGAN — Down + Special → "I'll blow it away with my jutsu"
-  section("17. naruto_special_burst.mp3 — Dark Rasengan (Down+Special)");
+  section("17. naruto_special_burst.mp3 — Dark Rasengan (Back+Special, RELOCATED 2026-09-26; Down+Special is now Barrage)");
   await prep(); await clearSfx();
-  await tap("s", 1); await tap("l"); await waitFrames(4);
+  await page.evaluate(() => window.__harness.brutality.p1Spec("B"));   // Back+Special = Dark Rasengan (fires the real ability + its voice)
+  await waitFrames(4);
   check("special_burst fires on Dark Rasengan", await logHas("naruto_special_burst.mp3"), `log=${JSON.stringify(await sfxLog())}`);
 
   // 14/15) HOKAGE pride line on a STRONG (heavy) connect — two takes, random
@@ -151,7 +152,10 @@ try {
   // 5) KURAMA ULTIMATE — fires at CHARGE start, BEFORE the bomb travels/impacts
   section("5. naruto_kurama_ultimate.mp3 — Kurama ult CHARGE windup (not impact)");
   await prep(120); await clearSfx();
+  // Kurama Avatar is now DOWN + Ultimate (neutral Ultimate = Uzumaki Two Thousand Combo, 2026-09-26).
+  await page.keyboard.down("s"); await waitFrames(1);
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await page.keyboard.up("s");
   await page.waitForFunction(() => window.__harness.kuramaUltCine().active, null, { timeout: 6000, polling: 16 });
   // early beats (widen/rise, before CHARGE): the line must NOT have fired yet
   await page.waitForFunction(() => { const c = window.__harness.kuramaUltCine(); return c.active && c.frame >= 20 && c.frame < c.chargeStart; }, null, { timeout: 6000, polling: 16 }).catch(() => {});

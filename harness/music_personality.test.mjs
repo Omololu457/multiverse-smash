@@ -1,5 +1,5 @@
 // harness/music_personality.test.mjs — TRAIT → MUSIC mapping + trait-informed selection.
-// Proves: all 103 songs are catalogued + grouped by trait; the selector ranks hype tracks
+// Proves: all 179 songs are catalogued (103 curated grouped by trait + 76 appended neutral); the selector ranks hype tracks
 // first for a high-Extraversion profile and moody tracks first for high-Neuroticism; a
 // low-confidence / early-game profile falls back to the DEFAULT order (no half-formed
 // personalization, doc §7); and the account-integrated path (real tracked profile) both
@@ -28,10 +28,10 @@ try {
 
   console.log("\n── catalogue + grouping (group songs by personality type) ──");
   const size = await P(() => window.__harness.music.catalogSize());
-  check("all 103 songs catalogued", size === 103, `size=${size}`);
+  check("all 179 songs catalogued", size === 179, `size=${size}`);
   const groups = await P(() => window.__harness.music.groups());
   const total = ["O", "C", "E", "A", "N"].reduce((a, t) => a + groups[t].length, 0);
-  check("every song grouped under exactly one dominant trait", total === 103, `sum=${total}`);
+  check("all 103 curated songs grouped under exactly one dominant trait (76 appended tracks are neutral {})", total === 103, `sum=${total}`);
   check("all five trait groups exist", ["O", "C", "E", "A", "N"].every(t => Array.isArray(groups[t])), JSON.stringify(Object.fromEntries(["O", "C", "E", "A", "N"].map(t => [t, groups[t].length]))));
   check("Boo'd Up grouped under Agreeableness", groups.A.includes("Boo'd Up.mp3"), groups.A.slice(0, 3).join(", "));
   check("At The Club grouped under Extraversion", groups.E.includes("At The Club.mp3"), "");
@@ -48,9 +48,9 @@ try {
   console.log("\n── low-confidence / early-game → default order fallback (doc §7) ──");
   const order0 = await P(() => window.__harness.music.order());
   check("fresh profile does NOT personalize", order0.personalized === false, `personalized=${order0.personalized}`);
-  check("fallback returns the full 103-song default order", order0.files.length === 103 && order0.files[0] === "20 Min.mp3", `n=${order0.files.length} first=${order0.files[0]}`);
+  check("fallback returns the full 179-song default order", order0.files.length === 179 && order0.files[0] === "20 Min.mp3", `n=${order0.files.length} first=${order0.files[0]}`);
   // Pressing the button with NO confident profile must NOT swap the curated menu — it keeps the
-  // current playlist and shows amber guidance instead of dumping 103 default-ordered songs in.
+  // current playlist and shows amber guidance instead of dumping 179 default-ordered songs in.
   const curatedLen = (await P(() => window.__harness.menuAudio())).order.length;
   const gatedPress = await P(() => window.__harness.music.pressPersonalize());
   const afterGated = (await P(() => window.__harness.menuAudio())).order.length;
@@ -70,12 +70,12 @@ try {
   const applied = await P(() => window.__harness.music.apply());
   const live = await P(() => window.__harness.menuAudio());
   check("apply() reports personalization", applied?.personalized === true, "");
-  check("live MENU_PLAYLIST now holds all 103 personalized tracks", live.order.length === 103, `n=${live.order.length}`);
+  check("live MENU_PLAYLIST now holds all 179 personalized tracks", live.order.length === 179, `n=${live.order.length}`);
   check("live playlist starts on the personalized top pick", live.order[0] === order1.files[0], `${live.order[0]}`);
 
   console.log("\n── Settings 'Personalize by playstyle' BUTTON (confident profile) ──");
   const rows = await P(() => window.__harness.music.visibleRows());
-  check("playlist panel caps visible rows (≤9) so a 103-track list can't overflow", rows <= 9, `visibleRows=${rows}`);
+  check("playlist panel caps visible rows (≤9) so a 179-track list can't overflow", rows <= 9, `visibleRows=${rows}`);
   const pressed = await P(() => window.__harness.music.pressPersonalize());
   check("button personalizes with a tracked profile (green)", pressed.personalized === true && pressed.ok === true, JSON.stringify(pressed));
   check("button label reports the track count", /Personalized · \d+ tracks/.test(pressed.msg), pressed.msg);

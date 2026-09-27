@@ -29,8 +29,11 @@ async function boot(who){
   const a=await p1(); await page.evaluate(x=>window.__harness.setP2X(x),a.x+360); await wf(2);
 }
 
-console.log("── PART 1: standardized ',' create / '.' disperse across all 4 clone chars ──");
-for (const who of ["naruto","minato","hashirama","tobirama"]) {
+console.log("── PART 1: '.'/',' persistent-clone create/disperse across the LEGACY-3 owners ──");
+// The persistent "," create / "." disperse keys are gated to LEGACY_CLONE_KEYS = {boruto,hiruzen,madara}
+// (game.js). naruto → authored choreography; minato/hashirama/tobirama/itachi/kakashi → one-shot clones.
+// So this part exercises the owners that ACTUALLY use "," / "." today.
+for (const who of ["boruto","hiruzen","madara"]) {
   await boot(who);
   await page.evaluate(()=>window.__harness.dispelP1Clones?.());
   await page.keyboard.press(",");
@@ -70,7 +73,9 @@ check("destroy did NOT fire the dismiss ripple FX", fxHit.ripple === fx0.ripple,
 await page.evaluate(()=>{window.__harness.dispelP1Clones?.();}); await wf(2);
 await page.evaluate(()=>window.__harness.spawnP1Clones(1)); await wf(30);
 let fx1 = await waterFx();
-await page.keyboard.press("."); await wf(6);
+// Tobirama isn't a legacy-3 "." owner, so dismiss via the harness safe-recall (same dispelShadowClones
+// path the "." key drives) to exercise the RIPPLE-on-dismiss FX deterministically.
+await page.evaluate(()=>window.__harness.dispelP1Clones()); await wf(6);
 await page.screenshot({ path: path.join(OUT, "tobirama_clone_3_dismissed_ripple.png") });
 await wf(16);
 let fxDis = await waterFx();

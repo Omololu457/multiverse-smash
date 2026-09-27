@@ -845,7 +845,7 @@ const CLONE_CAP_DEFAULT = 3
 // Stage 4 tiers: naruto/hashirama HIGH (swarm identity); minato/kakashi LOW (precision/feints); tobirama/
 // itachi/hiruzen MID (technical / a few clones). boruto: a few clones, not his dad's swarm.
 // madara: MID (3) — borrowed Mokuton (Hashirama's cells), a few wood clones, not Hashirama's full swarm.
-const CLONE_CAP_BY_KEY = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3, boruto: 3, kakashi: 2, itachi: 3, hiruzen: 3, madara: 3 }
+const CLONE_CAP_BY_KEY = { hashirama: 4, minato: 2, tobirama: 3, boruto: 3, kakashi: 2, itachi: 3, hiruzen: 3, madara: 3 }   // naruto REMOVED 2026-09-26 → choreography system (narutoChoreography.js)
 function cloneCap(owner) { return CLONE_CAP_BY_KEY[String(owner?.rosterKey || "").toLowerCase()] ?? CLONE_CAP_DEFAULT }
 export function getCloneCap(owner) { return cloneCap(owner) }   // harness / HUD
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
@@ -1098,7 +1098,7 @@ const CLONE_BODY_SETS = {
 // SINGLE SOURCE OF TRUTH for which characters have the shadow-clone mechanic. Every clone binding (the
 // ",": create / ".": disperse hotkeys, spawnP1Clones, etc.) gates on THIS set — so the control is
 // identical across all clone characters and can never drift per-character again.
-export const CLONE_CAPABLE_KEYS = new Set(["naruto", "minato", "hashirama", "tobirama", "boruto", "kakashi", "itachi", "hiruzen", "madara"])
+export const CLONE_CAPABLE_KEYS = new Set(["minato", "hashirama", "tobirama", "boruto", "kakashi", "itachi", "hiruzen", "madara"])   // naruto REMOVED 2026-09-26 → authored choreography (narutoChoreography.js) replaces his persistent clones
 export function isCloneCapable(fighter) {
   return !!fighter && CLONE_CAPABLE_KEYS.has(String(fighter.rosterKey || fighter.id || "").toLowerCase())
 }

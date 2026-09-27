@@ -70,7 +70,10 @@ try {
   section("NARUTO ult: naruto_kurama_ultimate.mp3 still fires, exactly once, unaffected");
   await boot("naruto");
   await clearSfx();
+  // Kurama Avatar is now DOWN + Ultimate (neutral Ultimate = Uzumaki Two Thousand Combo, 2026-09-26).
+  await page.keyboard.down("s"); await waitFrames(1);
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await page.keyboard.up("s");
   await page.waitForFunction(() => window.__harness.kuramaUltCine().active, null, { timeout: 6000, polling: 16 });
   await page.waitForFunction(() => { const c = window.__harness.kuramaUltCine(); return c.phase === "charge" && (window.__harness.__sound._sfxSpy || []).some(f => f.includes("naruto_kurama_ultimate.mp3")); }, null, { timeout: 8000, polling: 16 }).catch(() => {});
   const nAtCharge = await page.evaluate(() => window.__harness.kuramaUltCine());

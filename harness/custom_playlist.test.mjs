@@ -1,5 +1,5 @@
 // harness/custom_playlist.test.mjs — player-authored CUSTOM PLAYLIST (third music source).
-// Verifies: the browser lists all 103 songs (windowed + scrollable, not one screen); building &
+// Verifies: the browser lists all 179 songs (windowed + scrollable, not one screen); building &
 // saving a custom playlist stores real persisted data; it SURVIVES a page reload; selecting the
 // "custom" source plays ONLY the chosen songs; the editable model re-opens pre-checked; an empty
 // custom playlist falls back to default with a message; and the default + personalized sources are
@@ -28,14 +28,14 @@ try {
   console.log("\n── GUEST (no account) — the scenario the real bug happened in ──");
   check("running as a guest (no account created)", await P(() => window.__harness.library.hasAccount()) === false, "");
 
-  console.log("\n── library + browser windowing (all 103, scrollable) ──");
-  check("library has all 103 songs", await P(() => window.__harness.library.size()) === 103, "");
+  console.log("\n── library + browser windowing (all 179, scrollable) ──");
+  check("library has all 179 songs", await P(() => window.__harness.library.size()) === 179, "");
   await P(() => window.__harness.showSettings());
   const opened = await P(() => window.__harness.library.open());
   check("Build opens the MUSIC_LIBRARY browser", opened.state === "musicLibrary", `state=${opened.state}`);
   check("fresh build starts with nothing pre-checked", opened.preChecked.length === 0, `pre=${opened.preChecked.length}`);
   const rows0 = await P(() => window.__harness.library.scrollBy(0));
-  check("browser windows the list (not all 103 rendered at once)", rows0.rows.length > 6 && rows0.rows.length < 103, `visible=${rows0.rows.length}`);
+  check("browser windows the list (not all 179 rendered at once)", rows0.rows.length > 6 && rows0.rows.length < 179, `visible=${rows0.rows.length}`);
   const rowsScrolled = await P(() => window.__harness.library.scrollBy(1200));
   check("scrolling reveals different songs (real scroll, not a single page)", rowsScrolled.rows[0] !== rows0.rows[0] && rowsScrolled.scroll > 0, `top: ${rows0.rows[0]} → ${rowsScrolled.rows[0]}`);
   await P(() => window.__harness.library.scrollBy(-99999));   // back to top
@@ -74,15 +74,15 @@ try {
   check("empty custom saves as empty", emptied.custom.length === 0, `n=${emptied.custom.length}`);
   const emptyResolve = await P(() => window.__harness.library.resolve());
   check("empty custom falls back to default with a message", emptyResolve.fellBack === true && /empty/i.test(emptyResolve.message), emptyResolve.message);
-  check("empty custom plays the default = ALL songs (not silence)", (await menuOrder()).length === 103, `n=${(await menuOrder()).length}`);
+  check("empty custom plays the default = ALL songs (not silence)", (await menuOrder()).length === 179, `n=${(await menuOrder()).length}`);
 
   console.log("\n── the other two sources still work and weren't disturbed ──");
   await P(() => window.__harness.library.setSource("default"));
-  check("Default source → the entire library (all 103 songs)", (await menuOrder()).length === 103, `n=${(await menuOrder()).length}`);
+  check("Default source → the entire library (all 179 songs)", (await menuOrder()).length === 179, `n=${(await menuOrder()).length}`);
   await P(() => { for (let i = 0; i < 3; i++) window.__harness.personality.event("sidequest_no_reward"); });   // build a confident profile
   const pers = await P(() => window.__harness.library.setSource("personalized"));
-  check("Personalized source → trait-informed order (not fallback)", pers.fellBack === false && pers.files === 103, JSON.stringify({ fellBack: pers.fellBack, files: pers.files }));
-  check("Personalized live menu holds all 103 tracks", (await menuOrder()).length === 103, `n=${(await menuOrder()).length}`);
+  check("Personalized source → trait-informed order (not fallback)", pers.fellBack === false && pers.files === 179, JSON.stringify({ fellBack: pers.fellBack, files: pers.files }));
+  check("Personalized live menu holds all 179 tracks", (await menuOrder()).length === 179, `n=${(await menuOrder()).length}`);
   // Custom is still intact & selectable after touching the others.
   await P(() => window.__harness.library.open());
   await P((files) => { for (const f of files) window.__harness.library.toggle(f); }, PICK);

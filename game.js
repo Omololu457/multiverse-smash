@@ -639,6 +639,25 @@ function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms
 let colorblindHud = (() => { try { return localStorage.getItem("ms_colorblind_hud") === "1" } catch (_) { return false } })()
 function setColorblindMode(on) { colorblindHud = !!on; try { localStorage.setItem("ms_colorblind_hud", colorblindHud ? "1" : "0") } catch (_) {} ; setColorblindHud?.(colorblindHud) }
 setColorblindHud?.(colorblindHud)   // sync ui.js to the persisted value at load
+// ── SECOND SCREEN (companion display) — OPT-IN, default OFF. Self-contained localStorage like bloodFx.
+// When OFF, NOTHING loads: secondScreen.js is dynamically imported only on enable, and the per-frame
+// publish is gated on this flag (one boolean check). The publisher only READS sim fields it never writes,
+// so determinism (which hashes x/y/health/energy) is untouched. One-way: the game only POSTS, never listens.
+let secondScreenEnabled = (() => { try { return localStorage.getItem("ms_second_screen") === "1" } catch (_) { return false } })()
+let _secondScreen = null        // dynamically-imported SecondScreen controller (null until enabled)
+let _companionLastKeys = ""     // last p1|p2 roster keys sent as meta (resend on change)
+let _companionMetaAt = 0        // frame of the last meta publish (periodic resend for late-joining windows)
+let _lastAnnounce = null        // render-only announcer caption {text, at} for the companion spectator view
+function _ensureSecondScreen(openWindow) {
+  if (_secondScreen) { _secondScreen.enable({ openWindow }); return }
+  import("./secondScreen.js").then(m => { _secondScreen = m.SecondScreen || m.default; _secondScreen.enable({ openWindow }); _companionLastKeys = "" }).catch(() => {})
+}
+function setSecondScreen(on) {
+  secondScreenEnabled = !!on
+  try { localStorage.setItem("ms_second_screen", secondScreenEnabled ? "1" : "0") } catch (_) {}
+  if (secondScreenEnabled) _ensureSecondScreen(true)            // user gesture → OK to open the window
+  else if (_secondScreen) _secondScreen.disable()
+}
 // BRUTALITY ENGINE (real gore-style, per-MOVE finishers). Eligible = the tonally-appropriate prototype
 // roster: horror slashers + canonically-brutal killers. zaraki_shikai shares zaraki's table (same fighter).
 // HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
@@ -1885,6 +1904,9 @@ function announce(pool, opts = {}) {
   if (!clip) return
   try { sound?.playSfxFile?.(clip, null, { owner: ANNOUNCER_OWNER, volumeMult: opts.volumeMult ?? 1 }) } catch (_) {}
   _announcerAt = now
+  // Render-only caption for the companion spectator view (never read by the sim → determinism-safe).
+  // Gated so it isn't even written unless the companion is enabled (keeps OFF byte-identical).
+  if (secondScreenEnabled) _lastAnnounce = { text: _companionCaption(pool), at: now }
 }
 // Stamp the Black-Flash marker on one fighter (render-only field, like _shActive/_idSwapActive — sprite.js
 // reads it for the palette swap, _tickImpactFlash clears it; never read by the sim → determinism-safe).
@@ -16103,6 +16125,67 @@ function buildTrainingFrameData() {
   return null
 }
 
+// ── SECOND-SCREEN publish (read-only). All data here is a PURE READ of already-settled state; nothing
+// is written back to the sim. Called at ~10Hz from gameLoop only while the companion is enabled. ──
+function _companionCaption(pool) {
+  const m = { fight: "FIGHT!", ko: "K.O.!", perfect: "PERFECT!", victory: "VICTORY!", vs: "VS",
+    comboMilestone: "COMBO!", lowHealth: "DANGER!", round: "ROUND", timeOver: "TIME!",
+    ultActivate: "ULTIMATE!", charLock: "LOCKED IN", modeEntry: "" }
+  return pool in m ? m[pool] : String(pool || "").replace(/([A-Z])/g, " $1").toUpperCase().trim()
+}
+function _companionButtons() {
+  const G = padGlyphs()
+  const b = {
+    Light: { kb: "J", pad: G.down }, Heavy: { kb: "K", pad: G.left }, Special: { kb: "I", pad: G.up },
+    Ultimate: { kb: "L", pad: `${G.l2} / ${G.r2}` }, Dash: { kb: "Shift", pad: G.right },
+    Grab: { kb: "G", pad: G.l1 }, Charge: { kb: "O", pad: G.r1 },
+    Up: { kb: "W", pad: "↑" }, Down: { kb: "S", pad: "↓" },
+    Forward: { kb: "→ (toward)", pad: "→ (toward)" }, Back: { kb: "← (away)", pad: "← (away)" }
+  }
+  b["Up-Attack"] = { kb: `↑ + ${b.Light.kb}`, pad: `↑ + ${b.Light.pad}` }
+  b["Air"]       = { kb: `(air) ${b.Light.kb}`, pad: `(air) ${b.Light.pad}` }
+  b["Down-Air"]  = { kb: `(air) ↓ + ${b.Heavy.kb}`, pad: `(air) ↓ + ${b.Heavy.pad}` }
+  return b
+}
+function _companionKit(f) {
+  if (!f) return null
+  const c = characters[f.rosterKey] || {}, kit = getKit(f.rosterKey, c) || {}
+  return { key: f.rosterKey, name: c.name || f.rosterKey, universe: c.universe || "", type: kit.type || "",
+    kit: { passive: kit.passive, basics: kit.basics || kit.normals || [], specials: kit.specials || [],
+      mobility: kit.mobility || null, ultimate: kit.ultimate || null, combos: kit.combos || [] } }
+}
+function _companionFighter(f) {
+  return f ? { key: f.rosterKey, hp: Math.max(0, Math.round(f.health)), maxHp: Math.round(f.maxHealth),
+    en: Math.max(0, Math.round(f.energy)), maxEn: Math.round(f.maxEnergy),
+    move: (f.currentAttack && f.currentAttack.name) || f._spriteCastMove || f.currentMove || null,
+    combo: f.comboCounter || 0 } : null
+}
+function _buildCompanionMeta() {
+  return { k: "meta", mode: matchConfig?.mode || "versus", padLabel: padGlyphs().label,
+    buttons: _companionButtons(), p1: _companionKit(p1), p2: _companionKit(p2) }
+}
+function _buildCompanionSnapshot() {
+  const training = trainingState.enabled ? {
+    enabled: true, advantage: trainingState.lastAdvantage, frameData: buildTrainingFrameData(),
+    lastDmg: damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0,
+    p1Inputs: getRelativeDirectionsFromHistory(p1), p2Inputs: getRelativeDirectionsFromHistory(p2)
+  } : { enabled: false }
+  const nowMs = (typeof performance !== "undefined" ? performance.now() : Date.now())
+  return { k: "snap", frame: globalFrameCount, roundTimer, roundNumber, roundWins,
+    combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
+    p1: _companionFighter(p1), p2: _companionFighter(p2), training,
+    announcer: _lastAnnounce ? { text: _lastAnnounce.text, at: _lastAnnounce.at, now: nowMs } : null }
+}
+function _publishCompanion() {
+  if (!_secondScreen || !_secondScreen.isEnabled()) return
+  if (!p1 || !p2) return                                  // only publish during a live match
+  const keys = (p1.rosterKey || "") + "|" + (p2.rosterKey || "")
+  if (keys !== _companionLastKeys || (globalFrameCount - _companionMetaAt) > 30) {   // meta: on change + ~every 0.5s (so a late-opened companion syncs fast)
+    _secondScreen.post(_buildCompanionMeta()); _companionLastKeys = keys; _companionMetaAt = globalFrameCount
+  }
+  _secondScreen.post(_buildCompanionSnapshot())
+}
+
 function _worldToScreen(wx, wy) {
   return {
     x: (wx - camera.x) * camera.zoom + canvas.width  / 2,
@@ -16605,6 +16688,8 @@ const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
 const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
 // TOUCH CONTROLS toggle (tablet/phone) — cycles AUTO / ON / OFF. x set by _layoutSettings.
 const touchToggleRect = { x: 0, y: 448, w: 190, h: 34 }
+// SECOND SCREEN (companion display) toggle — top-right column, below touch. x set by _layoutSettings.
+const secondScreenToggleRect = { x: 0, y: 522, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -16652,6 +16737,7 @@ function _layoutSettings() {
   brutalityToggleRect.x = rx
   colorblindToggleRect.x = rx
   touchToggleRect.x = rx
+  secondScreenToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -16762,6 +16848,15 @@ function drawSettingsScreen() {
   ctx.fillText(`Touch: ${_tMode.toUpperCase()}`, touchToggleRect.x + touchToggleRect.w / 2, touchToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText(`On-screen pad (${touch.hasTouch() ? "touch detected" : "no touch detected"}, saved)`, touchToggleRect.x, touchToggleRect.y + touchToggleRect.h + 13)
+
+  // ── SECOND SCREEN companion-display toggle (opt-in; default OFF). Opens a read-only panel window. ──
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillText("SECOND SCREEN", secondScreenToggleRect.x, secondScreenToggleRect.y - 10)
+  box(secondScreenToggleRect, secondScreenEnabled ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", secondScreenEnabled ? "#4ade80" : "rgba(120,150,200,0.4)", 2, secondScreenEnabled)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Companion: ${secondScreenEnabled ? "ON" : "OFF"}`, secondScreenToggleRect.x + secondScreenToggleRect.w / 2, secondScreenToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText("Read-only move list / stats on a 2nd window (saved)", secondScreenToggleRect.x, secondScreenToggleRect.y + secondScreenToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -17664,6 +17759,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
+      if (pointInRect(mouse.x, mouse.y, secondScreenToggleRect)) { setSecondScreen(!secondScreenEnabled); break }   // companion display opt-in
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -18530,6 +18626,8 @@ function gameLoop(now) {
     for (let i = 1; i < aiVsAiState.speed; i++) { globalFrameCount++; updateCurrentState() }
   }
   renderCurrentState()
+  // SECOND SCREEN: read-only companion publish (~10Hz). When OFF this is a single boolean check → byte-identical.
+  if (secondScreenEnabled && _secondScreen && globalFrameCount % 6 === 0) _publishCompanion()
   if (_debugOverlay) {
     const t1 = (typeof performance !== "undefined" ? performance.now() : 0)
     _pushFrameMs(t1 - _t0)                          // this pass's compute+render cost
@@ -18931,6 +19029,9 @@ const _asyncBootReady = (async () => {
 restoreSession()
 // Stage 24B: resume an in-progress local tournament that was saved before a reload (Stage 17 save).
 if (resumeBracketIfSaved()) gameState = GAME_STATES.BRACKET_VIEW
+// SECOND SCREEN: if the companion was left ON in a prior session, re-open the read-only channel (but do
+// NOT force a popup without a gesture — a window opened manually, or re-toggled in Settings, reconnects).
+if (secondScreenEnabled) _ensureSecondScreen(false)
 gameLoop()
 
 // ------------------------------------------------------------------
@@ -21052,7 +21153,18 @@ gameLoop()
     // ── PROFILING (Stage 22D) ─────────────────────────────────────────────────
     perf: () => ({ debugOverlay: _debugOverlay, loadedImages: loadedSheetCount(),
       projectiles: activeProjectiles.length, summons: (typeof activeSummons !== "undefined" ? activeSummons.length : 0),
-      fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown, pool: poolStats() }),
+      fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown, pool: poolStats(),
+      // Per-frame compute+render cost (ring buffer; populated only under ?debug). The second-screen publish
+      // hook runs INSIDE this measured window, so frameMsAvg with the companion ON vs OFF isolates its cost.
+      frameMsAvg: (() => { let s = 0; for (let i = 0; i < _frameMsFilled; i++) s += _frameMs[i]; return _frameMsFilled ? s / _frameMsFilled : 0 })(),
+      frameMsSamples: _frameMsFilled, companionOn: !!(secondScreenEnabled && _secondScreen) }),
+    companionPerf: (n = 2000) => {   // micro-bench: avg ms to BUILD one read-only snapshot (the added per-publish work)
+      if (!p1 || !p2) return { ok: false, reason: "no match" }
+      const t0 = (typeof performance !== "undefined" ? performance.now() : Date.now())
+      for (let i = 0; i < n; i++) _buildCompanionSnapshot()
+      const t1 = (typeof performance !== "undefined" ? performance.now() : Date.now())
+      return { ok: true, n, perBuildMs: (t1 - t0) / n, totalMs: t1 - t0 }
+    },
     poolResetStats: () => { poolResetStats(); return poolStats() },   // Stage 22C: reset counters before a burst measurement
     markArcadeCleared: (key = "gojo") => { setArcadeCleared(key, true); return getArcadeCleared() },   // test-only shortcut for the gate (real flow proven in arcade.test)
     victoryUnlocks: () => ({ chars: victoryState?.charUnlocks || [], leveledUp: !!victoryState?.xpResult?.leveledUp, level: victoryState?.xpResult?.level ?? null }),

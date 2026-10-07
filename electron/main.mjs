@@ -6,7 +6,7 @@
 // logic (the exact live import-map injection from tools/serve.mjs / stamp_version.mjs) on a random
 // localhost port inside the Electron main process, then load http://127.0.0.1:PORT. This makes the
 // Electron runtime byte-for-byte identical to a real browser / GitHub Pages — so ZERO game-code changes.
-import { app, BrowserWindow, Menu, shell } from "electron";
+import { app, BrowserWindow, Menu, shell, screen } from "electron";
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -136,6 +136,26 @@ async function createWindow() {
     autoHideMenuBar: true,
     show: false,                 // avoid a windowed flash before fullscreen engages; shown on ready-to-show
     webPreferences: { contextIsolation: true, nodeIntegration: false },   // game needs no Node access
+  });
+
+  // SECOND SCREEN (companion display): the game calls window.open("index.html?view=companion","mv-companion")
+  // when the opt-in toggle is ON. Intercept it here to place the companion on a SECONDARY display, fullscreen.
+  // Single display → clean no-op: it opens as a normal windowed panel (so it never covers the game). This
+  // handler is inert unless the renderer actually opens that window, so a default (toggle-OFF) run is untouched.
+  win.webContents.setWindowOpenHandler(({ frameName }) => {
+    if (frameName !== "mv-companion") return { action: "deny" };
+    const primary = screen.getPrimaryDisplay();
+    const external = screen.getAllDisplays().find(d => d.id !== primary.id);
+    if (external) {
+      const { x, y, width, height } = external.workArea;   // place + fill the secondary display
+      return { action: "allow", overrideBrowserWindowOptions: {
+        x, y, width, height, fullscreen: true, backgroundColor: "#061225", autoHideMenuBar: true,
+        webPreferences: { contextIsolation: true, nodeIntegration: false } } };
+    }
+    // Only one display → open a normal, movable window (NOT fullscreen) so it doesn't cover the match.
+    return { action: "allow", overrideBrowserWindowOptions: {
+      width: 1100, height: 720, fullscreen: false, backgroundColor: "#061225", autoHideMenuBar: true,
+      webPreferences: { contextIsolation: true, nodeIntegration: false } } };
   });
 
   // DIAGNOSTIC (DIAG=1): surface WHY the window would close on its own — renderer crash / OOM, page

@@ -1,0 +1,80 @@
+/* Multiverse Smash — companion second-screen styles. DOM/text only; no canvas, no sim. */
+:root{
+  --bg:#061225; --bg2:#0b1b33; --panel:#0e2038; --line:rgba(120,170,255,.18);
+  --ink:#e9f1ff; --dim:#8fa6c8; --accent:#4aa8e0; --p1:#4aa8e0; --p2:#f0724a;
+  --good:#4ade80; --warn:#fbbf24; --hot:#f05555;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(1200px 700px at 50% -10%,#0b1d38,var(--bg));
+  color:var(--ink);font:14px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;user-select:none;
+}
+#bar{display:flex;align-items:center;gap:18px;padding:10px 16px;background:linear-gradient(#0a1930,#081426);
+  border-bottom:1px solid var(--line);flex:0 0 auto}
+#brand{font-weight:800;letter-spacing:.14em;color:#bfe0ff;font-size:13px}
+#tabs{display:flex;gap:8px}
+.tab{background:#13263f;color:#cfe0ff;border:1px solid var(--line);border-radius:8px;
+  padding:7px 14px;font-weight:700;font-size:12.5px;cursor:pointer;letter-spacing:.03em}
+.tab:hover{background:#1a3254}
+.tab.active{background:#1f4e78;border-color:#63b3ff;color:#eaf4ff;box-shadow:0 0 0 1px #3f7fb8 inset}
+#link{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+#dot{width:9px;height:9px;border-radius:50%;background:#555;box-shadow:0 0 6px #000 inset}
+#dot.live{background:var(--good);box-shadow:0 0 8px var(--good)}
+#dot.stale{background:var(--warn)}
+#stage{position:relative;flex:1 1 auto;overflow:hidden}
+.panel{position:absolute;inset:0;padding:16px 18px;overflow:auto;display:none}
+.panel.active{display:block}
+#idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--dim)}
+#idle.hidden{display:none}
+.idle-big{font-size:22px;font-weight:800;color:#9fc2ea}
+.idle-sub{font-size:13px;max-width:460px;text-align:center}
+
+/* ── Move List panel ── */
+.ml-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:100%}
+.ml-col{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto;padding:0}
+.ml-head{position:sticky;top:0;background:linear-gradient(#143257,#0e2440);padding:10px 14px;border-bottom:1px solid var(--line);z-index:1}
+.ml-name{font-size:18px;font-weight:800}
+.ml-sub{font-size:11.5px;color:var(--dim);margin-top:2px}
+.ml-sec{font-size:10.5px;letter-spacing:.14em;color:#7f9ec9;text-transform:uppercase;padding:10px 14px 3px}
+.ml-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;align-items:center;padding:6px 14px;border-top:1px solid rgba(120,170,255,.06)}
+.ml-row.live{background:rgba(74,222,128,.14);box-shadow:inset 3px 0 0 var(--good)}
+.ml-move{font-weight:700}
+.ml-move small{display:block;font-weight:400;color:var(--dim);font-size:11px}
+.chip{display:inline-block;font:12px ui-monospace,Menlo,Consolas,monospace;background:#0a1a30;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:#cfe0ff;white-space:nowrap}
+.chip.pad{background:#141033;border-color:rgba(160,140,255,.25);color:#d8cfff}
+.col1{color:var(--p1)} .col2{color:var(--p2)}
+
+/* ── Spectator panel ── */
+.spec{display:flex;flex-direction:column;height:100%;gap:14px}
+.spec-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px}
+.hpcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.hpcard.right{text-align:right}
+.hp-name{font-size:22px;font-weight:800}
+.hp-key{font-size:11px;color:var(--dim);letter-spacing:.08em}
+.bar{height:16px;border-radius:9px;background:#0a1830;border:1px solid var(--line);margin-top:8px;overflow:hidden}
+.bar>i{display:block;height:100%;transition:width .12s linear}
+.bar.hp>i{background:linear-gradient(90deg,#2dd36f,#7dffb0)}
+.bar.en{height:9px;margin-top:5px}
+.bar.en>i{background:linear-gradient(90deg,#3f9bdc,#86d0ff)}
+.clock{font-size:54px;font-weight:900;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.02em}
+.round{font-size:12px;color:var(--dim);text-align:center;letter-spacing:.1em}
+.combo-wrap{flex:1;display:flex;align-items:center;justify-content:center}
+.combo-big{font-size:120px;font-weight:900;color:#fff;text-shadow:0 0 30px rgba(74,168,224,.5);opacity:.25}
+.combo-big.on{opacity:1;color:#ffd14a;text-shadow:0 0 40px rgba(255,180,40,.7)}
+.ann{min-height:40px;text-align:center;font-size:30px;font-weight:900;letter-spacing:.06em;color:#ffe08a;text-shadow:0 0 22px rgba(255,180,40,.45)}
+.ann.fade{opacity:0;transition:opacity .6s}
+
+/* ── Training dashboard ── */
+.tr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;height:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow:auto}
+.card h3{margin:0 0 10px;font-size:11px;letter-spacing:.16em;color:#7f9ec9;text-transform:uppercase;font-weight:800}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(120,170,255,.07);font-size:14px}
+.kv b{font-variant-numeric:tabular-nums}
+.adv-pos{color:var(--good)} .adv-neg{color:var(--hot)}
+.big-dmg{font-size:46px;font-weight:900;color:#ffd14a;text-align:center;font-variant-numeric:tabular-nums}
+.inp-hist{display:flex;flex-wrap:wrap;gap:5px;font:13px ui-monospace,Menlo,monospace}
+.inp-hist span{background:#0a1a30;border:1px solid var(--line);border-radius:5px;padding:2px 6px;color:#bcd4f0}
+.muted{color:var(--dim);font-size:12.5px}
+.gap{color:var(--warn);font-size:12px;margin-top:6px}

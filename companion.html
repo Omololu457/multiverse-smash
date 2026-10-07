@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  Multiverse Smash — COMPANION SECOND-SCREEN (opt-in, read-only).
+  Loaded at  index.html?view=companion  (and served directly as /companion.html).
+  This page intentionally does NOT import game.js / the sim. It only RECEIVES a
+  read-only snapshot over BroadcastChannel("mv-companion") and renders DOM/text.
+  It can never write to game state — there is no channel back and no game module here.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multiverse Smash — Second Screen</title>
+  <link rel="stylesheet" href="./companion.css" />
+</head>
+<body>
+  <header id="bar">
+    <div id="brand">◇ SECOND SCREEN</div>
+    <nav id="tabs">
+      <button class="tab" data-panel="movelist">Live Move List</button>
+      <button class="tab" data-panel="training">Training Dashboard</button>
+      <button class="tab" data-panel="spectator">Spectator</button>
+    </nav>
+    <div id="link" title="Connection to the main game window">
+      <span id="dot"></span><span id="linktext">waiting…</span>
+    </div>
+  </header>
+
+  <main id="stage">
+    <section id="panel-movelist" class="panel"></section>
+    <section id="panel-training" class="panel"></section>
+    <section id="panel-spectator" class="panel"></section>
+    <div id="idle">
+      <div class="idle-big">Waiting for the match…</div>
+      <div class="idle-sub">Start or continue a game in the main window. This display updates automatically.</div>
+    </div>
+  </main>
+
+  <script type="module" src="./companion.js"></script>
+</body>
+</html>

@@ -1,342 +1,260 @@
 ========================================================================
-JUICE PASS — speed lines / KO hang-time / ultimate panel-crop — 2026-09-21
-Four stages of purely-visual game-feel. NO balance/damage changes anywhere;
-combat.js UNTOUCHED; determinism 9/0. All in game.js (render + camera only).
+MULTIVERSE SMASH — IMPORTANT UPDATES (changelog)
+Newest first. "★" = landed on main. Dates are when the work was done.
 ========================================================================
 
-STAGE 0 — IMPACT FRAME REBUILD: CONFIRMED already complete (the JJK "Black
-  Flash" sprite colour-swap, committed @b977b1bd). Re-verified frame-exact:
-  test:impact-frame 18/0. No rebuild needed.
-
-STAGE 1 — MANGA SPEED LINES on a dash/rush. Radiating white motion-streaks
-  fan out BEHIND a fighter during a fast dash-in or rush attack — a classic
-  manga speed-line burst. Reuses the existing behind-body aura render path +
-  ctx.stroke primitives (drawn in renderHybridFighter, behind the sprite).
-  Gated on the real dash state (fighter.dashTimer) OR a fast forward lunge
-  (|vx| ≥ threshold); suppressed while hit/launched/downed (that's knockback,
-  not a rush) and during a cinematic freeze. Density/length/opacity scale with
-  speed. Distinct from the impact frame (a hit-CONNECT recolor) — speed lines
-  play during MOVEMENT, so they never collide. Verify: test:speed-lines 7/0
-  (real dash trips the gate on goku + sasuke; standing = off; near-white streak
-  pixels 3→476 / 4→748). Shots SPEEDLINES_goku.png / _sasuke.png.
-
-STAGE 2 — KO HANG-TIME. On a normal (non-Brutality) match-ending KO, a brief
-  HARD freeze-frame (5f, 0 motion) holds the finishing blow BEFORE the ragdoll,
-  then the EXISTING slow-mo hang plays. Checked the prior KO work first
-  (KO_SHAKE + KO_SLOWMO + KO_HANG_TICKS): the freeze is placed at the top of
-  updateBattle and the slow-mo timer isn't consumed until it clears, so the two
-  DON'T double-stack (hitstop-beat → then slow-mo, not one long ramp). Short —
-  a beat, not a freeze system. Verify: test:ko-hangtime 7/0 (freeze arms to max,
-  is ≤6f, slow-mo held at 30 during the freeze then plays after). Shot
-  KO_freeze_frame.png (the held finishing frame + K.O. stamp + Black-Flash cast).
-
-STAGE 3 — ULTIMATE PANEL ZOOM-CROP. At the instant an ultimate CONNECTS, a
-  HARD one-frame snap to a tight crop (~1.6 zoom) — a manga-panel hard cut,
-  distinct from the eased ultimate punch-in — held ~12f, then a short ramp back
-  to camera-max so the two-shot eases out (the pull-back). Detected directly off
-  a fighter's hitstop rising-edge into ultimate tier (≥24; every other tier ≤16),
-  independent of the combo counter (which some ults don't increment). Only pins
-  the ZOOM (x/y stays with the normal follow → can't shove the view off-world);
-  suppressed during Brutality / cinematic freeze. Layered on top of, not fighting,
-  the existing eased camera. Verify: test:ult-zoomcrop 6/0 (fires on ippo +
-  bardock; single-frame Δzoom +0.67 / +0.66 to ~1.6 — a hard snap, not a ramp).
-  Shots ULTCROP_ippo.png / ULTCROP_bardock.png.
-
-STAGE 4 — REGRESSION: determinism 9/0 · combo-standard 227/0 · impact-frame
-  18/0 · brutality 47/0 · camera-ultrawide 9/0. combat.js UNTOUCHED; the added
-  game.js lines have ZERO writes to damage / combo / health / hitstop state
-  (render + camera fields only; determinism-safe).
 ========================================================================
-
+CLONE-CHOREOGRAPHY PASS — 2026-10-07   (branch naruto-clone-choreography; NOT merged)
+VERIFIED-THROUGH-REAL-INPUT vs logic-verified is called out explicitly below.
+========================================================================
+  S1 — "," PERSISTENT-CLONE REGRESSION FIXED (commit 88b83c38). Real cause was commit 44281177
+    narrowing the "," gate to a hardcoded LEGACY_CLONE_KEYS={boruto,hiruzen,madara} (NOT 8b245def,
+    which only removed naruto by design). Restored the isCloneCapable(p1) gate. VERIFIED (tests):
+    hashirama-wood-clone 13/0 (was 5/8), minato own routes pass, naruto choreography 11/0. The stale
+    naruto persistent-"," tests (naruto.test 13 fails; 4 "naruto:" sub-cases in minato-clone-routes)
+    assert naruto's INTENTIONALLY-REMOVED "," clones — they fail identically on main; naruto's clones
+    come from choreography by design.
+  S2 — TWO KEYBOARDS: diagnosed NOT feasible (browser+Electron merge all keyboards; node-hid/
+    uiohook-napi/IOHIDManager need native builds + OS permissions + break fresh npm install) → NOT
+    implemented (commit 502c59c6). Instead: corrected a drifted CONTROL_REFERENCE so the Controls
+    overlay shows the REAL P1/P2 bindings + clone/summon/select; guarded the "/" collision (P1 clone-
+    swap vs P2 block). Mixed kb+gamepad 2P CONFIRMED (12/0). Single-keyboard 2P uses disjoint clusters;
+    non-NKRO ghosting flagged (why P3/P4 are pad-only) → recommend P2-on-gamepad.
+  S3 — REAL-INPUT HARNESS + jump-collision fix (commit 0aa77aff). ★ Real keystrokes revealed the
+    ↓↓↑ summon motion ends in UP (=jump): "hold Up then Special" LEAPT ~340px and often failed to
+    summon (the direct-trigger test hooks hid this). Fixed with a determinism-safe clone-summon jump
+    grace (getFighterInput _noJumpUp → mapInputToVirtualKeys withholds the up vKey). VERIFIED THROUGH
+    REAL KEYSTROKES (test:clone-realinput 25/0): all 9 full-kit chars summon with jumpedPx=0; tobirama
+    SELECT plays; sasuke/obito fire; naruto Down+Special = Barrage. Normal jump intact (ichigo-dirdash
+    16/0).
+  S4 — PER-CHARACTER kits VERIFIED: tobirama/minato/hashirama/hiruzen/kakashi/itachi/madara/boruto/
+    pain 23/0 each (all 6 sequences + clones render as the REAL character sprite via renderHybridFighter
+    + formation + select routing); sasuke 8/0, obito 11/0 (light kits). Screenshots CLONE_<char>_*.png
+    (e.g. CLONE_MINATO_formation.png shows pixel-identical real-Minato clones). NOTE: the per-sequence
+    plays are LOGIC+render verified (clone_choreo_char hooks); the real-INPUT path is verified for the
+    summon/select (S3).
+  S5 — DISTINCTNESS AUDIT built (test:clone-distinctness, commit e0de67e1) and currently FAILS BY
+    DESIGN (16 flags): kits are unique in MATERIAL (distinct fx colours + character-specific clone
+    action poses) but STRUCTURALLY near-identical reskins — 8/9 full-kit chars share the clone-count
+    profile 3-2-3-1-1-4; minato≡kakashi≡itachi and madara≡pain are 6/6 identical. ★OUTSTANDING: the
+    structures still need differentiating per canon (clone counts/formations/timings/effects) — NOT
+    done this pass (not rushed into breakage; the kits WORK and RENDER, this is a polish gap).
+  S6 — NARUTO BODY-STEAL (steal opponent's body → transform → spawn copies → all use their signature
+    move): does NOT exist and was NOT built — gated on "everything above verified", and S5 shows the
+    kits are not yet distinct. Reuse targets (Chrollo applySkillHunter, ghostface _idSwap) confirmed
+    present for a future build.
+  S7 — REGRESSION all green: determinism 9/0, combo-standard 230/0, clone-realinput 25/0, pain 42/0,
+    naruto-barrage 11/0, naruto-summon-select 18/0, hashirama-wood-clone 13/0, clone-swap 13/0,
+    controls-help 5/0, gamepad-ingame 12/0.
 
 ========================================================================
-PLAYTEST FIXES — MOVE LIST stuck/scroll + arcade energy drain — 2026-09-20
-Two bugs reported by playtesters. Purely UI + one mode-setup line; combat.js
-UNTOUCHED; determinism unaffected. Committed + pushed origin/main @8f314997.
+VERIFICATION PASS — 2026-10-01
 ========================================================================
-
-BUG 1 — MOVE LIST screen: BACK unclickable (players STUCK) + no scrolling.
-  The MOVE LIST ("Fighters, moves, combos & controls") screen lists ~103
-  fighters in a column far taller than the viewport. Its off-screen rows
-  overlapped the BACK / CONTROLS buttons, and the click handler tested the
-  fighter rows BEFORE the buttons — so clicking BACK hit an off-screen row
-  instead and did nothing (keyboard Esc still worked; only MOUSE users were
-  stranded). FIX: (a) hit-test the buttons FIRST, and only make fighter rows
-  clickable within the scrolled viewport; (b) the fighter list AND the kit
-  panel now SCROLL (mouse wheel, with scrollbars) so the whole roster and a
-  character's full move list are reachable.
-  Files: ui.js (viewport/scroll helpers + clipped list + scrollable kit
-  panel), game.js (scroll state + wheel routing + buttons-first hit-test).
-
-BUG 2 — Arcade: "lose all your energy and can't regain it."
-  applyArcadeFight() never cleared matchConfig.modifiers (unlike
-  applyTowerFloor, which assigns them per floor), so a leftover match
-  modifier — most damagingly a Tower floor's "Meter Drain" (−0.5 energy/
-  frame, vs +0.06/frame regen) — PERSISTED onto every arcade fight and
-  pinned the player's meter at 0. Arcade is designed to run clean. FIX: one
-  line — applyArcadeFight now clears matchConfig.modifiers for every fight.
-  Proven: with the drain set, energy fell −50..−75 in ~2s and stuck; after
-  the fix it clears and regenerates normally.
-
-VERIFY: new test:movelist-arcade-fix 12/0 (real BACK click through the
-  canvas, wheel scroll, arcade modifier-clear + energy regen). Regression:
-  determinism 9/0 · combo-standard 227/0 · arcade 25/0 · tower 38/0 ·
-  controls-help 5/0.
+  Audited the 3 "remaining" branches (Naruto clone choreo / Omololu / Pain
+  Brutality). FINDING: all 3 were ALREADY merged + pushed to main — the
+  "NOT yet merged" status was stale. git merge-base --is-ancestor confirms
+  8b245def (naruto), b8cd4d79 (omololu), 29afd617 (pain) are all ancestors of
+  main; main == origin/main (a5636c5d); the stale local branches are 0-ahead.
+  So nothing to merge/push — instead VERIFIED each feature live on main with
+  real headless boots + screenshots (see each entry below).
+  Regression on main: determinism 9/0 · combo-standard 230/0 (no regressions).
+  FRESH-CLONE PROOF: cloned pushed main into /tmp, clean npm install (root +
+  electron), all 3 chars boot & pass from the clone (naruto 11/0 · omololu-kit
+  19/0 · pain-execute 21/0), and `npm run desktop` (Electron) launched a real
+  live match (electron/shots/poc_battle.png). NOTE: electron's stock installer
+  left an incomplete binary (extract-zip skipped the .app Frameworks); a plain
+  `unzip` of the cached electron zip fixed it — an env/installer quirk, not a
+  repo bug.
 ========================================================================
 
 
 ========================================================================
-IMPACT FRAME — REBUILT as JJK "BLACK FLASH" sprite colour-swap — 2026-09-20
-Replaces the earlier screen-desaturation attempt below (@56dd7103) with the
-ACTUAL anime technique: a per-SPRITE palette swap at the moment of impact.
-Still PURELY VISUAL — zero damage / balance / combo-scaling / hitstop
-changes; combat.js UNTOUCHED.
+NARUTO CLONE CHOREOGRAPHY — 2026-09-30   ★ MERGED TO MAIN
 ========================================================================
-
-WHY THE REBUILD
-  The screen-flash version fired correctly but was a 2-6 frame full-screen
-  effect — nearly impossible to catch in a live/human-timed screenshot, so
-  it "looked like nothing". Diagnosis (Stage 1): NOT a bug (the impactFrame()
-  hook returned a live marker on every real hit; it just needed a frame-exact
-  capture to see). So the trigger stayed; the TECHNIQUE was replaced.
-
-WHAT IT DOES NOW
-  At hit-connect BOTH the struck + striking fighters' SPRITES snap (2-5f) to
-  a stark, rough "Black Flash" recolor: a hard high-contrast CHARCOAL body
-  (ctx.filter grayscale + crushed contrast — reads on any character's palette)
-  with a flat cursed-RED silhouette (#c8102e — the exact Black-Flash red from
-  Yuji's ultimate, yujiUltimateCinematic.js) washed over it. Then back to
-  normal, layered on the existing hitstop freeze. A stark POP, not a wash.
-
-ESCALATION (visual only) — level = min(3, comboTier + hit-weight), where
-  comboTier mirrors the 5 / 9 / 15 combo-counter tiers and heavier hits
-  (heavy/special/ultimate) bump a notch. Higher level → deeper contrast,
-  darker, redder wash, and longer hold (2f base → 5f at 15+). comboCounter
-  is READ-ONLY.
-
-GATED OFF during a Brutality — the trigger and the per-frame tick both bail
-  on brutalityState.active, so the finisher palette never clashes.
-
-REUSES EXISTING INFRA (no new render primitives): the sprite.js spriteFilter
-  ctx.filter path — the SAME one Goku's form tints (GOKU_FORM_TINTS) and
-  Frieza Golden/Black use — plus the source-in silhouette mask from the
-  ghostface identity-swap tint (idTint), for the flat red overlay.
-
-IMPLEMENTATION — game.js + sprite.js. triggerImpactFrame (fired on the combo
-  rising-edge in updateComboDisplay) stamps a render-only fighter._impactFlash
-  marker on both fighters; sprite.js reads it to pick IMPACT_FLASH_TINTS[level]
-  + the red overlay while live; _tickImpactFlash counts it down each render
-  frame. Determinism-safe: the field is render-only (the determinism harness
-  snapshots only x/y/health/energy). NO writes to damage / combo-scaling /
-  comboCounter / hitstop state; combat.js UNTOUCHED.
-
-VERIFY (Stage 5, FRAME-EXACT — not live) — rewritten harness/impact_frame_live
-  .mjs (test:impact-frame 18/0): marker lands on BOTH fighters, the recolor
-  filter actually applies (reads _lastSpriteFilter), tier + combo escalation,
-  the brutality-null gate, and on-canvas pixel proof the fighter band goes
-  darker + red-dominant. New harness hook setImpactFlash(level,dur) holds an
-  exact level long enough to screenshot a specific frame.
-REGRESSION: determinism 9/0 · combo-standard 227/0 · brutality 47/0 ·
-  hitstop 23/0 · combat-fx-stage1/2 10/0 · combo-starter-scaling 28/0 ·
-  goku-form-tint 10/0 · ghostface-exe-idswap 17/0 · anim-transition-ghost 8/0 ·
-  frieza 31/0. (chrollo-tint 7/2 = PRE-EXISTING, unrelated unlock-mechanic.)
-SCREENSHOTS: harness/shots/IMPACT_low_combo.png (level 0, single hit) ·
-  IMPACT_high_combo.png (level 3, combo 18) — both clearly red-black.
-========================================================================
+  Authored clone-choreography engine + "summon-then-choose" flow. Clone ghost
+  bodies render through the EXACT renderHybridFighter path as real Naruto
+  (pixel-identical — no degraded clone sprite). Frame-driven / no RNG → LAN-safe.
+  ★ MERGED: 8b245def is an ancestor of main; merged as the fuller "11 chars"
+    engine via merge commit f16d9de4. origin/main == local main (a5636c5d) —
+    already pushed. The earlier "NOT yet merged / broken-then-fixed" status was
+    STALE memory, not a real unmerged branch.
+  ★ VERIFIED LIVE ON MAIN (2026-10-01, real headless boot + screenshot, not just
+    pass-counts): Uzumaki Barrage fires from a SINGLE Down+Special; the
+    summon→select window routes all 5 directions (N→Barrage, D→Barrage,
+    B→Shadow Clone Shuriken, U→Substitution Escape, F→Clone Flank Strike); clone
+    bodies confirmed rendering as real Naruto in NARUTO_BARRAGE_clones.png.
+    test:naruto-barrage 11/0 · test:naruto-summon-select 18/0.
+    Also re-verified from a FRESH CLONE of pushed main: 11/0.
 
 
 ========================================================================
-IMPACT FRAME (purely visual) — 2026-09-20   [SUPERSEDED by the rebuild above]
-Anime-style high-contrast desaturation flash at the instant a hit
-connects, layered ON TOP of the existing hitstop freeze (not a
-replacement). PURELY VISUAL — zero damage / balance / combo-scaling /
-hitstop changes; combat.js UNTOUCHED. Committed + pushed origin/main
-@56dd7103 (comparison screenshots @b0efd3df).
+JESUS — new additive fighter — 2026-09-25   ★ on main (e07cb2a8, a3b176a7)
 ========================================================================
-
-WHAT IT DOES
-  At hit-connect the scene briefly desaturates toward stark B&W with an
-  additive white flash centred on the impact point, then snaps back to
-  colour as hitstop ends. Drawn OVER the scene/fighters but UNDER the HUD
-  (HP bars + combo counter stay in colour). Layered WITH the existing
-  per-tier hit-spark particles — never a replacement.
-
-BASE INTENSITY — scales by hit tier (keyed off the hitstop weight):
-  light 0.34 · heavy 0.50 · special 0.64 · ultimate 0.80 desaturation;
-  duration 2–3 frames. A jab reads as a quick snap; an ult is cinematic.
-
-COMBO ESCALATION (visual only) — mirrors the 5 / 9 / 15 combo-counter
-  colour tiers. As the live combo climbs, each subsequent hit in the same
-  combo flashes longer + more desaturated, and at 9+ / 15+ a ring of
-  radiating white flash-lines streaks from the impact (denser + longer at
-  15+). Combo hit 1 = base only; 15+ = noticeably more dramatic.
-
-GATED OFF during a Brutality — both the trigger and the render bail on
-  brutalityState.active, so it never clashes with a finisher.
-
-IMPLEMENTATION — game.js ONLY, +93 lines, 100% additive. triggerImpactFrame
-  only READS comboCounter + hitstop and sets a render-only impactFX object
-  (fired on the combo rising-edge in updateComboDisplay); _drawImpactFrame
-  renders it and ticks only its own timer, with a deterministic seed (no
-  Math.random). NO writes to any damage value, combo-scaling constant,
-  comboCounter, or hitstop state.
-
-VERIFY — new harness/impact_frame_live.mjs (test:impact-frame 15/0): base
-  single light hit, tier scaling light<heavy<special, combo sweep
-  1/5/9/15, and the brutality-null gate. Render-only → determinism 9/0.
-REGRESSION: determinism 9/0 · combo-standard 227/0 · brutality 47/0 ·
-  hitstop 23/0 · combat-fx-stage1 10/0 (3× stable) · combat-fx-stage2 10/0 ·
-  combo-starter-scaling 28/0.
-SCREENSHOTS: harness/shots/IMPACT_low_combo.png · IMPACT_high_combo.png
-  (combo 1 base vs 15+ escalated comparison).
-========================================================================
+  Additive JUS-sheet fighter, mechanics complete: base kit + 6 specials
+  (Lion / Holy Fire / Faith Barrier / Ascension / Blessed Roar w/ lifesteal /
+  Holy Lightning) + procedural ultimate "Blessed Energy". Universe "divine",
+  top-tier stats, 3 palettes, credited, NOT brutality-eligible.
+  ★ Root-cause fix: Jesus wasn't rendering in-match because he was missing
+  from SPRITE_MANIFEST (and earlier, a stale index.html cache-bust hash).
+  Pending: bespoke effect art only.
 
 
 ========================================================================
+THE NEXUS FRACTURE — full Story mode — 2026-09-25   ★ MERGED TO MAIN
+========================================================================
+  Data-driven cutscene engine (beat arrays; reuses createFighter / camera /
+  renderHybridFighter — NO new art) + a complete story:
+  Prologue → Act 1 → Act 2 (The Shrinking Ground) → Act 3 (Convergence) →
+  Epilogue / post-credits = 129 beats, 17 real fights (incl. final boss).
+  + Spoken TTS voice for all cutscene dialogue (macOS `say`, 112 clips,
+    per-character voice, free/offline; +.m4a MIME on dev + electron servers).
+  ★ Key fixes along the way: story-fight victory now CONTINUES the scene
+    (was dropping to the title screen); cutscene pause + single-KO boss flag.
+  Commits 516c8648 (engine) → 32f01f0d (Act3/Epilogue) → aa72b011 (TTS).
+
+
+========================================================================
+OMOLOLU — self-insert fighter (full build) — 2026-09-22   ★ MERGED TO MAIN
+========================================================================
+  New playable fighter = Obito sprite recolor (dark-brown skin / matte-black
+  hair+outfit). ★ MERGED: b8cd4d79 is an ancestor of main (a5636c5d),
+  already pushed to origin. Highlights:
+  - TWO domains as ultimate variants: "Recursive Cadence" (Down+U, judges the
+    victim on a WASD cadence) + "The Genesis Threshold" (neutral+U, Gojo-style
+    freeze w/ procedural Ankara backdrop).
+  - Full Obito kit ported copy-only (shuriken / rod / giant zoning, Kamui
+    warp/intangibility/dimension, rekka) + new "Flash Time" slow.
+  - NEW ult directions later added: Up+U "Drone Swarm" (4 drones) and
+    Down+U "Transformation Jutsu" (copy the opponent's full kit for 15s).
+  - 159 per-opponent matchup trash-talk voice clips (77 "VS <char>" lines).
+  - 2 skins (Web-Weave Suit). All source engines (obito/naoya/chrollo/killua)
+    left UNTOUCHED — copy-from only.
+  ★ VERIFIED LIVE ON MAIN (2026-10-01, real boot + screenshots): both domain
+    ultimates fire — Recursive Cadence (Down+U) 18/0; The Genesis Threshold
+    (neutral+U) 12/0 with the IMG_3608 photo backdrop + WASD rhythm prompt
+    (OMOLOLU_genesis_domain.png). Ported Obito kit + Flash Time 19/0 — Flash Time
+    slows the opponent (scale 0.35, frame-skip observed), Kamui warp/intangibility/
+    Dimension void-swap (foe frozen, OMOLOLU_kit_kamuidimension.png) + rod rekka all
+    fire; U stays Domain (not Kamui). Web-Weave skin renders a clean bright-white
+    suit 7/0 (OMOLOLU_skin_attack.png). Re-verified from a FRESH CLONE: kit 19/0.
+
+
+========================================================================
+RICK PRIME — Temporal Rewind + Energy Siphon — 2026-09-22
+========================================================================
+  High-risk match-state rewind ultimate: ring-buffer snapshots (sample/15f,
+  20s window), restore ~10s prior + timer bonus, LAN-safe (no gameRng),
+  refuses mid-cinematic. Plus Energy Siphon + pause. test:rickprime-rewind
+  18/0 (bit-identical determinism). LIMITATION: forms/transforms not reverted.
+
+
+========================================================================
+ANNOUNCER VOICE SYSTEM — 2026-09-22
+========================================================================
+  Generic announcer: 227 real-transcribed clips aligned to 62 script sections
+  → 65 pools. Single-channel announce() with anti-stomp gap + priority bypass.
+  Wired live: vs / fight / combo milestones / low-health / KO / perfect /
+  victory / char-lock / ult-activate / screen + mode-card + menu-hover entries.
+  Layered over existing tones, not replacing them.
+
+
+========================================================================
+LAN MULTIPLAYER v1 — 2026-09-21   ★ on main (PR #8 merged)
+========================================================================
+  Additive, opt-in 2-device LAN play (all gated behind netMatch.isActive() →
+  standalone stays byte-identical). WebSocket host/relay + 3 ONLINE screens,
+  delay-lockstep, host/join UI with a JOIN CODE, game served on the LAN
+  (0.0.0.0). Proven: 2 browsers → same seed, bit-identical shared frames.
+  + On-screen touch controls + gamepad special/ultimate parity.
+  + Main-menu ONLINE button opens the real host/join flow (665fd5ce).
+  NEXT: gamepad online input, networked char-select, rollback.
+
+
+========================================================================
+BRUTALITY SYSTEM — finishers + impact cinematics
+========================================================================
+  - Pain Brutality finishers (2026-09-26) ★ MERGED TO MAIN: 29afd617 is an
+    ancestor of main (merge 45164fde), + follow-up 0c48b828 restoring Black Rod
+    & Summoning → 5 finishers total. Pushed (origin/main == a5636c5d).
+    ★ VERIFIED LIVE ON MAIN (2026-10-01, real boot + screenshots): all 5 fire +
+      render via the gore engine — gravity trio TORN ASUNDER (painAlmightyPull,
+      bisect) / CRUSHED (painAlmightyPush, crush) / SHATTERED FRAME
+      (painSuperPushGround, dice) + restored BLACK ROD (dismember) / SUMMONING
+      (beam). Below-HP execute exception works: on an execute-sliver foe Almighty
+      Push→CRUSHED and Almighty Pull→TORN ASUNDER both KO + stamp the kill move,
+      while ABOVE the sliver they stay 0-damage (invariant intact). Super Push
+      lands the fatal blow organically → SHATTERED FRAME. Shots:
+      PAIN_shattered_frame.png, PAIN_EXECUTE_torn_asunder.png, PAIN_heavy_black_rod.png.
+      test:pain-brutality 13/0 · test:pain-execute-finishers 21/0. Fresh clone: 21/0.
+  - Impact Hit (obito prototype): cinematic KO lead-in layered on Brutality
+    infra (black→red→white cascade + pose skeleton + held zoom). combat.js
+    untouched.
+  - Brutality blood+wound escalation ★ on main (@14824897): ~2× blood,
+    bigger splat, growing ground pool, layered wound-core cross-section.
+  - Airborne-KO capture fix ★ on main (@a1904f24): fixed missing split halves
+    on an airborne-KO brutality.
+
+
+========================================================================
+JUICE PASS — speed lines / KO hang-time / ult panel-crop — 2026-09-21  ★
+========================================================================
+  Purely-visual game-feel, combat.js UNTOUCHED, determinism-safe (@06ab54d2):
+  - Manga SPEED LINES behind a fighter on a fast dash / rush.
+  - KO HANG-TIME: 5f hard freeze on the finishing blow before the slow-mo.
+  - ULTIMATE PANEL ZOOM-CROP: 1-frame hard snap to a tight crop on ult connect.
+
+
+========================================================================
+IMPACT FRAME — JJK "Black Flash" sprite colour-swap — 2026-09-20  ★
+========================================================================
+  On hit-connect both fighters' sprites snap 2-5f to charcoal + cursed-red
+  silhouette (reuses existing ctx.filter tint infra). Render-only, gated off
+  during Brutality. @b977b1bd (replaced the earlier screen-desat version).
+
+
+========================================================================
+PLAYTEST FIXES — MOVE LIST + arcade energy — 2026-09-20   ★ (@8f314997)
+========================================================================
+  - MOVE LIST screen: BACK was unclickable (off-screen rows swallowed the
+    click); mouse users were stranded. Fix: hit-test buttons first + make the
+    list and kit panel scrollable (wheel + scrollbars).
+  - Arcade: leftover Tower "Meter Drain" modifier persisted onto arcade fights
+    and pinned energy at 0. Fix: applyArcadeFight now clears matchConfig
+    modifiers every fight.
+
+
+========================================================================
+INPUT — stuck-key / focus-loss fix — 2026-09-20   ★ (@cc1bfc6b)
+========================================================================
+  Release held keys on focus loss — kills the "infinite dash" stuck-key bug.
+  Plus roster-wide BACKDASH (away-tap now retreats instead of dashing forward).
+
+
+================
+========================================================
 LARGE MULTI-STAGE PASS — 2026-09-17
-Five tracks. No sim/timing/balance changes except the new moves in
-Track B (in-band costs/damage only). Staged for review — NOT committed.
-Precondition met: prior consolidation pass merged (ffc96a48 Combo Trials
-/ Frame Advantage / Daily Challenges + BETA_SETUP), main clean; baseline
-determinism 9/0 · combo-standard 227/0 before starting.
 ========================================================================
+  A: re-verified Miles / Kurapika render fine.
+  B: 6 new specials for narrow kits.
+  C: Brutality for 6 more chars (sasuke/itachi/vegeta/pain/byakuya/yamamoto).
+  D: cleaned up long-flagged pre-existing test failures.
+  E: camera ultrawide edge-case fix.
 
-────────────────────────────────────────────────────────────────────────
-TRACK A — RE-VERIFY MILES / KURAPIKA (real player path)   ✅ FOUND FINE
-────────────────────────────────────────────────────────────────────────
-Drove the REAL character-select (showCharSelect → hover → confirmCharPick)
-and a REAL match, then played BOTH characters through idle / walk / jump /
-light / heavy with real key input, waiting for the sprite sheets to decode.
-RESULT: miles and kurapika render FULLY OPAQUE in every state; each state
-binds its correct per-action sheet (miles_idle/run/jump/light/heavy,
-kurapika_idle/walk/leap/light/heavy). 12/0, zero JS errors.
-  ★ The "box / transparent" symptom I first reproduced was a HARNESS-PATH
-    artifact: the confirmCharPick shortcut sets matchConfig.p1CharKey but
-    NOT p1Char, so createFighter built a char with hasSprites=false → the
-    "?" placeholder box. Proven identical on GOKU through that same shortcut
-    → NOT a miles/kurapika bug. The real select path (_selectCharacterKey)
-    sets p1Char, so a real player gets proper opaque sprites (confirmed).
-  NO production code changed. Screenshots: harness/shots/MILES_* ,
-  KURAPIKA_* (idle/walk/jump/light/heavy + charselect). test:miles-kurapika-reverify.
-
-────────────────────────────────────────────────────────────────────────
-TRACK B — ONE NEW SPECIAL FOR 6 NARROW KITS               ✅ SHIPPED
-────────────────────────────────────────────────────────────────────────
-Each fills the character's biggest gap, reuses EXISTING sprite art (via
-_spriteCastMove), in-band cost/damage, canon-grounded. All 6 verified live
-(harness/narrow_kit_specials_live.mjs 20/0 — energy spent by the exact
-cost + the gap-filling effect actually happens).
-
-  • JASON — "Machete Throw" (Down+Special). Zoning: the roster-slowest
-    slasher had NO ranged answer. Thrown steel machete projectile
-    (cost 30, dmg 86). Reuses the jRelentless heavy-swing pose (blade proc.).
-  • ALT_SUKUNA — "Cursed Repel" (Back+Special). His first DEFENSIVE option
-    (was pure offense): a wide caster-centred cursed-energy burst + i-frames
-    (get-off-me reversal; cost 30, dmg 70, aoe). Reuses altSukunaCleave1 pose.
-  • MIWA — "Iai Flash-Step" (Back+Special, grounded). First REACTIVE defence:
-    a fast backward flash-step with escape i-frames (cost 18). Reuses dash.
-  • IPPO — "Slip Counter" (Back+Special). First DEFENSIVE special (5 offense
-    specials, none defensive): startup slip i-frames → counter-hook
-    (cost 26, dmg 82). Reuses the ippoHook art.
-  • GHOSTFACE_BILLY — "Stalker's Slip" (Back+Special). First DEFENSIVE option:
-    evasive backstep + i-frames + vanish shimmer (cost 20). Reuses dash.
-  • RICK_PRIME — "Portal Skyshot" (Up+Special) NEW anti-air launcher
-    (cost 30, dmg 100). ★ Also fixed that rickPrime was NOT in the special
-    dispatch at all (fell to executeFallbackSpecial) — its authored
-    primePortalBlast never fired; now routed on neutral. Reuses Rick's
-    (recolored) up-attack / portalTravel poses.
-FILES: abilities.js (6 fire fns + dispatch branches + rickprime case),
-  characters.js (jason.macheteThrow + rickPrime.primeSkyshot metadata).
-REGRESSION: determinism 9/0 · combo-standard 227/0 · affected kits all green
-  (jason 30 · ippo 38 · miwa 25 · alt-sukuna 21 · vegeta 72 · pain 42 ·
-   byakuya 32 · yamamoto 17).
-
-────────────────────────────────────────────────────────────────────────
-TRACK C — BRUTALITY FOR 6 MORE CHARACTERS                 ✅ SHIPPED
-────────────────────────────────────────────────────────────────────────
-Added 6 adult, canonically-lethal, NON-excluded, not-yet-covered chars
-(now 23 eligible). Hard-exclusion list respected exactly (naruto/boruto/
-kiba/gohan/gon/killua/nezuko/ben10/albedo/saiki/l_ryuuzaki/light untouched).
-3 per-move finishers each, keyed to REAL already-stamped move keys (base
-normals via currentMove, specials via createAttackFromMove, projectiles via
-spawnProjectile name) — same discipline as the toji/frieza/hisoka/baki
-tables (special+projectile, no ult stamps added → zero damage-code edits).
-Reuses the proven sprite-bisection + bone + blood render.
-  • SASUKE   — dashStrike/CHIDORI(chidoriKoiten)/SHURIKEN STORM(sasukeShuriken)  [blue Chidori palette]
-  • ITACHI   — SHARINGAN CUT(heavy)/AMATERASU(itachiFireball)/TOTSUKA BLADE(susanooSword)
-  • VEGETA   — GALICK GUN/FINAL FLASH/BIG BANG  (3 ki-beam projectiles)
-  • PAIN     — BLACK ROD(heavy)/SUMMONING(painDederaBird)/ALMIGHTY PUSH(painSuperPushGround)
-  • BYAKUYA  — SENKA(light)/SENBONZAKURA(heavy)/SCATTER(byakuyaPetal)  [pink-petal palette]
-  • YAMAMOTO — JOKAKU ENJO(yamamotoStab)/RYUJIN JAKKA(yamamotoBeam)/ENNETSU JIGOKU(heavy)  [ember palette]
-FILES: game.js (BRUTALITY_ELIGIBLE +6, GORE_LIGHTNING palette, 6 finisher
-  tables). Extended harness/brutality.test.mjs (ELIGIBLE + TABLE).
-VERIFY: test:brutality 47/0 — 69/69 table entries resolve, and ALL 18 new
-  finishers FIRE live (correct signature + sprite-bisection captured).
-  Render-only / KO-triggered → determinism 9/0 (zero sim impact).
-
-────────────────────────────────────────────────────────────────────────
-TRACK D — CLEAN UP LONG-FLAGGED PRE-EXISTING FAILURES     ✅ CLEAN BASELINE
-────────────────────────────────────────────────────────────────────────
-  D1 — Demon Slayer energy labels (shinobu/inosuke/nezuko): ALREADY CORRECT.
-     shinobu="INSECT BREATHING", inosuke="BEAST BREATHING", and nezuko
-     correctly ="BLOOD DEMON ART" (she's a DEMON, not a breather — the
-     universe fallback is deliberately overridden per-key). test:energy-labels
-     11/0. No stale text found; no change needed.
-  D2 — Roster/unlock count drift (test:unlocks): FIXED. The assertion
-     hardcoded "22 unlocked / 22 locked"; the roster has since grown to
-     79/20. Rewired the check to the DERIVED EXPECT_UNLOCKED/EXPECT_LOCKED
-     lengths (already computed from characters + UNLOCK_CONDITIONS), so it's
-     roster-drift-PROOF. test:unlocks 28/0 (×3 stable).
-  D3 — the other repeatedly-flagged failures:
-     • test:maki-voice / test:chrollo-voice — FATAL: missing
-       __harness.makiVoicePool / chrolloVoicePool hooks (game.js imported
-       pickMakiVoice/pickChrolloVoice but not the MAKI_VOICE/CHROLLO_VOICE
-       pools). Added the pool imports + the 2 hooks. That exposed 2 latent
-       gaps the crash had masked: (a) neither char had an INTRO_VOICE entry,
-       so their intro line never fired — wired both intro pools into
-       INTRO_VOICE (no new audio); (b) the chrollo test read a stale field
-       (`shState().ready` → the hook returns `unlocked`). test:maki-voice
-       23/0, test:chrollo-voice 19/0 (×3 stable).
-     • test:ben10-stage3 (Diamondhead "Rising Diamonds") — was FLAKY, not
-       broken: the eruption is a stationary (speed:0) hitbox that connects
-       and is CONSUMED on its first active frame vs the adjacent dummy, so
-       racing the projectile LIST was unwinnable. The hitbox genuinely works
-       — reworked the assertion to accept the projectile OR its landed effect
-       (launch/damage). test:ben10-stage3 18/0 (×3 stable).
-     • test:anim-transition-ghost — a load-CONTENTION flake (the doc named
-       madara; a later run flaked on gohan). Passes 8/0 in isolation ×3; not
-       a real bug.
-REGRESSION: no change to unlock/save logic; game.js edits are read-only
-  harness hooks + additive INTRO_VOICE entries → determinism 9/0.
-
-────────────────────────────────────────────────────────────────────────
-TRACK E — CAMERA ULTRAWIDE EDGE CASE                      ✅ SHIPPED
-────────────────────────────────────────────────────────────────────────
-At the low zoom floor on an ultrawide viewport, the visible width
-(cw/zoom) EXCEEDED worldWidth, so the world couldn't fill the screen and
-background showed PAST worldWidth at the sides (the position clamp can't
-help once the view is wider than the world). Root fix = a VIEWPORT-AWARE
-minimum zoom: minZoomForView(cw) = max(minZoom, cw/worldWidth), applied to
-the zoom clamp + both targetZoom clamps (1v1 + FFA). The view can now never
-get wider than the world. NO-OP on ≤16:9 (cw/worldWidth ≤ static minZoom).
-FILES: camera.js (minZoomForView + 3 clamp sites); game.js (camera() hook
-  exposes worldWidth for the test).
-VERIFY: test:camera-ultrawide 9/0 (3440/5120 wide → viewW clamped to exactly
-  worldWidth, edges [0, world]; 1280 unchanged @0.40; 1920 floor 0.60).
-  test:camera-ultrawide-live 4/0 (real 3440×1440 match — zoom raised to
-  1.075 so viewW=3200=worldWidth, never exceeded across movement).
-  test:stage-resize 41/0 (fullscreen/resize behavior intact).
 
 ========================================================================
-NEW / UPDATED TEST SCRIPTS (all green):
-  test:miles-kurapika-reverify 12/0
-  test:narrow-kit-specials 20/0
-  test:brutality 47/0 (extended: +6 chars, 18 new finishers)
-  test:unlocks 28/0 · test:maki-voice 23/0 · test:chrollo-voice 19/0 ·
-  test:ben10-stage3 18/0  (all fixed, ×3 stable)
-  test:camera-ultrawide 9/0 · test:camera-ultrawide-live 4/0
-FULL REGRESSION: determinism 9/0 · combo-standard 227/0 · training 33/0 ·
-  stage-resize 41/0 · anim-transition-ghost 8/0 · energy-labels 11/0 ·
-  affected kits jason/ippo/miwa/alt-sukuna/vegeta/pain/byakuya/yamamoto all 0-fail.
-Staged for review — NOT committed.
+UNDER-SKINS ROLLOUT — 2026-09-16
+========================================================================
+  Add-only Albedo / Valkyrie / AlienX skins across ~72 chars / 12 franchises
+  (13 waves). Form-aware chars re-tagged. NO kit changes.
+
+
+========================================================================
+BETA / PLATFORM
+========================================================================
+  - Beta transfer prep: 5-track branch merged to main; single source of truth.
+    Launch = `npm run desktop` (Electron) or `npm run dev` (browser).
+    Only node_modules is out of git (electron has per-OS binaries → npm install
+    fresh, never copy). No secrets in repo.
+  - Device-aware CONTROLS overlay (pause → Controls).
+  - Beta handbook regenerated from live via `npm run beta:build`.
 ========================================================================

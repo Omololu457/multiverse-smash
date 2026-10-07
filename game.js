@@ -16147,39 +16147,63 @@ function _companionButtons() {
   b["Down-Air"]  = { kb: `(air) ↓ + ${b.Heavy.kb}`, pad: `(air) ↓ + ${b.Heavy.pad}` }
   return b
 }
+// Enumerate ALL active fighters with their player slot — mode-aware (1v1 p1/p2, or FFA up to 4).
+function _companionAllFighters() {
+  if (matchConfig?.mode === "ffa" && ffaState && Array.isArray(ffaState.fighters)) return ffaState.fighters.filter(Boolean)
+  return [p1, p2].filter(Boolean)
+}
+// Per-player accent — reuse the HUD's own palette (FFA bar colors / team colors; P1 blue / P2 red in 1v1).
+function _companionAccent(f) {
+  try {
+    if (matchConfig?.mode === "ffa") {
+      if (ffaState.teamMode && f.team && typeof TEAM_COLORS !== "undefined") return TEAM_COLORS[f.team] || FFA_BAR_COLORS[(f.ffaSlot || 0) % 4]
+      return FFA_BAR_COLORS[(f.ffaSlot ?? ((f.playerNumber || 1) - 1)) % 4]
+    }
+  } catch (_) {}
+  return FFA_BAR_COLORS[((f.playerNumber || 1) - 1) % 4]
+}
 function _companionKit(f) {
   if (!f) return null
   const c = characters[f.rosterKey] || {}, kit = getKit(f.rosterKey, c) || {}
-  return { key: f.rosterKey, name: c.name || f.rosterKey, universe: c.universe || "", type: kit.type || "",
+  return { pn: f.playerNumber || 1, slot: (f.ffaSlot ?? ((f.playerNumber || 1) - 1)), accent: _companionAccent(f), team: f.team || null,
+    key: f.rosterKey, name: c.name || f.rosterKey, universe: c.universe || "", type: kit.type || "",
     kit: { passive: kit.passive, basics: kit.basics || kit.normals || [], specials: kit.specials || [],
       mobility: kit.mobility || null, ultimate: kit.ultimate || null, combos: kit.combos || [] } }
 }
 function _companionFighter(f) {
-  return f ? { key: f.rosterKey, hp: Math.max(0, Math.round(f.health)), maxHp: Math.round(f.maxHealth),
+  if (!f) return null
+  const ultReady = (f.energy >= f.maxEnergy) && !(f.ultimateCooldown > 0)
+  return { pn: f.playerNumber || 1, slot: (f.ffaSlot ?? ((f.playerNumber || 1) - 1)), accent: _companionAccent(f), team: f.team || null,
+    key: f.rosterKey, hp: Math.max(0, Math.round(f.health)), maxHp: Math.round(f.maxHealth),
     en: Math.max(0, Math.round(f.energy)), maxEn: Math.round(f.maxEnergy),
+    ultCd: Math.max(0, Math.round(f.ultimateCooldown || 0)), ultReady,
+    dashCd: Math.max(0, Math.round(f.dashCooldown || 0)), dashCdMax: Math.round(f.dashCooldownMax || 0),
     move: (f.currentAttack && f.currentAttack.name) || f._spriteCastMove || f.currentMove || null,
-    combo: f.comboCounter || 0 } : null
+    combo: f.comboCounter || 0, eliminated: !!f.eliminated }
 }
 function _buildCompanionMeta() {
-  return { k: "meta", mode: matchConfig?.mode || "versus", padLabel: padGlyphs().label,
-    buttons: _companionButtons(), p1: _companionKit(p1), p2: _companionKit(p2) }
+  return { k: "meta", mode: matchConfig?.mode || "versus", padLabel: padGlyphs().label, buttons: _companionButtons(),
+    maxPlayers: (matchConfig?.mode === "ffa" ? (typeof FFA_MAX_PLAYERS !== "undefined" ? FFA_MAX_PLAYERS : 4) : 2),
+    players: _companionAllFighters().map(_companionKit) }
 }
 function _buildCompanionSnapshot() {
+  const list = _companionAllFighters()
   const training = trainingState.enabled ? {
     enabled: true, advantage: trainingState.lastAdvantage, frameData: buildTrainingFrameData(),
     lastDmg: damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0,
     p1Inputs: getRelativeDirectionsFromHistory(p1), p2Inputs: getRelativeDirectionsFromHistory(p2)
   } : { enabled: false }
   const nowMs = (typeof performance !== "undefined" ? performance.now() : Date.now())
-  return { k: "snap", frame: globalFrameCount, roundTimer, roundNumber, roundWins,
-    combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
-    p1: _companionFighter(p1), p2: _companionFighter(p2), training,
+  return { k: "snap", frame: globalFrameCount, roundTimer, roundNumber, roundWins, mode: matchConfig?.mode || "versus",
+    combo: list.reduce((m, f) => Math.max(m, f.comboCounter || 0), 0),
+    players: list.map(_companionFighter), training,
     announcer: _lastAnnounce ? { text: _lastAnnounce.text, at: _lastAnnounce.at, now: nowMs } : null }
 }
 function _publishCompanion() {
   if (!_secondScreen || !_secondScreen.isEnabled()) return
-  if (!p1 || !p2) return                                  // only publish during a live match
-  const keys = (p1.rosterKey || "") + "|" + (p2.rosterKey || "")
+  const list = _companionAllFighters()
+  if (!list.length) return                                // only publish during a live match (any mode)
+  const keys = list.map(f => f.rosterKey).join("|")
   if (keys !== _companionLastKeys || (globalFrameCount - _companionMetaAt) > 30) {   // meta: on change + ~every 0.5s (so a late-opened companion syncs fast)
     _secondScreen.post(_buildCompanionMeta()); _companionLastKeys = keys; _companionMetaAt = globalFrameCount
   }
@@ -21159,12 +21183,15 @@ gameLoop()
       frameMsAvg: (() => { let s = 0; for (let i = 0; i < _frameMsFilled; i++) s += _frameMs[i]; return _frameMsFilled ? s / _frameMsFilled : 0 })(),
       frameMsSamples: _frameMsFilled, companionOn: !!(secondScreenEnabled && _secondScreen) }),
     companionPerf: (n = 2000) => {   // micro-bench: avg ms to BUILD one read-only snapshot (the added per-publish work)
-      if (!p1 || !p2) return { ok: false, reason: "no match" }
+      if (!_companionAllFighters().length) return { ok: false, reason: "no match" }
       const t0 = (typeof performance !== "undefined" ? performance.now() : Date.now())
       for (let i = 0; i < n; i++) _buildCompanionSnapshot()
       const t1 = (typeof performance !== "undefined" ? performance.now() : Date.now())
       return { ok: true, n, perBuildMs: (t1 - t0) / n, totalMs: t1 - t0 }
     },
+    // Read-only companion payloads for harness validation (the live publisher is gated on the toggle).
+    companionSnapshot: () => (_companionAllFighters().length ? _buildCompanionSnapshot() : null),
+    companionMeta: () => (_companionAllFighters().length ? _buildCompanionMeta() : null),
     poolResetStats: () => { poolResetStats(); return poolStats() },   // Stage 22C: reset counters before a burst measurement
     markArcadeCleared: (key = "gojo") => { setArcadeCleared(key, true); return getArcadeCleared() },   // test-only shortcut for the gate (real flow proven in arcade.test)
     victoryUnlocks: () => ({ chars: victoryState?.charUnlocks || [], leveledUp: !!victoryState?.xpResult?.leveledUp, level: victoryState?.xpResult?.level ?? null }),

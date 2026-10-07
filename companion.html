@@ -1,38 +1,33 @@
 <!DOCTYPE html>
 <!--
-  Multiverse Smash — COMPANION SECOND-SCREEN (opt-in, read-only).
-  Loaded at  index.html?view=companion  (and served directly as /companion.html).
-  This page intentionally does NOT import game.js / the sim. It only RECEIVES a
-  read-only snapshot over BroadcastChannel("mv-companion") and renders DOM/text.
-  It can never write to game state — there is no channel back and no game module here.
+  Multiverse Smash — COMPANION SECOND-SCREEN (opt-in, read-only, up to 4 player-slots).
+  Reached via index.html?view=companion&player=N[&code=XXXX]. Imports NO game.js / sim.
+  Receives a read-only snapshot over BroadcastChannel (same computer) or the LAN relay (remote devices),
+  and renders DOM/text. It can never write to game state. Responsive for desktop / iPad / phone.
 -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Multiverse Smash — Second Screen</title>
   <link rel="stylesheet" href="./companion.css" />
 </head>
 <body>
   <header id="bar">
     <div id="brand">◇ SECOND SCREEN</div>
-    <nav id="tabs">
-      <button class="tab" data-panel="movelist">Live Move List</button>
-      <button class="tab" data-panel="training">Training Dashboard</button>
-      <button class="tab" data-panel="spectator">Spectator</button>
-    </nav>
+    <nav id="players"><!-- player picker: SPECTATOR + P1..Pmax, built from the snapshot --></nav>
     <div id="link" title="Connection to the main game window">
-      <span id="dot"></span><span id="linktext">waiting…</span>
+      <span id="transport">⇄ local</span><span id="dot"></span><span id="linktext">waiting…</span>
     </div>
   </header>
 
   <main id="stage">
-    <section id="panel-movelist" class="panel"></section>
-    <section id="panel-training" class="panel"></section>
-    <section id="panel-spectator" class="panel"></section>
+    <section id="panel-focus" class="panel"></section>
+    <section id="panel-spectate" class="panel"></section>
+    <section id="panel-noslot" class="panel"></section>
     <div id="idle">
       <div class="idle-big">Waiting for the match…</div>
-      <div class="idle-sub">Start or continue a game in the main window. This display updates automatically.</div>
+      <div class="idle-sub">Start or continue a game in the main window. Pick a player above to focus their move list &amp; stats, or Spectator for the whole match.</div>
     </div>
   </main>
 

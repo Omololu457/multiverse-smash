@@ -377,78 +377,81 @@ export const CHOREO_BY_CHAR = {
       proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#fde68a", w: 26, h: 26, spriteScale: 0.45 },   // gold kunai gleam
     },
     seqs: {
-      // PURE ATTACK — Multiple Marked Strikes At Once: three clones warp in and strike in a fixed order,
-      // Minato Hiraishin-spikes down. (Barrage template.)
+      // SIGNATURE (distinct): FEW clones, TIGHT warps RIGHT beside the foe, RAPID near-simultaneous rhythm
+      // (teleport feel) — the opposite of a wide staggered barrage. Clone-count profile 2-1-2-1-2-3.
+      // PURE ATTACK — Hiraishin Flash Strike. CANON: Flying Thunder God simultaneous warp-strikes. TWO clones
+      // flash in point-blank on both flanks almost at once and strike, then Minato warps in for the spike.
       pureAttack: {
-        name: "Hiraishin Barrage", cost: 40, cooldown: 90, duration: 78,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
-        beats: [
-          { at: 4,  body: "c0", action: "up",           appear: 2,  vanish: 30, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 14, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "minatoRush1",   appear: 18, vanish: 46, place: { dx: 66,  dy: -70,  face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -7 } },
-          { at: 34, body: "c2", action: "minatoRush2",   appear: 32, vanish: 60, place: { dx: -60, dy: -120, face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
-        ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 26, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
-      },
-      // GRAB — Kunai-Mark Warp Into A Physical Grab: two clones warp to either flank, seize + drag the
-      // opponent to centre, then Minato flashes in and launches. (Flank/strike template.)
-      grab: {
-        name: "Raijin Snatch", cost: 40, cooldown: 96, duration: 58,
+        name: "Hiraishin Flash Strike", cost: 38, cooldown: 88, duration: 62,
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 6, body: "c0", action: "minatoRaijin1", appear: 2, vanish: 30, place: { dx: -66, dy: 0, face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 5,  knockbackY: -2 } },
-          { at: 8, body: "c1", action: "minatoRaijin1", appear: 4, vanish: 32, place: { dx: 66,  dy: 0, face: -1 }, hit: { damage: 12, hitstun: 34, knockbackX: -5, knockbackY: -2 } },
+          { at: 2, body: "c0", action: "minatoRush1", appear: 0, vanish: 28, place: { dx: -46, dy: -6, face: 1  }, hit: { damage: 15, hitstun: 28, knockbackX: 4,  knockbackY: -8 } },
+          { at: 6, body: "c1", action: "minatoRush2", appear: 4, vanish: 32, place: { dx: 46,  dy: -6, face: -1 }, hit: { damage: 15, hitstun: 28, knockbackX: -4, knockbackY: -8 } },
         ],
-        finisher: { type: "strike", at: 22, action: "minatoRaijin2", teleport: { dx: -46 }, hit: { damage: 22, hitstun: 32, knockbackX: 4, knockbackY: -13 } },
+        finisher: { at: 22, action: "down_air", descendVy: 8, teleport: { dx: 10, dyAbove: 120 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
       },
-      // RANGED — Detonating Marked Kunai: clones flank the CASTER and hurl marked kunai; Minato throws a
-      // big detonating kunai. (Shuriken/projectile template.)
+      // GRAB — Rasengan Warp-Grab. CANON: a single marked-kunai warp into a point-blank Rasengan. ONE clone
+      // marks + pins the foe dead-centre; Minato warps to the mark and drives a Rasengan (hard horizontal blast,
+      // not a launch). Distinct: single centred clone (not a two-side flank), horizontal knockback.
+      grab: {
+        name: "Rasengan Warp-Grab", cost: 40, cooldown: 94, duration: 52,
+        clones: [{ slot: "c0" }],
+        beats: [
+          { at: 4, body: "c0", action: "minatoRaijin1", appear: 0, vanish: 28, place: { dx: 0, dy: -18, face: 1 }, hit: { damage: 16, hitstun: 42, knockbackX: 0, knockbackY: -2 } },
+        ],
+        finisher: { type: "strike", at: 18, action: "minatoRasengan", teleport: { dx: -28 }, hit: { damage: 26, hitstun: 28, knockbackX: 11, knockbackY: -3 } },
+      },
+      // RANGED — Marked Kunai Scatter. CANON: detonating marked kunai. TWO clones hurl marked kunai from a
+      // HIGH/LOW vertical split (not a flat flank), Minato warps among them with a big detonation. Distinct:
+      // 2 clones, vertical-stacked spawn, very fast projectiles.
       ranged: {
-        name: "Marked Kunai Volley", cost: 45, cooldown: 100, duration: 58,
+        name: "Marked Kunai Scatter", cost: 44, cooldown: 98, duration: 54,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
+        beats: [
+          { at: 4,  body: "c0", action: "minatoCloneCast", appear: 0, vanish: 26, place: { ref: "caster", dx: -34, dy: -62 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 19 } },
+          { at: 10, body: "c1", action: "minatoCloneCast", appear: 4, vanish: 30, place: { ref: "caster", dx: -34, dy: 2   }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: 0,  speed: 19 } },
+        ],
+        finisher: { type: "projectile", at: 24, action: "heavy", hit: { projectile: true, damage: 26, hitstun: 26, knockbackX: 11, knockbackY: -3, speed: 21, big: true, w: 44, h: 44 } },
+      },
+      // DEFENSIVE — Flash Guard. CANON: warp to safety. ONE clone steps in FRONT (toward the foe) to eat the
+      // hit while Minato flashes FAR behind with long i-frames + a counter kunai. Distinct: front-placed clone
+      // (not on-spot), earliest beat, longest escape distance + i-frames of the roster.
+      defensive: {
+        name: "Flash Guard", cost: 28, cooldown: 82, duration: 38,
+        clones: [{ slot: "c0" }],
+        beats: [
+          { at: 0, body: "c0", action: "minatoCloneCast", appear: 0, vanish: 28, place: { dx: -34, dy: 0, face: 1 } },
+        ],
+        finisher: { type: "escape", at: 3, action: "minatoRaijin1", teleport: { behindTarget: true, dx: 88 }, iframes: 32,
+          hit: { projectile: true, damage: 11, hitstun: 16, knockbackX: 7, knockbackY: -1, speed: 19 } },
+      },
+      // DECEPTION — Afterimage Split. CANON-ADJACENT (Hiraishin leaves afterimages): TWO decoy afterimages
+      // flank where Minato stood while he flashes behind to counter — a double-bait, not a single decoy.
+      // Distinct: TWO deception clones (unique across the roster), symmetric flank.
+      deception: {
+        name: "Afterimage Split", cost: 34, cooldown: 86, duration: 46,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
+        beats: [
+          { at: 2, body: "c0", action: "idle", appear: 0, vanish: 36, place: { dx: -38, dy: 0, face: 1  } },
+          { at: 2, body: "c1", action: "idle", appear: 0, vanish: 36, place: { dx: 38,  dy: 0, face: -1 } },
+        ],
+        finisher: { type: "escape", at: 10, action: "minatoRaijin2", teleport: { behindTarget: true, dx: 52 }, iframes: 24,
+          hit: { damage: 20, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
+      },
+      // ULTIMATE-SWARM — Thunder God Assault. CANON-ADJACENT (mass Hiraishin barrage): THREE clones warp a
+      // RAPID low-rise criss-cross of Rasengan strikes (fast cadence, shallow climb), then a hard teleport
+      // spike. Distinct: 3 clones (not 4), tight fast criss-cross (not a tall slow column), strike finisher.
+      swarm: {
+        name: "Thunder God Assault", cost: 58, cooldown: 118, duration: 74,
         clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 6,  body: "c0", action: "minatoCloneCast", appear: 2,  vanish: 26, place: { ref: "caster", dx: -46, dy: -8  }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 16 } },
-          { at: 12, body: "c1", action: "minatoCloneCast", appear: 6,  vanish: 30, place: { ref: "caster", dx: 46,  dy: -30 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 16 } },
-          { at: 18, body: "c2", action: "minatoCloneCast", appear: 12, vanish: 36, place: { ref: "caster", dx: -40, dy: -58 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 17 } },
+          { at: 3,  body: "c0", action: "minatoRush1",    appear: 0,  vanish: 18, place: { dx: -58, dy: -10,  face: 1  }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -6 } },
+          { at: 9,  body: "c1", action: "minatoRasengan", appear: 6,  vanish: 24, place: { dx: 56,  dy: -34,  face: -1 }, hit: { damage: 8,  hitstun: 20, knockbackX: 3, knockbackY: -4, color: "#93c5fd" } },
+          { at: 15, body: "c2", action: "minatoRasengan", appear: 12, vanish: 30, place: { dx: -50, dy: -60,  face: 1  }, hit: { damage: 8,  hitstun: 20, knockbackX: 3, knockbackY: -4, color: "#93c5fd" } },
+          { at: 22, body: "c0", action: "minatoRasengan", appear: 20, vanish: 36, place: { dx: 50,  dy: -88,  face: -1 }, hit: { damage: 9,  hitstun: 22, knockbackX: 3, knockbackY: -4, color: "#93c5fd" } },
+          { at: 30, body: "c1", action: "minatoRush2",    appear: 28, vanish: 44, place: { dx: -44, dy: -116, face: 1  }, hit: { damage: 10, hitstun: 24, knockbackX: 3, knockbackY: -4 } },
         ],
-        finisher: { type: "projectile", at: 30, action: "heavy", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 19, big: true, w: 44, h: 44 } },
-      },
-      // DEFENSIVE — Clone Absorbs While Minato Warps To Safety: a clone stands in front (absorbs), Minato
-      // flashes to the FAR side (behind) with i-frames + a counter kunai. (Escape template.)
-      defensive: {
-        name: "Clone Guard Flash", cost: 30, cooldown: 84, duration: 40,
-        clones: [{ slot: "c0" }],
-        beats: [
-          { at: 2, body: "c0", action: "minatoCloneCast", appear: 0, vanish: 30, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
-        ],
-        finisher: { type: "escape", at: 4, action: "minatoRaijin1", teleport: { behindTarget: true, dx: 76 }, iframes: 28,
-          hit: { projectile: true, damage: 10, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 16 } },
-      },
-      // DECEPTION — Decoy Kunai / Afterimage Bait: a decoy clone is left where Minato stood while he
-      // Hiraishin-flashes behind the target and counters. (Escape template with a bait clone.)
-      deception: {
-        name: "Afterimage Flash", cost: 34, cooldown: 88, duration: 44,
-        clones: [{ slot: "c0" }],
-        beats: [
-          { at: 2, body: "c0", action: "idle", appear: 0, vanish: 34, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
-        ],
-        finisher: { type: "escape", at: 6, action: "minatoRaijin2", teleport: { behindTarget: true, dx: 60 }, iframes: 22,
-          hit: { damage: 18, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
-      },
-      // ULTIMATE-SWARM — Multiple Clones Each Land A Rasengan-Tier Hit: a four-clone rising column of
-      // Rasengan strikes riding the opponent up, then a hard Hiraishin spike. (Two-Thousand template.)
-      swarm: {
-        name: "Hiraishin Rasengan Swarm", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
-        beats: [
-          { at: 4,  body: "c0", action: "up",            appear: 2,  vanish: 20, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "minatoRasengan", appear: 10, vanish: 24, place: { dx: 62,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#93c5fd" } },
-          { at: 18, body: "c2", action: "minatoRasengan", appear: 16, vanish: 30, place: { dx: -56, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#93c5fd" } },
-          { at: 24, body: "c3", action: "minatoRasengan", appear: 22, vanish: 36, place: { dx: 58,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#93c5fd" } },
-          { at: 30, body: "c0", action: "minatoRasengan", appear: 28, vanish: 42, place: { dx: -52, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3, color: "#93c5fd" } },
-          { at: 36, body: "c1", action: "minatoRush2",    appear: 34, vanish: 48, place: { dx: 54,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2 } },
-          { at: 44, body: "c2", action: "minatoRasengan", appear: 42, vanish: 58, place: { dx: -48, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2, color: "#93c5fd" } },
-        ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 30, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { type: "strike", at: 44, action: "minatoRaijin2", teleport: { behindTarget: true, dx: 46 }, hit: { damage: 32, hitstun: 34, knockbackX: 8, knockbackY: -14 } },
       },
     },
   },
@@ -463,78 +466,86 @@ export const CHOREO_BY_CHAR = {
       proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#84cc16", w: 32, h: 32, spriteScale: 0.5 },   // wood spike
     },
     seqs: {
-      // PURE ATTACK — Simultaneous Multi-Wood-Clone Strike: three wood clones pile on in order, Hashirama
-      // spikes down with a super wood punch. (Barrage template.)
+      // SIGNATURE (distinct): the SWARM king — the HIGHEST clone counts of the roster in a WIDE SURROUND
+      // (clones ring the foe from far both sides, not a one-side column), SLOW heavy rhythm, and a true BIND
+      // (roots drag inward with high hitstun). Clone-count profile 5-3-2-2-1-5.
+      // PURE ATTACK — Wood Clone Onslaught. CANON: Mokuton Bunshin mass-production. FIVE wood clones surround
+      // and pile on from alternating far flanks, Hashirama finishes with a super wood-punch spike.
       pureAttack: {
-        name: "Wood Clone Barrage", cost: 40, cooldown: 90, duration: 78,
+        name: "Wood Clone Onslaught", cost: 44, cooldown: 94, duration: 96,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }, { slot: "c4" }],
+        beats: [
+          { at: 5,  body: "c0", action: "woodPunch",     appear: 2,  vanish: 34, place: { dx: -98, dy: 2,    face: 1  }, hit: { damage: 12, hitstun: 30, knockbackX: 3, knockbackY: -9 } },
+          { at: 16, body: "c1", action: "mokutonArm",    appear: 13, vanish: 44, place: { dx: 94,  dy: -24,  face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: -3, knockbackY: -7 } },
+          { at: 28, body: "c2", action: "woodPunch",     appear: 25, vanish: 56, place: { dx: -84, dy: -58,  face: 1  }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -6 } },
+          { at: 42, body: "c3", action: "mokutonArm",    appear: 39, vanish: 68, place: { dx: 82,  dy: -96,  face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: -3, knockbackY: -6 } },
+          { at: 56, body: "c4", action: "woodPunch",     appear: 53, vanish: 82, place: { dx: -70, dy: -134, face: 1  }, hit: { damage: 11, hitstun: 26, knockbackX: 3, knockbackY: -6 } },
+        ],
+        finisher: { at: 74, action: "down_air", descendVy: 7, teleport: { dx: 16, dyAbove: 168 }, hit: { damage: 30, hitstun: 32, knockbackX: 6, knockbackY: 13 } },
+      },
+      // GRAB — Deep Forest Emergence. CANON: binding roots/branches that seize. THREE clones raise roots in a
+      // THREE-POINT trap (both far flanks + behind) that DRAG the foe inward (knockback toward centre), then a
+      // super-punch launch. Distinct: 3-clone surround-bind (not a 2-side flank), strong inward pull.
+      grab: {
+        name: "Deep Forest Emergence", cost: 46, cooldown: 100, duration: 64,
         clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",           appear: 2,  vanish: 30, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 15, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "woodPunch",     appear: 18, vanish: 46, place: { dx: 68,  dy: -70,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: 3, knockbackY: -7 } },
-          { at: 34, body: "c2", action: "mokutonArm",    appear: 32, vanish: 60, place: { dx: -60, dy: -120, face: 1  }, hit: { damage: 13, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
+          { at: 4,  body: "c0", action: "treeSummon1", appear: 0,  vanish: 34, place: { dx: -92, dy: 0,   face: 1  }, hit: { damage: 11, hitstun: 40, knockbackX: 8,  knockbackY: -1 } },
+          { at: 4,  body: "c1", action: "treeSummon1", appear: 0,  vanish: 34, place: { dx: 92,  dy: 0,   face: -1 }, hit: { damage: 11, hitstun: 40, knockbackX: -8, knockbackY: -1 } },
+          { at: 12, body: "c2", action: "treeSummon1", appear: 8,  vanish: 38, place: { dx: 0,   dy: -12, face: 1  }, hit: { damage: 9,  hitstun: 42, knockbackX: 0,  knockbackY: -2 } },
         ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
+        finisher: { type: "strike", at: 28, action: "woodPunchSuper", teleport: { dx: -40 }, hit: { damage: 26, hitstun: 36, knockbackX: 4, knockbackY: -15 } },
       },
-      // GRAB — Deep Forest Emergence Bind: two wood clones raise binding roots on either flank, seize + drag
-      // the opponent to centre, then Hashirama super-wood-punch launches. (Flank/strike template.)
-      grab: {
-        name: "Deep Forest Bind", cost: 42, cooldown: 96, duration: 60,
+      // RANGED — Wood Pillar Barrage. CANON: wood-spike/pillar zoning. TWO clones brace LOW/HIGH and fire heavy
+      // slow pillars (not a fast three-kunai spray); Hashirama hurls a giant pillar. Distinct: 2 clones, heavy
+      // slow projectiles, wide pillars.
+      ranged: {
+        name: "Wood Pillar Barrage", cost: 46, cooldown: 102, duration: 60,
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 6, body: "c0", action: "treeSummon1", appear: 2, vanish: 32, place: { dx: -68, dy: 0, face: 1  }, hit: { damage: 13, hitstun: 36, knockbackX: 5,  knockbackY: -2 } },
-          { at: 8, body: "c1", action: "treeSummon1", appear: 4, vanish: 34, place: { dx: 68,  dy: 0, face: -1 }, hit: { damage: 13, hitstun: 36, knockbackX: -5, knockbackY: -2 } },
+          { at: 8,  body: "c0", action: "hashiWoodStraight", appear: 2,  vanish: 30, place: { ref: "caster", dx: -54, dy: 4   }, hit: { projectile: true, damage: 15, hitstun: 20, knockbackX: 6, knockbackY: -1, speed: 12, big: true, w: 40, h: 40 } },
+          { at: 20, body: "c1", action: "hashiWoodStraight", appear: 14, vanish: 42, place: { ref: "caster", dx: -54, dy: -48 }, hit: { projectile: true, damage: 15, hitstun: 20, knockbackX: 6, knockbackY: -2, speed: 12, big: true, w: 40, h: 40 } },
         ],
-        finisher: { type: "strike", at: 24, action: "woodPunchSuper", teleport: { dx: -48 }, hit: { damage: 24, hitstun: 34, knockbackX: 4, knockbackY: -13 } },
+        finisher: { type: "projectile", at: 34, action: "hashiWoodStraight", hit: { projectile: true, damage: 26, hitstun: 26, knockbackX: 10, knockbackY: -3, speed: 14, big: true, w: 58, h: 58 } },
       },
-      // RANGED — Wood-Spike Volley: clones flank the CASTER and hurl wood spikes; Hashirama throws a big
-      // wood pillar. (Shuriken/projectile template.)
-      ranged: {
-        name: "Wood Spike Volley", cost: 45, cooldown: 100, duration: 58,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
-        beats: [
-          { at: 6,  body: "c0", action: "hashiWoodStraight", appear: 2,  vanish: 26, place: { ref: "caster", dx: -46, dy: -8  }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 12, body: "c1", action: "hashiWoodStraight", appear: 6,  vanish: 30, place: { ref: "caster", dx: 46,  dy: -30 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 18, body: "c2", action: "hashiWoodStraight", appear: 12, vanish: 36, place: { ref: "caster", dx: -40, dy: -58 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 16 } },
-        ],
-        finisher: { type: "projectile", at: 30, action: "hashiWoodStraight", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 17, big: true, w: 48, h: 48 } },
-      },
-      // DEFENSIVE — Wood Clone Bulwark: a wood clone raises a wall (absorbs), Hashirama emerges on the FAR
-      // side with i-frames + a counter wood spike. (Escape template.)
+      // DEFENSIVE — Wood Clone Bulwark. CANON: Wood Wall. TWO wood clones raise a DOUBLE wall on both sides
+      // (not a single on-spot clone) while Hashirama emerges far behind with a counter spike. Distinct: 2-clone
+      // flanking wall.
       defensive: {
-        name: "Wood Clone Bulwark", cost: 32, cooldown: 84, duration: 40,
-        clones: [{ slot: "c0" }],
+        name: "Wood Clone Bulwark", cost: 34, cooldown: 86, duration: 42,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 2, body: "c0", action: "mokutonArm", appear: 0, vanish: 30, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 1, body: "c0", action: "mokutonArm", appear: 0, vanish: 32, place: { dx: -40, dy: 0, face: 1  } },
+          { at: 1, body: "c1", action: "mokutonArm", appear: 0, vanish: 32, place: { dx: 40,  dy: 0, face: -1 } },
         ],
-        finisher: { type: "escape", at: 4, action: "woodPunch", teleport: { behindTarget: true, dx: 76 }, iframes: 28,
-          hit: { projectile: true, damage: 11, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 15 } },
+        finisher: { type: "escape", at: 5, action: "woodPunch", teleport: { behindTarget: true, dx: 70 }, iframes: 26,
+          hit: { projectile: true, damage: 12, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 13 } },
       },
-      // DECEPTION — Wood Clone Feint: a decoy wood clone is left where Hashirama stood while he emerges
-      // behind the target and counters. (Escape template with a bait clone.)
+      // DECEPTION — Wood Clone Feint. CANON: a wood decoy. ONE decoy clone left slightly forward while
+      // Hashirama emerges behind. Distinct timing/placement from the water/crow feints.
       deception: {
-        name: "Wood Clone Feint", cost: 34, cooldown: 88, duration: 44,
+        name: "Wood Clone Feint", cost: 36, cooldown: 90, duration: 46,
         clones: [{ slot: "c0" }],
         beats: [
-          { at: 2, body: "c0", action: "woodCloneCast", appear: 0, vanish: 34, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 1, body: "c0", action: "woodCloneCast", appear: 0, vanish: 36, place: { dx: -14, dy: -4, face: 1 } },
         ],
-        finisher: { type: "escape", at: 6, action: "woodPunch", teleport: { behindTarget: true, dx: 60 }, iframes: 22,
-          hit: { damage: 19, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
+        finisher: { type: "escape", at: 8, action: "woodPunchSuper", teleport: { behindTarget: true, dx: 54 }, iframes: 20,
+          hit: { damage: 21, hitstun: 28, knockbackX: 6, knockbackY: -4 } },
       },
-      // ULTIMATE-SWARM — Coordinated Multi-Clone Wood Release finisher: a four-clone rising column of wood
-      // strikes riding the opponent up, then a hard wood-golem spike. (Two-Thousand template.)
+      // ULTIMATE-SWARM — Sage Art: Deep Forest Bloom. CANON: Sage Art + wood golem. FIVE clones erupt as a
+      // towering WIDE forest column (broad base narrowing up), then a wood-golem slam. Distinct: 5 clones, wide
+      // pyramidal column (vs tight criss-cross / narrow columns).
       swarm: {
-        name: "Deep Forest Swarm", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
+        name: "Sage Art: Deep Forest Bloom", cost: 62, cooldown: 124, duration: 100,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }, { slot: "c4" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",           appear: 2,  vanish: 20, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 13, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "woodPunch",     appear: 10, vanish: 24, place: { dx: 62,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 18, body: "c2", action: "woodPunch",     appear: 16, vanish: 30, place: { dx: -56, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 24, body: "c3", action: "mokutonArm",    appear: 22, vanish: 36, place: { dx: 58,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 30, body: "c0", action: "woodPunchSuper", appear: 28, vanish: 42, place: { dx: -52, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3 } },
-          { at: 36, body: "c1", action: "woodPunch",     appear: 34, vanish: 48, place: { dx: 54,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2 } },
-          { at: 44, body: "c2", action: "woodPunchSuper", appear: 42, vanish: 58, place: { dx: -48, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2 } },
+          { at: 4,  body: "c0", action: "woodPunch",      appear: 2,  vanish: 22, place: { dx: -96, dy: 2,    face: 1  }, hit: { damage: 11, hitstun: 34, knockbackX: 3, knockbackY: -11 } },
+          { at: 12, body: "c1", action: "woodPunch",      appear: 10, vanish: 28, place: { dx: 92,  dy: -30,  face: -1 }, hit: { damage: 7,  hitstun: 20, knockbackX: 3, knockbackY: -4 } },
+          { at: 22, body: "c2", action: "mokutonArm",     appear: 20, vanish: 38, place: { dx: -74, dy: -72,  face: 1  }, hit: { damage: 7,  hitstun: 20, knockbackX: 2, knockbackY: -4 } },
+          { at: 34, body: "c3", action: "woodPunchSuper", appear: 32, vanish: 50, place: { dx: 58,  dy: -120, face: -1 }, hit: { damage: 8,  hitstun: 22, knockbackX: 2, knockbackY: -4 } },
+          { at: 48, body: "c4", action: "woodPunchSuper", appear: 46, vanish: 66, place: { dx: -40, dy: -168, face: 1  }, hit: { damage: 9,  hitstun: 24, knockbackX: 2, knockbackY: -4 } },
         ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 32, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { at: 64, action: "down_air", descendVy: 9, teleport: { dx: 10, dyAbove: 196 }, hit: { damage: 34, hitstun: 34, knockbackX: 8, knockbackY: 17 } },
       },
     },
   },
@@ -549,78 +560,82 @@ export const CHOREO_BY_CHAR = {
       proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#fca5a5", w: 30, h: 30, spriteScale: 0.5 },
     },
     seqs: {
-      // PURE ATTACK — Five Elements Combo (compact): three clones each a distinct element (Fire → Wind →
-      // Earth) juggle, then Hiruzen spikes. (Barrage template, per-element colours.)
+      // SIGNATURE (distinct): "The Professor" — the FIVE NATURE TRANSFORMATIONS. Clones each cast a DIFFERENT
+      // element at once, placed as an elemental SPREAD (not a single-side column), with per-element colours.
+      // Clone-count profile 4-2-3-1-2-5 (the only 4-in-pureAttack / 5-in-swarm 2-deception shape).
+      // PURE ATTACK — Four Elements Volley. CANON-ADJACENT: his multi-element mastery. FOUR clones each a
+      // distinct element (Fire/Wind/Earth/Fire) strike from a four-corner spread; Hiruzen spikes.
       pureAttack: {
-        name: "Five Elements Combo", cost: 42, cooldown: 92, duration: 78,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        name: "Four Elements Volley", cost: 44, cooldown: 94, duration: 80,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
         beats: [
-          { at: 4,  body: "c0", action: "hiruzenFireCast",  appear: 2,  vanish: 30, place: { dx: -76, dy: 4,    face: 1  }, hit: { damage: 15, hitstun: 30, knockbackX: 2, knockbackY: -13, color: "#f97316" } },
-          { at: 20, body: "c1", action: "hiruzenSpin",      appear: 18, vanish: 46, place: { dx: 70,  dy: -70,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: 3, knockbackY: -7,  color: "#a3e635" } },
-          { at: 34, body: "c2", action: "hiruzenEarthCast", appear: 32, vanish: 60, place: { dx: -62, dy: -120, face: 1  }, hit: { damage: 13, hitstun: 26, knockbackX: 2, knockbackY: -6,  color: "#a16207" } },
+          { at: 5,  body: "c0", action: "hiruzenFireCast",  appear: 2,  vanish: 32, place: { dx: -88, dy: 2,    face: 1  }, hit: { damage: 12, hitstun: 30, knockbackX: 3, knockbackY: -11, color: "#f97316" } },
+          { at: 14, body: "c1", action: "hiruzenSpin",      appear: 11, vanish: 42, place: { dx: 80,  dy: -34,  face: -1 }, hit: { damage: 9,  hitstun: 26, knockbackX: -3, knockbackY: -6, color: "#a3e635" } },
+          { at: 26, body: "c2", action: "hiruzenEarthCast", appear: 23, vanish: 54, place: { dx: -70, dy: -78,  face: 1  }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -6,  color: "#a16207" } },
+          { at: 40, body: "c3", action: "hiruzenFireCast",  appear: 37, vanish: 66, place: { dx: 64,  dy: -118, face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: -3, knockbackY: -6, color: "#facc15" } },
         ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
+        finisher: { at: 56, action: "down_air", descendVy: 7, teleport: { dx: 16, dyAbove: 158 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
       },
-      // GRAB — Earth Release Bind: two clones raise earthen holds on either flank (Doton), seize + drag the
-      // opponent to centre, then Hiruzen launches. (Flank/strike template.)
+      // GRAB — Earth Prison Clamp. CANON: Doton earthen bind. TWO Earth clones clamp from mid-range and HOLD
+      // (very high hitstun, no drag), then an uppercut launch. Distinct: mid-range clamp (not far flank / pull).
       grab: {
-        name: "Earth Prison Bind", cost: 42, cooldown: 96, duration: 60,
+        name: "Earth Prison Clamp", cost: 42, cooldown: 96, duration: 56,
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 6, body: "c0", action: "hiruzenBind", appear: 2, vanish: 32, place: { dx: -70, dy: 0, face: 1  }, hit: { damage: 13, hitstun: 36, knockbackX: 5,  knockbackY: -2, color: "#a16207" } },
-          { at: 8, body: "c1", action: "hiruzenBind", appear: 4, vanish: 34, place: { dx: 70,  dy: 0, face: -1 }, hit: { damage: 13, hitstun: 36, knockbackX: -5, knockbackY: -2, color: "#a16207" } },
+          { at: 5, body: "c0", action: "hiruzenBind", appear: 0, vanish: 32, place: { dx: -52, dy: -4, face: 1  }, hit: { damage: 12, hitstun: 46, knockbackX: 2,  knockbackY: -1, color: "#a16207" } },
+          { at: 9, body: "c1", action: "hiruzenBind", appear: 2, vanish: 34, place: { dx: 52,  dy: -4, face: -1 }, hit: { damage: 12, hitstun: 46, knockbackX: -2, knockbackY: -1, color: "#a16207" } },
         ],
-        finisher: { type: "strike", at: 24, action: "up", teleport: { dx: -50 }, hit: { damage: 24, hitstun: 34, knockbackX: 4, knockbackY: -13 } },
+        finisher: { type: "strike", at: 26, action: "up", teleport: { dx: -36 }, hit: { damage: 24, hitstun: 34, knockbackX: 3, knockbackY: -15 } },
       },
-      // RANGED — Elemental Volley: clones flank the CASTER and fire Fire/Wind/Water bullets; Hiruzen throws
-      // a big Fireball. (Shuriken/projectile template, per-element colours.)
+      // RANGED — Elemental Fan. CANON-ADJACENT: Fire/Wind/Water bullets fanned. THREE clones fan projectiles
+      // from a low arc, Hiruzen caps with a Great Fireball. Distinct: low fanned arc (vs vertical stack / flat).
       ranged: {
-        name: "Elemental Volley", cost: 45, cooldown: 100, duration: 58,
+        name: "Elemental Fan", cost: 46, cooldown: 100, duration: 56,
         clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 6,  body: "c0", action: "hiruzenFireCast", appear: 2,  vanish: 26, place: { ref: "caster", dx: -48, dy: -8  }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15, color: "#f97316" } },
-          { at: 12, body: "c1", action: "hiruzenSpin",     appear: 6,  vanish: 30, place: { ref: "caster", dx: 48,  dy: -30 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 16, color: "#a3e635" } },
-          { at: 18, body: "c2", action: "hiruzenFireCast", appear: 12, vanish: 36, place: { ref: "caster", dx: -42, dy: -58 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 16, color: "#38bdf8" } },
+          { at: 5,  body: "c0", action: "hiruzenFireCast", appear: 2,  vanish: 28, place: { ref: "caster", dx: -40, dy: 6   }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: 1,  speed: 14, color: "#f97316" } },
+          { at: 11, body: "c1", action: "hiruzenSpin",     appear: 7,  vanish: 32, place: { ref: "caster", dx: -44, dy: -22 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 15, color: "#a3e635" } },
+          { at: 17, body: "c2", action: "hiruzenFireCast", appear: 13, vanish: 38, place: { ref: "caster", dx: -40, dy: -50 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -4, speed: 15, color: "#38bdf8" } },
         ],
-        finisher: { type: "projectile", at: 30, action: "hiruzenFireCast", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 17, big: true, w: 46, h: 46, color: "#f97316" } },
+        finisher: { type: "projectile", at: 28, action: "hiruzenFireCast", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 16, big: true, w: 48, h: 48, color: "#f97316" } },
       },
-      // DEFENSIVE — Mud Wall Guard: an Earth clone raises a mud wall (absorbs), Hiruzen re-appears on the
-      // FAR side with i-frames + a counter fireball. (Escape template.)
+      // DEFENSIVE — Mud Wall Guard. CANON: Doton wall. ONE Earth clone raises a mud wall slightly forward,
+      // Hiruzen re-appears behind with a counter fireball. Distinct placement/timing from the others.
       defensive: {
         name: "Mud Wall Guard", cost: 32, cooldown: 84, duration: 40,
         clones: [{ slot: "c0" }],
         beats: [
-          { at: 2, body: "c0", action: "hiruzenEarthCast", appear: 0, vanish: 30, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 2, body: "c0", action: "hiruzenEarthCast", appear: 0, vanish: 30, place: { dx: -20, dy: 0, face: 1 } },
         ],
-        finisher: { type: "escape", at: 4, action: "hiruzenFireCast", teleport: { behindTarget: true, dx: 78 }, iframes: 28,
-          hit: { projectile: true, damage: 11, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 15, color: "#f97316" } },
+        finisher: { type: "escape", at: 7, action: "hiruzenFireCast", teleport: { behindTarget: true, dx: 66 }, iframes: 26,
+          hit: { projectile: true, damage: 12, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 15, color: "#f97316" } },
       },
-      // DECEPTION — Shadow Clone Feint: a decoy clone is left where Hiruzen stood while he re-appears behind
-      // the target and counters. (Escape template with a bait clone.)
+      // DECEPTION — Twin Shadow Feint. CANON: shadow clones. TWO decoy clones split wide while Hiruzen
+      // re-appears behind and spins a counter. Distinct: 2-clone wide split (unique to Hiruzen vs Minato's near pair).
       deception: {
-        name: "Shadow Clone Feint", cost: 34, cooldown: 88, duration: 44,
-        clones: [{ slot: "c0" }],
+        name: "Twin Shadow Feint", cost: 36, cooldown: 90, duration: 46,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 2, body: "c0", action: "idle", appear: 0, vanish: 34, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 2, body: "c0", action: "idle", appear: 0, vanish: 36, place: { dx: -54, dy: 0, face: 1  } },
+          { at: 4, body: "c1", action: "idle", appear: 0, vanish: 36, place: { dx: 54,  dy: 0, face: -1 } },
         ],
-        finisher: { type: "escape", at: 6, action: "hiruzenSpin", teleport: { behindTarget: true, dx: 62 }, iframes: 22,
-          hit: { damage: 19, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
+        finisher: { type: "escape", at: 11, action: "hiruzenSpin", teleport: { behindTarget: true, dx: 56 }, iframes: 22,
+          hit: { damage: 20, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
       },
-      // ULTIMATE-SWARM — the full FIVE ELEMENTS BARRAGE: a rising column of clones EACH casting a different
-      // element (Fire → Water → Wind → Earth → Lightning), then a hard finishing spike. (Two-Thousand template.)
+      // ULTIMATE-SWARM — Five Elements Grand Combination. CANON: all five nature transformations at once.
+      // FIVE clones each a distinct element rise in a STAR/wide column, then a grand elemental spike. Distinct:
+      // 5 clones, one per element, widest column of the roster.
       swarm: {
-        name: "Five Elements Barrage", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
+        name: "Five Elements Grand Combination", cost: 62, cooldown: 124, duration: 96,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }, { slot: "c4" }],
         beats: [
-          { at: 4,  body: "c0", action: "hiruzenFireCast",  appear: 2,  vanish: 20, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 13, hitstun: 34, knockbackX: 2, knockbackY: -12, color: "#f97316" } },
-          { at: 12, body: "c1", action: "hiruzenSpin",      appear: 10, vanish: 24, place: { dx: 64,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#38bdf8" } },
-          { at: 18, body: "c2", action: "hiruzenSpin",      appear: 16, vanish: 30, place: { dx: -58, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#a3e635" } },
-          { at: 24, body: "c3", action: "hiruzenEarthCast", appear: 22, vanish: 36, place: { dx: 60,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#a16207" } },
-          { at: 30, body: "c0", action: "hiruzenFireCast",  appear: 28, vanish: 42, place: { dx: -54, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3, color: "#facc15" } },
-          { at: 36, body: "c1", action: "hiruzenSpin",      appear: 34, vanish: 48, place: { dx: 56,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2, color: "#f97316" } },
-          { at: 44, body: "c2", action: "hiruzenEarthCast", appear: 42, vanish: 58, place: { dx: -50, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2, color: "#a16207" } },
+          { at: 4,  body: "c0", action: "hiruzenFireCast",  appear: 2,  vanish: 22, place: { dx: -90, dy: 2,    face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 3, knockbackY: -11, color: "#f97316" } },
+          { at: 12, body: "c1", action: "hiruzenSpin",      appear: 10, vanish: 26, place: { dx: 84,  dy: -32,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 3, knockbackY: -4, color: "#38bdf8" } },
+          { at: 20, body: "c2", action: "hiruzenSpin",      appear: 18, vanish: 34, place: { dx: -70, dy: -72,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -4, color: "#a3e635" } },
+          { at: 30, body: "c3", action: "hiruzenEarthCast", appear: 28, vanish: 46, place: { dx: 54,  dy: -116, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -4, color: "#a16207" } },
+          { at: 42, body: "c4", action: "hiruzenFireCast",  appear: 40, vanish: 60, place: { dx: -38, dy: -162, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -4, color: "#facc15" } },
         ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 32, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 10, dyAbove: 192 }, hit: { damage: 32, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
       },
     },
   },
@@ -636,78 +651,74 @@ export const CHOREO_BY_CHAR = {
       proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#cbd5e1", w: 24, h: 24, spriteScale: 0.45 },   // kunai gleam
     },
     seqs: {
-      // PURE ATTACK — Lightning Clone Barrage: three Lightning Clones pile on (shocking), Kakashi Raikiri-
-      // spikes down. (Barrage template.)
+      // SIGNATURE (distinct): the COPY-NINJA — the FEWEST clones of the roster, CLOSE precise single pierces
+      // (Raikiri hits hard once, not a wide juggle), a KAMUI-flavoured phase defence, and a Sharingan-read
+      // deception. Clone-count profile 2-1-1-2-1-2.
+      // PURE ATTACK — Raikiri Twin Pierce. CANON: Lightning Clone (Raiton Kage Bunshin) + Raikiri. TWO
+      // Lightning Clones dash a quick same-side pierce, Kakashi finishes with a hard Raikiri spike.
       pureAttack: {
-        name: "Lightning Clone Barrage", cost: 40, cooldown: 90, duration: 78,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
-        beats: [
-          { at: 4,  body: "c0", action: "up",              appear: 2,  vanish: 30, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 14, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "kakashiCombo2",    appear: 18, vanish: 46, place: { dx: 66,  dy: -70,  face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -7 } },
-          { at: 34, body: "c2", action: "kakashiRaikiriDash", appear: 32, vanish: 60, place: { dx: -60, dy: -120, face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
-        ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 26, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
-      },
-      // GRAB — Ninken Pack Hold: two clones summon the hound pack on either flank, seize + drag the opponent
-      // to centre, then Kakashi Raikiri-launches. (Flank/strike template.)
-      grab: {
-        name: "Ninken Pack Hold", cost: 40, cooldown: 96, duration: 58,
+        name: "Raikiri Twin Pierce", cost: 38, cooldown: 88, duration: 58,
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 6, body: "c0", action: "kakashiNinDogsCast", appear: 2, vanish: 30, place: { dx: -66, dy: 0, face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 5,  knockbackY: -2 } },
-          { at: 8, body: "c1", action: "kakashiNinDogsCast", appear: 4, vanish: 32, place: { dx: 66,  dy: 0, face: -1 }, hit: { damage: 12, hitstun: 34, knockbackX: -5, knockbackY: -2 } },
+          { at: 3,  body: "c0", action: "kakashiRaikiriDash", appear: 0,  vanish: 26, place: { dx: -40, dy: -4,  face: 1 }, hit: { damage: 16, hitstun: 28, knockbackX: 4, knockbackY: -7 } },
+          { at: 14, body: "c1", action: "kakashiRaikiriDash", appear: 11, vanish: 36, place: { dx: -34, dy: -40, face: 1 }, hit: { damage: 14, hitstun: 26, knockbackX: 4, knockbackY: -6 } },
         ],
-        finisher: { type: "strike", at: 22, action: "kakashiRaikiriDash", teleport: { dx: -46 }, hit: { damage: 22, hitstun: 32, knockbackX: 4, knockbackY: -13 } },
+        finisher: { at: 30, action: "down_air", descendVy: 8, teleport: { dx: 14, dyAbove: 130 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
       },
-      // RANGED — Kunai Volley: clones flank the CASTER and hurl kunai; Kakashi throws a big kunai. (Shuriken
-      // template.)
+      // GRAB — Ninken Fang Pin. CANON: the Ninken hound pack (Kakashi's summons grab + hold). ONE clone
+      // summons the pack dead-centre to pin the foe, then a Raikiri launch. Distinct: single-clone centred pin.
+      grab: {
+        name: "Ninken Fang Pin", cost: 40, cooldown: 94, duration: 52,
+        clones: [{ slot: "c0" }],
+        beats: [
+          { at: 5, body: "c0", action: "kakashiNinDogsCast", appear: 0, vanish: 30, place: { dx: 0, dy: -10, face: 1 }, hit: { damage: 14, hitstun: 44, knockbackX: 0, knockbackY: -2 } },
+        ],
+        finisher: { type: "strike", at: 20, action: "kakashiRaikiriDash", teleport: { dx: -34 }, hit: { damage: 24, hitstun: 32, knockbackX: 4, knockbackY: -14 } },
+      },
+      // RANGED — Kunai Snipe. CANON-ADJACENT: precise kunai. ONE clone braces beside Kakashi and both snipe a
+      // single fast kunai line (not a three-clone spray). Distinct: single clone, one tight line, fast.
       ranged: {
-        name: "Kunai Volley", cost: 45, cooldown: 100, duration: 58,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        name: "Kunai Snipe", cost: 42, cooldown: 96, duration: 50,
+        clones: [{ slot: "c0" }],
         beats: [
-          { at: 6,  body: "c0", action: "kakashiThrow", appear: 2,  vanish: 26, place: { ref: "caster", dx: -46, dy: -8  }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 16 } },
-          { at: 12, body: "c1", action: "kakashiThrow", appear: 6,  vanish: 30, place: { ref: "caster", dx: 46,  dy: -30 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 16 } },
-          { at: 18, body: "c2", action: "kakashiThrow", appear: 12, vanish: 36, place: { ref: "caster", dx: -40, dy: -58 }, hit: { projectile: true, damage: 12, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 17 } },
+          { at: 6, body: "c0", action: "kakashiThrow", appear: 2, vanish: 30, place: { ref: "caster", dx: -40, dy: -24 }, hit: { projectile: true, damage: 14, hitstun: 20, knockbackX: 6, knockbackY: -1, speed: 20 } },
         ],
-        finisher: { type: "projectile", at: 30, action: "kakashiThrow", hit: { projectile: true, damage: 22, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 18, big: true, w: 40, h: 40 } },
+        finisher: { type: "projectile", at: 22, action: "kakashiThrow", hit: { projectile: true, damage: 22, hitstun: 24, knockbackX: 8, knockbackY: -2, speed: 22, big: true, w: 34, h: 34 } },
       },
-      // DEFENSIVE — Lightning Clone Guard: a Lightning Clone stands in front (absorbs + shocks), Kakashi
-      // Raikiri-flickers to the FAR side with i-frames + a counter kunai. (Escape template.)
+      // DEFENSIVE — Kamui Phase Guard. CANON: Kamui (phase intangible). TWO Lightning Clones cross-guard in
+      // front while Kakashi Kamui-warps far behind, longer i-frames. Distinct: 2-clone cross guard + Kamui.
       defensive: {
-        name: "Lightning Clone Guard", cost: 30, cooldown: 84, duration: 40,
-        clones: [{ slot: "c0" }],
+        name: "Kamui Phase Guard", cost: 32, cooldown: 86, duration: 42,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 2, body: "c0", action: "kakashiRaikiriCharge", appear: 0, vanish: 30, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 1, body: "c0", action: "kakashiRaikiriCharge", appear: 0, vanish: 32, place: { dx: -26, dy: 0,   face: 1 } },
+          { at: 3, body: "c1", action: "kakashiRaikiriCharge", appear: 0, vanish: 32, place: { dx: -26, dy: -40, face: 1 } },
         ],
-        finisher: { type: "escape", at: 4, action: "kakashiRaikiriDash", teleport: { behindTarget: true, dx: 76 }, iframes: 28,
-          hit: { projectile: true, damage: 10, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 16 } },
+        finisher: { type: "escape", at: 6, action: "kakashiRaikiriDash", teleport: { behindTarget: true, dx: 82 }, iframes: 30,
+          hit: { projectile: true, damage: 11, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 20 } },
       },
-      // DECEPTION — Sharingan Copy Feint (the copy-ninja identity): a decoy clone baits the commitment; the
-      // Sharingan READS it and Kakashi warps behind to punish with a copied counter. (Escape + bait clone.)
+      // DECEPTION — Sharingan Copy Read. CANON-ADJACENT: the Sharingan predicts the commitment. ONE decoy
+      // (Pakkun) baits; Kakashi reads it and warps behind to punish with a copied counter.
       deception: {
-        name: "Sharingan Copy Feint", cost: 34, cooldown: 88, duration: 44,
+        name: "Sharingan Copy Read", cost: 34, cooldown: 90, duration: 44,
         clones: [{ slot: "c0" }],
         beats: [
-          { at: 2, body: "c0", action: "kakashiPakkunCast", appear: 0, vanish: 34, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+          { at: 3, body: "c0", action: "kakashiPakkunCast", appear: 0, vanish: 34, place: { dx: -8, dy: 0, face: 1 } },
         ],
-        finisher: { type: "escape", at: 6, action: "kakashiCombo3", teleport: { behindTarget: true, dx: 60 }, iframes: 24,
-          hit: { damage: 18, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
+        finisher: { type: "escape", at: 9, action: "kakashiCombo3", teleport: { behindTarget: true, dx: 58 }, iframes: 22,
+          hit: { damage: 20, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
       },
-      // ULTIMATE-SWARM — Raikiri Clone Swarm: a rising column of Lightning Clones each land a Raikiri-tier
-      // hit, then a hard Raikiri spike. (Two-Thousand template.)
+      // ULTIMATE-SWARM — Raikiri Hound Rush. CANON-ADJACENT: Lightning Clones + Ninken. TWO clones run a tight
+      // low double-Raikiri rush (not a tall column), then a hard Raikiri spike. Distinct: 2 clones, flat rush.
       swarm: {
-        name: "Raikiri Clone Swarm", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
+        name: "Raikiri Hound Rush", cost: 56, cooldown: 116, duration: 66,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",                appear: 2,  vanish: 20, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "kakashiRaikiriDash", appear: 10, vanish: 24, place: { dx: 62,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 18, body: "c2", action: "kakashiRaikiriDash", appear: 16, vanish: 30, place: { dx: -56, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 24, body: "c3", action: "kakashiCombo2",      appear: 22, vanish: 36, place: { dx: 58,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 30, body: "c0", action: "kakashiRaikiriDash", appear: 28, vanish: 42, place: { dx: -52, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3 } },
-          { at: 36, body: "c1", action: "kakashiCombo3",      appear: 34, vanish: 48, place: { dx: 54,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2 } },
-          { at: 44, body: "c2", action: "kakashiRaikiriDash", appear: 42, vanish: 58, place: { dx: -48, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2 } },
+          { at: 4,  body: "c0", action: "kakashiRaikiriDash", appear: 0,  vanish: 22, place: { dx: -64, dy: -6,  face: 1  }, hit: { damage: 13, hitstun: 30, knockbackX: 4, knockbackY: -8 } },
+          { at: 14, body: "c1", action: "kakashiNinDogsCast", appear: 10, vanish: 30, place: { dx: 56,  dy: -10, face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: -4, knockbackY: -5 } },
+          { at: 26, body: "c0", action: "kakashiRaikiriDash", appear: 24, vanish: 44, place: { dx: -48, dy: -44, face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 4, knockbackY: -5 } },
         ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 30, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { type: "strike", at: 42, action: "kakashiRaikiriDash", teleport: { dx: -30 }, hit: { damage: 32, hitstun: 34, knockbackX: 6, knockbackY: -15 } },
       },
     },
   },
@@ -720,82 +731,86 @@ export const CHOREO_BY_CHAR = {
   // genjutsu beats overridden to Sharingan violet.
   itachi: {
     fx: {
-      melee: { fxType: "cloneChoreoHit", color: "#dc2626", spriteScale: 0.5 },   // Katon crimson
-      proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#f97316", w: 30, h: 30, spriteScale: 0.5 },   // fireball
+      melee: { fxType: "cloneChoreoHit", color: "#9f1239", spriteScale: 0.5 },   // crow crimson-rose (distinct from Madara's Katon crimson)
+      proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#7c3aed", w: 30, h: 30, spriteScale: 0.5 },   // Sharingan genjutsu violet
     },
     seqs: {
-      // PURE ATTACK — Crow Clone Barrage: three crow clones pile on with fire, Itachi spikes. (Barrage.)
+      // SIGNATURE (distinct): CROWS + GENJUTSU. Clones scatter like a murder of crows (irregular, high-and-low
+      // staggered placements, not a clean column) and the defensive/deception are TRUE crow-illusion doubles
+      // (2 clones). Clone-count profile 3-3-2-2-2-3 (the only triple-genjutsu grab + double-deception shape).
+      // PURE ATTACK — Crow Scatter Strike. CANON: Karasu Bunshin (crow clones). THREE crow clones flit in from
+      // scattered heights and strike, Itachi spikes. Distinct: irregular scattered placements + rhythm.
       pureAttack: {
-        name: "Crow Clone Barrage", cost: 40, cooldown: 90, duration: 78,
+        name: "Crow Scatter Strike", cost: 40, cooldown: 90, duration: 72,
         clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",         appear: 2,  vanish: 30, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 14, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "itachiFire1", appear: 18, vanish: 46, place: { dx: 66,  dy: -70,  face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -7 } },
-          { at: 34, body: "c2", action: "itachiFire2", appear: 32, vanish: 60, place: { dx: -60, dy: -120, face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
+          { at: 4,  body: "c0", action: "itachiFire1", appear: 1,  vanish: 28, place: { dx: -58, dy: -28,  face: 1  }, hit: { damage: 13, hitstun: 28, knockbackX: 3, knockbackY: -9 } },
+          { at: 13, body: "c1", action: "itachiFire2", appear: 10, vanish: 40, place: { dx: 50,  dy: -96,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: -3, knockbackY: -6 } },
+          { at: 30, body: "c2", action: "itachiFire3", appear: 27, vanish: 56, place: { dx: -44, dy: -52,  face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 3, knockbackY: -6 } },
         ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 26, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
+        finisher: { at: 48, action: "down_air", descendVy: 7, teleport: { dx: 16, dyAbove: 150 }, hit: { damage: 26, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
       },
-      // GRAB — Genjutsu Bind: two crow clones cast a paralysing genjutsu on either flank, seize + drag the
-      // opponent to centre, then Itachi launches. (Flank/strike template, violet genjutsu.)
+      // GRAB — Genjutsu Lock. CANON: paralysing Sharingan genjutsu. THREE crow clones ring the foe and lock it
+      // with genjutsu (triple hold, very high hitstun, minimal knockback), then a launch. Distinct: 3-clone
+      // genjutsu ring (unique triple-clone grab).
       grab: {
-        name: "Genjutsu Bind", cost: 40, cooldown: 96, duration: 58,
+        name: "Genjutsu Lock", cost: 42, cooldown: 98, duration: 60,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        beats: [
+          { at: 4,  body: "c0", action: "genjutsuCast", appear: 0, vanish: 34, place: { dx: -58, dy: -6,  face: 1  }, hit: { damage: 9, hitstun: 44, knockbackX: 1,  knockbackY: -1, color: "#7c3aed" } },
+          { at: 8,  body: "c1", action: "genjutsuCast", appear: 2, vanish: 36, place: { dx: 58,  dy: -6,  face: -1 }, hit: { damage: 9, hitstun: 44, knockbackX: -1, knockbackY: -1, color: "#7c3aed" } },
+          { at: 14, body: "c2", action: "genjutsuCast", appear: 8, vanish: 40, place: { dx: 0,   dy: -58, face: 1  }, hit: { damage: 8, hitstun: 46, knockbackX: 0,  knockbackY: -1, color: "#7c3aed" } },
+        ],
+        finisher: { type: "strike", at: 30, action: "up", teleport: { dx: -38 }, hit: { damage: 22, hitstun: 32, knockbackX: 3, knockbackY: -14 } },
+      },
+      // RANGED — Great Fireball Pair. CANON: Katon Great Fireball. TWO clones spit fireballs from a close
+      // staggered pair, Itachi caps with a huge Great Fireball. Distinct: 2 close clones, slower heavy fire.
+      ranged: {
+        name: "Great Fireball Pair", cost: 44, cooldown: 100, duration: 54,
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 6, body: "c0", action: "genjutsuCast", appear: 2, vanish: 30, place: { dx: -66, dy: 0, face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 5,  knockbackY: -2, color: "#7c3aed" } },
-          { at: 8, body: "c1", action: "genjutsuCast", appear: 4, vanish: 32, place: { dx: 66,  dy: 0, face: -1 }, hit: { damage: 12, hitstun: 34, knockbackX: -5, knockbackY: -2, color: "#7c3aed" } },
+          { at: 6,  body: "c0", action: "fireballCast", appear: 2, vanish: 30, place: { ref: "caster", dx: -42, dy: -12 }, hit: { projectile: true, damage: 14, hitstun: 20, knockbackX: 6, knockbackY: -1, speed: 13, color: "#f97316" } },
+          { at: 16, body: "c1", action: "fireballCast", appear: 12, vanish: 40, place: { ref: "caster", dx: -42, dy: -40 }, hit: { projectile: true, damage: 14, hitstun: 20, knockbackX: 6, knockbackY: -2, speed: 13, color: "#f97316" } },
         ],
-        finisher: { type: "strike", at: 22, action: "up", teleport: { dx: -46 }, hit: { damage: 22, hitstun: 32, knockbackX: 4, knockbackY: -13 } },
+        finisher: { type: "projectile", at: 30, action: "fireballCast", hit: { projectile: true, damage: 26, hitstun: 26, knockbackX: 10, knockbackY: -3, speed: 15, big: true, w: 54, h: 54, color: "#f97316" } },
       },
-      // RANGED — Great Fireball Volley: clones flank the CASTER and spit Katon fireballs; Itachi throws a big
-      // Great Fireball. (Shuriken/projectile template.)
-      ranged: {
-        name: "Great Fireball Volley", cost: 45, cooldown: 100, duration: 58,
+      // DEFENSIVE — Crow Burst Double. CANON: a crow clone that bursts into crows. TWO crow clones cross in
+      // front and burst (absorb) while Itachi dissolves far behind with a counter fireball. Distinct: 2 clones.
+      defensive: {
+        name: "Crow Burst Double", cost: 32, cooldown: 86, duration: 42,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
+        beats: [
+          { at: 1, body: "c0", action: "genjutsuCast", appear: 0, vanish: 30, place: { dx: -30, dy: -8,  face: 1 }, color: "#7c3aed" },
+          { at: 3, body: "c1", action: "genjutsuCast", appear: 0, vanish: 32, place: { dx: -22, dy: -44, face: 1 }, color: "#7c3aed" },
+        ],
+        finisher: { type: "escape", at: 6, action: "fireballCast", teleport: { behindTarget: true, dx: 74 }, iframes: 28,
+          hit: { projectile: true, damage: 12, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 15, color: "#f97316" } },
+      },
+      // DECEPTION — Crow Clone Illusion. CANON: his real clone gimmick — crow decoys + genjutsu misdirection.
+      // TWO decoys dissolve into crows while Itachi appears behind and counters. Distinct: 2 crow decoys.
+      deception: {
+        name: "Crow Clone Illusion", cost: 36, cooldown: 90, duration: 46,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
+        beats: [
+          { at: 2, body: "c0", action: "genjutsuCast", appear: 0, vanish: 36, place: { dx: -20, dy: 0,   face: 1 }, color: "#7c3aed" },
+          { at: 5, body: "c1", action: "genjutsuCast", appear: 0, vanish: 38, place: { dx: 16,  dy: -30, face: 1 }, color: "#7c3aed" },
+        ],
+        finisher: { type: "escape", at: 12, action: "genjutsuCast", teleport: { behindTarget: true, dx: 58 }, iframes: 24,
+          hit: { damage: 21, hitstun: 26, knockbackX: 6, knockbackY: -3, color: "#7c3aed" } },
+      },
+      // ULTIMATE-SWARM — Clone Great Explosion. CANON: Itachi's shadow clones self-destruct. THREE crow clones
+      // flit to staggered heights and DETONATE in sequence, then a hard spike. Distinct: 3 clones, scattered
+      // detonation pattern (not a clean column).
+      swarm: {
+        name: "Clone Great Explosion", cost: 58, cooldown: 118, duration: 78,
         clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 6,  body: "c0", action: "fireballCast", appear: 2,  vanish: 26, place: { ref: "caster", dx: -46, dy: -8  }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 12, body: "c1", action: "fireballCast", appear: 6,  vanish: 30, place: { ref: "caster", dx: 46,  dy: -30 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 18, body: "c2", action: "fireballCast", appear: 12, vanish: 36, place: { ref: "caster", dx: -40, dy: -58 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 16 } },
+          { at: 4,  body: "c0", action: "itachiFire1", appear: 1,  vanish: 24, place: { dx: -70, dy: -14, face: 1  }, hit: { damage: 12, hitstun: 32, knockbackX: 3, knockbackY: -10, color: "#f97316" } },
+          { at: 14, body: "c1", action: "itachiFire2", appear: 11, vanish: 34, place: { dx: 58,  dy: -74, face: -1 }, hit: { damage: 8,  hitstun: 22, knockbackX: 3, knockbackY: -5, color: "#f97316" } },
+          { at: 26, body: "c2", action: "itachiFire3", appear: 23, vanish: 46, place: { dx: -46, dy: -128, face: 1 }, hit: { damage: 9,  hitstun: 24, knockbackX: 3, knockbackY: -5, color: "#f97316" } },
+          { at: 38, body: "c0", action: "itachiFire1", appear: 36, vanish: 58, place: { dx: 34,  dy: -168, face: -1 }, hit: { damage: 10, hitstun: 26, knockbackX: 3, knockbackY: -5, color: "#f97316" } },
         ],
-        finisher: { type: "projectile", at: 30, action: "fireballCast", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 9, knockbackY: -3, speed: 17, big: true, w: 48, h: 48 } },
-      },
-      // DEFENSIVE — Crow Clone Burst: a crow clone stands in front and BURSTS into crows (absorbs), Itachi
-      // re-appears on the FAR side with i-frames + a counter fireball. (Escape template.)
-      defensive: {
-        name: "Crow Clone Burst", cost: 30, cooldown: 84, duration: 40,
-        clones: [{ slot: "c0" }],
-        beats: [
-          { at: 2, body: "c0", action: "genjutsuCast", appear: 0, vanish: 30, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
-        ],
-        finisher: { type: "escape", at: 4, action: "fireballCast", teleport: { behindTarget: true, dx: 76 }, iframes: 28,
-          hit: { projectile: true, damage: 10, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 16 } },
-      },
-      // DECEPTION — Crow Clone Illusion (his REAL clone gimmick): a decoy crow clone + genjutsu misdirection
-      // bait the commitment; the real Itachi dissolves through the crows to appear behind and counter. (Escape
-      // + bait clone; violet genjutsu counter.)
-      deception: {
-        name: "Crow Clone Illusion", cost: 34, cooldown: 88, duration: 44,
-        clones: [{ slot: "c0" }],
-        beats: [
-          { at: 2, body: "c0", action: "genjutsuCast", appear: 0, vanish: 34, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
-        ],
-        finisher: { type: "escape", at: 6, action: "genjutsuCast", teleport: { behindTarget: true, dx: 60 }, iframes: 24,
-          hit: { damage: 18, hitstun: 26, knockbackX: 6, knockbackY: -3, color: "#7c3aed" } },
-      },
-      // ULTIMATE-SWARM — Clone Great Explosion: a rising column of crow clones EACH detonate on the opponent,
-      // then a hard finishing spike. (Two-Thousand template — canon: Itachi's shadow clones self-destruct.)
-      swarm: {
-        name: "Clone Great Explosion", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
-        beats: [
-          { at: 4,  body: "c0", action: "up",          appear: 2,  vanish: 20, place: { dx: -72, dy: 4,    face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "itachiFire1",  appear: 10, vanish: 24, place: { dx: 62,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#f97316" } },
-          { at: 18, body: "c2", action: "itachiFire2",  appear: 16, vanish: 30, place: { dx: -56, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#f97316" } },
-          { at: 24, body: "c3", action: "itachiFire3",  appear: 22, vanish: 36, place: { dx: 58,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#f97316" } },
-          { at: 30, body: "c0", action: "itachiFire2",  appear: 28, vanish: 42, place: { dx: -52, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3, color: "#f97316" } },
-          { at: 36, body: "c1", action: "itachiFire3",  appear: 34, vanish: 48, place: { dx: 54,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2, color: "#f97316" } },
-          { at: 44, body: "c2", action: "itachiFire1",  appear: 42, vanish: 58, place: { dx: -48, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2, color: "#f97316" } },
-        ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 30, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { at: 54, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 196 }, hit: { damage: 30, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
       },
     },
   },
@@ -811,27 +826,32 @@ export const CHOREO_BY_CHAR = {
       proj:  { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#f97316", w: 32, h: 32, spriteScale: 0.5 },   // fireball
     },
     seqs: {
-      // PURE ATTACK — Wood Clone Barrage: three wood clones pile on (spikes + gunbai), Madara Susanoo-spikes.
+      // SIGNATURE (distinct): SUSANOO-TIER — a TALL vertical rising column (Susanoo towers over the field),
+      // grand slow rhythm, Wood Release into Susanoo strikes. Clone-count profile 4-1-3-1-1-5.
+      // PURE ATTACK — Susanoo Wood Rise. CANON: Wood Release + Susanoo. FOUR clones rise in a near-vertical
+      // Susanoo column (climbing straight up, not a wide flank), Madara Susanoo-spikes down.
       pureAttack: {
-        name: "Wood Clone Barrage", cost: 42, cooldown: 92, duration: 78,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        name: "Susanoo Wood Rise", cost: 44, cooldown: 96, duration: 86,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",                 appear: 2,  vanish: 30, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 15, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "madaraWoodSpikeCast", appear: 18, vanish: 46, place: { dx: 70,  dy: -70,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: 3, knockbackY: -7, color: "#65a30d" } },
-          { at: 34, body: "c2", action: "madaraGunbaiSwing",   appear: 32, vanish: 60, place: { dx: -62, dy: -120, face: 1  }, hit: { damage: 13, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
+          { at: 5,  body: "c0", action: "madaraWoodSpikeCast", appear: 2,  vanish: 34, place: { dx: -30, dy: 2,    face: 1  }, hit: { damage: 13, hitstun: 30, knockbackX: 2, knockbackY: -12, color: "#65a30d" } },
+          { at: 18, body: "c1", action: "madaraGunbaiSwing",   appear: 15, vanish: 46, place: { dx: 24,  dy: -62,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: 2, knockbackY: -8 } },
+          { at: 32, body: "c2", action: "madaraSusanooPunch",  appear: 29, vanish: 58, place: { dx: -22, dy: -130, face: 1  }, hit: { damage: 12, hitstun: 26, knockbackX: 2, knockbackY: -7, color: "#22d3ee" } },
+          { at: 48, body: "c3", action: "madaraSusanooPunch",  appear: 45, vanish: 72, place: { dx: 18,  dy: -202, face: -1 }, hit: { damage: 12, hitstun: 28, knockbackX: 2, knockbackY: -7, color: "#22d3ee" } },
         ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
+        finisher: { at: 64, action: "down_air", descendVy: 8, teleport: { dx: 14, dyAbove: 230 }, hit: { damage: 30, hitstun: 32, knockbackX: 6, knockbackY: 14 } },
       },
       // GRAB — Wood Dragon Bind: two clones cast Wood Dragons on either flank, seize + drag the opponent to
       // centre, then Madara Susanoo-punch launches. (Flank/strike template.)
+      // GRAB — Wood Dragon Coil. CANON: Mokuryū (Wood Dragon). ONE huge wood dragon coils the foe dead-centre
+      // and holds (high hitstun), then a Susanoo-punch launch. Distinct: single giant coil (not a flank pair).
       grab: {
-        name: "Wood Dragon Bind", cost: 42, cooldown: 96, duration: 60,
-        clones: [{ slot: "c0" }, { slot: "c1" }],
+        name: "Wood Dragon Coil", cost: 42, cooldown: 96, duration: 56,
+        clones: [{ slot: "c0" }],
         beats: [
-          { at: 6, body: "c0", action: "madaraWoodDragonCast", appear: 2, vanish: 32, place: { dx: -70, dy: 0, face: 1  }, hit: { damage: 13, hitstun: 36, knockbackX: 5,  knockbackY: -2, color: "#65a30d" } },
-          { at: 8, body: "c1", action: "madaraWoodDragonCast", appear: 4, vanish: 34, place: { dx: 70,  dy: 0, face: -1 }, hit: { damage: 13, hitstun: 36, knockbackX: -5, knockbackY: -2, color: "#65a30d" } },
+          { at: 5, body: "c0", action: "madaraWoodDragonCast", appear: 0, vanish: 34, place: { dx: 0, dy: -8, face: 1 }, hit: { damage: 16, hitstun: 46, knockbackX: 0, knockbackY: -2, color: "#65a30d" } },
         ],
-        finisher: { type: "strike", at: 24, action: "madaraSusanooPunch", teleport: { dx: -50 }, hit: { damage: 24, hitstun: 34, knockbackX: 4, knockbackY: -13, color: "#22d3ee" } },
+        finisher: { type: "strike", at: 24, action: "madaraSusanooPunch", teleport: { dx: -40 }, hit: { damage: 26, hitstun: 36, knockbackX: 4, knockbackY: -15, color: "#22d3ee" } },
       },
       // RANGED — Great Fireball Volley: clones flank the CASTER and spit Katon fireballs; Madara throws a big
       // Great Fireball. (Shuriken/projectile template.)
@@ -867,21 +887,20 @@ export const CHOREO_BY_CHAR = {
         finisher: { type: "escape", at: 6, action: "madaraSusanooPunch", teleport: { behindTarget: true, dx: 60 }, iframes: 22,
           hit: { damage: 19, hitstun: 26, knockbackX: 6, knockbackY: -3, color: "#22d3ee" } },
       },
-      // ULTIMATE-SWARM — Susanoo Wood-Clone Barrage (higher-tier per brief): a rising column of wood clones,
-      // Susanoo strikes escalating up, then a hard Susanoo spike. (Two-Thousand template; teal Susanoo beats.)
+      // ULTIMATE-SWARM — Perfect Susanoo. CANON: the Complete Susanoo colossus. FIVE clones stack a TALL NARROW
+      // Susanoo tower (tight x, huge y-climb) culminating in a colossal slam. Distinct: 5 clones, tallest/
+      // narrowest column of the roster (vs Hashirama's wide forest / Hiruzen's wide star).
       swarm: {
-        name: "Susanoo Wood-Clone Barrage", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
+        name: "Perfect Susanoo", cost: 64, cooldown: 126, duration: 104,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }, { slot: "c4" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",                 appear: 2,  vanish: 20, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 13, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "madaraWoodSpikeCast", appear: 10, vanish: 24, place: { dx: 64,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#65a30d" } },
-          { at: 18, body: "c2", action: "madaraWoodDragonCast", appear: 16, vanish: 30, place: { dx: -58, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#65a30d" } },
-          { at: 24, body: "c3", action: "madaraSusanooPunch",  appear: 22, vanish: 36, place: { dx: 60,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3, color: "#22d3ee" } },
-          { at: 30, body: "c0", action: "madaraSusanooPunch",  appear: 28, vanish: 42, place: { dx: -54, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3, color: "#22d3ee" } },
-          { at: 36, body: "c1", action: "madaraGunbaiSwing",   appear: 34, vanish: 48, place: { dx: 56,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2 } },
-          { at: 44, body: "c2", action: "madaraSusanooPunch",  appear: 42, vanish: 58, place: { dx: -50, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2, color: "#22d3ee" } },
+          { at: 4,  body: "c0", action: "madaraSusanooPunch", appear: 2,  vanish: 24, place: { dx: -18, dy: 2,    face: 1  }, hit: { damage: 12, hitstun: 34, knockbackX: 2, knockbackY: -11, color: "#22d3ee" } },
+          { at: 14, body: "c1", action: "madaraSusanooPunch", appear: 12, vanish: 32, place: { dx: 16,  dy: -58,  face: -1 }, hit: { damage: 7,  hitstun: 20, knockbackX: 2, knockbackY: -4, color: "#22d3ee" } },
+          { at: 26, body: "c2", action: "madaraGunbaiSwing",  appear: 24, vanish: 44, place: { dx: -14, dy: -124, face: 1  }, hit: { damage: 7,  hitstun: 20, knockbackX: 2, knockbackY: -4 } },
+          { at: 40, body: "c3", action: "madaraSusanooPunch", appear: 38, vanish: 58, place: { dx: 12,  dy: -192, face: -1 }, hit: { damage: 8,  hitstun: 22, knockbackX: 2, knockbackY: -4, color: "#22d3ee" } },
+          { at: 56, body: "c4", action: "madaraSusanooPunch", appear: 54, vanish: 76, place: { dx: -10, dy: -262, face: 1  }, hit: { damage: 9,  hitstun: 24, knockbackX: 2, knockbackY: -4, color: "#22d3ee" } },
         ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 34, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { at: 72, action: "down_air", descendVy: 10, teleport: { dx: 8, dyAbove: 288 }, hit: { damage: 36, hitstun: 34, knockbackX: 8, knockbackY: 18 } },
       },
     },
   },
@@ -1001,28 +1020,29 @@ export const CHOREO_BY_CHAR = {
         finisher: { type: "escape", at: 6, action: "painAlmightyPullCast", teleport: { behindTarget: true, dx: 60 }, iframes: 22,
           hit: { damage: 19, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
       },
-      // PURE ATTACK — Six Paths Barrage: three bodies pile on in order, Pain Almighty-Push spikes down.
+      // SIGNATURE (distinct): GRAVITY — few bodies, FAR PINCER spacing, Almighty Push/Pull slamming the foe
+      // INWARD from both sides (no tall juggle column). Clone-count profile 2-2-1-1-1-3.
+      // PURE ATTACK — Twin-Body Pincer. CANON: Deva Path + a pulled-out body. TWO bodies strike from FAR both
+      // sides and gravity-slam the foe inward to centre, then Pain spikes. Distinct: wide 2-body pincer inward.
       pureAttack: {
-        name: "Six Paths Barrage", cost: 42, cooldown: 92, duration: 78,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        name: "Twin-Body Pincer", cost: 40, cooldown: 90, duration: 64,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",         appear: 2,  vanish: 30, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 15, hitstun: 30, knockbackX: 2, knockbackY: -13 } },
-          { at: 20, body: "c1", action: "painCombo2",  appear: 18, vanish: 46, place: { dx: 70,  dy: -70,  face: -1 }, hit: { damage: 11, hitstun: 26, knockbackX: 3, knockbackY: -7 } },
-          { at: 34, body: "c2", action: "painCombo3",  appear: 32, vanish: 60, place: { dx: -62, dy: -120, face: 1  }, hit: { damage: 13, hitstun: 26, knockbackX: 2, knockbackY: -6 } },
+          { at: 4,  body: "c0", action: "painCombo2", appear: 1, vanish: 30, place: { dx: -118, dy: 0,   face: 1  }, hit: { damage: 14, hitstun: 30, knockbackX: 9,  knockbackY: -5 } },
+          { at: 10, body: "c1", action: "painCombo3", appear: 6, vanish: 36, place: { dx: 118,  dy: -8,  face: -1 }, hit: { damage: 14, hitstun: 30, knockbackX: -9, knockbackY: -5 } },
         ],
-        finisher: { at: 52, action: "down_air", descendVy: 7, teleport: { dx: 18, dyAbove: 150 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
+        finisher: { at: 28, action: "down_air", descendVy: 7, teleport: { dx: 14, dyAbove: 140 }, hit: { damage: 28, hitstun: 30, knockbackX: 6, knockbackY: 12 } },
       },
-      // RANGED — Asura Path Volley: clones flank the CASTER and fire mechanised/gravity shots; Pain fires a
-      // big Almighty-Push shockwave. (Shuriken/projectile template.)
+      // RANGED — Asura Cannon. CANON: Asura Path mechanised cannon. ONE body braces and fires a single heavy
+      // slow gravity shot, Pain caps with a huge Shinra Tensei shockwave. Distinct: single heavy shot (not a
+      // three-clone spray) + a massive shockwave finisher.
       ranged: {
-        name: "Asura Path Volley", cost: 45, cooldown: 100, duration: 58,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
+        name: "Asura Cannon", cost: 44, cooldown: 100, duration: 56,
+        clones: [{ slot: "c0" }],
         beats: [
-          { at: 6,  body: "c0", action: "painAlmightyPushCast", appear: 2,  vanish: 26, place: { ref: "caster", dx: -48, dy: -8  }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 12, body: "c1", action: "painAlmightyPushCast", appear: 6,  vanish: 30, place: { ref: "caster", dx: 48,  dy: -30 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -1, speed: 15 } },
-          { at: 18, body: "c2", action: "painAlmightyPushCast", appear: 12, vanish: 36, place: { ref: "caster", dx: -42, dy: -58 }, hit: { projectile: true, damage: 13, hitstun: 18, knockbackX: 5, knockbackY: -2, speed: 16 } },
+          { at: 6, body: "c0", action: "painAlmightyPushCast", appear: 2, vanish: 32, place: { ref: "caster", dx: -44, dy: -20 }, hit: { projectile: true, damage: 15, hitstun: 20, knockbackX: 7, knockbackY: -2, speed: 13, big: true, w: 38, h: 38 } },
         ],
-        finisher: { type: "projectile", at: 30, action: "painSuperPushCast", hit: { projectile: true, damage: 24, hitstun: 24, knockbackX: 10, knockbackY: -3, speed: 17, big: true, w: 50, h: 50 } },
+        finisher: { type: "projectile", at: 24, action: "painSuperPushCast", hit: { projectile: true, damage: 26, hitstun: 26, knockbackX: 12, knockbackY: -3, speed: 15, big: true, w: 62, h: 62 } },
       },
       // DEFENSIVE — Preta / Rinnegan Guard: a clone raises an absorption barrier (absorbs), Pain re-appears
       // on the FAR side with i-frames + a counter shockwave. (Escape template.)
@@ -1035,21 +1055,19 @@ export const CHOREO_BY_CHAR = {
         finisher: { type: "escape", at: 4, action: "painAlmightyPushCast", teleport: { behindTarget: true, dx: 78 }, iframes: 28,
           hit: { projectile: true, damage: 11, hitstun: 16, knockbackX: 6, knockbackY: -1, speed: 16 } },
       },
-      // ULTIMATE-SWARM — Six Paths Assault: a rising column of the six bodies pummel, then a hard
-      // Chibaku-Tensei-flavoured spike. (Two-Thousand template.)
+      // ULTIMATE-SWARM — Chibaku Tensei Crush. CANON: Chibaku Tensei + Shinra Tensei. THREE bodies orbit the
+      // foe at a WIDE radius and gravity-pulse it toward a central point (inward pulls, low climb), then a
+      // crushing Super-Push spike. Distinct: 3 bodies, wide orbiting inward-pull pattern (not a tall column).
       swarm: {
-        name: "Six Paths Assault", cost: 60, cooldown: 120, duration: 92,
-        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }, { slot: "c3" }],
+        name: "Chibaku Tensei Crush", cost: 60, cooldown: 122, duration: 78,
+        clones: [{ slot: "c0" }, { slot: "c1" }, { slot: "c2" }],
         beats: [
-          { at: 4,  body: "c0", action: "up",                   appear: 2,  vanish: 20, place: { dx: -74, dy: 4,    face: 1  }, hit: { damage: 13, hitstun: 34, knockbackX: 2, knockbackY: -12 } },
-          { at: 12, body: "c1", action: "painCombo1",            appear: 10, vanish: 24, place: { dx: 64,  dy: -46,  face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 18, body: "c2", action: "painCombo2",            appear: 16, vanish: 30, place: { dx: -58, dy: -80,  face: 1  }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 24, body: "c3", action: "painAlmightyPullCast",  appear: 22, vanish: 36, place: { dx: 60,  dy: -112, face: -1 }, hit: { damage: 6,  hitstun: 20, knockbackX: 2, knockbackY: -3 } },
-          { at: 30, body: "c0", action: "painAlmightyPushCast",  appear: 28, vanish: 42, place: { dx: -54, dy: -142, face: 1  }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -3 } },
-          { at: 36, body: "c1", action: "painCombo3",            appear: 34, vanish: 48, place: { dx: 56,  dy: -168, face: -1 }, hit: { damage: 7,  hitstun: 22, knockbackX: 2, knockbackY: -2 } },
-          { at: 44, body: "c2", action: "painSuperPushCast",     appear: 42, vanish: 58, place: { dx: -50, dy: -190, face: 1  }, hit: { damage: 8,  hitstun: 24, knockbackX: 2, knockbackY: -2 } },
+          { at: 4,  body: "c0", action: "painAlmightyPullCast", appear: 1,  vanish: 26, place: { dx: -112, dy: -6,  face: 1  }, hit: { damage: 11, hitstun: 30, knockbackX: 8,  knockbackY: -3 } },
+          { at: 12, body: "c1", action: "painAlmightyPullCast", appear: 9,  vanish: 34, place: { dx: 112,  dy: -40, face: -1 }, hit: { damage: 8,  hitstun: 22, knockbackX: -8, knockbackY: -3 } },
+          { at: 22, body: "c2", action: "painAlmightyPushCast", appear: 19, vanish: 44, place: { dx: -96,  dy: -86, face: 1  }, hit: { damage: 8,  hitstun: 22, knockbackX: 8,  knockbackY: -3 } },
+          { at: 34, body: "c0", action: "painAlmightyPullCast", appear: 32, vanish: 54, place: { dx: 92,   dy: -120, face: -1 }, hit: { damage: 9,  hitstun: 24, knockbackX: -8, knockbackY: -3 } },
         ],
-        finisher: { at: 58, action: "down_air", descendVy: 9, teleport: { dx: 12, dyAbove: 210 }, hit: { damage: 32, hitstun: 32, knockbackX: 8, knockbackY: 16 } },
+        finisher: { type: "strike", at: 50, action: "painSuperPushCast", teleport: { dx: -30 }, hit: { damage: 34, hitstun: 34, knockbackX: 10, knockbackY: -14 } },
       },
     },
   },

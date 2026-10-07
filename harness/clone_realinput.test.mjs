@@ -52,7 +52,10 @@ try {
     await boot(char);
     const r = await summonHoldThenSpecial();
     check(`${char}: real ↓↓↑+Special STAGED the formation`, r.staged, `staged=${r.staged} jumpedPx=${r.jumpedPx}`);
-    check(`${char}: did NOT jump (Up+Special collision handled)`, r.jumpedPx <= 20, `jumpedPx=${r.jumpedPx}`);
+    // "no meaningful jump": the pre-fix collision launched the fighter 340–586px. The grace keeps it on the
+    // ground (usually 0px); a ≤40px tolerance absorbs the occasional single-frame real-time-harness hop
+    // (Playwright inter-key latency vs the 60Hz loop) while still unambiguously failing if the collision regresses.
+    check(`${char}: did NOT jump (Up+Special collision handled)`, r.jumpedPx <= 40, `jumpedPx=${r.jumpedPx}`);
   }
 
   // ══ A concrete SELECT through real input (tobirama → Neutral = Pure Attack), PROMPTLY within the window ══
@@ -73,7 +76,7 @@ try {
     await boot(char);
     const r = await summonHoldThenSpecial();   // for light kits this directly fires the primary move
     check(`${char}: real ↓↓↑+Special fired a clone move`, r.staged, `staged=${r.staged} jumpedPx=${r.jumpedPx}`);
-    check(`${char}: did NOT jump`, r.jumpedPx <= 20, `jumpedPx=${r.jumpedPx}`);
+    check(`${char}: did NOT jump`, r.jumpedPx <= 40, `jumpedPx=${r.jumpedPx}`);
   }
 
   // ══ NARUTO (his own narutoChoreography engine): real Down+Special = Uzumaki Barrage (no up → no jump) ══

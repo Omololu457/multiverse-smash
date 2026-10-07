@@ -3577,7 +3577,7 @@ function mapInputToVirtualKeys(inputState, controls) {
   // Pillar) is reachable — `up` and `jump` share the same bind, so the jump vKey must be withheld here too
   // (input.js already withholds buffer.jump). _specialHeldDir reads raw inputState, so the "U" direction is
   // still detected. Non-simultaneous jump-then-air-special is unaffected.
-  if ((inputState.up || inputState.jump) && !(inputState.up && inputState.special)) v[controls.up] = true
+  if ((inputState.up || inputState.jump) && !(inputState.up && inputState.special) && !inputState._noJumpUp) v[controls.up] = true
   if (inputState.down)    v[controls.down]    = true
   if (inputState.light)   v[controls.light]   = true
   if (inputState.heavy)   v[controls.heavy]   = true

@@ -493,6 +493,22 @@ function pollGamepad(playerNum, buffer) {
 // (keyboard AND controller route through here). Exposed so a harness can PROVE the
 // wiring is connected (both counters advancing = getFighterInput ran for both).
 export const inputCallCount = { 1: 0, 2: 0 }
+
+// CLONE-SUMMON JUMP GRACE helper: true when the fighter's motion buffer FRESHLY ends with the ↓↓↑
+// cloneSummon shape (cardinal D,D,U within its 800ms window). Only Naruto-universe clone chars ever
+// populate motionHistory (recordMotionInput early-returns for everyone else), and AI-driven fighters
+// write keys directly (no keydown → no motionHistory) — so this is inert for every other char and for
+// the determinism AI-vs-AI path. Used to withhold the jump that the motion's trailing UP would fire,
+// giving the natural "↓↓↑ then Special" input time to land without leaping.
+function _recentCloneSummonMotion(fighter) {
+  const h = fighter.motionHistory
+  if (!h || h.length < 3) return false
+  const last3 = h.slice(-3)
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now())
+  if (now - (last3[0].time || 0) > 800) return false
+  return last3[0].dir === "D" && last3[1].dir === "D" && last3[2].dir === "U"
+}
+
 export function getFighterInput(fighter) {
   if (!fighter) return null
 
@@ -528,10 +544,18 @@ export function getFighterInput(fighter) {
   // (non-simultaneous) is unaffected. Also exposes `up` (previously absent from the keyboard output)
   // so betaHeldDirFromInput can resolve the "U" direction — parity with the gamepad path.
   const doingUpSpecial = !!(keys[ctrl.up] && keys[ctrl.special])
-  if ((keys[ctrl.jump] || keys[ctrl.up]) && !doingUpSpecial) buffer.jump = BUFFER_WINDOW
+  // CLONE SUMMON: the ↓↓↑ motion ends in UP (= jump). While that fresh motion is buffered and up is held,
+  // withhold the jump so the follow-up Special (pressed a few frames later — the natural human input, not a
+  // 1-frame simultaneous press) stages the formation GROUNDED instead of leaping. Bounded by the motion's
+  // own 800ms window; a normal jump (up with NO preceding ↓↓↑) is unaffected.
+  const summonJumpGrace = !!(keys[ctrl.up] && _recentCloneSummonMotion(fighter))
+  if ((keys[ctrl.jump] || keys[ctrl.up]) && !doingUpSpecial && !summonJumpGrace) buffer.jump = BUFFER_WINDOW
 
   // 3. Unified output
   return {
+    // `_noJumpUp` tells mapInputToVirtualKeys to withhold the UP vKey (the one physics actually jumps on),
+    // not just the buffered jump — covers both the simultaneous up+special AND the ↓↓↑ summon grace.
+    _noJumpUp: doingUpSpecial || summonJumpGrace,
     left: !!keys[ctrl.left],
     right: !!keys[ctrl.right],
     down: !!keys[ctrl.down],

@@ -4,6 +4,33 @@ Newest first. "★" = landed on main. Dates are when the work was done.
 ========================================================================
 
 ========================================================================
+CLONE KIT DIFFERENTIATION — 2026-10-07   (branch naruto-clone-choreography; NOT merged)
+========================================================================
+  Follow-up to the clone pass: the kits were cosmetically distinct but STRUCTURALLY identical
+  reskins (test:clone-distinctness failed 16). This pass makes each kit differ in ways that CHANGE
+  HOW IT PLAYS — clone count, formation shape, timing/rhythm, material, and game effect — grounded
+  in each character's real techniques. The audit threshold/measure was NOT changed.
+  - Redesigned (distinct clone-count profiles): MINATO 2-1-2-1-2-3 (FTG tight rapid warps), HASHIRAMA
+    5-3-2-2-1-5 (wood swarm, wide surround + root bind), HIRUZEN 4-2-3-1-2-5 (Five Elements spread),
+    KAKASHI 2-1-1-2-1-2 (copy-ninja precision, Kamui/Raikiri), ITACHI 3-3-2-2-2-3 (crows + genjutsu
+    LOCK; recoloured off Madara's crimson), MADARA 4-1-3-1-1-5 (tall Perfect-Susanoo column),
+    PAIN 2-2-1-1-1-3 (gravity far-pincer; Deva Path push/pull crush kept). TOBIRAMA = water reference
+    (3-2-3-1-1-4); BORUTO = scaled-down shadow clones (2-2-2-1-1-3).
+  - VERIFIED (real keystrokes): test:clone-realinput 25/0 — the ↓↓↑+Special summon/select still fires
+    GROUNDED for every clone char (data changes don't touch the input path).
+  - VERIFIED (logic + render per character, screenshots CLONE_<char>_*.png): all 9 full-kit chars
+    23/0, sasuke 8/0, obito 11/0 — clones render as the character's REAL sprite each time.
+  - AUDIT: test:clone-distinctness 82/0 (was 66/16) — 9 distinct clone-count profiles, unique
+    materials, <4/6 structural overlap for every pair (worst now 2/6), WITHOUT loosening the audit.
+  - STALE TESTS removed (so they don't reappear as merge noise): DELETED harness/naruto.test.mjs +
+    test:naruto (all 5 sections drove Naruto's REMOVED persistent "," clones); dropped the naruto
+    comparison block from minato-clone-routes (now 12/0). Naruto's real behaviour stays covered by
+    naruto-barrage 11/0 / naruto-summon-select 18/0 / clone-realinput 25/0.
+  - REGRESSION: determinism 9/0, combo-standard 230/0. Guardrails honoured — Naruto untouched;
+    Isshiki/Orochimaru/Onoki/Kiba untouched; Sasuke/Obito stay light (1-2 moves); deterministic
+    (no gameRng); inputs stay direction+button / summon+select.
+
+========================================================================
 CLONE-CHOREOGRAPHY PASS — 2026-10-07   (branch naruto-clone-choreography; NOT merged)
 VERIFIED-THROUGH-REAL-INPUT vs logic-verified is called out explicitly below.
 ========================================================================

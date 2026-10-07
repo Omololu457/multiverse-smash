@@ -18746,6 +18746,11 @@ window.addEventListener("keydown", e => {
     if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
     if (key === "/") {
+      // COLLISION GUARD (2026-10-06): "/" is ALSO P2's block key. In a human 2P match P2 owns "/", so the
+      // legacy P1 clone-swap must NOT double-fire on P2's block press. Only swap when there is no human-
+      // keyboard P2 claiming "/" (i.e. vs-AI, or P2 on a gamepad). P1 keeps create "," / disperse "." and
+      // the ↓↓↑+Special choreography in every mode. (Audited in STAGE 2 — single-keyboard 2P layout.)
+      if (p2 && !p2._aiControlled && (p2.controls?.block === "/")) return
       if ((p1._cloneSwapCd || 0) > 0) return
       if (swapConsciousnessWithClone(p1, getOpponent(p1))) {
         p1._cloneSwapCd = CLONE_SWAP_COOLDOWN

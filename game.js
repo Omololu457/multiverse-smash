@@ -1460,10 +1460,11 @@ const EDGE_SPAWN_PADDING    = 80
 // Consciousness-swap (Stage 3) tuning: frames of cooldown between swaps (anti-spam) + brief arrival i-frames.
 const CLONE_SWAP_COOLDOWN   = 75   // ~1.25s @60fps before the next "/" swap
 const CLONE_SWAP_IFRAMES    = 10   // invuln on arrival so the swap is a real escape, not a trade-into-a-meaty
-// CLONE-ASSIST REDESIGN (SSF2 one-shot model): the 6 redesigned chars use dedicated "h"+direction one-shot
-// SPECIALS (no persistent clone). The legacy 3 keep the persistent "," / "." / "/" shadow-clone system.
+// CLONE-ASSIST REDESIGN (SSF2 one-shot model): ADDITIVE one-shot "h"+direction clone-assist specials for
+// these 6 chars. This does NOT remove their persistent "," clones — the "," binding is gated on
+// isCloneCapable() (summons.js CLONE_CAPABLE_KEYS), so all clone-capable chars keep BOTH systems.
+// (LEGACY_CLONE_KEYS was removed 2026-10-06 — see the "," regression fix in the keydown handler below.)
 const ONESHOT_CLONE_KEYS = new Set(["naruto", "minato", "tobirama", "hashirama", "itachi", "kakashi"])
-const LEGACY_CLONE_KEYS  = new Set(["boruto", "hiruzen", "madara"])
 const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
 const GAME_STATES = {
@@ -18732,13 +18733,17 @@ window.addEventListener("keydown", e => {
   }
   handlePauseInput(key)
 
-  // PERSISTENT CLONE CONTROLS (legacy) — "," create / "." disperse / "/" consciousness-swap. These drive the
-  // PERSISTENT shadow/wood-clone system, which now applies ONLY to the LEGACY clone chars (boruto/hiruzen/madara)
-  // — the characters NOT part of the one-shot clone-assist redesign. The 6 redesigned chars
-  // (naruto/minato/tobirama/hashirama/itachi/kakashi) use one-shot "h" moves instead (handler just below), and
-  // never spawn a persistent clone entity.
-  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && LEGACY_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
-    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); if ((p1.rosterKey || "").toLowerCase() === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
+  // PERSISTENT CLONE CONTROLS — "," create / "." disperse / "/" consciousness-swap. Gated on the SINGLE source
+  // of truth isCloneCapable() (summons.js CLONE_CAPABLE_KEYS) so the "," binding is identical for EVERY
+  // clone-capable character and can never drift per-character again.
+  // ★ REGRESSION FIX (2026-10-06): commit 44281177 (one-shot "h" redesign) narrowed this gate to a hardcoded
+  // LEGACY_CLONE_KEYS = {boruto,hiruzen,madara}, silently dropping the persistent "," spawn for the other
+  // clone-capable chars (minato/tobirama/hashirama/itachi/kakashi) — who are STILL in CLONE_CAPABLE_KEYS and
+  // still tested for it → count=0. Restoring the isCloneCapable() gate fixes the spawn WITHOUT touching the
+  // additive one-shot "h" handler below (a separate system, gated on ONESHOT_CLONE_KEYS). Naruto is NOT in
+  // CLONE_CAPABLE_KEYS on this branch — his clones come from narutoChoreography.js, not "," (by design).
+  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && isCloneCapable(p1)) {
+    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
     if (key === "/") {
       if ((p1._cloneSwapCd || 0) > 0) return

@@ -4119,8 +4119,14 @@ function fireNHDotonWall(fighter, context) {
 // (half on block). [CANON]
 function executeNarutoHokageUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "naruto_hokage") return false
-  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 80)) return false
-  if (fighter._nhKcm) return executeNarutoHokageBijuudama(fighter, context)   // KCM neutral Ultimate = Bijuudama (Four-Tails/Rikudou bursts are a later stage)
+  if (fighter._nhKcm) {   // KCM — directional Ultimate: Fwd=Four-Tails Rage, Down=Rikudou, neutral=Bijuudama
+    const variant = fighter._ultVariant || "bijuudama"
+    if (variant === "fourTails") return executeNarutoHokageFourTails(fighter, context)   // handles its own cost
+    if (variant === "rikudou")   return executeNarutoHokageRikudou(fighter, context)     // handles its own cost/gate
+    if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 80)) return false
+    return executeNarutoHokageBijuudama(fighter, context)
+  }
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 80)) return false   // BASE — Kuchiyose: Gamabunta
   _nhSetCast(fighter, "nhKuchiyoseCast", 30)
   fighter.attackCooldown = getAttackDuration(52, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 30)   // armored through the summon
@@ -4211,6 +4217,8 @@ export function revertNarutoHokageKCM(fighter) {
   fighter.damageMultiplier = fighter.attackMultiplier = 1
   fighter.speedMultiplier = 1
   fighter.defenseMultiplier = 1
+  fighter._nhRage = 0
+  fighter._nhAfterglow = 0
   fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
 }
 
@@ -4222,9 +4230,18 @@ export function narutoHokageChargeAction(fighter, context, wasHeld, wasTap) {
   return false
 }
 
-// Per-frame: drain chakra while KCM; auto-revert at 0 (the risk/limiter).
+// Per-frame: tick the post-burst afterglow (gold aura + small dmg buff), then drain chakra
+// while KCM and auto-revert at 0 (the risk/limiter). Afterglow ticks even after a rage-overload
+// revert, so it must run independently of _nhKcm.
 export function applyNarutoHokageKCMSystem(fighter) {
-  if (!isNHChar(fighter) || !fighter._nhKcm) return
+  if (!isNHChar(fighter)) return
+  const formBaseMult = fighter._nhKcm ? (fighter.transformations?.kcm?.damageMultiplier || 1.25) : 1
+  if ((fighter._nhAfterglow || 0) > 0) {
+    fighter._nhAfterglow--
+    fighter.damageMultiplier = fighter.attackMultiplier = Math.max(formBaseMult, 1.35)   // afterglow dmg buff
+    if (fighter._nhAfterglow === 0) { fighter.damageMultiplier = fighter.attackMultiplier = formBaseMult }
+  }
+  if (!fighter._nhKcm) return
   const form = fighter.transformations?.kcm; if (!form) return
   tickSustainedFormDrain(fighter, { active: f => !!f._nhKcm, drainPerFrame: form.energyDrainPerFrame || 0.16, revert: revertNarutoHokageKCM })
 }
@@ -4304,6 +4321,67 @@ function executeNarutoHokageBijuudama(fighter, context) {
     }, context)
     try { shakeCamera(context, 9, 18) } catch (_) {}
   })
+  return true
+}
+
+// KCM Fwd+Ult — FOUR-TAILS RAGE: a committed red-cloak rush (multi-hit). Deterministic beats (no gameRng).
+// Builds a Rage meter; at full it FORCE-REVERTS KCM and leaves a short stagger (the risk). Afterglow after. [CANON-ADJACENT]
+function executeNarutoHokageFourTails(fighter, context) {
+  if (!spendEnergy(fighter, 80)) return false
+  _nhSetCast(fighter, "nhFourTails", 54)
+  fighter.attackCooldown = getAttackDuration(58, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 20)
+  const face = fighter.facing || 1
+  fighter.vx = face * 9
+  const beats = [12, 22, 32, 44]
+  beats.forEach((d, i) => schedulePendingSpawn(d, () => {
+    const last = i === beats.length - 1
+    fighter.vx = face * (last ? -3 : 8)   // rush in; recoil on the finisher
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 190) return   // claw range
+    const kdir = tcx >= cx ? 1 : -1
+    const dmg = last ? 95 : 55
+    if (opp.isBlocking) { opp.blockstun = 16; applyScaledDamage(opp, Math.floor(dmg * 0.4), { source: "ability" }); return }
+    opp.hitstun = last ? 44 : 20; opp.vx = kdir * (last ? 14 : 5); opp.vy = last ? -12 : -4; opp.colorFlash = 12
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, last ? 8 : 4, 6) } catch (_) {}
+  }))
+  schedulePendingSpawn(52, () => {
+    fighter._nhRage = (fighter._nhRage || 0) + 40
+    if (fighter._nhRage >= 100) {                   // RAGE OVERLOAD — forced reversion + short stagger (the risk)
+      revertNarutoHokageKCM(fighter)                // clears rage + afterglow + form
+      fighter.hitstun = Math.max(fighter.hitstun || 0, 36)
+      fighter.vx = -face * 5
+    }
+    fighter._nhAfterglow = 240                      // timed gold aura-tint buff (applies after any revert)
+  })
+  return true
+}
+
+// KCM Down+Ult — RIKUDOU (Six Paths Sage): the STRONGEST committed sequence — gold crescent slashes.
+// Needs a near-full chakra gauge; higher cost + the universal ult cooldown. Afterglow after. [CANON-ADJACENT]
+function executeNarutoHokageRikudou(fighter, context) {
+  if ((fighter.energy || 0) < 140) return false     // needs a (near-)full gauge
+  if (!spendEnergy(fighter, 120)) return false
+  _nhSetCast(fighter, "nhRikudou", 62)
+  fighter.attackCooldown = getAttackDuration(66, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 28)
+  const face = fighter.facing || 1
+  const beats = [14, 24, 34, 44, 56]
+  beats.forEach((d, i) => schedulePendingSpawn(d, () => {
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 420) return             // sweeping sage-slash reach
+    const kdir = tcx >= cx ? 1 : -1
+    const last = i === beats.length - 1
+    const dmg = last ? 160 : 70
+    if (opp.isBlocking) { opp.blockstun = 20; applyScaledDamage(opp, Math.floor(dmg * 0.4), { source: "ability" }); return }
+    opp.hitstun = last ? 54 : 22; opp.vx = kdir * (last ? 18 : 4); opp.vy = last ? -14 : -5; opp.colorFlash = 14
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, last ? 10 : 4, last ? 16 : 6) } catch (_) {}
+  }))
+  schedulePendingSpawn(60, () => { fighter._nhAfterglow = 300 })   // strongest afterglow
   return true
 }
 

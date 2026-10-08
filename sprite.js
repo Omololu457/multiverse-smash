@@ -231,6 +231,7 @@ const MOVE_TO_ACTION = {
   nhRasenganCast: "nhRasenganCast", nhRasenshurikenCast: "nhRasenshurikenCast",
   nhDotonCast: "nhDotonCast", nhThrowCast: "nhThrowCast", nhKuchiyoseCast: "nhKuchiyoseCast",
   chakraCharge: "chakraCharge",   // Naruto (Hokage) STAGE 3: KCM transform hold-pose. Identity map.
+  nhFourTails: "nhFourTails", nhRikudou: "nhRikudou",   // Naruto (Hokage) STAGE 4: burst-sequence combos. Identity maps.
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.
@@ -1048,8 +1049,10 @@ export class SpriteHandler {
     else if ((fighter.rosterKey || "").toLowerCase() === "goku" && (fighter.transformIndex || 0) > 0 && GOKU_TINTED_ACTIONS.has(this.currentAction)) {
       spriteFilter = GOKU_FORM_TINTS[fighter.transformIndex] || "none";
     }
-    // Naruto (Hokage) KCM: gold-tint the orange base ATTACK frames that have no golden art.
-    else if ((fighter.rosterKey || "").toLowerCase() === "naruto_hokage" && fighter._nhKcm && NH_KCM_TINTED_ACTIONS.has(this.currentAction)) {
+    // Naruto (Hokage) KCM: gold-tint the orange base ATTACK frames that have no golden art; also a brief
+    // gold afterglow wash on ALL actions after a Four-Tails/Rikudou burst (reuses the same tint infra).
+    else if ((fighter.rosterKey || "").toLowerCase() === "naruto_hokage" &&
+             ((fighter._nhKcm && NH_KCM_TINTED_ACTIONS.has(this.currentAction)) || (fighter._nhAfterglow || 0) > 0)) {
       spriteFilter = NH_KCM_TINT;
     }
     fighter._lastSpriteFilter = spriteFilter;   // read-only diagnostic (like _lastDrawX/Y/W/H) — test hook for ITEM 3

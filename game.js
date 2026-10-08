@@ -7807,6 +7807,13 @@ function _updatePlayerCombatBody(fighter) {
     if (_kuramaMotion) clearMotionHistory(fighter)
     fighter._ultVariant = "kurama"   // neutral OR Down OR ↓←↓← → the Nine-Tails (executeNarutoUltimate)
   }
+  // NARUTO (HOKAGE) — the Ultimate is directional in KCM: NEUTRAL = Bijuudama, FWD = Four-Tails Rage burst,
+  // DOWN = Rikudou burst (both KCM-only committed sequences). In BASE form the Ultimate is always Gamabunta.
+  // Stamp the held direction so executeNarutoHokageUltimate picks the branch (mirrors the special path).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_hokage") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "F" ? "fourTails" : _hd === "D" ? "rikudou" : "bijuudama"
+  }
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "rickprime") {

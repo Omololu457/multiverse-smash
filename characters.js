@@ -9558,7 +9558,10 @@ const narutoHokage = {
     nhThrowCast:         { frames: 3, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_throw_cast_uniform.png" },
     nhKuchiyoseCast:     { frames: 5, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kuchiyose_cast_uniform.png" },
     // STAGE 3: Chakra Charge hold-pose, played during the KCM transform cinematic.
-    chakraCharge:        { frames: 4, width: 49, height: 62, speed: 4, anchorY: 0, loop: true, sheet: "./naruto_hokage_chakra_charge_uniform.png" }
+    chakraCharge:        { frames: 4, width: 49, height: 62, speed: 4, anchorY: 0, loop: true, sheet: "./naruto_hokage_chakra_charge_uniform.png" },
+    // STAGE 4: burst-sequence animations (KCM-only committed ultimates).
+    nhFourTails:         { frames: 8, width: 69, height: 68, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_fourtails_uniform.png" },
+    nhRikudou:           { frames: 8, width: 83, height: 68, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rikudou_uniform.png" }
   }
 }
 

@@ -1256,6 +1256,83 @@ const sasuke = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SASUKE UCHIHA (ADULT)  (Naruto universe) — ADDITIVE new fighter.
+// rosterKey "sasuke_adult". Built from the rct29 "sasuke_uchiha_adult_nzc"
+// green-screen JUS sheet (1828×4028) → sliced to feet-aligned *_uniform.png
+// strips (sasuke_adult_work/slice_sasuke_adult.py). SAME discipline as the
+// jesus / ghostface_exe additive builds: a self-contained entry that never
+// touches the existing `sasuke`, `itachi`, `pain` or `six_paths_pain` files.
+// All sprites are bottom-aligned in their cells → anchorY: 0 (jesus/naruto_hokage
+// model). Energy = Chakra (traits.energyType). Default skin only; NOT brutality-
+// eligible (the win pose includes the child character Sarada). Specials + ultimate
+// logic live in abilities.js (executeSasukeAdultSpecial / executeSasukeAdultUltimate);
+// the `specials`/`ultimate` fields below are HUD / Move-List metadata.
+// Input map (base, _specialHeldDir): N=Katon Goukakyuu (ground/air) · F=Chidori
+// (run-thrust, ground/air) · B=Chidori Nagashi (AOE) · U=Amaterasu · D=Sword-Swap
+// Strike. Rinnegan ULTIMATE is directional (_ultVariant): N=Chibaku Tensei ·
+// F=Shinra Tensei · B=Banshou Tenin. (Chidori Eisou + Kuchiyose are documented
+// gaps — no slot, left unwired.)
+const sasukeAdult = {
+  rosterKey: "sasuke_adult", name: "Sasuke (Adult)", universe: "naruto",
+  isPlayable: true,
+  portrait: "./sasuke_adult_portrait.png",
+  archetypes: ["melee", "zoner"], primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // Naruto top-band, a step above teen Sasuke (1180/190/89/84/90) — EMS/Rinnegan era.
+  stats: { maxHealth: 1220, maxEnergy: 200, attack: 93, defense: 88, speed: 92, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  basic_attacks: {
+    light:   { damage: 50, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:   { damage: 96, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 90, rangeY: 50 },  // crescent sword swing (swordJ)
+    upAttack:{ type: "launcher", damage: 72, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    downAir: { damage: 80, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    airAttack:{ damage: 56, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
+  },
+  // HUD / Move-List metadata — real logic in abilities.js executeSasukeAdultSpecial.
+  specials: {
+    katon:         { cost: 26, motion: "Special", effect: "Katon: Great Fireball — fire-breath projectile (ground & air). [CANON]" },
+    chidori:       { cost: 30, motion: "Forward + Special", effect: "Chidori — lightning run-thrust dash-strike (ground & air). [CANON]" },
+    chidoriNagashi:{ cost: 34, motion: "Back + Special", effect: "Chidori Nagashi — a stationary lightning-current AOE burst. [CANON]" },
+    amaterasu:     { cost: 40, motion: "Up + Special", effect: "Amaterasu — inextinguishable black flame (direct + lingering burn). [CANON]" },
+    swordSwap:     { cost: 28, motion: "Down + Special", effect: "Sword-Swap Strike — hurl the sword, warp to it and run the foe through (Amenotejikara-flavoured). [CANON-ADJACENT]" }
+  },
+  ultimate: { name: "Rinnegan", cost: 100, description: "Directional Rinnegan ult — neutral: Chibaku Tensei (gravity-sphere crush) · Forward: Shinra Tensei (repulsion blast) · Back: Banshou Tenin (gravity reel-in). [Chibaku Tensei CANON · Shinra/Banshou CANON-ADJACENT]" },
+  hasSprites: true,
+  spriteScale: 1.5,   // idle ≈81px → ~121px on-screen (a touch taller than teen Sasuke); REQUIRES the skins.js sasuke_adult default entry or getSkins() clobbers this to 1
+  introPool: ["intro"],
+  animationData: {
+    idle:  { frames: 4, width: 38, height: 81, speed: 7, anchorY: 0, loop: true,  sheet: "./sasuke_adult_idle_uniform.png" },
+    walk:  { frames: 6, width: 77, height: 66, speed: 6, anchorY: 0, loop: true,  sheet: "./sasuke_adult_run_uniform.png" },
+    run:   { frames: 6, width: 77, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./sasuke_adult_run_uniform.png" },
+    jump:  { frames: 3, width: 64, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_jump_uniform.png" },
+    fall:  { frames: 3, width: 64, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_jump_uniform.png" },
+    guard: { frames: 2, width: 49, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_guard_uniform.png" },
+    hurt:  { frames: 2, width: 49, height: 83, speed: 6, anchorY: 0, sheet: "./sasuke_adult_hurt_uniform.png" },
+    knockdown: { frames: 6, width: 86, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_knockdown_uniform.png" },
+    lose:  { frames: 2, width: 69, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_launched_uniform.png" },
+    charge:{ frames: 1, width: 34, height: 82, speed: 6, anchorY: 0, loop: true,  sheet: "./sasuke_adult_charge_uniform.png" },
+    light: { frames: 4, width: 85, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_light_uniform.png" },
+    heavy: { frames: 5, width: 118, height: 70, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_swordJ_uniform.png" },
+    up:    { frames: 8, width: 93, height: 116, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_swordG_uniform.png" },
+    air:   { frames: 4, width: 83, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_air_uniform.png" },
+    down_air: { frames: 3, width: 113, height: 74, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_down_air_uniform.png" },
+    // Special cast poses — played via _spriteCastMove from abilities.js.
+    throw:   { frames: 3, width: 54, height: 75, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_throw_uniform.png" },
+    katon:   { frames: 3, width: 70, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_katon_uniform.png" },
+    katonAir:{ frames: 3, width: 37, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_katonAir_uniform.png" },
+    chidori: { frames: 8, width: 83, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_chidori_uniform.png" },
+    chidoriAir: { frames: 3, width: 70, height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_chidoriAir_uniform.png" },
+    chidoriNagashi: { frames: 2, width: 54, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_chidoriNagashi_uniform.png" },
+    amaterasu: { frames: 2, width: 54, height: 75, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_amaterasu_uniform.png" },
+    swordSwap: { frames: 11, width: 78, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_swordSwap_uniform.png" },
+    shinraTensei: { frames: 4, width: 49, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_shinraTensei_uniform.png" },
+    banshouTenin: { frames: 4, width: 76, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_banshouTenin_uniform.png" },
+    chibakuTensei: { frames: 5, width: 79, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_chibakuTensei_uniform.png" },
+    intro: { frames: 6, width: 64, height: 83, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_intro_uniform.png" },
+    win:   { frames: 1, width: 92, height: 82, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_win_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // ITACHI UCHIHA  (Naruto universe) — 10th sprite character.
 // STAGE 1: idle + core movement + selectability. Sprites sliced from the
 // itachi_melle_*.png strips; the non-uniform source frames were RE-SLICED into
@@ -9837,7 +9914,7 @@ const narutoHokage = {
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
-  naruto, sasuke, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
+  naruto, sasuke, sasuke_adult: sasukeAdult, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,

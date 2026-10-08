@@ -424,6 +424,12 @@ export const SKINS = {
     { id: "vegetaDarkClassicArmor",   name: "Classic Saiyan Armor", unlockLevel: 0, portrait: "./vegeta_dark_portrait__classicarmor.png", spriteScale: characters.vegeta_dark?.spriteScale, animationData: recolorSkinAnim("vegeta_dark", "classicarmor") } // white shoulder armor + near-black hair (classic Saiyan look)
   ],
 
+  // Sasuke (Adult) — additive standalone fighter. Default skin ONLY (per build spec). This entry is
+  // MANDATORY: without it getSkins() falls back to spriteScale 1 and clobbers the characters.js value
+  // (the omololu scale bug) → the fighter renders at native size (too small).
+  sasuke_adult: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke_adult?.portrait, spriteScale: characters.sasuke_adult?.spriteScale, animationData: null },
+  ],
   sasuke: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

@@ -179,6 +179,9 @@ export const SPRITE_MANIFEST = {
   sasuke: {
     actions: { idle: "./saske_stance_2.png" }
   },
+  sasuke_adult: {
+    actions: { idle: "./sasuke_adult_idle_uniform.png" }
+  },
 
   // Kakashi (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
   // Kakashi from box to sprite. Per-action rendering reads characters.js → kakashi.animationData

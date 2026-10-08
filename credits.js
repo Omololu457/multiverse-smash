@@ -35,6 +35,16 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png; in-sheet credits \"BY: RBM-Kyuubi\" + box \"Juubi / Adriandan / Shinrashi\")",
     files:   ["sasuke_sensei_*_uniform.png", "sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png"]
   },
+  // Sasuke Uchiha (Adult) (Naruto) — additive standalone fighter. Art sliced from the rct29
+  // "Sasuke Uchiha Adult NZC" green-screen JUS sheet; the DeviantArt uploader handle "rct29" is
+  // carried in the filename (there is NO in-sheet credits box). Attribution MANDATORY.
+  // NOTE: the original DeviantArt page may list additional credited artists — verify there.
+  sasuke_adult: {
+    work:    "Sasuke Uchiha (Adult) (\"Sasuke Uchiha Adult NZC\")",
+    artists: ["RCT29 (DeviantArt uploader handle)"],
+    source:  "fan sprite sheet (sasuke_uchiha_adult_nzc_sprite_sheet_by_rct29_daxk008.png; uploader handle \"rct29\" from the filename — no in-sheet credits box; check the original page for other credited artists)",
+    files:   ["sasuke_adult_*_uniform.png", "sasuke_uchiha_adult_nzc_sprite_sheet_by_rct29_daxk008.png"]
+  },
   gojo: {
     work:    "Gojo Satoru (Shinjuku arc)",
     artists: ["FinhJ", "ZeurasBlack", "Rob4n"],

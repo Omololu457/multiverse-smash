@@ -1,0 +1,23 @@
+import { chromium } from "playwright";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".m4a":"audio/mp4",".json":"application/json" };
+const server = await new Promise(r => { const s = http.createServer((q,res) => { const u=decodeURIComponent(q.url.split("?")[0]); const f=path.join(ROOT,u==="/"?"/index.html":u); if(!f.startsWith(ROOT)){res.writeHead(403).end();return;} fs.readFile(f,(e,d)=>{ if(e){res.writeHead(404).end();return;} res.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"}); res.end(d); }); }); s.listen(0,"127.0.0.1",()=>r(s)); });
+const base = `http://127.0.0.1:${server.address().port}`;
+const browser = await chromium.launch({ headless:true, args:["--autoplay-policy=no-user-gesture-required"] });
+const page = await browser.newPage({ viewport:{ width:1280, height:720 } });
+const errs=[]; page.on("pageerror", e=>errs.push(String(e))); page.on("console",m=>{ if(m.type()==="error") errs.push("console:"+m.text()); });
+await page.goto(`${base}/index.html?harness=1&p1=sasuke_adult&p2=sasuke`, { waitUntil:"load" });
+await page.waitForFunction(()=>!!window.__harness,null,{timeout:15000});
+await page.mouse.click(640,360);
+await page.evaluate(()=>window.__harness.boot());
+await page.evaluate(()=>window.__harness.setDummyBehavior?.("stand"));
+await page.waitForTimeout(400);
+const info = await page.evaluate(()=>{
+  const p=window.__harness.p1();
+  return { key:p.key, hasSprite: !!(p.sheet||p.action), action:p.action, energy:p.energy };
+});
+console.log("p1:", JSON.stringify(info));
+console.log("errors:", errs.length, errs.slice(0,5));
+await browser.close(); server.close();
+process.exit(errs.length?1:0);

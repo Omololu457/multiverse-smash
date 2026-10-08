@@ -1180,6 +1180,7 @@ export const VOICE_ALIAS = {
   miles: "spiderman",
   naruto_hokage: "naruto",   // additive Hokage/KCM standalone reuses base Naruto's voice pack (no new audio)
   sasuke_sensei: "sasuke",   // additive Sensei Sasuke standalone reuses base Sasuke's voice pack (no new audio)
+  sasuke_adult: "sasuke",   // additive Adult Sasuke standalone reuses base Sasuke's voice pack (no new audio)
   rickprime: "rick",   // rosterKey "rickPrime" → lowercased
   iron_man_2: "iron_man", iron_man_3: "iron_man",   // Tony Stark armor variants reuse base Iron Man's voice pack (were SILENT — no own pack, not aliased)
 }

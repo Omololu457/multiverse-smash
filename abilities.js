@@ -25858,6 +25858,225 @@ function cloneChoreoInterceptSpecial(fighter) {
   return false
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// SASUKE UCHIHA (ADULT) — additive kit (rosterKey "sasuke_adult"). Self-contained:
+// COPIES FX/patterns from Itachi (fire + Amaterasu), the existing Sasuke Chidori
+// lightning sheet, and Pain's gravity push/pull — never EDITS those files. The
+// sheet carries almost no special-move FX, so every effect reuses an existing
+// roster asset or a procedural shape (project rule: do not invent sprites).
+// Input map (base, _specialHeldDir): N=Katon · F=Chidori · B=Chidori Nagashi ·
+// U=Amaterasu · D=Sword-Swap Strike. Rinnegan ULTIMATE is directional (_ultVariant,
+// stamped in game.js): N=Chibaku Tensei · F=Shinra Tensei · B=Banshou Tenin.
+function _saOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+
+// KATON: Great Fireball — reuses Itachi's fireball projectile art (./itachi_fireball_proj_uniform.png).
+function fireSasukeAdultKaton(fighter, context, air) {
+  if (!spendEnergy(fighter, 26)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = air ? "katonAir" : "katon"
+  fighter._spriteCastTimer = 22
+  if (!air) fighter.vx = 0
+  fighter.attackCooldown   = getAttackDuration(22, fighter)
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.("sasuke_chidori_cast.mp3", null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  const off = _saOffense(fighter)
+  schedulePendingSpawn(7, () => spawnProjectile(fighter, "itachiFireball", {
+    damage: Math.round(96 * off), speed: 11, lifetime: 86, vx: face * 11, vy: 0,
+    hitstun: 20, knockbackX: 7, knockbackY: -2, w: 72, h: 58, color: "#ff7a1c",
+    sheet: "./itachi_fireball_proj_uniform.png", spriteFrames: 4, spriteW: 228, spriteH: 127, spriteSpeed: 4, spriteScale: 0.58,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 86,
+    spawnY: fighter.y + (fighter.h || 100) * (air ? 0.30 : 0.34)
+  }, context))
+  return true
+}
+
+// CHIDORI — committed lightning run-thrust (Sasuke dash-strike pattern), + a reused
+// Chidori lightning overlay (./sasuke_CHIDORI_KOITEN_effects.png, visual-only).
+function fireSasukeAdultChidori(fighter, context, air) {
+  if (!spendEnergy(fighter, 30)) return false
+  const target = getTargetResolver(context)(fighter)
+  const md = { damage: 78, startup: 6, active: 5, recovery: 14, hitstun: 24, knockbackX: 10, knockbackY: air ? 4 : -3, rangeX: 104, rangeY: 60, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "chidori", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * (air ? 12 : 15)   // fast forward burst — closes the gap
+  if (air) fighter.vy = 6
+  fighter._spriteCastMove  = air ? "chidoriAir" : "chidori"
+  fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.("sasuke_chidori_cast.mp3", null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  const SCALE = 0.7, FW = 360, FH = 118
+  schedulePendingSpawn(Math.max(1, md.startup - 2), () => spawnProjectile(fighter, "chidoriFx", {
+    visualOnly: true, damage: 0, lifetime: 16, vx: 0, vy: 0, w: FW * SCALE, h: FH * SCALE, color: "#8fe6ff",
+    spawnX: fighter.x + (fighter.w || 60) / 2 - (FW * SCALE) / 2, spawnY: fighter.y + (fighter.h || 100) / 2 - (FH * SCALE) / 2,
+    sheet: "./sasuke_CHIDORI_KOITEN_effects.png", spriteFrames: 3, spriteW: FW, spriteH: FH, spriteSpeed: 3, spriteScale: SCALE
+  }, context))
+  focusCameraOnAction(context, fighter, target, 0.98, 8)
+  shakeCamera(context, 6, 7)
+  return true
+}
+
+// CHIDORI NAGASHI — stationary lightning-current AOE around Sasuke (Chidori Koiten pattern).
+function fireSasukeAdultChidoriNagashi(fighter, context) {
+  if (!spendEnergy(fighter, 34)) return false
+  const target = getTargetResolver(context)(fighter)
+  const S = 16, A = 6, R = 20
+  const attack = createAttackFromMove(fighter, "chidoriNagashi", {
+    damage: 84, startup: S, active: A, recovery: R, hitstun: 28, knockbackX: 9, knockbackY: -3,
+    rangeX: 230, rangeY: 135, aoe: true, isSpecial: true
+  })
+  setAttackState(fighter, attack, S + A + R)
+  fighter.vx = 0
+  fighter._spriteCastMove  = "chidoriNagashi"
+  fighter._spriteCastTimer = S + A + R
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.("sasuke_chidori_cast.mp3", null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  const SCALE = 1.15, FW = 360, FH = 118
+  schedulePendingSpawn(Math.max(1, S - 2), () => spawnProjectile(fighter, "chidoriNagashiFx", {
+    visualOnly: true, damage: 0, lifetime: 20, vx: 0, vy: 0, w: FW * SCALE, h: FH * SCALE, color: "#8fe6ff",
+    spawnX: fighter.x + (fighter.w || 60) / 2 - (FW * SCALE) / 2, spawnY: fighter.y + (fighter.h || 100) / 2 - (FH * SCALE) / 2,
+    sheet: "./sasuke_CHIDORI_KOITEN_effects.png", spriteFrames: 3, spriteW: FW, spriteH: FH, spriteSpeed: 4, spriteScale: SCALE
+  }, context))
+  focusCameraOnAction(context, fighter, target, 0.97, 10)
+  shakeCamera(context, 8, 9)
+  return true
+}
+
+// AMATERASU — reuses Itachi's black-flame projectile (./itachi_amaterasu_flame_uniform.png) + its DOT.
+function fireSasukeAdultAmaterasu(fighter, context) {
+  if (!spendEnergy(fighter, 40)) return false
+  const face = fighter.facing || 1
+  fighter.vx = 0
+  fighter._spriteCastMove  = "amaterasu"
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.("sasuke_chidori_cast.mp3", null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  const off = _saOffense(fighter)
+  spawnProjectile(fighter, "amaterasu", {
+    damage: Math.round(90 * off), speed: 9, lifetime: 104, vx: face * 9, vy: 0,
+    hitstun: 20, knockbackX: 4, knockbackY: -1, w: 60, h: 84, color: "#20204a",
+    sheet: "./itachi_amaterasu_flame_uniform.png", spriteFrames: 6, spriteW: 167, spriteH: 143, spriteSpeed: 3, spriteScale: 0.7,
+    dot: { ticks: 6, interval: 14, dmg: 10 },
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 70,
+    spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.95, 10)
+  return true
+}
+
+// SWORD-SWAP STRIKE — Amenotejikara-flavoured blink: warp to the foe and run them
+// through (the sheet's thrown-sword + green warp frames play as the swordSwap cast pose).
+function fireSasukeAdultSwordSwap(fighter, context) {
+  if (!spendEnergy(fighter, 28)) return false
+  const target = getTargetResolver(context)(fighter)
+  fighter._spriteCastMove  = "swordSwap"
+  fighter._spriteCastTimer  = 30
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)   // brief i-frames during the warp
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.("sasuke_chidori_cast.mp3", null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  schedulePendingSpawn(12, () => {
+    // Warp in FRONT of the target (Amenotejikara swap), then thrust.
+    if (target && !target.eliminated) {
+      const side = (fighter.x <= target.x) ? 1 : -1
+      fighter.x = (target.x + (target.w || 60) / 2) - side * ((fighter.w || 60) + 6)
+      fighter.facing = side
+    }
+    const md = { damage: 104, startup: 3, active: 4, recovery: 16, hitstun: 26, knockbackX: 9, knockbackY: -3, rangeX: 96, rangeY: 60, isSpecial: true }
+    const attack = createAttackFromMove(fighter, "swordSwap", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    focusCameraOnAction(context, fighter, target, 0.98, 10)
+    shakeCamera(context, 7, 8)
+  })
+  fighter.attackCooldown = getAttackDuration(42, fighter)
+  return true
+}
+
+function executeSasukeAdultSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) {
+    if (dir === "F") return fireSasukeAdultChidori(fighter, context, true)   // air Chidori dive-thrust
+    return fireSasukeAdultKaton(fighter, context, true)                      // air Katon
+  }
+  if (dir === "F") return fireSasukeAdultChidori(fighter, context, false)    // Fwd  = Chidori run-thrust
+  if (dir === "B") return fireSasukeAdultChidoriNagashi(fighter, context)    // Back = Chidori Nagashi AOE
+  if (dir === "U") return fireSasukeAdultAmaterasu(fighter, context)         // Up   = Amaterasu
+  if (dir === "D") return fireSasukeAdultSwordSwap(fighter, context)         // Down = Sword-Swap Strike
+  return fireSasukeAdultKaton(fighter, context, false)                       // neutral = Katon Great Fireball
+}
+
+// RINNEGAN ULTIMATE — directional (game.js stamps _ultVariant from the held dir).
+// Gravity push/pull COPIED from Pain's painGravityShove / _grabPull reel pattern; Pain's
+// own test:pain zero-damage invariant is Pain-only, so Sasuke's versions deal roster-band damage.
+function executeSasukeAdultUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "sasuke_adult") return false
+  const variant = fighter._ultVariant || "chibakuTensei"
+  fighter._ultVariant = null
+  const target = getTargetResolver(context)(fighter)
+  const off = _saOffense(fighter)
+
+  // SHINRA TENSEI (Fwd) — repulsion blast: strong shove downrange + damage, reusing Pain's ground FX.
+  if (variant === "shinraTensei") {
+    if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+    fighter.vx = 0
+    fighter._spriteCastMove  = "shinraTensei"; fighter._spriteCastTimer = 30
+    fighter.attackCooldown   = getAttackDuration(30, fighter)
+    schedulePendingSpawn(11, () => {
+      const face = fighter.facing || 1
+      spawnProjectile(fighter, "saShinraGround", {
+        visualOnly: true, damage: 0, speed: 0, lifetime: 22, vx: 0, vy: 0, w: 140, h: 60,
+        sheet: "./pain_super_push_ground_uniform.png", spriteFrames: 3, spriteW: 124, spriteH: 57, spriteSpeed: 6, spriteScale: 1.8,
+        spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) - 6
+      }, context)
+      if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+        target.vx = face * 26; target.vy = -7
+        target.hitstun = Math.max(target.hitstun || 0, 30); target.colorFlash = 10
+        applyScaledDamage(target, Math.round(150 * off), { source: "ability", attacker: fighter, move: "saShinraTensei" })
+      }
+      shakeCamera(context, 10, 12)
+    })
+    return true
+  }
+
+  // BANSHOU TENIN (Back) — gravity reel-in + follow-up hit (Pain's _grabPull reel).
+  if (variant === "banshouTenin") {
+    if (!target || !canSpendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+    fighter.vx = 0
+    fighter._spriteCastMove  = "banshouTenin"; fighter._spriteCastTimer = 28
+    fighter.attackCooldown   = getAttackDuration(28, fighter)
+    schedulePendingSpawn(8, () => {
+      if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return
+      target.isGrabbed = true; target.grabTimer = 30
+      target.hitstun = Math.max(target.hitstun || 0, 24)
+      target.vx = 0; target.vy = 0; target.colorFlash = 8
+      fighter._grabPull = { gap: 40, dmg: Math.round(140 * off), hitstun: 24 }
+      shakeCamera(context, 6, 8)
+    })
+    return true
+  }
+
+  // CHIBAKU TENSEI (neutral, default) — gravity-sphere crush: reel the foe in, then a
+  // heavy ult-tier slam. Strongest of the three. Reuses Pain's ground-shockwave FX.
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove  = "chibakuTensei"; fighter._spriteCastTimer = 40
+  fighter.attackCooldown   = getAttackDuration(46, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 40)
+  schedulePendingSpawn(12, () => {
+    if (target && !target.eliminated) { target.isGrabbed = true; target.grabTimer = 24; target.vx = 0; target.vy = 0; fighter._grabPull = { gap: 54, dmg: 0, hitstun: 22 } }
+  })
+  schedulePendingSpawn(34, () => {
+    spawnProjectile(fighter, "saChibakuGround", {
+      visualOnly: true, damage: 0, speed: 0, lifetime: 28, vx: 0, vy: 0, w: 170, h: 72,
+      sheet: "./pain_super_push_ground_uniform.png", spriteFrames: 3, spriteW: 124, spriteH: 57, spriteSpeed: 7, spriteScale: 2.4,
+      spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) - 6
+    }, context)
+    if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+      target.isGrabbed = false; target.grabTimer = 0
+      target.hitstun = Math.max(target.hitstun || 0, 40); target.vx = (fighter.facing || 1) * 6; target.vy = 12; target.colorFlash = 14
+      applyScaledDamage(target, Math.round(262 * off), { source: "ability", attacker: fighter, move: "saChibakuTensei" })
+    }
+    shakeCamera(context, 13, 16)
+  })
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -25881,6 +26100,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "handler": return executeHandlerSpecial(fighter, context) // SHIKIGAMI cameo system: neutral=Divine Dogs (dog rush) / Fwd=Orochi (snake lunge) / Back=Datto (rabbit swarm) / Down=Max Elephant (heavy slam) / Up=Nue (bird anti-air) / AIR=Toad (drop). Each = a ×0.60 summon. Domain (2nd special)=deferred (art re-export); Mahoraga=S5 ULT.
     case "yuji":    return executeYujiSpecial(fighter, context)   // Cursed-Energy Y-family: Ball(neutral)/Beam(Fwd)/Pillar(Up)/Crescent(Down)/AirCombo(airborne)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
+    case "sasuke_adult": return executeSasukeAdultSpecial(fighter, context)   // N=Katon / F=Chidori / B=Chidori Nagashi / U=Amaterasu / D=Sword-Swap Strike (air: N=Katon, F=Chidori)
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
     case "madara":  return executeMadaraSpecial(fighter, context)   // Stage 3 (one at a time): Katon Great Fireball (neutral); Gunbai/Mokuton/Susanoo set land in later passes
     case "obito":   return executeObitoSpecial(fighter, context)   // Ranged: Shuriken Throw (neutral/air) / Chakra Rod Throw (Fwd) / Giant Shuriken (Up)
@@ -26135,6 +26355,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "alt_sukuna": cast = executeAltSukunaUltimate(fighter, context); break   // Domain Expansion: Malevolent Shrine — inline freeze cinematic (live fighter holds domain hand-sign, no dup): shrine erupts (row_07 backdrop overlay) → guaranteed ~198 EFF. No unique ult body art (flagged)
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
+      case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); break   // Rinnegan directional: N=Chibaku Tensei / F=Shinra Tensei / B=Banshou Tenin
       case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
       case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
       case "hashirama": cast = executeHashiramaUltimate(fighter, context); break   // Sealing Jutsu — combo→Gracious Deity Gates pin→Naruto/Minato/Tobirama cameos→red barrier (freeze cinematic)

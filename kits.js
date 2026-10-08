@@ -351,6 +351,31 @@ export const KITS = {
     ]
   },
 
+  sasuke_adult: {
+    type: "Rinnegan Duelist / Zoner", energy: "Chakra", difficulty: "Hard",
+    summary: "The adult Uchiha — blends a lightning-fast Chidori rush and Katon fire zoning with Mangekyou Amaterasu and a directional Rinnegan ultimate (Chibaku Tensei / Shinra Tensei / Banshou Tenin).",
+    basics: [
+      { name: "Fist Jab",     input: "Light",                   desc: "fast taijutsu poke" },
+      { name: "Sword Slash",  input: "Heavy",                   desc: "committed crescent sword swing with knockback" },
+      { name: "Rising Slash", input: "Up-Attack",               desc: "launcher — starts air combos" },
+      { name: "Air Strike",   input: "Air (jump + Light)",      desc: "aerial fist" },
+      { name: "Dive Slash",   input: "Down-Air (jump + Heavy)", desc: "downward air sword spike" }
+    ],
+    specials: [
+      { name: "Katon: Great Fireball", input: "Special (ground / air)",  cost: 26, desc: "fire-breath projectile — ranged zoning. [CANON]" },
+      { name: "Chidori",               input: "Forward + Special (ground / air)", cost: 30, desc: "lightning run-thrust dash-strike that closes the gap. [CANON]" },
+      { name: "Chidori Nagashi",       input: "Back + Special",          cost: 34, desc: "stationary lightning-current AOE burst around Sasuke. [CANON]" },
+      { name: "Amaterasu",             input: "Up + Special",            cost: 40, desc: "inextinguishable black flame — modest hit, heavy lingering burn. [CANON]" },
+      { name: "Sword-Swap Strike",     input: "Down + Special",          cost: 28, desc: "warp to the hurled sword and run the foe through (Amenotejikara-flavoured). [CANON-ADJACENT]" }
+    ],
+    mobility: { name: "Dash", input: "Dash / double-tap", cost: 0, desc: "quick reposition" },
+    ultimate: { name: "Rinnegan (directional)", input: "Ultimate (full meter) — neutral / Forward / Back", cost: 100, desc: "neutral = Chibaku Tensei (gravity-sphere crush, strongest) · Forward = Shinra Tensei (repulsion blast) · Back = Banshou Tenin (gravity reel-in). [Chibaku CANON · Shinra/Banshou CANON-ADJACENT]" },
+    combos: [
+      { name: "Chidori Confirm", sequence: "Heavy, Forward+Special", desc: "cancel a sword swing into the Chidori rush" },
+      { name: "Air Juggle",      sequence: "Up-Attack, Jump, Air",    desc: "launch into aerial pressure" }
+    ]
+  },
+
   // ── JUJUTSU KAISEN ───────────────────────────────────────────
   gojo: {
     type: "Ranged Controller / Zoner", energy: "Cursed Energy", difficulty: "Hard",

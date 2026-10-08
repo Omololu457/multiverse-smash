@@ -196,6 +196,9 @@ export const ZONER = [
   "naruto_hokage",   // NEW additive standalone (Hokage + KCM): base normals + fixed-slot specials/ult;
                      //   no Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke for now.
                      //   (Distinct from the base `naruto`, who stays an L,L,H standard-string char.)
+  "sasuke_adult",    // NEW additive standalone (Adult Sasuke): base normals + directional specials/Rinnegan ult;
+                     //   no Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke. (Distinct
+                     //   from the base `sasuke`, who stays a standard-string char.)
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -259,6 +262,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                24,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          108,       // 71 rekka + 13 standard-string + 24 single-poke = 108 (sasuke_sensei added)
+  zoner:                25,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          109,       // 71 rekka + 13 standard-string + 25 single-poke = 109 (sasuke_sensei + sasuke_adult added)
 }

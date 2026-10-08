@@ -3956,6 +3956,7 @@ const INTRO_VOICE = {
   // Sasuke picks ONE of two multi-line intro bursts at random per match (same alternation family
   // as Naruto's win pool). Either clip is a packed cluster fired as a single beat.
   sasuke: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },
+  sasuke_adult: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },   // ADDITIVE: Adult Sasuke reuses base Sasuke's intro clips (no new audio)
   // Rick picks ONE of six intro/catchphrase barks at random per match ("buckle up", "I'm Rick
   // Sanchez baby", …). Fires at his first intro-play frame (no reveal gate). Distinct from his
   // pre-match NAMECALL clip (rick_intro.mp3) — a character can carry both, like Naruto.
@@ -7822,6 +7823,13 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_hokage") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "F" ? "fourTails" : _hd === "D" ? "rikudou" : "bijuudama"
+  }
+  // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
+  // FWD = Shinra Tensei (repulsion blast), BACK = Banshou Tenin (gravity reel-in). Stamp the held direction
+  // the frame Ultimate is pressed so executeSasukeAdultUltimate picks the branch (mirrors the special path).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "sasuke_adult") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "F" ? "shinraTensei" : _hd === "B" ? "banshouTenin" : "chibakuTensei"
   }
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).

@@ -55,6 +55,7 @@ import { isBetaUnlocked } from "./progression.js"   // beta-only single-directio
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
+import { cloneScaling } from "./cloneFormScaling.js"   // STAGE 6: modest in-form summon-cost scaling (deterministic)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
@@ -2090,10 +2091,11 @@ function executeNarutoSpecial(fighter, context) {
   // players who prefer a longer execution. On match, NORMALIZE _specialHeldDir to the equivalent direction
   // so the EXISTING handler below fires the identical move. The original simple inputs (just holding the
   // direction) are 100% unchanged. Avoids →↓← (hcb) / →↓→ (dp) — those are Transformation Jutsu.
-  if      (detectMotion(fighter, "doubleQcf")) { fighter._specialHeldDir = "D"; clearMotionHistory(fighter) }  // ↓→↓→ → Uzumaki Barrage (= Down+Special)
-  else if (detectMotion(fighter, "doubleQcb")) { fighter._specialHeldDir = "B"; clearMotionHistory(fighter) }  // ↓←↓← → Dark Rasengan   (= Back+Special)
-  else if (detectMotion(fighter, "hcf"))       { fighter._specialHeldDir = "F"; clearMotionHistory(fighter) }  // ←↓→  → Chakra-Arm Strike (= Forward+Special)
-  else if (detectMotion(fighter, "chargeUp"))  { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↑   → Summon formation  (= Up+Special)
+  if      (detectMotion(fighter, "doubleQcf"))   { fighter._specialHeldDir = "D"; clearMotionHistory(fighter) }  // ↓→↓→ → Uzumaki Barrage (= Down+Special)
+  else if (detectMotion(fighter, "doubleQcb"))   { fighter._specialHeldDir = "B"; clearMotionHistory(fighter) }  // ↓←↓← → Dark Rasengan   (= Back+Special)
+  else if (detectMotion(fighter, "hcf"))         { fighter._specialHeldDir = "F"; clearMotionHistory(fighter) }  // ←↓→  → Chakra-Arm Strike (= Forward+Special)
+  else if (detectMotion(fighter, SUMMON_MOTION)) { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↓↑  → Summon formation — STAGE 4: the SAME roster-standard cloneSummon motion the rest of the Naruto-universe uses (eased 1000ms window). Normalizes to U so the existing summon block fires.
+  else if (detectMotion(fighter, "chargeUp"))    { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↑   → Summon formation  (ALTERNATE, kept) (= Up+Special)
 
   // ── SUMMON-THEN-CHOOSE (ADDITIVE 2026-09-26) — an EXTRA access path. Placed above the direct
   // Barrage trigger, but only fires in its own states, so the Down+Special Barrage path is unchanged. ──
@@ -2106,7 +2108,7 @@ function executeNarutoSpecial(fighter, context) {
   // SUMMON: Up + Special → call clones into a holding FORMATION (no move yet), opening the select window.
   if (fighter._specialHeldDir === "U") {
     if ((fighter._choreoCd || 0) > 0) return false
-    if (!spendEnergy(fighter, NARUTO_SUMMON_COST)) return false
+    if (!spendEnergy(fighter, Math.round(NARUTO_SUMMON_COST * cloneScaling(fighter).costMult))) return false   // STAGE 6: modest in-shroud cost scaling
     fighter._pendingNarutoSummon = true
     fighter._choreoCd = 12          // brief lockout so one press can't double-fire
     clearMotionHistory(fighter)
@@ -2909,20 +2911,14 @@ function executeMinatoSpecial(fighter, context) {
   return fireFlyingRaijinKunai(fighter, context)
 }
 
-const NARUTO_TTC_ULT_COST = 60   // Uzumaki Two Thousand Combo — the neutral Ultimate
-
 function executeNarutoUltimate(fighter, context) {
-  // DIRECTIONAL ULTIMATE (2026-09-26). NEUTRAL (no direction) = UZUMAKI TWO THOUSAND COMBO — the authored
-  // clone-choreography flurry, now Naruto's single-button ultimate (game.js starts the run from the flag).
-  // Kurama Avatar was relocated to DOWN + Ultimate so BOTH stay on the Ultimate button.
-  if (fighter._ultVariant !== "kurama") {
-    if (!spendEnergy(fighter, NARUTO_TTC_ULT_COST)) return false
-    fighter._pendingNarutoChoreo    = true
-    fighter._pendingNarutoChoreoSeq = "twoThousand"
-    return true   // triggerUltimate applies the universal ult cooldown
-  }
+  // STAGE 5 — NINE-TAILS. Every DIRECT Ultimate press (NEUTRAL, or the DOWN / ↓←↓← alternates) is the Kurama
+  // Avatar / Tailed Beast Bomb cinematic below. game.js stamps _ultVariant = "kurama" for all of them.
+  // Uzumaki Two Thousand Combo is NO LONGER on the Ultimate button directly — it moved to the summon→Ultimate
+  // (swarm) slot (triggerUltimate's Naruto-formation intercept → chooseNarutoSequence("twoThousand")). Nothing
+  // deleted: the Two Thousand Combo sequence (SEQUENCES.twoThousand) still runs, just from the swarm slot.
 
-  // ── DOWN + Ultimate ──
+  // ── NINE-TAILS (neutral) / DOWN + Ultimate (alternate) ──
   // Kurama Avatar / Tailed Beast Bomb — CINEMATIC ultimate (kurama.js), built on
   // the Gojo/Sukuna domain-cinematic pattern. NOT a transformation/playable form.
   // Costs 50% of the max meter (fighters spawn at half): can't reliably open at
@@ -24843,7 +24839,7 @@ function cloneChoreoInterceptSpecial(fighter) {
     if (detectMotion(fighter, SUMMON_MOTION)) {
       clearMotionHistory(fighter)
       if ((fighter._choreoCd || 0) > 0) return true
-      if (!spendEnergy(fighter, SUMMON_COST)) return false
+      if (!spendEnergy(fighter, Math.round(SUMMON_COST * cloneScaling(fighter).costMult))) return false   // STAGE 6: modest in-form cost scaling
       fighter._pendingChoreoDirect = lightDirectSeq(key, fighter._specialHeldDir)
       fighter._choreoCd = SUMMON_CD
       return true
@@ -24858,7 +24854,7 @@ function cloneChoreoInterceptSpecial(fighter) {
   if (detectMotion(fighter, SUMMON_MOTION)) {
     clearMotionHistory(fighter)
     if ((fighter._choreoCd || 0) > 0) return true
-    if (!spendEnergy(fighter, SUMMON_COST)) return false   // not enough chakra → fall through to normal special
+    if (!spendEnergy(fighter, Math.round(SUMMON_COST * cloneScaling(fighter).costMult))) return false   // not enough chakra → fall through (STAGE 6: modest in-form cost scaling)
     fighter._pendingChoreoSummon = true
     fighter._choreoCd = SUMMON_CD
     return true
@@ -25110,6 +25106,14 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   // real ultimate is untouched when NO formation is staged. Metered by the summon cost already paid.
   if ((fighter._choreoSelectWindow || 0) > 0 && isFormationActiveFor(fighter)) {
     fighter._pendingChoreoSelect = "SWARM"
+    return true
+  }
+  // STAGE 5 — NARUTO: pressing Ultimate while HIS clone formation is staged fires Uzumaki Two Thousand Combo
+  // (the swarm slot). Naruto runs his own narutoChoreography engine (not the generic one above), so his
+  // staged-formation signal is _narutoSelectWindow. Metered by the summon cost already paid (parity with the
+  // generic swarm). game.js maps the "SWARM" select → the twoThousand sequence.
+  if (key === "naruto" && (fighter._narutoSelectWindow || 0) > 0) {
+    fighter._pendingNarutoSelect = "SWARM"
     return true
   }
   // LIGHT — the Ultimate has two variants (neutral = writing / Down = scythe). game.js stamps _ultVariant from

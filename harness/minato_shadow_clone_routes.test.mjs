@@ -99,7 +99,10 @@ async function runRoutes(who, isMinato) {
   check(`${who}: 5) MOTION CLONE fired (spent chakra / cast played)`, eAfter < eBefore || /rasengan|clone|shuriken/.test(cast), `Δenergy=${(eBefore-eAfter).toFixed(0)} action=${cast}`);
 }
 
-await runRoutes("naruto", false);
+// NOTE (2026-10-07): the "naruto" comparison routes were REMOVED — Naruto no longer uses the persistent
+// "," shadow-clone system (he was taken out of CLONE_CAPABLE_KEYS when his authored choreography engine
+// replaced it, commit 8b245def). Those assertions tested deliberately-removed behavior (count=0) and are
+// now covered for real by test:naruto-barrage / test:naruto-summon-select / test:clone-realinput.
 await runRoutes("minato", true);
 
 // ── THE REPORTED BUG (Minato only): Flying-Raijin blink (F,F) then clone (D→F) right after. ──

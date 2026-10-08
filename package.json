@@ -235,7 +235,6 @@
     "test:beerus": "node harness/beerus.test.mjs",
     "test:beerus-voice": "node harness/beerus_voice.test.mjs",
     "test:goku-black-voice": "node harness/goku_black_voice.test.mjs",
-    "test:naruto": "node harness/naruto.test.mjs",
     "test:naruto-motion": "node harness/naruto_motion.test.mjs",
     "test:motion-s1-shots": "node harness/motion_stage1_shots.mjs",
     "test:motion-s2-shots": "node harness/motion_stage2_shots.mjs",
@@ -855,6 +854,9 @@
     "test:music-append": "node harness/music_library_append_verify.test.mjs",
     "test:naruto-barrage": "node harness/naruto_barrage.test.mjs",
     "test:naruto-summon-select": "node harness/naruto_summon_select.test.mjs",
+    "test:naruto-realinput": "node harness/naruto_realinput.test.mjs",
+    "test:clone-formscaling": "node harness/clone_form_scaling.test.mjs",
+    "test:clone-formscaling-live": "node harness/clone_form_scaling_live.test.mjs",
     "test:naruto-ultimate": "node harness/naruto_ultimate.test.mjs",
     "test:naruto-ninetails": "node harness/naruto_ninetails_kit.test.mjs",
     "test:naruto-alt-inputs": "node harness/naruto_alt_inputs.test.mjs",
@@ -914,7 +916,11 @@
     "test:announcer-diagnose": "node harness/announcer_diagnose.mjs",
     "test:announcer-hover": "node harness/announcer_hover.test.mjs",
     "test:rickprime-rewind": "node harness/rickprime_rewind.test.mjs",
-    "test:announcer-voice": "node harness/announcer_voice.test.mjs"
+    "test:announcer-voice": "node harness/announcer_voice.test.mjs",
+    "test:clone-realinput": "node harness/clone_realinput.test.mjs",
+    "test:clone-qaudit": "node harness/clone_audit.mjs",
+    "test:clone-qaudit-live": "node harness/clone_audit_live.mjs",
+    "test:clone-distinctness": "node harness/clone_distinctness.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1",

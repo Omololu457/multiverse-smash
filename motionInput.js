@@ -52,8 +52,9 @@ const MOTIONS = {
   doubleQcf: { seq: ["D", "F", "D", "F"], window: 1000, strays: 1 },   // ↓↘→↓↘→  double QCF (Uzumaki Barrage)
   doubleQcb: { seq: ["D", "B", "D", "B"], window: 1000, strays: 1 },   // ↓↙←↓↙←  double QCB
   chargeUp:  { seq: ["D", "U"],           window: 700,  strays: 1 },   // ↓↑     charge down-then-up (Naruto summon alt)
-  cloneSummon: { seq: ["D", "D", "U"],    window: 800,  strays: 0 }    // ↓↓↑    GATHER-then-raise: clone-choreography SUMMON (rest of the Naruto-universe roster). strays:0 + a
-                                                                       //        distinctive 3-token shape so it never collides with a live special route (e.g. Minato's ↓←↑ B→U).
+  cloneSummon: { seq: ["D", "D", "U"],    window: 1000, strays: 1 }    // ↓↓↑    GATHER-then-raise: clone-choreography SUMMON (rest of the Naruto-universe roster). EASED 2026-10-07:
+                                                                       //        window 800->1000ms + strays 0->1 so it's forgiving in real play. The D,D,U shape stays distinct
+                                                                       //        (two downs then up); these chars don't use the ↓↑ chargeUp route, so one tolerated stray is collision-safe.
 }
 
 // Map a raw control key → cardinal direction token, exactly like game.js

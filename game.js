@@ -1465,10 +1465,10 @@ const EDGE_SPAWN_PADDING    = 80
 // Consciousness-swap (Stage 3) tuning: frames of cooldown between swaps (anti-spam) + brief arrival i-frames.
 const CLONE_SWAP_COOLDOWN   = 75   // ~1.25s @60fps before the next "/" swap
 const CLONE_SWAP_IFRAMES    = 10   // invuln on arrival so the swap is a real escape, not a trade-into-a-meaty
-// CLONE-ASSIST REDESIGN (SSF2 one-shot model): the 6 redesigned chars use dedicated "h"+direction one-shot
-// ADDITIVE one-shot clone-assist "h" moves for these 6 chars (SSF2 redesign, commit 44281177). This does NOT
-// remove their persistent "," clones — the "," binding is gated on isCloneCapable() (CLONE_CAPABLE_KEYS), so
-// all clone-capable chars keep BOTH systems. (LEGACY_CLONE_KEYS was removed 2026-09-26 — see the "," handler.)
+// CLONE-ASSIST REDESIGN (SSF2 one-shot model): ADDITIVE one-shot "h"+direction clone-assist specials for
+// these 6 chars. This does NOT remove their persistent "," clones — the "," binding is gated on
+// isCloneCapable() (summons.js CLONE_CAPABLE_KEYS), so all clone-capable chars keep BOTH systems.
+// (LEGACY_CLONE_KEYS was removed 2026-10-06 — see the "," regression fix in the keydown handler below.)
 const ONESHOT_CLONE_KEYS = new Set(["naruto", "minato", "tobirama", "hashirama", "itachi", "kakashi"])
 const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
@@ -3582,7 +3582,7 @@ function mapInputToVirtualKeys(inputState, controls) {
   // Pillar) is reachable — `up` and `jump` share the same bind, so the jump vKey must be withheld here too
   // (input.js already withholds buffer.jump). _specialHeldDir reads raw inputState, so the "U" direction is
   // still detected. Non-simultaneous jump-then-air-special is unaffected.
-  if ((inputState.up || inputState.jump) && !(inputState.up && inputState.special)) v[controls.up] = true
+  if ((inputState.up || inputState.jump) && !(inputState.up && inputState.special) && !inputState._noJumpUp) v[controls.up] = true
   if (inputState.down)    v[controls.down]    = true
   if (inputState.light)   v[controls.light]   = true
   if (inputState.heavy)   v[controls.heavy]   = true
@@ -7788,15 +7788,14 @@ function _updatePlayerCombatBody(fighter) {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
   }
-  // NARUTO — the Ultimate is directional (2026-09-26): NEUTRAL = Uzumaki Two Thousand Combo (authored
-  // choreography ultimate); DOWN (hold ↓ + Ultimate) = Kurama Avatar / Tailed Beast Bomb. Both stay on the
-  // Ultimate button; executeNarutoUltimate reads _ultVariant to pick the branch.
+  // NARUTO — the Ultimate is NINE-TAILS (STAGE 5): NEUTRAL Ultimate = Kurama Avatar / Tailed Beast Bomb (the
+  // Nine-Tails). DOWN (hold ↓ + Ultimate) and the ↓←↓← (doubleQcb) motion are kept as EXPLICIT ALTERNATES —
+  // they route to the same Nine-Tails cinematic. Uzumaki Two Thousand Combo moved to the summon→Ultimate
+  // (swarm) slot: pressing Ultimate while a clone formation is staged fires it (see triggerUltimate intercept).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto") {
-    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
-    // Kurama Avatar = Down+Ultimate; LONGER ALTERNATE (Part 2) = ↓←↓← (doubleQcb) + Ultimate. Neutral = Two Thousand Combo.
     const _kuramaMotion = detectMotion(fighter, "doubleQcb")
     if (_kuramaMotion) clearMotionHistory(fighter)
-    fighter._ultVariant = (_hd === "D" || _kuramaMotion) ? "kurama" : "twoThousand"
+    fighter._ultVariant = "kurama"   // neutral OR Down OR ↓←↓← → the Nine-Tails (executeNarutoUltimate)
   }
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
@@ -14099,7 +14098,7 @@ function updateBattle() {
     }
     if (f._pendingNarutoSelect) {   // ADDITIVE: pick a sequence from the staged formation
       const dir = f._pendingNarutoSelect; f._pendingNarutoSelect = null
-      if (isNarutoFormationActive()) chooseNarutoSequence(SELECT_MAP[dir] || "barrage")
+      if (isNarutoFormationActive()) chooseNarutoSequence(dir === "SWARM" ? "twoThousand" : (SELECT_MAP[dir] || "barrage"))   // STAGE 5: Ultimate during a staged formation → Two Thousand Combo (the swarm slot)
     }
   }
   updateNarutoFormation()
@@ -14145,7 +14144,7 @@ function updateBattle() {
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
     }
   }
-  updateCloneFormations()
+  updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
   updateCloneChoreo((caster, target, hit, dirSign, body) => {
@@ -14167,7 +14166,7 @@ function updateBattle() {
       dirSign, w: 40, h: 60, color: hit.color, sheet: hit.sheet,
       spriteFrames: hit.spriteFrames, spriteW: hit.spriteW, spriteH: hit.spriteH, spriteScale: hit.spriteScale
     }, {})
-  })
+  }, getStageWorldWidth())   // clamp clone/finisher placement to the current stage width (audit wall-clip fix)
 
   // CLONE HIT-REVEAL (melee) — AUTHORITATIVE pass, run at the exact frame real hits resolved above so a
   // swing that overlaps an opponent's shadow clone reliably poofs it (fixes "clones are hit-or-miss").
@@ -15903,6 +15902,22 @@ function drawBattleScene() {
   // GENERIC clone choreography ghost bodies (rest of the Naruto-universe roster) — same renderHybridFighter
   // path, so each clone is pixel-identical to its real character (the Stage-0 visual-fidelity guarantee).
   for (const g of getCloneChoreoBodies()) renderHybridFighter(g)
+  // CLONE-SUMMON SELECT HINT (ease-of-use, 2026-10-07) — while a formation is staged, show the available
+  // picks so the summon-then-select is discoverable. Drawn in SCREEN space (reset transform, then restore the
+  // world transform) at the top-centre so it's always visible. Render-only; never touches the sim.
+  if ((p1 && p1._inChoreoFormation && (p1._choreoSelectWindow || 0) > 0) || (p2 && p2._inChoreoFormation && (p2._choreoSelectWindow || 0) > 0)) {
+    const win = Math.max(p1?._inChoreoFormation ? (p1._choreoSelectWindow || 0) : 0, p2?._inChoreoFormation ? (p2._choreoSelectWindow || 0) : 0)
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+    const cx = canvas.width / 2, bw = 360, bh = 52, bx = cx - bw / 2, by = 132
+    ctx.fillStyle = "rgba(8,18,37,0.86)"; ctx.strokeStyle = "rgba(120,170,255,0.6)"; ctx.lineWidth = 1.5
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 9); else ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke()
+    ctx.textAlign = "center"
+    ctx.fillStyle = "#bfe0ff"; ctx.font = "700 12px Arial"; ctx.fillText(`CLONE SELECT  — hold a direction + Special   (${Math.ceil(win / 60 * 10) / 10}s)`, cx, by + 16)
+    ctx.fillStyle = "#e9f1ff"; ctx.font = "13px Arial"
+    ctx.fillText("◉ Pure Attack     ↓ Deception     ↑ Defensive", cx, by + 33)
+    ctx.fillText("← Ranged     → Grab     Ultimate = Swarm", cx, by + 48)
+    ctx.restore()
+  }
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)
@@ -18748,15 +18763,21 @@ window.addEventListener("keydown", e => {
   // PERSISTENT CLONE CONTROLS — "," create / "." disperse / "/" consciousness-swap. Gated on the SINGLE source
   // of truth isCloneCapable() (summons.js CLONE_CAPABLE_KEYS) so the "," binding is identical for EVERY
   // clone-capable character and can never drift per-character again.
-  // ★ REGRESSION FIX (2026-09-26): commit 44281177 (one-shot "h" redesign) narrowed this gate to a hardcoded
-  // LEGACY_CLONE_KEYS = {boruto,hiruzen,madara}, silently dropping the persistent "," spawn for the other six
-  // clone-capable chars (naruto/minato/tobirama/hashirama/itachi/kakashi) — who are STILL in CLONE_CAPABLE_KEYS
-  // and still tested for it → count=0. Restoring the isCloneCapable() gate fixes the spawn WITHOUT touching the
-  // additive one-shot "h" handler below (a separate system, gated on ONESHOT_CLONE_KEYS).
+  // ★ REGRESSION FIX (2026-10-06): commit 44281177 (one-shot "h" redesign) narrowed this gate to a hardcoded
+  // LEGACY_CLONE_KEYS = {boruto,hiruzen,madara}, silently dropping the persistent "," spawn for the other
+  // clone-capable chars (minato/tobirama/hashirama/itachi/kakashi) — who are STILL in CLONE_CAPABLE_KEYS and
+  // still tested for it → count=0. Restoring the isCloneCapable() gate fixes the spawn WITHOUT touching the
+  // additive one-shot "h" handler below (a separate system, gated on ONESHOT_CLONE_KEYS). Naruto is NOT in
+  // CLONE_CAPABLE_KEYS on this branch — his clones come from narutoChoreography.js, not "," (by design).
   if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && isCloneCapable(p1)) {
     if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
     if (key === "/") {
+      // COLLISION GUARD (2026-10-06): "/" is ALSO P2's block key. In a human 2P match P2 owns "/", so the
+      // legacy P1 clone-swap must NOT double-fire on P2's block press. Only swap when there is no human-
+      // keyboard P2 claiming "/" (i.e. vs-AI, or P2 on a gamepad). P1 keeps create "," / disperse "." and
+      // the ↓↓↑+Special choreography in every mode. (Audited in STAGE 2 — single-keyboard 2P layout.)
+      if (p2 && !p2._aiControlled && (p2.controls?.block === "/")) return
       if ((p1._cloneSwapCd || 0) > 0) return
       if (swapConsciousnessWithClone(p1, getOpponent(p1))) {
         p1._cloneSwapCd = CLONE_SWAP_COOLDOWN
@@ -20777,7 +20798,7 @@ gameLoop()
     narutoSummon: () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = "U"; p1._choreoCd = 0; return triggerSpecial(p1, getAbilityContext()); },   // Up+Special → formation
     narutoSelect: (dir = "N") => { if (!p1) return false; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir === "N" ? null : dir; return triggerSpecial(p1, getAbilityContext()); },   // pick a sequence from the staged formation
     narutoFormationHold: () => holdNarutoFormation(),   // freeze the staged formation for a screenshot
-    narutoUltimate: (dir = "N") => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1._ultVariant = dir === "D" ? "kurama" : "twoThousand"; return triggerUltimate(p1, getAbilityContext()); },   // neutral=Two Thousand Combo · Down=Kurama Avatar
+    narutoUltimate: (dir = "N") => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1._ultVariant = "kurama"; return triggerUltimate(p1, getAbilityContext()); },   // STAGE 5: neutral OR Down = Nine-Tails (Kurama). Two Thousand Combo moved to the summon→Ultimate swarm slot (summon then call narutoUltimate while the formation is staged).
     // Part 2 alt-input testing: deterministically feed a motion (control keys) into the buffer, no keyboard timing.
     narutoFeedMotion: (keys = []) => { if (!p1) return null; clearMotionHistory(p1); for (const k of keys) recordMotionInput(p1, k); return getRecentMotions(p1); },
     narutoChoreoClear: () => { clearNarutoChoreo(); if (p1) { p1._choreoCd = 0; p1._pendingNarutoChoreo = false; p1._pendingNarutoSummon = false; p1._pendingNarutoSelect = null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy || 200; try { clearMotionHistory(p1) } catch (_) {} } return true; },   // reset between sub-tests

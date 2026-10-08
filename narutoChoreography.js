@@ -37,6 +37,7 @@
 
 import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
+import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (Naruto's Kurama shroud)
 
 // ── STAGE 2: UZUMAKI BARRAGE ────────────────────────────────────────────────
 // Three shadow clones launch + juggle the opponent in a FIXED order, then the real
@@ -167,6 +168,9 @@ function makeGhostBody(caster) {
     // skin/tint parity with the real fighter (same fields renderHybridFighter reads)
     skinId: caster.skinId, _skinAnim: caster._skinAnim,
     tintColor: caster.tintColor, tintStrength: caster.tintStrength,
+    // STAGE 6: carry the Kurama shroud aura onto the clones (drawKuramaShroudAura reads shroudStage; no
+    // rosterKey gate) so an in-form Naruto's clones glow with his current shroud stage — the form's "tint".
+    shroudStage: caster.shroudStage || 0,
     _forceAction: "idle",
     _choreoVisible: false,   // game.js only draws bodies whose window is open
     _choreoGhost: true,
@@ -180,7 +184,9 @@ export function startNarutoChoreo(caster, target, sequence = UZUMAKI_BARRAGE) {
   for (const c of sequence.clones) bodies[c.slot] = makeGhostBody(caster)
   // startX/startY = caster's position at trigger (used only by "casterStart"-anchored beats, e.g. the
   // Substitution decoy). Uzumaki Barrage does not reference these, so its behavior is unchanged.
-  _run = { caster, target, seq: sequence, frame: 0, bodies, fired: new Set(), finisherFired: false, startX: caster.x, startY: caster.y }
+  // STAGE 6: capture the Kurama-shroud damage multiplier ONCE at run start (stable for the whole run) →
+  // sublinear scaling of every beat/finisher hit. 1.0 when Naruto is out of shroud (shroudStage 0).
+  _run = { caster, target, seq: sequence, frame: 0, bodies, fired: new Set(), finisherFired: false, startX: caster.x, startY: caster.y, dmgMult: cloneScaling(caster).dmgMult }
   // Lock the real Naruto's INPUT while the sequence plays (physics still runs so the
   // finisher teleport-in can descend). game.js honours _choreoLock in updatePlayerCombat.
   caster._choreoLock = true
@@ -201,24 +207,34 @@ export function getNarutoChoreoBodies() {
 // move; a follow-up Special direction then SELECTS which sequence fires (SELECT_MAP). This is
 // an ADDITIONAL access path — Uzumaki Barrage's own direct trigger (startNarutoChoreo) is unchanged.
 let _formation = null
-const FORMATION_OFFSETS = [{ dx: -72, dy: 0 }, { dx: 72, dy: 0 }, { dx: -124, dy: 0 }, { dx: 124, dy: 0 }]
-const SELECT_WINDOW = 60   // frames the player has to pick before the formation disperses
+const SELECT_WINDOW = 90   // frames the player has to pick before the formation disperses (STAGE 4: 60->90 ≈ 1.0s->1.5s, matching the generic roster's eased cloneChoreography.SELECT_WINDOW)
 
 export function isNarutoFormationActive() { return !!_formation }
 
 export function startNarutoFormation(caster, target) {
   if (_run || _formation || !caster || !target) return false
-  const bodies = FORMATION_OFFSETS.map(() => makeGhostBody(caster))
-  _formation = { caster, target, bodies, frame: 0, window: SELECT_WINDOW }
-  caster._choreoLock = true; caster.vx = 0; caster._forceAction = "idle"
+  // STAGE 6: an in-shroud Naruto gathers MORE clones (×2, ×3 at shroud stage 5), capped at MAX_LIVE_CLONES.
+  // Out of shroud this is the original fixed 4. Offsets stored per-formation (deterministic symmetric fan).
+  const offsets = formationOffsets(formationCloneCount(caster))
+  const bodies = offsets.map(() => makeGhostBody(caster))
+  _formation = { caster, target, bodies, offsets, frame: 0, window: SELECT_WINDOW }
+  // STAGE 4: SOFT-HOLD (NOT the hard _choreoLock) — matches the generic roster's startCloneFormation. The hard
+  // lock makes updatePlayerCombat `return` early (game.js ~7572), which blocked the follow-up SELECT press from
+  // ever reaching executeNarutoSpecial via real input. A soft hold (vx=0 + idle pose) pins Naruto in place while
+  // STILL sampling the Special, so the direction+Special select works through real keys.
+  caster.vx = 0; caster._forceAction = "idle"
   caster._narutoSelectWindow = SELECT_WINDOW
+  // Mirror the generic formation fields so the SAME on-screen CLONE-SELECT hint shows for Naruto. Safe: the
+  // generic cloneChoreoInterceptSpecial early-returns for Naruto (isChoreoSupported("naruto") === false), so
+  // these fields never cross-trigger the generic select path.
+  caster._inChoreoFormation = true; caster._choreoSelectWindow = SELECT_WINDOW
   return true
 }
 
 export function updateNarutoFormation() {
   if (!_formation) return
   const fm = _formation, c = fm.caster
-  FORMATION_OFFSETS.forEach((off, i) => {
+  fm.offsets.forEach((off, i) => {
     const b = fm.bodies[i]
     b._choreoVisible = true
     b.x = c.x + off.dx
@@ -226,10 +242,12 @@ export function updateNarutoFormation() {
     b.facing = off.dx < 0 ? 1 : -1   // clones face inward toward Naruto
     b._forceAction = "idle"
   })
+  c.vx = 0; c._forceAction = "idle"   // keep the soft-hold each frame (planted + idle) while input still samples the select
   if (fm.frozen) return   // test-only: hold the staged formation for a screenshot
   fm.frame++
   fm.window--
   c._narutoSelectWindow = fm.window
+  c._choreoSelectWindow = fm.window   // mirror for the shared hint (see startNarutoFormation)
   if (fm.window <= 0) clearNarutoFormation()   // timed out → disperse + unlock
 }
 
@@ -241,6 +259,7 @@ export function chooseNarutoSequence(key) {
   if (!_formation) return false
   const c = _formation.caster, t = _formation.target
   c._narutoSelectWindow = 0
+  c._inChoreoFormation = false; c._choreoSelectWindow = 0   // drop the shared hint fields; startNarutoChoreo takes over (hard lock)
   _formation = null   // release WITHOUT unlocking — startNarutoChoreo re-locks immediately
   return startNarutoChoreo(c, t, SEQUENCES[key] || UZUMAKI_BARRAGE)
 }
@@ -250,6 +269,7 @@ export function clearNarutoFormation() {
     _formation.caster._choreoLock = false
     _formation.caster._forceAction = null
     _formation.caster._narutoSelectWindow = 0
+    _formation.caster._inChoreoFormation = false; _formation.caster._choreoSelectWindow = 0
   }
   _formation = null
 }
@@ -286,7 +306,7 @@ export function updateNarutoChoreo(fireHit) {
     const key = b.body + "@" + b.at
     if (!r.frozen && f === b.at && !r.fired.has(key)) {   // frozen (test hold) → pose only, no hits
       r.fired.add(key)
-      if (b.hit && fireHit) fireHit(caster, t, b.hit, _dirTo(body, t), body)   // body → projectile spawn origin
+      if (b.hit && fireHit) fireHit(caster, t, scaleHitDamage(b.hit, r.dmgMult), _dirTo(body, t), body)   // body → projectile spawn origin
     }
   }
 
@@ -298,7 +318,7 @@ export function updateNarutoChoreo(fireHit) {
     const cx = t.x + (t.w || 0) / 2
     if (fin.type === "projectile") {
       caster.facing = _dirTo(caster, t); caster._forceAction = fin.action
-      if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, fin.hit, _dirTo(caster, t), caster) }
+      if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(fin.hit, r.dmgMult), _dirTo(caster, t), caster) }
     } else if (fin.type === "escape") {
       // reappear on the FAR side of the target (behind it), or a set distance back
       const side = _dirTo(caster, t)   // sign toward target
@@ -308,13 +328,13 @@ export function updateNarutoChoreo(fireHit) {
       if (!r.frozen && !r.finisherFired) {
         r.finisherFired = true
         if (fin.iframes) { caster.invulnTimer = fin.iframes; caster.iframes = fin.iframes }
-        if (fin.hit && fireHit) fireHit(caster, t, fin.hit, _dirTo(caster, t), caster)
+        if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(fin.hit, r.dmgMult), _dirTo(caster, t), caster)
       }
     } else if (fin.type === "strike") {
       // grounded teleport beside the target + launcher
       caster.x = cx + (fin.teleport.dx || -44) - (caster.w || 0) / 2
       caster.y = t.y; caster.facing = _dirTo(caster, t); caster._forceAction = fin.action
-      if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, fin.hit, _dirTo(caster, t), caster) }
+      if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(fin.hit, r.dmgMult), _dirTo(caster, t), caster) }
     } else {
       // DEFAULT SPIKE — verbatim Uzumaki Barrage behavior (do not change).
       if (r.frozen) {
@@ -331,7 +351,7 @@ export function updateNarutoChoreo(fireHit) {
         caster.vy = fin.descendVy || 7
         caster.facing = _dirTo(caster, t)
         caster._forceAction = fin.action
-        if (fin.hit && fireHit) fireHit(caster, t, fin.hit, _dirTo(caster, t))
+        if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(fin.hit, r.dmgMult), _dirTo(caster, t))
       }
     }
   }

@@ -31,29 +31,32 @@ import { classify } from "./comboStandard.js"
 
 // Global control reference (shown on the Move List "Controls" panel).
 export const CONTROL_REFERENCE = {
+  // ── Corrected 2026-10-06 to match the REAL bindings (game.js P1_CONTROLS/P2_CONTROLS; the in-battle
+  // strip ui.js:4192). The old table had drifted (Special/Ultimate swapped, phantom Shift/G, wrong Grab/
+  // Charge). P1 = left-hand cluster, P2 = right-hand cluster — no shared keys (single-keyboard 2P safe). ──
   keyboardP1: [
     ["Move",            "A / D"],
     ["Jump / Up",       "W"],
-    ["Crouch / Block",  "S"],
-    ["Light Attack",    "J"],
-    ["Heavy Attack",    "K"],
-    ["Special",         "I"],
-    ["Ultimate",        "L"],
-    ["Dash",            "Shift"],
-    ["Grab",            "G"],
-    ["Charge / Omnitrix","O"]
+    ["Crouch",          "S"],
+    ["Block",           ";"],
+    ["Light / Heavy",   "J / K"],
+    ["Special",         "L"],
+    ["Ultimate",        "U"],
+    ["Grab / Charge",   "O / P"],
+    ["Dash",            "double-tap A/D"],
+    ["Clone Summon",    "↓↓↑ + Special"]
   ],
   keyboardP2: [
     ["Move",            "← / →"],
     ["Jump / Up",       "↑"],
-    ["Crouch / Block",  "↓"],
-    ["Light Attack",    "1"],
-    ["Heavy Attack",    "2"],
-    ["Special",         "3"],
-    ["Ultimate",        "4"],
-    ["Dash",            "0"],
-    ["Grab",            "9"],
-    ["Charge / Omnitrix","6"]
+    ["Crouch",          "↓"],
+    ["Block",           "/"],
+    ["Light / Heavy",   "1 / 2"],
+    ["Special",         "4"],
+    ["Ultimate",        "5"],
+    ["Grab / Charge",   "6 / 7"],
+    ["Dash",            "double-tap ← →"],
+    ["Clone Summon",    "↓↓↑ + Special"]
   ],
   controller: [
     ["Move / Jump",     "L-Stick / D-Pad"],
@@ -70,7 +73,10 @@ export const CONTROL_REFERENCE = {
     "Hold ↓ + Special = 2nd special.",
     "Hold → (toward foe) + Special = 3rd special / mobility move.",
     "Ultimate button (full meter) = ultimate / domain expansion.",
-    "Up-Attack (↑ + Light/Heavy) launches BOTH fighters up for air combos."
+    "Up-Attack (↑ + Light/Heavy) launches BOTH fighters up for air combos.",
+    "CLONES — ↓↓↑ + Special stages a clone formation; then hold a direction + Special to pick:",
+    "   Neutral = Pure Attack · ↓ = Deception · ↑ = Defensive · Back = Ranged · Fwd = Grab · Ultimate = Swarm.",
+    "Persistent clones (P1 / clone chars): , create · . disperse · / swap. For 2P on one keyboard, use a gamepad for P2."
   ]
 }
 

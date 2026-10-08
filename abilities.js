@@ -4014,6 +4014,137 @@ function executeJesusUltimate(fighter, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// NARUTO (HOKAGE) — STAGE 2 BASE specials + Gamabunta ultimate. Fully namespaced
+// (nh*), gated on rosterKey "naruto_hokage"; shares NOTHING with the existing
+// `naruto` kit (executeNarutoUltimate / kurama.js / narutoChoreography are untouched).
+// Directional Special: Neutral=Rasengan | Fwd=Rasenshuriken | Back=Doton wall | Down=Throw.
+// KCM-form upgrades of these inputs land in the KCM stage (same buttons, stronger art).
+// ─────────────────────────────────────────────────────────────────────────────
+function _nhSetCast(fighter, pose, frames) { fighter._spriteCastMove = pose; fighter._spriteCastTimer = frames }
+
+function executeNarutoHokageSpecial(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "naruto_hokage") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireNHRasenshuriken(fighter, context)
+  if (dir === "B") return fireNHDotonWall(fighter, context)
+  if (dir === "D") return fireNHThrowWeapon(fighter, context)
+  return fireNHRasengan(fighter, context)   // neutral (and Up — no distinct up-special in base)
+}
+
+// Neutral — Rasengan: short, fast dashing spiral orb (close-range). [CANON]
+function fireNHRasengan(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.rasengan?.cost ?? 30)) return false
+  _nhSetCast(fighter, "nhRasenganCast", 26)
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "nhRasengan", {
+      damage: fighter.specials?.rasengan?.damage ?? 118, speed: 16, lifetime: 34,
+      hitstun: 22, knockbackX: 9, knockbackY: -2, w: 34, h: 34, radius: 19,
+      color: "#8fd3ff", isSpecial: true, vx: face * 16,
+      spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+// Fwd — Rasenshuriken: slower wind blade, long reach, heavy damage. [CANON]
+function fireNHRasenshuriken(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.rasenshuriken?.cost ?? 70)) return false
+  _nhSetCast(fighter, "nhRasenshurikenCast", 32)
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(16, () => {
+    spawnProjectile(fighter, "nhRasenshuriken", {
+      damage: fighter.specials?.rasenshuriken?.damage ?? 230, speed: 13, lifetime: 80,
+      hitstun: 34, knockbackX: 15, knockbackY: -3, w: 46, h: 46, radius: 26,
+      color: "#cdebff", isSpecial: true, vx: face * 13,
+      spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+
+// Down — Throw Weapon: cheap fast kunai poke (free slot). [CANON]
+function fireNHThrowWeapon(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.throwWeapon?.cost ?? 14)) return false
+  _nhSetCast(fighter, "nhThrowCast", 18)
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "nhKunai", {
+      damage: fighter.specials?.throwWeapon?.damage ?? 44, speed: 20, lifetime: 70,
+      hitstun: 14, knockbackX: 6, knockbackY: 0, w: 20, h: 12, radius: 10,
+      color: "#d7d9e0", isSpecial: true, vx: face * 20,
+      spawnY: fighter.y + (fighter.h || 100) * 0.38
+    }, context)
+  })
+  return true
+}
+
+// Back — Doton earth wall: rising stone pillars in front; brief persistent hazard
+// that bumps & chips on contact. Uses the sliced 6-frame pillar-growth FX. [CANON-ADJACENT]
+function fireNHDotonWall(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.dotonWall?.cost ?? 28)) return false
+  _nhSetCast(fighter, "nhDotonCast", 26)
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  const wallX = fighter.x + face * ((fighter.w || 60) + 30)
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "nhDotonWall", {
+      sheet: "./naruto_hokage_doton_pillar_uniform.png", spriteFrames: 6, spriteW: 51, spriteH: 93,
+      spriteSpeed: 4, spriteScale: 1.8, spriteOnce: true, spriteBottomY: groundY,
+      damage: fighter.specials?.dotonWall?.damage ?? 70, speed: 0, vx: 0, vy: 0,
+      hitDelay: 6, lifetime: 70, persist: true, hitstun: 20, knockbackX: face * 6, knockbackY: -7,
+      w: 46, h: 150, isSpecial: true, spawnX: wallX, spawnY: groundY - 150 / 2
+    }, context)
+    try { shakeCamera(context, 4, 8) } catch (_) {}
+  })
+  return true
+}
+
+// Ultimate — Kuchiyose: Gamabunta. Summon seal → the giant toad appears → committed
+// horizontal dagger slash (big white arc). Guaranteed sure-hit at the slash frame
+// (half on block). [CANON]
+function executeNarutoHokageUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "naruto_hokage") return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 80)) return false
+  _nhSetCast(fighter, "nhKuchiyoseCast", 30)
+  fighter.attackCooldown = getAttackDuration(52, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 30)   // armored through the summon
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  // Beat 1 (frame 18): the toad rises behind Naruto and plays its 4-frame draw→slash.
+  schedulePendingSpawn(18, () => {
+    spawnProjectile(fighter, "nhGamabunta", {
+      sheet: "./naruto_hokage_gamabunta_uniform.png", spriteFrames: 4, spriteW: 340, spriteH: 161,
+      spriteSpeed: 9, spriteScale: 1.5, spriteOnce: true, spriteBottomY: groundY,
+      visualOnly: true, speed: 0, vx: 0, vy: 0, lifetime: 4 * 9 + 10, isUltimate: true,
+      spawnX: fighter.x - face * 120, spawnY: groundY - 161 * 1.5
+    }, context)
+    try { shakeCamera(context, 7, 14) } catch (_) {}
+  })
+  // Beat 2 (frame 46): the slash connects — guaranteed hit, half on block.
+  schedulePendingSpawn(46, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated) return
+    const full = fighter.ultimate?.damage ?? 320
+    const cx = fighter.x + (fighter.w || 60) / 2
+    const tcx = opp.x + (opp.w || 60) / 2
+    const kdir = (tcx >= cx ? 1 : -1)
+    if (opp.isBlocking) { opp.blockstun = 28; applyScaledDamage(opp, Math.floor(full * 0.5), { source: "ability" }); opp.vx = kdir * 7; return }
+    opp.hitstun = 50; opp.vx = kdir * 16; opp.vy = -13; opp.colorFlash = 16
+    applyScaledDamage(opp, full, { source: "ability" })
+    try { shakeCamera(context, 9, 18) } catch (_) {}
+  })
+  return true
+}
+
 function fireVegetaUpTier(fighter, key, context) {
   const md = VEGETA_SSJ_UP[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -24895,6 +25026,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
+    case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon
     case "rick":    return executeRickSpecial(fighter, context)
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
@@ -25181,6 +25313,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
+      case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break

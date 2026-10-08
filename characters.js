@@ -9550,7 +9550,13 @@ const narutoHokage = {
     air:       { frames: 3, width: 61, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_air_uniform.png" },
     down_air:  { frames: 6, width: 78, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_strong_down_uniform.png" },
     intro:     { frames: 4, width: 44, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_intro_uniform.png" },
-    win:       { frames: 1, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_win_uniform.png" }
+    win:       { frames: 1, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_win_uniform.png" },
+    // ── STAGE 2 special cast poses (base form) — driven via _spriteCastMove ──
+    nhRasenganCast:      { frames: 5, width: 66, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rasengan_cast_uniform.png" },
+    nhRasenshurikenCast: { frames: 5, width: 58, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rasenshuriken_cast_uniform.png" },
+    nhDotonCast:         { frames: 4, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_doton_cast_uniform.png" },
+    nhThrowCast:         { frames: 3, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_throw_cast_uniform.png" },
+    nhKuchiyoseCast:     { frames: 5, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kuchiyose_cast_uniform.png" }
   }
 }
 

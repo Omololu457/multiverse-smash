@@ -202,7 +202,7 @@ export function getNarutoChoreoBodies() {
 // an ADDITIONAL access path — Uzumaki Barrage's own direct trigger (startNarutoChoreo) is unchanged.
 let _formation = null
 const FORMATION_OFFSETS = [{ dx: -72, dy: 0 }, { dx: 72, dy: 0 }, { dx: -124, dy: 0 }, { dx: 124, dy: 0 }]
-const SELECT_WINDOW = 60   // frames the player has to pick before the formation disperses
+const SELECT_WINDOW = 90   // frames the player has to pick before the formation disperses (STAGE 4: 60->90 ≈ 1.0s->1.5s, matching the generic roster's eased cloneChoreography.SELECT_WINDOW)
 
 export function isNarutoFormationActive() { return !!_formation }
 
@@ -210,8 +210,16 @@ export function startNarutoFormation(caster, target) {
   if (_run || _formation || !caster || !target) return false
   const bodies = FORMATION_OFFSETS.map(() => makeGhostBody(caster))
   _formation = { caster, target, bodies, frame: 0, window: SELECT_WINDOW }
-  caster._choreoLock = true; caster.vx = 0; caster._forceAction = "idle"
+  // STAGE 4: SOFT-HOLD (NOT the hard _choreoLock) — matches the generic roster's startCloneFormation. The hard
+  // lock makes updatePlayerCombat `return` early (game.js ~7572), which blocked the follow-up SELECT press from
+  // ever reaching executeNarutoSpecial via real input. A soft hold (vx=0 + idle pose) pins Naruto in place while
+  // STILL sampling the Special, so the direction+Special select works through real keys.
+  caster.vx = 0; caster._forceAction = "idle"
   caster._narutoSelectWindow = SELECT_WINDOW
+  // Mirror the generic formation fields so the SAME on-screen CLONE-SELECT hint shows for Naruto. Safe: the
+  // generic cloneChoreoInterceptSpecial early-returns for Naruto (isChoreoSupported("naruto") === false), so
+  // these fields never cross-trigger the generic select path.
+  caster._inChoreoFormation = true; caster._choreoSelectWindow = SELECT_WINDOW
   return true
 }
 
@@ -226,10 +234,12 @@ export function updateNarutoFormation() {
     b.facing = off.dx < 0 ? 1 : -1   // clones face inward toward Naruto
     b._forceAction = "idle"
   })
+  c.vx = 0; c._forceAction = "idle"   // keep the soft-hold each frame (planted + idle) while input still samples the select
   if (fm.frozen) return   // test-only: hold the staged formation for a screenshot
   fm.frame++
   fm.window--
   c._narutoSelectWindow = fm.window
+  c._choreoSelectWindow = fm.window   // mirror for the shared hint (see startNarutoFormation)
   if (fm.window <= 0) clearNarutoFormation()   // timed out → disperse + unlock
 }
 
@@ -241,6 +251,7 @@ export function chooseNarutoSequence(key) {
   if (!_formation) return false
   const c = _formation.caster, t = _formation.target
   c._narutoSelectWindow = 0
+  c._inChoreoFormation = false; c._choreoSelectWindow = 0   // drop the shared hint fields; startNarutoChoreo takes over (hard lock)
   _formation = null   // release WITHOUT unlocking — startNarutoChoreo re-locks immediately
   return startNarutoChoreo(c, t, SEQUENCES[key] || UZUMAKI_BARRAGE)
 }
@@ -250,6 +261,7 @@ export function clearNarutoFormation() {
     _formation.caster._choreoLock = false
     _formation.caster._forceAction = null
     _formation.caster._narutoSelectWindow = 0
+    _formation.caster._inChoreoFormation = false; _formation.caster._choreoSelectWindow = 0
   }
   _formation = null
 }

@@ -2082,10 +2082,11 @@ function executeNarutoSpecial(fighter, context) {
   // players who prefer a longer execution. On match, NORMALIZE _specialHeldDir to the equivalent direction
   // so the EXISTING handler below fires the identical move. The original simple inputs (just holding the
   // direction) are 100% unchanged. Avoids →↓← (hcb) / →↓→ (dp) — those are Transformation Jutsu.
-  if      (detectMotion(fighter, "doubleQcf")) { fighter._specialHeldDir = "D"; clearMotionHistory(fighter) }  // ↓→↓→ → Uzumaki Barrage (= Down+Special)
-  else if (detectMotion(fighter, "doubleQcb")) { fighter._specialHeldDir = "B"; clearMotionHistory(fighter) }  // ↓←↓← → Dark Rasengan   (= Back+Special)
-  else if (detectMotion(fighter, "hcf"))       { fighter._specialHeldDir = "F"; clearMotionHistory(fighter) }  // ←↓→  → Chakra-Arm Strike (= Forward+Special)
-  else if (detectMotion(fighter, "chargeUp"))  { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↑   → Summon formation  (= Up+Special)
+  if      (detectMotion(fighter, "doubleQcf"))   { fighter._specialHeldDir = "D"; clearMotionHistory(fighter) }  // ↓→↓→ → Uzumaki Barrage (= Down+Special)
+  else if (detectMotion(fighter, "doubleQcb"))   { fighter._specialHeldDir = "B"; clearMotionHistory(fighter) }  // ↓←↓← → Dark Rasengan   (= Back+Special)
+  else if (detectMotion(fighter, "hcf"))         { fighter._specialHeldDir = "F"; clearMotionHistory(fighter) }  // ←↓→  → Chakra-Arm Strike (= Forward+Special)
+  else if (detectMotion(fighter, SUMMON_MOTION)) { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↓↑  → Summon formation — STAGE 4: the SAME roster-standard cloneSummon motion the rest of the Naruto-universe uses (eased 1000ms window). Normalizes to U so the existing summon block fires.
+  else if (detectMotion(fighter, "chargeUp"))    { fighter._specialHeldDir = "U"; clearMotionHistory(fighter) }  // ↓↑   → Summon formation  (ALTERNATE, kept) (= Up+Special)
 
   // ── SUMMON-THEN-CHOOSE (ADDITIVE 2026-09-26) — an EXTRA access path. Placed above the direct
   // Barrage trigger, but only fires in its own states, so the Down+Special Barrage path is unchanged. ──

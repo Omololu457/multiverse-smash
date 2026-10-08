@@ -849,6 +849,7 @@
     "test:music-append": "node harness/music_library_append_verify.test.mjs",
     "test:naruto-barrage": "node harness/naruto_barrage.test.mjs",
     "test:naruto-summon-select": "node harness/naruto_summon_select.test.mjs",
+    "test:naruto-realinput": "node harness/naruto_realinput.test.mjs",
     "test:naruto-ultimate": "node harness/naruto_ultimate.test.mjs",
     "test:naruto-ninetails": "node harness/naruto_ninetails_kit.test.mjs",
     "test:naruto-alt-inputs": "node harness/naruto_alt_inputs.test.mjs",

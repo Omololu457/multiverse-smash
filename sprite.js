@@ -62,6 +62,13 @@ const GOKU_SSBLUE_TINT = "saturate(2.6) hue-rotate(165deg) brightness(1.10) cont
 const GOKU_FORM_TINTS  = [null, GOKU_SSJ_TINT, GOKU_SSG_TINT, GOKU_SSBLUE_TINT];   // index = transformIndex (0=base=no tint)
 const GOKU_TINTED_ACTIONS = new Set(["light", "heavy", "up", "air", "down_air", "gokuRush1", "gokuRush2", "gokuRush3", "dragonFist", "gokuKamehameha"]);
 
+// Naruto (Hokage) STAGE 3 — KCM golden ATTACK-art tint. KCM swaps locomotion/idle/light to the REAL
+// golden sheets (Vaydra V set + JUS golden Combo 2), but the heavy/up/air/down_air + special cast poses
+// have no golden art, so they fall back to the orange BASE sheets and read "un-transformed" mid-combo.
+// Same stopgap as Goku/Piccolo: a canvas gold tint on exactly those actions, gated on fighter._nhKcm.
+const NH_KCM_TINT = "sepia(0.7) saturate(2.6) hue-rotate(-12deg) brightness(1.13) contrast(1.04)";
+const NH_KCM_TINTED_ACTIONS = new Set(["heavy", "up", "air", "down_air", "nhRasenganCast", "nhRasenshurikenCast", "nhDotonCast", "nhThrowCast", "nhKuchiyoseCast"]);
+
 // IMPACT FRAME — JJK "Black Flash" sprite palette-swap. At hit-connect the struck + striking fighters snap
 // (for 2-5 frames) to a stark, ROUGH, jarring look: (1) a ctx.filter crushes the body to a hard high-contrast
 // near-black CHARCOAL (palette-independent — reads on orange Goku or blue Sasuke alike), then (2) a flat
@@ -223,6 +230,7 @@ const MOVE_TO_ACTION = {
   // recovery tail never resolves to the 128² fallback box.
   nhRasenganCast: "nhRasenganCast", nhRasenshurikenCast: "nhRasenshurikenCast",
   nhDotonCast: "nhDotonCast", nhThrowCast: "nhThrowCast", nhKuchiyoseCast: "nhKuchiyoseCast",
+  chakraCharge: "chakraCharge",   // Naruto (Hokage) STAGE 3: KCM transform hold-pose. Identity map.
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.
@@ -1039,6 +1047,10 @@ export class SpriteHandler {
     // placeholder, Piccolo precedent). ONLY the attack actions — locomotion already uses real recoloured sheets.
     else if ((fighter.rosterKey || "").toLowerCase() === "goku" && (fighter.transformIndex || 0) > 0 && GOKU_TINTED_ACTIONS.has(this.currentAction)) {
       spriteFilter = GOKU_FORM_TINTS[fighter.transformIndex] || "none";
+    }
+    // Naruto (Hokage) KCM: gold-tint the orange base ATTACK frames that have no golden art.
+    else if ((fighter.rosterKey || "").toLowerCase() === "naruto_hokage" && fighter._nhKcm && NH_KCM_TINTED_ACTIONS.has(this.currentAction)) {
+      spriteFilter = NH_KCM_TINT;
     }
     fighter._lastSpriteFilter = spriteFilter;   // read-only diagnostic (like _lastDrawX/Y/W/H) — test hook for ITEM 3
 

@@ -4027,6 +4027,12 @@ function executeNarutoHokageSpecial(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "naruto_hokage") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
+  if (fighter._nhKcm) {   // KCM upgrades: same buttons, stronger jutsu
+    if (dir === "F") return fireNHWakusei(fighter, context)              // Wakusei (Planetary) Rasengan
+    if (dir === "B") return fireNHBijuuRasenshuriken(fighter, context)   // Bijuu Rasenshuriken
+    if (dir === "D") return fireNHThrowWeapon(fighter, context)          // throw unchanged
+    return fireNHRasenkyugan(fighter, context)                           // neutral: Rasenkyugan
+  }
   if (dir === "F") return fireNHRasenshuriken(fighter, context)
   if (dir === "B") return fireNHDotonWall(fighter, context)
   if (dir === "D") return fireNHThrowWeapon(fighter, context)
@@ -4114,6 +4120,7 @@ function fireNHDotonWall(fighter, context) {
 function executeNarutoHokageUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "naruto_hokage") return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 80)) return false
+  if (fighter._nhKcm) return executeNarutoHokageBijuudama(fighter, context)   // KCM neutral Ultimate = Bijuudama (Four-Tails/Rikudou bursts are a later stage)
   _nhSetCast(fighter, "nhKuchiyoseCast", 30)
   fighter.attackCooldown = getAttackDuration(52, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 30)   // armored through the summon
@@ -4140,6 +4147,161 @@ function executeNarutoHokageUltimate(fighter, context) {
     if (opp.isBlocking) { opp.blockstun = 28; applyScaledDamage(opp, Math.floor(full * 0.5), { source: "ability" }); opp.vx = kdir * 7; return }
     opp.hitstun = 50; opp.vx = kdir * 16; opp.vy = -13; opp.colorFlash = 16
     applyScaledDamage(opp, full, { source: "ability" })
+    try { shakeCamera(context, 9, 18) } catch (_) {}
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NARUTO (HOKAGE) — STAGE 3: KCM (Kurama Chakra Mode) persistent form + upgraded
+// specials + Bijuudama ultimate. "Hokage's Chakra Ladder": hold Charge to enter KCM
+// (needs chakra; drains while active, auto-reverts at 0). KCM swaps idle/run/jump/
+// hurt/knockdown/light to the golden Vaydra V set + JUS golden Combo 2; the orange
+// base attack frames are gold-tinted (sprite.js NH_KCM_TINT). Same Special/Ultimate
+// buttons fire upgraded jutsu. Fully namespaced; base `naruto` kit untouched.
+// ─────────────────────────────────────────────────────────────────────────────
+const NH_KCM_ANIM = {
+  ...(characters.naruto_hokage?.animationData || {}),
+  idle:      { frames: 2, width: 38, height: 61, speed: 7, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_idle_uniform.png" },
+  walk:      { frames: 6, width: 69, height: 62, speed: 5, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_run_uniform.png" },
+  run:       { frames: 6, width: 69, height: 62, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_run_uniform.png" },
+  jump:      { frames: 3, width: 46, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_jump_uniform.png" },
+  fall:      { frames: 3, width: 46, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_jump_uniform.png" },
+  hurt:      { frames: 3, width: 41, height: 62, speed: 5, anchorY: 0, sheet: "./naruto_hokage_kcm_hurt_uniform.png" },
+  knockdown: { frames: 5, width: 70, height: 62, speed: 6, anchorY: 0, sheet: "./naruto_hokage_kcm_knockdown_uniform.png" },
+  light:     { frames: 3, width: 74, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_light_uniform.png" }
+}
+const NH_KCM_CINE = { key: "nhKcm", holdPose: "chakraCharge", auraInner: "rgba(255,224,130,A)", auraMid: "rgba(240,150,40,A)", flash: "#ffe9a8", backdrop: "#1a1204" }
+
+function isNHChar(f) { return (f?.rosterKey || "").toLowerCase() === "naruto_hokage" }
+export function narutoHokageIsKCM(f) { return !!(f && f._nhKcm) }
+
+export function enterNarutoHokageKCM(fighter, context = {}) {
+  if (!isNHChar(fighter) || fighter._nhKcm) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (isFormActivationCinematicActive()) return false
+  const form = fighter.transformations?.kcm
+  if (!form) return false
+  if ((fighter.energy || 0) < (form.energyThreshold ?? 60)) return false   // threshold gate (no up-front spend)
+  fighter.vx = 0
+  const apply = () => {
+    fighter._nhKcm = true
+    if (fighter._baseSkinAnim === undefined) fighter._baseSkinAnim = fighter._skinAnim || null
+    fighter._skinAnim = NH_KCM_ANIM
+    fighter.currentForm = "naruto_hokage_kcm"
+    fighter.currentFormData = form
+    fighter.damageMultiplier = fighter.attackMultiplier = form.damageMultiplier || 1
+    fighter.speedMultiplier = form.speedMultiplier || 1
+    fighter.defenseMultiplier = form.defenseMultiplier || 1
+    fighter.teleportFlash = 16
+    fighter.attackCooldown = 12
+  }
+  const opp = getTargetResolver(context)?.(fighter) || null
+  const started = activateFormActivationCinematic(fighter, opp, apply, NH_KCM_CINE)
+  if (!started) { apply(); try { shakeCamera(context, 6, 12) } catch (_) {} }
+  return true
+}
+
+export function revertNarutoHokageKCM(fighter) {
+  if (!fighter || !fighter._nhKcm) return
+  fighter._nhKcm = false
+  fighter._skinAnim = fighter._baseSkinAnim || null
+  fighter.currentForm = "base"
+  fighter.currentFormData = fighter.transformations?.base || null
+  fighter.damageMultiplier = fighter.attackMultiplier = 1
+  fighter.speedMultiplier = 1
+  fighter.defenseMultiplier = 1
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+}
+
+// Charge-hold entry / tap-exit — wired from the game.js charge handler.
+export function narutoHokageChargeAction(fighter, context, wasHeld, wasTap) {
+  if (!isNHChar(fighter)) return false
+  if (fighter._nhKcm) { if (wasTap) { revertNarutoHokageKCM(fighter); return true } return false }
+  if (wasHeld) return enterNarutoHokageKCM(fighter, context)
+  return false
+}
+
+// Per-frame: drain chakra while KCM; auto-revert at 0 (the risk/limiter).
+export function applyNarutoHokageKCMSystem(fighter) {
+  if (!isNHChar(fighter) || !fighter._nhKcm) return
+  const form = fighter.transformations?.kcm; if (!form) return
+  tickSustainedFormDrain(fighter, { active: f => !!f._nhKcm, drainPerFrame: form.energyDrainPerFrame || 0.16, revert: revertNarutoHokageKCM })
+}
+
+// KCM Neutral — Rasenkyugan: extending chakra-arm Rasengan (longer reach, more damage). [CANON-ADJACENT]
+function fireNHRasenkyugan(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.rasenkyugan?.cost ?? 34)) return false
+  _nhSetCast(fighter, "nhRasenganCast", 26)
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "nhRasenkyugan", {
+      damage: fighter.specials?.rasenkyugan?.damage ?? 150, speed: 18, lifetime: 48,
+      hitstun: 26, knockbackX: 11, knockbackY: -3, w: 42, h: 42, radius: 24,
+      color: "#ffd36b", isSpecial: true, vx: face * 18, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// KCM Fwd — Wakusei (Planetary) Rasengan: long piercing horizontal thrust streak. [CANON-ADJACENT]
+function fireNHWakusei(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.wakuseiRasengan?.cost ?? 55)) return false
+  _nhSetCast(fighter, "nhRasenganCast", 30)
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "nhWakusei", {
+      damage: fighter.specials?.wakuseiRasengan?.damage ?? 215, speed: 22, lifetime: 64,
+      hitstun: 32, knockbackX: 16, knockbackY: -2, w: 74, h: 34, radius: 26, piercesMulti: true,
+      color: "#ffe08a", isSpecial: true, vx: face * 22, spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+
+// KCM Back — Bijuu Rasenshuriken: upgraded wind blade (bigger, heavier). [CANON]
+function fireNHBijuuRasenshuriken(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.bijuuRasenshuriken?.cost ?? 80)) return false
+  _nhSetCast(fighter, "nhRasenshurikenCast", 32)
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(16, () => {
+    spawnProjectile(fighter, "nhBijuuRasenshuriken", {
+      damage: fighter.specials?.bijuuRasenshuriken?.damage ?? 275, speed: 14, lifetime: 84,
+      hitstun: 36, knockbackX: 17, knockbackY: -4, w: 54, h: 54, radius: 30,
+      color: "#eaffff", isSpecial: true, vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  try { shakeCamera(context, 4, 9) } catch (_) {}
+  return true
+}
+
+// KCM Ultimate — Bijuudama (Tailed Beast Bomb). Kurama heads flank → a huge, slow,
+// dark-chakra sphere launches forward. (Caller already spent the ult meter.) [CANON]
+function executeNarutoHokageBijuudama(fighter, context) {
+  _nhSetCast(fighter, "nhKuchiyoseCast", 34)
+  fighter.attackCooldown = getAttackDuration(54, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 34)
+  const face = fighter.facing || 1
+  const cy = fighter.y + (fighter.h || 100) * 0.30
+  schedulePendingSpawn(14, () => {
+    spawnProjectile(fighter, "nhKuramaHead", {
+      sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
+      spriteSpeed: 10, spriteScale: 0.95, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 34, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 70
+    }, context)
+    try { shakeCamera(context, 6, 12) } catch (_) {}
+  })
+  schedulePendingSpawn(34, () => {
+    spawnProjectile(fighter, "nhBijuudama", {
+      sheet: "./naruto_hokage_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 185, spriteH: 169, spriteScale: 0.72,
+      damage: 360, speed: 11, lifetime: 92, hitstun: 50, knockbackX: face * 18, knockbackY: -12,
+      w: 120, h: 120, radius: 62, isSpecial: true, isUltimate: true, vx: face * 11, spawnY: cy
+    }, context)
     try { shakeCamera(context, 9, 18) } catch (_) {}
   })
   return true

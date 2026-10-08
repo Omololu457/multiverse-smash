@@ -9529,7 +9529,7 @@ const narutoHokage = {
   transformationOrder: ["base", "kcm"],
   transformations: {
     base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    kcm:  { damageMultiplier: 1.25, speedMultiplier: 1.12, defenseMultiplier: 1.05, energyDrainPerFrame: 5 / 60, energyRegenBonus: 1.6, isSpecial: true }
+    kcm:  { damageMultiplier: 1.25, speedMultiplier: 1.12, defenseMultiplier: 1.05, energyThreshold: 60, energyDrainPerFrame: 0.16, energyRegenBonus: 1.6, revertOnEmpty: true, isSpecial: true }
   },
   hasSprites: true,
   spriteScale: 2.0,
@@ -9556,7 +9556,9 @@ const narutoHokage = {
     nhRasenshurikenCast: { frames: 5, width: 58, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rasenshuriken_cast_uniform.png" },
     nhDotonCast:         { frames: 4, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_doton_cast_uniform.png" },
     nhThrowCast:         { frames: 3, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_throw_cast_uniform.png" },
-    nhKuchiyoseCast:     { frames: 5, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kuchiyose_cast_uniform.png" }
+    nhKuchiyoseCast:     { frames: 5, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kuchiyose_cast_uniform.png" },
+    // STAGE 3: Chakra Charge hold-pose, played during the KCM transform cinematic.
+    chakraCharge:        { frames: 4, width: 49, height: 62, speed: 4, anchorY: 0, loop: true, sheet: "./naruto_hokage_chakra_charge_uniform.png" }
   }
 }
 

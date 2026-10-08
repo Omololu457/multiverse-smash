@@ -382,11 +382,18 @@ export const SKINS = {
     { id: "ippoChampionshipGold",  name: "Championship Gold",  unlockLevel: 0, portrait: "./ippo_portrait__championshipgold.png",  spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "championshipgold"),  recolorTag: "championshipgold" }             // ORIGINAL design (not canon): all-gold title-belt theme
   ],
 
-  // Naruto (Hokage) — additive standalone. Default only for now; palette-row skins are a later pass
-  // (derived from the sheet's "Color Paletes" row via the recolor pipeline, only once keying is verified).
+  // Naruto (Hokage) — additive standalone. Default + 5 recolor skins derived from the sheet's
+  // "Color Paletes" row (tools/gen_naruto_hokage_recolor.py — HSV pivot on the orange coat only,
+  // hair/skin/black preserved; alpha byte-identical). All free. The coat recolor applies to the BASE
+  // Hokage form; KCM stays golden (it swaps to NH_KCM_ANIM, which ignores the skin anim).
   // The explicit spriteScale is REQUIRED — a missing skins entry makes getSkins fall back to scale 1.
   naruto_hokage: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto_hokage?.portrait, spriteScale: characters.naruto_hokage?.spriteScale, animationData: null },
+    { id: "default",           name: "Default",       unlockLevel: 0, portrait: characters.naruto_hokage?.portrait,                 spriteScale: characters.naruto_hokage?.spriteScale, animationData: null },
+    { id: "narutoHokageJade",  name: "Jade Coat",     unlockLevel: 0, portrait: recolorPortrait("naruto_hokage", "jade"),   spriteScale: characters.naruto_hokage?.spriteScale, animationData: recolorSkinAnim("naruto_hokage", "jade"),   recolorTag: "jade" },
+    { id: "narutoHokageAzure", name: "Azure Coat",    unlockLevel: 0, portrait: recolorPortrait("naruto_hokage", "azure"),  spriteScale: characters.naruto_hokage?.spriteScale, animationData: recolorSkinAnim("naruto_hokage", "azure"),  recolorTag: "azure" },
+    { id: "narutoHokageTeal",  name: "Teal Coat",     unlockLevel: 0, portrait: recolorPortrait("naruto_hokage", "teal"),   spriteScale: characters.naruto_hokage?.spriteScale, animationData: recolorSkinAnim("naruto_hokage", "teal"),   recolorTag: "teal" },
+    { id: "narutoHokageViolet",name: "Violet Coat",   unlockLevel: 0, portrait: recolorPortrait("naruto_hokage", "violet"), spriteScale: characters.naruto_hokage?.spriteScale, animationData: recolorSkinAnim("naruto_hokage", "violet"), recolorTag: "violet" },
+    { id: "narutoHokageOnyx",  name: "Onyx Coat",     unlockLevel: 0, portrait: recolorPortrait("naruto_hokage", "onyx"),   spriteScale: characters.naruto_hokage?.spriteScale, animationData: recolorSkinAnim("naruto_hokage", "onyx"),   recolorTag: "onyx" },
   ],
 
   // Dark Vegeta (dragon_ball) — STAGE 1 default skin. WITHOUT this, applySkin() falls back to the

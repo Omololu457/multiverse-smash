@@ -3949,6 +3949,7 @@ function initIntroVariant(fighter) {
 const INTRO_VOICE = {
   beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
   naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
+  naruto_hokage: { clip: "naruto_intro.mp3", gateReveal: false },  // additive Hokage/KCM standalone REUSES base Naruto's intro clip (no new audio)
   minato: { pool: MINATO_VOICE.intro, gateReveal: false },  // picks ONE intro line at random per match (Japanese Storm-Connections pack)
   maki:    { pool: MAKI_VOICE.intro,    gateReveal: false }, // intro pool existed in makiVoice.js but was never dispatched at the reveal beat (fixed 2026-09-17)
   chrollo: { pool: CHROLLO_VOICE.intro, gateReveal: false }, // intro pool existed in chrolloVoice.js but was never dispatched (fixed 2026-09-17)

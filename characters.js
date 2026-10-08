@@ -6826,6 +6826,96 @@ const sakura = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SASUKE (SENSEI)  (rosterKey "sasuke_sensei", universe "naruto"). Boruto-era Sasuke at his peak — the
+// travelling-cloak dōjutsu master. Built from the RBM-Kyuubi "Sasuke Sensei NZC v2" JUS sheet
+// (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi) — border-flood-fill keyed (navy bg + the Hebi's near-navy
+// scales survive) + per-action uniform strips (tools/sasuke_sensei/slice.py body + slice_specials.py
+// casts) → sasuke_sensei_*_uniform.png. Jesus/Sakura discipline: the sprite BODY is the sheet; every
+// special EFFECT is procedural (abilities.js executeSasukeSenseiSpecial / *Ultimate) — the sheet's own
+// lightning/fire/blade FX are BAKED into the cast frames, so Raiton reads electric with no new render.
+// Credited to RBM-Kyuubi + Juubi/Adriandan/Shinrashi (credits.js). NOT brutality-eligible.
+//   STATS: top Naruto-universe band (peer to Sasuke (Adult)/Naruto (Hokage)/Madara).
+//   ENERGY: "chakra" → ui label "Chakra". VOICE: aliases base Sasuke's pack (combat.js VOICE_ALIAS).
+//   EYE-SETS (3): the kit cycles Raiton → Mangekyou → Rinnegan (Up+Ultimate cycles; Phase 3 wires the
+//     switch). PHASE 1 ships the RAITON set only (_eyeSet defaults "raiton"); Mangekyou/Rinnegan land in
+//     Phases 2-3. RAITON: N=Chidori / F=Chidori Eisou / B=Raiton Sword *1 / U=Raiton Sword *2 /
+//     D=Raiton Sword *3 / AIR=Chidori dive. ULT (Raiton)=Kirin (Katon Gouryuuka buildup → undodgeable
+//     lightning call-down).
+//   GAPS (honest reuse, flagged): walk = Walk row · fall = Jump airborne pose · lose = knockdown lying
+//     tail · crouch/grab/taunt = NONE on sheet (omitted) · Susanoo = NO art (not built). SPARE sheets
+//     sliced but unmapped in Phase 1: strong / strong_fwd / strong_air / throw / throw_air /
+//     special_damage / launched (available for later passes).
+const sasuke_sensei = {
+  rosterKey: "sasuke_sensei", name: "Sasuke (Sensei)", universe: "naruto", color: "#3b4a6b",
+  portrait: "./sasuke_sensei_portrait.png",   // bust cropped from idle frame 0 (gen below)
+  archetypes: ["technical", "zoner"],
+  primary: "melee", secondary: ["ranged"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  passive: { name: "Three Dōjutsu", effect: "The last Uchiha wields a cycling arsenal — Raiton (lightning blades), Mangekyō (black flame) and Rinnegan (space-time). Up+Ultimate rotates the active eye-set." },
+  // Top Naruto-universe band (Sasuke (Adult) 1220/93, Naruto (Hokage) 1210/95, Madara). maxEnergy 200 =
+  // the Chakra pool (three special sets + Kirin/per-set ultimates).
+  stats: { maxHealth: 1220, maxEnergy: 200, attack: 94, defense: 89, speed: 93, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air).
+  // RAW damage (engine scales ×0.60). Cloak-and-blade striker: quick fist/kick string, committed sword
+  // combo heavy, rising sword LAUNCHER (up), aerial sword, downward slam spike.
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 64, rangeY: 48 },
+    heavy:    { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: 1,  rangeX: 96, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -6, airOK: false },
+    airAttack:{ damage: 58, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:  { damage: 66, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11, rangeX: 66, rangeY: 66 }
+  },
+  // KIT METADATA (move-list display; real logic + cost in abilities.js SS_RAITON / executeSasukeSensei*).
+  specials: {
+    chidori:       { cost: 24, effect: "Special (Raiton): dashing Chidori — advancing lightning-blade strike." },
+    chidoriEisou:  { cost: 28, effect: "Fwd + Special (Raiton): Chidori Eisou — extending lightning-spear thrust (long reach)." },
+    raitonSword1:  { cost: 18, effect: "Back + Special (Raiton): Raiton Sword *1 — quick electrified sword swing." },
+    raitonSword2:  { cost: 26, effect: "Up + Special (Raiton): Raiton Sword *2 — advancing electrified thrust." },
+    raitonSword3:  { cost: 32, effect: "Down + Special (Raiton): Raiton Sword *3 — committed electrified beam-thrust." }
+  },
+  ultimate: { name: "Kirin", cost: 100, description: "Sasuke gathers storm clouds with a Katon Gouryuuka, then guides a bolt of natural lightning down — Kirin, the fastest, undodgeable strike." },
+  hasSprites: true,
+  // Idle content ≈84px → scale 1.5 ≈ 126px on-screen, matching the Naruto-adult peers. anchorY:0 = feet planted.
+  // REQUIRES the skins.js sasuke_sensei default entry or getSkins() clobbers this to 1.
+  spriteScale: 1.5,
+  animationData: {
+    // ── MOVEMENT / STATE ──
+    idle:  { frames: 8, width: 50,  height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./sasuke_sensei_idle_uniform.png" },
+    walk:  { frames: 6, width: 138, height: 83, speed: 7, anchorY: 0, loop: true,  sheet: "./sasuke_sensei_walk_uniform.png" },
+    run:   { frames: 5, width: 140, height: 61, speed: 4, anchorY: 0, loop: true,  sheet: "./sasuke_sensei_run_uniform.png" },
+    dash:  { frames: 5, width: 78,  height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_dash_uniform.png" },
+    jump:  { frames: 3, width: 67,  height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_jump_uniform.png" },
+    fall:  { frames: 3, width: 67,  height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_jump_uniform.png" },   // reuse Jump airborne pose
+    hurt:      { frames: 2, width: 56, height: 80, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_hurt_uniform.png" },
+    knockdown: { frames: 7, width: 89, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_knockdown_uniform.png" },
+    lose:      { frames: 7, width: 89, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_knockdown_uniform.png" },   // defeat = knockdown lying tail
+    guard:     { frames: 3, width: 62, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_guard_uniform.png" },
+    intro:     { frames: 5, width: 49, height: 83, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_intro_uniform.png" },
+    win:       { frames: 10, width: 57, height: 89, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_win_uniform.png" },
+    charge:    { frames: 2, width: 43, height: 81, speed: 5, anchorY: 0, loop: true, sheet: "./sasuke_sensei_charge_uniform.png" },
+    // ── NORMALS (FX baked into the source frames) ──
+    light:    { frames: 4,  width: 79,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_light_uniform.png" },
+    heavy:    { frames: 5,  width: 124, height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_heavy_uniform.png" },   // Attack Combo II sword string
+    up:       { frames: 6,  width: 111, height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_strong_up_uniform.png" }, // Strong (Up) rising sword LAUNCHER
+    air:      { frames: 10, width: 113, height: 111, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_air_uniform.png" },
+    down_air: { frames: 4,  width: 91,  height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_strong_down_uniform.png" }, // Strong (Down) slam spike
+    // ── RAITON SPECIAL CAST POSES (currentMove / _spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
+    // Exact-per-frame-box cast strips (tools/sasuke_sensei/slice_specials.py). Lightning/spark FX are baked
+    // into the poses (chidori hand-spark, sword arcs) so Raiton reads electric. The dedicated fx_* projectile
+    // sheets (sasuke_sensei_fx_*_uniform.png: chidori bolt/spark, eisou spear, sword arcs, kirin dragon/pillars)
+    // are sliced and READY for a later real-FX pass.
+    ssChidori:      { frames: 8, width: 105, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_chidori_cast_uniform.png" },        // N — dashing Chidori (charge→run-strike)
+    ssChidoriAir:   { frames: 3, width: 104, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_chidori_air_uniform.png" },         // AIR — Chidori dive
+    ssChidoriEisou: { frames: 8, width: 92,  height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_chidori_eisou_cast_uniform.png" },  // F — Chidori Eisou spear
+    ssRaitonSword1: { frames: 2, width: 95,  height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiton_sword1_cast_uniform.png" },  // B — Raiton Sword *1
+    ssRaitonSword2: { frames: 4, width: 96,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiton_sword2_cast_uniform.png" },  // U — Raiton Sword *2
+    ssRaitonSword3: { frames: 3, width: 115, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiton_sword3_cast_uniform.png" },  // D — Raiton Sword *3
+    ssKirinCast:    { frames: 3, width: 63,  height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kirin_fire_cast_uniform.png" },     // ULT — Katon Gouryuuka buildup
+    ssKirinRaiton:  { frames: 4, width: 91,  height: 96, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kirin_control_cast_uniform.png" }   // ULT — Raiton call-down
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // LIGHT YAGAMI  (rosterKey "light", universe "deathnote"). Death Note's Kira — a special-heavy zoner/
 // technician built from the prodijiu JUS sprite set (20 per-action light_yagami_*.png files, RE-SLICED
 // feet-aligned by tools/reslice_light.py). Stage 0 audit + user decisions locked (see memory
@@ -9775,6 +9865,7 @@ export const characters = {
   kiba,
   byakuya,
   sakura,
+  sasuke_sensei,
   boruto,
   light,
   l_ryuuzaki: lRyuuzaki,

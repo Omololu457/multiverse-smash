@@ -1,0 +1,104 @@
+{
+ "chidori_cast": {
+  "frames": 8,
+  "width": 105,
+  "height": 72,
+  "sheet": "./sasuke_sensei_chidori_cast_uniform.png"
+ },
+ "chidori_air": {
+  "frames": 3,
+  "width": 104,
+  "height": 65,
+  "sheet": "./sasuke_sensei_chidori_air_uniform.png"
+ },
+ "chidori_eisou_cast": {
+  "frames": 8,
+  "width": 92,
+  "height": 84,
+  "sheet": "./sasuke_sensei_chidori_eisou_cast_uniform.png"
+ },
+ "raiton_sword1_cast": {
+  "frames": 2,
+  "width": 95,
+  "height": 77,
+  "sheet": "./sasuke_sensei_raiton_sword1_cast_uniform.png"
+ },
+ "raiton_sword2_cast": {
+  "frames": 4,
+  "width": 96,
+  "height": 65,
+  "sheet": "./sasuke_sensei_raiton_sword2_cast_uniform.png"
+ },
+ "raiton_sword3_cast": {
+  "frames": 3,
+  "width": 115,
+  "height": 71,
+  "sheet": "./sasuke_sensei_raiton_sword3_cast_uniform.png"
+ },
+ "kirin_fire_cast": {
+  "frames": 3,
+  "width": 63,
+  "height": 98,
+  "sheet": "./sasuke_sensei_kirin_fire_cast_uniform.png"
+ },
+ "kirin_control_cast": {
+  "frames": 4,
+  "width": 91,
+  "height": 96,
+  "sheet": "./sasuke_sensei_kirin_control_cast_uniform.png"
+ },
+ "fx_chidori_bolt": {
+  "frames": 4,
+  "width": 62,
+  "height": 43,
+  "sheet": "./sasuke_sensei_fx_chidori_bolt_uniform.png"
+ },
+ "fx_chidori_spark": {
+  "frames": 3,
+  "width": 78,
+  "height": 38,
+  "sheet": "./sasuke_sensei_fx_chidori_spark_uniform.png"
+ },
+ "fx_eisou_spear": {
+  "frames": 5,
+  "width": 60,
+  "height": 23,
+  "sheet": "./sasuke_sensei_fx_eisou_spear_uniform.png"
+ },
+ "fx_raiton_sword1": {
+  "frames": 2,
+  "width": 54,
+  "height": 30,
+  "sheet": "./sasuke_sensei_fx_raiton_sword1_uniform.png"
+ },
+ "fx_raiton_sword2": {
+  "frames": 4,
+  "width": 57,
+  "height": 37,
+  "sheet": "./sasuke_sensei_fx_raiton_sword2_uniform.png"
+ },
+ "fx_raiton_sword3": {
+  "frames": 8,
+  "width": 95,
+  "height": 49,
+  "sheet": "./sasuke_sensei_fx_raiton_sword3_uniform.png"
+ },
+ "fx_kirin_fireball": {
+  "frames": 3,
+  "width": 36,
+  "height": 30,
+  "sheet": "./sasuke_sensei_fx_kirin_fireball_uniform.png"
+ },
+ "fx_kirin_dragon": {
+  "frames": 3,
+  "width": 64,
+  "height": 55,
+  "sheet": "./sasuke_sensei_fx_kirin_dragon_uniform.png"
+ },
+ "fx_kirin_pillars": {
+  "frames": 4,
+  "width": 36,
+  "height": 64,
+  "sheet": "./sasuke_sensei_fx_kirin_pillars_uniform.png"
+ }
+}

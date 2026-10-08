@@ -405,6 +405,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./sakura_idle_uniform.png" }
   },
 
+  // Sasuke (Sensei) (universe: naruto), cycling-dōjutsu master — gates spritesReady() by decoding the idle
+  // strip (flips from procedural box to sprite handler). Per-action rendering reads characters.js →
+  // sasuke_sensei.animationData (each action carries its own .sheet). Idle = border-flood-fill-keyed
+  // uniform strip (tools/sasuke_sensei/slice.py).
+  sasuke_sensei: {
+    actions: { idle: "./sasuke_sensei_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

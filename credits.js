@@ -26,6 +26,15 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png; in-sheet credit \"BY: RBM-Kyuubi\")",
     files:   ["sakura_*_uniform.png", "sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png"]
   },
+  // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
+  // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
+  // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.
+  sasuke_sensei: {
+    work:    "Sasuke Uchiha (Sensei / \"Sasuke Sensei NZC v2\")",
+    artists: ["RBM-Kyuubi", "Juubi", "Adriandan", "Shinrashi"],
+    source:  "fan sprite sheet (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png; in-sheet credits \"BY: RBM-Kyuubi\" + box \"Juubi / Adriandan / Shinrashi\")",
+    files:   ["sasuke_sensei_*_uniform.png", "sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png"]
+  },
   gojo: {
     work:    "Gojo Satoru (Shinjuku arc)",
     artists: ["FinhJ", "ZeurasBlack", "Rob4n"],

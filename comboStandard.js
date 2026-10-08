@@ -175,6 +175,7 @@ export const ZONER = [
   "brainiac",      // all-special zoner (no normal-tier art — schema exception)
   "byakuya",       // Senbonzakura petal specials + Shunpo, no normal chain
   "sakura",        // additive JUS char: directional chakra specials + Byakugou/Katsuyu, no command-combat driver → single-poke (same bucket as jesus/byakuya)
+  "sasuke_sensei", // additive JUS char: directional Raiton specials (Chidori/Eisou/Raiton Sword) + Kirin, no command-combat driver → single-poke (same bucket as sakura/jesus)
   "dark_knight",   // Stage-0 build (no gameplay driver yet) — single-poke until built
   "deathstroke",   // self-contained sword/gun specials, Stage-3 was an intentional no-chain
   "gwen",          // caster/summoner — special-opened offense
@@ -258,6 +259,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                23,         // 19 + jesus + jiraiya + sakura + naruto_hokage (additive JUS chars, single-poke)
-  rosterTotal:          107,       // 71 rekka + 13 standard-string + 23 single-poke = 107 (sakura + naruto_hokage added)
+  zoner:                24,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          108,       // 71 rekka + 13 standard-string + 24 single-poke = 108 (sasuke_sensei added)
 }

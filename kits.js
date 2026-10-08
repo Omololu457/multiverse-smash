@@ -288,6 +288,33 @@ export const KITS = {
     ]
   },
 
+  sasuke_sensei: {
+    type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
+    summary: "Boruto-era Sasuke at his peak — a lightning-blade striker with three eye-sets (Raiton / Mangekyō / Rinnegan). PHASE 1 ships the RAITON set + Kirin; Mangekyō (black flame + Taka/Hebi summons) and Rinnegan (space-time) arrive in later updates. Up + Ultimate cycles the active set.",
+    passive: { name: "Three Dōjutsu", effect: "The last Uchiha cycles Raiton, Mangekyō and Rinnegan — Up + Ultimate rotates the active eye-set (Raiton live now)." },
+    basics: [
+      { name: "Fist/Kick String", input: "Light",                   desc: "fast close-range combo" },
+      { name: "Sword Combo",      input: "Heavy",                   desc: "committed blade string with knockback" },
+      { name: "Rising Sword",     input: "Up-Attack",               desc: "launcher — starts air combos" },
+      { name: "Air Slash",        input: "Air (jump + Light)",      desc: "aerial sword attack" },
+      { name: "Slam Spike",       input: "Down-Air (jump + Heavy)", desc: "downward aerial slam" },
+      { name: "Grab",             input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "Chidori",          input: "Special (Raiton)",         cost: 24, desc: "dashing lightning-blade strike (advances)" },
+      { name: "Chidori Eisou",    input: "Forward + Special (Raiton)", cost: 28, desc: "extending lightning-spear thrust (long reach)" },
+      { name: "Raiton Sword *1",  input: "Back + Special (Raiton)",  cost: 18, desc: "quick electrified sword swing" },
+      { name: "Raiton Sword *2",  input: "Up + Special (Raiton)",    cost: 26, desc: "advancing electrified thrust (launcher)" },
+      { name: "Raiton Sword *3",  input: "Down + Special (Raiton)",  cost: 32, desc: "committed electrified beam-thrust" },
+      { name: "Chidori (air)",    input: "Air + Special (Raiton)",   cost: 24, desc: "diving lightning plunge" }
+    ],
+    ultimate: { name: "Kirin", input: "Ultimate (full meter, Raiton set)", cost: 100, desc: "Katon Gouryuuka gathers storm clouds, then guides an undodgeable bolt of natural lightning down — guaranteed strike" },
+    combos: [
+      { name: "Dash-in Chidori", sequence: "Light, Special",            desc: "jab into Chidori rush" },
+      { name: "Launch Juggle",   sequence: "Up-Attack, Jump, Air, Air", desc: "rising-sword launcher into aerial pressure" }
+    ]
+  },
+
   itachi: {
     type: "Genjutsu Tactician / Sharingan", energy: "Chakra", difficulty: "Hard",
     summary: "A calculated Uchiha who zones with the Great Fireball, then flips on the Mangekyou Sharingan to unlock Amaterasu's black flame and a hit-confirm Genjutsu finisher — culminating in the Susanoo avatar.",

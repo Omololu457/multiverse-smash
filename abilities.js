@@ -4377,6 +4377,105 @@ function executeSakuraUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SASUKE (SENSEI) — Boruto-era Sasuke, the cycling-dōjutsu master. Sakura/Jesus discipline: the BODY is
+// the sheet, every EFFECT is procedural — but the sheet's lightning/fire/blade FX are BAKED into the cast
+// frames, so Raiton reads electric with NO new render code (_ss*Fx flags reserved for a later art pass).
+// Three EYE-SETS cycle (Raiton / Mangekyou / Rinnegan); fighter._eyeSet defaults "raiton". PHASE 1 ships
+// the RAITON set + Kirin ULT only (Mangekyou/Rinnegan = Phases 2-3; the Up+Ultimate set-cycle input is
+// wired in Phase 3). Deterministic (no gameRng). NOT brutality-eligible.
+//   RAITON specials (Special + held dir): N=Chidori (dashing lightning strike) / F=Chidori Eisou (long
+//     lightning-spear thrust) / B=Raiton Sword *1 (quick swing) / U=Raiton Sword *2 (advancing thrust,
+//     launcher) / D=Raiton Sword *3 (committed beam-thrust) / AIR=Chidori dive. ULT=Kirin.
+//   CANON LABELS: Chidori / Chidori Eisou / Kirin = CANON · Raiton Sword *1/*2/*3 = CANON-ADJACENT
+//     (Sasuke channels lightning through his blade in canon; these specific swing variants are the
+//     sheet's) · Chidori (air dive) = CANON-ADJACENT.
+function ssIsSensei(f) { return !!f && (f.rosterKey || "").toLowerCase() === "sasuke_sensei" }
+const SS_RAITON = {
+  ssChidori:      { damage: 58, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 9,  knockbackY: -2, rangeX: 92,  rangeY: 56, cost: 24, advance: 11 },
+  ssChidoriEisou: { damage: 62, startup: 8, active: 5, recovery: 20, hitstun: 22, knockbackX: 7,  knockbackY: -3, rangeX: 128, rangeY: 50, cost: 28, advance: 5, category: "heavy" },
+  ssRaitonSword1: { damage: 48, startup: 5, active: 3, recovery: 14, hitstun: 18, knockbackX: 6,  knockbackY: 0,  rangeX: 84,  rangeY: 60, cost: 18 },
+  ssRaitonSword2: { damage: 60, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 6,  knockbackY: -8, rangeX: 104, rangeY: 72, cost: 26, advance: 9, launcher: true },
+  ssRaitonSword3: { damage: 72, startup: 9, active: 4, recovery: 22, hitstun: 24, knockbackX: 11, knockbackY: 1,  rangeX: 118, rangeY: 56, cost: 32, category: "heavy" },
+}
+function _ssMelee(fighter, key, context) {
+  const md = SS_RAITON[key]
+  if (!md) return false
+  if (md.cost && !spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.isSpecial = true
+  if (md.category) attack.category = md.category
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → sprite plays the cast sheet
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance
+  fighter._ssRaitonFx = 10   // render accent flag (lightning already baked into the sprite) — reserved for a later art pass
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+// AIR — Chidori dive: a forward-down lightning plunge (CANON-ADJACENT). Reuses the aerial cast pose.
+function ssChidoriAirDive(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  const face = fighter.facing || 1
+  fighter.vx = face * 8; fighter.vy = Math.max(fighter.vy || 0, 6)
+  const md = { damage: 56, startup: 4, active: 6, recovery: 10, hitstun: 18, knockbackX: 6, knockbackY: 8, rangeX: 90, rangeY: 76 }
+  const attack = createAttackFromMove(fighter, "ssChidoriAir", md, { minActiveStart: 4, minActiveEnd: 10 })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, 20)   // currentMove = ssChidoriAir → sprite plays the air cast sheet
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter._ssRaitonFx = 12
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+function ssRaitonSpecial(fighter, context) {
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded)   return ssChidoriAirDive(fighter, context)              // AIR = Chidori dive
+  if (dir === "F") return _ssMelee(fighter, "ssChidoriEisou", context)    // Fwd  = Chidori Eisou (spear)
+  if (dir === "B") return _ssMelee(fighter, "ssRaitonSword1", context)    // Back = Raiton Sword *1
+  if (dir === "U") return _ssMelee(fighter, "ssRaitonSword2", context)    // Up   = Raiton Sword *2 (launcher)
+  if (dir === "D") return _ssMelee(fighter, "ssRaitonSword3", context)    // Down = Raiton Sword *3 (committed)
+  return _ssMelee(fighter, "ssChidori", context)                         // neutral = Chidori
+}
+function executeSasukeSenseiSpecial(fighter, context) {
+  if (!ssIsSensei(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // EYE-SET gated. Raiton is live in Phase 1; Mangekyou/Rinnegan branches + the Up+Ultimate cycle land in
+  // Phases 2-3 (fighter._eyeSet defaults "raiton" and never changes until the cycle input is wired).
+  const set = fighter._eyeSet || "raiton"
+  if (set === "raiton") return ssRaitonSpecial(fighter, context)
+  return ssRaitonSpecial(fighter, context)   // forward-compatible default until Mangekyou/Rinnegan ship
+}
+
+// ULTIMATE (Raiton set) — KIRIN (CANON): the fastest technique, UNDODGEABLE. Sasuke gathers storm clouds
+// with a Katon Gouryuuka (ssKirinCast), then guides a bolt of natural lightning down (ssKirinRaiton).
+// Inline freeze-cinematic economy (live fighter, no dup-instance): i-frame cast → guaranteed, range-
+// independent beats. Raw 90 + 90 + 150 = 330 → EXACTLY ~198 EFF (the project ult band), blocked ~25%.
+// Procedural FX (storm/bolt render flag _ssKirinUlt) — the Katon/Raiton poses carry the baked FX; a
+// dedicated storm overlay is a later art pass. Callee-spends meter; triggerUltimate adds cooldown + cam.
+function executeSasukeSenseiUltimate(fighter, context) {
+  if (!ssIsSensei(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(54, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)   // storm-shrouded during the cast
+  fighter._spriteCastMove = "ssKirinCast"; fighter._spriteCastTimer = 24
+  fighter._ssKirinUlt = 54   // render flag (storm clouds + lightning column) — later art pass
+  schedulePendingSpawn(24, () => { if (!fighter.eliminated) { fighter._spriteCastMove = "ssKirinRaiton"; fighter._spriteCastTimer = 30 } })   // swap to the call-down pose
+  ;[26, 38, 52].forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return   // respect cinematic i-frames
+      const dmg = i < 2 ? 90 : 150                                        // two strikes + the Kirin bolt
+      const dir = (opp.x >= fighter.x ? 1 : -1)
+      if (opp.isBlocking) { opp.blockstun = 24; applyScaledDamage(opp, Math.floor(dmg * 0.25), { source: "ability" }); return }
+      opp.hitstun = 46; opp.vx = dir * (i < 2 ? 6 : 12); opp.vy = i < 2 ? -6 : -14; opp.colorFlash = 16
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    })
+  })
+  try { shakeCamera(context, 7, 18) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // JIRAIYA — the Toad Sage (Sannin). Base + Hermit(Sage) form. Like jesus, the character
 // BODY comes from the sheet but EVERY special EFFECT is PROCEDURAL (color/radius projectiles
 // + direct hits + render flags). NOT brutality-eligible. Deterministic (no gameRng).
@@ -25560,6 +25659,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
     case "sakura":  return executeSakuraSpecial(fighter, context)   // neutral=Shannaro Rush / F=Heaven-Spin Kick / U=Cherry-Blossom Impact / B=Byakugou Seal(heal) / D=Summon Katsuyu(wall) / air=Kunai Throw
+    case "sasuke_sensei": return executeSasukeSenseiSpecial(fighter, context)   // RAITON set (Phase 1): N=Chidori / F=Chidori Eisou / B=Raiton Sword *1 / U=Raiton Sword *2 / D=Raiton Sword *3 / air=Chidori dive. Mangekyou/Rinnegan sets = Phases 2-3 (_eyeSet)
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "rick":    return executeRickSpecial(fighter, context)
@@ -25795,6 +25895,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
+      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break

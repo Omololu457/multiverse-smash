@@ -775,6 +775,12 @@ export const SKINS = {
     { id: "sakuraDark",   name: "Slate",   unlockLevel: 0, portrait: recolorPortrait("sakura", "dark"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "dark") },    // vest → dark grey
     { id: "sakuraOrange", name: "Amber",   unlockLevel: 0, portrait: recolorPortrait("sakura", "orange"),  spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "orange") },  // vest → warm orange
   ],
+  // Sasuke (Sensei) — DEFAULT only for now (REQUIRED: without it getSkins() clobbers spriteScale 1.5 → 1).
+  // The source sheet's 4-palette "Color Paletes" row (navy / orange / green / blue vests) is the reference
+  // for a later recolor pass (tools/gen_sasuke_sensei_recolor.py), same pattern as the sakura skins above.
+  sasuke_sensei: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke_sensei?.portrait, spriteScale: characters.sasuke_sensei?.spriteScale, animationData: null },
+  ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

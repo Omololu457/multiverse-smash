@@ -1,0 +1,140 @@
+{
+ "intro": {
+  "frames": 5,
+  "width": 49,
+  "height": 83,
+  "sheet": "./sasuke_sensei_intro_uniform.png"
+ },
+ "idle": {
+  "frames": 8,
+  "width": 50,
+  "height": 84,
+  "sheet": "./sasuke_sensei_idle_uniform.png"
+ },
+ "walk": {
+  "frames": 6,
+  "width": 138,
+  "height": 83,
+  "sheet": "./sasuke_sensei_walk_uniform.png"
+ },
+ "run": {
+  "frames": 5,
+  "width": 140,
+  "height": 61,
+  "sheet": "./sasuke_sensei_run_uniform.png"
+ },
+ "dash": {
+  "frames": 5,
+  "width": 78,
+  "height": 67,
+  "sheet": "./sasuke_sensei_dash_uniform.png"
+ },
+ "jump": {
+  "frames": 3,
+  "width": 67,
+  "height": 75,
+  "sheet": "./sasuke_sensei_jump_uniform.png"
+ },
+ "guard": {
+  "frames": 3,
+  "width": 62,
+  "height": 82,
+  "sheet": "./sasuke_sensei_guard_uniform.png"
+ },
+ "hurt": {
+  "frames": 2,
+  "width": 56,
+  "height": 80,
+  "sheet": "./sasuke_sensei_hurt_uniform.png"
+ },
+ "special_damage": {
+  "frames": 3,
+  "width": 54,
+  "height": 80,
+  "sheet": "./sasuke_sensei_special_damage_uniform.png"
+ },
+ "launched": {
+  "frames": 5,
+  "width": 71,
+  "height": 80,
+  "sheet": "./sasuke_sensei_launched_uniform.png"
+ },
+ "knockdown": {
+  "frames": 7,
+  "width": 89,
+  "height": 50,
+  "sheet": "./sasuke_sensei_knockdown_uniform.png"
+ },
+ "charge": {
+  "frames": 2,
+  "width": 43,
+  "height": 81,
+  "sheet": "./sasuke_sensei_charge_uniform.png"
+ },
+ "throw": {
+  "frames": 5,
+  "width": 72,
+  "height": 84,
+  "sheet": "./sasuke_sensei_throw_uniform.png"
+ },
+ "throw_air": {
+  "frames": 4,
+  "width": 72,
+  "height": 80,
+  "sheet": "./sasuke_sensei_throw_air_uniform.png"
+ },
+ "strong": {
+  "frames": 3,
+  "width": 76,
+  "height": 68,
+  "sheet": "./sasuke_sensei_strong_uniform.png"
+ },
+ "strong_fwd": {
+  "frames": 5,
+  "width": 131,
+  "height": 76,
+  "sheet": "./sasuke_sensei_strong_fwd_uniform.png"
+ },
+ "strong_up": {
+  "frames": 6,
+  "width": 111,
+  "height": 79,
+  "sheet": "./sasuke_sensei_strong_up_uniform.png"
+ },
+ "strong_down": {
+  "frames": 4,
+  "width": 91,
+  "height": 88,
+  "sheet": "./sasuke_sensei_strong_down_uniform.png"
+ },
+ "strong_air": {
+  "frames": 5,
+  "width": 98,
+  "height": 72,
+  "sheet": "./sasuke_sensei_strong_air_uniform.png"
+ },
+ "win": {
+  "frames": 10,
+  "width": 57,
+  "height": 89,
+  "sheet": "./sasuke_sensei_win_uniform.png"
+ },
+ "light": {
+  "frames": 4,
+  "width": 79,
+  "height": 82,
+  "sheet": "./sasuke_sensei_light_uniform.png"
+ },
+ "heavy": {
+  "frames": 5,
+  "width": 124,
+  "height": 79,
+  "sheet": "./sasuke_sensei_heavy_uniform.png"
+ },
+ "air": {
+  "frames": 10,
+  "width": 113,
+  "height": 111,
+  "sheet": "./sasuke_sensei_air_uniform.png"
+ }
+}

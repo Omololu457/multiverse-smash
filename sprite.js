@@ -325,6 +325,12 @@ const MOVE_TO_ACTION = {
   sakuraShannaro: "sakuraShannaro", sakuraHeavenKick: "sakuraHeavenKick", sakuraStrike: "sakuraStrike",
   sakuraByakugou: "sakuraByakugou", sakuraThrow: "sakuraThrow", sakuraDaichi: "sakuraDaichi",
 
+  // Sasuke (Sensei): Raiton cast poses (currentMove / _spriteCastMove). Identity maps so a cast/strike
+  // recovery tail resolves to the real sheet, never the 128² fallback box. (Mangekyou/Rinnegan poses added in Phases 2-3.)
+  ssChidori: "ssChidori", ssChidoriAir: "ssChidoriAir", ssChidoriEisou: "ssChidoriEisou",
+  ssRaitonSword1: "ssRaitonSword1", ssRaitonSword2: "ssRaitonSword2", ssRaitonSword3: "ssRaitonSword3",
+  ssKirinCast: "ssKirinCast", ssKirinRaiton: "ssKirinRaiton",
+
   // Brainiac (Stage 4): special cast/strike poses (_spriteCastMove / currentMove). Identity maps so a
   // cast/strike recovery tail never resolves to the 128² fallback box. (Stage 5 Pillar ULT pose added later.)
   brainiacBeam: "brainiacBeam", brainiacBlade: "brainiacBlade", brainiacSweep: "brainiacSweep",

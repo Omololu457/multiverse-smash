@@ -1280,6 +1280,10 @@ const sasukeAdult = {
   traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
   // Naruto top-band, a step above teen Sasuke (1180/190/89/84/90) — EMS/Rinnegan era.
   stats: { maxHealth: 1220, maxEnergy: 200, attack: 93, defense: 88, speed: 92, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Double-tap TOWARD the opponent = an immediate Sharingan blink-dash (teleport behind, facing them) —
+  // the SAME mechanic/timing as base Sasuke / Gojo / Toji (detectDoubleTapDashTeleport). Away-tap still
+  // gives a normal ground dash. The `dash` pose below plays on the blink.
+  movement: { dashTeleport: true },
   basic_attacks: {
     light:   { damage: 50, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:   { damage: 96, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 90, rangeY: 50 },  // crescent sword swing (swordJ)
@@ -1303,6 +1307,7 @@ const sasukeAdult = {
     idle:  { frames: 4, width: 38, height: 81, speed: 7, anchorY: 0, loop: true,  sheet: "./sasuke_adult_idle_uniform.png" },
     walk:  { frames: 6, width: 77, height: 66, speed: 6, anchorY: 0, loop: true,  sheet: "./sasuke_adult_run_uniform.png" },
     run:   { frames: 6, width: 77, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./sasuke_adult_run_uniform.png" },
+    dash:  { frames: 6, width: 77, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_run_uniform.png" },   // blink/dash pose (reuses the run lean)
     jump:  { frames: 3, width: 64, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_jump_uniform.png" },
     fall:  { frames: 3, width: 64, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_jump_uniform.png" },
     guard: { frames: 2, width: 49, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_adult_guard_uniform.png" },

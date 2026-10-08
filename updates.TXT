@@ -4,6 +4,62 @@ Newest first. "★" = landed on main. Dates are when the work was done.
 ========================================================================
 
 ========================================================================
+CLONE "SPAZZING" FIX + EASIER INPUTS + NARUTO ALIGNMENT + FORM MULTIPLIERS — 2026-10-08
+  (branch naruto-clone-choreography; NOT merged)
+========================================================================
+  A 7-stage pass on the clone-choreography system. Legend: [REAL KEYS] = verified through genuine
+  Playwright keystrokes via the real input layer; [LOGIC] = verified via harness hooks / unit logic.
+
+  STAGE 1-2 — "SPAZZING / DOING NOTHING" MEASURED, THEN FIXED BY ROOT CAUSE.
+  - Built a clone audit (test:clone-qaudit static + test:clone-qaudit-live). It plays every clone move
+    and flags jitter / no-op / stuck-at-spawn / off-screen-wall-clip / wrong-facing / missing anim state.
+  - BEFORE (harness/clone_audit_out/audit_before.txt): 0 missing-anim, 0 no-op, 0 real jitter, 1
+    wrong-facing, 43 sequences whose spread clipped OFF-STAGE when a fighter was cornered at a wall
+    (live-confirmed: Pain pincer -98px, Hashirama -68, Hiruzen -58 past the left edge).
+  - ROOT CAUSE: clone x = ref.x + dx with NO bounds. FIX: updateChoreo/updateFormations (both engines)
+    clamp every clone + the finisher teleport into [0, worldWidth]; fixed the 1 wrong-facing beat.
+  - AFTER: static audit CLEAN (0 hard flags); live audit 9/0 (every clone stays on-stage at a wall;
+    0 per-slot position jitter). Clips: harness/clips/clone_audit_*_wallclip.webm. [LOGIC + on-screen]
+
+  STAGE 3 — EASIER TO PERFORM (old inputs unchanged).
+  - Summon motion ↓↓↑ eased: window 800->1000ms, strays 0->1. Formation select window 60->90 frames
+    (~1.0s->1.5s). NEW on-screen CLONE-SELECT hint lists the picks + live countdown while staged.
+    Alternate simpler summon EVALUATED and SKIPPED — no collision-free shorter motion exists (↓↑, ↓↓,
+    ↑↑ and every spare button already route to live kit moves). [REAL KEYS] test:clone-realinput 25/0
+    (incl. the Up/jump + Special collision).
+
+  STAGE 4 — NARUTO ON THE ROSTER-STANDARD SUMMON-THEN-SELECT. Old inputs all kept as alternates.
+  - Summon: Up+Special / ↓↑  ->  ADD ↓↓↑+Special (same as the roster); window 60->90.
+  - Uzumaki Barrage: Down+Special (unchanged) also reachable as the summon's neutral pick.
+  - Shuriken/Substitution/Flank: via summon -> Back/Up/Fwd+Special (unchanged); Dark Rasengan &
+    Chakra-Arm Strike unchanged. Also fixed Naruto's formation to a SOFT-hold so the SELECT dispatches
+    through real keys (the old hard _choreoLock had blocked it). [REAL KEYS] test:naruto-realinput 7/0.
+
+  STAGE 5 — NINE-TAILS IS THE NEUTRAL ULTIMATE.
+  - NEUTRAL Ultimate = Kurama Avatar / Tailed Beast Bomb (the Nine-Tails). Down+Ultimate and ↓←↓← kept
+    as alternates -> same Nine-Tails. Uzumaki Two Thousand Combo MOVED to the summon->Ultimate (swarm)
+    slot. Nothing deleted. [REAL KEYS] neutral Ultimate = Kurama confirmed; [LOGIC] swarm = Two Thousand
+    Combo, Down alt = Kurama. test:naruto-ultimate 9/0, test:naruto-alt-inputs 13/0.
+
+  STAGE 6 — FORM-DEPENDENT CLONE MULTIPLIERS (new cloneFormScaling.js; deterministic, LAN-safe).
+  - In one of a character's REAL in-code forms, the summon gathers MORE clones and the move hits HARDER,
+    sublinearly: stage1 (in form) clones x2 / damage x1.4 / cost x1.25; stage2 (form's highest stage)
+    clones x3 / damage x1.7 / cost x1.5. Out of form = unchanged. CAP = 12 staged clones per caster.
+  - Real forms used (no inventing): naruto Kurama shroud (shroudStage 1-4 -> stage1, 5 -> stage2),
+    sasuke Susanoo (_susanooStage 1/2), itachi Mangekyou->Susanoo, kakashi Mangekyou, boruto Karma,
+    madara Susanoo. tobirama/minato/hashirama/hiruzen/pain/obito have no persistent form -> always base.
+  - Clones carry the form's tint/sprite via the existing ghost-body inheritance (+ shroud on Naruto's).
+  - [LOGIC] test:clone-formscaling 41/0 (every char's flag + tables + cap + rounding); [LOGIC + live]
+    test:clone-formscaling-live 8/0 (Naruto shroud drives 4->8->12 clones capped; Barrage damage ratio
+    1.42 ~= x1.4 in-form).
+
+  STAGE 7 — REGRESSION. determinism 9/0, combo-standard 230/0, clone-distinctness 82/0,
+    clone-realinput 25/0, static clone audit CLEAN, live clone audit 9/0, all 11 per-char choreo suites
+    (23/0 full-kit, sasuke 8/0, obito 11/0), naruto-barrage 11/0 / summon-select 18/0 / ultimate 9/0 /
+    alt-inputs 13/0 / realinput 7/0 / ninetails 10/0. Pre-existing-not-mine: naruto-motion 19/3 (legacy
+    elevated-Barrage + the removed "," binding; identical with my edits stashed).
+
+========================================================================
 CLONE KIT DIFFERENTIATION — 2026-10-07   (branch naruto-clone-choreography; NOT merged)
 ========================================================================
   Follow-up to the clone pass: the kits were cosmetically distinct but STRUCTURALLY identical

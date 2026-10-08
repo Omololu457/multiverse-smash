@@ -49,20 +49,27 @@ try {
     await sleep(700);
   }
 
-  // Directional ULTIMATE alternate: Kurama Avatar = Down+Ultimate; NEW longer alt = ↓←↓← (doubleQCB) + Ultimate.
-  // Driven through the LIVE ultimate-press (game.js stamp reads the fed motion). Neutral Ultimate = Two Thousand Combo.
-  console.log("\n── Kurama Avatar (Ultimate) — OLD (Down+Ult) vs NEW (↓←↓← + Ult) ──");
+  // Directional ULTIMATE (STAGE 5): NEUTRAL = Nine-Tails (Kurama Avatar); DOWN and ↓←↓← (doubleQCB) are kept
+  // as ALTERNATES → the same Nine-Tails. Two Thousand Combo moved to the summon→Ultimate swarm slot. Each
+  // Kurama fire consumes the cinematic + a long recast, so the two routes are verified across two boots.
+  const kuramaSoon = async () => { for (let i = 0; i < 14; i++) { const k = await P(() => window.__harness.kuramaUltCine()); if (k && k.active) return true; await sleep(45); } return false; };
+  console.log("\n── Nine-Tails (Ultimate) — neutral = Kurama; ↓←↓← alternate = same Kurama ──");
   await page.keyboard.press("F3"); await sleep(80);   // infinite resources for the live ultimate press
-  // Neutral Ultimate (no motion) = Two Thousand Combo — checked FIRST (Kurama below is a long cinematic).
+  // Neutral Ultimate (no motion) = Nine-Tails (Kurama cinematic), NOT the clone choreography.
   await clear(); await sleep(150);
   await page.keyboard.down("u"); await sleep(50); await page.keyboard.up("u");
-  check("neutral Ultimate = Two Thousand Combo (baseline)", (await seqNow()) === "Two Thousand Combo", "");
-  await sleep(900); await clear(); await sleep(150);
-  // NEW alternate: ↓←↓← + Ultimate = Kurama Avatar (NOT the Two Thousand Combo choreography). Run last (cinematic).
+  check("neutral Ultimate = Nine-Tails (Kurama cinematic, real key)", await kuramaSoon(), "");
+  const neutralChoreo = (await P(() => window.__harness.narutoChoreo())).active;
+  check("neutral Ultimate does NOT start the clone choreography", neutralChoreo !== true, `choreoActive=${neutralChoreo}`);
+  // Fresh boot (clears the first cinematic + recast), then the ↓←↓← motion alternate → the same Nine-Tails.
+  await page.goto(`${base}/index.html?harness=1&p1=naruto&p2=sasuke`, { waitUntil: "load" });
+  await boot(); await sleep(300);
+  await page.keyboard.press("F3"); await sleep(80); await clear(); await sleep(150);
   await P((k) => window.__harness.narutoFeedMotion(k), ["s", "a", "s", "a"]);
-  await page.keyboard.down("u"); await sleep(50); await page.keyboard.up("u"); await sleep(120);
+  await page.keyboard.down("u"); await sleep(50); await page.keyboard.up("u");
+  check("ALTERNATE: ↓←↓← + Ultimate = Nine-Tails (Kurama cinematic)", await kuramaSoon(), "");
   const afterMotionUlt = (await P(() => window.__harness.narutoChoreo())).sequence || null;
-  check("NEW: ↓←↓← + Ultimate = Kurama Avatar (NOT Two Thousand Combo)", afterMotionUlt !== "Two Thousand Combo", `choreo=${afterMotionUlt}`);
+  check("↓←↓← + Ultimate does NOT start the Two Thousand Combo choreography", afterMotionUlt !== "Two Thousand Combo", `choreo=${afterMotionUlt}`);
 
   check("no JS errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 } catch (e) {

@@ -78,6 +78,13 @@ try {
   let barrageRan = false, bseq = null; for (let i = 0; i < 16; i++) { const st = await P(() => window.__harness.narutoChoreo()); if (st.active) { barrageRan = true; bseq = st.sequence; break; } await sleep(45); }
   check("Down+Special (alternate) directly RAN Uzumaki Barrage", barrageRan, `seq=${bseq}`);
 
+  // 4. STAGE 5 — NEUTRAL Ultimate (press "u", no direction) = NINE-TAILS (Kurama cinematic), via real keys.
+  console.log("\n── STAGE 5: NEUTRAL Ultimate (real key) = Nine-Tails (Kurama) ──");
+  await boot();
+  await page.keyboard.down("u"); await sleep(70); await page.keyboard.up("u");
+  let kurama = false; for (let i = 0; i < 16; i++) { const k = await P(() => window.__harness.kuramaUltCine()); if (k && k.active) { kurama = true; break; } await sleep(45); }
+  check("neutral Ultimate fired the Nine-Tails (Kurama) cinematic via real input", kurama, `kuramaActive=${kurama}`);
+
   check("no page errors", jsErrors.length === 0, jsErrors.join(" | "));
 } catch (e) { check("harness crashed", false, String(e && e.stack || e)); }
 finally { console.log(`\nRESULT: ${pass} pass / ${fail} fail`); await browser.close(); server.close(); process.exit(fail ? 1 : 0); }

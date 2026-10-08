@@ -2902,20 +2902,14 @@ function executeMinatoSpecial(fighter, context) {
   return fireFlyingRaijinKunai(fighter, context)
 }
 
-const NARUTO_TTC_ULT_COST = 60   // Uzumaki Two Thousand Combo — the neutral Ultimate
-
 function executeNarutoUltimate(fighter, context) {
-  // DIRECTIONAL ULTIMATE (2026-09-26). NEUTRAL (no direction) = UZUMAKI TWO THOUSAND COMBO — the authored
-  // clone-choreography flurry, now Naruto's single-button ultimate (game.js starts the run from the flag).
-  // Kurama Avatar was relocated to DOWN + Ultimate so BOTH stay on the Ultimate button.
-  if (fighter._ultVariant !== "kurama") {
-    if (!spendEnergy(fighter, NARUTO_TTC_ULT_COST)) return false
-    fighter._pendingNarutoChoreo    = true
-    fighter._pendingNarutoChoreoSeq = "twoThousand"
-    return true   // triggerUltimate applies the universal ult cooldown
-  }
+  // STAGE 5 — NINE-TAILS. Every DIRECT Ultimate press (NEUTRAL, or the DOWN / ↓←↓← alternates) is the Kurama
+  // Avatar / Tailed Beast Bomb cinematic below. game.js stamps _ultVariant = "kurama" for all of them.
+  // Uzumaki Two Thousand Combo is NO LONGER on the Ultimate button directly — it moved to the summon→Ultimate
+  // (swarm) slot (triggerUltimate's Naruto-formation intercept → chooseNarutoSequence("twoThousand")). Nothing
+  // deleted: the Two Thousand Combo sequence (SEQUENCES.twoThousand) still runs, just from the swarm slot.
 
-  // ── DOWN + Ultimate ──
+  // ── NINE-TAILS (neutral) / DOWN + Ultimate (alternate) ──
   // Kurama Avatar / Tailed Beast Bomb — CINEMATIC ultimate (kurama.js), built on
   // the Gojo/Sukuna domain-cinematic pattern. NOT a transformation/playable form.
   // Costs 50% of the max meter (fighters spawn at half): can't reliably open at
@@ -25074,6 +25068,14 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   // real ultimate is untouched when NO formation is staged. Metered by the summon cost already paid.
   if ((fighter._choreoSelectWindow || 0) > 0 && isFormationActiveFor(fighter)) {
     fighter._pendingChoreoSelect = "SWARM"
+    return true
+  }
+  // STAGE 5 — NARUTO: pressing Ultimate while HIS clone formation is staged fires Uzumaki Two Thousand Combo
+  // (the swarm slot). Naruto runs his own narutoChoreography engine (not the generic one above), so his
+  // staged-formation signal is _narutoSelectWindow. Metered by the summon cost already paid (parity with the
+  // generic swarm). game.js maps the "SWARM" select → the twoThousand sequence.
+  if (key === "naruto" && (fighter._narutoSelectWindow || 0) > 0) {
+    fighter._pendingNarutoSelect = "SWARM"
     return true
   }
   // LIGHT — the Ultimate has two variants (neutral = writing / Down = scythe). game.js stamps _ultVariant from

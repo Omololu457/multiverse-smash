@@ -7783,15 +7783,14 @@ function _updatePlayerCombatBody(fighter) {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
   }
-  // NARUTO — the Ultimate is directional (2026-09-26): NEUTRAL = Uzumaki Two Thousand Combo (authored
-  // choreography ultimate); DOWN (hold ↓ + Ultimate) = Kurama Avatar / Tailed Beast Bomb. Both stay on the
-  // Ultimate button; executeNarutoUltimate reads _ultVariant to pick the branch.
+  // NARUTO — the Ultimate is NINE-TAILS (STAGE 5): NEUTRAL Ultimate = Kurama Avatar / Tailed Beast Bomb (the
+  // Nine-Tails). DOWN (hold ↓ + Ultimate) and the ↓←↓← (doubleQcb) motion are kept as EXPLICIT ALTERNATES —
+  // they route to the same Nine-Tails cinematic. Uzumaki Two Thousand Combo moved to the summon→Ultimate
+  // (swarm) slot: pressing Ultimate while a clone formation is staged fires it (see triggerUltimate intercept).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto") {
-    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
-    // Kurama Avatar = Down+Ultimate; LONGER ALTERNATE (Part 2) = ↓←↓← (doubleQcb) + Ultimate. Neutral = Two Thousand Combo.
     const _kuramaMotion = detectMotion(fighter, "doubleQcb")
     if (_kuramaMotion) clearMotionHistory(fighter)
-    fighter._ultVariant = (_hd === "D" || _kuramaMotion) ? "kurama" : "twoThousand"
+    fighter._ultVariant = "kurama"   // neutral OR Down OR ↓←↓← → the Nine-Tails (executeNarutoUltimate)
   }
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
@@ -14094,7 +14093,7 @@ function updateBattle() {
     }
     if (f._pendingNarutoSelect) {   // ADDITIVE: pick a sequence from the staged formation
       const dir = f._pendingNarutoSelect; f._pendingNarutoSelect = null
-      if (isNarutoFormationActive()) chooseNarutoSequence(SELECT_MAP[dir] || "barrage")
+      if (isNarutoFormationActive()) chooseNarutoSequence(dir === "SWARM" ? "twoThousand" : (SELECT_MAP[dir] || "barrage"))   // STAGE 5: Ultimate during a staged formation → Two Thousand Combo (the swarm slot)
     }
   }
   updateNarutoFormation()
@@ -20780,7 +20779,7 @@ gameLoop()
     narutoSummon: () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = "U"; p1._choreoCd = 0; return triggerSpecial(p1, getAbilityContext()); },   // Up+Special → formation
     narutoSelect: (dir = "N") => { if (!p1) return false; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir === "N" ? null : dir; return triggerSpecial(p1, getAbilityContext()); },   // pick a sequence from the staged formation
     narutoFormationHold: () => holdNarutoFormation(),   // freeze the staged formation for a screenshot
-    narutoUltimate: (dir = "N") => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1._ultVariant = dir === "D" ? "kurama" : "twoThousand"; return triggerUltimate(p1, getAbilityContext()); },   // neutral=Two Thousand Combo · Down=Kurama Avatar
+    narutoUltimate: (dir = "N") => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1._ultVariant = "kurama"; return triggerUltimate(p1, getAbilityContext()); },   // STAGE 5: neutral OR Down = Nine-Tails (Kurama). Two Thousand Combo moved to the summon→Ultimate swarm slot (summon then call narutoUltimate while the formation is staged).
     // Part 2 alt-input testing: deterministically feed a motion (control keys) into the buffer, no keyboard timing.
     narutoFeedMotion: (keys = []) => { if (!p1) return null; clearMotionHistory(p1); for (const k of keys) recordMotionInput(p1, k); return getRecentMotions(p1); },
     narutoChoreoClear: () => { clearNarutoChoreo(); if (p1) { p1._choreoCd = 0; p1._pendingNarutoChoreo = false; p1._pendingNarutoSummon = false; p1._pendingNarutoSelect = null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.blockstun = 0; p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy || 200; try { clearMotionHistory(p1) } catch (_) {} } return true; },   // reset between sub-tests

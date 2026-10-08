@@ -44,14 +44,14 @@ async function boot(page, char) {
 
 try {
   // ── A. WALL-CLIP confirmation: worst offenders with both fighters cornered at the LEFT wall (x≈20) ──
-  console.log("\n── WALL-CLIP (fighters cornered at left wall x≈20; clones must stay within [0," + WORLD + "]) ──");
+  console.log("\n── WALL-CLIP FIX (target cornered at left wall x≈20; clones must now stay within [0," + WORLD + "]) ──");
   const WORST = [["pain", "pureAttack"], ["pain", "swarm"], ["hashirama", "pureAttack"], ["hashirama", "swarm"], ["hiruzen", "pureAttack"]];
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const page = await ctx.newPage();
   for (const [char, seqKey] of WORST) {
     await boot(page, char);
     const r = await playAndRecord(page, char, seqKey, 20);
-    check(`${char}/${seqKey}: a clone spawned OFF-STAGE at the wall (confirms the flag)`, r.minX !== null && r.minX < 0, `caster@x=${r.pos.p1} minCloneX=${r.minX}`);
+    check(`${char}/${seqKey}: all clones stay ON-STAGE at the wall (clamp works)`, r.minX !== null && r.minX >= 0 && r.maxX <= WORLD, `caster@x=${r.pos.p1} minCloneX=${r.minX} maxCloneX=${r.maxX}`);
   }
   await ctx.close();
 

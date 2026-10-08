@@ -32,8 +32,12 @@ for (const key of Object.keys(C)) {
 }
 console.log("================ CLONE STATIC AUDIT ================\n");
 [...anim, ...noop, ...face].forEach(r => console.log(r));
-if (wall.length) { console.log("\n--- WALL-CLIP (no stage clamp on clone x) ---"); wall.forEach(r => console.log(r)); }
-console.log(`\nSUMMARY  wall-clip: ${fWall}   wrong-facing: ${fFace}   no-op: ${fNoop}   missing-anim: ${fAnim}`);
-const total = fWall + fFace + fNoop + fAnim;
+// WALL-CLIP is a RUNTIME concern (clone x = ref.x + dx). As of the 2026-10-07 fix, updateChoreo/
+// updateFormations CLAMP clone + finisher x into [0, worldWidth], so these raw offsets no longer reach
+// off-stage — verified on screen by clone_audit_live.mjs (minCloneX >= 0 even with a cornered fighter).
+// Reported here as INFO (sequences whose spread relies on that clamp near a wall), not a hard flag.
+if (wall.length) { console.log("\n--- WALL-CLIP raw offsets (INFO; runtime-clamped by the engine, live-verified) ---"); wall.forEach(r => console.log(r)); }
+console.log(`\nSUMMARY (hard)  wrong-facing: ${fFace}   no-op: ${fNoop}   missing-anim: ${fAnim}    [INFO wall-clamp-reliant: ${fWall}]`);
+const total = fFace + fNoop + fAnim;   // wall-clip is runtime-clamped (verified live), not a static hard flag
 console.log(`\nRESULT: ${total === 0 ? "CLEAN" : total + " flags"}`);
 process.exit(total ? 1 : 0);

@@ -14140,7 +14140,7 @@ function updateBattle() {
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
     }
   }
-  updateCloneFormations()
+  updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
   updateCloneChoreo((caster, target, hit, dirSign, body) => {
@@ -14162,7 +14162,7 @@ function updateBattle() {
       dirSign, w: 40, h: 60, color: hit.color, sheet: hit.sheet,
       spriteFrames: hit.spriteFrames, spriteW: hit.spriteW, spriteH: hit.spriteH, spriteScale: hit.spriteScale
     }, {})
-  })
+  }, getStageWorldWidth())   // clamp clone/finisher placement to the current stage width (audit wall-clip fix)
 
   // CLONE HIT-REVEAL (melee) — AUTHORITATIVE pass, run at the exact frame real hits resolved above so a
   // swing that overlaps an opponent's shadow clone reliably poofs it (fixes "clones are hit-or-miss").

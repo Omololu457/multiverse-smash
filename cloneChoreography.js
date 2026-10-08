@@ -78,6 +78,13 @@ function makeGhostBody(caster, rosterKey) {
 
 const _dirTo = (from, to) => Math.sign((to.x + (to.w || 0) / 2) - (from.x + (from.w || 0) / 2)) || 1
 
+// STAGE CLAMP (2026-10-07 audit fix): clone/caster placement is ref.x + dx with no bounds, so near a wall
+// a clone (or the finisher teleport) could spawn OFF-STAGE. Clamp x into [0, worldWidth - w] so every clone
+// stays visible on the field. Conservative choice: clamp (clones bunch against the wall when cornered)
+// rather than mirror the whole formation, which would be a larger behavioural change.
+let _worldW = 3200
+const _clampX = (x, w) => Math.max(0, Math.min(_worldW - (w || 60), x))
+
 // Merge the owner's default FX (melee / projectile) UNDER a beat's own hit spec, so game.js's fireHit
 // callback can stay generic (it just reads hit.sheet/color/dims) while each character's clones strike
 // with their own themed effect. A beat may override any field.
@@ -118,14 +125,15 @@ function _releaseFormationCaster(fm) {
   if (fm && fm.caster) { fm.caster._choreoSelectWindow = 0; fm.caster._forceAction = null; fm.caster._inChoreoFormation = false }
 }
 
-export function updateFormations() {
+export function updateFormations(worldWidth) {
+  if (worldWidth) _worldW = worldWidth
   for (let i = _forms.length - 1; i >= 0; i--) {
     const fm = _forms[i], c = fm.caster
     // Interruptible summon: a hit / an attack / a KO cancels it (real-play fairness).
     if (!c || c.eliminated || (c.hitstun || 0) > 0 || c.attacking) { _releaseFormationCaster(fm); _forms.splice(i, 1); continue }
     FORMATION_OFFSETS.forEach((off, k) => {
       const b = fm.bodies[k]; b._choreoVisible = true
-      b.x = c.x + off.dx; b.y = c.y + off.dy
+      b.x = _clampX(c.x + off.dx, b.w); b.y = c.y + off.dy
       b.facing = off.dx < 0 ? 1 : -1   // clones face inward
       b._forceAction = "idle"
     })
@@ -156,7 +164,8 @@ export function getChoreoBodies() {
 // ── PER-FRAME ADVANCE ─────────────────────────────────────────────────────────
 // `fireHit(caster, target, resolvedHit, dirSign, body)` is provided by game.js and wraps the existing
 // spawnGuaranteedCloneHit / spawnProjectile primitives. resolvedHit already has the owner's FX merged.
-export function updateChoreo(fireHit) {
+export function updateChoreo(fireHit, worldWidth) {
+  if (worldWidth) _worldW = worldWidth
   for (let ri = _runs.length - 1; ri >= 0; ri--) {
     const r = _runs[ri], seq = r.seq, t = r.target, caster = r.caster, f = r.frame
 
@@ -171,7 +180,7 @@ export function updateChoreo(fireHit) {
       if (open) {
         body._choreoVisible = true
         const cx = ref.x + (ref.w || 0) / 2
-        body.x = cx + b.place.dx - (body.w || 0) / 2
+        body.x = _clampX(cx + b.place.dx - (body.w || 0) / 2, body.w)
         body.y = ref.y + (b.place.dy || 0)
         body.facing = b.place.face ?? _dirTo(body, t)
         body._forceAction = b.action
@@ -223,6 +232,8 @@ export function updateChoreo(fireHit) {
       }
     }
 
+    // Keep the finisher teleport on-stage too (escape/strike/spike set caster.x near the target/wall).
+    if (fin && f >= fin.at) caster.x = _clampX(caster.x, caster.w)
     if (r.frozen) continue
     r.frame++
     if (f >= seq.duration) { _endRun(r); _runs.splice(ri, 1) }
@@ -793,7 +804,7 @@ export const CHOREO_BY_CHAR = {
         clones: [{ slot: "c0" }, { slot: "c1" }],
         beats: [
           { at: 2, body: "c0", action: "genjutsuCast", appear: 0, vanish: 36, place: { dx: -20, dy: 0,   face: 1 }, color: "#7c3aed" },
-          { at: 5, body: "c1", action: "genjutsuCast", appear: 0, vanish: 38, place: { dx: 16,  dy: -30, face: 1 }, color: "#7c3aed" },
+          { at: 5, body: "c1", action: "genjutsuCast", appear: 0, vanish: 38, place: { dx: 16,  dy: -30, face: -1 }, color: "#7c3aed" },
         ],
         finisher: { type: "escape", at: 12, action: "genjutsuCast", teleport: { behindTarget: true, dx: 58 }, iframes: 24,
           hit: { damage: 21, hitstun: 26, knockbackX: 6, knockbackY: -3, color: "#7c3aed" } },

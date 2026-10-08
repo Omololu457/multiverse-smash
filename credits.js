@@ -87,6 +87,16 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (naoya_*_uniform.png; in-sheet credit to akuma animation)",
     files:   ["naoya_*.png"]
   },
+  // Naruto (Hokage) — additive standalone fighter. BASE Hokage art sliced from the PadaKun
+  // "Naruto Hokage JUS sprite sheet" (credited on DeviantArt to RBM-Kyuubi, with PadaKun /
+  // Degue-1297 / Mikeel on the sheet). KCM (golden) locomotion/hit art sliced from the adult
+  // Naruto KCM sheet by Vaydra (DeviantArt filename handle "vahidras"). Attribution MANDATORY.
+  naruto_hokage: {
+    work:    "Naruto (Hokage) / Kurama Chakra Mode (Naruto)",
+    artists: ["RBM-Kyuubi", "PadaKun", "Degue-1297", "Mikeel", "Vaydra (vahidras)"],
+    source:  "fan sprite sheets (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — Hokage, by RBM-Kyuubi / PadaKun / Degue-1297 / Mikeel; adult_naruto_kcm_sprites_by_vahidras_di37okp.png — KCM, by Vaydra)",
+    files:   ["naruto_hokage_*.png", "adult_naruto_kcm_sprites_by_vahidras_*.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

@@ -382,6 +382,13 @@ export const SKINS = {
     { id: "ippoChampionshipGold",  name: "Championship Gold",  unlockLevel: 0, portrait: "./ippo_portrait__championshipgold.png",  spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "championshipgold"),  recolorTag: "championshipgold" }             // ORIGINAL design (not canon): all-gold title-belt theme
   ],
 
+  // Naruto (Hokage) — additive standalone. Default only for now; palette-row skins are a later pass
+  // (derived from the sheet's "Color Paletes" row via the recolor pipeline, only once keying is verified).
+  // The explicit spriteScale is REQUIRED — a missing skins entry makes getSkins fall back to scale 1.
+  naruto_hokage: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto_hokage?.portrait, spriteScale: characters.naruto_hokage?.spriteScale, animationData: null },
+  ],
+
   // Dark Vegeta (dragon_ball) — STAGE 1 default skin. WITHOUT this, applySkin() falls back to the
   // generic { spriteScale: 1 } default and clobbers the char's 2.1 (sprite renders half-size). Pulls
   // scale/portrait from the char def. Alt recolor skins are a later stage.

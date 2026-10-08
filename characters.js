@@ -9485,6 +9485,75 @@ const jesus = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// NARUTO (HOKAGE) — additive standalone fighter (rosterKey "naruto_hokage").
+// Jesus/ghostface_exe discipline: fully namespaced, reuses NOTHING of the existing
+// `naruto` entry or his ./naruto_kcm_* sheets. Two persistent forms ("Hokage's
+// Chakra Ladder"): BASE Hokage (this sprite set, sliced from the PadaKun JUS sheet)
+// and KCM (golden, wired in a later stage from the vahidras set + JUS golden combos).
+// Energy = Chakra. Top of the Naruto-universe stat band (Minato/Hashirama tier).
+// speed stays < 98 (the teleport-dash gate) — he has GROUND-dash art, not a blink.
+// Specials/ultimate are declared here as the intended kit (drives the Move List);
+// their dispatch is wired in abilities.js in the specials stage.
+const narutoHokage = {
+  rosterKey: "naruto_hokage", name: "Naruto (Hokage)", universe: "naruto", color: "#f6a623",
+  portrait: "./naruto_hokage_portrait.png", homeStage: "Hidden Leaf Village",
+  archetypes: ["melee", "ranged", "summons"], primary: "melee", secondary: ["ranged", "summons"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // Top of the Naruto band (cf. Hashirama 1220/Madara 1180). speed 95 < 98 teleport gate (ground dash).
+  stats: { maxHealth: 1210, maxEnergy: 200, attack: 95, defense: 90, speed: 95, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  basic_attacks: {
+    light:     { damage: 46, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 84, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 5, knockbackY: 1 },
+    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, selfVy: -7, airOK: false },
+    airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  // Intended kit — dispatch wired in the specials stage. Labels: CANON / CANON-ADJACENT / ORIGINAL.
+  specials: {
+    rasengan:       { cost: 30, damage: 118, subtype: "projectile", effect: "BASE Neutral+Special — Rasengan: short dashing spiral orb. [CANON]" },
+    rasenshuriken:  { cost: 70, damage: 230, subtype: "projectile", effect: "BASE Fwd+Special — Rasenshuriken: wind blade + chip DOT. [CANON]" },
+    dotonWall:      { cost: 28, damage: 70,  subtype: "aoe",        effect: "BASE Back+Special — Doton earth wall: rising stone pillars, blocks & bumps. [CANON-ADJACENT]" },
+    throwWeapon:    { cost: 14, damage: 44,  subtype: "projectile", effect: "BASE Down+Special — thrown kunai/shuriken (free slot). [CANON]" },
+    rasenkyugan:    { cost: 34, damage: 150, subtype: "projectile", effect: "KCM Neutral+Special — Rasenkyugan: extending chakra-arm Rasengan. [CANON-ADJACENT]" },
+    wakuseiRasengan:{ cost: 55, damage: 215, subtype: "projectile", effect: "KCM Fwd+Special — Wakusei (Planetary) Rasengan: long horizontal thrust streak. [CANON-ADJACENT]" },
+    bijuuRasenshuriken:{ cost: 80, damage: 275, subtype: "projectile", effect: "KCM Back+Special — Bijuu Rasenshuriken: upgraded wind blade. [CANON]" }
+  },
+  ultimate: {
+    name: "Kuchiyose: Gamabunta", cost: 80,
+    description: "BASE Ultimate — summon seal → Gamabunta → committed dagger slash with a large arc. In KCM: neutral Ultimate = Bijuudama (Tailed Beast Bomb); Fwd+Ultimate = Four-Tails Rage burst; Down+Ultimate = Rikudou burst. [CANON]",
+    variants: { neutral: "Kuchiyose: Gamabunta", kcmNeutral: "Bijuudama", kcmForward: "Four-Tails Rage", kcmDown: "Rikudou Mode" }
+  },
+  // "Hokage's Chakra Ladder" — base <-> KCM persistent forms; burst forms are sequence-bound (KCM only).
+  transformationOrder: ["base", "kcm"],
+  transformations: {
+    base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    kcm:  { damageMultiplier: 1.25, speedMultiplier: 1.12, defenseMultiplier: 1.05, energyDrainPerFrame: 5 / 60, energyRegenBonus: 1.6, isSpecial: true }
+  },
+  hasSprites: true,
+  spriteScale: 2.0,
+  introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 8, width: 34, height: 62, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_hokage_idle_uniform.png" },
+    walk:      { frames: 6, width: 56, height: 51, speed: 5, anchorY: 0, loop: true,  sheet: "./naruto_hokage_run_uniform.png" },
+    run:       { frames: 6, width: 56, height: 51, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_hokage_run_uniform.png" },
+    dash:      { frames: 3, width: 55, height: 47, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_dash_uniform.png" },
+    jump:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_jump_uniform.png" },
+    fall:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_jump_uniform.png" },
+    guard:     { frames: 2, width: 39, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_guard_uniform.png" },
+    hurt:      { frames: 3, width: 49, height: 61, speed: 5, anchorY: 0, sheet: "./naruto_hokage_hurt_uniform.png" },
+    knockdown: { frames: 8, width: 66, height: 55, speed: 6, anchorY: 0, sheet: "./naruto_hokage_knockdown_uniform.png" },
+    light:     { frames: 9, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_light_uniform.png" },
+    heavy:     { frames: 5, width: 62, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_heavy_uniform.png" },
+    up:        { frames: 6, width: 65, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_up_uniform.png" },
+    air:       { frames: 3, width: 61, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_air_uniform.png" },
+    down_air:  { frames: 6, width: 78, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_strong_down_uniform.png" },
+    intro:     { frames: 4, width: 44, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_intro_uniform.png" },
+    win:       { frames: 1, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_win_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -9553,7 +9622,8 @@ export const characters = {
   spiderman_raimi: raimiSpiderman,   // NEW standalone build (Spider-Man / Sam Raimi) — minimal-real: movement + normals, no specials/ult yet
   spiderman_ssf2: ssf2Spiderman,     // NEW standalone build (Spider-Man / SSF2 style) — minimal WIP from a cancelled sheet, many gaps flagged
   spiderman_mci: mciSpiderman,       // NEW standalone build (Spider-Man / Marvel Cosmic Invasion) — minimal-real from hand-picked isolated poses
-  ippo
+  ippo,
+  naruto_hokage: narutoHokage        // NEW additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
 }
 
 // The 7 characters shown in the starter roster select screen

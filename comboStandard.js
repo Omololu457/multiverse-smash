@@ -169,6 +169,7 @@ export const STANDARD_STRING = {
 // "currently has no combo string" — it is NOT a runtime change (they already behave this way).
 export const ZONER = [
   "jesus",   // additive JUS char: projectile-forward kit (lion/fire/lightning/bread/ultimate), no L,L,H auto-combo
+  "jiraiya", // Sannin Toad Sage: summon/ninjutsu zoner (rasengan/fire/barrier/hair/Gamabunta + Sage Mode), no command-combat driver → single-poke (same bucket as jesus)
   "rickPrime", "evilMorty", "beerus", "piccolo", "frieza",   // original ranged zoners
   // Stage-G coverage (2026-08-29): no command-combat driver + not in STANDARD_STRING_CHARS → single-poke.
   "brainiac",      // all-special zoner (no normal-tier art — schema exception)
@@ -253,6 +254,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                20,         // 19 + jesus (additive JUS char, projectile-forward single-poke)
-  rosterTotal:          104,       // 71 rekka + 13 standard-string + 20 single-poke = 104 (jesus added)
+  zoner:                21,         // 19 + jesus + jiraiya (additive summon/ninjutsu zoner, single-poke)
+  rosterTotal:          105,       // 71 rekka + 13 standard-string + 21 single-poke = 105 (jiraiya added)
 }

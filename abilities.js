@@ -4014,6 +4014,305 @@ function executeJesusUltimate(fighter, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// JIRAIYA — the Toad Sage (Sannin). Base + Hermit(Sage) form. Like jesus, the character
+// BODY comes from the sheet but EVERY special EFFECT is PROCEDURAL (color/radius projectiles
+// + direct hits + render flags). NOT brutality-eligible. Deterministic (no gameRng).
+//   BASE:   neutral = Rasengan · Fwd = Katon Gamayu Endan (fire) · Back = Protective Barrier ·
+//           Up = Ranjishigami (needle-hair anti-air) · Down = Gamayu Endan big toad flame.
+//   HERMIT: neutral = Senpo Goemon · Fwd = toad-tongue lash · Back = Hari Jizo (needle guard) ·
+//           Up = Frog Song (sound genjutsu stun) · Down = giant-scroll smash.
+//   ULT:    neutral = enter Hermit/Sage Mode (base) OR Chou Odama Rasengan (while hermit) ·
+//           Down = Summoning: Gamabunta (giant-toad blade strike, built from the S-sheet art).
+const JIRAIYA_HERMIT_DURATION = 1200                 // ~20s @60fps (timer-based; deterministic)
+const JIRAIYA_HERMIT_MULT = { dmg: 1.18, spd: 1.10, def: 1.12 }   // modest buffs
+const JIRAIYA_HERMIT_CINE = { key: "jiraiyaHermit", holdPose: "jiraiyaHermitTransform", auraInner: "rgba(255,230,120,A)", auraMid: "rgba(230,150,30,A)", flash: "#fff0b0", backdrop: "#1a1205" }
+function jiraiyaIsHermit(f) { return !!(f && f._jiraiyaHermit) }
+
+function executeJiraiyaSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jiraiya") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (jiraiyaIsHermit(fighter)) {
+    if (dir === "F") return jiraiyaTongueLash(fighter, context)        // Fwd  = toad-tongue lash (long poke)
+    if (dir === "B") return jiraiyaHariJizo(fighter, context)          // Back = Hari Jizo needle guard (i-frames)
+    if (dir === "U") return jiraiyaFrogSong(fighter, context)          // Up   = Frog Song (ranged sound stun)
+    if (dir === "D") return jiraiyaScrollSmash(fighter, context)       // Down = giant-scroll overhead smash
+    return jiraiyaGoemon(fighter, context)                            // neutral = Senpo Goemon oil-fire stream
+  }
+  if (dir === "F") return jiraiyaGamayuEndan(fighter, context)         // Fwd  = Katon Gamayu Endan (fire bullet)
+  if (dir === "B") return jiraiyaBarrier(fighter, context)            // Back = Protective Barrier (i-frames)
+  if (dir === "U") return jiraiyaRanjishigami(fighter, context)       // Up   = Ranjishigami needle-hair anti-air
+  if (dir === "D") return jiraiyaGamayuBig(fighter, context)          // Down = big toad-mount flame wall
+  return jiraiyaRasengan(fighter, context)                           // neutral = Rasengan
+}
+
+// ── BASE specials ──
+function jiraiyaRasengan(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.rasengan?.cost ?? 30)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 26
+  fighter._jiraiyaRasengan = 26   // render flag (spiral orb in hand) for a later art pass
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "jiraiyaRasengan", {
+      damage: 84, speed: 9, lifetime: 30, hitstun: 26, knockbackX: 11, knockbackY: -4,
+      w: 46, h: 46, radius: 26, color: "#8fe9ff", isSpecial: true,
+      vx: face * 9, spawnY: fighter.y + (fighter.h || 100) * 0.45
+    }, context)
+  })
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+function jiraiyaGamayuEndan(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.gamayuEndan?.cost ?? 28)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 24
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "jiraiyaFire", {
+      damage: 46, speed: 14, lifetime: 80, hitstun: 18, knockbackX: 7, knockbackY: -1,
+      w: 44, h: 36, radius: 24, color: "#ff8a1e", isSpecial: true,
+      vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+function jiraiyaBarrier(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.protectBarrier?.cost ?? 34)) return false
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)   // blue bubble = timed i-frames (combat reads invulnTimer)
+  fighter._jiraiyaBarrier = 54   // render flag (blue bubble) for a later art pass
+  fighter._spriteCastMove = "guard"; fighter._spriteCastTimer = 20
+  try { shakeCamera(context, 1, 3) } catch (_) {}
+  return true
+}
+function jiraiyaRanjishigami(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.ranjishigami?.cost ?? 30)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._jiraiyaHair = 22   // render flag (needle-hair spikes) for a later art pass
+  fighter._spriteCastMove = "up"; fighter._spriteCastTimer = 26
+  const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  schedulePendingSpawn(8, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    const dx = (tcx - cx) * face, dy = tcy - cy
+    if (dx > -40 && dx < 160 && dy > -210 && dy < 60) {   // in-front arc incl. above (anti-air)
+      if (opp.isBlocking) { opp.blockstun = 22; applyScaledDamage(opp, 14, { source: "ability" }) }
+      else { opp.hitstun = 34; opp.vy = -14; opp.vx = face * 5; opp.colorFlash = 12; applyScaledDamage(opp, 70, { source: "ability" }) }
+    }
+  })
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+function jiraiyaGamayuBig(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.gamayuBig?.cost ?? 40)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 30
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "jiraiyaBigFire", {
+      damage: 64, speed: 8, lifetime: 70, hitstun: 24, knockbackX: 9, knockbackY: -6,
+      w: 80, h: 56, radius: 40, color: "#ff6a1e", isSpecial: true,
+      vx: face * 8, spawnY: fighter.y + (fighter.h || 100) * 0.60
+    }, context)
+  })
+  try { shakeCamera(context, 4, 9) } catch (_) {}
+  return true
+}
+
+// ── HERMIT specials ──
+function jiraiyaGoemon(fighter, context) {   // Senpo: Goemon — oil + wind → fire stream (flagship projectile)
+  if (!spendEnergy(fighter, 34)) return false
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 28
+  const face = fighter.facing || 1
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "jiraiyaGoemon", {
+      damage: 72, speed: 13, lifetime: 90, hitstun: 24, knockbackX: 10, knockbackY: -3,
+      w: 72, h: 50, radius: 36, color: "#ffb02e", isSpecial: true,
+      vx: face * 13, spawnY: fighter.y + (fighter.h || 100) * 0.44
+    }, context)
+  })
+  try { shakeCamera(context, 4, 9) } catch (_) {}
+  return true
+}
+function jiraiyaTongueLash(fighter, context) {   // long-reach toad-tongue poke
+  if (!spendEnergy(fighter, 24)) return false
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._spriteCastMove = "light"; fighter._spriteCastTimer = 22
+  const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  schedulePendingSpawn(6, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    const dx = (tcx - cx) * face, dy = Math.abs(tcy - cy)
+    if (dx > -20 && dx < 300 && dy < 90) {   // whip reach
+      if (opp.isBlocking) { opp.blockstun = 18; applyScaledDamage(opp, 10, { source: "ability" }) }
+      else { opp.hitstun = 26; opp.vx = -face * 6; opp.colorFlash = 10; applyScaledDamage(opp, 52, { source: "ability" }) }   // drags toward Jiraiya
+    }
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+function jiraiyaHariJizo(fighter, context) {   // needle-hair guard — i-frames + a short needle-burst around
+  if (!spendEnergy(fighter, 30)) return false
+  fighter.attackCooldown = getAttackDuration(18, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 46)
+  fighter._jiraiyaHariJizo = 46   // render flag (white needle ball) for a later art pass
+  fighter._spriteCastMove = "guard"; fighter._spriteCastTimer = 24
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  schedulePendingSpawn(6, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    if (Math.hypot(tcx - cx, tcy - cy) > 120) return   // point-blank only (defensive)
+    if (opp.isBlocking) { opp.blockstun = 16; applyScaledDamage(opp, 8, { source: "ability" }) }
+    else { opp.hitstun = 22; opp.vx = (tcx >= cx ? 1 : -1) * 7; opp.vy = -4; opp.colorFlash = 10; applyScaledDamage(opp, 40, { source: "ability" }) }
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+function jiraiyaFrogSong(fighter, context) {   // Frog Song — sound genjutsu: ranged stun (hitstun, low dmg)
+  if (!spendEnergy(fighter, 36)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._jiraiyaFrogSong = 28   // render flag (blue-purple aura + notes) for a later art pass
+  fighter._spriteCastMove = "up"; fighter._spriteCastTimer = 26
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    if (Math.hypot(tcx - cx, tcy - cy) > 420) return   // long range
+    if (opp.isBlocking) { opp.blockstun = 30; applyScaledDamage(opp, 6, { source: "ability" }) }
+    else { opp.hitstun = 48; opp.colorFlash = 14; applyScaledDamage(opp, 36, { source: "ability" }) }   // heavy stun, light damage
+  })
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+function jiraiyaScrollSmash(fighter, context) {   // giant-scroll overhead smash (ORIGINAL) — close AOE
+  if (!spendEnergy(fighter, 38)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 30
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+    const dx = (tcx - cx) * face, dy = Math.abs(tcy - cy)
+    if (dx > -50 && dx < 150 && dy < 120) {
+      if (opp.isBlocking) { opp.blockstun = 26; applyScaledDamage(opp, 18, { source: "ability" }) }
+      else { opp.hitstun = 36; opp.vy = 10; opp.vx = face * 6; opp.colorFlash = 12; applyScaledDamage(opp, 86, { source: "ability" }) }   // spikes down (ground bounce)
+    }
+  })
+  try { shakeCamera(context, 5, 11) } catch (_) {}
+  return true
+}
+
+// ── HERMIT (Sage) MODE form — time-limited, energy-gated, modest buffs, deterministic.
+//    Mirrors Kurapika Emperor Time: form-apply lands at the RESOLVE beat of the shared cinematic;
+//    _skinAnim swaps to the sage sprite set; auto-reverts on the timer (updateJiraiyaHermit). ──
+export function enterJiraiyaHermit(fighter, context = {}) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "jiraiya" || fighter._jiraiyaHermit) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (isFormActivationCinematicActive()) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.vx = 0
+  const applyHermit = () => {
+    fighter._jiraiyaHermit     = true
+    fighter._jiraiyaHermitTimer = JIRAIYA_HERMIT_DURATION   // PUBLIC countdown (HUD) + auto-revert
+    fighter._jiraiyaHermitMax  = JIRAIYA_HERMIT_DURATION
+    fighter._skinAnim          = characters.jiraiya?.hermitAnim || fighter._baseSkinAnim || null
+    fighter.currentForm        = "hermit"
+    fighter.currentFormData    = { damageMultiplier: JIRAIYA_HERMIT_MULT.dmg, attackMultiplier: JIRAIYA_HERMIT_MULT.dmg, speedMultiplier: JIRAIYA_HERMIT_MULT.spd, defenseMultiplier: JIRAIYA_HERMIT_MULT.def, hermitForm: true }
+    fighter.damageMultiplier   = fighter.attackMultiplier = JIRAIYA_HERMIT_MULT.dmg
+    fighter.speedMultiplier    = JIRAIYA_HERMIT_MULT.spd
+    fighter.defenseMultiplier  = JIRAIYA_HERMIT_MULT.def
+    fighter.teleportFlash      = 16
+    fighter.attackCooldown     = 12
+  }
+  const opp = getTargetResolver(context)?.(fighter) || null
+  const started = activateFormActivationCinematic(fighter, opp, applyHermit, JIRAIYA_HERMIT_CINE)
+  if (!started) {   // singleton busy → instant apply + play the transform strip as a cast pose
+    applyHermit()
+    fighter._spriteCastMove = "jiraiyaHermitTransform"; fighter._spriteCastTimer = 56; fighter.attackCooldown = 18
+    try { focusCameraOnAction(context, fighter, null, 1.05, 14); shakeCamera(context, 6, 12) } catch (_) {}
+  }
+  return true
+}
+export function revertJiraiyaHermit(fighter) {
+  if (!fighter || !fighter._jiraiyaHermit) return
+  fighter._jiraiyaHermit     = false
+  fighter._jiraiyaHermitTimer = 0
+  fighter._skinAnim          = fighter._baseSkinAnim || null
+  fighter.currentForm        = "base"
+  fighter.currentFormData    = null
+  fighter.damageMultiplier   = fighter.attackMultiplier = 1
+  fighter.speedMultiplier    = 1
+  fighter.defenseMultiplier  = 1
+  fighter.teleportFlash      = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame: tick the Sage-Mode duration → auto-revert at 0.
+export function updateJiraiyaHermit(fighter) {
+  if (!fighter || !fighter._jiraiyaHermit) return
+  if ((fighter._jiraiyaHermitTimer || 0) > 0) fighter._jiraiyaHermitTimer--
+  if ((fighter._jiraiyaHermitTimer || 0) <= 0) revertJiraiyaHermit(fighter)
+}
+
+// ── ULTIMATE dispatch: Down = Gamabunta · neutral = enter Sage Mode (base) / Chou Odama Rasengan (hermit).
+function executeJiraiyaUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "jiraiya") return false
+  if (fighter._ultVariant === "gamabunta") return jiraiyaSummonGamabunta(fighter, context)
+  if (jiraiyaIsHermit(fighter)) return jiraiyaChouOdama(fighter, context)
+  return enterJiraiyaHermit(fighter, context)
+}
+function jiraiyaChouOdama(fighter, context) {   // Chou Odama Rasengan — giant sphere (hermit-only neutral ult)
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(44, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 44)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 44
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "jiraiyaChouOdama", {
+      damage: 220, speed: 7, lifetime: 54, hitstun: 42, knockbackX: 16, knockbackY: -8,
+      w: 128, h: 128, radius: 66, color: "#9fe9ff", isSpecial: true,
+      vx: face * 7, spawnY: fighter.y + (fighter.h || 100) * 0.45
+    }, context)
+  })
+  try { shakeCamera(context, 7, 16) } catch (_) {}
+  return true
+}
+function jiraiyaSummonGamabunta(fighter, context) {   // Summoning Jutsu: Gamabunta — giant-toad blade strike
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(50, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 44)
+  fighter._spriteCastMove = "win"; fighter._spriteCastTimer = 34   // summoning-seal / arms-raised pose
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {   // summon smoke puff (cosmetic sprite, no hitbox)
+    spawnProjectile(fighter, "jiraiyaGamaSmoke", {
+      damage: 0, speed: 0, lifetime: 34, hitstun: 0, knockbackX: 0, knockbackY: 0,
+      w: 1, h: 1, radius: 0, color: "#efe3c2", isSpecial: true, vx: 0,
+      spawnY: fighter.y + (fighter.h || 100) * 0.5,
+      sheet: "./jiraiya_gama_smoke_uniform.png", spriteFrames: 1, spriteW: 397, spriteH: 190, spriteScale: 0.55
+    }, context)
+  })
+  schedulePendingSpawn(22, () => {   // the toad itself crashes forward (big hitbox)
+    spawnProjectile(fighter, "jiraiyaGamabunta", {
+      damage: 200, speed: 10, lifetime: 64, hitstun: 44, knockbackX: 17, knockbackY: -6,
+      w: 170, h: 150, radius: 84, color: "#8a5a2a", isSpecial: true,
+      vx: face * 10, spawnY: fighter.y + (fighter.h || 100) * 0.5,
+      sheet: "./jiraiya_gama_toad_uniform.png", spriteFrames: 1, spriteW: 412, spriteH: 299, spriteScale: 0.5
+    }, context)
+  })
+  try { shakeCamera(context, 9, 18) } catch (_) {}
+  return true
+}
+
 function fireVegetaUpTier(fighter, key, context) {
   const md = VEGETA_SSJ_UP[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -24895,6 +25194,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
+    case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "rick":    return executeRickSpecial(fighter, context)
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
@@ -25181,6 +25481,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
+      case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
@@ -25612,6 +25913,7 @@ export function updateTransformationState(fighter, context = {}) {
   updateBorutoKarma(fighter)     // Boruto Momoshiki Karma form: continuous energy drain + auto-revert at 0
   updateHandlerMahoraga(fighter) // The Handler Mahoraga form: adaptation-growth (dmg/def/regen) + wheel spin + duration countdown + auto-revert
   updateKurapikaEmperor(fighter) // Kurapika Emperor Time: duration countdown + auto-revert + post-revert vulnerability tick
+  updateJiraiyaHermit(fighter)   // Jiraiya Hermit/Sage Mode: ~20s duration countdown + auto-revert (timer-based, deterministic)
   updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
   updateNeteroGuanyin(fighter)   // Netero Guanyin Bodhisattva giant: tick its own timer + auto-revert
 

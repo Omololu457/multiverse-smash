@@ -266,6 +266,11 @@ const MOVE_TO_ACTION = {
   hiruzenFireCast: "hiruzenFireCast", hiruzenEarthCast: "hiruzenEarthCast", hiruzenEnmaCast: "hiruzenEnmaCast", hiruzenBind: "hiruzenBind",
   // Hiruzen (Stage 4): Reaper Death Seal sealing-sign held pose (_spriteCastMove, through the cinematic).
   hiruzenReaperCast: "hiruzenReaperCast",
+  // Jiraiya: Hermit/Sage Mode transform cinematic hold-pose (14f golden-aura burst) + special cast poses
+  // (_spriteCastMove). Identity maps so the cast/transform strip never resolves to the fallback box.
+  jiraiyaHermitTransform: "jiraiyaHermitTransform",
+  jiraiyaRasengan: "jiraiyaRasengan", jiraiyaFireCast: "jiraiyaFireCast", jiraiyaHairCast: "jiraiyaHairCast",
+  jiraiyaBarrier: "jiraiyaBarrier", jiraiyaSummon: "jiraiyaSummon", jiraiyaCounter: "jiraiyaCounter",
   // Orochimaru (Stage 2): Forward Strong (Fwd+Heavy command normal) + throw-weapon grab cast pose.
   // Identity maps so the command-normal / grab cast tail never resolves to the fallback box.
   orochimaruFwdStrong: "orochimaruFwdStrong", orochimaruThrow: "orochimaruThrow",

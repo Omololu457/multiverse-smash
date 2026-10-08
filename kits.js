@@ -106,6 +106,36 @@ export const KITS = {
       { name: "Beam Punish",    sequence: "Heavy, Down + Special",         desc: "stagger into Kamehameha for chip and spacing" }
     ]
   },
+  // ── NARUTO ───────────────────────────────────────────────────
+  jiraiya: {
+    type: "Toad Sage / Summon Zoner", energy: "Chakra", difficulty: "Medium",
+    summary: "A Legendary Sannin who controls space with fire, hair, and toad ninjutsu — then flips into Sage Mode for a buffed second kit and a giant-toad summon.",
+    passive: { name: "Sage of Mount Myoboku", effect: "Two full movesets: a grounded ninjutsu-zoning base form and a time-limited Hermit (Sage) Mode with modest damage/speed/defense buffs and its own specials." },
+    basics: [
+      { name: "Palm Combo",   input: "Light",                   desc: "sage-style striking string" },
+      { name: "Heavy Strike", input: "Heavy",                   desc: "slow heavy hit with knockback" },
+      { name: "Rising Hair",  input: "Up-Attack",               desc: "launcher — starts air combos" },
+      { name: "Air Strike",   input: "Air (jump + Light)",      desc: "quick aerial attack" },
+      { name: "Toad Drop",    input: "Down-Air (jump + Heavy)", desc: "downward spike" },
+      { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "Rasengan",                 input: "Special",           cost: 30, desc: "spiraling chakra sphere burst up close [CANON]" },
+      { name: "Katon: Gamayu Endan",      input: "Forward + Special", cost: 28, desc: "toad-oil flame-bullet projectile [CANON]" },
+      { name: "Protective Barrier",       input: "Back + Special",    cost: 34, desc: "timed blue defensive bubble (i-frames) [CANON-ADJACENT]" },
+      { name: "Ranjishigami no Jutsu",    input: "Up + Special",      cost: 30, desc: "needle-hair spikes erupt — anti-air AOE [CANON]" },
+      { name: "Gamayu Endan (Big Flame)", input: "Down + Special",    cost: 40, desc: "larger ground flame wall [CANON]" }
+    ],
+    mobility: { name: "Body Flicker", input: "Dodge / dash", cost: 0, desc: "quick repositioning teleport (dodge-teleport)" },
+    ultimate: { name: "Sage Mode / Gamabunta", input: "Ultimate (full meter) — Neutral / Down", cost: 100, desc: "Neutral: enter Hermit (Sage) Mode (~20s buffs + new specials; neutral Ultimate in Sage Mode becomes Chou Odama Rasengan). Down: Summoning Jutsu — Gamabunta crashes down with a blade strike [CANON]" },
+    // SAGE MODE specials (while transformed): Neutral = Senpo: Goemon (oil-fire stream) · Forward = toad-tongue lash ·
+    // Back = Hari Jizo (needle guard) · Up = Frog Song (sound-genjutsu stun) · Down = giant-scroll smash.
+    combos: [
+      { name: "Air Juggle",    sequence: "Up-Attack, Jump, Air, Down-Air", desc: "launch into aerial pressure" },
+      { name: "Zone & Punish", sequence: "Forward + Special, then Rasengan on approach", desc: "space with fire, punish the dash-in" },
+      { name: "Sage Burst",    sequence: "Ultimate (Sage Mode), then Chou Odama Rasengan", desc: "transform, then unload the giant sphere" }
+    ]
+  },
   vegeta: {
     type: "Aggressive Saiyan / Ki Burst", energy: "Ki", difficulty: "Medium",
     summary: "A prideful pressure machine with three explosive Ki blasts who scales hard through his own elite transformation line.",

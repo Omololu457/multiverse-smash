@@ -127,6 +127,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./jesus_idle_uniform.png" }
   },
 
+  // Jiraiya (Naruto, Toad Sage). Fan JUS-style sheet sliced/repacked in-repo (tools/jiraiya_slice.py →
+  // jiraiya_*_uniform.png, flat-green keyed + de-spilled). GATES spritesReady() only (decodes idle →
+  // flips from procedural box to sprite); per-action rendering reads the `sheet` paths from
+  // characters.js → jiraiya.animationData. Hermit/Sage form swaps the whole set via _skinAnim.
+  jiraiya: {
+    actions: { idle: "./jiraiya_idle_uniform.png" }
+  },
+
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. GATES spritesReady() only
   // (decodes idle → flips Tobi from box to sprite); per-action rendering reads the `sheet` paths
   // from characters.js → tobi.animationData (tools/reslice_tobi.py'd masked_man_*_uniform copies).

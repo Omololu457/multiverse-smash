@@ -87,6 +87,15 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (naoya_*_uniform.png; in-sheet credit to akuma animation)",
     files:   ["naoya_*.png"]
   },
+  // Jiraiya (Naruto, Toad Sage) — additive standalone fighter. Art sliced/repacked in-repo
+  // (tools/jiraiya_slice.py) from a fan JUS-style "Jiraiya Sage Mode" sprite sheet. The sheet's own
+  // CREDITOS box names the artists; uploader handle from the filename (dantewreckmen_999). Attribution MANDATORY.
+  jiraiya: {
+    work:    "Jiraiya (Naruto)",
+    artists: ["Legendary Sheng Long", "Neimad", "Storm", "Vyctuor"],
+    source:  "fan JUS-style sprite sheets (jiraiya_sage_mode_sprite_sheet_by_dantewreckmen_999_d93c7xy.png + jiraiya_sage_mode_short_sprite_sheet_by_dantewreckmen_999_d93ca2b.png — uploader dantewreckmen_999; Gamabunta art from the short sheet)",
+    files:   ["jiraiya_*.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

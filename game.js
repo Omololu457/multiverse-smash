@@ -7788,6 +7788,12 @@ function _updatePlayerCombatBody(fighter) {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "transform" : _hd === "U" ? "drones" : "domain"   // Down=Transformation Jutsu · Up=Drone Swarm · neutral=Domain
   }
+  // JIRAIYA — the Ultimate is directional: DOWN = Summoning: Gamabunta (giant-toad blade strike). NEUTRAL =
+  // enter Hermit/Sage Mode (in base) or Chou Odama Rasengan (while already in Sage Mode). Stamp the held
+  // direction the frame Ultimate is pressed so executeJiraiyaUltimate picks the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "jiraiya") {
+    fighter._ultVariant = (betaHeldDirFromInput(inputState, fighter.facing) === "D") ? "gamabunta" : "hermit"
+  }
   // NARUTO — the Ultimate is NINE-TAILS (STAGE 5): NEUTRAL Ultimate = Kurama Avatar / Tailed Beast Bomb (the
   // Nine-Tails). DOWN (hold ↓ + Ultimate) and the ↓←↓← (doubleQcb) motion are kept as EXPLICIT ALTERNATES —
   // they route to the same Nine-Tails cinematic. Uzumaki Two Thousand Combo moved to the summon→Ultimate
@@ -19699,6 +19705,15 @@ gameLoop()
     announcer: {
       pools: () => Object.fromEntries(Object.entries(ANNOUNCER_VOICE).map(([k, v]) => [k, v.slice()])),
       fire:  (pool) => { announce(pool, { priority: true }); return pool },   // force-fire a pool (bypasses the anti-stomp gap)
+    },
+
+    // JIRAIYA — Toad Sage. INSPECTION + SETUP only; the actual specials/ultimate/forms are verified
+    // via REAL keystrokes (j/k/i/l/u + a/d/s) in the shots harness, not these hooks.
+    jiraiya: {
+      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { key: f.rosterKey, hermit: !!f._jiraiyaHermit, hermitTimer: f._jiraiyaHermitTimer || 0, hermitMax: f._jiraiyaHermitMax || 0, form: f.currentForm || "base", energy: Math.round(f.energy || 0), sheet: f.spriteSheet || f._lastSpriteSheet || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, defMul: f.defenseMultiplier || 1 } : null },
+      refill: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.energy = f.maxEnergy || 180; f.attackCooldown = 0; f.ultimateCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; return Math.round(f.energy); },   // setup only (clear meter+cooldowns so the NEXT real keypress fires cleanly)
+      // setup fallback: enter Sage Mode via the REAL ultimate dispatch (cinematic applies at resolve).
+      enterHermit: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.energy = f.maxEnergy || 180; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f._ultVariant = "hermit"; triggerUltimate(f, getAbilityContext()); return { triggered: true }; },
     },
 
     // OMOLOLU — Domain Expansion: The Genesis Threshold verification hooks.

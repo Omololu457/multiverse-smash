@@ -1391,6 +1391,12 @@ export const SKINS = {
     { id: "jesusAzure",   name: "Azure Raiment",   unlockLevel: 0, portrait: recolorPortrait("jesus", "azure"),   spriteScale: characters.jesus?.spriteScale, animationData: recolorSkinAnim("jesus", "azure") },
     { id: "jesusCrimson", name: "Crimson Raiment", unlockLevel: 0, portrait: recolorPortrait("jesus", "crimson"), spriteScale: characters.jesus?.spriteScale, animationData: recolorSkinAnim("jesus", "crimson") },
   ],
+  // JIRAIYA default-skin entry — REQUIRED so getSkins() doesn't return the spriteScale:1 fallback and
+  // clobber his char spriteScale (1.7) → half-size (same gotcha as Baki/Yuji/Goku/Naruto/Jesus/omololu).
+  // Default skin only for now (animationData:null = his own characters.js set). No cosmetic recolors yet.
+  jiraiya: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.jiraiya?.portrait, spriteScale: characters.jiraiya?.spriteScale, animationData: null },
+  ],
   baki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.baki?.portrait, spriteScale: characters.baki?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuses Yuta's EXACT albedo/valkyrie

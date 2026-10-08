@@ -9485,10 +9485,107 @@ const jesus = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// JIRAIYA — the Toad Sage, one of the Legendary Sannin (Naruto). Additive fighter built
+// from a fan JUS-style sheet (uploader dantewreckmen_999; art: Legendary Sheng Long,
+// Neimad, Storm, Vyctuor), sliced/repacked in-repo (tools/jiraiya_slice.py). Character BODY
+// frames come from the sheet; every SPECIAL EFFECT is PROCEDURAL (same discipline as jesus).
+// TWO forms: base + Hermit (Sage) Mode — a time-limited, energy-gated, modest-buff form entered
+// via the Ultimate (neutral), using the 14f golden-aura TRANSFORMATION strip for the cinematic.
+// Energy label = Chakra (Naruto universe). NOT brutality-eligible. Stats: Sannin band (near
+// Hiruzen/Orochimaru) — a durable summon/ninjutsu zoner. See JIRAIYA_ASSET_MAP.md.
+const jiraiya = {
+  rosterKey: "jiraiya", name: "Jiraiya", universe: "naruto", color: "#b23b2e",
+  portrait: "./jiraiya_portrait.png", homeStage: "Mount Myoboku",
+  archetypes: ["zoner", "melee"], primary: "zoner", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "versatile", animeMovement: true },
+  // Sannin-tier band (Hiruzen HP1180/atk88/def90/spd84 · Orochimaru HP1180/atk90/def86/spd92).
+  // Jiraiya = the bulky, robust sage: highest HP of the three, strong attack, solid defense, grounded speed.
+  stats: { maxHealth: 1210, maxEnergy: 180, attack: 93, defense: 89, speed: 85, maxJumps: 2, jumpPower: 29, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 38 },
+  basic_attacks: {
+    light:    { damage: 80,  startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 120, startup: 8, active: 4, recovery: 15, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 94, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 98, startup: 6, active: 3, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, selfVy: -7, airOK: false },
+    airAttack:{ damage: 88,  startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 108, startup: 8, active: 4, recovery: 13, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  // specials = HUD/Move-List metadata only (runtime dispatch lives in abilities.js executeJiraiyaSpecial).
+  // CANON LABELS (quick canon check): Rasengan — CANON (confirmed user; created by Minato, not Jiraiya).
+  // Katon Gamayu Endan — CANON (toad-oil flame, Gamabunta collab). Ranjishigami — CANON (Wild Lion's Mane
+  // hair jutsu). Protective Barrier — CANON-ADJACENT (he uses barrier ninjutsu; this blue bubble is generic).
+  specials: {
+    rasengan:      { cost: 30, effect: "Neutral (B): Rasengan — a spiraling chakra sphere burst up close. [CANON]" },
+    gamayuEndan:   { cost: 28, effect: "Fwd (B+Fwd): Katon · Gamayu Endan — toad-oil flame bullet projectile. [CANON]" },
+    protectBarrier:{ cost: 34, effect: "Back (B+Back): Protective Barrier — a timed blue defensive bubble (i-frames). [CANON-ADJACENT]" },
+    ranjishigami:  { cost: 30, effect: "Up (B+Up): Ranjishigami no Jutsu — needle-hair spikes erupt (anti-air AOE). [CANON]" },
+    gamayuBig:     { cost: 40, effect: "Down (B+Down): Katon · Gamayu Endan (toad-mount) — a larger ground flame wall. [CANON]" }
+  },
+  // Ultimate = directional. Neutral = Hermit/Sage Mode transformation (time-limited buff form). Down =
+  // Summoning: Gamabunta — a summoned giant-toad strike (built procedurally from the S-sheet toad + dagger).
+  ultimate: { name: "Sage Mode / Gamabunta", cost: 100, description: "Neutral: enter Hermit (Sage) Mode — a ~20s energy-gated buff form (new specials). Down: Summoning Jutsu — Gamabunta crashes down with a blade strike. [CANON]" },
+  // FORMS. base + hermit. Hermit = modest buffs; deterministic; ~20s; reverts by timeout/energy.
+  transformationOrder: ["base", "hermit"],
+  transformations: {
+    base:   { damageMultiplier: 1,    speedMultiplier: 1,    defenseMultiplier: 1 },
+    hermit: { damageMultiplier: 1.18, speedMultiplier: 1.10, defenseMultiplier: 1.12 }
+  },
+  hasSprites: true,
+  spriteScale: 1.7,   // HEIGHT-REF: canon 191cm → target ~119px (idle content ≈70px × 1.7). Taller than
+                      // Minato(112)/Sasuke(105), fitting a big 191cm sage. REQUIRES the skins.js `jiraiya`
+                      // default entry (else getSkins() returns spriteScale:1 and clobbers this → half-size).
+  introPool: ["idle"],
+  animationData: {
+    idle:     { frames: 6,  width: 43, height: 70, speed: 8, anchorY: 0, loop: true,  sheet: "./jiraiya_idle_uniform.png" },
+    walk:     { frames: 6,  width: 43, height: 75, speed: 6, anchorY: 0, loop: true,  sheet: "./jiraiya_walk_uniform.png" },
+    run:      { frames: 6,  width: 63, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./jiraiya_run_uniform.png" },
+    dash:     { frames: 6,  width: 63, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./jiraiya_run_uniform.png" },
+    jump:     { frames: 4,  width: 67, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_jump_uniform.png" },
+    crouch:   { frames: 3,  width: 49, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_crouch_uniform.png" },
+    guard:    { frames: 1,  width: 42, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_guard_uniform.png" },
+    hurt:     { frames: 7,  width: 77, height: 78, speed: 5, anchorY: 0, sheet: "./jiraiya_hurt_uniform.png" },
+    getup:    { frames: 2,  width: 57, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_getup_uniform.png" },
+    light:    { frames: 11, width: 72, height: 70, speed: 3, anchorY: 0, lockLastFrame: true, sheet: "./jiraiya_light_uniform.png" },
+    up:       { frames: 5,  width: 59, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_up_uniform.png" },
+    air:      { frames: 4,  width: 75, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_air_uniform.png" },
+    down_air: { frames: 5,  width: 62, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_down_air_uniform.png" },
+    heavy:    { frames: 9,  width: 67, height: 83, speed: 4, anchorY: 0, lockLastFrame: true, sheet: "./jiraiya_heavy_uniform.png" },
+    throw:    { frames: 4,  width: 58, height: 69, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_throw_uniform.png" },
+    win:      { frames: 10, width: 52, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_win_uniform.png" },
+    teleport: { frames: 2,  width: 42, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_teleport_uniform.png" },
+    // Hermit/Sage Mode transform cinematic hold-pose (14f golden-aura burst). Played via _spriteCastMove
+    // through activateFormActivationCinematic (holdPose: "jiraiyaHermitTransform").
+    jiraiyaHermitTransform: { frames: 14, width: 67, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_hermit_transform_uniform.png" },
+    // X+UP-after-damage "Hari Jizo ball" counter art (hair swells into a white ball). Art present; the
+    // hurt-cancel reversal MECHANIC is deferred (see JIRAIYA_ASSET_MAP.md → gaps).
+    jiraiyaCounter: { frames: 10, width: 75, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_counter_uniform.png" }
+  },
+  // HERMIT (Sage) MODE whole-moveset sprite set — swapped in via fighter._skinAnim on form enter
+  // (mirrors Kurapika Emperor Time / Goku form _skinAnim swap). Distinct sage idle/walk/run/light;
+  // remaining actions reuse the base sheets (the sage body is the same silhouette + markings).
+  hermitAnim: {
+    idle:     { frames: 5,  width: 52, height: 74, speed: 8, anchorY: 0, loop: true,  sheet: "./jiraiya_hermit_idle_uniform.png" },
+    walk:     { frames: 9,  width: 52, height: 75, speed: 5, anchorY: 0, loop: true,  sheet: "./jiraiya_hermit_walk_uniform.png" },
+    run:      { frames: 6,  width: 64, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./jiraiya_hermit_run_uniform.png" },
+    dash:     { frames: 6,  width: 64, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./jiraiya_hermit_run_uniform.png" },
+    light:    { frames: 8,  width: 72, height: 89, speed: 3, anchorY: 0, lockLastFrame: true, sheet: "./jiraiya_hermit_light_uniform.png" },
+    jump:     { frames: 4,  width: 67, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_jump_uniform.png" },
+    crouch:   { frames: 3,  width: 49, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_crouch_uniform.png" },
+    guard:    { frames: 1,  width: 42, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_guard_uniform.png" },
+    hurt:     { frames: 7,  width: 77, height: 78, speed: 5, anchorY: 0, sheet: "./jiraiya_hurt_uniform.png" },
+    getup:    { frames: 2,  width: 57, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_getup_uniform.png" },
+    up:       { frames: 5,  width: 59, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_up_uniform.png" },
+    air:      { frames: 4,  width: 75, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_air_uniform.png" },
+    down_air: { frames: 5,  width: 62, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_down_air_uniform.png" },
+    heavy:    { frames: 9,  width: 67, height: 83, speed: 4, anchorY: 0, lockLastFrame: true, sheet: "./jiraiya_heavy_uniform.png" },
+    throw:    { frames: 4,  width: 58, height: 69, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_throw_uniform.png" },
+    win:      { frames: 10, width: 52, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jiraiya_win_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
-  naruto, sasuke, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain,
+  naruto, sasuke, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,

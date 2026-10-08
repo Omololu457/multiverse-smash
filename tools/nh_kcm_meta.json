@@ -1,0 +1,92 @@
+{
+ "idle": {
+  "frames": 2,
+  "width": 47,
+  "height": 83,
+  "sheet": "./naruto_hokage_kcm_idle_uniform.png"
+ },
+ "run": {
+  "frames": 6,
+  "width": 74,
+  "height": 71,
+  "sheet": "./naruto_hokage_kcm_run_uniform.png"
+ },
+ "dash": {
+  "frames": 5,
+  "width": 89,
+  "height": 75,
+  "sheet": "./naruto_hokage_kcm_dash_uniform.png"
+ },
+ "light": {
+  "frames": 6,
+  "width": 95,
+  "height": 78,
+  "sheet": "./naruto_hokage_kcm_light_uniform.png"
+ },
+ "chakra_arm": {
+  "frames": 1,
+  "width": 94,
+  "height": 66,
+  "sheet": "./naruto_hokage_kcm_chakra_arm_uniform.png"
+ },
+ "heavy": {
+  "frames": 2,
+  "width": 81,
+  "height": 76,
+  "sheet": "./naruto_hokage_kcm_heavy_uniform.png"
+ },
+ "hurt": {
+  "frames": 3,
+  "width": 52,
+  "height": 76,
+  "sheet": "./naruto_hokage_kcm_hurt_uniform.png"
+ },
+ "knockdown": {
+  "frames": 1,
+  "width": 73,
+  "height": 46,
+  "sheet": "./naruto_hokage_kcm_knockdown_uniform.png"
+ },
+ "getup": {
+  "frames": 2,
+  "width": 50,
+  "height": 53,
+  "sheet": "./naruto_hokage_kcm_getup_uniform.png"
+ },
+ "jump": {
+  "frames": 3,
+  "width": 66,
+  "height": 105,
+  "sheet": "./naruto_hokage_kcm_jump_uniform.png"
+ },
+ "air": {
+  "frames": 2,
+  "width": 66,
+  "height": 84,
+  "sheet": "./naruto_hokage_kcm_air_uniform.png"
+ },
+ "flip_kick": {
+  "frames": 2,
+  "width": 55,
+  "height": 107,
+  "sheet": "./naruto_hokage_kcm_flip_kick_uniform.png"
+ },
+ "win": {
+  "frames": 1,
+  "width": 51,
+  "height": 97,
+  "sheet": "./naruto_hokage_kcm_win_uniform.png"
+ },
+ "fist_fx": {
+  "frames": 1,
+  "width": 147,
+  "height": 60,
+  "sheet": "./naruto_hokage_kcm_fist_fx_uniform.png"
+ },
+ "gather": {
+  "frames": 1,
+  "width": 42,
+  "height": 83,
+  "sheet": "./naruto_hokage_kcm_gather_uniform.png"
+ }
+}

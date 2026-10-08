@@ -109,9 +109,9 @@ export const SOURCED_ART = {
   // Degue-1297 / Mikeel on the sheet). KCM (golden) locomotion/hit art sliced from the adult
   // Naruto KCM sheet by Vaydra (DeviantArt filename handle "vahidras"). Attribution MANDATORY.
   naruto_hokage: {
-    work:    "Naruto (Hokage) / Kurama Chakra Mode (Naruto)",
-    artists: ["RBM-Kyuubi", "PadaKun", "Degue-1297", "Mikeel", "Vaydra (vahidras)"],
-    source:  "fan sprite sheets (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — Hokage, by RBM-Kyuubi / PadaKun / Degue-1297 / Mikeel; adult_naruto_kcm_sprites_by_vahidras_di37okp.png — KCM, by Vaydra)",
+    work:    "Naruto (Adult KCM) — Kurama Chakra Mode",
+    artists: ["Vaydra (vahidras) — body", "RBM-Kyuubi, PadaKun, Degue-1297, Mikeel — Gamabunta & FX"],
+    source:  "fan sprite sheets (adult_naruto_kcm_sprites_by_vahidras_di37okp.png — the golden KCM BODY, by Vaydra; naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — Gamabunta + seal/Kurama/Bijuudama FX only, by RBM-Kyuubi / PadaKun / Degue-1297 / Mikeel)",
     files:   ["naruto_hokage_*.png", "adult_naruto_kcm_sprites_by_vahidras_*.png"]
   },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation

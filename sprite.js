@@ -226,12 +226,10 @@ const MOVE_TO_ACTION = {
   up: "up",
   air: "air",
   down_air: "down_air",
-  // Naruto (Hokage) STAGE 2: special cast poses (_spriteCastMove). Identity maps so a cast
-  // recovery tail never resolves to the 128² fallback box.
-  nhRasenganCast: "nhRasenganCast", nhRasenshurikenCast: "nhRasenshurikenCast",
-  nhDotonCast: "nhDotonCast", nhThrowCast: "nhThrowCast", nhKuchiyoseCast: "nhKuchiyoseCast",
-  chakraCharge: "chakraCharge",   // Naruto (Hokage) STAGE 3: KCM transform hold-pose. Identity map.
-  nhFourTails: "nhFourTails", nhRikudou: "nhRikudou",   // Naruto (Hokage) STAGE 4: burst-sequence combos. Identity maps.
+  // Naruto (Adult KCM) — special cast poses (_spriteCastMove). Identity maps so a cast recovery
+  // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
+  // Chakra Arm Strike / Gamabunta+TBB gather pose.)
+  nhDash: "nhDash", nhFlipKick: "nhFlipKick", nhChakraArm: "nhChakraArm", nhGather: "nhGather",
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.

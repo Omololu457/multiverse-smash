@@ -9671,7 +9671,7 @@ const jiraiya = {
 // Specials/ultimate are declared here as the intended kit (drives the Move List);
 // their dispatch is wired in abilities.js in the specials stage.
 const narutoHokage = {
-  rosterKey: "naruto_hokage", name: "Naruto (Hokage)", universe: "naruto", color: "#f6a623",
+  rosterKey: "naruto_hokage", name: "Naruto (Adult KCM)", universe: "naruto", color: "#f6a623",
   portrait: "./naruto_hokage_portrait.png", homeStage: "Hidden Leaf Village",
   archetypes: ["melee", "ranged", "summons"], primary: "melee", secondary: ["ranged", "summons"],
   traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
@@ -9685,58 +9685,49 @@ const narutoHokage = {
     downAir:   { damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
   },
-  // Intended kit — dispatch wired in the specials stage. Labels: CANON / CANON-ADJACENT / ORIGINAL.
+  // KCM-rework kit (abilities.js executeNarutoHokageSpecial / NH_TIER). Labels: CANON / CANON-ADJACENT / ORIGINAL.
+  // Hold Charge to climb KCM tiers I→II→III (each adds aura + buffs + a move unlock).
   specials: {
-    rasengan:       { cost: 30, damage: 118, subtype: "projectile", effect: "BASE Neutral+Special — Rasengan: short dashing spiral orb. [CANON]" },
-    rasenshuriken:  { cost: 70, damage: 230, subtype: "projectile", effect: "BASE Fwd+Special — Rasenshuriken: wind blade + chip DOT. [CANON]" },
-    dotonWall:      { cost: 28, damage: 70,  subtype: "aoe",        effect: "BASE Back+Special — Doton earth wall: rising stone pillars, blocks & bumps. [CANON-ADJACENT]" },
-    throwWeapon:    { cost: 14, damage: 44,  subtype: "projectile", effect: "BASE Down+Special — thrown kunai/shuriken (free slot). [CANON]" },
-    rasenkyugan:    { cost: 34, damage: 150, subtype: "projectile", effect: "KCM Neutral+Special — Rasenkyugan: extending chakra-arm Rasengan. [CANON-ADJACENT]" },
-    wakuseiRasengan:{ cost: 55, damage: 215, subtype: "projectile", effect: "KCM Fwd+Special — Wakusei (Planetary) Rasengan: long horizontal thrust streak. [CANON-ADJACENT]" },
-    bijuuRasenshuriken:{ cost: 80, damage: 275, subtype: "projectile", effect: "KCM Back+Special — Bijuu Rasenshuriken: upgraded wind blade. [CANON]" }
+    chakraArm:   { cost: 34, effect: "Neutral+Special (KCM II+): Chakra Arm Strike — an extended golden chakra-arm punch that hurls the oversized chakra fist. [CANON]" },
+    dashBarrage: { cost: 28, effect: "Fwd+Special: Dash Barrage — a KCM-speed dashing punch flurry (4 hits). [CANON-ADJACENT]" },
+    flipKick:    { cost: 24, effect: "Back+Special: Rising Flip Kick — an anti-air handstand-flip kick that launches. [ORIGINAL]" },
+    gamabunta:   { cost: 50, effect: "Down+Special: Kuchiyose — Gamabunta: seal burst → the toad's dagger slash (sure-hit, half on block). [CANON]" }
   },
   ultimate: {
-    name: "Kuchiyose: Gamabunta", cost: 80,
-    description: "BASE Ultimate — summon seal → Gamabunta → committed dagger slash with a large arc. In KCM: neutral Ultimate = Bijuudama (Tailed Beast Bomb); Fwd+Ultimate = Four-Tails Rage burst; Down+Ultimate = Rikudou burst. [CANON]",
-    variants: { neutral: "Kuchiyose: Gamabunta", kcmNeutral: "Bijuudama", kcmForward: "Four-Tails Rage", kcmDown: "Rikudou Mode" }
+    name: "Tailed Beast Bomb", cost: 80, damage: 360,
+    description: "KCM III only — Bijuudama: the two Kurama heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom). [CANON]"
   },
-  // "Hokage's Chakra Ladder" — base <-> KCM persistent forms; burst forms are sequence-bound (KCM only).
-  transformationOrder: ["base", "kcm"],
-  transformations: {
-    base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    kcm:  { damageMultiplier: 1.25, speedMultiplier: 1.12, defenseMultiplier: 1.05, energyThreshold: 60, energyDrainPerFrame: 0.16, energyRegenBonus: 1.6, revertOnEmpty: true, isSpecial: true }
-  },
+  // 3-TIER KURAMA CHAKRA MODE lives in abilities.js (NH_TIER) — NOT a transformations-based form swap.
+  // Kept minimal so form-reading code has a valid base entry.
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  spriteScale: 2.0,
+  spriteScale: 1.5,   // golden V body: idle content ≈83px × 1.5 ≈ 124px on-screen (matches the prior size)
   introPool: ["intro"],
   animationData: {
-    idle:      { frames: 8, width: 34, height: 62, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_hokage_idle_uniform.png" },
-    walk:      { frames: 6, width: 56, height: 51, speed: 5, anchorY: 0, loop: true,  sheet: "./naruto_hokage_run_uniform.png" },
-    run:       { frames: 6, width: 56, height: 51, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_hokage_run_uniform.png" },
-    dash:      { frames: 3, width: 55, height: 47, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_dash_uniform.png" },
-    jump:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_jump_uniform.png" },
-    fall:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_jump_uniform.png" },
-    guard:     { frames: 2, width: 39, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_guard_uniform.png" },
-    hurt:      { frames: 3, width: 49, height: 61, speed: 5, anchorY: 0, sheet: "./naruto_hokage_hurt_uniform.png" },
-    knockdown: { frames: 8, width: 66, height: 55, speed: 6, anchorY: 0, sheet: "./naruto_hokage_knockdown_uniform.png" },
-    light:     { frames: 9, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_light_uniform.png" },
-    heavy:     { frames: 5, width: 62, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_heavy_uniform.png" },
-    up:        { frames: 6, width: 65, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_up_uniform.png" },
-    air:       { frames: 3, width: 61, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_air_uniform.png" },
-    down_air:  { frames: 6, width: 78, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_strong_down_uniform.png" },
-    intro:     { frames: 4, width: 44, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_intro_uniform.png" },
-    win:       { frames: 1, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_win_uniform.png" },
-    // ── STAGE 2 special cast poses (base form) — driven via _spriteCastMove ──
-    nhRasenganCast:      { frames: 5, width: 66, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rasengan_cast_uniform.png" },
-    nhRasenshurikenCast: { frames: 5, width: 58, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rasenshuriken_cast_uniform.png" },
-    nhDotonCast:         { frames: 4, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_doton_cast_uniform.png" },
-    nhThrowCast:         { frames: 3, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_throw_cast_uniform.png" },
-    nhKuchiyoseCast:     { frames: 5, width: 53, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kuchiyose_cast_uniform.png" },
-    // STAGE 3: Chakra Charge hold-pose, played during the KCM transform cinematic.
-    chakraCharge:        { frames: 4, width: 49, height: 62, speed: 4, anchorY: 0, loop: true, sheet: "./naruto_hokage_chakra_charge_uniform.png" },
-    // STAGE 4: burst-sequence animations (KCM-only committed ultimates).
-    nhFourTails:         { frames: 8, width: 69, height: 68, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_fourtails_uniform.png" },
-    nhRikudou:           { frames: 8, width: 83, height: 68, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_rikudou_uniform.png" }
+    // ── V (Vaydra) golden KCM BODY — every body frame comes from the one V sheet set (naruto_hokage_kcm_*). ──
+    idle:      { frames: 2, width: 47, height: 83, speed: 8, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_idle_uniform.png" },
+    walk:      { frames: 6, width: 74, height: 71, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_run_uniform.png" },   // no walk row → Run slowed (gap)
+    run:       { frames: 6, width: 74, height: 71, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_hokage_kcm_run_uniform.png" },
+    dash:      { frames: 5, width: 89, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_dash_uniform.png" },
+    jump:      { frames: 3, width: 66, height: 105, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_jump_uniform.png" },
+    fall:      { frames: 3, width: 66, height: 105, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_jump_uniform.png" },
+    guard:     { frames: 2, width: 47, height: 83, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_idle_uniform.png" },   // no guard row → idle hold (gap)
+    hurt:      { frames: 3, width: 52, height: 76, speed: 5, anchorY: 0, sheet: "./naruto_hokage_kcm_hurt_uniform.png" },
+    knockdown: { frames: 1, width: 73, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_knockdown_uniform.png" },   // also the defeat hold
+    getup:     { frames: 2, width: 50, height: 53, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_getup_uniform.png" },
+    light:     { frames: 6, width: 95, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_light_uniform.png" },
+    heavy:     { frames: 2, width: 81, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_heavy_uniform.png" },
+    up:        { frames: 2, width: 55, height: 107, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_flip_kick_uniform.png" },   // no Strong-Up → handstand rising kick as launcher (gap)
+    air:       { frames: 2, width: 66, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_air_uniform.png" },
+    down_air:  { frames: 2, width: 66, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_air_uniform.png" },   // no dive-kick → downward somersault reused (gap)
+    intro:     { frames: 2, width: 47, height: 83, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_idle_uniform.png" },   // no intro → gather→stance (gap)
+    win:       { frames: 1, width: 51, height: 97, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_win_uniform.png" },   // relaxed stand (no arms-up win frame on V)
+    // ── special cast poses (_spriteCastMove) ──
+    nhDash:      { frames: 5, width: 89, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_dash_uniform.png" },       // Fwd — Dash Barrage
+    nhFlipKick:  { frames: 2, width: 55, height: 107, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_flip_kick_uniform.png" }, // Back — Rising Flip Kick
+    nhChakraArm: { frames: 1, width: 94, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_chakra_arm_uniform.png" },  // Neutral — Chakra Arm Strike
+    nhGather:    { frames: 1, width: 42, height: 83, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_hokage_kcm_gather_uniform.png" }        // Down — Gamabunta / Ult — TBB cast
   }
 }
 

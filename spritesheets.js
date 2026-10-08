@@ -221,7 +221,7 @@ export const SPRITE_MANIFEST = {
   // rendering reads characters.js → narutoHokage.animationData (each action carries its own
   // .sheet). Fully namespaced naruto_hokage_*; shares NO bytes with the existing `naruto`.
   naruto_hokage: {
-    actions: { idle: "./naruto_hokage_idle_uniform.png" }
+    actions: { idle: "./naruto_hokage_kcm_idle_uniform.png" }   // KCM rework: golden V idle gates spritesReady()
   },
 
 

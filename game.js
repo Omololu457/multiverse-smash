@@ -8349,6 +8349,35 @@ function drawKuramaShroudAura(c, fighter) {
   c.restore()
 }
 
+// NARUTO (ADULT KCM) — 3-TIER Kurama aura. Escalating gold→orange→red glow behind the golden body,
+// one shade + brightness + spread per KCM tier (I/II/III). Copied from drawKuramaShroudAura (the Naruto
+// shroud infra); drawn BEFORE the body so it shows on sprite + vector paths. No-op for anyone else.
+const NH_TIER_AURA = ["#fde68a", "#fb923c", "#dc2626"]   // KCM I / II / III
+function drawNHTierAura(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naruto_hokage") return
+  const tier = Math.max(1, Math.min(3, fighter._nhTier || 1))
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const color  = NH_TIER_AURA[tier - 1]
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._nhAuraPulse = (fighter._nhAuraPulse || 0) + 0.16)
+  const spread = 6 + tier * 5
+  c.save()
+  c.globalAlpha  = 0.10 + tier * 0.06 + pulse * 0.06
+  c.shadowBlur   = spread * 2
+  c.shadowColor  = color
+  c.strokeStyle  = color
+  c.lineWidth    = spread
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 16
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
 // ITACHI — MANGEKYOU SHARINGAN overlay. A pulsing crimson glow drawn AROUND the base sprite
 // while _mangekyouActive (the eyes are "an OVERLAY on top of the normal sprite", not a body-swap).
 // Drawn BEFORE the sprite (behind the body), mirroring drawKuramaShroudAura. No-op for anyone else.
@@ -14382,6 +14411,7 @@ function renderHybridFighter(fighter) {
   const key = fighter.rosterKey
   const drawTo = (c) => {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
+    drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
     drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
     drawSupermanSolarFlareAura(c, fighter)   // Superman Solar Flare gold radiant halo, behind the body (Superman only)
     drawSupermanOverloadAura(c, fighter)     // Superman Kryptonian Overload blue electric crackle, behind the body (Superman only)

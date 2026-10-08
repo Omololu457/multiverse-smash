@@ -33,7 +33,7 @@ export const SUMMON_MOTION = "cloneSummon"   // ↓↓↑ + Special stages the f
                                              // (chargeUp ↓↑ was too greedy — matched Minato's ↓←↑ B→U combo).
 export const SUMMON_COST   = 25            // flat chakra paid at summon; the select itself adds nothing
 export const SUMMON_CD     = 12            // brief lockout so one press can't double-fire
-export const SELECT_WINDOW = 60            // frames the player has to pick before the formation disperses
+export const SELECT_WINDOW = 90            // frames to pick before the formation disperses (EASED 2026-10-07: 60->90 ≈ 1.0s->1.5s)
 
 // Held-direction → sequence key. Consistent across the whole roster (one muscle-memory map):
 //   Neutral → Pure Attack · Down → Deception · Up → Defensive · Back → Ranged · Fwd → Grab.

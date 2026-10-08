@@ -15891,6 +15891,22 @@ function drawBattleScene() {
   // GENERIC clone choreography ghost bodies (rest of the Naruto-universe roster) — same renderHybridFighter
   // path, so each clone is pixel-identical to its real character (the Stage-0 visual-fidelity guarantee).
   for (const g of getCloneChoreoBodies()) renderHybridFighter(g)
+  // CLONE-SUMMON SELECT HINT (ease-of-use, 2026-10-07) — while a formation is staged, show the available
+  // picks so the summon-then-select is discoverable. Drawn in SCREEN space (reset transform, then restore the
+  // world transform) at the top-centre so it's always visible. Render-only; never touches the sim.
+  if ((p1 && p1._inChoreoFormation && (p1._choreoSelectWindow || 0) > 0) || (p2 && p2._inChoreoFormation && (p2._choreoSelectWindow || 0) > 0)) {
+    const win = Math.max(p1?._inChoreoFormation ? (p1._choreoSelectWindow || 0) : 0, p2?._inChoreoFormation ? (p2._choreoSelectWindow || 0) : 0)
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+    const cx = canvas.width / 2, bw = 360, bh = 52, bx = cx - bw / 2, by = 132
+    ctx.fillStyle = "rgba(8,18,37,0.86)"; ctx.strokeStyle = "rgba(120,170,255,0.6)"; ctx.lineWidth = 1.5
+    ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 9); else ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke()
+    ctx.textAlign = "center"
+    ctx.fillStyle = "#bfe0ff"; ctx.font = "700 12px Arial"; ctx.fillText(`CLONE SELECT  — hold a direction + Special   (${Math.ceil(win / 60 * 10) / 10}s)`, cx, by + 16)
+    ctx.fillStyle = "#e9f1ff"; ctx.font = "13px Arial"
+    ctx.fillText("◉ Pure Attack     ↓ Deception     ↑ Defensive", cx, by + 33)
+    ctx.fillText("← Ranged     → Grab     Ultimate = Swarm", cx, by + 48)
+    ctx.restore()
+  }
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
   drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
   drawEdoDummy(p2)

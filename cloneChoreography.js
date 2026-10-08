@@ -1142,4 +1142,54 @@ export const CHOREO_BY_CHAR = {
       },
     },
   },
+
+  // ── JIRAIYA — the Toad Sage: LIGHT KIT (canon "one or two Shadow Clones"; NOT the 6-type swarm). ───────
+  // Per the brief: 1-2 moves, MAX 2 clones. Access = the ↓↓↑ MOTION + Special (orthogonal to his 5 held-
+  // direction specials per form, his directional Ultimates, and Down+Special — see abilities.js collision
+  // note). Held direction at the press selects: neutral = Clone Pincer (Pure Attack), Down = Clone Feint
+  // (Deception). Clones render as the REAL Jiraiya in the CURRENT form (makeGhostBody copies the live
+  // _skinAnim, so Sage Mode clones use the sage sheets). FORM RULE: Base = 1 clone, Hermit = 2 clones (the
+  // Pincer is remapped to the 2-clone variant in Sage Mode — see abilities.js cloneChoreoInterceptSpecial).
+  // Damage is SUBLINEAR in clone count by design (2-clone total ≈ 1.13× the 1-clone total, hand-tuned per
+  // hit); jiraiya is deliberately NOT in cloneFormStage, so no DMG_MULT compounding. Deterministic (form
+  // flag, no gameRng). Reuses ONLY existing Jiraiya frames (light combo / up / heavy=X-attack/Rasengan pose).
+  jiraiya: {
+    light: true,
+    directMap: { N: "jiraiyaClonePincer", D: "jiraiyaCloneFeint" },   // Hermit remaps Pincer → jiraiyaClonePincer2
+    fx: { melee: { fxType: "cloneChoreoHit", color: "#c9772e", spriteScale: 0.5 }, proj: { sheet: "./naruto_kcm_fx_rasengan_sphere.png", color: "#8fe9ff", w: 24, h: 24, spriteScale: 0.45 } },
+    seqs: {
+      // DECEPTION — Clone Feint: a shadow clone is left where Jiraiya stood (puff of smoke) while the real
+      // Jiraiya body-flickers behind the target and counters. (1 clone, both forms.)
+      jiraiyaCloneFeint: {
+        name: "Shadow Clone Feint", cost: 30, cooldown: 92, duration: 42,
+        clones: [{ slot: "c0" }],
+        beats: [
+          { at: 2, body: "c0", action: "idle", appear: 0, vanish: 32, place: { ref: "casterStart", dx: 0, dy: 0, face: 1 } },
+        ],
+        finisher: { type: "escape", at: 6, action: "heavy", teleport: { behindTarget: true, dx: 60 }, iframes: 24,
+          hit: { damage: 20, hitstun: 26, knockbackX: 6, knockbackY: -3 } },
+      },
+      // PURE ATTACK — Clone Pincer (BASE, 1 clone): the clone strikes from behind while Jiraiya hits from the
+      // front (two sides). Finisher = heavy (his X-attack / Rasengan-thrust pose). Total ≈ 38.
+      jiraiyaClonePincer: {
+        name: "Shadow Clone Pincer", cost: 32, cooldown: 90, duration: 54,
+        clones: [{ slot: "c0" }],
+        beats: [
+          { at: 6, body: "c0", action: "light", appear: 2, vanish: 28, place: { dx: -62, dy: 0, face: 1 }, hit: { damage: 14, hitstun: 26, knockbackX: 3, knockbackY: -5 } },
+        ],
+        finisher: { type: "strike", at: 30, action: "heavy", teleport: { dx: 44 }, hit: { damage: 24, hitstun: 30, knockbackX: 8, knockbackY: -6 } },
+      },
+      // PURE ATTACK — Twin Clone Pincer (HERMIT, 2 clones): both clones strike from two sides, Jiraiya
+      // finishes. Per-hit REDUCED so the total (≈ 43) is only ~1.13× the 1-clone Pincer → SUBLINEAR in count.
+      jiraiyaClonePincer2: {
+        name: "Twin Shadow Clone Pincer", cost: 36, cooldown: 96, duration: 62,
+        clones: [{ slot: "c0" }, { slot: "c1" }],
+        beats: [
+          { at: 6,  body: "c0", action: "light", appear: 2,  vanish: 28, place: { dx: -62, dy: 0,  face: 1  }, hit: { damage: 11, hitstun: 24, knockbackX: 3, knockbackY: -5 } },
+          { at: 16, body: "c1", action: "up",    appear: 12, vanish: 40, place: { dx: 58,  dy: -8, face: -1 }, hit: { damage: 10, hitstun: 22, knockbackX: 2, knockbackY: -8 } },
+        ],
+        finisher: { type: "strike", at: 34, action: "heavy", teleport: { dx: 40 }, hit: { damage: 22, hitstun: 30, knockbackX: 8, knockbackY: -6 } },
+      },
+    },
+  },
 }

@@ -4,6 +4,36 @@ Newest first. "★" = landed on main. Dates are when the work was done.
 ========================================================================
 
 ========================================================================
+JIRAIYA — LIGHT CLONE KIT (Feint + Pincer) — 2026-10-08
+  (branch jiraiya-clones, off jiraiya; NOT merged. Its ancestry already includes
+   the naruto-clone-choreography merge via main.)
+========================================================================
+  Reuses the EXISTING clone-choreography engine (no engine repair). Canon: Jiraiya
+  can use one or two Shadow Clones → LIGHT kit, MAX 2 clones (NOT the 6-type swarm).
+  Access = the roster-standard ↓↓↑ + Special motion (orthogonal to his 5 directional
+  specials per form, directional Ultimates, and Down+Special — collision-checked).
+    • Clone Pincer (Pure Attack, ↓↓↑+Special) — clone(s) + Jiraiya strike from two
+      sides, reusing his OWN frames (light / up / heavy = Rasengan-thrust). Base = 1
+      clone, Sage Mode = 2 clones; damage is SUBLINEAR in clone count (hand-tuned).
+    • Clone Feint (Deception, ↓↓↑ + Down + Special) — leaves a clone in a smoke puff,
+      body-flickers behind the target + counter (escape finisher, i-frames).
+  Clones render as the REAL Jiraiya via renderHybridFighter, in the CURRENT form
+  (base clone in base, sage clone in Sage Mode — the live _skinAnim). Deterministic
+  (form flag, no gameRng). Only existing frames reused; no new art.
+  Files: cloneChoreography.js (jiraiya kit, pure addition), abilities.js (+1 jiraiya-
+  only Hermit->2-clone remap), motionInput.js (+jiraiya in NARUTO_UNIVERSE_KEYS),
+  kits.js (Move List). Naruto + every other clone char byte-unchanged (git-diff proven).
+  VERIFIED via REAL KEYSTROKES (harness/jiraiya_clones_shots.mjs 13/0): the ↓↓↑+Special
+  summon, Up+Special still = Ranjishigami (no collision), Base = 1 / Sage = 2 clones,
+  Pincer, and clones render as real Jiraiya per form. The Clone FEINT was verified via
+  the direct per-move hook (LOGIC path) + screenshot — its ↓↓↑+Down+Special real-key
+  SELECT is the only part not driven by raw keys. Regression: determinism 9/0,
+  combo-standard 230/0, clone-realinput 25/0, clone-distinctness 82/0 (threshold
+  UNCHANGED — light-kit chars are excluded from that audit), naruto-summon-select 18/0,
+  jiraiya base suite 19/0.
+
+
+========================================================================
 CLONE "SPAZZING" FIX + EASIER INPUTS + NARUTO ALIGNMENT + FORM MULTIPLIERS — 2026-10-08
   (branch naruto-clone-choreography; NOT merged)
 ========================================================================

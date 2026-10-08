@@ -18,10 +18,11 @@
 // early-returns), so their input path is provably untouched.
 // Naruto-universe fighters whose directional presses feed the classic motion buffer. Extended 2026-09-26
 // with the rest of the clone-choreography roster (hiruzen/kakashi/madara/boruto/pain/obito) so the ↓↓↑
-// cloneSummon motion works for them. SAFE: this set only gates motion recording/detection (no external
-// gameplay use), and these characters' execute*Special functions don't consume motions — only the
-// clone-choreography intercept does. (Isshiki/Orochimaru/Onoki/Kiba deliberately excluded from the rollout.)
-export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama", "hiruzen", "kakashi", "madara", "boruto", "pain", "obito"])
+// cloneSummon motion works for them; 2026-10-08 added jiraiya for his LIGHT clone kit. SAFE: this set only
+// gates motion recording/detection (no external gameplay use), and these characters' execute*Special
+// functions read the held DIRECTION (_specialHeldDir), not motions — only the clone-choreography intercept
+// consumes the ↓↓↑ motion. (Isshiki/Orochimaru/Onoki/Kiba deliberately excluded from the rollout.)
+export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama", "hiruzen", "kakashi", "madara", "boruto", "pain", "obito", "jiraiya"])
 
 export function isNarutoUniverse(fighter) {
   return !!fighter && NARUTO_UNIVERSE_KEYS.has(String(fighter.rosterKey || "").toLowerCase())

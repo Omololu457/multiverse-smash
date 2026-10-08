@@ -25140,6 +25140,9 @@ function cloneChoreoInterceptSpecial(fighter) {
       if ((fighter._choreoCd || 0) > 0) return true
       if (!spendEnergy(fighter, Math.round(SUMMON_COST * cloneScaling(fighter).costMult))) return false   // STAGE 6: modest in-form cost scaling
       fighter._pendingChoreoDirect = lightDirectSeq(key, fighter._specialHeldDir)
+      // JIRAIYA form rule: Hermit (Sage) Mode = 2 clones → remap the 1-clone Pincer to the 2-clone variant.
+      // (Base = 1 clone stays jiraiyaClonePincer.) jiraiya-only; no other character is affected.
+      if (key === "jiraiya" && fighter._jiraiyaHermit && fighter._pendingChoreoDirect === "jiraiyaClonePincer") fighter._pendingChoreoDirect = "jiraiyaClonePincer2"
       fighter._choreoCd = SUMMON_CD
       return true
     }

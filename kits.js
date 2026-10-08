@@ -124,7 +124,9 @@ export const KITS = {
       { name: "Katon: Gamayu Endan",      input: "Forward + Special", cost: 28, desc: "toad-oil flame-bullet projectile [CANON]" },
       { name: "Protective Barrier",       input: "Back + Special",    cost: 34, desc: "timed blue defensive bubble (i-frames) [CANON-ADJACENT]" },
       { name: "Ranjishigami no Jutsu",    input: "Up + Special",      cost: 30, desc: "needle-hair spikes erupt — anti-air AOE [CANON]" },
-      { name: "Gamayu Endan (Big Flame)", input: "Down + Special",    cost: 40, desc: "larger ground flame wall [CANON]" }
+      { name: "Gamayu Endan (Big Flame)", input: "Down + Special",    cost: 40, desc: "larger ground flame wall [CANON]" },
+      { name: "Shadow Clone Pincer",      input: "↓↓↑ + Special",      cost: 25, desc: "summon a shadow clone; you + clone strike from two sides. Base = 1 clone, Sage Mode = 2 (sublinear damage) [CANON]" },
+      { name: "Shadow Clone Feint",       input: "↓↓↑ + Down + Special", cost: 25, desc: "leave a clone in a puff of smoke, body-flicker behind the target and counter [CANON-ADJACENT]" }
     ],
     mobility: { name: "Body Flicker", input: "Dodge / dash", cost: 0, desc: "quick repositioning teleport (dodge-teleport)" },
     ultimate: { name: "Sage Mode / Gamabunta", input: "Ultimate (full meter) — Neutral / Down", cost: 100, desc: "Neutral: enter Hermit (Sage) Mode (~20s buffs + new specials; neutral Ultimate in Sage Mode becomes Chou Odama Rasengan). Down: Summoning Jutsu — Gamabunta crashes down with a blade strike [CANON]" },

@@ -216,6 +216,15 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./ippo_idle_uniform.png" }
   },
 
+  // Naruto (Hokage) — additive standalone (rosterKey naruto_hokage). Gates spritesReady()
+  // by decoding the BASE-Hokage idle strip → flips him from box to sprite. Per-action
+  // rendering reads characters.js → narutoHokage.animationData (each action carries its own
+  // .sheet). Fully namespaced naruto_hokage_*; shares NO bytes with the existing `naruto`.
+  naruto_hokage: {
+    actions: { idle: "./naruto_hokage_idle_uniform.png" }
+  },
+
+
   // Dark Vegeta (universe: dragon_ball) — STAGE 1. STANDALONE, independent of the blue `vegeta`.
   // Gates spritesReady() by decoding the idle strip → flips Dark Vegeta from box to sprite. Per-action
   // rendering reads characters.js → vegeta_dark.animationData (each action carries its own .sheet).

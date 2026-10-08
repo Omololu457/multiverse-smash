@@ -192,6 +192,9 @@ export const ZONER = [
   "spiderman_raimi", // web specials (Web Shot / Web Zip / Spider-Sense / Web Sweep) + Web Cocoon ult, no normal chain
   "spiderman_ssf2",  // movement + normals only (no specials — staged); no chain
   "spiderman_mci",   // movement + normals only (no specials — staged); no chain
+  "naruto_hokage",   // NEW additive standalone (Hokage + KCM): base normals + fixed-slot specials/ult;
+                     //   no Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke for now.
+                     //   (Distinct from the base `naruto`, who stays an L,L,H standard-string char.)
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -255,6 +258,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                22,         // 19 + jesus + jiraiya + sakura (additive JUS char, single-poke)
-  rosterTotal:          106,       // 71 rekka + 13 standard-string + 22 single-poke = 106 (sakura added)
+  zoner:                23,         // 19 + jesus + jiraiya + sakura + naruto_hokage (additive JUS chars, single-poke)
+  rosterTotal:          107,       // 71 rekka + 13 standard-string + 23 single-poke = 107 (sakura + naruto_hokage added)
 }

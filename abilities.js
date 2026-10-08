@@ -4015,6 +4015,147 @@ function executeJesusUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SAKURA HARUNO — medic-rushdown kunoichi. Sprite BODY from the RBM-Kyuubi sheet; every special EFFECT
+// procedural (Jesus discipline). NOT brutality-eligible. Deterministic (no gameRng). The sheet's WEAK/STRONG
+// share one frame-set; the WEAK version of each move is built — hold-to-release STRONG is DEFERRED (there is
+// no reusable directional-special hold path; Saitama's tap/hold is a bespoke neutral-ground press-path).
+//   Inputs (Special button + held dir): neutral = Shannaro Rush (enhanced-strength punch string) ·
+//   Fwd = Heaven-Spin Kick (rising crescent, launcher) · Up = Cherry-Blossom Impact (overhead strike) ·
+//   Back = Byakugou Seal (self-heal, safeguarded) · Down = Summoning: Katsuyu (slug wall + shove + absorb) ·
+//   AIR = Kunai Throw. ULT = Daichi no Sakebi (gather → cherry-petal AOE).
+// The three melee specials route through _sakuraMelee → createAttackFromMove (real hitbox); currentMove =
+// the move key → sprite.js MOVE_TO_ACTION plays the matching cast sheet. Canon labels: Shannaro Rush /
+// Heaven-Spin Kick / Katsuyu / Byakugou = CANON or CANON-ADJACENT; Cherry-Blossom Impact / Daichi = ORIGINAL.
+const SAKURA_MELEE = {
+  sakuraShannaro:   { damage: 54, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 76, rangeY: 54, cost: 22 },
+  sakuraHeavenKick: { damage: 60, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 6, knockbackY: -9, rangeX: 88, rangeY: 74, cost: 24, launcher: true, advance: 7 },
+  sakuraStrike:     { damage: 66, startup: 8, active: 4, recovery: 20, hitstun: 24, knockbackX: 5, knockbackY: 6,  rangeX: 72, rangeY: 60, cost: 26, category: "heavy" },
+}
+function _sakuraMelee(fighter, key, context) {
+  const md = SAKURA_MELEE[key]
+  if (!md) return false
+  if (md.cost && !spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.isSpecial = true
+  if (md.category) attack.category = md.category
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → sprite plays the cast sheet
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+function executeSakuraSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "sakura") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  // Round reset for Byakugou's per-round use cap: health is only at/above max at round start (the seal can't
+  // start at full HP, so this never fires mid-channel). Deterministic, no round hook needed.
+  if (fighter.health >= (fighter.maxHealth || 1120)) fighter._byakugouUses = 0
+  if (!grounded)    return throwSakuraKunai(fighter, context)                 // AIR = thrown weapon
+  if (dir === "F")  return _sakuraMelee(fighter, "sakuraHeavenKick", context) // Fwd = rising kick (launcher)
+  if (dir === "U")  return _sakuraMelee(fighter, "sakuraStrike", context)     // Up  = overhead chakra strike
+  if (dir === "B")  return channelSakuraByakugou(fighter, context)           // Back = Byakugou Seal heal
+  if (dir === "D")  return castSakuraKatsuyu(fighter, context)               // Down = Katsuyu wall
+  return _sakuraMelee(fighter, "sakuraShannaro", context)                    // neutral = punch string
+}
+
+// AIR — Kunai Throw: a thrown-weapon projectile (CANON-ADJACENT; the sheet's Throw Weapon (Air) pose).
+function throwSakuraKunai(fighter, context) {
+  if (!spendEnergy(fighter, 18)) return false
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  fighter._spriteCastMove = "sakuraThrow"; fighter._spriteCastTimer = 18
+  const face = fighter.facing || 1
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "sakuraKunai", {
+      damage: 34, speed: 17, lifetime: 80, hitstun: 14, knockbackX: 6, knockbackY: 2,
+      w: 30, h: 12, radius: 12, color: "#d9dde3", isSpecial: true,
+      vx: face * 17, spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// DOWN — Summoning: Katsuyu (CANON). The sheet has the slug BODY only, so this is built as a large BLOCKING
+// + ABSORBING wall plus a SHOVE: a slow slug projectile in front of Sakura carries a heavy-knockback hitbox
+// (the shove) while brief i-frames on Sakura model the wall absorbing a blow. The STRONG variant's small heal
+// is NOT built (weak-only — hold-to-release deferred). Reuses the Chakra-Charge pose as the summon windup.
+function castSakuraKatsuyu(fighter, context) {
+  if (!spendEnergy(fighter, 34)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 26        // reuse Chakra-Charge summon windup (no dedicated cast art)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)            // the wall ABSORBS while it rises (i-frames)
+  fighter._katsuyuGuard = 40                                              // render flag (slug) for a later art pass
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "sakuraKatsuyu", {
+      damage: 28, speed: 3, lifetime: 72, hitstun: 20, knockbackX: 13, knockbackY: -2,
+      w: 150, h: 72, radius: 70, color: "#dfe7ef", isSpecial: true,
+      vx: face * 3, spawnY: fighter.y + (fighter.h || 100) * 0.30,
+      sheet: "./sakura_katsuyu.png", spriteFrames: 1, spriteW: 235, spriteH: 109, spriteScale: 1.0
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// BACK — Byakugou Seal: Strength of a Hundred (CANON) self-heal, SAFEGUARDED against degenerate healing:
+//   • cannot start at full HP   • high energy cost (45)   • heal CAPPED per use (≤150)   • INTERRUPTED by
+//   any hit during the channel (delayed apply skips if hp dropped or she's in hit/blockstun)   • LIMITED to
+//   3 uses per round (reset at round start)   • deterministic (no gameRng, no i-frames → she's vulnerable).
+function channelSakuraByakugou(fighter, context) {
+  const maxHP = fighter.maxHealth || 1120
+  if (fighter.health >= maxHP - 1) return false                 // cannot start at full HP
+  if ((fighter._byakugouUses || 0) >= 3) return false           // limited uses per round
+  if (!spendEnergy(fighter, 45)) return false                   // energy cost
+  fighter._byakugouUses = (fighter._byakugouUses || 0) + 1
+  fighter.attackCooldown = getAttackDuration(40, fighter)       // vulnerable channel (NO i-frames)
+  fighter._spriteCastMove = "sakuraByakugou"; fighter._spriteCastTimer = 40
+  fighter._byakugouSeal = 40                                    // render flag (seal-line glow) for a later art pass
+  const castHealth = fighter.health
+  schedulePendingSpawn(30, () => {
+    if (fighter.eliminated) return
+    // interrupted by ANY hit during the channel → hp dropped below cast, or she's in hit/blockstun → no heal
+    if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0 || fighter.health < castHealth) return
+    const heal = Math.min(150, Math.floor(maxHP * 0.14))        // capped per use
+    fighter.health = Math.min(maxHP, (fighter.health || 0) + heal)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// ULTIMATE — Daichi no Sakebi (ORIGINAL / sheet-named): Sakura gathers (daichi_cast pose), then a screen-wide
+// storm of cherry petals erupts in 3 escalating pulses (two build-ups + a final burst), mirroring the Jesus
+// ultimate's metered AOE economy. The petal VISUAL is a render flag (_daichiUlt) for a later art pass (the
+// daichi_fx petal sheet is available). Callee-spends (meter here); triggerUltimate adds the ult cooldown + cam.
+function executeSakuraUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "sakura") return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(48, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 48)   // radiant / petal-shrouded during the cast
+  fighter._spriteCastMove = "sakuraDaichi"; fighter._spriteCastTimer = 48
+  fighter._daichiUlt = 48   // render flag (cherry-petal storm) for a later art pass
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+  ;[16, 30, 44].forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+      const tcx = opp.x + (opp.w || 60) / 2, tcy = opp.y + (opp.h || 100) / 2
+      if (Math.hypot(tcx - cx, tcy - cy) > 900) return            // effectively screen-wide
+      const dmg = i < 2 ? 70 : 150                                // two build-up pulses + a final burst
+      if (opp.isBlocking) { opp.blockstun = 22; applyScaledDamage(opp, Math.floor(dmg * 0.3), { source: "ability" }); return }
+      opp.hitstun = 44; opp.vx = (tcx >= cx ? 1 : -1) * (i < 2 ? 6 : 12); opp.vy = i < 2 ? -5 : -12; opp.colorFlash = 14
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    })
+  })
+  try { shakeCamera(context, 6, 16) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // JIRAIYA — the Toad Sage (Sannin). Base + Hermit(Sage) form. Like jesus, the character
 // BODY comes from the sheet but EVERY special EFFECT is PROCEDURAL (color/radius projectiles
 // + direct hits + render flags). NOT brutality-eligible. Deterministic (no gameRng).
@@ -25197,6 +25338,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
+    case "sakura":  return executeSakuraSpecial(fighter, context)   // neutral=Shannaro Rush / F=Heaven-Spin Kick / U=Cherry-Blossom Impact / B=Byakugou Seal(heal) / D=Summon Katsuyu(wall) / air=Kunai Throw
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "rick":    return executeRickSpecial(fighter, context)
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
@@ -25430,6 +25572,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
+      case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break

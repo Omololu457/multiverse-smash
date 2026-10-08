@@ -757,6 +757,15 @@ export const SKINS = {
     { id: "lRyuuzakiPanda",        name: "Panda Insomniac",    unlockLevel: 0, portrait: "./l_ryuuzaki_portrait__panda.png",                   spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "panda") },        // INVERTED — near-black shirt over pale-grey jeans
     { id: "lRyuuzakiEternalVoid",  name: "Eternal Void",       unlockLevel: 0, portrait: "./l_ryuuzaki_portrait__lRyuuzakiEternalVoid.png",    spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "lRyuuzakiEternalVoid") }, // Alien-X full-black body + game.js drawLRyuuzakiVoidAuraOverlay (indigo/white deduction-glyph aura)
   ],
+  // Sakura Haruno — default + 3 palette skins (Blue / Dark / Orange, the source sheet's own "Color Paletes"
+  // row) derived by tools/gen_sakura_recolor.py: a VEST-only HSV recolor (skin/hair/pants/outline + alpha
+  // byte-identical → clean keying preserved). Cosmetic only.
+  sakura: [
+    { id: "default",      name: "Default", unlockLevel: 0, portrait: characters.sakura?.portrait,          spriteScale: characters.sakura?.spriteScale, animationData: null },
+    { id: "sakuraBlue",   name: "Azure",   unlockLevel: 0, portrait: recolorPortrait("sakura", "blue"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "blue") },    // vest → cobalt blue
+    { id: "sakuraDark",   name: "Slate",   unlockLevel: 0, portrait: recolorPortrait("sakura", "dark"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "dark") },    // vest → dark grey
+    { id: "sakuraOrange", name: "Amber",   unlockLevel: 0, portrait: recolorPortrait("sakura", "orange"),  spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "orange") },  // vest → warm orange
+  ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

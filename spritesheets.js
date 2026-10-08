@@ -388,6 +388,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./byakuya_idle_uniform.png" }
   },
 
+  // Sakura Haruno (universe: naruto), medic-rushdown — gates spritesReady() by decoding the idle strip
+  // (flips Sakura from procedural box to sprite handler). Per-action rendering reads characters.js →
+  // sakura.animationData (each action carries its own .sheet). Idle = RE-SLICED uniform strip
+  // (tools/reslice_sakura.py).
+  sakura: {
+    actions: { idle: "./sakura_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

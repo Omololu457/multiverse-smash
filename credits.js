@@ -18,6 +18,14 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  // Sakura Haruno (Naruto) — the source sheet carries a baked header credit: "BY: RBM-Kyuubi". Attribution
+  // is MANDATORY. Navy-keyed + per-action sliced by tools/reslice_sakura.py → sakura_*_uniform.png.
+  sakura: {
+    work:    "Sakura Haruno (Naruto / \"Sakura Boruto NZC\")",
+    artists: ["RBM-Kyuubi"],
+    source:  "fan sprite sheet (sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png; in-sheet credit \"BY: RBM-Kyuubi\")",
+    files:   ["sakura_*_uniform.png", "sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png"]
+  },
   gojo: {
     work:    "Gojo Satoru (Shinjuku arc)",
     artists: ["FinhJ", "ZeurasBlack", "Rob4n"],

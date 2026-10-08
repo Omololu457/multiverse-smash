@@ -261,6 +261,33 @@ export const KITS = {
     ]
   },
 
+  sakura: {
+    type: "Medic Rushdown / Support", energy: "Chakra", difficulty: "Medium",
+    summary: "Tsunade's apprentice — chakra-enhanced strikes, a thrown kunai, a summoned Katsuyu wall, and the Byakugou Seal for self-sustain, below the Naruto-universe power ceiling.",
+    passive: { name: "Strength of a Hundred", effect: "Monstrous chakra control — durable medic with enhanced-strength normals and the Byakugou reserve." },
+    basics: [
+      { name: "Jab Combo",    input: "Light",                   desc: "fast enhanced-strength punch string" },
+      { name: "Power Strike", input: "Heavy",                   desc: "committed chakra-smash with knockback" },
+      { name: "Rising Kick",  input: "Up-Attack",               desc: "launcher — starts air combos (high kick)" },
+      { name: "Air Strike",   input: "Air (jump + Light)",      desc: "quick aerial attack" },
+      { name: "Dive Spike",   input: "Down-Air (jump + Heavy)", desc: "downward aerial spike" },
+      { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "Shannaro Rush",         input: "Special",            cost: 22, desc: "chakra-enhanced close-range punch string" },
+      { name: "Heaven-Spin Kick",      input: "Forward + Special",  cost: 24, desc: "advancing rising crescent kick (launcher)" },
+      { name: "Cherry-Blossom Impact", input: "Up + Special",       cost: 26, desc: "committed overhead chakra strike" },
+      { name: "Byakugou Seal",         input: "Back + Special",     cost: 45, desc: "self-heal — can't start at full HP, interrupted by any hit, 3 uses/round" },
+      { name: "Summoning: Katsuyu",    input: "Down + Special",     cost: 34, desc: "summon a slug wall that shoves + absorbs a blow (brief i-frames)" },
+      { name: "Kunai Throw",           input: "Air + Special",      cost: 18, desc: "thrown kunai projectile" }
+    ],
+    ultimate: { name: "Daichi no Sakebi", input: "Ultimate (full meter)", cost: 100, desc: "gather full chakra → a screen-wide cherry-petal storm in 3 escalating pulses" },
+    combos: [
+      { name: "Poke into Rush", sequence: "Light, Special",            desc: "jab into Shannaro Rush" },
+      { name: "Launch Juggle",  sequence: "Up-Attack, Jump, Air, Air", desc: "high-kick launcher into aerial pressure" }
+    ]
+  },
+
   itachi: {
     type: "Genjutsu Tactician / Sharingan", energy: "Chakra", difficulty: "Hard",
     summary: "A calculated Uchiha who zones with the Great Fireball, then flips on the Mangekyou Sharingan to unlock Amaterasu's black flame and a hit-confirm Genjutsu finisher — culminating in the Susanoo avatar.",

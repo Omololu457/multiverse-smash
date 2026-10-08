@@ -6748,6 +6748,84 @@ const byakuya = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SAKURA HARUNO  (rosterKey "sakura", universe "naruto"). Medic-rushdown kunoichi, Tsunade's apprentice.
+// Built from the RBM-Kyuubi "Sakura Boruto NZC" JUS sheet (sakura_btng_nzc_by_rbm_kyuubi) — navy-keyed +
+// per-action uniform strips by tools/reslice_sakura.py → sakura_*_uniform.png. Jesus/Jiraiya discipline:
+// the sprite BODY is the sheet; every special EFFECT is procedural (abilities.js executeSakuraSpecial /
+// executeSakuraUltimate). Credited to RBM-Kyuubi (credits.js). NOT brutality-eligible.
+//   STATS: a moderate band BELOW the Naruto-universe top (support/rushdown) — durable medic, fast, mid power.
+//   ENERGY: "chakra" (ui.js ENERGY_TYPE_LABELS already carries "Chakra").
+//   GAPS (honest reuse, flagged): walk = run slowed · jump/fall = Jump row · crouch = NONE on sheet (omitted;
+//     holding Down keeps idle) · up-launcher = NO Strong-Up on sheet → reuses the Special 3 HIGH-KICK row
+//     (closest rising pose) · down_air = Strong Air row · defeat = last lying Damage frame (knockdown tail).
+//   SPECIALS (Special button + held dir; WEAK built, hold-to-release STRONG deferred — no reusable
+//     directional-special hold path): neutral=Shannaro Rush / Fwd=Heaven-Spin Kick / Up=Cherry-Blossom
+//     Impact / Back=Byakugou Seal heal / Down=Summoning Katsuyu / AIR=Kunai Throw. ULT=Daichi no Sakebi.
+const sakura = {
+  rosterKey: "sakura", name: "Sakura Haruno", universe: "naruto", color: "#e38aa6",
+  portrait: "./sakura_portrait.png",   // bust cropped from idle frame 0 (reslice_sakura.py)
+  archetypes: ["rushdown", "support"],
+  primary: "melee", secondary: ["support"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  passive: { name: "Strength of a Hundred", effect: "A medic's monstrous chakra control — enhanced-strength strikes and the Byakugou Seal's reserve, trading a top-tier's raw power for durability, speed and self-sustain" },
+  // Support/rushdown, below the Naruto-universe ceiling (Naruto/Madara ~1200+). Durable medic (def 88),
+  // fast (speed 94), mid attack. maxEnergy 150 = the Chakra pool (kit + Byakugou + Daichi ult).
+  stats: { maxHealth: 1120, maxEnergy: 150, attack: 86, defense: 88, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 11, dashCooldownMax: 38 },
+  // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air).
+  // RAW damage (engine scales ×0.60). Fast medic-brawler: quick jab string, committed enhanced-strength
+  // heavy, rising kick LAUNCHER (up; launchVy/selfVy give the pop), aerial strike, downward dive spike.
+  basic_attacks: {
+    light:    { damage: 42, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 60, rangeY: 46 },
+    heavy:    { damage: 78, startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 8, knockbackY: 1,  rangeX: 88, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 64, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -6, airOK: false },
+    airAttack:{ damage: 56, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:  { damage: 64, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11, rangeX: 62, rangeY: 64 }
+  },
+  // KIT METADATA (move-list display; real logic + cost in abilities.js at SAKURA_MELEE / executeSakura*).
+  specials: {
+    shannaroRush:  { cost: 22, effect: "Special: chakra-enhanced punch string (close-range melee)." },
+    heavenSpinKick:{ cost: 24, effect: "Fwd + Special: rising crescent kick (launcher)." },
+    cherryImpact:  { cost: 26, effect: "Up + Special: committed overhead chakra strike." },
+    byakugouSeal:  { cost: 45, effect: "Back + Special: Byakugou Seal — self-heal (can't start at full HP; interrupted by any hit; 3 uses/round)." },
+    katsuyu:       { cost: 34, effect: "Down + Special: Summon Katsuyu — a slug wall that shoves + absorbs (brief i-frames)." },
+    kunaiThrow:    { cost: 18, effect: "Air + Special: thrown kunai projectile." }
+  },
+  ultimate: { name: "Daichi no Sakebi", cost: 100, description: "Sakura gathers her full chakra and erupts a storm of cherry petals — a screen-wide blossom burst that engulfs the foe in escalating pulses." },
+  hasSprites: true,
+  // Idle content ≈71px tall → scale 1.5 ≈ 107px on-screen, reading at the roster median. anchorY:0 = feet planted.
+  spriteScale: 1.5,
+  animationData: {
+    // ── MOVEMENT / STATE ──
+    idle:  { frames: 4, width: 58, height: 71, speed: 8, anchorY: 0, loop: true, sheet: "./sakura_idle_uniform.png" },
+    walk:  { frames: 6, width: 81, height: 63, speed: 7, anchorY: 0, loop: true, sheet: "./sakura_run_uniform.png" },    // no walk row → reuse Run, slower
+    run:   { frames: 6, width: 81, height: 63, speed: 4, anchorY: 0, loop: true, sheet: "./sakura_run_uniform.png" },
+    dash:  { frames: 3, width: 79, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_dash_uniform.png" },
+    jump:  { frames: 3, width: 68, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_jump_uniform.png" },
+    fall:  { frames: 3, width: 68, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_jump_uniform.png" },   // reuse Jump airborne pose
+    hurt:      { frames: 3, width: 160, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_hurt_uniform.png" },
+    knockdown: { frames: 3, width: 80,  height: 31, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_knockdown_uniform.png" },   // last frame = lying (also the defeat pose)
+    getup:     { frames: 4, width: 75,  height: 54, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_getup_uniform.png" },
+    guard:     { frames: 3, width: 54,  height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_guard_uniform.png" },
+    intro:     { frames: 4, width: 45,  height: 78, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_intro_uniform.png" },
+    win:       { frames: 4, width: 42,  height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_win_uniform.png" },
+    charge:    { frames: 4, width: 46,  height: 71, speed: 5, anchorY: 0, loop: true, sheet: "./sakura_charge_uniform.png" },
+    // ── NORMALS (FX baked into the source frames — no separate overlay) ──
+    light:    { frames: 9, width: 198, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_light_uniform.png" },
+    heavy:    { frames: 4, width: 93,  height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_heavy_uniform.png" },
+    up:       { frames: 4, width: 86,  height: 91, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_special3_uniform.png" },   // GAP: no Strong-Up → reuse Special 3 high-kick as launcher
+    air:      { frames: 10, width: 84, height: 91, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_air_uniform.png" },
+    down_air: { frames: 6, width: 86,  height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_heavy_air_uniform.png" },   // Strong Air (downward aerial)
+    // ── SPECIAL CAST POSES (currentMove / _spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
+    sakuraShannaro:   { frames: 6, width: 81,  height: 96, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_special2_uniform.png" },   // neutral — punch string
+    sakuraHeavenKick: { frames: 4, width: 86,  height: 91, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_special3_uniform.png" },   // Fwd — rising kick + crescent
+    sakuraStrike:     { frames: 3, width: 63,  height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_special4_uniform.png" },   // Up — overhead chakra strike
+    sakuraByakugou:   { frames: 9, width: 57,  height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_byakugou_uniform.png" },   // Back — Byakugou Seal channel
+    sakuraThrow:      { frames: 4, width: 83,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_throw_air_uniform.png" },  // Air — kunai throw
+    sakuraDaichi:     { frames: 3, width: 119, height: 100, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sakura_daichi_cast_uniform.png" } // ULT — gather pose
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // LIGHT YAGAMI  (rosterKey "light", universe "deathnote"). Death Note's Kira — a special-heavy zoner/
 // technician built from the prodijiu JUS sprite set (20 per-action light_yagami_*.png files, RE-SLICED
 // feet-aligned by tools/reslice_light.py). Stage 0 audit + user decisions locked (see memory
@@ -9625,6 +9703,7 @@ export const characters = {
   mayuri,
   kiba,
   byakuya,
+  sakura,
   boruto,
   light,
   l_ryuuzaki: lRyuuzaki,

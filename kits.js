@@ -290,8 +290,8 @@ export const KITS = {
 
   sasuke_sensei: {
     type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
-    summary: "Boruto-era Sasuke at his peak — a dōjutsu master with cycling eye-sets. RAITON (lightning blades + Kirin) and MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) are both live; Rinnegan (space-time) arrives next. Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques.",
-    passive: { name: "Three Dōjutsu", effect: "The last Uchiha cycles Raiton, Mangekyō and Rinnegan — Up + Ultimate rotates the active eye-set (Raiton + Mangekyō live now)." },
+    summary: "Boruto-era Sasuke at his peak — a dōjutsu master with THREE cycling eye-sets. RAITON (lightning blades + Kirin), MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) and RINNEGAN (gravity: repulsion, pull, absorb + Chibaku Tensei). Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques; the active set flashes above Sasuke.",
+    passive: { name: "Three Dōjutsu", effect: "The last Uchiha cycles Raiton → Mangekyō → Rinnegan — Up + Ultimate rotates the active eye-set (all three live). CANON NOTE: the Rinnegan slots use the sheet's Pain/Six-Paths techniques; Sasuke's own canon Rinnegan move (Amenotejikara) is not on the source art." },
     basics: [
       { name: "Fist/Kick String", input: "Light",                   desc: "fast close-range combo" },
       { name: "Sword Combo",      input: "Heavy",                   desc: "committed blade string with knockback" },
@@ -307,14 +307,18 @@ export const KITS = {
       { name: "Raiton Sword *2",  input: "Up + Special (Raiton)",    cost: 26, desc: "advancing electrified thrust (launcher)" },
       { name: "Raiton Sword *3",  input: "Down + Special (Raiton)",  cost: 32, desc: "committed electrified beam-thrust" },
       { name: "Chidori (air)",    input: "Air + Special (Raiton)",   cost: 24, desc: "diving lightning plunge" },
-      { name: "Eye-Set Cycle",    input: "Up + Ultimate",            cost: 0,  desc: "rotate the active dōjutsu set (Raiton ↔ Mangekyō); does not spend meter" },
+      { name: "Eye-Set Cycle",    input: "Up + Ultimate",            cost: 0,  desc: "rotate the active dōjutsu set (Raiton → Mangekyō → Rinnegan); does not spend meter" },
       { name: "Katon Goukakyuu",  input: "Special (Mangekyō)",       cost: 26, desc: "Great Fireball projectile (air version too)" },
       { name: "Amaterasu",        input: "Forward + Special (Mangekyō)", cost: 34, desc: "slow inextinguishable black-flame projectile" },
       { name: "Amaterasu Sword",  input: "Back + Special (Mangekyō)", cost: 30, desc: "black-flame-wreathed sword slash (melee)" },
       { name: "Genjutsu",         input: "Up + Special (Mangekyō)",   cost: 30, desc: "short-range hit-confirm — freezes the foe (long stun)" },
-      { name: "Kuchiyose: Taka",  input: "Down + Special (Mangekyō)", cost: 34, desc: "summon a hawk that dive-swoops the foe" }
+      { name: "Kuchiyose: Taka",  input: "Down + Special (Mangekyō)", cost: 34, desc: "summon a hawk that dive-swoops the foe" },
+      { name: "Shinra Tensei",    input: "Special (Rinnegan)",        cost: 28, desc: "radial repulsion — big knockback, low damage [ORIGINAL]" },
+      { name: "Chakra Absorb",    input: "Forward + Special (Rinnegan)", cost: 24, desc: "brief i-frame absorb that restores chakra [ORIGINAL]" },
+      { name: "Rinnegan Path",    input: "Back + Special (Rinnegan)", cost: 26, desc: "long-reach gravity pull — reels the foe in [ORIGINAL]" },
+      { name: "Raiko Kenka",      input: "Up + Special (Rinnegan)",   cost: 22, desc: "thrown shuriken weapon [ORIGINAL]" }
     ],
-    ultimate: { name: "Kirin / Kuchiyose: Hebi", input: "Ultimate (full meter — current set)", cost: 100, desc: "RAITON = Kirin (undodgeable lightning). MANGEKYŌ = summon the great serpent Hebi: it strikes, spits poison, then crumbles to stone (petrify) on expiry" },
+    ultimate: { name: "Kirin / Kuchiyose: Hebi / Chibaku Tensei", input: "Ultimate (full meter — current set)", cost: 100, desc: "RAITON = Kirin (undodgeable lightning). MANGEKYŌ = Kuchiyose Hebi (serpent that strikes, poisons, then petrifies). RINNEGAN = Chibaku Tensei (gravity-sphere crush) [CANON-ADJACENT]" },
     combos: [
       { name: "Dash-in Chidori", sequence: "Light, Special",            desc: "jab into Chidori rush" },
       { name: "Launch Juggle",   sequence: "Up-Attack, Jump, Air, Air", desc: "rising-sword launcher into aerial pressure" }

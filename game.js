@@ -69,7 +69,7 @@ import { resolveStageHazard, hazardBox } from "./stageHazards.js"   // STAGE INT
 import { updatePlatforms, drawPlatforms, spawnPlatform, clearPlatforms, getPlatforms, PLATFORM_DEFAULTS } from "./platforms.js"   // Wood Release climbable terrain (Stage 1 — isolated primitive)
 import {
   activeProjectiles, spawnProjectile,
-  triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet,
+  triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet, SS_EYE_LABEL,
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
   tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
@@ -8600,6 +8600,26 @@ function seedVoidHunterField(fighter) {
   }
   fighter._voidHunterFX = { stars, nebulae }
 }
+// SASUKE (SENSEI) — active eye-set indicator. Flashes the current dōjutsu set's name above the head for
+// ~100 frames after an Up+Ultimate cycle (fades out in the last 30). Render-only; sasuke_sensei + _eyeSetToast gated.
+function drawSasukeSenseiEyeHud(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "sasuke_sensei") return
+  const t = fighter._eyeSetToast || 0
+  if (t <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW   // rendered sprite rect (screen coords, like the void overlays)
+  if (x == null || w == null) return
+  const set = fighter._eyeSet || "raiton"
+  const label = (SS_EYE_LABEL && SS_EYE_LABEL[set]) || "RAITON"
+  const tint = { raiton: "#7fd0ff", mangekyou: "#ff5a5a", rinnegan: "#b48cff" }[set] || "#ffffff"
+  const cx = x + w / 2, cy = y - 10   // just above the rendered head
+  c.save()
+  c.globalAlpha = Math.min(1, t / 30)
+  c.font = "bold 14px sans-serif"; c.textAlign = "center"; c.textBaseline = "bottom"
+  c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,0.9)"; c.strokeText(`◉ ${label}`, cx, cy)
+  c.fillStyle = tint; c.fillText(`◉ ${label}`, cx, cy)
+  c.restore()
+}
+
 function drawVoidHunterOverlay(c, fighter) {
   if (!c || fighter?.skinId !== "makiVoidHunter") return
   if (fighter._shibuyaActive) return                    // base-form only (the Shibuya costume has its own look)
@@ -14468,6 +14488,7 @@ function renderHybridFighter(fighter) {
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
+    drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")

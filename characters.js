@@ -6918,7 +6918,13 @@ const sasuke_sensei = {
     ssAmaterasuCast:   { frames: 8, width: 63,  height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_amaterasu_cast_uniform.png" },     // F — Amaterasu eye-focus
     ssAmaterasuSword:  { frames: 8, width: 129, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_amaterasu_sword_cast_uniform.png" }, // B — Amaterasu Sword (black flame baked)
     ssGenjutsuCast:    { frames: 6, width: 73,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_genjutsu_cast_uniform.png" },       // U — Genjutsu arm-extend
-    ssKuchiyoseCast:   { frames: 3, width: 66,  height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kuchiyose_cast_uniform.png" }      // D/ULT — summoning gesture (Taka/Hebi)
+    ssKuchiyoseCast:   { frames: 3, width: 66,  height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kuchiyose_cast_uniform.png" },     // D/ULT — summoning gesture (Taka/Hebi)
+    // ── RINNEGAN SPECIAL CAST POSES (Phase 3) ──
+    ssShinraTensei:    { frames: 4, width: 76,  height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_shinra_tensei_cast_uniform.png" },   // N — Shinra Tensei palm-thrust
+    ssChakraAbsorb:    { frames: 4, width: 86,  height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_chakra_absorb_cast_uniform.png" },   // F — Chakra Absorb
+    ssRinneganPath:    { frames: 3, width: 82,  height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_rinnegan_path_cast_uniform.png" },   // B — Rinnegan Path (pull)
+    ssRaikoKenka:      { frames: 8, width: 198, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiko_kenka_cast_uniform.png" },     // U — Raiko Kenka weapon throw
+    ssChibakuCast:     { frames: 4, width: 94,  height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_chibaku_cast_uniform.png" }          // ULT — Chibaku Tensei cast
   }
 }
 

@@ -4439,20 +4439,20 @@ function ssRaitonSpecial(fighter, context) {
 function executeSasukeSenseiSpecial(fighter, context) {
   if (!ssIsSensei(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  // EYE-SET gated (Up+Ultimate cycles raiton↔mangekyou in Phase 2; Rinnegan + HUD polish in Phase 3).
+  // EYE-SET gated — Up+Ultimate cycles raiton → mangekyou → rinnegan.
   const set = fighter._eyeSet || "raiton"
   if (set === "mangekyou") return ssMangekyouSpecial(fighter, context)
-  // rinnegan branch lands in Phase 3; defaults to raiton until then
+  if (set === "rinnegan")  return ssRinneganSpecial(fighter, context)
   return ssRaitonSpecial(fighter, context)
 }
 
 // ULTIMATE dispatch — the current eye-set picks the ult: RAITON=Kirin, MANGEKYOU=Kuchiyose Hebi,
-// RINNEGAN=Chibaku Tensei (Phase 3). Callee-spends meter; triggerUltimate adds cooldown + cam.
+// RINNEGAN=Chibaku Tensei. Callee-spends meter; triggerUltimate adds cooldown + cam.
 function executeSasukeSenseiUltimate(fighter, context) {
   if (!ssIsSensei(fighter)) return false
   const set = fighter._eyeSet || "raiton"
   if (set === "mangekyou") return ssHebiUltimate(fighter, context)
-  // rinnegan ult (Chibaku Tensei) = Phase 3; defaults to Kirin until then
+  if (set === "rinnegan")  return ssChibakuUltimate(fighter, context)
   return ssKirinUltimate(fighter, context)
 }
 
@@ -4590,16 +4590,121 @@ function ssHebiUltimate(fighter, context) {
   return true
 }
 // EYE-SET CYCLE — Up+Ultimate rotates the active set (game.js intercepts before the generic ult dispatch).
-// PHASE 2: raiton ↔ mangekyou (Rinnegan joins + HUD indicator in Phase 3). Does NOT spend meter; _eyeSetCd
-// (ticked in game.js) debounces a held input.
+// raiton → mangekyou → rinnegan → raiton. Does NOT spend meter; _eyeSetCd (ticked in game.js) debounces a
+// held input; _eyeSet(Toast/Label) drive the HUD set-indicator (game.js drawSasukeSenseiEyeHud).
+export const SS_EYE_SETS = ["raiton", "mangekyou", "rinnegan"]
+export const SS_EYE_LABEL = { raiton: "RAITON", mangekyou: "MANGEKYŌ", rinnegan: "RINNEGAN" }
 export function cycleSasukeSenseiEyeSet(fighter) {
   if (!ssIsSensei(fighter)) return false
   if ((fighter._eyeSetCd || 0) > 0) return false
-  const SETS = ["raiton", "mangekyou"]
   const cur = fighter._eyeSet || "raiton"
-  fighter._eyeSet = SETS[(SETS.indexOf(cur) + 1) % SETS.length]
+  fighter._eyeSet = SS_EYE_SETS[(SS_EYE_SETS.indexOf(cur) + 1) % SS_EYE_SETS.length]
   fighter._eyeSetCd = 20
-  fighter._eyeSetToast = 90   // HUD indicator flag (drawn in Phase-3 polish)
+  fighter._eyeSetToast = 100   // HUD flash timer (game.js draws the set name)
+  return true
+}
+
+// ─── RINNEGAN SET (Phase 3) ────────────────────────────────────────────────────────────────────────
+// ★CANON NOTE: these are PAIN/Nagato Six-Paths techniques on the source sheet — NOT Sasuke's canonical
+// Rinnegan power (Amenotejikara, a space-time swap, which is ABSENT from the sheet — flagged gap). So:
+//   N=Shinra Tensei (repulsion push) = ORIGINAL for Sasuke (Deva Path is Pain's) ·
+//   F=Chakra Absorb (i-frame absorb + chakra gain) = ORIGINAL (Preta Path is Pain's) ·
+//   B=Rinnegan Path (long-reach gravity PULL) = ORIGINAL (Pain's Six Paths) ·
+//   U=Raiko Kenka (shuriken weapon throw) = ORIGINAL (game-original weapon summon) ·
+//   D=FREE (unmapped, reserved) ·
+//   ULT=Chibaku Tensei (gravity-sphere crush) = CANON-ADJACENT (Sasuke co-cast one with Naruto to seal Kaguya).
+function ssRinneganSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return ssChakraAbsorb(fighter, context)   // Fwd  = Chakra Absorb (i-frames)
+  if (dir === "B") return ssRinneganPath(fighter, context)   // Back = Rinnegan Path (pull)
+  if (dir === "U") return ssRaikoKenka(fighter, context)     // Up   = Raiko Kenka (shuriken)
+  if (dir === "D") return false                              // Down = FREE (reserved; no special)
+  return ssShinraTensei(fighter, context)                    // neutral = Shinra Tensei (push)
+}
+// N — Shinra Tensei (ORIGINAL for Sasuke): a radial REPULSION — big knockback, low damage.
+function ssShinraTensei(fighter, context) {
+  if (!spendEnergy(fighter, 28)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "ssShinraTensei"; fighter._spriteCastTimer = 24
+  fighter._ssPushFx = 18   // render accent flag — later art pass
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    if (Math.abs(opp.x - fighter.x) > 340) return
+    const dir = (opp.x >= fighter.x) ? 1 : -1
+    if (opp.isBlocking) { opp.blockstun = 20; opp.vx = dir * 8; return }
+    opp.hitstun = 28; opp.vx = dir * 20; opp.vy = -8; opp.colorFlash = 12   // REPULSION, not a strike
+    applyScaledDamage(opp, 30, { source: "ability" })
+  })
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+// F — Chakra Absorb (ORIGINAL for Sasuke): a brief i-frame absorb that restores chakra (gated by its cooldown).
+function ssChakraAbsorb(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  fighter._spriteCastMove = "ssChakraAbsorb"; fighter._spriteCastTimer = 28
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 24)   // absorb window (i-frames)
+  fighter._ssAbsorbFx = 24   // render accent flag — later art pass
+  schedulePendingSpawn(12, () => { fighter.energy = Math.min(fighter.maxEnergy || 200, (fighter.energy || 0) + 36) })   // net +12 chakra
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// B — Rinnegan Path (ORIGINAL for Sasuke): a long-reach gravity PULL — reels the foe toward Sasuke.
+function ssRinneganPath(fighter, context) {
+  if (!spendEnergy(fighter, 26)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._spriteCastMove = "ssRinneganPath"; fighter._spriteCastTimer = 26
+  schedulePendingSpawn(12, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const face = fighter.facing || 1
+    if ((opp.x - fighter.x) * face < 0) return   // only pulls a foe in front
+    const dir = (opp.x >= fighter.x) ? 1 : -1
+    opp.hitstun = 24; opp.vx = -dir * 22; opp.vy = -4; opp.colorFlash = 10   // REEL IN toward Sasuke
+    applyScaledDamage(opp, 24, { source: "ability" })
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// U — Raiko Kenka (ORIGINAL): a thrown shuriken weapon (fx_shuriken projectile sprite).
+function ssRaikoKenka(fighter, context) {
+  if (!spendEnergy(fighter, 22)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "ssRaikoKenka"; fighter._spriteCastTimer = 24
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "ssShuriken", {
+      damage: 38, speed: 15, lifetime: 90, hitstun: 16, knockbackX: 6, knockbackY: -2,
+      w: 34, h: 34, radius: 18, color: "#334455", isSpecial: true,
+      vx: face * 15, spawnY: fighter.y + (fighter.h || 100) * 0.40,
+      sheet: "./sasuke_sensei_fx_shuriken_uniform.png", spriteFrames: 2, spriteW: 43, spriteH: 30, spriteScale: 1.2, spriteSpeed: 3
+    }, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// ULTIMATE (Rinnegan) — Chibaku Tensei (CANON-ADJACENT): a gravity sphere pulls the foe up, then slams —
+// guaranteed, range-independent beats. Raw 90 + 90 + 150 = 330 → ~198 EFF (project ult band), blocked ~25%.
+// fx_chibaku meteor sprite is sliced + available for a later FX pass (render flag _ssChibakuUlt for now).
+function ssChibakuUltimate(fighter, context) {
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(54, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)
+  fighter._spriteCastMove = "ssChibakuCast"; fighter._spriteCastTimer = 54
+  fighter._ssChibakuUlt = 54   // render flag (gravity meteor) — later art pass
+  ;[26, 40, 54].forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+      const dmg = i < 2 ? 90 : 150
+      const dir = (opp.x >= fighter.x ? 1 : -1)
+      if (opp.isBlocking) { opp.blockstun = 24; applyScaledDamage(opp, Math.floor(dmg * 0.25), { source: "ability" }); return }
+      opp.hitstun = 46; opp.vx = -dir * 4; opp.vy = i < 2 ? -14 : 16; opp.colorFlash = 16   // pull up → slam
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    })
+  })
+  try { shakeCamera(context, 7, 18) } catch (_) {}
   return true
 }
 

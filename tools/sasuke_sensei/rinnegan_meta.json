@@ -1,0 +1,44 @@
+{
+ "raiko_kenka_cast": {
+  "frames": 8,
+  "width": 198,
+  "height": 93,
+  "sheet": "./sasuke_sensei_raiko_kenka_cast_uniform.png"
+ },
+ "shinra_tensei_cast": {
+  "frames": 4,
+  "width": 76,
+  "height": 76,
+  "sheet": "./sasuke_sensei_shinra_tensei_cast_uniform.png"
+ },
+ "chibaku_cast": {
+  "frames": 4,
+  "width": 94,
+  "height": 82,
+  "sheet": "./sasuke_sensei_chibaku_cast_uniform.png"
+ },
+ "rinnegan_path_cast": {
+  "frames": 3,
+  "width": 82,
+  "height": 83,
+  "sheet": "./sasuke_sensei_rinnegan_path_cast_uniform.png"
+ },
+ "chakra_absorb_cast": {
+  "frames": 4,
+  "width": 86,
+  "height": 73,
+  "sheet": "./sasuke_sensei_chakra_absorb_cast_uniform.png"
+ },
+ "fx_shuriken": {
+  "frames": 2,
+  "width": 43,
+  "height": 30,
+  "sheet": "./sasuke_sensei_fx_shuriken_uniform.png"
+ },
+ "fx_chibaku": {
+  "frames": 6,
+  "width": 37,
+  "height": 31,
+  "sheet": "./sasuke_sensei_fx_chibaku_uniform.png"
+ }
+}

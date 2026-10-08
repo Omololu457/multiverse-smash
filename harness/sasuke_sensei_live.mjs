@@ -154,11 +154,59 @@ console.log(`19_hebi_ult: summons = [${hebiList.join(", ")}]`);
 ok(hebiList.includes("ssHebi"), `Kuchiyose Hebi (Mangekyou ult) spawned the serpent`);
 await waitFrames(60); await shot("20_hebi_active");
 
-// 20) CYCLE back to Raiton — neutral special returns to Chidori
+// ════════════ PHASE 3 — RINNEGAN SET + 3-WAY CYCLE ════════════
+// 21) CYCLE Mangekyou → Rinnegan (second cycle) — neutral special becomes Shinra Tensei
 await cycleSet();
-const backMove = await neutralSpecialMove();
-console.log(`21_cycle_back: neutral special → ${backMove} (expect ssChidori)`);
-ok(backMove === "ssChidori", `Up+Ult cycled back to Raiton (${backMove})`);
+const rinNeutral = await page.evaluate(() => window.__harness.p1SpecialDir(null)); await waitFrames(6); await shot("21_shinra_N"); await waitFrames(34);
+const rMove = rinNeutral?.move || rinNeutral?.cast;
+console.log(`21_cycle: Mangekyou → Rinnegan — neutral = ${rMove} (expect ssShinraTensei)`);
+ok(rMove === "ssShinraTensei", `Up+Ult cycled to Rinnegan — neutral = Shinra Tensei (${rMove})`);
+
+// 22) Chakra Absorb (F) — a chakra-GAIN move (spend 24, absorb +36 → net +12, capped at max) + i-frames.
+await refillFull(); await waitGrounded();
+const absR = await page.evaluate(() => { const r = window.__harness.p1SpecialDir("F"); return { r, iframe: (window.__harness.p1()?.invulnTimer) }; });
+await waitFrames(6); await shot("22_chakra_absorb_F"); const absMid = await p1(); await waitFrames(40);
+console.log(`22_chakra_absorb_F: cast=${absR?.r?.cast}`);
+ok(absR?.r?.cast === "ssChakraAbsorb", `Chakra Absorb plays (cast=${absR?.r?.cast})`);
+
+// 23-24) Rinnegan directional specials (grounded dir hook)
+await specialDirect("23_rinnegan_path_B", "B", "ssRinneganPath");
+await specialDirect("24_raiko_kenka_U",   "U", "ssRaikoKenka");
+
+// 25) Raiko Kenka shuriken must CONNECT (damage proxy — robust vs projectile despawn timing)
+await refillFull(); await waitGrounded();
+const shB = await p2hp();
+await page.evaluate(() => window.__harness.p1SpecialDir("U"));
+await waitFrames(6); await shot("25_shuriken");
+await waitFrames(36);   // let the shuriken travel + connect
+const shA = await p2hp();
+console.log(`25_shuriken: p2 hp ${shB}→${shA} (Δ${shA - shB})`);
+ok(shA < shB, `Raiko Kenka shuriken connected (p2 ${shB}→${shA})`);
+await waitFrames(20);
+
+// 26) Down = FREE (reserved) — must be a no-op (no chakra spent, no move)
+await refillFull(); await waitGrounded();
+const dBefore = (await p1()).energy;
+const dRes = await page.evaluate(() => window.__harness.p1SpecialDir("D"));
+await waitFrames(6); const dAfter = (await p1()).energy;
+console.log(`26_down_free: energy ${dBefore}→${dAfter} move=${dRes?.move} cast=${dRes?.cast} (expect no-op)`);
+ok(dAfter === dBefore && !dRes?.move && !dRes?.cast, `Rinnegan Down is FREE (no-op, no chakra spent)`);
+
+// 27) Rinnegan ULTIMATE — Chibaku Tensei (guaranteed; opponent HP drops ~198)
+await page.evaluate(() => { window.__harness.resetUlt?.(); window.__harness.healP2?.(); }); await waitGrounded(); await waitFrames(2);
+const cb = await p1(); const chb = await p2hp();
+await page.keyboard.down("u"); await waitFrames(16); await shot("27_chibaku_ult"); await page.keyboard.up("u"); await waitFrames(2);
+await waitFrames(60);
+const ca = await p1(); const cha = await p2hp();
+console.log(`27_chibaku_ult: p1 energy ${cb.energy}→${ca.energy} (Δ${ca.energy - cb.energy}) · p2 hp ${chb}→${cha} (Δ${cha - chb})`);
+ok(ca.energy - cb.energy < 0, `Chibaku spent full meter (Δ${ca.energy - cb.energy})`);
+ok(cha < chb, `Chibaku Tensei damaged the opponent (${chb}→${cha})`);
+
+// 28) CYCLE Rinnegan → Raiton (third cycle wraps around) — neutral returns to Chidori
+await cycleSet();
+const wrapMove = await neutralSpecialMove();
+console.log(`28_cycle_wrap: Rinnegan → Raiton — neutral = ${wrapMove} (expect ssChidori)`);
+ok(wrapMove === "ssChidori", `Up+Ult wrapped Rinnegan → Raiton (${wrapMove})`);
 
 await browser.close(); server.close();
 console.log(`\nDONE — ${FAILS} FAIL(s). shots in harness/shots/ss_*.png`);

@@ -1,0 +1,50 @@
+{
+ "katon_cast": {
+  "frames": 3,
+  "width": 99,
+  "height": 81,
+  "sheet": "./sasuke_sensei_katon_cast_uniform.png"
+ },
+ "katon_air_cast": {
+  "frames": 3,
+  "width": 68,
+  "height": 86,
+  "sheet": "./sasuke_sensei_katon_air_cast_uniform.png"
+ },
+ "amaterasu_cast": {
+  "frames": 8,
+  "width": 63,
+  "height": 77,
+  "sheet": "./sasuke_sensei_amaterasu_cast_uniform.png"
+ },
+ "amaterasu_sword_cast": {
+  "frames": 8,
+  "width": 129,
+  "height": 82,
+  "sheet": "./sasuke_sensei_amaterasu_sword_cast_uniform.png"
+ },
+ "genjutsu_cast": {
+  "frames": 6,
+  "width": 73,
+  "height": 65,
+  "sheet": "./sasuke_sensei_genjutsu_cast_uniform.png"
+ },
+ "kuchiyose_cast": {
+  "frames": 3,
+  "width": 66,
+  "height": 83,
+  "sheet": "./sasuke_sensei_kuchiyose_cast_uniform.png"
+ },
+ "fx_fireball": {
+  "frames": 8,
+  "width": 77,
+  "height": 50,
+  "sheet": "./sasuke_sensei_fx_fireball_uniform.png"
+ },
+ "fx_amaterasu": {
+  "frames": 6,
+  "width": 99,
+  "height": 54,
+  "sheet": "./sasuke_sensei_fx_amaterasu_uniform.png"
+ }
+}

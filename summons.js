@@ -162,6 +162,28 @@ const summonTemplates = {
     sheet: "./handler_shik_toad.png", spriteFrames: 1, spriteW: 34, spriteH: 28, spriteSpeed: 6, spriteScale: 1.7
   },
 
+  // ── SASUKE (SENSEI) KUCHIYOSE (Phase 2) — Mangekyou summons ──────────────────────────────────────
+  // Taka = a HAWK dive-bomb assist (Mangekyou D special): flies in (spawn=taka_fly), dive-swoops ONTO the
+  // foe (heavyDrop/antiAir, like handlerNue), one talon-strike, poof. Real resliced art (tools/sasuke_sensei).
+  ssTaka: {
+    id: "ssTaka", duration: 82, maxSimultaneous: 1, attackInterval: 10, damage: 56,
+    w: 70, h: 54, speed: 9, offsetX: 20, offsetY: -70, behavior: "heavyDrop", antiAir: true,
+    hitstun: 20, knockbackX: 6, knockbackY: -4, oneHit: true, puffOnDespawn: true, color: "#6b4a2a",
+    sheet: "./sasuke_sensei_taka_attack_uniform.png", spriteFrames: 3, spriteW: 214, spriteH: 233, spriteSpeed: 5, spriteScale: 0.62,
+    spawnSheet: "./sasuke_sensei_taka_fly_uniform.png", spawnFrames: 4, spawnW: 270, spawnH: 191, spawnBeat: 14, spawnScale: 0.60
+  },
+  // Hebi = the GREAT SERPENT ultimate (Mangekyou ULT): rises (spawn=hebi_intro), chases + multi-strikes
+  // (oneHit:false), pose-swaps to the poison-spit on each strike wind-up (updateSsHebiPose), and on expiry
+  // PETRIFIES — crumbles to stone via despawnSheet (summons.js despawn extension). ×0.60 scaled (Megumi-flag).
+  ssHebi: {
+    id: "ssHebi", duration: 220, maxSimultaneous: 1, attackInterval: 42, damage: 52,
+    w: 150, h: 120, speed: 5, offsetX: 70, offsetY: 10, behavior: "rush", oneHit: false,
+    hitstun: 22, knockbackX: 9, knockbackY: -2, color: "#3aa0c0",
+    sheet: "./sasuke_sensei_hebi_attack_uniform.png", spriteFrames: 3, spriteW: 369, spriteH: 277, spriteSpeed: 6, spriteScale: 0.82,
+    spawnSheet: "./sasuke_sensei_hebi_intro_uniform.png", spawnFrames: 2, spawnW: 206, spawnH: 348, spawnBeat: 18, spawnScale: 0.72,
+    despawnSheet: "./sasuke_sensei_hebi_petrify_uniform.png", despawnFrames: 5, despawnW: 253, despawnH: 230, despawnSpeed: 8, despawnScale: 0.85
+  },
+
   // ── KAKASHI KUCHIYOSE (Stage 5) — two STRUCTURALLY DIFFERENT summons, built differently per design ──
   // Pakkun = a LINGERING COMPANION pug: two-phase (hold the sitting "spawn/ready" pose for spawnBeat, then
   // run the bite strip), LONG duration, MULTI-HIT (oneHit:false) — a real attacking presence for a duration,
@@ -303,6 +325,26 @@ function updateRikaAssistPose(s) {
     s._rikaStrikeLatched = false
     setRikaPose(s, "idle")
   }
+}
+
+// SASUKE (SENSEI) HEBI pose driver — the great serpent shows its STRIKE sheet while advancing, then swaps to
+// the POISON-SPIT pose for the frames leading into each interval attack. Mirrors the onoki/rika pose-swap
+// (re-points sheet + spriteW/H each frame). Purely visual; hitbox/damage/lifetime unchanged. Frozen during
+// the petrify despawn (updateSummons `continue`s before this runs).
+const SS_HEBI_POSES = {
+  strike: { sheet: "./sasuke_sensei_hebi_attack_uniform.png", frames: 3, w: 369, h: 277 },
+  poison: { sheet: "./sasuke_sensei_hebi_poison_uniform.png", frames: 3, w: 379, h: 293 }
+}
+function setSsHebiPose(s, pose) {
+  const p = SS_HEBI_POSES[pose]
+  if (!p || s.sheet === p.sheet) return
+  s.sheet = p.sheet; s.spriteFrames = p.frames; s.spriteW = p.w; s.spriteH = p.h; s._animT = 0
+}
+function updateSsHebiPose(s) {
+  if ((s.frame || 0) < (s.spawnBeat || 0)) return   // forming beat: drawSummons shows the spawnSheet (rise)
+  const interval = s.attackInterval || 42
+  const spitting = (s.attackTimer || 0) >= interval - 12   // spit poison just before each strike
+  setSsHebiPose(s, spitting ? "poison" : "strike")
 }
 
 // ONOKI GOLEM pose driver — the persistent golem shows its IDLE while advancing, then swaps to a STRIKE
@@ -452,6 +494,14 @@ export function updateSummons() {
       continue
     }
 
+    // DESPAWN crumble phase (e.g. Hebi petrify): frozen in place, no movement/attacks — just advance the
+    // crumble timer and remove when the petrify sheet has played. Gated on despawnSheet → no other summon enters this.
+    if (s._despawning) {
+      s._despawnT = (s._despawnT || 0) + 1
+      if (s._despawnT >= (s._despawnTotal || 1)) { cleanupSummonEffects(s); activeSummons.splice(i, 1) }
+      continue
+    }
+
     updateSummonMovement(s)
 
     s.attackTimer++
@@ -475,11 +525,17 @@ export function updateSummons() {
     if (s.id === "narutoToad") updateNarutoToadPose(s)   // rearing → transition → curl by lifecycle
     if (s.id === "onokiGolem") updateOnokiGolemPose(s)   // idle ↔ punch/swing strike poses on the attack cadence
     if (s.id === "rikaAssist") updateRikaAssistPose(s)   // idle ↔ reach/screech strike poses on the attack cadence
+    if (s.id === "ssHebi")     updateSsHebiPose(s)       // strike ↔ poison-spit on the attack cadence
 
     if (s.lifetime <= 0) {
-      cleanupSummonEffects(s)
-      if (s.puffOnDespawn) spawnClonePuff(s.x + (s.w || 0) / 2, s.y + (s.h || 0) / 2)   // vanish smoke (Zenitsu Double Attack partner poofs out)
-      activeSummons.splice(i, 1)
+      if (s.despawnSheet && !s._despawning) {   // enter the petrify/crumble phase instead of removing outright
+        s._despawning = true; s._despawnT = 0
+        s._despawnTotal = (s.despawnFrames || 1) * (s.despawnSpeed || 6)
+      } else {
+        cleanupSummonEffects(s)
+        if (s.puffOnDespawn) spawnClonePuff(s.x + (s.w || 0) / 2, s.y + (s.h || 0) / 2)   // vanish smoke (Zenitsu Double Attack partner poofs out)
+        activeSummons.splice(i, 1)
+      }
     }
   }
 
@@ -736,8 +792,8 @@ export function drawSummons(ctx) {
 
     ctx.save()
 
-    if (s.lifetime < 12) {
-      ctx.globalAlpha = s.lifetime / 12
+    if (s.lifetime < 12 && !s._despawning) {
+      ctx.globalAlpha = s.lifetime / 12   // generic fade-out; SUPPRESSED while a despawnSheet crumble plays
     }
 
     // SHIKIGAMI SPRITE HOOK (Task 3): if the summon carries a `sheet`, draw the
@@ -746,21 +802,25 @@ export function drawSummons(ctx) {
     // region crops set spriteFrames:1 → the whole image draws.
     // Meeseeks-style spawn beat: draw the idle "poof-in" pose for the first `spawnBeat`
     // frames, then the running-attack strip. Any summon without spawnSheet uses `sheet`.
-    const inBeat    = s.spawnSheet && (s.frame || 0) < (s.spawnBeat || 0)
-    let   sheetPath = inBeat ? s.spawnSheet : s.sheet
+    // DESPAWN crumble (e.g. Hebi petrify): once _despawning, draw the despawnSheet, play-once, hold last frame.
+    const inDespawn = !!(s._despawning && s.despawnSheet)
+    const inBeat    = !inDespawn && s.spawnSheet && (s.frame || 0) < (s.spawnBeat || 0)
+    let   sheetPath = inDespawn ? s.despawnSheet : (inBeat ? s.spawnSheet : s.sheet)
     // A shadow clone inherits its OWNER'S active skin sheet (so it's indistinguishable from the real body).
-    if (!inBeat && s.id === "shadowClone") sheetPath = cloneSkinSheet(s.owner, sheetPath)
+    if (!inBeat && !inDespawn && s.id === "shadowClone") sheetPath = cloneSkinSheet(s.owner, sheetPath)
     const img = sheetPath ? _summonImg(sheetPath) : null
     if (img && img.complete && img.naturalWidth > 0) {
-      const frames = (inBeat ? s.spawnFrames : s.spriteFrames) || 1
-      const fw = (inBeat ? s.spawnW : s.spriteW) || (img.naturalWidth / frames)
-      const fh = (inBeat ? s.spawnH : s.spriteH) || img.naturalHeight
+      const frames = (inDespawn ? s.despawnFrames : inBeat ? s.spawnFrames : s.spriteFrames) || 1
+      const fw = (inDespawn ? s.despawnW : inBeat ? s.spawnW : s.spriteW) || (img.naturalWidth / frames)
+      const fh = (inDespawn ? s.despawnH : inBeat ? s.spawnH : s.spriteH) || img.naturalHeight
       s._animT = (s._animT || 0) + 1
-      const fi = Math.floor(s._animT / (s.spriteSpeed || 5)) % frames
+      const fi = inDespawn
+        ? Math.min(frames - 1, Math.floor((s._despawnT || 0) / (s.despawnSpeed || 6)))   // play-once crumble, hold last
+        : Math.floor(s._animT / (s.spriteSpeed || 5)) % frames
       // The spawn/poof pose may carry its OWN scale (spawnScale) so a taller idle cell
       // renders at the same on-screen size as the run pose (no pop). Falls back to
       // spriteScale → every summon without spawnScale is unchanged.
-      let sc = (inBeat && s.spawnScale) ? s.spawnScale : (s.spriteScale || 1)
+      let sc = inDespawn ? (s.despawnScale || s.spriteScale || 1) : (inBeat && s.spawnScale) ? s.spawnScale : (s.spriteScale || 1)
       // A shadow clone must match the REAL fighter's on-screen size. The real fighter render multiplies its
       // spriteScale by GLOBAL_SPRITE_SCALE (sprite.js); the clone body scales were tuned BEFORE that +18% bump,
       // so without this a clone renders ~15% smaller than its owner (measured ratio 0.847 = 1/1.18). Applied to

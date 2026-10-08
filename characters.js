@@ -6911,7 +6911,14 @@ const sasuke_sensei = {
     ssRaitonSword2: { frames: 4, width: 96,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiton_sword2_cast_uniform.png" },  // U — Raiton Sword *2
     ssRaitonSword3: { frames: 3, width: 115, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_raiton_sword3_cast_uniform.png" },  // D — Raiton Sword *3
     ssKirinCast:    { frames: 3, width: 63,  height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kirin_fire_cast_uniform.png" },     // ULT — Katon Gouryuuka buildup
-    ssKirinRaiton:  { frames: 4, width: 91,  height: 96, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kirin_control_cast_uniform.png" }   // ULT — Raiton call-down
+    ssKirinRaiton:  { frames: 4, width: 91,  height: 96, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kirin_control_cast_uniform.png" },  // ULT — Raiton call-down
+    // ── MANGEKYOU SPECIAL CAST POSES (Phase 2) ──
+    ssKatonCast:       { frames: 3, width: 99,  height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_katon_cast_uniform.png" },        // N — Katon Goukakyuu cast
+    ssKatonAir:        { frames: 3, width: 68,  height: 86, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_katon_air_cast_uniform.png" },    // AIR — aerial Katon
+    ssAmaterasuCast:   { frames: 8, width: 63,  height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_amaterasu_cast_uniform.png" },     // F — Amaterasu eye-focus
+    ssAmaterasuSword:  { frames: 8, width: 129, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_amaterasu_sword_cast_uniform.png" }, // B — Amaterasu Sword (black flame baked)
+    ssGenjutsuCast:    { frames: 6, width: 73,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_genjutsu_cast_uniform.png" },       // U — Genjutsu arm-extend
+    ssKuchiyoseCast:   { frames: 3, width: 66,  height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_sensei_kuchiyose_cast_uniform.png" }      // D/ULT — summoning gesture (Taka/Hebi)
   }
 }
 

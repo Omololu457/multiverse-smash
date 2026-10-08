@@ -4439,11 +4439,21 @@ function ssRaitonSpecial(fighter, context) {
 function executeSasukeSenseiSpecial(fighter, context) {
   if (!ssIsSensei(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  // EYE-SET gated. Raiton is live in Phase 1; Mangekyou/Rinnegan branches + the Up+Ultimate cycle land in
-  // Phases 2-3 (fighter._eyeSet defaults "raiton" and never changes until the cycle input is wired).
+  // EYE-SET gated (Up+Ultimate cycles raiton↔mangekyou in Phase 2; Rinnegan + HUD polish in Phase 3).
   const set = fighter._eyeSet || "raiton"
-  if (set === "raiton") return ssRaitonSpecial(fighter, context)
-  return ssRaitonSpecial(fighter, context)   // forward-compatible default until Mangekyou/Rinnegan ship
+  if (set === "mangekyou") return ssMangekyouSpecial(fighter, context)
+  // rinnegan branch lands in Phase 3; defaults to raiton until then
+  return ssRaitonSpecial(fighter, context)
+}
+
+// ULTIMATE dispatch — the current eye-set picks the ult: RAITON=Kirin, MANGEKYOU=Kuchiyose Hebi,
+// RINNEGAN=Chibaku Tensei (Phase 3). Callee-spends meter; triggerUltimate adds cooldown + cam.
+function executeSasukeSenseiUltimate(fighter, context) {
+  if (!ssIsSensei(fighter)) return false
+  const set = fighter._eyeSet || "raiton"
+  if (set === "mangekyou") return ssHebiUltimate(fighter, context)
+  // rinnegan ult (Chibaku Tensei) = Phase 3; defaults to Kirin until then
+  return ssKirinUltimate(fighter, context)
 }
 
 // ULTIMATE (Raiton set) — KIRIN (CANON): the fastest technique, UNDODGEABLE. Sasuke gathers storm clouds
@@ -4452,7 +4462,7 @@ function executeSasukeSenseiSpecial(fighter, context) {
 // independent beats. Raw 90 + 90 + 150 = 330 → EXACTLY ~198 EFF (the project ult band), blocked ~25%.
 // Procedural FX (storm/bolt render flag _ssKirinUlt) — the Katon/Raiton poses carry the baked FX; a
 // dedicated storm overlay is a later art pass. Callee-spends meter; triggerUltimate adds cooldown + cam.
-function executeSasukeSenseiUltimate(fighter, context) {
+function ssKirinUltimate(fighter, context) {
   if (!ssIsSensei(fighter)) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   fighter.attackCooldown = getAttackDuration(54, fighter)
@@ -4472,6 +4482,124 @@ function executeSasukeSenseiUltimate(fighter, context) {
     })
   })
   try { shakeCamera(context, 7, 18) } catch (_) {}
+  return true
+}
+
+// ─── MANGEKYOU SET (Phase 2) — all CANON Sasuke techniques ─────────────────────────────────────────
+// N=Katon Goukakyuu (Great Fireball projectile) / F=Amaterasu (black-flame projectile + burn) / B=Amaterasu
+// Sword (black-flame melee, FX baked) / U=Genjutsu (hit-confirm FREEZE stun) / D=Kuchiyose Taka (hawk dive
+// summon) / AIR=aerial fireball. ULT=Kuchiyose Hebi (great serpent: strikes, poison, petrify-crumble on
+// expiry). Katon/Amaterasu FX = real projectile sheets (fx_fireball/fx_amaterasu); sword black flame baked.
+const SS_AMATERASU_SWORD = { damage: 66, startup: 8, active: 5, recovery: 20, hitstun: 24, knockbackX: 7, knockbackY: 2, rangeX: 120, rangeY: 60, cost: 30, advance: 6, category: "heavy" }
+function ssMangekyouSpecial(fighter, context) {
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded)   return ssKaton(fighter, context, true)        // AIR = aerial Great Fireball
+  if (dir === "F") return ssAmaterasu(fighter, context)          // Fwd  = Amaterasu (black flame)
+  if (dir === "B") return ssAmaterasuSword(fighter, context)     // Back = Amaterasu Sword
+  if (dir === "U") return ssGenjutsu(fighter, context)           // Up   = Genjutsu (stun)
+  if (dir === "D") return ssSummonTaka(fighter, context)         // Down = Kuchiyose: Taka
+  return ssKaton(fighter, context, false)                        // neutral = Katon Goukakyuu
+}
+// N/AIR — Katon Goukakyuu no Jutsu (CANON): a Great Fireball projectile (fx_fireball sprite).
+function ssKaton(fighter, context, air) {
+  if (!spendEnergy(fighter, 26)) return false
+  fighter.attackCooldown = getAttackDuration(air ? 20 : 22, fighter)
+  fighter._spriteCastMove = air ? "ssKatonAir" : "ssKatonCast"; fighter._spriteCastTimer = 22
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "ssFireball", {
+      damage: 44, speed: 12, lifetime: 100, hitstun: 20, knockbackX: 8, knockbackY: -2,
+      w: 46, h: 46, radius: 26, color: "#ff7a1a", isSpecial: true,
+      vx: face * 12, spawnY: fighter.y + (fighter.h || 100) * 0.34,
+      sheet: "./sasuke_sensei_fx_fireball_uniform.png", spriteFrames: 8, spriteW: 77, spriteH: 50, spriteScale: 1.3, spriteSpeed: 4
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// F — Amaterasu (CANON): inextinguishable black flame — a slow black-flame projectile (fx_amaterasu).
+function ssAmaterasu(fighter, context) {
+  if (!spendEnergy(fighter, 34)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._spriteCastMove = "ssAmaterasuCast"; fighter._spriteCastTimer = 26
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "ssAmaterasu", {
+      damage: 46, speed: 6, lifetime: 120, hitstun: 26, knockbackX: 4, knockbackY: 0,
+      w: 54, h: 48, radius: 30, color: "#2a1040", isSpecial: true,
+      vx: face * 6, spawnY: fighter.y + (fighter.h || 100) * 0.40,
+      sheet: "./sasuke_sensei_fx_amaterasu_uniform.png", spriteFrames: 6, spriteW: 99, spriteH: 54, spriteScale: 1.4, spriteSpeed: 5
+    }, context)
+  })
+  fighter._ssAmaterasuFx = 20   // render accent flag — later art pass
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+// B — Amaterasu Sword (CANON-ADJACENT, Blaze Release blade): a black-flame melee slash (FX baked).
+function ssAmaterasuSword(fighter, context) {
+  const md = SS_AMATERASU_SWORD
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "ssAmaterasuSword", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; if (md.category) attack.category = md.category
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = ssAmaterasuSword → cast sheet
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// U — Genjutsu (CANON): a short-range hit-confirm genjutsu — on hit, a long FREEZE (stun) + chip.
+function ssGenjutsu(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "ssGenjutsuCast"; fighter._spriteCastTimer = 24
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    if ((opp.x - fighter.x) * face < 0 || Math.abs(opp.x - fighter.x) > 170) return   // short range, in front
+    if (opp.isBlocking) { opp.blockstun = 30; applyScaledDamage(opp, 8, { source: "ability" }); return }
+    opp.hitstun = 90; opp.vx = 0; opp.vy = 0; opp.colorFlash = 20   // genjutsu FREEZE
+    opp._ssGenjutsu = 90   // render tint flag — later art pass
+    applyScaledDamage(opp, 24, { source: "ability" })
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// D — Kuchiyose: Taka (CANON) — summon a hawk that dive-swoops the foe (summons.js ssTaka).
+function ssSummonTaka(fighter, context) {
+  if ((fighter.summonCooldown || 0) > 0) return false
+  if (!spendEnergy(fighter, 34)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._spriteCastMove = "ssKuchiyoseCast"; fighter._spriteCastTimer = 26
+  fighter.summonCooldown = 90
+  const opp = getTargetResolver(context)(fighter)
+  schedulePendingSpawn(14, () => { if (opp && !opp.eliminated) spawnAssistSummon(fighter, "ssTaka", opp) })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// ULTIMATE (Mangekyou) — Kuchiyose: Hebi (CANON): the great serpent rises, strikes, spits poison, and
+// crumbles to stone (petrify) on expiry. A persistent multi-strike summon (summons.js ssHebi, ×0.60 scaled).
+function ssHebiUltimate(fighter, context) {
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(40, fighter)
+  fighter._spriteCastMove = "ssKuchiyoseCast"; fighter._spriteCastTimer = 30
+  const opp = getTargetResolver(context)(fighter)
+  schedulePendingSpawn(18, () => { if (opp && !opp.eliminated) spawnAssistSummon(fighter, "ssHebi", opp) })
+  try { shakeCamera(context, 6, 14) } catch (_) {}
+  return true
+}
+// EYE-SET CYCLE — Up+Ultimate rotates the active set (game.js intercepts before the generic ult dispatch).
+// PHASE 2: raiton ↔ mangekyou (Rinnegan joins + HUD indicator in Phase 3). Does NOT spend meter; _eyeSetCd
+// (ticked in game.js) debounces a held input.
+export function cycleSasukeSenseiEyeSet(fighter) {
+  if (!ssIsSensei(fighter)) return false
+  if ((fighter._eyeSetCd || 0) > 0) return false
+  const SETS = ["raiton", "mangekyou"]
+  const cur = fighter._eyeSet || "raiton"
+  fighter._eyeSet = SETS[(SETS.indexOf(cur) + 1) % SETS.length]
+  fighter._eyeSetCd = 20
+  fighter._eyeSetToast = 90   // HUD indicator flag (drawn in Phase-3 polish)
   return true
 }
 

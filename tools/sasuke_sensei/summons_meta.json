@@ -1,0 +1,50 @@
+{
+ "taka_intro": {
+  "frames": 4,
+  "width": 137,
+  "height": 192,
+  "sheet": "./sasuke_sensei_taka_intro_uniform.png"
+ },
+ "taka_fly": {
+  "frames": 4,
+  "width": 270,
+  "height": 191,
+  "sheet": "./sasuke_sensei_taka_fly_uniform.png"
+ },
+ "taka_attack": {
+  "frames": 3,
+  "width": 214,
+  "height": 233,
+  "sheet": "./sasuke_sensei_taka_attack_uniform.png"
+ },
+ "taka_damage": {
+  "frames": 3,
+  "width": 283,
+  "height": 227,
+  "sheet": "./sasuke_sensei_taka_damage_uniform.png"
+ },
+ "hebi_intro": {
+  "frames": 2,
+  "width": 206,
+  "height": 348,
+  "sheet": "./sasuke_sensei_hebi_intro_uniform.png"
+ },
+ "hebi_attack": {
+  "frames": 3,
+  "width": 369,
+  "height": 277,
+  "sheet": "./sasuke_sensei_hebi_attack_uniform.png"
+ },
+ "hebi_poison": {
+  "frames": 3,
+  "width": 379,
+  "height": 293,
+  "sheet": "./sasuke_sensei_hebi_poison_uniform.png"
+ },
+ "hebi_petrify": {
+  "frames": 5,
+  "width": 253,
+  "height": 230,
+  "sheet": "./sasuke_sensei_hebi_petrify_uniform.png"
+ }
+}

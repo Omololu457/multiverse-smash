@@ -330,6 +330,9 @@ const MOVE_TO_ACTION = {
   ssChidori: "ssChidori", ssChidoriAir: "ssChidoriAir", ssChidoriEisou: "ssChidoriEisou",
   ssRaitonSword1: "ssRaitonSword1", ssRaitonSword2: "ssRaitonSword2", ssRaitonSword3: "ssRaitonSword3",
   ssKirinCast: "ssKirinCast", ssKirinRaiton: "ssKirinRaiton",
+  // Mangekyou cast poses (Phase 2)
+  ssKatonCast: "ssKatonCast", ssKatonAir: "ssKatonAir", ssAmaterasuCast: "ssAmaterasuCast",
+  ssAmaterasuSword: "ssAmaterasuSword", ssGenjutsuCast: "ssGenjutsuCast", ssKuchiyoseCast: "ssKuchiyoseCast",
 
   // Brainiac (Stage 4): special cast/strike poses (_spriteCastMove / currentMove). Identity maps so a
   // cast/strike recovery tail never resolves to the 128² fallback box. (Stage 5 Pillar ULT pose added later.)

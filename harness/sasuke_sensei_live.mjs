@@ -110,6 +110,56 @@ ok(ua.energy - ub.energy < 0, `Kirin spent full meter (Δ${ua.energy - ub.energy
 ok(ha < hb, `Kirin damaged the opponent (${hb}→${ha})`);
 await shot("13_after_ult");
 
+// ════════════ PHASE 2 — MANGEKYOU SET + SUMMONS ════════════
+const summons = () => page.evaluate(() => (window.__harness.summons?.() || []).map(s => s.id));
+async function refillFull() { await page.evaluate(() => { window.__harness.refill?.("p1"); window.__harness.healP2?.(); }); await waitFrames(2); }
+async function waitGrounded() { for (let i = 0; i < 50; i++) { if ((await p1()).grounded) return; await waitFrames(2); } }
+// the Up+Ult cycle uses Up (=jump), so always LAND before sampling a grounded special. Katon uses _spriteCastMove → read cast||move.
+async function cycleSet() { await refillFull(); await page.keyboard.down("w"); await page.keyboard.down("u"); await waitFrames(4); await page.keyboard.up("u"); await page.keyboard.up("w"); await waitFrames(10); await waitGrounded(); }
+const neutralSpecialMove = async () => { await refillFull(); await waitGrounded(); await waitFrames(8); await page.keyboard.down("l"); await waitFrames(8); const s = await p1(); const m = s.move || s.cast; await page.keyboard.up("l"); await waitFrames(40); return m; };
+
+// 14) CYCLE to Mangekyou via REAL Up+Ultimate — the w+u keypress IS the cycle input under test; the
+// set-change is confirmed via the reliable grounded neutral dispatch (which branches on _eyeSet).
+await waitFrames(30);
+await refillFull(); await waitGrounded();
+const beforeCyc = await page.evaluate(() => window.__harness.p1SpecialDir(null)); await waitFrames(40);
+await cycleSet();   // ← REAL Up+Ultimate (w+u) cycle
+await refillFull(); await waitGrounded();
+const afterCyc = await page.evaluate(() => window.__harness.p1SpecialDir(null)); await waitFrames(6); await shot("14_katon_N"); await waitFrames(34);
+const bMove = beforeCyc?.move || beforeCyc?.cast, aMove = afterCyc?.move || afterCyc?.cast;
+console.log(`14_cycle: neutral ${bMove} → ${aMove} (expect ssChidori → ssKatonCast)`);
+ok(bMove === "ssChidori", `pre-cycle neutral = Raiton Chidori (${bMove})`);
+ok(aMove === "ssKatonCast", `Up+Ult cycled to Mangekyou — neutral = Katon (${aMove})`);
+
+// 15-17) Mangekyou directional specials via the grounded dir hook (respects _eyeSet = mangekyou)
+await refillFull(); await waitGrounded();
+await specialDirect("15_amaterasu_F",    "F", "ssAmaterasuCast");
+await specialDirect("16_amaterasu_sword_B","B", "ssAmaterasuSword");
+await specialDirect("17_genjutsu_U",     "U", "ssGenjutsuCast");
+
+// 18) Kuchiyose: Taka (D) — a hawk summon must appear
+await refillFull(); await waitGrounded();
+await page.evaluate(() => { window.__harness.p1SpecialDir("D"); window.__harness.damageP2?.(1); });
+await waitFrames(22); await shot("18_taka_summon");   // let the hawk sheet decode before the shot
+const takaList = await summons();
+console.log(`18_taka: summons = [${takaList.join(", ")}]`);
+ok(takaList.includes("ssTaka"), `Kuchiyose Taka spawned a hawk summon`);
+await waitFrames(70);
+
+// 19) Mangekyou ULTIMATE — Kuchiyose: Hebi (neutral Ultimate while in Mangekyou) — serpent must appear
+await page.evaluate(() => { window.__harness.resetUlt?.(); window.__harness.healP2?.(); }); await waitGrounded(); await waitFrames(2);
+await page.keyboard.down("u"); await waitFrames(22); await shot("19_hebi_ult"); await page.keyboard.up("u"); await waitFrames(8);
+const hebiList = await summons();
+console.log(`19_hebi_ult: summons = [${hebiList.join(", ")}]`);
+ok(hebiList.includes("ssHebi"), `Kuchiyose Hebi (Mangekyou ult) spawned the serpent`);
+await waitFrames(60); await shot("20_hebi_active");
+
+// 20) CYCLE back to Raiton — neutral special returns to Chidori
+await cycleSet();
+const backMove = await neutralSpecialMove();
+console.log(`21_cycle_back: neutral special → ${backMove} (expect ssChidori)`);
+ok(backMove === "ssChidori", `Up+Ult cycled back to Raiton (${backMove})`);
+
 await browser.close(); server.close();
 console.log(`\nDONE — ${FAILS} FAIL(s). shots in harness/shots/ss_*.png`);
 process.exit(FAILS ? 1 : 0);

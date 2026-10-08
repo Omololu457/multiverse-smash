@@ -69,7 +69,7 @@ import { resolveStageHazard, hazardBox } from "./stageHazards.js"   // STAGE INT
 import { updatePlatforms, drawPlatforms, spawnPlatform, clearPlatforms, getPlatforms, PLATFORM_DEFAULTS } from "./platforms.js"   // Wood Release climbable terrain (Stage 1 — isolated primitive)
 import {
   activeProjectiles, spawnProjectile,
-  triggerSpecial, triggerUltimate, triggerTransformation,
+  triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet,
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
   tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
@@ -7158,6 +7158,8 @@ function updateMiscTimers(fighter) {
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.comboBreakerCd > 0) fighter.comboBreakerCd--                // meterless combo-breaker cooldown-cost (Stage 1 pilot: zenitsu)
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
+  if (fighter._eyeSetCd       > 0) fighter._eyeSetCd--                    // Sasuke (Sensei) Up+Ult eye-set cycle debounce
+  if (fighter._eyeSetToast    > 0) fighter._eyeSetToast--                 // Sasuke (Sensei) active-set HUD flash (Phase-3 draw)
   if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
   if (fighter.teleportCooldown      > 0) fighter.teleportCooldown--       // Gojo Up+Special blink
   if (fighter.dashTeleportCooldown  > 0) fighter.dashTeleportCooldown--   // Toji teleport-dash
@@ -7825,6 +7827,14 @@ function _updatePlayerCombatBody(fighter) {
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "rickprime") {
     tryStartRickPrimeRewind(fighter); return
+  }
+  // SASUKE (SENSEI) — UP + Ultimate CYCLES the active eye-set (Raiton ↔ Mangekyou; Rinnegan joins in Phase 3).
+  // Intercepted BEFORE the generic ult dispatch (like Chrollo/RickPrime) so it does NOT fire an ultimate or
+  // spend meter — it only rotates which special/ultimate set is live. A NEUTRAL (or non-Up) Ultimate falls
+  // through → executeSasukeSenseiUltimate (the current set's ult: Kirin / Kuchiyose Hebi). _eyeSetCd debounces.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "sasuke_sensei"
+      && betaHeldDirFromInput(inputState, fighter.facing) === "U") {
+    cycleSasukeSenseiEyeSet(fighter); return
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }

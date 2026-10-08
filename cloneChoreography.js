@@ -26,6 +26,7 @@
 
 import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
+import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (deterministic)
 
 // ── ACCESS CONSTANTS ─────────────────────────────────────────────────────────
 export const SUMMON_MOTION = "cloneSummon"   // ↓↓↑ + Special stages the formation. A distinctive strays:0
@@ -101,8 +102,10 @@ export function startChoreo(caster, target, rosterKey, seqKey = "pureAttack") {
   const seq = set.seqs[seqKey] || set.seqs.pureAttack; if (!seq) return false
   const bodies = {}
   for (const c of seq.clones) bodies[c.slot] = makeGhostBody(caster, rosterKey)
+  // STAGE 6: capture the form damage multiplier ONCE at run start (stable for the whole run, even if health
+  // changes mid-sequence) → sublinear scaling of every beat/finisher hit. 1.0 when out of form.
   _runs.push({ caster, target, rosterKey, fx: set.fx, seq, frame: 0, bodies, fired: new Set(),
-               finisherFired: false, startX: caster.x, startY: caster.y })
+               finisherFired: false, startX: caster.x, startY: caster.y, dmgMult: cloneScaling(caster).dmgMult })
   caster._choreoLock = true; caster.vx = 0; caster._forceAction = "idle"
   return true
 }
@@ -111,12 +114,14 @@ export function startChoreo(caster, target, rosterKey, seqKey = "pureAttack") {
 // _choreoLock: the caster is SOFT-held (position pinned, idle pose) so the follow-up Special (select)
 // or Ultimate (swarm) press is still processed by updatePlayerCombat in real play. The summon is
 // interruptible — taking a hit or throwing an attack cancels it (handled in updateFormations).
-const FORMATION_OFFSETS = [{ dx: -74, dy: 0 }, { dx: 74, dy: 0 }, { dx: -128, dy: 0 }, { dx: 128, dy: 0 }]
 export function startFormation(caster, target, rosterKey) {
   if (!caster || !target || _runFor(caster) || _formFor(caster)) return false
   if (!isChoreoSupported(rosterKey)) return false
-  const bodies = FORMATION_OFFSETS.map(() => makeGhostBody(caster, rosterKey))
-  _forms.push({ caster, target, rosterKey, bodies, frame: 0, window: SELECT_WINDOW })
+  // STAGE 6: in-form casters gather MORE clones (×2, ×3 at the form's highest stage), capped at MAX_LIVE_CLONES.
+  // Out of form this is the original fixed 4. Offsets are stored per-formation (deterministic symmetric fan).
+  const offsets = formationOffsets(formationCloneCount(caster))
+  const bodies = offsets.map(() => makeGhostBody(caster, rosterKey))
+  _forms.push({ caster, target, rosterKey, bodies, offsets, frame: 0, window: SELECT_WINDOW })
   caster.vx = 0; caster._forceAction = "idle"; caster._choreoSelectWindow = SELECT_WINDOW; caster._inChoreoFormation = true
   return true
 }
@@ -131,7 +136,7 @@ export function updateFormations(worldWidth) {
     const fm = _forms[i], c = fm.caster
     // Interruptible summon: a hit / an attack / a KO cancels it (real-play fairness).
     if (!c || c.eliminated || (c.hitstun || 0) > 0 || c.attacking) { _releaseFormationCaster(fm); _forms.splice(i, 1); continue }
-    FORMATION_OFFSETS.forEach((off, k) => {
+    fm.offsets.forEach((off, k) => {
       const b = fm.bodies[k]; b._choreoVisible = true
       b.x = _clampX(c.x + off.dx, b.w); b.y = c.y + off.dy
       b.facing = off.dx < 0 ? 1 : -1   // clones face inward
@@ -188,7 +193,7 @@ export function updateChoreo(fireHit, worldWidth) {
       const key = b.body + "@" + b.at
       if (!r.frozen && f === b.at && !r.fired.has(key)) {
         r.fired.add(key)
-        if (b.hit && fireHit) fireHit(caster, t, _resolveHit(b.hit, r.fx), _dirTo(body, t), body)
+        if (b.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(b.hit, r.fx), r.dmgMult), _dirTo(body, t), body)
       }
     }
 
@@ -199,7 +204,7 @@ export function updateChoreo(fireHit, worldWidth) {
       const cx = t.x + (t.w || 0) / 2
       if (fin.type === "projectile") {
         caster.facing = _dirTo(caster, t); caster._forceAction = fin.action
-        if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, _resolveHit(fin.hit, r.fx), _dirTo(caster, t), caster) }
+        if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(fin.hit, r.fx), r.dmgMult), _dirTo(caster, t), caster) }
       } else if (fin.type === "escape") {
         const side = _dirTo(caster, t)
         caster.x = fin.teleport.behindTarget ? cx + side * (fin.teleport.dx || 74) - (caster.w || 0) / 2
@@ -208,12 +213,12 @@ export function updateChoreo(fireHit, worldWidth) {
         if (!r.frozen && !r.finisherFired) {
           r.finisherFired = true
           if (fin.iframes) { caster.invulnTimer = fin.iframes; caster.iframes = fin.iframes }
-          if (fin.hit && fireHit) fireHit(caster, t, _resolveHit(fin.hit, r.fx), _dirTo(caster, t), caster)
+          if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(fin.hit, r.fx), r.dmgMult), _dirTo(caster, t), caster)
         }
       } else if (fin.type === "strike") {
         caster.x = cx + (fin.teleport.dx || -44) - (caster.w || 0) / 2
         caster.y = t.y; caster.facing = _dirTo(caster, t); caster._forceAction = fin.action
-        if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, _resolveHit(fin.hit, r.fx), _dirTo(caster, t), caster) }
+        if (!r.frozen && !r.finisherFired) { r.finisherFired = true; if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(fin.hit, r.fx), r.dmgMult), _dirTo(caster, t), caster) }
       } else {
         // DEFAULT SPIKE — verbatim Uzumaki-Barrage behaviour.
         if (r.frozen) {
@@ -227,7 +232,7 @@ export function updateChoreo(fireHit, worldWidth) {
           caster.onGround = false; caster.grounded = false
           caster.vy = fin.descendVy || 7
           caster.facing = _dirTo(caster, t); caster._forceAction = fin.action
-          if (fin.hit && fireHit) fireHit(caster, t, _resolveHit(fin.hit, r.fx), _dirTo(caster, t))
+          if (fin.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(fin.hit, r.fx), r.dmgMult), _dirTo(caster, t))
         }
       }
     }

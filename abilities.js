@@ -55,6 +55,7 @@ import { isBetaUnlocked } from "./progression.js"   // beta-only single-directio
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
+import { cloneScaling } from "./cloneFormScaling.js"   // STAGE 6: modest in-form summon-cost scaling (deterministic)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
@@ -2099,7 +2100,7 @@ function executeNarutoSpecial(fighter, context) {
   // SUMMON: Up + Special → call clones into a holding FORMATION (no move yet), opening the select window.
   if (fighter._specialHeldDir === "U") {
     if ((fighter._choreoCd || 0) > 0) return false
-    if (!spendEnergy(fighter, NARUTO_SUMMON_COST)) return false
+    if (!spendEnergy(fighter, Math.round(NARUTO_SUMMON_COST * cloneScaling(fighter).costMult))) return false   // STAGE 6: modest in-shroud cost scaling
     fighter._pendingNarutoSummon = true
     fighter._choreoCd = 12          // brief lockout so one press can't double-fire
     clearMotionHistory(fighter)
@@ -24801,7 +24802,7 @@ function cloneChoreoInterceptSpecial(fighter) {
     if (detectMotion(fighter, SUMMON_MOTION)) {
       clearMotionHistory(fighter)
       if ((fighter._choreoCd || 0) > 0) return true
-      if (!spendEnergy(fighter, SUMMON_COST)) return false
+      if (!spendEnergy(fighter, Math.round(SUMMON_COST * cloneScaling(fighter).costMult))) return false   // STAGE 6: modest in-form cost scaling
       fighter._pendingChoreoDirect = lightDirectSeq(key, fighter._specialHeldDir)
       fighter._choreoCd = SUMMON_CD
       return true
@@ -24816,7 +24817,7 @@ function cloneChoreoInterceptSpecial(fighter) {
   if (detectMotion(fighter, SUMMON_MOTION)) {
     clearMotionHistory(fighter)
     if ((fighter._choreoCd || 0) > 0) return true
-    if (!spendEnergy(fighter, SUMMON_COST)) return false   // not enough chakra → fall through to normal special
+    if (!spendEnergy(fighter, Math.round(SUMMON_COST * cloneScaling(fighter).costMult))) return false   // not enough chakra → fall through (STAGE 6: modest in-form cost scaling)
     fighter._pendingChoreoSummon = true
     fighter._choreoCd = SUMMON_CD
     return true

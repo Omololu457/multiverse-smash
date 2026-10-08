@@ -850,6 +850,8 @@
     "test:naruto-barrage": "node harness/naruto_barrage.test.mjs",
     "test:naruto-summon-select": "node harness/naruto_summon_select.test.mjs",
     "test:naruto-realinput": "node harness/naruto_realinput.test.mjs",
+    "test:clone-formscaling": "node harness/clone_form_scaling.test.mjs",
+    "test:clone-formscaling-live": "node harness/clone_form_scaling_live.test.mjs",
     "test:naruto-ultimate": "node harness/naruto_ultimate.test.mjs",
     "test:naruto-ninetails": "node harness/naruto_ninetails_kit.test.mjs",
     "test:naruto-alt-inputs": "node harness/naruto_alt_inputs.test.mjs",

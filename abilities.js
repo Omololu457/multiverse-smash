@@ -4790,16 +4790,26 @@ function hhHasangeki(fighter, context) {
   try { shakeCamera(context, 4, 7) } catch (_) {}
   return true
 }
-// B — Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams 64 Palms) [CANON]. Defensive rotating palm guard:
-// i-frames + a radial counter that knocks a nearby foe away.
+// B — Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams 64 Palms) [CANON]. Defensive rotating palm
+// BARRAGE: Hinata spins in place and unleashes a rapid flurry of chakra palms (Saitama-style consecutive
+// hits) at anyone nearby, protected by i-frames the whole spin, finishing with a knockback palm. Each palm
+// seals a little chakra (Gentle Fist). Stationary (no advance) — a close-range defensive counter.
 function hhShugoHakke(fighter, context) {
   if (!spendEnergy(fighter, 26)) return false
-  fighter.attackCooldown = getAttackDuration(40, fighter)
-  fighter._spriteCastMove = "hhShugo"; fighter._spriteCastTimer = 38
-  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 30)   // protective dome
-  fighter._hhShugoFx = 36
-  schedulePendingSpawn(10, () => _hhBeat(fighter, context, 28, { knockback: true, hitstun: 20, reach: 110, vy: -5 }))
-  try { shakeCamera(context, 3, 6) } catch (_) {}
+  fighter.attackCooldown = getAttackDuration(52, fighter)
+  fighter._spriteCastMove = "hhShugo"; fighter._spriteCastTimer = 50
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 48)   // protective dome — i-frames through the whole spin
+  fighter._hhShugoFx = 50
+  const HITS = 12
+  for (let i = 0; i < HITS; i++) {   // rapid palm flurry — one hit every 3 frames, no knockback so the foe stays in it
+    schedulePendingSpawn(6 + i * 3, () => {
+      if (!fighter.eliminated) _hhBeat(fighter, context, 7, { drain: 1, hitstun: 10, reach: 115 })
+    })
+  }
+  schedulePendingSpawn(6 + HITS * 3, () => {   // final palm — knockback out of the spin
+    if (!fighter.eliminated) _hhBeat(fighter, context, 30, { knockback: true, drain: 4, hitstun: 22, reach: 120, vy: -6 })
+  })
+  try { shakeCamera(context, 3, 8) } catch (_) {}
   return true
 }
 // U — Hakkesho Guuten (Rotation sphere) [CANON-ADJACENT]. Spin into a chakra sphere: a window that DEFLECTS

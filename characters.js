@@ -6958,7 +6958,7 @@ const hinata = {
   specials: {
     gentleFist64:  { cost: 30, effect: "Special: Juukenhou Hakke Rokujuuyon Shou (Eight Trigrams Sixty-Four Palms) — advancing 8-hit Gentle-Fist palm rush that SEALS chakra (drains the foe's meter); green trigram-field FX." },
     hakkeHasangeki:{ cost: 28, effect: "Fwd + Special: Hakke Hasangeki (Eight Trigrams Mountain Crusher) — advancing double-palm thrust, big knockback + chakra seal." },
-    shugoHakke:    { cost: 26, effect: "Back + Special: Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams Sixty-Four Palms) — defensive palm guard: i-frames + a radial counter that knocks the foe away." },
+    shugoHakke:    { cost: 26, effect: "Back + Special: Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams Sixty-Four Palms) — spin in place and unleash a RAPID 12-hit chakra-palm barrage (seals chakra), protected by i-frames the whole spin, ending with a knockback palm." },
     hakkeshoGuuten:{ cost: 24, effect: "Up + Special: Hakkesho Guuten — spin into a rotating chakra sphere that DEFLECTS incoming projectiles + a radial push (i-frames, ghost afterimages)." },
     byakugan:      { cost: 18, effect: "Down + Special: Byakugan — a ~5s buff window: +18% special damage and chakra regen; pulse-ring FX." }
   },

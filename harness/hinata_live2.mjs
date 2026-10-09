@@ -44,7 +44,7 @@ async function special(label, dir, expectCast) {
 
 // ── Move p1 adjacent to p2 so the proximity Gentle-Fist hits connect ──
 await fill();
-await page.keyboard.down("d"); await waitFrames(34); await page.keyboard.up("d"); await waitFrames(4);
+await page.keyboard.down("d"); await waitFrames(50); await page.keyboard.up("d"); await waitFrames(4);
 
 // 1) NEUTRAL — Sixty-Four Palms: connects + DRAINS p2 chakra
 await fill();
@@ -68,6 +68,22 @@ await special("04_guuten_U", "U", "hhHakkesho");
 // 5) DOWN — Byakugan (buff). Likewise the buff flag isn't in the snapshot; proven via unit test + the
 // pulse-ring FX renders (screenshot 05). Note: while the buff is live, chakra regenerates fast.
 await special("05_byakugan_D", "D", "hhByakugan");
+
+// 6) Shugo Hakke is a MULTI-HIT flurry (Saitama-style) — reposition adjacent (it's stationary, no advance)
+// and confirm the foe's HP falls in many distinct steps across the barrage.
+await fill();
+await page.keyboard.down("d"); await waitFrames(40); await page.keyboard.up("d"); await waitFrames(3);
+await fill();
+const fh0 = (await p2()).health;
+await page.evaluate(() => window.__harness.p1SpecialDir("B"));
+const hpSamples = [];
+for (let k = 0; k < 9; k++) { await waitFrames(5); hpSamples.push(Math.round((await p2()).health)); }
+await shot("06_shugo_flurry");
+const flurryDmg = fh0 - hpSamples[hpSamples.length - 1];
+const distinctHits = new Set(hpSamples).size;
+console.log(`06_shugo_flurry: p2 hp ${fh0} → ${hpSamples.join(" → ")} (dmg ${flurryDmg}, ${distinctHits} distinct steps)`);
+ok(flurryDmg > 40, `Shugo Hakke barrage dealt cumulative damage (${flurryDmg})`);
+ok(distinctHits >= 4, `Shugo Hakke landed MULTIPLE rapid hits (${distinctHits} distinct HP steps)`);
 
 await browser.close(); server.close();
 console.log(`\nDONE — ${FAILS} FAIL(s). shots in harness/shots/hinata2_*.png`);

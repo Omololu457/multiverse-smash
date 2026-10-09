@@ -302,7 +302,7 @@ export const KITS = {
     specials: [
       { name: "Sixty-Four Palms",      input: "Special",          cost: 30, desc: "Juukenhou Hakke Rokujuuyon Shou — advancing 8-hit palm rush that SEALS chakra (drains foe's meter); trigram-field FX [CANON]" },
       { name: "Mountain Crusher",      input: "Forward + Special", cost: 28, desc: "Hakke Hasangeki — advancing double-palm thrust, big knockback + chakra seal [CANON]" },
-      { name: "Protective 64 Palms",   input: "Back + Special",    cost: 26, desc: "Shugo Hakke Rokujuuyonshou — defensive palm guard: i-frames + radial counter [CANON]" },
+      { name: "Protective 64 Palms",   input: "Back + Special",    cost: 26, desc: "Shugo Hakke Rokujuuyonshou — spinning i-frame guard that unleashes a RAPID 12-hit palm barrage + chakra seal, ending with a knockback palm [CANON]" },
       { name: "Rotation Sphere",       input: "Up + Special",      cost: 24, desc: "Hakkesho Guuten — rotating chakra sphere, deflects projectiles + radial push [CANON-ADJACENT]" },
       { name: "Byakugan",              input: "Down + Special",    cost: 18, desc: "~5s buff: +18% special damage + chakra regen; pulse-ring FX [CANON-ADJACENT]" }
     ],

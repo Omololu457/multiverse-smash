@@ -265,6 +265,7 @@ import {
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
   updateHinata, applyHinataGuutenToProjectiles   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
 } from "./abilities.js"
+import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
 // Naruto-ONLY authored clone choreography (replaces his persistent + one-shot clone systems).
 import { startNarutoChoreo, updateNarutoChoreo, getNarutoChoreoBodies, isNarutoChoreoActive, clearNarutoChoreo, getNarutoChoreoState, holdNarutoChoreoAt,
@@ -7160,6 +7161,7 @@ function updateMiscTimers(fighter) {
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.comboBreakerCd > 0) fighter.comboBreakerCd--                // meterless combo-breaker cooldown-cost (Stage 1 pilot: zenitsu)
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
+  tickSasukeDojutsu(fighter)                                             // Sasuke Mangekyou/Rinnegan: strain decay, counter/redirect cooldowns, FX/portal timers
   if (fighter._eyeSetCd       > 0) fighter._eyeSetCd--                    // Sasuke (Sensei) Up+Ult eye-set cycle debounce
   if (fighter._eyeSetToast    > 0) fighter._eyeSetToast--                 // Sasuke (Sensei) active-set HUD flash (Phase-3 draw)
   if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
@@ -7641,6 +7643,21 @@ function _updatePlayerCombatBody(fighter) {
     }
   }
 
+  // SASUKE (any) — RINNEGAN COUNTER SWAP reversal (R3, CANON-ADJACENT): BLOCK + SPECIAL while in BLOCKSTUN
+  // swaps Sasuke BEHIND the attacker (brief i-frames + a short counter opening). Read AHEAD of the stun
+  // early-return (like Tobirama's Water Flicker) so it's a true reactive counter. Rinnegan-gated for sensei;
+  // sasukeDojutsu.counterSwap owns cost/cooldown/per-fighter safety. Refused during Brutality/rewind cinematics.
+  {
+    const _drk = (fighter.rosterKey || "").toLowerCase()
+    const _dbind = SASUKE_DOJUTSU_BIND[_drk]
+    if (_dbind && (fighter.blockstun || 0) > 0 && getFighterInput(fighter).special &&
+        !brutalityState.active && !rewindState.active &&
+        (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan") &&
+        counterSwap(fighter, getAbilityContext(), _dbind)) {
+      updateCombat(fighter, getOpponent(fighter), {}, opts); return
+    }
+  }
+
   // CRITICAL: updateCombat() is the ONLY place hitstun/hitstop/blockstun and the
   // attack-recovery timers decrement. It must run EVERY frame or a hit fighter
   // gets stuck forever (the timer that locks them never ticks down). While
@@ -7661,6 +7678,13 @@ function _updatePlayerCombatBody(fighter) {
   if (isOmniManForcedDescent(fighter)) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
+
+  // SASUKE — M1 KAGUTSUCHI flame STEERING (CANON): while this Sasuke's Amaterasu flame is live, holding
+  // Up/Down nudges its trajectory a limited amount (deterministic; input-driven). No-op unless a flame exists.
+  if (SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) {
+    const _sd = inputState.up ? "U" : inputState.down ? "D" : null
+    if (_sd) steerKagutsuchi(fighter, getAbilityContext(), _sd)
+  }
 
   // OBITO KAMUI (playtest change 2026-09-06): while intangible he is UNABLE TO ATTACK AT ALL. Neutralize every
   // attack input this frame (normals J/K/I, air normals, Special, and the Kamui grab) BEFORE any attack path
@@ -7774,6 +7798,23 @@ function _updatePlayerCombatBody(fighter) {
     // the press; a DIRECTIONAL/air Special falls through to triggerSpecial (Slash / Thrown Sword / Teleport / Tumble).
     if ((fighter.rosterKey || "").toLowerCase() === "vilgax" && !fighter._specialHeldDir &&
         (fighter.onGround ?? fighter.grounded ?? true)) { fighter._vilgaxBlastArmed = true; return }
+    // SASUKE — RINNEGAN SPACE-TIME on CHARGE + Special (R1/R2/R5). Charge + Special = Amenotejikara Kunai
+    // Swap · Charge + Fwd + Special = Portal Chidori · Charge + Back + Special = Portal Redirect. Rinnegan-
+    // gated (sensei). Un-Charged Special falls straight through to the normal eye-set dispatch → fully additive.
+    {
+      const _drk = (fighter.rosterKey || "").toLowerCase()
+      const _dbind = SASUKE_DOJUTSU_BIND[_drk]
+      if (_dbind && inputState.charge && (fighter.attackCooldown || 0) <= 0 && !fighter.attacking &&
+          !brutalityState.active && !rewindState.active &&
+          (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan")) {
+        const _dc = getAbilityContext()
+        const _dd = betaHeldDirFromInput(inputState, fighter.facing)
+        const _ok = (_dd === "F") ? portalChidori(fighter, _dc, _dbind)
+                  : (_dd === "B") ? portalRedirect(fighter, _dc, _dbind)
+                  :                 amenotejikaraKunaiSwap(fighter, _dc, _dbind)
+        if (_ok) return
+      }
+    }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   // CHROLLO SKILL HUNTER — while the copied form is ACTIVE, re-pressing Ultimate is the MANUAL early-end
@@ -8611,6 +8652,52 @@ function seedVoidHunterField(fighter) {
 }
 // SASUKE (SENSEI) — active eye-set indicator. Flashes the current dōjutsu set's name above the head for
 // ~100 frames after an Up+Ultimate cycle (fades out in the last 30). Render-only; sasuke_sensei + _eyeSetToast gated.
+// SASUKE Mangekyou/Rinnegan FX — ALL code-drawn (no sprite art): Rinnegan portal swirl-rings, the swap/warp
+// ripple flash, and the Rinnegan-strain purple aura + "STRAINED" lock HUD. Gated on sasukeDojutsu flags.
+function drawSasukeDojutsuFx(c, fighter) {
+  if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
+  const P = fighter._dojPortals
+  if (P && (P.t || 0) > 0) {
+    const k = (P.t || 0) / (P.max || 1)
+    for (const node of [P.a, P.b]) {
+      if (!node) continue
+      const s = _worldToScreen(node.x, node.y)
+      const R = 34 * (0.6 + 0.4 * Math.sin((1 - k) * Math.PI))
+      c.save(); c.globalAlpha = Math.min(1, k * 1.4)
+      c.fillStyle = "rgba(120,80,200,0.18)"; c.beginPath(); c.arc(s.x, s.y, R * 0.7, 0, Math.PI * 2); c.fill()
+      for (let r = 0; r < 3; r++) {
+        c.beginPath(); c.strokeStyle = P.redirect ? "#8f7fff" : "#b48cff"; c.lineWidth = 3 - r
+        const a0 = (1 - k) * Math.PI * 4 + r
+        c.arc(s.x, s.y, Math.max(4, R - r * 7), a0, a0 + Math.PI * 1.6); c.stroke()
+      }
+      c.restore()
+    }
+  }
+  const F = fighter._dojFx
+  if (F && (F.t || 0) > 0) {
+    const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+    if (x != null && w != null) {
+      const k = (F.t || 0) / (F.max || 1)
+      c.save(); c.globalAlpha = k; c.strokeStyle = F.kind === "snuff" ? "#ff6a3a" : "#c8a8ff"; c.lineWidth = 3
+      c.beginPath(); c.arc(x + w / 2, y + h / 2, (1 - k) * Math.max(w, h) * 1.1 + 6, 0, Math.PI * 2); c.stroke(); c.restore()
+    }
+  }
+  if ((fighter._rinLock || 0) > 0) {
+    const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+    if (x != null && w != null) {
+      c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(fighter._rinLock * 0.4)
+      c.strokeStyle = "#7a3aff"; c.lineWidth = 2
+      c.beginPath(); c.ellipse(x + w / 2, y + h / 2, w * 0.62, h * 0.58, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+      if ((fighter._rinLockToast || 0) > 0) {
+        c.save(); c.globalAlpha = Math.min(1, (fighter._rinLockToast || 0) / 30)
+        c.font = "bold 12px sans-serif"; c.textAlign = "center"; c.textBaseline = "bottom"
+        c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,0.9)"; c.strokeText("RINNEGAN STRAINED", x + w / 2, y - 26)
+        c.fillStyle = "#b48cff"; c.fillText("RINNEGAN STRAINED", x + w / 2, y - 26); c.restore()
+      }
+    }
+  }
+}
+
 function drawSasukeSenseiEyeHud(c, fighter) {
   if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "sasuke_sensei") return
   const t = fighter._eyeSetToast || 0
@@ -14550,6 +14637,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
+    drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
@@ -20837,6 +20925,13 @@ gameLoop()
     introState: () => ({ stage: introStage, gameState, p1Playing: !!p1?._introPlaying, p2Playing: !!p2?._introPlaying, p1Variant: p1?._introVariant ?? null, p2Variant: p2?._introVariant ?? null }),
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
+    dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
+    setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
+    clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
+      // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
+      if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }
+      return true },   // test-only: full dojutsu state reset between sub-tests
+    dojutsuFire: (which, dir = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const bind = dojutsuBindOf(f); const ctx = getAbilityContext(); if (which !== "r3") { f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; } f.energy = f.maxEnergy || 200; const x0 = Math.round(f.x); let ok = false; if (which === "r1") ok = amenotejikaraKunaiSwap(f, ctx, bind); else if (which === "r2") ok = portalChidori(f, ctx, bind); else if (which === "r3") { f.blockstun = 24; f.hitstun = 0; ok = counterSwap(f, ctx, bind); } else if (which === "r5") ok = portalRedirect(f, ctx, bind); else if (which === "strain") { addRinneganStrain(f); ok = true; } return { ok, x0, x: Math.round(f.x), strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, locked: rinneganLocked(f), counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portalActive: f._portalActive || 0, portals: !!f._dojPortals, invuln: f.invulnTimer || 0, armed: !!f._dojMarkerArmed, energy: Math.round(f.energy || 0) } },   // test-only: directly invoke a dojutsu move (LOGIC proof, bypasses input timing)
     clonePuffCount: () => getClonePuffCount(),
     woodReleaseFxCount: () => getWoodReleaseFxCount(),   // Hashirama wood-clone despawn (revert-to-logs) FX count
     resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests

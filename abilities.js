@@ -56,6 +56,7 @@ import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each 
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
 import { cloneScaling } from "./cloneFormScaling.js"   // STAGE 6: modest in-form summon-cost scaling (deterministic)
+import { initSasukeDojutsu, SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, addRinneganStrain, rinneganLocked, hasActiveKagutsuchi, extinguishKagutsuchi, steerKagutsuchi, tickSasukeDojutsu } from "./sasukeDojutsu.js"   // SHARED Mangekyou/Rinnegan space-time logic for every Sasuke (deps injected below; dispatch hooks only)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
@@ -4519,7 +4520,10 @@ function ssKaton(fighter, context, air) {
   return true
 }
 // F — Amaterasu (CANON): inextinguishable black flame — a slow black-flame projectile (fx_amaterasu).
+// M1 KAGUTSUCHI: re-pressing this input while a flame is live EXTINGUISHES it (+small refund) instead of
+// casting a new one (Amaterasu = left eye, flame control = right eye). Steering (hold Up/Down) ticks in game.js.
 function ssAmaterasu(fighter, context) {
+  if (hasActiveKagutsuchi(fighter) && extinguishKagutsuchi(fighter, context)) { fighter.attackCooldown = getAttackDuration(12, fighter); return true }   // brief lock so a HELD input doesn't immediately re-cast
   if (!spendEnergy(fighter, 34)) return false
   fighter.attackCooldown = getAttackDuration(26, fighter)
   fighter._spriteCastMove = "ssAmaterasuCast"; fighter._spriteCastTimer = 26

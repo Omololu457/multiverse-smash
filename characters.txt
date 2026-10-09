@@ -143,3 +143,65 @@ NARUTO uses his own dedicated engine (narutoChoreography.js), but as of the
     Neutral Ultimate  = Nine-Tails        (alternates: Down+Ultimate, or ↓←↓←+Ultimate)
   Other specials unchanged: Dark Rasengan = Back+Special (or ↓←↓←); Chakra-Arm Strike = Fwd+Special (or ←↓→).
 ========================================================================
+
+
+========================================================================
+SASUKE DŌJUTSU PASS — MANGEKYŌ / RINNEGAN SPACE-TIME
+Applies to ALL THREE Sasukes:  SASUKE (original) · SASUKE (adult) · SASUKE (sensei)
+========================================================================
+
+EXTRA BUTTONS (on top of the BUTTON MAP near the top of this file)
+  Charge = P        (a HELD modifier — hold it, then press Special)
+  Block  = ;  (semicolon)
+
+The dōjutsu live on Sasuke's previously-unused CHARGE modifier + on blocking,
+so they never replace any of his normal specials (plain Special still works).
+
+SHARED RINNEGAN SPACE-TIME MOVES  (identical inputs on every Sasuke; the gating differs per character — see below)
+  R1  Amenotejikara: Kunai Swap     Charge + Special          (1st press = THROW a marker;
+                                                                2nd press = SWAP places with the marker,
+                                                                or with the foe if the marker is near them)
+  R2  Portal Chidori                Charge + Forward + Special
+  R5  Portal Redirect               Charge + Back + Special    (opens a ~0.7s window that REFLECTS a projectile)
+  R3  Counter Swap                  Special — the instant AFTER you BLOCK a hit (i.e. during blockstun):
+                                    warps you BEHIND the attacker with brief i-frames
+  R4  Rinnegan Strain               (PASSIVE — no input; firing the space-time moves back-to-back
+                                     overloads the Rinnegan and LOCKS it for ~2.5s. Pace yourself.)
+
+MANGEKYŌ
+  M1  Kagutsuchi Flame Control      while your Amaterasu flame is on screen:
+                                      hold Up / Down      = STEER the black flame up / down
+                                      re-press Amaterasu  = SNUFF it out (+ small chakra refund)
+
+------------------------------------------------------------------------
+SASUKE  (original / Mangekyō-era — the one with Susanoo)
+------------------------------------------------------------------------
+  Rinnegan suite (R1 / R2 / R3 / R5)  — works ANY time, no setup. Inputs exactly as the shared list above.
+  M1 Kagutsuchi  — N/A: this Sasuke has no Amaterasu move in his kit.
+  SUSANOO (his ULTIMATE, two-stage):
+      Ultimate                    U            [ L2 / R2 ]   -> Stage 1 giant (costs ~50% energy)
+      Ultimate again (after release)                         -> Stage 2 escalation.  Lasts ~13s.
+      NOTE: while Susanoo is active the dōjutsu is disabled — Susanoo keeps the Special/Charge+Special buttons.
+
+------------------------------------------------------------------------
+SASUKE (ADULT)
+------------------------------------------------------------------------
+  Rinnegan suite (R1 / R2 / R3 / R5)  — works ANY time, no eye-set needed. Inputs as the shared list above.
+  M1 Kagutsuchi:
+      Cast Amaterasu              Up + Special         ( W + L )
+      then steer with Up / Down, and re-press Up + Special to snuff it (+ refund).
+  No Susanoo.
+
+------------------------------------------------------------------------
+SASUKE (SENSEI / Boruto-era — EYE-SET gated)
+------------------------------------------------------------------------
+  Cycle the active eye         Up + Ultimate   ( W + U )     Raiton -> Mangekyō -> Rinnegan -> (back to Raiton)
+      (a small "SET" indicator shows the current eye. Plain Ultimate = his summon, NOT the cycle.)
+
+  Rinnegan suite (R1 / R2 / R3 / R5)  — ONLY while the eye is on RINNEGAN
+      i.e. press Up+Ultimate TWICE from the start, then use the shared Charge+Special inputs.
+  M1 Kagutsuchi  — ONLY while the eye is on MANGEKYŌ (Up+Ultimate ONCE from the start):
+      Cast Amaterasu              Forward + Special
+      then steer with Up / Down, and re-press to snuff it (+ refund).
+  No Susanoo.
+========================================================================

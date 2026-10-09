@@ -26,6 +26,16 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png; in-sheet credit \"BY: RBM-Kyuubi\")",
     files:   ["sakura_*_uniform.png", "sakura_btng_nzc_by_rbm_kyuubi_dbxd9z4.png"]
   },
+  // Hinata Hyuga (Naruto) — uploader handle "aryasyddanwahab" carried in the filename; the sheet has NO
+  // in-sheet credits box (original DeviantArt page may list more artists — ASK USER TO VERIFY). Attribution
+  // MANDATORY. Border-flood-fill keyed + palette-normalized + per-action sliced (tools/hinata/) →
+  // hinata_*_uniform.png.
+  hinata: {
+    work:    "Hinata Hyuga (\"Hinata — The Last\")",
+    artists: ["aryasyddanwahab"],
+    source:  "fan sprite sheet (hinata_naruto_the_last__by_aryasyddanwahab_deapca3.png; uploader handle in filename; no in-sheet credits box — verify on the source page)",
+    files:   ["hinata_*_uniform.png", "hinata_naruto_the_last__by_aryasyddanwahab_deapca3.png"]
+  },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
   // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.

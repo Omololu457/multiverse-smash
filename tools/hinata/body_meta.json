@@ -1,0 +1,128 @@
+{
+ "intro": {
+  "frames": 5,
+  "width": 53,
+  "height": 71,
+  "sheet": "./hinata_intro_uniform.png"
+ },
+ "idle": {
+  "frames": 4,
+  "width": 55,
+  "height": 68,
+  "sheet": "./hinata_idle_uniform.png"
+ },
+ "run": {
+  "frames": 6,
+  "width": 72,
+  "height": 58,
+  "sheet": "./hinata_run_uniform.png"
+ },
+ "dash": {
+  "frames": 3,
+  "width": 66,
+  "height": 67,
+  "sheet": "./hinata_dash_uniform.png"
+ },
+ "jump": {
+  "frames": 4,
+  "width": 61,
+  "height": 77,
+  "sheet": "./hinata_jump_uniform.png"
+ },
+ "guard": {
+  "frames": 2,
+  "width": 52,
+  "height": 63,
+  "sheet": "./hinata_guard_uniform.png"
+ },
+ "hurt": {
+  "frames": 2,
+  "width": 56,
+  "height": 60,
+  "sheet": "./hinata_hurt_uniform.png"
+ },
+ "special_damage": {
+  "frames": 3,
+  "width": 47,
+  "height": 70,
+  "sheet": "./hinata_special_damage_uniform.png"
+ },
+ "launched": {
+  "frames": 6,
+  "width": 69,
+  "height": 68,
+  "sheet": "./hinata_launched_uniform.png"
+ },
+ "knockdown": {
+  "frames": 7,
+  "width": 82,
+  "height": 70,
+  "sheet": "./hinata_knockdown_uniform.png"
+ },
+ "light": {
+  "frames": 8,
+  "width": 86,
+  "height": 69,
+  "sheet": "./hinata_light_uniform.png"
+ },
+ "comboB": {
+  "frames": 6,
+  "width": 81,
+  "height": 68,
+  "sheet": "./hinata_comboB_uniform.png"
+ },
+ "air": {
+  "frames": 7,
+  "width": 66,
+  "height": 67,
+  "sheet": "./hinata_air_uniform.png"
+ },
+ "strong_air": {
+  "frames": 4,
+  "width": 61,
+  "height": 77,
+  "sheet": "./hinata_strong_air_uniform.png"
+ },
+ "heavy": {
+  "frames": 8,
+  "width": 73,
+  "height": 70,
+  "sheet": "./hinata_heavy_uniform.png"
+ },
+ "strong_fwd": {
+  "frames": 7,
+  "width": 71,
+  "height": 72,
+  "sheet": "./hinata_strong_fwd_uniform.png"
+ },
+ "up": {
+  "frames": 7,
+  "width": 81,
+  "height": 93,
+  "sheet": "./hinata_up_uniform.png"
+ },
+ "down_air": {
+  "frames": 5,
+  "width": 77,
+  "height": 63,
+  "sheet": "./hinata_down_air_uniform.png"
+ },
+ "throw": {
+  "frames": 4,
+  "width": 56,
+  "height": 65,
+  "sheet": "./hinata_throw_uniform.png"
+ },
+ "throw_air": {
+  "frames": 4,
+  "width": 50,
+  "height": 64,
+  "sheet": "./hinata_throw_air_uniform.png"
+ },
+ "win": {
+  "frames": 4,
+  "width": 33,
+  "height": 71,
+  "sheet": "./hinata_win_uniform.png"
+ }
+}

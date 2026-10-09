@@ -288,6 +288,30 @@ export const KITS = {
     ]
   },
 
+  hinata: {
+    type: "Gentle-Fist Technician", energy: "Chakra", difficulty: "Medium",
+    summary: "The Byakugan princess of the Hyūga — a precise, agile Gentle-Fist (Jūken) fighter who seals chakra points with pinpoint palm strikes. PHASE 1 ships her normals, movement, intro and win; the Gentle-Fist specials + Byakugan land in Phase 2 and the Twin Lion Fists ultimate in Phase 3.",
+    passive: { name: "Byakugan", effect: "The Hyūga dōjutsu — Hinata's Gentle Fist strikes seal tenketsu with pinpoint precision. (Byakugan activation + Gentle-Fist techniques land in Phase 2.)" },
+    basics: [
+      { name: "Palm Jab String", input: "Light",                   desc: "fast close-range Gentle-Fist palm combo" },
+      { name: "Chakra Palm",     input: "Heavy",                   desc: "committed chakra palm strike with knockback" },
+      { name: "Rising Palm",     input: "Up-Attack",               desc: "launcher — rising chakra-arc strike, starts air combos" },
+      { name: "Air Palm",        input: "Air (jump + Light)",      desc: "aerial Gentle-Fist palm" },
+      { name: "Slam Spike",      input: "Down-Air (jump + Heavy)", desc: "downward aerial slam" }
+    ],
+    specials: [
+      { name: "Sixty-Four Palms",      input: "Special",          cost: 30, desc: "Juukenhou Hakke Rokujuuyon Shou — a precise Gentle-Fist palm rush [CANON] — [wired in Phase 2]" },
+      { name: "Mountain Crusher",      input: "Forward + Special", cost: 28, desc: "Hakke Hasangeki — advancing double-palm thrust [CANON] — [Phase 2]" },
+      { name: "Protective 64 Palms",   input: "Back + Special",    cost: 26, desc: "Shugo Hakke Rokujuuyonshou — defensive palm guard [CANON] — [Phase 2]" },
+      { name: "Rotation Sphere",       input: "Up + Special",      cost: 24, desc: "Hakkesho Guuten — rotating chakra sphere, deflects projectiles [CANON-ADJACENT] — [Phase 2]" },
+      { name: "Byakugan",              input: "Down + Special",    cost: 18, desc: "short precision/awareness buff window [CANON-ADJACENT] — [Phase 2]" }
+    ],
+    ultimate: { name: "Juuhou Soshiken", input: "Ultimate (full meter)", cost: 100, desc: "Gentle Step Twin Lion Fists — twin lion-head chakra fists deliver a Gentle-Fist barrage [CANON] — [wired in Phase 3]" },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-palm launcher into aerial pressure" }
+    ]
+  },
+
   sasuke_sensei: {
     type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
     summary: "Boruto-era Sasuke at his peak — a dōjutsu master with THREE cycling eye-sets. RAITON (lightning blades + Kirin), MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) and RINNEGAN (gravity: repulsion, pull, absorb + Chibaku Tensei). Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques; the active set flashes above Sasuke.",

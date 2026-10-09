@@ -6908,6 +6908,90 @@ const sakura = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// HINATA HYUGA  (rosterKey "hinata", universe "naruto"). The Byakugan princess of the Hyūga main house —
+// a Gentle Fist (Jūken) technician who seals chakra with precise palm strikes. Built from the
+// aryasyddanwahab "Hinata (The Last)" JUS sheet (hinata_naruto_the_last__by_aryasyddanwahab_deapca3.png)
+// — border-flood-fill keyed (navy bg 0,64,128 + noise; interior navy pockets erased) + PALETTE-NORMALIZED
+// (the sheet mixes a purple-jacket palette into many frames; the 4-swatch Color-Palettes row drove an exact
+// LUT remapping every frame to the one dark default palette, so no frame flickers colour) + per-action
+// uniform strips (tools/hinata/slice.py) → hinata_*_uniform.png. Jesus/Sakura/Sasuke-Sensei discipline:
+// the sprite BODY is the sheet; every special EFFECT will be procedural (abilities.js, Phase 2) so the
+// baked chakra-palm FX read correctly with no new art. Credited to aryasyddanwahab (credits.js).
+// NOT brutality-eligible. NO voice clips exist for Hinata → none added (no combat.js VOICE_ALIAS).
+//   STATS: mid-high Naruto-universe band — agile and precise (speed 95, quick dash; moderate health/attack
+//     — her damage is precision chakra-point sealing, delivered by the Phase-2 specials, not big normals).
+//   ENERGY: "chakra" → ui label "Chakra".
+//   PHASES: Phase 1 ships body / normals / strong attacks / intro / win / plumbing. The specials + Byakugan
+//     + FX land in Phase 2 (abilities.js `case "hinata"`); the Juuhou Soshiken ultimate + skins in Phase 3.
+//     The `specials`/`ultimate` fields below are METADATA (complete Move List + well-formed roster entry);
+//     until Phase 2 wires the dispatch case, pressing Special is a safe no-op (switch default, no glitch).
+//   GAPS (honest reuse, flagged): walk = Run row (no walk frames on the sheet) · fall = Jump airborne pose ·
+//     lose = Knocked Down lying tail · charge = Stance (no charge frames) · crouch / grab / taunt = NONE on
+//     the sheet (omitted). SPARE sheets sliced but unmapped: comboB (Attack Combo row2), strong_fwd,
+//     strong_air, special_damage, launched (Heavy Damage), throw / throw_air (available for later passes).
+//   INTRO: Hinata-alone frames + the dotted dissolve FX. The Naruto cameo (orange jumpsuit + red-white scarf
+//     FX) in the later intro frames is PARKED — the intro system is a single per-fighter sprite strip with
+//     no extra-overlay-sprite support, so baking a second character in was declined (reported).
+const hinata = {
+  rosterKey: "hinata", name: "Hinata Hyuga", universe: "naruto", color: "#b9a7d6",
+  portrait: "./hinata_portrait.png",   // bust cropped from idle frame 0 (tools/hinata portrait gen)
+  archetypes: ["technical", "rushdown"],
+  primary: "melee", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "precise", animeMovement: true },
+  passive: { name: "Byakugan", effect: "The Hyūga dōjutsu sees the chakra network — Hinata's Gentle Fist strikes seal tenketsu with pinpoint precision. (Byakugan activation + Gentle Fist techniques land in Phase 2.)" },
+  // Mid-high Naruto band (naruto/sasuke 1180/89, kiba 1180/90; sakura 1120/86, boruto 1120/88). Hinata sits
+  // between: durable-enough, HIGH speed/agility, moderate attack (precision over power). maxEnergy 160 = Chakra.
+  stats: { maxHealth: 1140, maxEnergy: 160, attack: 85, defense: 84, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 11, dashCooldownMax: 36 },
+  // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air).
+  // RAW damage (engine scales ×0.60). Gentle-Fist striker: fast palm jab string (light), committed chakra
+  // palm (heavy), rising chakra-arc LAUNCHER (up), aerial palm (air), downward slam spike (down_air).
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 60, rangeY: 46 },
+    heavy:    { damage: 74, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1,  rangeX: 88, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -6, airOK: false },
+    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:  { damage: 60, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11, rangeX: 64, rangeY: 64 }
+  },
+  // KIT METADATA (Move List display). Phase 2 wires the real logic + cost spend + FX in abilities.js.
+  // Canon labels: Sixty-Four Palms / Mountain Crusher / Protective Eight Trigrams = CANON (Hinata's Jūken
+  // techniques); Rotation sphere + Byakugan-as-buff = CANON-ADJACENT (canon moves, re-cast as a toggle/guard).
+  specials: {
+    gentleFist64:  { cost: 30, effect: "Special: Juukenhou Hakke Rokujuuyon Shou (Eight Trigrams Sixty-Four Palms) — a precise Gentle-Fist palm rush. [Phase 2]" },
+    hakkeHasangeki:{ cost: 28, effect: "Fwd + Special: Hakke Hasangeki (Eight Trigrams Mountain Crusher) — an advancing double-palm thrust. [Phase 2]" },
+    shugoHakke:    { cost: 26, effect: "Back + Special: Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams Sixty-Four Palms) — a defensive palm guard. [Phase 2]" },
+    hakkeshoGuuten:{ cost: 24, effect: "Up + Special: Hakkesho Guuten — a rotating chakra sphere that deflects projectiles (defensive). [Phase 2]" },
+    byakugan:      { cost: 18, effect: "Down + Special: Byakugan — a short precision/awareness buff window. [Phase 2]" }
+  },
+  ultimate: { name: "Juuhou Soshiken", cost: 100, description: "Gentle Step Twin Lion Fists — Hinata shapes her chakra into two lion-head fists and delivers a devastating Gentle-Fist barrage. [Phase 3]" },
+  hasSprites: true,
+  // Idle content ≈68px × 1.5 ≈ 102px on-screen — alongside Sakura (106) / Boruto (108), appropriate for
+  // Hinata's canonical height. REQUIRES the skins.js hinata default entry or getSkins() clobbers this to 1.
+  spriteScale: 1.5,
+  animationData: {
+    // ── MOVEMENT / STATE ──
+    idle:  { frames: 4, width: 55, height: 68, speed: 8, anchorY: 0, loop: true,  sheet: "./hinata_idle_uniform.png" },
+    walk:  { frames: 6, width: 72, height: 58, speed: 7, anchorY: 0, loop: true,  sheet: "./hinata_run_uniform.png" },   // no walk frames → reuse Run
+    run:   { frames: 6, width: 72, height: 58, speed: 4, anchorY: 0, loop: true,  sheet: "./hinata_run_uniform.png" },
+    dash:  { frames: 3, width: 66, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_dash_uniform.png" },
+    jump:  { frames: 4, width: 61, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_jump_uniform.png" },
+    fall:  { frames: 4, width: 61, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_jump_uniform.png" },   // reuse Jump airborne pose
+    hurt:      { frames: 2, width: 56, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hurt_uniform.png" },
+    knockdown: { frames: 7, width: 82, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_knockdown_uniform.png" },
+    lose:      { frames: 7, width: 82, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_knockdown_uniform.png" },   // defeat = knockdown lying tail
+    guard:     { frames: 2, width: 52, height: 63, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_guard_uniform.png" },
+    intro:     { frames: 5, width: 53, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_intro_uniform.png" },   // Hinata frames + dissolve FX (Naruto cameo parked)
+    win:       { frames: 4, width: 33, height: 71, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_win_uniform.png" },
+    charge:    { frames: 4, width: 55, height: 68, speed: 8, anchorY: 0, loop: true,  sheet: "./hinata_idle_uniform.png" },   // no charge frames → reuse Stance
+    // ── NORMALS (Gentle-Fist chakra-palm FX baked into the source frames) ──
+    light:    { frames: 8, width: 86, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_light_uniform.png" },      // Attack Combo — palm jab string
+    heavy:    { frames: 8, width: 73, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_heavy_uniform.png" },      // Strong Attack — committed chakra palm
+    up:       { frames: 7, width: 81, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_up_uniform.png" },         // Strong (Up) — rising chakra-arc LAUNCHER
+    air:      { frames: 7, width: 66, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_air_uniform.png" },        // Attack Combo (Air) — aerial palm
+    down_air: { frames: 5, width: 77, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_down_air_uniform.png" }    // Strong (Down) — slam spike
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SASUKE (SENSEI)  (rosterKey "sasuke_sensei", universe "naruto"). Boruto-era Sasuke at his peak — the
 // travelling-cloak dōjutsu master. Built from the RBM-Kyuubi "Sasuke Sensei NZC v2" JUS sheet
 // (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi) — border-flood-fill keyed (navy bg + the Hebi's near-navy
@@ -9961,6 +10045,7 @@ export const characters = {
   byakuya,
   sakura,
   sasuke_sensei,
+  hinata,
   boruto,
   light,
   l_ryuuzaki: lRyuuzaki,

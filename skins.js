@@ -787,6 +787,13 @@ export const SKINS = {
   sasuke_sensei: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke_sensei?.portrait, spriteScale: characters.sasuke_sensei?.spriteScale, animationData: null },
   ],
+  // Hinata Hyuga — DEFAULT (the palette-NORMALIZED dark palette) only for now (REQUIRED: without it
+  // getSkins() clobbers spriteScale 1.5 → 1). The source sheet's 4-swatch "Color Palettes" row
+  // (Purple / Dark / Gray / Blue jackets) is the reference for the Phase-3 recolor pass
+  // (tools/gen_hinata_recolor.py) — the Purple/Gray/Blue swatches become selectable skins there.
+  hinata: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hinata?.portrait, spriteScale: characters.hinata?.spriteScale, animationData: null },
+  ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

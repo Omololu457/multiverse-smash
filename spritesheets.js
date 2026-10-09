@@ -408,6 +408,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./sakura_idle_uniform.png" }
   },
 
+  // Hinata Hyuga (universe: naruto), Gentle-Fist technician — gates spritesReady() by decoding the idle
+  // strip (flips from procedural box to sprite handler). Per-action rendering reads characters.js →
+  // hinata.animationData (each action carries its own .sheet). Idle = border-flood-fill-keyed +
+  // palette-normalized uniform strip (tools/hinata/slice.py).
+  hinata: {
+    actions: { idle: "./hinata_idle_uniform.png" }
+  },
+
   // Sasuke (Sensei) (universe: naruto), cycling-dōjutsu master — gates spritesReady() by decoding the idle
   // strip (flips from procedural box to sprite handler). Per-action rendering reads characters.js →
   // sasuke_sensei.animationData (each action carries its own .sheet). Idle = border-flood-fill-keyed

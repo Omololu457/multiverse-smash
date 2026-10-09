@@ -358,7 +358,7 @@ export const KITS = {
       { name: "Raiton Sword *2",  input: "Up + Special (Raiton)",    cost: 26, desc: "advancing electrified thrust (launcher)" },
       { name: "Raiton Sword *3",  input: "Down + Special (Raiton)",  cost: 32, desc: "committed electrified beam-thrust" },
       { name: "Chidori (air)",    input: "Air + Special (Raiton)",   cost: 24, desc: "diving lightning plunge" },
-      { name: "Eye-Set Cycle",    input: "Up + Ultimate",            cost: 0,  desc: "rotate the active dōjutsu set (Raiton → Mangekyō → Rinnegan); does not spend meter" },
+      { name: "Eye-Set Cycle",    input: "Up + Ultimate",            cost: 0,  desc: "rotate the active set (Raiton → Mangekyō → Rinnegan → Susano'o); does not spend meter" },
       { name: "Katon Goukakyuu",  input: "Special (Mangekyō)",       cost: 26, desc: "Great Fireball projectile (air version too)" },
       { name: "Amaterasu",        input: "Forward + Special (Mangekyō)", cost: 34, desc: "slow inextinguishable black-flame projectile" },
       { name: "Amaterasu Sword",  input: "Back + Special (Mangekyō)", cost: 30, desc: "black-flame-wreathed sword slash (melee)" },
@@ -367,7 +367,9 @@ export const KITS = {
       { name: "Shinra Tensei",    input: "Special (Rinnegan)",        cost: 28, desc: "radial repulsion — big knockback, low damage [ORIGINAL]" },
       { name: "Chakra Absorb",    input: "Forward + Special (Rinnegan)", cost: 24, desc: "brief i-frame absorb that restores chakra [ORIGINAL]" },
       { name: "Rinnegan Path",    input: "Back + Special (Rinnegan)", cost: 26, desc: "long-reach gravity pull — reels the foe in [ORIGINAL]" },
-      { name: "Raiko Kenka",      input: "Up + Special (Rinnegan)",   cost: 22, desc: "thrown shuriken weapon [ORIGINAL]" }
+      { name: "Raiko Kenka",      input: "Up + Special (Rinnegan)",   cost: 22, desc: "thrown shuriken weapon [ORIGINAL]" },
+      { name: "War-Susano'o: Arm Grab", input: "Forward + Grab (any set)", cost: 15, desc: "TIER 1 — a partial ribcage forms + a procedural skeletal Susano'o arm extends with huge reach, grabs + crushes/throws. The CHEAPEST Susano'o move [CANON]" },
+      { name: "War-Susano'o: Ribcage Guard", input: "Up + Special (Susano'o set)", cost: 20, desc: "TIER 1 — the rib-ring bands snap up as brief defensive armor; incoming damage is cut for a short window [CANON-ADJACENT]" }
     ],
     ultimate: { name: "Kirin / Kuchiyose: Hebi / Chibaku Tensei", input: "Ultimate (full meter — current set)", cost: 100, desc: "RAITON = Kirin (undodgeable lightning). MANGEKYŌ = Kuchiyose Hebi (serpent that strikes, poisons, then petrifies). RINNEGAN = Chibaku Tensei (gravity-sphere crush) [CANON-ADJACENT]" },
     combos: [

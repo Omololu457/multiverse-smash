@@ -134,6 +134,22 @@ export const FX_SHEETS_BY_CHAR = {
     "./madara_wood_dragon_burst_uniform.png",
     "./madara_wood_dragon_proj_uniform.png",
   ],
+  // War-Susano'o Tier-1 pieces (border-flood-fill keyed from sasuke_war_susano_by_nes). Procedural Arm Grab +
+  // Ribcage Guard — shared by both allowlisted fighters. tools/susano/gen_susano_tier1.py.
+  sasuke_sensei: [
+    "./sasuke_susano_arm_upper.png",
+    "./sasuke_susano_arm_fore.png",
+    "./sasuke_susano_claw.png",
+    "./sasuke_susano_fist.png",
+    "./sasuke_susano_ribcage.png",
+    "./sasuke_susano_rib_band.png",
+  ],
+  sasuke_adult: [
+    "./sasuke_susano_arm_upper.png",
+    "./sasuke_susano_arm_fore.png",
+    "./sasuke_susano_claw.png",
+    "./sasuke_susano_ribcage.png",
+  ],
   maki: [
     "./maki_kunai_proj.png",
     "./maki_shibuya_air_covered.png",

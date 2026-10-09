@@ -8793,12 +8793,18 @@ function drawSasukeWarArm(c, fighter) {
   const tipX = sx + face * reachNow
   // partial ribcage forming on the body (behind the arm), fading in over the first few frames
   _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.5, h * 0.6, face, 0.75 * Math.min(1, A.t / 5))
-  // UPPER arm (natural) at the shoulder · CLAW (natural) at the reach · lattice FOREARM stretched between them.
   const upCx = sx + face * upW * 0.4
   const clawCx = tipX - face * clW * 0.42
-  // lattice FOREARM spans the whole shoulder→claw gap (always a connected limb), then the recognizable
-  // upper-arm + claw sit on top at natural aspect. Draw back-to-front.
-  _drawSusanoArmPiece(c, "./sasuke_susano_arm_fore.png", sx, clawCx, sy, face, armH * 0.82, 0.93)
+  // CHAKRA CORE — a translucent purple energy limb from shoulder→claw (code FX, like the dojutsu portals) so
+  // the arm always reads as one solid construct as it extends; the keyed skeletal segments ride on top.
+  c.save(); c.lineCap = "round"
+  c.strokeStyle = "rgba(150,96,226,0.42)"; c.lineWidth = armH * 0.72
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(clawCx, sy); c.stroke()
+  c.strokeStyle = "rgba(205,170,255,0.5)"; c.lineWidth = armH * 0.34
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(clawCx, sy); c.stroke()
+  c.restore()
+  // lattice FOREARM spans the whole gap, then the recognizable upper-arm + claw on top (back-to-front).
+  _drawSusanoArmPiece(c, "./sasuke_susano_arm_fore.png", sx, clawCx, sy, face, armH * 0.86, 0.95)
   _drawSusanoSprite(c, "./sasuke_susano_arm_upper.png", upCx, sy, armH, face, 0.97)
   _drawSusanoSprite(c, "./sasuke_susano_claw.png", clawCx, sy, armH * 1.1, face, 0.98)
 }

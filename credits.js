@@ -56,6 +56,15 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png; in-sheet credits \"BY: RBM-Kyuubi\" + box \"Juubi / Adriandan / Shinrashi\")",
     files:   ["sasuke_sensei_*_uniform.png", "sasuke_sensei_nzc_v2_end_by_rbm_kyuubi_ddce19j.png"]
   },
+  // War-Susano'o rework (sasuke_sensei + sasuke_adult) — the Susano'o tier pieces (arm/rib kit, winged, bust,
+  // soldier, flame) are keyed from a SEPARATE source sheet. Filename credit: artist "NES", DeviantArt uploader
+  // "xxJohnnyxxx". Border-flood-fill keyed → sasuke_susano_*.png (tools/susano/). Attribution MANDATORY.
+  sasuke_war_susano: {
+    work:    "Sasuke War Susano'o (Naruto) — War-Susano'o tier art",
+    artists: ["NES", "xxJohnnyxxx (DeviantArt uploader)"],
+    source:  "fan sprite sheet (sasuke_war_susano_by_nes_by_xxjohnnyxxx_d8sb2nk.png; filename credit \"Sasuke War Susano by NES\", uploaded by xxJohnnyxxx)",
+    files:   ["sasuke_susano_*.png", "sasuke_war_susano_by_nes_by_xxjohnnyxxx_d8sb2nk.png"]
+  },
   // Sasuke Uchiha (Adult) (Naruto) — additive standalone fighter. Art sliced from the rct29
   // "Sasuke Uchiha Adult NZC" green-screen JUS sheet; the DeviantArt uploader handle "rct29" is
   // carried in the filename (there is NO in-sheet credits box). Attribution MANDATORY.

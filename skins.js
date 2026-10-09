@@ -61,6 +61,21 @@ function recolorSkinAnim(rosterKey, tag) {
   return out
 }
 
+// Naruto (Seventh) BASE-ONLY recolor: retag ONLY the base orange-body actions; the KCM-golden / Four-Tails-red
+// / Rikudou-black-gold / Oiroke / Bijuudama mode sheets keep their canonical colours (no __tag file exists for
+// them, and they are mode-specific). Pairs with gen_naruto_seventh_recolor.py's BASE_SHEETS list.
+const N7_BASE_SKIN_ACTIONS = new Set(["idle","walk","run","dash","jump","fall","guard","hurt","knockdown","getup",
+  "light","heavy","up","air","down_air","intro","win","n7Rasengan","n7RasenganAir","n7Rsk","n7RskAir","n7Doton",
+  "n7Throw","n7ThrowAir","n7Charge","n7StrongFwd","n7StrongDown","n7Kuchiyose"])
+function n7RecolorAnim(tag) {
+  const base = characters.naruto_seventh?.animationData || {}
+  const out = {}
+  for (const [action, def] of Object.entries(base)) {
+    out[action] = (def?.sheet && N7_BASE_SKIN_ACTIONS.has(action)) ? { ...def, sheet: def.sheet.replace(/\.png$/i, `__${tag}.png`) } : def
+  }
+  return out
+}
+
 // Recolored portrait path for a skin's select-screen thumbnail: the char's portrait retagged
 // (recolor output is always PNG), or the recolored idle sheet when the char has no portrait.
 function recolorPortrait(rosterKey, tag) {
@@ -396,6 +411,13 @@ export const SKINS = {
   // getSkins falls back to 1 and the sprite renders half-size).
   naruto_seventh: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto_seventh?.portrait, spriteScale: characters.naruto_seventh?.spriteScale, animationData: null },
+    // 6 "Color Paletes" → default + 5 BASE-ONLY recolors (exact LUTs from the sheet's own swatches; KCM/Four-
+    // Tails/Rikudou keep canonical colours). gen_naruto_seventh_recolor.py produced the naruto_seventh_*__<tag>.png.
+    { id: "n7Green",  name: "Forest Leaf", unlockLevel: 0, portrait: "./naruto_seventh_portrait__green.png",  spriteScale: characters.naruto_seventh?.spriteScale, animationData: n7RecolorAnim("green") },
+    { id: "n7Blue",   name: "Ocean",       unlockLevel: 0, portrait: "./naruto_seventh_portrait__blue.png",   spriteScale: characters.naruto_seventh?.spriteScale, animationData: n7RecolorAnim("blue") },
+    { id: "n7Red",    name: "Crimson",     unlockLevel: 0, portrait: "./naruto_seventh_portrait__red.png",    spriteScale: characters.naruto_seventh?.spriteScale, animationData: n7RecolorAnim("red") },
+    { id: "n7Shadow", name: "Shadow",      unlockLevel: 0, portrait: "./naruto_seventh_portrait__shadow.png", spriteScale: characters.naruto_seventh?.spriteScale, animationData: n7RecolorAnim("shadow") },
+    { id: "n7Silver", name: "Silver",      unlockLevel: 0, portrait: "./naruto_seventh_portrait__silver.png", spriteScale: characters.naruto_seventh?.spriteScale, animationData: n7RecolorAnim("silver") },
   ],
 
   // Dark Vegeta (dragon_ball) — STAGE 1 default skin. WITHOUT this, applySkin() falls back to the

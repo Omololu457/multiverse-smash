@@ -4483,7 +4483,7 @@ export function revertNarutoSeventhKCM(fighter) {
   if (!fighter || !fighter._n7KCMActive) return
   fighter._n7KCMActive = false
   fighter._n7KCMTimer  = 0
-  fighter._skinAnim    = null                                           // → base animationData (orange body)
+  fighter._skinAnim    = fighter._baseSkinAnim || null                  // → the active SKIN's anim (recolor) or base
   fighter._n7KCMNoBlock = false
   fighter.currentForm  = "base"
   fighter.damageMultiplier = 1; fighter.speedMultiplier = 1

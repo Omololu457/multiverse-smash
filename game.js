@@ -219,7 +219,7 @@ import {
   updateTobiKamui, toggleTobiKamui, deactivateTobiKamui,   // Tobi Stage-4 Kamui Intangibility (own `_tobi*` state; independent of Obito's `_kamui*`)
   updatePortalReflectStance,   // Obito/Tobi Kamui Portal-Reflect stance phase machine (Block+Special; reflect gate = `_portalActive`)
   updateSasukeCommandCombat,     // Sasuke grab button → standalone skeletal Susanoo command-grab (Tier-1, independent of the staged ultimate)
-  susanoAllowed, updateSasukeWarSusanoCombat, updateSasukeWarSusano,   // War-Susano'o (sasuke_sensei + sasuke_adult): Forward+Grab Arm Grab hook + per-frame tick + render gate
+  susanoAllowed, updateSasukeWarSusanoCombat, updateSasukeWarSusano, fireSasukeRibcageGuard,   // War-Susano'o (sasuke_sensei + sasuke_adult): Forward+Grab Arm Grab hook + per-frame tick + render gate + guard (harness)
   revertMadaraSusanoo,           // Madara tier-3 Susanoo armor-mode auto-revert (Stage 3 special #7)
   revertMadaraCompleteSusanoo,   // Madara tier-4 Complete Susanoo giant-form auto-revert (Stage 5 HOLD ult)
   updateMinatoCommandCombat,   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
@@ -6745,9 +6745,12 @@ function handleChargeRelease(fighter, key) {
   // 2 Four-Tails cloak / 3 KCM), each timed + chakra-draining. A quick TAP while in a form exits early. In
   // base, a quick TAP fires Oiroke IF the opt-in is on. applyNarutoSeventhSystem ticks the timer + auto-reverts.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
-    if ((fighter._n7Form || "base") !== "base") { if (wasTap) revertNarutoSeventhForm(fighter) }
+    if ((fighter._n7Form || "base") !== "base") {
+      if (wasTap) revertNarutoSeventhForm(fighter)                                   // TAP in a form = exit to base
+      else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())         // HOLD = step UP to the next form
+    }
     else if (wasTap && narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())   // base TAP = Oiroke (opt-in)
-    else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())
+    else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())           // base HOLD = step to Red Shroud
     return
   }
 
@@ -21448,9 +21451,12 @@ gameLoop()
     narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, n7form: f._n7Form || "base", formTimer: f._n7FormTimer || 0, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
     setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
     setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
+    setN7Form: (form = "kcm", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; try { revertNarutoSeventhForm(f) } catch (_) {} const need = { base: 0, red: 1, fourtails: 2, kcm: 3 }[form] ?? 3; f._n7Bond = need; f._n7BondPts = Math.min(100, need * 25 + 10); for (let i = 0; i < 4 && (f._n7Form || "base") !== form && (f._n7Form || "base") !== "kcm"; i++) { f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.hitstun = 0; try { enterNarutoSeventhForm(f, getAbilityContext()) } catch (_) {} } f.attackCooldown = 0; return f._n7Form || "base" },   // test-only: force a nine-tails form directly (steps up, bypassing input)
     setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
+    setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)
+    fireGuard: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._warGuardCd = 0; f.attackCooldown = 0; f.attacking = false; return fireSasukeRibcageGuard(f, getAbilityContext()) },   // test-only: fire Ribcage Guard directly (no input/jump)
     warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next

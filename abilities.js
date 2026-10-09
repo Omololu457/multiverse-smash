@@ -5604,14 +5604,14 @@ function gaaraSandShunshin(fighter, context) {
   const awayDir = opp ? ((fighter.x <= opp.x) ? -1 : 1) : -fighter.facing
   fighter.attackCooldown = getAttackDuration(16, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 16)   // dodge i-frames
-  fighter.teleportFlash = 16
-  fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 16
-  fighter._gaaraShunshinFx = 16
+  fighter.teleportFlash = 0                                       // sand FX replaces the generic white flash
+  fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 18
+  fighter._gaaraDepartX = fighter.x + (fighter.w || 0) / 2; fighter._gaaraDepartY = fighter.y + (fighter.h || 100)   // VANISH point for the sand burst
+  fighter._gaaraShunshinFx = 24
   schedulePendingSpawn(4, () => {
     fighter.x = Math.max(0, Math.min(sw - (fighter.w || 0), fighter.x + awayDir * gap))
     fighter.vx = 0; fighter.vy = 0
-    fighter.teleportFlash = 14
-    fighter._gaaraShunshinFx = 14
+    fighter._gaaraShunshinFx = 22
   })
   return true
 }

@@ -7034,6 +7034,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
         fighter.dashTeleportCooldown = 48; fighter.attackCooldown = 0
         return
       }
+      if (fighter.rosterKey === "gaara") { fighter._gaaraDepartX = fighter.x + (fighter.w || 0) / 2; fighter._gaaraDepartY = fighter.y + (fighter.h || 100) }   // stash the VANISH point for the sand-burst (before the blink moves him)
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
       if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
@@ -7046,7 +7047,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       // his own DASH pose (obito_dash_uniform). His Kamui blink art (obitoTeleport) is reserved
       // for the actual space-time moves (self-portal / teleport-grab), never this speed dash.
       else if (fighter.rosterKey === "omniman" || fighter.rosterKey === "superman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite/Kryptonian speed-blitz: reposition-only, the streaking flyMove pose sells the blink
-      else if (fighter.rosterKey === "gaara") { fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 14; fighter._gaaraShunshinFx = 16; fighter.teleportFlash = 0 }  // SAND SHUNSHIN body-flicker: the sand-flicker teleport sheet + a sand-burst puff (drawGaaraFx), no generic white flash
+      else if (fighter.rosterKey === "gaara") { fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 14; fighter._gaaraShunshinFx = 24; fighter.teleportFlash = 0 }  // SAND SHUNSHIN body-flicker: sand-flicker teleport sheet + a BIG sand cloud at BOTH the vanish + reappear points (drawGaaraFx), no generic white flash
       // DASH-POSE DEFAULT: show the character's OWN dash sprite on the blink. Any teleport-dasher that
       // didn't already pick a specific pose above (Rick portal / Omni-Man·Superman flyMove / Sukuna
       // malevolent dash / Sasuke·Tobirama·Minato dash) falls back to its dedicated dash sheet. This
@@ -12720,15 +12721,44 @@ function drawGaaraFx(c, fighter) {
     const fi = Math.floor((28 - df) / 28 * 4)
     _gaaraBlitFx(c, _gaaraFxImg("./gaara_fx_dome_uniform.png"), 4, fi, cx, feetY + h * 0.06, (w * 1.7) / 260, Math.min(0.85, df / 10))
   }
-  // (Phase 2) SAND SHUNSHIN — a sand-flicker puff where Gaara blinks.
+  // (Phase 2 / dash-teleport) SAND SHUNSHIN — a BIG sand cloud bursts where Gaara VANISHES and reforms where
+  // he REAPPEARS (the body-flicker scatters into sand and re-condenses). Clearly sand-themed: a dome of tan
+  // grains + rising dust + a ground ring, at both points.
   const sf = fighter._gaaraShunshinFx || 0
   if (sf > 0) {
-    c.save(); c.globalAlpha = Math.min(0.8, sf / 10); c.fillStyle = "rgba(205,184,135,0.85)"; c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.8)"
-    for (let k = 0; k < 12; k++) {
-      const a = k * (Math.PI * 2 / 12), rr = (16 - sf) * 3 + 6
-      c.beginPath(); c.arc(cx + Math.cos(a) * rr, fighter.y + h * 0.5 + Math.sin(a) * rr * 0.8, 2 + (k % 3), 0, Math.PI * 2); c.fill()
+    const SF_MAX = 24, prog = (SF_MAX - sf) / SF_MAX    // 0 → 1 over the burst
+    const R = h * (0.9 + prog * 0.7)                    // the cloud is BIGGER than Gaara (unmissable)
+    // a big, obvious sand-cloud poof centred on (px, py)
+    const sandPuff = (px, py, strength) => {
+      c.save()
+      // soft tan dust HAZE (the body of the cloud) — a radial gradient so it reads as billowing sand
+      const a = (1 - prog) * strength
+      const g = c.createRadialGradient(px, py, R * 0.1, px, py, R)
+      g.addColorStop(0, `rgba(226,201,158,${0.75 * a})`)
+      g.addColorStop(0.55, `rgba(198,170,120,${0.5 * a})`)
+      g.addColorStop(1, `rgba(150,120,70,0)`)
+      c.fillStyle = g; c.beginPath(); c.arc(px, py, R, 0, Math.PI * 2); c.fill()
+      // ground dust ring punching outward along the floor
+      c.globalAlpha = (1 - prog) * 0.8 * strength
+      c.strokeStyle = "rgba(231,205,160,0.95)"; c.lineWidth = 4; c.shadowBlur = 10; c.shadowColor = "rgba(150,120,70,0.9)"
+      c.beginPath(); c.ellipse(px, py + R * 0.35, R * (0.5 + prog * 0.8), R * (0.5 + prog * 0.8) * 0.3, 0, 0, Math.PI * 2); c.stroke()
+      // dense swirl of bright sand GRAINS billowing up and out
+      c.shadowBlur = 6
+      for (let k = 0; k < 28; k++) {
+        const ang = (k / 28) * Math.PI * 2 + k * 1.1
+        const rad = R * (0.3 + prog * 0.75) * (0.4 + 0.6 * ((k * 7) % 13) / 13)
+        const gx = px + Math.cos(ang) * rad
+        const gy = py - Math.abs(Math.sin(ang)) * rad * 0.9 - prog * R * 0.5   // billows up as it disperses
+        const gr = (2.5 + (k % 4) * 1.5) * (1 - prog * 0.4)
+        c.globalAlpha = (1 - prog) * (0.95 - (k % 4) * 0.14) * strength
+        c.fillStyle = (k % 3 === 0) ? "#efe4c6" : (k % 3 === 1) ? "#d8c39a" : "#b0925c"
+        c.beginPath(); c.arc(gx, gy, Math.max(1.2, gr), 0, Math.PI * 2); c.fill()
+      }
+      c.restore()
     }
-    c.restore()
+    const bodyCY = fighter.y + h * 0.5
+    sandPuff(cx, bodyCY, 1.0)                                                 // reappear burst (brightest, on Gaara)
+    if (fighter._gaaraDepartX != null) sandPuff(fighter._gaaraDepartX, (fighter._gaaraDepartY ?? (fighter.y + h)) - h * 0.5, 0.85)   // vanish burst at the old spot
   }
   // (Phase 2) SAND BURST — Ultimate Defense projectile-stop / Sand Armor hit absorb.
   const bf = fighter._gaaraBurstFx || 0

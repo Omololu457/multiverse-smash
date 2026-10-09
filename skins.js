@@ -796,8 +796,19 @@ export const SKINS = {
   ],
   // Gaara — DEFAULT ONLY (per the build brief). The entry is REQUIRED so getSkins() preserves the
   // characters.js spriteScale (1.5); without it the fallback clobbers it to native 1.0.
+  // Gaara — creative recolor skins (tools/gen_gaara_skins.py: hue-shift his RED hair+robe + his Shukaku
+  // summon's blue markings/body; skin+teal-eyes kept). recolorTag drives the Shukaku recolor in game.js
+  // drawGaaraShukaku (_shukakuSkin). Alien X id ENDS "AlienX" so drawAlienXStarfield auto-gates the
+  // cosmic starfield over the void-black sheets. All free, cosmetic.
   gaara: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gaara?.portrait, spriteScale: characters.gaara?.spriteScale, animationData: null },
+    { id: "default",      name: "Default",   unlockLevel: 0, portrait: characters.gaara?.portrait,            spriteScale: characters.gaara?.spriteScale, animationData: null },
+    { id: "gaaraPink",    name: "Pink Sand", unlockLevel: 0, portrait: recolorPortrait("gaara", "pink"),      spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "pink"),    recolorTag: "pink" },
+    { id: "gaaraEmerald", name: "Emerald",   unlockLevel: 0, portrait: recolorPortrait("gaara", "emerald"),   spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "emerald"), recolorTag: "emerald" },
+    { id: "gaaraAzure",   name: "Azure",     unlockLevel: 0, portrait: recolorPortrait("gaara", "azure"),     spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "azure"),   recolorTag: "azure" },
+    { id: "gaaraViolet",  name: "Violet",    unlockLevel: 0, portrait: recolorPortrait("gaara", "violet"),    spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "violet"),  recolorTag: "violet" },
+    { id: "gaaraGold",    name: "Golden",    unlockLevel: 0, portrait: recolorPortrait("gaara", "gold"),      spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "gold"),    recolorTag: "gold" },
+    { id: "gaaraAlbedo",  name: "Albedo",    unlockLevel: 0, portrait: recolorPortrait("gaara", "albedo"),    spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "albedo"),  recolorTag: "albedo" },
+    { id: "gaaraAlienX",  name: "Alien X",   unlockLevel: 0, portrait: recolorPortrait("gaara", "alienx"),    spriteScale: characters.gaara?.spriteScale, animationData: recolorSkinAnim("gaara", "alienx"),  recolorTag: "alienx" },
   ],
   // Hinata Hyuga — DEFAULT (the palette-NORMALIZED dark palette) + the other three Color-Palettes-row
   // variants as recolor skins (tools/gen_hinata_recolor.py: dark-jacket → Purple/Gray/Blue via the swatch
@@ -991,7 +1002,12 @@ export const SKINS = {
     // drawAlienXStarfield auto-gates the runtime starfield onto the matte-black void sheets.
     { id: "omololuAlienX",    name: "Alien X",         unlockLevel: 0, portrait: recolorPortrait("omololu", "alienx"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "alienx") },
     { id: "omololuBen10",     name: "Ben 10",          unlockLevel: 0, portrait: recolorPortrait("omololu", "ben10"),        spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "ben10") },
-    { id: "omololuAlbedo",    name: "Albedo",          unlockLevel: 0, portrait: recolorPortrait("omololu", "albedo"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "albedo") }
+    { id: "omololuAlbedo",    name: "Albedo",          unlockLevel: 0, portrait: recolorPortrait("omololu", "albedo"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "albedo") },
+    // Creative hair/outfit recolors (tools/gen_omololu_underskin.py — neutral hair+outfit → themed hue; dark skin + red eye kept).
+    { id: "omololuPink",      name: "Pink",            unlockLevel: 0, portrait: recolorPortrait("omololu", "pink"),         spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "pink"),    recolorTag: "pink" },
+    { id: "omololuEmerald",   name: "Emerald",         unlockLevel: 0, portrait: recolorPortrait("omololu", "emerald"),      spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "emerald"), recolorTag: "emerald" },
+    { id: "omololuAzure",     name: "Azure",           unlockLevel: 0, portrait: recolorPortrait("omololu", "azure"),        spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "azure"),   recolorTag: "azure" },
+    { id: "omololuViolet",    name: "Violet",          unlockLevel: 0, portrait: recolorPortrait("omololu", "violet"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "violet"),  recolorTag: "violet" }
   ],
 
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. Same gate: WITHOUT a

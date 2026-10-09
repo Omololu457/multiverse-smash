@@ -12768,7 +12768,7 @@ function drawGaaraFx(c, fighter) {
   const pf = fighter._gaaraPyramidFx || 0
   if (pf > 0) {
     const fi = Math.floor((40 - pf) / 40 * 3)
-    _gaaraBlitFx(c, _gaaraFxImg("./gaara_shukaku_pyramid_uniform.png"), 3, fi, fighter._gaaraPyramidX ?? cx, fighter._gaaraPyramidY ?? feetY, (w * 2.4) / 261 * 1.4, Math.min(0.95, pf / 12))
+    _gaaraBlitFx(c, _gaaraFxImg(_shukakuSkin(fighter, "./gaara_shukaku_pyramid_uniform.png")), 3, fi, fighter._gaaraPyramidX ?? cx, fighter._gaaraPyramidY ?? feetY, (w * 2.4) / 261 * 1.4, Math.min(0.95, pf / 12))
   }
 }
 
@@ -12784,6 +12784,12 @@ const SHUKAKU_POSE_SHEET = {
   mouthcast: ["./gaara_shukaku_mouthcast_uniform.png", 4],
   lose:   ["./gaara_shukaku_lose_uniform.png", 3],
 }
+// Apply the active recolor-skin tag to a Shukaku sheet path so the summon matches Gaara's skin
+// (sphere/burst are kept neutral — no tagged variants generated). _recolorTag is set by applySkin.
+function _shukakuSkin(fighter, src) {
+  const tag = fighter?._recolorTag
+  return (tag && !/sphere|burst/.test(src)) ? src.replace(/\.png$/i, `__${tag}.png`) : src
+}
 function drawGaaraShukaku(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
   const sh = fighter._shukaku
@@ -12794,7 +12800,8 @@ function drawGaaraShukaku(c, fighter) {
   const feetX = sh.x, feetY = sh.y
 
   // helper: blit a Shukaku sheet (bottom-anchored at feetX/feetY, scaled to targetH, flipped by facing)
-  const blit = (src, frames, fi, alpha, hMul = 1, yOff = 0) => {
+  const blit = (src0, frames, fi, alpha, hMul = 1, yOff = 0) => {
+    const src = _shukakuSkin(fighter, src0)
     const img = _gaaraFxImg(src)
     if (!img.complete || img.naturalWidth === 0) return
     const fw = img.naturalWidth / frames, fh = img.naturalHeight
@@ -12828,7 +12835,7 @@ function drawGaaraShukaku(c, fighter) {
 
   // TAIL — always behind the body (drawn first).
   const tailH = targetH * 0.9
-  const timg = _gaaraFxImg("./gaara_shukaku_tail_uniform.png")
+  const timg = _gaaraFxImg(_shukakuSkin(fighter, "./gaara_shukaku_tail_uniform.png"))
   if (timg.complete && timg.naturalWidth) {
     const sc = tailH / timg.naturalHeight, dw = timg.naturalWidth * sc, dh = timg.naturalHeight * sc
     c.save(); c.globalAlpha = 0.95

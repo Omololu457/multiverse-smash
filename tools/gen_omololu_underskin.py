@@ -39,6 +39,11 @@ BODY_HI      = 0.28
 THEMES = {
     "ben10":  (100.0 / 360.0, 0.80, 0.34, 0.78, 0.60),   # Omnitrix green
     "albedo": (357.0 / 360.0, 0.84, 0.30, 0.72, 0.58),   # Negative red
+    # Creative hair/outfit recolors (same curve, different hue).
+    "pink":    (330.0 / 360.0, 0.74, 0.34, 0.82, 0.60),
+    "emerald": (145.0 / 360.0, 0.78, 0.32, 0.78, 0.60),
+    "azure":   (210.0 / 360.0, 0.80, 0.34, 0.82, 0.60),
+    "violet":  (275.0 / 360.0, 0.72, 0.32, 0.80, 0.60),
 }
 
 

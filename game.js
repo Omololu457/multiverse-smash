@@ -12952,11 +12952,49 @@ const SHUKAKU_POSE_SHEET = {
 // ── KAKASHI (ANBU) — code-drawn FX (the sheet has NO eye art). World-space, drawn in renderHybridFighter.
 //    Sharingan = red eye-glint + a faint red afterimage aura while active; a red crackle ring while the
 //    Raikiri charges/dashes. No gore. (Mangekyou/Kamui FX land in Phase 4.)
+const _kanbuFxImgs = {}
+function _kanbuFxImg(src) { if (!_kanbuFxImgs[src]) { const i = new Image(); i.src = src; _kanbuFxImgs[src] = i } return _kanbuFxImgs[src] }
+;["./kakashi_anbu_ninken_smoke_uniform.png", "./kakashi_anbu_ninken_pin_uniform.png",
+  "./kakashi_anbu_ninken_bull_uniform.png", "./kakashi_anbu_ninken_dismiss_uniform.png"].forEach(_kanbuFxImg)
 function drawKakashiAnbuFx(c, fighter) {
-  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
+  if (!c || !fighter) return
+  // SHARINGAN GENJUTSU tomoe swirl — drawn on ANY fighter under genjutsu (the VICTIM is the opponent, not
+  // kakashi_anbu), so this runs BEFORE the rosterKey gate. Code-drawn (3 red tomoe rotating + ring). No art.
+  if ((fighter._kanbuGenjutsuFx || 0) > 0) {
+    const gt = fighter._kanbuGenjutsuFx--
+    const gw = fighter.w ?? 60, gh = fighter.h ?? 100
+    const gcx = fighter.x + gw / 2, gcy = fighter.y + gh * 0.30
+    c.save(); c.translate(gcx, gcy); c.rotate(gt * 0.14)
+    c.strokeStyle = "rgba(220,40,40,0.5)"; c.lineWidth = 1.5
+    c.beginPath(); c.arc(0, 0, gw * 0.5, 0, Math.PI * 2); c.stroke()
+    for (let k = 0; k < 3; k++) {
+      const a = k * (Math.PI * 2 / 3)
+      const tx = Math.cos(a) * gw * 0.45, ty = Math.sin(a) * gw * 0.45
+      c.fillStyle = "rgba(205,18,18,0.88)"; c.beginPath(); c.arc(tx, ty, 3.2, 0, Math.PI * 2); c.fill()
+      c.strokeStyle = "rgba(205,18,18,0.72)"; c.lineWidth = 2.4
+      c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx - Math.cos(a + 0.7) * 6, ty - Math.sin(a + 0.7) * 6); c.stroke()
+    }
+    c.restore()
+  }
+  if ((fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const facing = fighter.facing || 1
   const cx = fighter.x + w / 2, cy = fighter.y + h / 2
+  // NINKEN — summon smoke → dog-pack PIN → Bull bite → dismissal smoke, blitted at the pin position.
+  if (fighter._ninkenPin) {
+    const pin = fighter._ninkenPin, elapsed = pin.max - pin.t
+    if (elapsed < 18) _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_smoke_uniform.png"), 3, Math.floor(elapsed / 6), pin.x, pin.y, 0.95, Math.min(0.95, (elapsed + 2) / 7))
+    else              _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_pin_uniform.png"),   2, Math.floor(elapsed / 8) % 2, pin.x, pin.y, 1.0, 0.95)
+    if (pin.bull) _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_bull_uniform.png"), 1, 0, pin.x + facing * 6, pin.y, 1.0, 0.92)
+  } else if ((fighter._ninkenDismiss || 0) > 0) {
+    const d = fighter._ninkenDismiss
+    _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_dismiss_uniform.png"), 6, Math.floor((24 - d) / 4), fighter._ninkenFxX || cx, fighter._ninkenFxY || (fighter.y + h), 0.9, Math.min(0.9, d / 8))
+  }
+  // SHARINGAN READ — a brief cyan slash arc when the counter window is open / just fired.
+  if ((fighter._readWindow || 0) > 0) {
+    c.save(); c.globalAlpha = 0.5; c.strokeStyle = "rgba(180,230,255,0.8)"; c.lineWidth = 2
+    c.beginPath(); c.arc(cx, cy, w * 0.6, -0.5, 0.5); c.stroke(); c.restore()
+  }
   // SHARINGAN — faint red afterimage aura + a glinting red eye on the head.
   if (fighter._sharinganActive) {
     const t = (fighter._sharinganT = (fighter._sharinganT || 0) + 1)
@@ -21746,8 +21784,10 @@ gameLoop()
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
     // KAKASHI (ANBU) Phase 2 — read Sharingan/Raikiri state (custom fields the p1() snapshot omits) + toggle hook.
     kakashiAnbu: {
-      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
+      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
+      putOppNear: (dist = 110) => { if (!p1 || !p2) return null; p2.x = p1.x + (p1.facing || 1) * dist; return Math.round(p2.x) },   // test-only: position the foe in range
+      forceOppAttack: () => { if (!p2) return false; p2.attacking = true; p2.currentMove = "light"; return true },                   // test-only: mark the foe mid-attack (drives the Read counter)
     },
     // Naoya test isolation — clear all Projection-Sorcery transient state on BOTH fighters (snare/freeze/route
     // + HUD flashes) so back-to-back cases don't leak a lingering snare/route between them. Test-only.

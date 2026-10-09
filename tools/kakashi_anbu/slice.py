@@ -124,6 +124,15 @@ def main():
     # STRIKE / recover (y2364-2426).
     build(keyed, 2364, 2426, [(38, 108), (127, 195), (224, 289), (316, 397), (421, 497), (554, 619), (682, 747), (811, 876), (901, 966)], "raikiri_strike", feet_align=True, degreen=True)
 
+    # ── PHASE 3 — KUCHIYOSE: NINKEN — TSUIGA (Tracking Fang). cast = hand seals; FX = summon smoke → the
+    #    dog-pack PIN on the foe → Bull bite → dismissal smoke. degreen (tan smoke + blue/orange dogs; strips
+    #    enclosed green pockets). ──
+    build(keyed, 1621, 1698, [(29, 69), (82, 129), (141, 184), (194, 230), (241, 277)], "ninken_cast")              # 5 hand-seal frames
+    build(keyed, 1717, 1814, [(74, 177), (183, 310), (318, 459)], "ninken_smoke", feet_align=True, degreen=True)     # summoning smoke burst
+    build(keyed, 1717, 1814, [(469, 572), (581, 693)], "ninken_pin", feet_align=True, degreen=True)                  # dog-pack piling on the foe (the PIN)
+    build(keyed, 1910, 1988, [(64, 127)], "ninken_bull", feet_align=True, degreen=True)                              # Bull bite
+    build(keyed, 1910, 1988, [(178, 241), (251, 329), (337, 385), (393, 441), (449, 512), (523, 595)], "ninken_dismiss", feet_align=True, degreen=True)  # dismissal smoke (6f)
+
     # ── ILLUSTRATION (exclude 2px black border) → select art / cut-in + face-bust portrait ──
     illus = keyed[58:505, 649:1052]
     Image.fromarray(illus).convert("RGB").save("kakashi_anbu_illus.png")

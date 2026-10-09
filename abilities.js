@@ -9562,9 +9562,11 @@ export function executeKakashiAnbuSpecial(fighter, context) {
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const dir = fighter._specialHeldDir || null
   if (grounded && dir === "F") return fireKakashiAnbuBodyFlicker(fighter, context)   // PHASE 1 — Body Flicker
-  // NEUTRAL special = RAIKIRI — but it's a CHARGE-HOLD move driven per-frame by updateKakashiAnbuRaikiri
-  // (so a tap vs a long hold scales damage). That hook starts it on the neutral-special rising edge; this
-  // dispatch path is a no-op for neutral so the two can't double-fire. U/D/B RESERVED (Phase 3).
+  if (grounded && dir === "D") return fireKakashiAnbuNinken(fighter, context)        // PHASE 3 — Kuchiyose: Ninken (Tsuiga)
+  if (grounded && dir === "B") return armKakashiAnbuRead(fighter, context)           // PHASE 3 — Sharingan Read (needs Sharingan)
+  if (grounded && dir === "U") return fireKakashiAnbuGenjutsu(fighter, context)      // PHASE 3 — Sharingan Genjutsu (needs Sharingan)
+  // NEUTRAL special = RAIKIRI — a CHARGE-HOLD move started in the canStart/special block (startKakashiAnbuRaikiri)
+  // and driven per-frame in updateKakashiAnbu, so this dispatch path is a no-op for neutral.
   return false
 }
 
@@ -9683,13 +9685,139 @@ export function executeKakashiAnbuUltimate(fighter, context) {
   return true
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU) — PHASE 3: Kuchiyose: Ninken (D+Special) · Sharingan Read (B+Special) · Sharingan Genjutsu
+// (U+Special). All deterministic / LAN-safe (frame-based, no gameRng). combat.js UNTOUCHED.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── KUCHIYOSE: NINKEN — TSUIGA (D+Special): hand seals → smoke → the dog-pack bursts under the foe and PINS
+//    them (rooted + damage ticks) → Bull bite → dismissal smoke. Sharingan ON = the pin lasts a little longer.
+const KAKASHI_ANBU_NINKEN = { cost: 40, cast: 18, pin: 54, pinSharingan: 78, range: 420, tickEvery: 9, tickRaw: 9, bullRaw: 40, dismiss: 24 }
+function fireKakashiAnbuNinken(fighter, context) {
+  const N = KAKASHI_ANBU_NINKEN
+  if (fighter._ninkenPin || fighter._ninkenDismiss) return false
+  if (!spendEnergy(fighter, N.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "ninken_cast"; fighter._spriteCastTimer = N.cast
+  fighter.attackCooldown = getAttackDuration(N.cast + 6, fighter)
+  const pinDur = fighter._sharinganActive ? N.pinSharingan : N.pin
+  schedulePendingSpawn(N.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    // dogs burst under the foe (or just ahead if none): seed the pin FX + rooted window.
+    const fx = o ? (o.x + (o.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 150)
+    const fy = o ? (o.y + (o.h || 100)) : (fighter.y + (fighter.h || 100))
+    fighter._ninkenPin = { t: pinDur, max: pinDur, x: fx, y: fy, bull: false }
+    fighter._ninkenFxX = fx; fighter._ninkenFxY = fy                         // persist for the dismissal-smoke FX
+    fighter._ninkenPinOpp = (o && Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= N.range) ? o : null
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ── SHARINGAN READ (B+Special; needs Sharingan): a short counter window. If the foe commits an attack inside
+//    it, Kakashi Body Flickers BEHIND them and slashes (Y+Run frames = anbuReadSlash). Cooldown after use. ──
+const KAKASHI_ANBU_READ = { cost: 16, window: 16, cd: 150, range: 170, slashRaw: 70, hitstun: 22, kb: 9, vy: -3 }
+function armKakashiAnbuRead(fighter, context) {
+  const R = KAKASHI_ANBU_READ
+  if (!fighter._sharinganActive) return false                 // needs the eye
+  if ((fighter._readCd || 0) > 0) return false
+  if (!spendEnergy(fighter, R.cost)) return false
+  fighter._readWindow = R.window
+  fighter._readCd = R.cd
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = R.window   // calm read stance
+  fighter.attackCooldown = getAttackDuration(R.window, fighter)
+  return true
+}
+function fireKakashiAnbuReadCounter(fighter, context, opp) {
+  const R = KAKASHI_ANBU_READ
+  fighter._readWindow = 0
+  // Body Flicker BEHIND the attacker
+  const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + 6) : (opp.x - (fighter.w || 60) - 6)
+  const sw = context?.worldWidth || 3200
+  fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), behind))
+  fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._spriteCastMove = "anbuReadSlash"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  if (!opp.eliminated) {
+    opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 14
+    opp.attacking = false; opp.currentMove = null                           // cut their attack short
+    applyScaledDamage(opp, R.slashRaw, { source: "kakashi_anbu-read" })
+  }
+  try { shakeCamera(context, 9, 10) } catch (_) {}
+}
+
+// ── SHARINGAN GENJUTSU (U+Special; needs Sharingan): a close-range stare that briefly STUNS the foe (code-
+//    drawn tomoe swirl on the opponent). Kakashi holds his stance pose. Cooldown. ──
+const KAKASHI_ANBU_GENJUTSU = { cost: 22, range: 180, stun: 56, cd: 150, chip: 10 }
+function fireKakashiAnbuGenjutsu(fighter, context) {
+  const G = KAKASHI_ANBU_GENJUTSU
+  if (!fighter._sharinganActive) return false
+  if ((fighter._genjutsuCd || 0) > 0) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  const inRange = opp && Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= G.range
+  if (!spendEnergy(fighter, G.cost)) return false
+  fighter._genjutsuCd = G.cd
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 24                 // his stance pose
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter.facing = opp ? (((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1) : (fighter.facing || 1)
+  if (inRange && !opp.eliminated) {
+    opp.hitstun = Math.max(opp.hitstun || 0, G.stun); opp.vx = 0; opp.vy = 0
+    opp.attacking = false; opp.currentMove = null
+    opp._kanbuGenjutsuFx = G.stun                                               // tomoe swirl timer (drawn on the foe)
+    applyScaledDamage(opp, G.chip, { source: "kakashi_anbu-genjutsu" })
+  }
+  return true
+}
+
 // Per-frame STATE tick (called from updateBattle AFTER updateCombat; no-op off-char). Runs unconditionally
 // so it never freezes physics/hitstun. heldSpecial = side-effect-free held Special key (readRawControls),
 // used to drive the Raikiri charge HOLD/RELEASE (started by startKakashiAnbuRaikiri in updatePlayerCombat).
-// Handles: Sharingan drain + fatigue, Raikiri charge loop → release, dash travel + homing + contact, FX timers.
+// Handles: Sharingan drain + fatigue, Raikiri charge loop → release, dash travel + homing + contact, FX timers,
+// Ninken pin (root + damage), Sharingan Read window + counter, and cooldowns.
 export function updateKakashiAnbu(fighter, context, heldSpecial = false) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
   const S = KAKASHI_ANBU_SHARINGAN, R = KAKASHI_ANBU_RAIKIRI
+  // ── PHASE 3 cooldowns + FX timers ──
+  if ((fighter._readCd || 0) > 0) fighter._readCd--
+  if ((fighter._genjutsuCd || 0) > 0) fighter._genjutsuCd--
+
+  // ── NINKEN pin: root the foe + damage ticks + Bull bite → dismissal smoke. ──
+  if (fighter._ninkenPin) {
+    const N = KAKASHI_ANBU_NINKEN, pin = fighter._ninkenPin
+    pin.t--
+    const opp = fighter._ninkenPinOpp
+    if (opp && !opp.eliminated) {                                   // ROOT: held in place, takes rapid damage
+      opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = Math.min(opp.vy || 0, 0)
+      const elapsed = pin.max - pin.t
+      if (elapsed > 0 && elapsed % N.tickEvery === 0) applyScaledDamage(opp, N.tickRaw, { source: "kakashi_anbu-ninken" })
+      if (!pin.bull && pin.t <= Math.floor(pin.max * 0.28)) {        // Bull bite near the end
+        pin.bull = true
+        applyScaledDamage(opp, N.bullRaw, { source: "kakashi_anbu-ninken-bull" })
+        opp.hitstun = Math.max(opp.hitstun || 0, 18); opp.colorFlash = 14
+        try { shakeCamera(context, 10, 10) } catch (_) {}
+      }
+    }
+    if (pin.t <= 0) { fighter._ninkenPin = null; fighter._ninkenPinOpp = null; fighter._ninkenDismiss = N.dismiss }  // → dismissal smoke
+  } else if ((fighter._ninkenDismiss || 0) > 0) { fighter._ninkenDismiss-- }
+
+  // ── SHARINGAN READ window: if the foe commits an attack in range during it, counter (Body Flicker + slash). ──
+  if ((fighter._readWindow || 0) > 0) {
+    fighter._readWindow--
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)     // brief armor so the read isn't punished
+    const opp = getTargetResolver(context)(fighter) || null
+    const RD = KAKASHI_ANBU_READ
+    if (opp && !opp.eliminated && opp.attacking &&
+        Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= RD.range) {
+      fireKakashiAnbuReadCounter(fighter, context, opp)
+    }
+  }
+
   // SHARINGAN drain → shutoff + fatigue
   if (fighter._sharinganActive) {
     fighter.energy = Math.max(0, (fighter.energy || 0) - S.drain)

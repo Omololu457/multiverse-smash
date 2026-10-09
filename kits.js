@@ -356,9 +356,12 @@ export const KITS = {
     specials: [
       { name: "Sharingan",      input: "Charge (tap)",            cost: 0,  desc: "toggle the Sharingan — drains Chakra while active, makes Raikiri TRACK; at 0 Chakra it shuts off + brief fatigue [CANON]" },
       { name: "Body Flicker",   input: "Forward + Special",       cost: 12, desc: "Shunshin no Jutsu — a short forward teleport-dodge with brief i-frames (teleport art) [CANON]" },
-      { name: "Raikiri",        input: "Neutral + Special (charge-hold)", cost: 30, desc: "Lightning Blade — teleport-in → HOLD Special to charge in the loop (more damage, capped) → release to DASH + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff [CANON]" }
+      { name: "Raikiri",        input: "Neutral + Special (charge-hold)", cost: 30, desc: "Lightning Blade — teleport-in → HOLD Special to charge in the loop (more damage, capped) → release to DASH + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff [CANON]" },
+      { name: "Kuchiyose: Ninken (Tsuiga)", input: "Down + Special", cost: 40, desc: "hand seals → the dog-pack bursts under the foe and PINS them (rooted + damage ticks) → Bull bite → dismissal smoke. Sharingan ON = longer pin [CANON]" },
+      { name: "Sharingan Read",  input: "Back + Special (needs Sharingan)", cost: 16, desc: "a short COUNTER window — if the foe attacks inside it, Kakashi Body Flickers behind them and slashes (Y+Run frames). Cooldown [CANON]" },
+      { name: "Sharingan Genjutsu", input: "Up + Special (needs Sharingan)", cost: 22, desc: "a close-range stare that briefly STUNS the foe (code-drawn tomoe swirl). Cooldown [CANON-ADJACENT]" }
     ],
-    passiveNote: "PHASE 2 of 4 live: body, normals, Body Flicker, Sharingan toggle (Charge-tap) + drain/fatigue, Raikiri (N+Special charge-hold; tracking gated on Sharingan), Full-Charge Raikiri ultimate. Coming: Ninken Tsuiga (Down+Special), Sharingan Read counter (Back+Special), Sharingan Genjutsu (Up+Special) (P3); Copy Ninja (Down+Ultimate) + Mangekyō Awakening → Kamui Rift (Up+Ultimate) (P4). Those Special directions REQUIRE the Sharingan where noted.",
+    passiveNote: "PHASE 3 of 4 live: body, normals, Body Flicker, Sharingan toggle + drain/fatigue, Raikiri (charge-hold, tracking gated on Sharingan), Full-Charge Raikiri ult, Kuchiyose: Ninken Tsuiga (Down+Special pin), Sharingan Read counter (Back+Special), Sharingan Genjutsu (Up+Special). Back/Up Special REQUIRE the Sharingan. Coming: Copy Ninja (Down+Ultimate) + Mangekyō Awakening → Kamui Rift (Up+Ultimate) (P4).",
     ultimate: { name: "Full-Charge Raikiri", input: "Ultimate (full meter)", cost: 100, desc: "Lightning Blade — illustration cut-in, full charge-loop, then a GUARANTEED tracking lightning thrust (~198 EFF, half on block) [CANON-ADJACENT]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-kick launcher into aerial pressure" }

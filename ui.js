@@ -3561,6 +3561,50 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.strokeStyle = "#9aa4b0"; ctx.lineWidth = 2                // ring handle
         ctx.beginPath(); ctx.arc(0, R * 0.72, R * 0.26, 0, Math.PI * 2); ctx.stroke()
         ctx.shadowBlur = 0
+      } else if (p.drawKind === "rasengan") {
+        // NARUTO (SEVENTH) — RASENGAN: a spiraling blue chakra sphere (ART RULE 3 — code-drawn, no sheet frame).
+        // Layered: cyan outer glow → swirling spiral arms → white-hot core. The spiral rotates for the grind read.
+        const R = Math.max(18, p.radius || 28)
+        const spin = t * 0.5
+        const col = p.color || "#8fd4ff"
+        ctx.translate(x, y)
+        ctx.shadowBlur = 22; ctx.shadowColor = col
+        ctx.globalAlpha = 0.35; ctx.fillStyle = col                   // outer glow ball
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill()
+        ctx.shadowBlur = 0; ctx.globalAlpha = 0.8; ctx.strokeStyle = "#dff2ff"; ctx.lineWidth = 2.4
+        for (let k = 0; k < 3; k++) {                                 // 3 spiral arms
+          const a0 = spin + k * (Math.PI * 2 / 3)
+          ctx.beginPath()
+          for (let s = 0; s <= 1.01; s += 0.12) {
+            const rr = R * (0.2 + 0.72 * s), aa = a0 + s * 3.2
+            const px = Math.cos(aa) * rr, py = Math.sin(aa) * rr
+            s === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)
+          }
+          ctx.stroke()
+        }
+        ctx.globalAlpha = 0.6; ctx.strokeStyle = col; ctx.lineWidth = 2  // containment shell
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.9, 0, Math.PI * 2); ctx.stroke()
+        ctx.globalAlpha = 1; ctx.fillStyle = "#ffffff"                 // white-hot core
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.3, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "rasenshuriken") {
+        // NARUTO (SEVENTH) — RASENSHURIKEN: a spinning four-point wind-chakra shuriken (ART RULE 3 — code-drawn).
+        // A bright chakra hub with four translucent wind blades that sweep around it; a faint disc edge.
+        const R = Math.max(26, p.radius || 40)
+        const spin = t * 0.9
+        const col = p.color || "#bfe8ff"
+        ctx.translate(x, y); ctx.rotate(spin)
+        ctx.shadowBlur = 24; ctx.shadowColor = col
+        ctx.globalAlpha = 0.28; ctx.strokeStyle = col; ctx.lineWidth = 3   // outer wind disc
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke()
+        ctx.globalAlpha = 0.7; ctx.fillStyle = col                         // 4 wind blades
+        for (let k = 0; k < 4; k++) {
+          ctx.rotate(Math.PI / 2)
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(R * 0.34, -R * 0.14); ctx.lineTo(R, 0); ctx.lineTo(R * 0.34, R * 0.14); ctx.closePath(); ctx.fill()
+        }
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.fillStyle = "#eaf7ff" // bright hub
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = "#ffffff"
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.12, 0, Math.PI * 2); ctx.fill()
       }
       ctx.restore()
       return

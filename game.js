@@ -155,6 +155,8 @@ import {
   narutoHokageChargeAction,   // Naruto (Hokage) — charge-hold → enter KCM / tap → exit
   revertNarutoHokageKCM,      // Naruto (Hokage) — revert KCM (tap / drain-empty / KO / match reset)
   applyNarutoHokageKCMSystem, // Naruto (Hokage) — per-frame KCM chakra drain + auto-revert at 0
+  applyNarutoSeventhSystem,   // Naruto (Seventh) — per-frame Doton-wall projectile-block (Phase 2: Kurama-Bond meter)
+  revertNarutoSeventhState,   // Naruto (Seventh) — clear per-match state (Doton wall / Bond) on reset
   toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
@@ -953,7 +955,7 @@ function _rewindTeardown() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -3826,7 +3828,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3952,6 +3954,7 @@ const INTRO_VOICE = {
   beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
   naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
   naruto_hokage: { clip: "naruto_intro.mp3", gateReveal: false },  // additive Hokage/KCM standalone REUSES base Naruto's intro clip (no new audio)
+  naruto_seventh: { clip: "naruto_intro.mp3", gateReveal: false },  // additive Seventh-Hokage standalone REUSES base Naruto's intro clip (no new audio)
   minato: { pool: MINATO_VOICE.intro, gateReveal: false },  // picks ONE intro line at random per match (Japanese Storm-Connections pack)
   maki:    { pool: MAKI_VOICE.intro,    gateReveal: false }, // intro pool existed in makiVoice.js but was never dispatched at the reveal beat (fixed 2026-09-17)
   chrollo: { pool: CHROLLO_VOICE.intro, gateReveal: false }, // intro pool existed in chrolloVoice.js but was never dispatched (fixed 2026-09-17)
@@ -4859,7 +4862,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -6229,7 +6232,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -13256,6 +13259,7 @@ function updateFighterState(fighter) {
   if (updated._milesDashCd > 0)       updated._milesDashCd--         // Miles Down+B dash-kick cooldown (Charge O)
   applyGokuFormSystem(updated)       // Goku SSJ ladder: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyNarutoHokageKCMSystem(updated) // Naruto (Hokage) KCM: continuous per-frame chakra drain + auto-revert at 0
+  applyNarutoSeventhSystem(updated)  // Naruto (Seventh): per-frame Doton-wall projectile-block (Phase 2: Kurama-Bond)
   tickIdentitySwap(updated)          // ghostface_exe: borrowed-identity window — involuntary revert on timeout / real hit / KO
   updateOmoluTransform(updated)      // OMOLOLU Transformation Jutsu: same revert model (timeout / real hit / KO), omololu-namespaced
   updateOmoluDrones(updated, getAbilityContext())   // OMOLOLU Drone Swarm: fly / bomb-drop AOE / crash contact, + keep teleport markers live

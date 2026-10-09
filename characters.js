@@ -10007,6 +10007,82 @@ const narutoHokage = {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// NARUTO (SEVENTH HOKAGE) — rosterKey "naruto_seventh". BRAND-NEW additive fighter built ENTIRELY from
+// the ONE padakun JUS sheet (H). Fully namespaced naruto_seventh_*; shares NOTHING with `naruto`,
+// `naruto_hokage` or `jiraiya` (all read-only). PHASE 1 = BASE mode (orange Hokage-robe body from H):
+// normals + Rasengan / Rasenshuriken / Doton Wall / Throw Weapon + Kuchiyose: Gamabunta ultimate.
+// Later phases layer the Kurama-Bond ladder (Red Chakra / Four-Tails / KCM / Rikudou) ON TOP — all from
+// the SAME sheet's own golden / red-flame / Rikudou sections (never borrowing a frame across modes).
+// Energy = Chakra. Top of the Naruto stat band. speed 95 < 98 teleport gate (he has GROUND-dash art).
+// Credits (in-game): RBM-Kyuubi, PadaKun, Degue-1297, Mikeel.
+const narutoSeventh = {
+  rosterKey: "naruto_seventh", name: "Naruto (Seventh Hokage)", universe: "naruto", color: "#ef8e1b",
+  portrait: "./naruto_seventh_portrait.png", homeStage: "Hidden Leaf Village",
+  archetypes: ["melee", "ranged", "summons"], primary: "melee", secondary: ["ranged", "summons"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // Top of the Naruto band (cf. naruto_hokage 1210 / Hashirama 1220). speed 95 < 98 teleport gate (ground dash).
+  stats: { maxHealth: 1220, maxEnergy: 200, attack: 96, defense: 91, speed: 95, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  basic_attacks: {
+    light:     { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 82, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 5, knockbackY: 1 },
+    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, selfVy: -7, airOK: false },
+    airAttack: { damage: 56, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 74, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  // BASE kit (abilities.js executeNarutoSeventhSpecial). Directional Special + free-input Throw projectile.
+  // Labels: CANON / CANON-ADJACENT / ORIGINAL. U+Special (Four-Tails) + KCM kit arrive in later Bond phases.
+  specials: {
+    rasengan:      { cost: 30, effect: "Neutral+Special: Rasengan — a spiraling chakra-sphere palm thrust (air = diving Rasengan). Sphere is code-drawn FX. [CANON]" },
+    rasenshuriken: { cost: 40, effect: "Fwd+Special: Rasenshuriken — hurls a screaming wind-natured chakra shuriken (ground & air). Disc is code-drawn FX. [CANON]" },
+    dotonWall:     { cost: 28, effect: "Back+Special: Doton — Earth-Style Wall — six rising rock pillars that block incoming projectiles while raised. [CANON-ADJACENT]" },
+    throwWeapon:   { cost: 10, effect: "Down+Special (also the free projectile): Throw Weapon — flings a kunai as a ranged poke (ground & air). [CANON]" }
+  },
+  ultimate: {
+    name: "Kuchiyose: Gamabunta", cost: 70, damage: 192,
+    description: "Summoning-seal burst → the Toad Boss Gamabunta rises and delivers a sure-hit dagger slash (half damage on block). [CANON]"
+  },
+  // Kurama-Bond ladder (Phases 2-4) lives in abilities.js (N7 state), NOT a transformations-based swap.
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  spriteScale: 2.0,   // H base body: idle content ≈60px × 2.0 ≈ 120px on-screen (matches the roster band)
+  introPool: ["intro"],
+  animationData: {
+    // ── BASE BODY — every frame from the padakun H sheet's own BASE (orange Hokage-robe) sections. ──
+    idle:      { frames: 8, width: 34, height: 62, speed: 8, anchorY: 0, loop: true,  sheet: "./naruto_seventh_idle_uniform.png" },
+    walk:      { frames: 6, width: 56, height: 51, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_seventh_run_uniform.png" },   // no walk row → Run slowed (gap)
+    run:       { frames: 6, width: 56, height: 51, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_seventh_run_uniform.png" },
+    dash:      { frames: 3, width: 58, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_dash_uniform.png" },
+    jump:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_jump_uniform.png" },
+    fall:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_jump_uniform.png" },
+    guard:     { frames: 2, width: 39, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_guard_uniform.png" },
+    hurt:      { frames: 3, width: 66, height: 63, speed: 5, anchorY: 0, sheet: "./naruto_seventh_hurt_uniform.png" },   // sheet has 7; play first 3 stagger frames
+    knockdown: { frames: 1, width: 53, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_getup_uniform.png" },   // frame 0 = prone (also defeat hold)
+    getup:     { frames: 4, width: 53, height: 41, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_getup_uniform.png" },
+    light:     { frames: 9, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_light_uniform.png" },   // Combo 1 (3 strings)
+    heavy:     { frames: 5, width: 62, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_heavy_uniform.png" },   // Strong Attack
+    up:        { frames: 6, width: 65, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_up_uniform.png" },      // Strong-Up (red-flame) launcher
+    air:       { frames: 5, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_air_uniform.png" },     // Strong Attack Air
+    down_air:  { frames: 5, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_air_uniform.png" },     // no dive row → Air reused (gap)
+    intro:     { frames: 4, width: 44, height: 63, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_intro_uniform.png" },   // robe / hat reveal
+    win:       { frames: 2, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_win_uniform.png" },     // base win pose (golden burst = Phase 3)
+    // ── special cast poses (_spriteCastMove) — each from its own BASE section ──
+    n7Rasengan:    { frames: 5, width: 66, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rasengan_uniform.png" },
+    n7RasenganAir: { frames: 5, width: 62, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rasengan_air_uniform.png" },
+    n7Rsk:         { frames: 5, width: 61, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rsk_uniform.png" },
+    n7RskAir:      { frames: 5, width: 59, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rsk_air_uniform.png" },
+    n7Doton:       { frames: 4, width: 53, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_doton_uniform.png" },
+    n7Throw:       { frames: 3, width: 59, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_throw_uniform.png" },
+    n7ThrowAir:    { frames: 3, width: 59, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_throw_air_uniform.png" },
+    n7Charge:      { frames: 4, width: 47, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_charge_uniform.png" },
+    n7Kuchiyose:   { frames: 6, width: 104, height: 91, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kuchiyose_uniform.png" },
+    n7StrongFwd:   { frames: 4, width: 61, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_strong_fwd_uniform.png" },
+    n7StrongDown:  { frames: 6, width: 78, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_strong_down_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -10079,7 +10155,8 @@ export const characters = {
   spiderman_ssf2: ssf2Spiderman,     // NEW standalone build (Spider-Man / SSF2 style) — minimal WIP from a cancelled sheet, many gaps flagged
   spiderman_mci: mciSpiderman,       // NEW standalone build (Spider-Man / Marvel Cosmic Invasion) — minimal-real from hand-picked isolated poses
   ippo,
-  naruto_hokage: narutoHokage        // NEW additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
+  naruto_hokage: narutoHokage,       // additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
+  naruto_seventh: narutoSeventh      // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
 }
 
 // The 7 characters shown in the starter roster select screen

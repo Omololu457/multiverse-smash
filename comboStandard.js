@@ -202,6 +202,9 @@ export const ZONER = [
   "hinata",          // NEW additive standalone (Hinata Hyuga): base normals + directional Gentle-Fist
                      //   specials (Phase 2) + Twin Lion Fists ult (Phase 3); no Fwd+Heavy rekka driver and
                      //   not in STANDARD_STRING_CHARS → single-poke (same bucket as sakura/sasuke_sensei).
+  "naruto_seventh",  // NEW additive standalone (Seventh Hokage, padakun H sheet): base Combo-1 light (single
+                     //   swing, not a rekka) + directional specials (Rasengan/Rasenshuriken/Doton/Throw) +
+                     //   Gamabunta ult; no Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -265,6 +268,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                26,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          110,       // 71 rekka + 13 standard-string + 26 single-poke = 110 (hinata added)
+  zoner:                27,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          111,       // 71 rekka + 13 standard-string + 27 single-poke = 111 (naruto_seventh added)
 }

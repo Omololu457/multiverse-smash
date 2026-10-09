@@ -143,6 +143,16 @@ export const SOURCED_ART = {
     source:  "fan sprite sheets (adult_naruto_kcm_sprites_by_vahidras_di37okp.png — the golden KCM BODY, by Vaydra; naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — Gamabunta + seal/Kurama/Bijuudama FX only, by RBM-Kyuubi / PadaKun / Degue-1297 / Mikeel)",
     files:   ["naruto_hokage_*.png", "adult_naruto_kcm_sprites_by_vahidras_*.png"]
   },
+  // Naruto (Seventh Hokage) — NEW additive standalone fighter. EVERY frame sliced from the ONE PadaKun
+  // "Naruto Hokage JUS sprite sheet" (credited on DeviantArt to RBM-Kyuubi, with PadaKun / Degue-1297 /
+  // Mikeel on the sheet). No second source — base, KCM-golden, red-flame and Rikudou art all come from
+  // this single sheet's own sections. Attribution MANDATORY.
+  naruto_seventh: {
+    work:    "Naruto (Seventh Hokage)",
+    artists: ["RBM-Kyuubi", "PadaKun", "Degue-1297", "Mikeel"],
+    source:  "fan sprite sheet (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png; in-sheet credits \"RBM-Kyuubi / By: PadaKun / Degue-1297 / Mikeel\")",
+    files:   ["naruto_seventh_*.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

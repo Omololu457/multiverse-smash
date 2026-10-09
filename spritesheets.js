@@ -227,6 +227,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./naruto_hokage_kcm_idle_uniform.png" }   // KCM rework: golden V idle gates spritesReady()
   },
 
+  // Naruto (Seventh Hokage) — NEW additive standalone (rosterKey naruto_seventh). Gates spritesReady()
+  // by decoding the BASE Hokage-robe idle strip → flips him from box to sprite. Per-action rendering
+  // reads characters.js → narutoSeventh.animationData (each action carries its own .sheet). Built
+  // ENTIRELY from the padakun H sheet; fully namespaced naruto_seventh_*; shares NO bytes with any other.
+  naruto_seventh: {
+    actions: { idle: "./naruto_seventh_idle_uniform.png" }
+  },
+
 
   // Dark Vegeta (universe: dragon_ball) — STAGE 1. STANDALONE, independent of the blue `vegeta`.
   // Gates spritesReady() by decoding the idle strip → flips Dark Vegeta from box to sprite. Per-action

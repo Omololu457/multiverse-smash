@@ -230,6 +230,11 @@ const MOVE_TO_ACTION = {
   // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
   // Chakra Arm Strike / Gamabunta+TBB gather pose.)
   nhDash: "nhDash", nhFlipKick: "nhFlipKick", nhChakraArm: "nhChakraArm", nhGather: "nhGather",
+  // Naruto (Seventh Hokage) — BASE special cast poses (_spriteCastMove). Identity maps so a cast recovery
+  // tail never resolves to the fallback box. (Rasengan / Rasenshuriken / Doton / Throw / Charge / Gamabunta.)
+  n7Rasengan: "n7Rasengan", n7RasenganAir: "n7RasenganAir", n7Rsk: "n7Rsk", n7RskAir: "n7RskAir",
+  n7Doton: "n7Doton", n7Throw: "n7Throw", n7ThrowAir: "n7ThrowAir", n7Charge: "n7Charge",
+  n7Kuchiyose: "n7Kuchiyose", n7StrongFwd: "n7StrongFwd", n7StrongDown: "n7StrongDown",
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.

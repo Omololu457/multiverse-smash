@@ -391,6 +391,13 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto_hokage?.portrait, spriteScale: characters.naruto_hokage?.spriteScale, animationData: null },
   ],
 
+  // Naruto (Seventh Hokage) — NEW additive standalone (rosterKey naruto_seventh). Default only in PHASE 1;
+  // the 6 "Color Paletes" BASE-only recolor skins land in PHASE 4. Explicit spriteScale REQUIRED (else
+  // getSkins falls back to 1 and the sprite renders half-size).
+  naruto_seventh: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto_seventh?.portrait, spriteScale: characters.naruto_seventh?.spriteScale, animationData: null },
+  ],
+
   // Dark Vegeta (dragon_ball) — STAGE 1 default skin. WITHOUT this, applySkin() falls back to the
   // generic { spriteScale: 1 } default and clobbers the char's 2.1 (sprite renders half-size). Pulls
   // scale/portrait from the char def. Alt recolor skins are a later stage.

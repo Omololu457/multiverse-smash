@@ -4236,6 +4236,178 @@ function executeNarutoHokageUltimate(fighter, context) {
 }
 
 
+// ═════════════════════════════════════════════════════════════════════════════
+// NARUTO (SEVENTH HOKAGE) — rosterKey "naruto_seventh". BRAND-NEW additive kit, fully namespaced (n7*),
+// gated on rosterKey. Shares NOTHING with `naruto`, `naruto_hokage` or `jiraiya` (all read-only).
+// PHASE 1 = BASE mode. Directional Special (reads _specialHeldDir, same path as naruto_hokage/sasuke_sensei):
+//   Neutral = Rasengan (air = diving Rasengan) | Fwd = Rasenshuriken (ground & air) |
+//   Back = Doton Earth-Wall (6 rising pillars, blocks projectiles while up) | Down = Throw Weapon (kunai) |
+//   Up = Four-Tails Rampage (Bond 2+ — arrives in PHASE 2; locked no-op here).
+// ULTIMATE = Kuchiyose: Gamabunta (summon-seal → sure-hit dagger slash, half on block).
+// Rasengan / Rasenshuriken SPHERES are CODE-DRAWN FX (ui.drawProjectiles drawKind) per ART RULE 3 — the H
+// sheet carries no ball frame. The Doton pillars and Gamabunta use their OWN in-sheet art.
+// Deterministic (frame timers + schedulePendingSpawn, no gameRng).
+// ═════════════════════════════════════════════════════════════════════════════
+function isN7Char(f) { return (f?.rosterKey || "").toLowerCase() === "naruto_seventh" }
+function _n7SetCast(fighter, pose, frames) { fighter._spriteCastMove = pose; fighter._spriteCastTimer = frames }
+function _n7Airborne(f) { return !(f.onGround ?? f.grounded ?? true) }
+
+function executeNarutoSeventhSpecial(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  const air = _n7Airborne(fighter)
+  if (dir === "F") return n7Rasenshuriken(fighter, context, air)   // Fwd  — Rasenshuriken
+  if (dir === "B") return n7DotonWall(fighter, context)            // Back — Doton Earth-Wall
+  if (dir === "D") return n7ThrowWeapon(fighter, context, air)     // Down — Throw Weapon (also the free projectile)
+  if (dir === "U") return false                                    // Up   — Four-Tails Rampage (Bond 2+, PHASE 2)
+  return n7Rasengan(fighter, context, air)                         // Neutral — Rasengan (air = diving)
+}
+
+// Neutral — RASENGAN: a spiraling chakra-sphere palm thrust. Short-range disjoint; the sphere is a code-drawn
+// FX projectile (drawKind "rasengan"). Air version DIVES down-and-forward. [CANON]
+function n7Rasengan(fighter, context, air) {
+  if (!spendEnergy(fighter, 30)) return false
+  _n7SetCast(fighter, air ? "n7RasenganAir" : "n7Rasengan", 28)
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  const face = fighter.facing || 1
+  if (!air) fighter.vx = face * 5                                  // a small lunge into the grind
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "n7Rasengan", {
+      drawKind: "rasengan", damage: 74, radius: 28, w: 52, h: 52,
+      speed: air ? 9 : 7, vx: face * (air ? 6 : 7), vy: air ? 9 : 0,
+      lifetime: air ? 22 : 16, hitstun: 30, knockbackX: face * 13, knockbackY: air ? 8 : -3,
+      isSpecial: true, color: "#8fd4ff",
+      spawnY: fighter.y + (fighter.h || 100) * (air ? 0.30 : 0.44)
+    }, context)
+    try { shakeCamera(context, 4, 6) } catch (_) {}
+  })
+  return true
+}
+
+// Fwd — RASENSHURIKEN: hurls a screaming wind-natured chakra shuriken. Long-range projectile with a lingering
+// wind-chip (dot). The disc is a code-drawn FX (drawKind "rasenshuriken"). Air version too. [CANON]
+function n7Rasenshuriken(fighter, context, air) {
+  if (!spendEnergy(fighter, 40)) return false
+  _n7SetCast(fighter, air ? "n7RskAir" : "n7Rsk", 32)
+  fighter.attackCooldown = getAttackDuration(34, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "n7Rasenshuriken", {
+      drawKind: "rasenshuriken", damage: 96, radius: 40, w: 72, h: 72,
+      speed: 12, vx: face * 12, vy: air ? 2 : 0, lifetime: 92, hitstun: 36,
+      knockbackX: face * 16, knockbackY: -6, isSpecial: true, color: "#bfe8ff",
+      dot: { damage: 6, ticks: 5, interval: 8 },
+      spawnY: fighter.y + (fighter.h || 100) * (air ? 0.34 : 0.42)
+    }, context)
+    try { shakeCamera(context, 5, 8) } catch (_) {}
+  })
+  return true
+}
+
+// Back — DOTON: EARTH-STYLE WALL. Six rock pillars rise in front of Naruto (the H sheet's own pillar-FX art,
+// grown via spriteOnce). While up it (a) is a stationary damaging barrier and (b) BLOCKS incoming enemy
+// projectiles (applyNarutoSeventhSystem scans activeProjectiles against the wall column). [CANON-ADJACENT]
+function n7DotonWall(fighter, context) {
+  if (!spendEnergy(fighter, 28)) return false
+  _n7SetCast(fighter, "n7Doton", 30)
+  fighter.attackCooldown = getAttackDuration(34, fighter)
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  const wallX = fighter.x + (fighter.w || 60) / 2 + face * 86
+  const WALL_LIFE = 78
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "n7DotonWall", {
+      sheet: "./naruto_seventh_doton_pillar_uniform.png", spriteFrames: 6, spriteW: 64, spriteH: 73,
+      spriteSpeed: 5, spriteScale: 1.7, spriteOnce: true, spriteBottomY: groundY,
+      damage: 40, speed: 0, vx: 0, vy: 0, lifetime: WALL_LIFE, hitDelay: 8, hitstun: 20,
+      knockbackX: face * 8, knockbackY: -10, w: 60, h: 140, radius: 40, isSpecial: true,
+      spawnX: wallX, spawnY: groundY - 73 * 1.7 * 0.5
+    }, context)
+    // arm the projectile-blocking window (ticked in applyNarutoSeventhSystem)
+    fighter._n7Wall = { x: wallX, halfW: 46, topY: groundY - 150, botY: groundY + 12, until: WALL_LIFE }
+    try { shakeCamera(context, 5, 10) } catch (_) {}
+  })
+  return true
+}
+
+// Down — THROW WEAPON: flings a kunai as a ranged poke (also the free projectile). Code-drawn kunai
+// (drawKind "kunai", the existing shared kind). Ground & air. [CANON]
+function n7ThrowWeapon(fighter, context, air) {
+  if (!spendEnergy(fighter, 10)) return false
+  _n7SetCast(fighter, air ? "n7ThrowAir" : "n7Throw", 20)
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "n7Kunai", {
+      drawKind: "kunai", damage: 30, radius: 13, w: 22, h: 22,
+      speed: 14, vx: face * 14, vy: air ? 3 : 0, lifetime: 80, hitstun: 16,
+      knockbackX: face * 7, knockbackY: -2, color: "#ff8a1e",
+      spawnY: fighter.y + (fighter.h || 100) * (air ? 0.36 : 0.44)
+    }, context)
+  })
+  return true
+}
+
+// ULTIMATE — KUCHIYOSE: GAMABUNTA. Summon-seal burst → the Toad Boss rises (4 big H frames) and delivers one
+// guaranteed dagger slash (half on block). Cast pose = the hands-together summon pose. [CANON]
+function executeNarutoSeventhUltimate(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
+  _n7SetCast(fighter, "n7Kuchiyose", 54)
+  fighter.attackCooldown = getAttackDuration(60, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 34)
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  schedulePendingSpawn(8, () => { try { shakeCamera(context, 5, 10) } catch (_) {} })   // seal palm-slam
+  schedulePendingSpawn(24, () => {                                                       // Gamabunta rises + plays its 4-frame draw→slash
+    spawnProjectile(fighter, "n7Gamabunta", {
+      sheet: "./naruto_seventh_gamabunta_uniform.png", spriteFrames: 4, spriteW: 340, spriteH: 161,
+      spriteSpeed: 9, spriteScale: 1.6, spriteOnce: true, spriteBottomY: groundY,
+      visualOnly: true, speed: 0, vx: 0, vy: 0, lifetime: 4 * 9 + 16,
+      spawnX: fighter.x - face * 130, spawnY: groundY - 161 * 1.6
+    }, context)
+    try { shakeCamera(context, 7, 14) } catch (_) {}
+  })
+  schedulePendingSpawn(54, () => {                                                       // the slash connects — sure-hit, half on block
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2, kdir = tcx >= cx ? 1 : -1
+    const dmg = fighter.ultimate?.damage ?? 192
+    if (opp.isBlocking) { opp.blockstun = 28; applyScaledDamage(opp, Math.floor(dmg * 0.5), { source: "ultimate" }); opp.vx = kdir * 8; return }
+    opp.hitstun = 50; opp.vx = kdir * 17; opp.vy = -13; opp.colorFlash = 16
+    applyScaledDamage(opp, dmg, { source: "ultimate" })
+    try { shakeCamera(context, 10, 18) } catch (_) {}
+  })
+  return true
+}
+
+// Per-frame system (gated on rosterKey → pure no-op for everyone else). PHASE 1: tick the Doton-wall window
+// and BLOCK enemy projectiles crossing the wall column while it stands. (PHASE 2 extends this with the
+// Kurama-Bond meter.) Called from the game.js per-frame update, beside applyNarutoHokageKCMSystem.
+export function applyNarutoSeventhSystem(fighter) {
+  if (!isN7Char(fighter)) return
+  const w = fighter._n7Wall
+  if (w && w.until > 0) {
+    w.until--
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (!p || p.owner === fighter || p.isUltimate || p.visualOnly) continue
+      const py = p.y ?? 0
+      if (Math.abs((p.x ?? 0) - w.x) <= (w.halfW || 46) && py >= w.topY && py <= w.botY) {
+        activeProjectiles.splice(i, 1)   // the earth wall eats the shot
+      }
+    }
+    if (w.until <= 0) fighter._n7Wall = null
+  }
+}
+
+// Clear per-match / round-reset state (mirrors the revert* functions the game.js reset lists call).
+export function revertNarutoSeventhState(fighter) {
+  if (!fighter) return
+  fighter._n7Wall = null
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SAKURA HARUNO — medic-rushdown kunoichi. Sprite BODY from the RBM-Kyuubi sheet; every special EFFECT
 // procedural (Jesus discipline). NOT brutality-eligible. Deterministic (no gameRng). The sheet's WEAK/STRONG
@@ -26305,6 +26477,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "sasuke_sensei": return executeSasukeSenseiSpecial(fighter, context)   // RAITON set (Phase 1): N=Chidori / F=Chidori Eisou / B=Raiton Sword *1 / U=Raiton Sword *2 / D=Raiton Sword *3 / air=Chidori dive. Mangekyou/Rinnegan sets = Phases 2-3 (_eyeSet)
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
+    case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)
     case "rick":    return executeRickSpecial(fighter, context)
     case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
@@ -26598,6 +26771,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
       case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
       case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
+      case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break

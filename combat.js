@@ -1179,6 +1179,7 @@ export const VOICE_ALIAS = {
   ghostface_billy: "ghostface",
   miles: "spiderman",
   naruto_hokage: "naruto",   // additive Hokage/KCM standalone reuses base Naruto's voice pack (no new audio)
+  naruto_seventh: "naruto",   // additive Seventh-Hokage standalone reuses base Naruto's voice pack (no new audio)
   sasuke_sensei: "sasuke",   // additive Sensei Sasuke standalone reuses base Sasuke's voice pack (no new audio)
   sasuke_adult: "sasuke",   // additive Adult Sasuke standalone reuses base Sasuke's voice pack (no new audio)
   rickprime: "rick",   // rosterKey "rickPrime" → lowercased

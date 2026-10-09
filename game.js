@@ -17231,6 +17231,8 @@ const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
 const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
 // TOUCH CONTROLS toggle (tablet/phone) — cycles AUTO / ON / OFF. x set by _layoutSettings.
 const touchToggleRect = { x: 0, y: 448, w: 190, h: 34 }
+// NARUTO (SEVENTH) OIROKE toggle (opt-in gag distraction, default OFF) — top-right column. x set by _layoutSettings.
+const n7OirokeToggleRect = { x: 0, y: 522, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -17278,6 +17280,7 @@ function _layoutSettings() {
   brutalityToggleRect.x = rx
   colorblindToggleRect.x = rx
   touchToggleRect.x = rx
+  n7OirokeToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -17369,6 +17372,16 @@ function drawSettingsScreen() {
   ctx.fillText(`Finishers: ${brutalityFx ? "ON" : "OFF"}`, brutalityToggleRect.x + brutalityToggleRect.w / 2, brutalityToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Stylized KO finish (saved)", brutalityToggleRect.x, brutalityToggleRect.y + brutalityToggleRect.h + 13)
+
+  // NARUTO (SEVENTH) — OIROKE NO JUTSU opt-in (gag distraction; default OFF). Same pattern as BRUTALITIES.
+  { const on = narutoSeventhOirokeEnabled()
+    ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+    ctx.fillText("OIROKE (Naruto 7th)", n7OirokeToggleRect.x, n7OirokeToggleRect.y - 10)
+    box(n7OirokeToggleRect, on ? "rgba(74,51,74,0.92)" : "rgba(20,26,40,0.9)", on ? "#e07be0" : "rgba(120,150,200,0.4)", 2, on)
+    ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+    ctx.fillText(`Oiroke: ${on ? "ON" : "OFF"}`, n7OirokeToggleRect.x + n7OirokeToggleRect.w / 2, n7OirokeToggleRect.y + 22)
+    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+    ctx.fillText("Charge-tap gag distraction (saved)", n7OirokeToggleRect.x, n7OirokeToggleRect.y + n7OirokeToggleRect.h + 13) }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
   ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
@@ -18288,6 +18301,7 @@ function handleMenuClicks() {
       // Blood hit-effects toggle (cosmetic; persisted to localStorage).
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
+      if (pointInRect(mouse.x, mouse.y, n7OirokeToggleRect)) { setNarutoSeventhOiroke(!narutoSeventhOirokeEnabled()); break }
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.

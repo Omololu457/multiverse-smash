@@ -4428,24 +4428,28 @@ function n7Gamabunta(fighter, context) {
 const N7_KCM = { dmg: 1.30, spd: 1.15, drain: 0.20, dur: 360, cost: 60 }   // ~6s @60fps; drains chakra; modest buffs
 // Golden form-override anim (fighter._skinAnim). Locomotion/hurt/win all point at the single golden stance
 // (he glides — no KCM locomotion art); light/heavy = golden Combo 2; air/down_air = golden Combo 2 Air.
+// KCM golden form-override anim. ALL frames are KCM-SECTION golden poses (user-verified bboxes — no borrowing
+// from base/other modes). idle = slow BREATHING loop (3 neutral golden poses: Rasenkyugan-first/-last,
+// Wakusei-first). glide (walk/run) = READY pose (Combo-2-first) + gentle chakra-arm alternation (Wakusei
+// rising/lowering). dash/jump/fall/guard hold the ready pose. light/heavy = golden Combo 2; air = Combo 2 Air.
 const NARUTO_SEVENTH_KCM_ANIM = {
-  idle:      { frames: 1, width: 31, height: 62, speed: 8, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  walk:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  run:       { frames: 1, width: 31, height: 62, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  dash:      { frames: 1, width: 31, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  jump:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  fall:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  guard:     { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  hurt:      { frames: 1, width: 31, height: 62, speed: 5, anchorY: 0, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  knockdown: { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  getup:     { frames: 1, width: 31, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  idle:      { frames: 3, width: 37, height: 62, speed: 14, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // slow breathing
+  walk:      { frames: 3, width: 43, height: 65, speed: 8,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_glide_uniform.png" },  // gentle golden sway
+  run:       { frames: 3, width: 43, height: 65, speed: 6,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_glide_uniform.png" },
+  dash:      { frames: 1, width: 43, height: 65, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },   // ready pose
+  jump:      { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
+  fall:      { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
+  guard:     { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
+  hurt:      { frames: 3, width: 37, height: 62, speed: 5,  anchorY: 0, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  knockdown: { frames: 1, width: 37, height: 62, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  getup:     { frames: 3, width: 37, height: 62, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
   light:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
   heavy:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
-  up:        { frames: 1,  width: 31, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // no golden up art → stance glide
+  up:        { frames: 3,  width: 37, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // no golden up art → golden breathing pose
   air:       { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
   down_air:  { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
-  intro:     { frames: 1, width: 31, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
-  win:       { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" }
+  intro:     { frames: 3, width: 37, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  win:       { frames: 3, width: 37, height: 62, speed: 10, anchorY: 0, loop: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" }
 }
 export function narutoSeventhKCMActive(f) { return !!(f && f._n7KCMActive) }
 

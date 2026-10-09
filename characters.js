@@ -10169,8 +10169,8 @@ const narutoSeventh = {
     light:     { frames: 9, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_light_uniform.png" },   // Combo 1 (3 strings)
     heavy:     { frames: 5, width: 62, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_heavy_uniform.png" },   // Strong Attack
     up:        { frames: 6, width: 65, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_up_uniform.png" },      // Strong-Up (red-flame) launcher
-    air:       { frames: 5, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_air_uniform.png" },     // Strong Attack Air
-    down_air:  { frames: 5, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_air_uniform.png" },     // no dive row → Air reused (gap)
+    air:       { frames: 9, width: 62, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_aircombo_uniform.png" }, // Combo 1 Air (9 clean frames, user-verified bboxes)
+    down_air:  { frames: 5, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_air_uniform.png" },     // Strong Attack Air (distinct down-air)
     intro:     { frames: 4, width: 44, height: 63, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_intro_uniform.png" },   // robe / hat reveal
     win:       { frames: 2, width: 38, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_win_uniform.png" },     // base win pose (golden burst = Phase 3)
     // ── special cast poses (_spriteCastMove) — each from its own BASE section ──
@@ -10191,7 +10191,7 @@ const narutoSeventh = {
     // PHASE 3 — KCM special cast poses (golden sections; resolve even under the _skinAnim form-override via fallback).
     n7Rasenkyugan: { frames: 14, width: 102, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rasenkyugan_uniform.png" },
     n7Wakusei:     { frames: 11, width: 142, height: 86, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_wakusei_uniform.png" },
-    n7Bijuudama:   { frames: 1,  width: 31,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // golden gather stance (heads+sphere are the spectacle)
+    n7Bijuudama:   { frames: 3,  width: 37,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // golden gather (3 neutral poses; heads+sphere are the spectacle)
     // Rikudou (Sp6, black/gold) committed apex + Oiroke (Sp4 gag) opt-in. From H's OWN sections (never cross modes).
     n7Rikudou:     { frames: 27, width: 82, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rikudou_uniform.png" },
     n7Oiroke:      { frames: 8,  width: 46, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_oiroke_uniform.png" }

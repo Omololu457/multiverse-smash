@@ -5475,7 +5475,7 @@ function gaaraSandBullet(fighter, context) {
       vy: !grounded ? 3.2 : 0,                 // air shot drifts down toward a grounded foe
       damage: 56, hitstun: 16, knockbackX: 6, knockbackY: -2,
       lifetime: 96, color: "#d8c39a", drawKind: "sand",
-      isSpecial: true
+      isSpecial: true, hitFlag: "_gaaraSandHit"   // → One-Tail gauge fills when a sand move connects
     }, context)
   })
   try { shakeCamera(context, 1, 3) } catch (_) {}
@@ -5557,7 +5557,7 @@ function gaaraSandTsunami(fighter, context) {
       spawnY: fighter.y + h * 0.66,
       damage: 76, hitstun: 22, knockbackX: 11, knockbackY: -4,
       lifetime: 90, color: "#cdb487", drawKind: "sandwave",
-      isSpecial: true
+      isSpecial: true, hitFlag: "_gaaraSandHit"   // → One-Tail gauge fills on connect
     }, context)
   })
   try { shakeCamera(context, 3, 8) } catch (_) {}
@@ -5615,6 +5615,14 @@ function gaaraSandShunshin(fighter, context) {
 function executeGaaraSpecial(fighter, context) {
   if (!gaaraIsGaara(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // PHASE 4 — while Shukaku is out, Gaara's specials RE-ROUTE to Shukaku's commands.
+  if (fighter._shukaku && !fighter._shukaku.ending) {
+    const d = fighter._specialHeldDir || null
+    if (d === "F") return gaaraShukakuSwipe(fighter, context)    // Fwd  = giant arm sweep (launch)
+    if (d === "B") return gaaraSandShuriken(fighter, context)    // Back = 4 sand shuriken
+    if (d === "D") return gaaraPyramidSeal(fighter, context)     // Down = pyramid seal (bind → damage)
+    return gaaraSandVolley(fighter, context)                     // neutral/Up = 6 sand balls
+  }
   // SAND BURIAL follow-up: a Special inside the open Coffin window (any direction) → the dome collapses.
   if ((fighter._coffinWindow || 0) > 0) return gaaraSandBurial(fighter, context)
   const dir = fighter._specialHeldDir || null
@@ -5635,6 +5643,17 @@ function executeGaaraSpecial(fighter, context) {
 const GAARA_ULT_LEN = 210
 function executeGaaraUltimate(fighter, context) {
   if (!gaaraIsGaara(fighter)) return false
+  // PHASE 4 — Shukaku branch:
+  //  • while Shukaku is already out, ANY Ultimate press = TAILED BEAST BALL (ends the summon).
+  //  • Down+Ultimate (game.js stamps _ultVariant "shukaku") with a FULL One-Tail gauge = SUMMON Shukaku.
+  //  • otherwise fall through to Sabaku Taisou (Phase 3).
+  if (fighter._shukaku && !fighter._shukaku.ending) return gaaraTailedBeastBall(fighter, context)
+  if ((fighter._ultVariant || "") === "shukaku") {
+    const r = gaaraSummonShukaku(fighter, context)
+    if (r) return true
+    // gauge not full / refused → DON'T fire Sabaku Taisou on a Down+Ult (it's the summon input); no-op.
+    return false
+  }
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp0 = getTargetResolver(context)(fighter)
   // capture the burial point (the foe's feet), so the FX engulf the opponent even if they're knocked around
@@ -5668,6 +5687,206 @@ function executeGaaraUltimate(fighter, context) {
   return true
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// PHASE 4 — SHUKAKU (One-Tail) ALLY SUMMON. Self-contained Gaara state (NOT the shared summons.js system):
+// a giant creature rises BEHIND Gaara, who CHANNELS (locked in place, still hittable). While it's out,
+// Gaara's special inputs re-route to Shukaku's commands and his Ultimate becomes the Tailed Beast Ball.
+// Ends on: 3 clean hits on Gaara / the ~12s timer / Block pressed → always plays the LOSE sequence.
+// Deterministic + LAN-safe (no gameRng). combat.js UNTOUCHED (damage via applyScaledDamage / projectiles).
+const GAARA_GAUGE_MAX = 100
+const SHUKAKU_DUR = 720            // ~12s @60fps
+const SHUKAKU_BEHIND = 140         // world-x gap behind Gaara
+const SHUKAKU_EMERGE = 36          // rise-in frames before commands are usable
+
+// ONE-TAIL GAUGE — fills as Gaara takes damage (health-delta in updateGaara) AND when his sand moves hit
+// (sand projectiles carry hitFlag "_gaaraSandHit"; see spawnProjectile calls). Full gauge → Down+Ult summon.
+function gaaraAddGauge(fighter, amt) {
+  if (fighter._shukaku) return   // no gain while Shukaku is already out
+  fighter._oneTailGauge = Math.min(GAARA_GAUGE_MAX, (fighter._oneTailGauge || 0) + amt)
+}
+
+function gaaraSummonShukaku(fighter, context) {
+  if (fighter._shukaku) return false
+  if ((fighter._oneTailGauge || 0) < GAARA_GAUGE_MAX) return false     // gauge must be FULL
+  if (context && context.cinematicSafe === false) return false         // refuse during cinematics/KO/Brutality/domains/Rick-rewind
+  const opp = getTargetResolver(context)(fighter)
+  fighter.facing = opp ? (opp.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
+  fighter._oneTailGauge = 0
+  const behindX = fighter.x + (fighter.w || 0) / 2 - fighter.facing * SHUKAKU_BEHIND
+  fighter._shukaku = {
+    timer: SHUKAKU_DUR, max: SHUKAKU_DUR, hitCount: 0,
+    x: behindX, y: fighter.y + (fighter.h || 100),   // feet-anchor at Gaara's feet line
+    facing: fighter.facing,
+    pose: "emerge", poseT: 0, poseHold: SHUKAKU_EMERGE,
+    ending: false, endT: 0, endPhase: ""
+  }
+  fighter._spriteCastMove = "gaaraUltKneel"; fighter._spriteCastTimer = SHUKAKU_DUR   // channel pose
+  fighter.vx = 0
+  try { shakeCamera(context, 7, 18); focusCameraOnAction(context, fighter, opp, 0.9, 20) } catch (_) {}
+  return true
+}
+
+// Shukaku pose helper: set a transient attack pose that reverts to idle after `hold` frames.
+function shukakuPose(sh, pose, hold) { if (sh) { sh.pose = pose; sh.poseT = 0; sh.poseHold = hold } }
+
+// Spawn point at Shukaku's "mouth" (upper-front of the creature).
+function shukakuMouth(fighter) {
+  const sh = fighter._shukaku
+  const H = (fighter.h || 100) * 3   // ~3x gaara drawn height
+  return { x: sh.x + sh.facing * 40, y: sh.y - H * 0.62 }
+}
+
+// ── COMMANDS (Gaara's specials re-route while Shukaku is out) ──
+function gaaraSandVolley(fighter, context) {          // N — 6 sand balls in a spread
+  if (!spendEnergy(fighter, 22)) return false
+  shukakuPose(fighter._shukaku, "mouthcast", 30)
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const m = shukakuMouth(fighter), face = fighter._shukaku.facing
+  const spread = [-0.32, -0.18, -0.06, 0.06, 0.18, 0.32]
+  spread.forEach((ang, i) => schedulePendingSpawn(10 + i * 2, () => {
+    spawnProjectile(fighter, "gaara_sand_volley", {
+      w: 22, h: 22, radius: 12, speed: 12, spawnX: m.x, spawnY: m.y,
+      vx: face * 12 * Math.cos(ang), vy: 12 * Math.sin(ang),
+      damage: 26, hitstun: 12, knockbackX: 4, knockbackY: -1,
+      lifetime: 90, color: "#d8c39a", drawKind: "sand", isSpecial: true
+    }, context)
+  }))
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+
+function gaaraShukakuSwipe(fighter, context) {        // F — giant arm sweep (launches)
+  if (!spendEnergy(fighter, 26)) return false
+  shukakuPose(fighter._shukaku, "swipe", 30)
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  schedulePendingSpawn(14, () => {
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const sh = fighter._shukaku
+    const reach = 420
+    if (Math.abs((o.x + (o.w || 0) / 2) - sh.x) > reach) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 20; applyScaledDamage(o, Math.floor(70 * 0.25), { source: "ability" }); return }
+    o.hitstun = 30; o.vx = dir * 10; o.vy = -14; o.colorFlash = 14   // LAUNCH
+    applyScaledDamage(o, 70, { source: "ability" })
+  })
+  try { shakeCamera(context, 4, 10) } catch (_) {}
+  return true
+}
+
+function gaaraSandShuriken(fighter, context) {        // B — 4 spinning sand shuriken fired at the foe
+  if (!spendEnergy(fighter, 24)) return false
+  shukakuPose(fighter._shukaku, "mouthcast", 28)
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const m = shukakuMouth(fighter), face = fighter._shukaku.facing
+  for (let i = 0; i < 4; i++) schedulePendingSpawn(12 + i * 4, () => {
+    spawnProjectile(fighter, "gaara_sand_shuriken", {
+      w: 30, h: 30, radius: 16, speed: 15, spawnX: m.x, spawnY: m.y - 10 + i * 6,
+      vx: face * 15, vy: 0,
+      damage: 24, hitstun: 14, knockbackX: 6, knockbackY: -2,
+      lifetime: 80, color: "#cdb487", drawKind: "sandshuriken", isSpecial: true
+    }, context)
+  })
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+
+function gaaraPyramidSeal(fighter, context) {         // D — pyramid erupts under the foe, binds, then damages
+  if (!spendEnergy(fighter, 30)) return false
+  shukakuPose(fighter._shukaku, "idle", 20)
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const opp = getTargetResolver(context)(fighter)
+  const px = opp ? opp.x + (opp.w || 0) / 2 : fighter.x + fighter.facing * 300
+  const py = opp ? opp.y + (opp.h || 100) : fighter.y + (fighter.h || 100)
+  fighter._gaaraPyramidFx = 40; fighter._gaaraPyramidX = px; fighter._gaaraPyramidY = py
+  schedulePendingSpawn(8, () => {   // bind
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    if (Math.abs((o.x + (o.w || 0) / 2) - px) > 180) return
+    o.hitstun = Math.max(o.hitstun || 0, 34); o.vx = 0; o.vy = 0
+  })
+  schedulePendingSpawn(26, () => {   // damage
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    if (Math.abs((o.x + (o.w || 0) / 2) - px) > 180) return
+    if (o.isBlocking) { o.blockstun = 22; applyScaledDamage(o, Math.floor(88 * 0.25), { source: "ability" }); return }
+    o.hitstun = 28; o.vy = -8; o.colorFlash = 14
+    applyScaledDamage(o, 88, { source: "ability" })
+  })
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+// TAILED BEAST BALL (Ultimate while Shukaku is out) — particles gather → dark sphere → fired. Huge damage.
+// Firing it ENDS the summon (starts the LOSE sequence).
+function gaaraTailedBeastBall(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  shukakuPose(fighter._shukaku, "mouthcast", 46)
+  fighter.attackCooldown = getAttackDuration(46, fighter)
+  fighter._gaaraTbbCharge = 40   // gather FX (drawGaaraShukaku)
+  const m = shukakuMouth(fighter), face = fighter._shukaku.facing
+  schedulePendingSpawn(40, () => {
+    spawnProjectile(fighter, "gaara_tbb", {
+      w: 120, h: 120, radius: 60, speed: 13, spawnX: m.x, spawnY: m.y,
+      vx: face * 13, vy: 0,
+      damage: 300, hitstun: 50, knockbackX: 16, knockbackY: -10,
+      lifetime: 120, color: "#241d3a", drawKind: "tbb",
+      sheet: "./gaara_shukaku_sphere_uniform.png", spriteFrames: 1, spriteW: 159, spriteH: 151, spriteScale: 1.3,
+      isSpecial: true, isUltimate: true
+    }, context)
+    gaaraEndShukaku(fighter)   // firing the TBB ends the summon
+  })
+  try { shakeCamera(context, 6, 16); focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.0, 16) } catch (_) {}
+  return true
+}
+
+// Begin the Shukaku LOSE sequence (nose bubble → seal glow → darken → white burst → gone).
+function gaaraEndShukaku(fighter) {
+  const sh = fighter._shukaku
+  if (!sh || sh.ending) return
+  sh.ending = true; sh.endT = 0; sh.pose = "lose"
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0   // release Gaara's channel
+}
+
+// Per-frame Shukaku driver (called from updateGaara). Channels Gaara, ticks the summon, counts clean hits,
+// runs the LOSE sequence, and follows the foe slowly. Returns nothing; mutates fighter._shukaku.
+const SHUKAKU_LOSE_LEN = 72
+function updateGaaraShukaku(fighter, context) {
+  const sh = fighter._shukaku
+  if (!sh) return
+  // pose timer
+  sh.poseT = (sh.poseT || 0) + 1
+  if (sh.poseHold > 0 && sh.poseT >= sh.poseHold && sh.pose !== "idle" && !sh.ending) { sh.pose = "idle"; sh.poseHold = 0 }
+  if (sh.pose === "emerge" && sh.poseT >= SHUKAKU_EMERGE) { sh.pose = "idle" }
+
+  if (sh.ending) {
+    sh.endT++
+    if (sh.endT >= SHUKAKU_LOSE_LEN) { fighter._shukaku = null }
+    return
+  }
+
+  // CHANNEL: Gaara is locked in place (no movement) but still hittable — keep the kneel pose alive.
+  fighter.vx = 0
+  if ((fighter._spriteCastTimer || 0) < 2 && !fighter.attacking) { fighter._spriteCastMove = "gaaraUltKneel"; fighter._spriteCastTimer = 6 }
+
+  // clean-hit count (health delta) + Block press + timer → end.
+  const hp = fighter.health || 0
+  if (fighter._gaaraShHp == null) fighter._gaaraShHp = hp
+  if (hp < fighter._gaaraShHp) { sh.hitCount++; fighter._gaaraShHp = hp }
+  else fighter._gaaraShHp = hp
+  if (sh.hitCount >= 3) { gaaraEndShukaku(fighter); return }
+  if (fighter.isBlocking) { gaaraEndShukaku(fighter); return }
+  sh.timer--
+  if (sh.timer <= 0) { gaaraEndShukaku(fighter); return }
+
+  // follow: Shukaku eases to stay BEHIND Gaara (never body-blocks; only its attack hitboxes matter).
+  const opp = getTargetResolver(context)(fighter)
+  sh.facing = opp ? (opp.x >= fighter.x ? 1 : -1) : fighter.facing
+  const targetX = fighter.x + (fighter.w || 0) / 2 - sh.facing * SHUKAKU_BEHIND
+  sh.x += (targetX - sh.x) * 0.06   // slow follow
+  sh.y = fighter.y + (fighter.h || 100)
+}
+
 // ULTIMATE DEFENSE (passive) — while standing still with Sand ≥ threshold, the FIRST incoming ENEMY
 // PROJECTILE near Gaara is stopped by an automatic sand burst (costs Sand + a cooldown). NEVER triggers
 // against melee (only scans activeProjectiles). Mirrors applyHinataGuutenToProjectiles — no combat.js.
@@ -5699,10 +5918,11 @@ export function applyGaaraUltimateDefense(gaara) {
 // Sand Coffin bind pin, and the SAND ARMOR passive (defenseMultiplier while Sand is high + drain per hit).
 // A pure no-op for every other fighter. Phases 3-4 extend this (Shukaku gauge/summon).
 const GAARA_ARMOR_THRESHOLD = 60
-export function updateGaara(fighter) {
+export function updateGaara(fighter, context) {
   if (!gaaraIsGaara(fighter)) return
   for (const k of ["_gaaraShieldFx", "_gaaraHandsFx", "_gaaraDomeFx", "_gaaraCollapseFx",
-                   "_gaaraShunshinFx", "_gaaraBurstFx", "_coffinWindow", "_gaaraDomeCd"]) {
+                   "_gaaraShunshinFx", "_gaaraBurstFx", "_coffinWindow", "_gaaraDomeCd",
+                   "_gaaraPyramidFx", "_gaaraTbbCharge"]) {
     if (fighter[k] > 0) fighter[k]--
   }
   // SABAKU TAISOU ultimate driver: tick the cinematic timer (drives the screen-space cut-in + the world-
@@ -5736,6 +5956,12 @@ export function updateGaara(fighter) {
     fighter.defenseMultiplier = 1       // revert once Sand runs low
     fighter._gaaraArmorOn = false
   }
+  // ── PHASE 4 — ONE-TAIL GAUGE + SHUKAKU ──
+  // Gauge fills as Gaara takes damage (health-delta above) + when his sand moves hit (hitFlag "_gaaraSandHit"
+  // set by combat's projectile-hit resolver on the owner). No gain while Shukaku is already out.
+  if (tookHit) gaaraAddGauge(fighter, 16)
+  if (fighter._gaaraSandHit) { gaaraAddGauge(fighter, 10); fighter._gaaraSandHit = false }
+  updateGaaraShukaku(fighter, context)
 }
 
 function executeJiraiyaSpecial(fighter, context) {
@@ -22806,6 +23032,66 @@ function executeSasukeSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SHARED Susanoo command-set (sword / arrow / grab) on the SPECIAL button while in the giant form.
+// This is the SAME offense the original Sasuke's staged Susanoo fires (a verbatim copy of the _susanooStage
+// branch of executeSasukeSpecial, which keeps its own inline copy UNCHANGED). Extracted so sasuke_adult +
+// sasuke_sensei — who now share the giant form via enterSasukeFormSusanoo (Charge+Ultimate) — get the full
+// command-set too: Lv2 + far → susanooArrow (bow) · Lv2 + close → susanooSword · else / Lv1 / Down-held →
+// ribcage command-grab. Generic helpers only (no rosterKey gate); reuses the same art + buffs the form set.
+export function executeSasukeSusanooAttack(fighter, context) {
+  const stage = fighter._susanooStage || 0
+  if (stage <= 0) return false
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+  const b = SUSANOO_STAGE[stage]
+  const distanceX = target ? Math.abs((fighter.x || 0) - (target.x || 0)) : 0
+  const aim = _oppCenter(target)   // auto-aim point (opponent hurtbox center)
+
+  // Lv2 ranged option — the arrow (bow). A real damaging projectile; body stays giant.
+  if (stage === 2 && distanceX > 170) {
+    spawnProjectile(fighter, "susanooArrow", {
+      damage: b.arrowDmg, speed: 15, lifetime: 70, hitstun: 30, knockbackX: 12, knockbackY: -3,
+      color: "#a78bfa", w: 42, h: 20,
+      spawnY: (fighter.y || 0) + _susanooArmYOff(fighter, context, SUSANOO_ARM_FRAC[2]),
+      aimAt: aim,
+      sheet: "./sasuke_susanoo_arrow_attack.png", spriteFrames: 5, spriteW: 110, spriteH: 95, spriteScale: 1.1
+    }, context)
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    shakeCamera(context, 6, 6)
+    return true
+  }
+
+  // Lv2 close-range default — SWORD slash (heaviest melee). Hold DOWN to grab instead.
+  const holdingDown = getRelativeDirections(fighter).includes("D")
+  if (stage === 2 && !holdingDown) {
+    const swordAtk = createAttackFromMove(fighter, "susanooSword", {
+      damage: b.swordDmg, startup: 14, active: 10, recovery: 24,
+      hitstun: 34, knockbackX: 15, knockbackY: -6,
+      rangeX: 260, rangeY: 160                     // giant blade sweep — long + tall reach
+    })
+    setAttackState(fighter, swordAtk, 34)
+    sound.playSfxFile?.("sasuke_kagutsuchi_blade.mp3", null)   // VOICE: "Kagutsuchi's Blade!"
+    _spawnSusanooFx(fighter, "./sasuke_susanoo_sword_attack.png",
+      { frames: 5, w: 112, h: 282, scale: 2.4, life: 26, drift: 5, armFrac: SUSANOO_ARM_FRAC[2], aimAt: aim, color: "#f5e35a" }, context)
+    focusCameraOnAction(context, fighter, target, 0.96, 8)
+    shakeCamera(context, 10, 10)
+    return true
+  }
+
+  // Susanoo command-grab (extending ribcage arm) — a REAL grab (beats block, shared tech window). Lv2
+  // grab (DOWN-held) throws HARDER than Lv1 via the _grabThrowDmg override (b.grabDmg: 120 / 210).
+  const grabbed = resolveGrab(fighter, target, context, SUSANOO_GRAB_REACH)
+  if (grabbed) fighter._grabThrowDmg = b.grabDmg
+  else fighter.attackCooldown = getAttackDuration(22, fighter)
+  _spawnSusanooFx(fighter, "./sasuke_susanoo_grab.png",
+    { frames: 3, w: 264, h: 80, scale: 2.6, life: 24, drift: 7, armFrac: SUSANOO_ARM_FRAC[stage] || SUSANOO_ARM_FRAC[1], aimAt: aim, color: "#9a86d8" }, context)
+  focusCameraOnAction(context, fighter, target, 0.98, 8)
+  shakeCamera(context, 7, 7)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SASUKE — Tier-1 skeletal Susanoo GRAB as a STANDALONE special (grab button = Down+Light).
 // Sasuke's STANDARD grab summons the skeletal ribcage-arm as a REAL extended-reach command-grab
 // (shared combat.resolveGrab pipeline + tuned throw), fired from NEUTRAL — completely independent of
@@ -27158,7 +27444,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "handler": return executeHandlerSpecial(fighter, context) // SHIKIGAMI cameo system: neutral=Divine Dogs (dog rush) / Fwd=Orochi (snake lunge) / Back=Datto (rabbit swarm) / Down=Max Elephant (heavy slam) / Up=Nue (bird anti-air) / AIR=Toad (drop). Each = a ×0.60 summon. Domain (2nd special)=deferred (art re-export); Mahoraga=S5 ULT.
     case "yuji":    return executeYujiSpecial(fighter, context)   // Cursed-Energy Y-family: Ball(neutral)/Beam(Fwd)/Pillar(Up)/Crescent(Down)/AirCombo(airborne)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
-    case "sasuke_adult": return executeSasukeAdultSpecial(fighter, context)   // N=Katon / F=Chidori / B=Chidori Nagashi / U=Amaterasu / D=Sword-Swap Strike (air: N=Katon, F=Chidori)
+    case "sasuke_adult": return sasukeInSusanoo(fighter) ? executeSasukeSusanooAttack(fighter, context) : executeSasukeAdultSpecial(fighter, context)   // in Susanoo → shared sword/arrow/grab; else N=Katon / F=Chidori / B=Chidori Nagashi / U=Amaterasu / D=Sword-Swap Strike
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
     case "madara":  return executeMadaraSpecial(fighter, context)   // Stage 3 (one at a time): Katon Great Fireball (neutral); Gunbai/Mokuton/Susanoo set land in later passes
     case "obito":   return executeObitoSpecial(fighter, context)   // Ranged: Shuriken Throw (neutral/air) / Chakra Rod Throw (Fwd) / Giant Shuriken (Up)
@@ -27170,7 +27456,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
     case "sakura":  return executeSakuraSpecial(fighter, context)   // neutral=Shannaro Rush / F=Heaven-Spin Kick / U=Cherry-Blossom Impact / B=Byakugou Seal(heal) / D=Summon Katsuyu(wall) / air=Kunai Throw
-    case "sasuke_sensei": return executeSasukeSenseiSpecial(fighter, context)   // RAITON set (Phase 1): N=Chidori / F=Chidori Eisou / B=Raiton Sword *1 / U=Raiton Sword *2 / D=Raiton Sword *3 / air=Chidori dive. Mangekyou/Rinnegan sets = Phases 2-3 (_eyeSet)
+    case "sasuke_sensei": return sasukeInSusanoo(fighter) ? executeSasukeSusanooAttack(fighter, context) : executeSasukeSenseiSpecial(fighter, context)   // in Susanoo → shared sword/arrow/grab; else RAITON set: N=Chidori / F=Chidori Eisou / B/U/D=Raiton Sword *1-3 / air=Chidori dive (Mangekyou/Rinnegan via _eyeSet)
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)

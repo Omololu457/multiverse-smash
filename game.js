@@ -3469,6 +3469,7 @@ function getAbilityContext() {
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
+    cinematicSafe: !_rewindUnsafeNow(),   // GAARA (Phase 4): false during cinematics/KO/Brutality/domains/Rick-rewind — gates the Shukaku summon
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
   }
 }
@@ -12651,7 +12652,12 @@ function _gaaraFxImg(src) {
 // first ult fires (the cut-in's slide window is short — a cold-load would miss panel.complete and skip it).
 ;["./gaara_cutin_uniform.png", "./gaara_fx_ripples_uniform.png", "./gaara_fx_hands_uniform.png",
   "./gaara_fx_dome_uniform.png", "./gaara_fx_collapse_uniform.png", "./gaara_fx_burst_uniform.png",
-  "./gaara_fx_mounds_uniform.png"].forEach(_gaaraFxImg)
+  "./gaara_fx_mounds_uniform.png",
+  // Phase 4 Shukaku sheets — preloaded so the giant creature + its tail decode before the summon fires.
+  "./gaara_shukaku_idle_uniform.png", "./gaara_shukaku_walk_uniform.png", "./gaara_shukaku_tail_uniform.png",
+  "./gaara_shukaku_emerge_uniform.png", "./gaara_shukaku_swipe_uniform.png", "./gaara_shukaku_mouthcast_uniform.png",
+  "./gaara_shukaku_pyramid_uniform.png", "./gaara_shukaku_sphere_uniform.png", "./gaara_shukaku_lose_uniform.png",
+  "./gaara_shukaku_burst_uniform.png"].forEach(_gaaraFxImg)
 // Blit one frame of a sand-FX strip, BOTTOM-anchored at (cx, bottomY) so a rising hand / dome grows up
 // from the ground. frames = strip frame count; fi = frame index; sc = scale; alpha = opacity.
 function _gaaraBlitFx(c, img, frames, fi, cx, bottomY, sc, alpha) {
@@ -12757,6 +12763,120 @@ function drawGaaraFx(c, fighter) {
     stage("./gaara_fx_burst_uniform.png",    3, 38,  10,  0.95)  // Part-2 ground burst (dmg beat uT ~26)
     stage("./gaara_fx_mounds_uniform.png",   3, 14,  0,   0.9)   // mounds settle
   }
+
+  // (Phase 4) PYRAMID SEAL — the Shukaku D+L command: a sand pyramid erupts at the foe (bind → damage).
+  const pf = fighter._gaaraPyramidFx || 0
+  if (pf > 0) {
+    const fi = Math.floor((40 - pf) / 40 * 3)
+    _gaaraBlitFx(c, _gaaraFxImg("./gaara_shukaku_pyramid_uniform.png"), 3, fi, fighter._gaaraPyramidX ?? cx, fighter._gaaraPyramidY ?? feetY, (w * 2.4) / 261 * 1.4, Math.min(0.95, pf / 12))
+  }
+}
+
+// GAARA PHASE 4 — the One-Tail SHUKAKU summon, drawn BEHIND Gaara's body (world space). The tail layers
+// behind the body; the body plays idle/walk/emerge/attack poses; the LOSE sequence (ending) plays the
+// defeated frames + a shrinking white burst. Gated on rosterKey + fighter._shukaku → no-op otherwise.
+// Scale ≈ 3× Gaara's drawn height (within camera limits). Code-driven; reuses _gaaraFxImg/_gaaraBlitFx.
+const SHUKAKU_POSE_SHEET = {
+  emerge: ["./gaara_shukaku_emerge_uniform.png", 1],
+  idle:   ["./gaara_shukaku_idle_uniform.png", 1],
+  walk:   ["./gaara_shukaku_walk_uniform.png", 2],
+  swipe:  ["./gaara_shukaku_swipe_uniform.png", 3],
+  mouthcast: ["./gaara_shukaku_mouthcast_uniform.png", 4],
+  lose:   ["./gaara_shukaku_lose_uniform.png", 3],
+}
+function drawGaaraShukaku(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
+  const sh = fighter._shukaku
+  if (!sh) return
+  const gH = (fighter.h || 100) * (fighter.spriteScale || 1.5)   // Gaara's drawn height
+  const targetH = gH * 3                                          // Shukaku ≈ 3× Gaara
+  const dir = sh.facing || 1
+  const feetX = sh.x, feetY = sh.y
+
+  // helper: blit a Shukaku sheet (bottom-anchored at feetX/feetY, scaled to targetH, flipped by facing)
+  const blit = (src, frames, fi, alpha, hMul = 1, yOff = 0) => {
+    const img = _gaaraFxImg(src)
+    if (!img.complete || img.naturalWidth === 0) return
+    const fw = img.naturalWidth / frames, fh = img.naturalHeight
+    const sc = (targetH * hMul) / fh
+    const dw = fw * sc, dh = fh * sc
+    c.save(); c.globalAlpha = alpha
+    c.translate(feetX, feetY + yOff); c.scale(dir, 1)
+    c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, -dw / 2, -dh, dw, dh)
+    c.restore()
+  }
+
+  if (sh.ending) {
+    // LOSE sequence: lose frames fade/darken, then a shrinking white burst swallows it.
+    const t = (sh.endT || 0) / 72
+    if (t < 0.6) {
+      const fi = Math.min(2, Math.floor(t / 0.6 * 3))
+      blit(SHUKAKU_POSE_SHEET.lose[0], 3, fi, 1 - t * 0.5)
+      // nose bubble (code-drawn) — a small pale sphere that swells by the mouth
+      const m = feetY - targetH * 0.6
+      c.save(); c.globalAlpha = 0.6 * (1 - t); c.fillStyle = "rgba(230,230,245,0.8)"
+      c.beginPath(); c.arc(feetX + dir * 26, m, 6 + t * 10, 0, Math.PI * 2); c.fill(); c.restore()
+    }
+    // white burst shrinking to nothing
+    if (t >= 0.45) {
+      const bt = (t - 0.45) / 0.55
+      const fi = Math.min(4, Math.floor(bt * 5))
+      blit("./gaara_shukaku_burst_uniform.png", 5, fi, 0.9 * (1 - bt * 0.4), 1.1 - bt * 0.6, -targetH * 0.1)
+    }
+    return
+  }
+
+  // TAIL — always behind the body (drawn first).
+  const tailH = targetH * 0.9
+  const timg = _gaaraFxImg("./gaara_shukaku_tail_uniform.png")
+  if (timg.complete && timg.naturalWidth) {
+    const sc = tailH / timg.naturalHeight, dw = timg.naturalWidth * sc, dh = timg.naturalHeight * sc
+    c.save(); c.globalAlpha = 0.95
+    c.translate(feetX - dir * targetH * 0.30, feetY - targetH * 0.55); c.scale(dir, 1)
+    c.drawImage(timg, -dw / 2, -dh / 2, dw, dh)
+    c.restore()
+  }
+
+  // BODY pose. Emerge rises up over its window; others are grounded.
+  const poseKey = SHUKAKU_POSE_SHEET[sh.pose] ? sh.pose : "idle"
+  const [src, frames] = SHUKAKU_POSE_SHEET[poseKey]
+  const fi = (frames > 1) ? Math.floor((sh.poseT || 0) / 5) % frames : 0
+  let yOff = 0, alpha = 1
+  if (sh.pose === "emerge") { const p = Math.min(1, (sh.poseT || 0) / 36); yOff = (1 - p) * targetH * 0.7; alpha = 0.6 + p * 0.4 }
+  blit(src, frames, fi, alpha, 1, yOff)
+
+  // TAILED BEAST BALL gather glow at the mouth while charging.
+  if ((fighter._gaaraTbbCharge || 0) > 0) {
+    const ch = fighter._gaaraTbbCharge, p = 1 - ch / 40
+    const mx = feetX + dir * 40, my = feetY - targetH * 0.62
+    c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = 0.8
+    c.fillStyle = "#6a5acd"; c.shadowBlur = 20; c.shadowColor = "#241d3a"
+    c.beginPath(); c.arc(mx, my, 6 + p * 34, 0, Math.PI * 2); c.fill()
+    c.fillStyle = "#b9a7ff"; c.beginPath(); c.arc(mx, my, 3 + p * 14, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+}
+
+// GAARA — ONE-TAIL GAUGE bar above the head (pre-summon). Fills as Gaara takes damage / lands sand moves;
+// glows when FULL (Down+Ultimate then summons Shukaku). Hidden while Shukaku is already out.
+function drawShukakuGauge(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara" || fighter._shukaku) return
+  const g = fighter._oneTailGauge || 0
+  if (g <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW
+  if (x == null || w == null) return
+  const frac = Math.max(0, Math.min(1, g / 100))
+  const full = frac >= 1
+  const bw = Math.max(40, w * 1.1), bh = Math.max(4, (fighter._lastDrawH || 100) * 0.045)
+  const bx = x + (w - bw) / 2, by = y - (fighter._lastDrawH || 100) * 0.42 - bh
+  c.save()
+  c.fillStyle = "#2a1d0a"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#120c04"; c.fillRect(bx, by, bw, bh)
+  const t = globalFrameCount
+  c.fillStyle = full ? (Math.floor(t / 6) % 2 ? "#ffe08a" : "#e0b84b") : "#c9a24b"   // pulse gold when full
+  c.fillRect(bx, by, bw * frac, bh)
+  if (full) { c.shadowBlur = 8; c.shadowColor = "#ffd166"; c.strokeStyle = "#ffe08a"; c.lineWidth = 1; c.strokeRect(bx - 1, by - 1, bw + 2, bh + 2) }
+  c.restore()
 }
 
 // ISSHIKI VOID SOVEREIGN — crimson Karma aura on the full-black body (same architecture as Jason's Nightmare
@@ -14574,7 +14694,7 @@ function updateBattle() {
   //    sequence; their FX timers never decremented. Fixed to run every frame for Hinata + Gaara.)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
-  updateGaara(p1); updateGaara(p2)                                 // GAARA: tick sand FX + Sand Armor passive (no-op otherwise)
+  { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
@@ -14788,6 +14908,7 @@ function renderHybridFighter(fighter) {
   fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
   const key = fighter.rosterKey
   const drawTo = (c) => {
+    drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
     drawN7BondAura(c, fighter)         // Naruto (Seventh) Kurama-Bond red aura, behind the body (naruto_seventh only, Bond 1+)
@@ -14840,6 +14961,7 @@ function renderHybridFighter(fighter) {
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
+    drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
@@ -21390,6 +21512,15 @@ gameLoop()
     // Deterministic ULTIMATE trigger (mirrors p1SpecialDir) — clears the gates + fires triggerUltimate,
     // bypassing input-timing flakiness in long full-kit suites. opts.hold passes the tap/hold flag (Madara).
     p1Ultimate: (opts = {}) => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; const cast = triggerUltimate(p1, getAbilityContext(), opts); return { cast: !!cast, move: p1.currentMove || null, castMove: p1._spriteCastMove || null } },
+    // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
+    gaaraShukaku: {
+      fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },
+      summon:    () => { if (!p1) return null; p1._oneTailGauge = 100; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._ultVariant = "shukaku"; const ok = triggerUltimate(p1, getAbilityContext()); return { ok: !!ok, active: !!p1._shukaku } },
+      command:   (dir = null) => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { cast: p1._spriteCastMove || null, pose: p1._shukaku?.pose || null } },
+      tbb:       () => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.ultimateCooldown = 0; const ok = triggerUltimate(p1, getAbilityContext()); return { ok: !!ok, charge: p1._gaaraTbbCharge || 0 } },
+      state:     () => { const s = p1?._shukaku; return { gauge: Math.round(p1?._oneTailGauge || 0), active: !!s, timer: s?.timer ?? 0, hitCount: s?.hitCount ?? 0, pose: s?.pose ?? null, ending: !!s?.ending } },
+      pressBlock:() => { if (p1) p1.isBlocking = true; return true },
+    },
     // Spider-Man "Maximum Web" ultimate probe (Stage 4): live cinematic timer + held cast pose + overlay render count + bg img loaded.
     spidermanMaxWeb: () => ({ timer: p1?._maxWebTimer || 0, max: p1?._maxWebMax || 0, castMove: p1?._spriteCastMove || null, renders: _spiderMaxWebRenders, bgLoaded: !!(_spiderMaxWebImg && _spiderMaxWebImg.complete && _spiderMaxWebImg.naturalWidth > 0) }),
     brainiacPillar: () => ({ timer: p1?._brainiacPillarTimer || 0, max: p1?._brainiacPillarMax || 0, castMove: p1?._spriteCastMove || null, renders: _brainiacPillarRenders, bgLoaded: !!(_brainiacPillarImg && _brainiacPillarImg.complete && _brainiacPillarImg.naturalWidth > 0) }),

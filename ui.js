@@ -3671,6 +3671,31 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
           ctx.globalAlpha = 0.7
           ctx.beginPath(); ctx.arc(sx, sy, 1.5 + (k % 3), 0, Math.PI * 2); ctx.fill()
         }
+      } else if (p.drawKind === "sandshuriken") {
+        // GAARA (Shukaku) — SAND SHURIKEN: a spinning 4-point sand star. Code-drawn.
+        const R = Math.max(12, p.radius || 16)
+        const base = p.color || "#cdb487"
+        ctx.translate(x, y); ctx.rotate(t * 0.5)
+        ctx.shadowBlur = 8; ctx.shadowColor = "rgba(150,120,70,0.8)"
+        ctx.fillStyle = base
+        for (let k = 0; k < 4; k++) {
+          ctx.rotate(Math.PI / 2)
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(R * 0.3, -R * 0.22); ctx.lineTo(R, 0); ctx.lineTo(R * 0.3, R * 0.22); ctx.closePath(); ctx.fill()
+        }
+        ctx.shadowBlur = 0; ctx.fillStyle = "#8a6c38"
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "tbb") {
+        // GAARA (Shukaku) — TAILED BEAST BALL: a dark condensed sphere with a violet energy rim (fallback
+        // when the sphere sheet isn't decoded; the real sprite in p.sheet takes precedence above).
+        const R = Math.max(30, p.radius || 60)
+        ctx.translate(x, y)
+        ctx.shadowBlur = 24; ctx.shadowColor = "rgba(120,90,200,0.9)"
+        ctx.fillStyle = "#6a5acd"; ctx.globalAlpha = 0.5
+        ctx.beginPath(); ctx.arc(0, 0, R * 1.08, 0, Math.PI * 2); ctx.fill()
+        ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.fillStyle = p.color || "#241d3a"
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = "rgba(90,70,160,0.5)"
+        ctx.beginPath(); ctx.arc(-R * 0.3, -R * 0.3, R * 0.3, 0, Math.PI * 2); ctx.fill()
       }
       ctx.restore()
       return

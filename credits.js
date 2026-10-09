@@ -42,10 +42,10 @@ export const SOURCED_ART = {
   // resolution). Attribution MANDATORY per those terms. Border-flood-fill keyed (bright-green bg) + per-action
   // sliced (tools/gaara/slice.py) → gaara_*_uniform.png. (Shukaku's summon sheet — Altair — is added in Phase 4.)
   gaara: {
-    work:    "Gaara (Naruto Shippuden: Ninja Council 4 / \"Saikyo Ninja Daikesshu 5\")",
-    artists: ["Pakis Pride (ripper)", "DS Ripping Forum"],
-    source:  "game sprite rip (DS/DSi \"Naruto Shippuden: Ninja Council 4\" / \"Naruto: Saikyo Ninja Daikesshu 5\"; in-sheet credit box \"By: Pakis Pride — Give Credit if Used\")",
-    files:   ["gaara_*_uniform.png", "DS _ DSi - Naruto Shippuden_ Ninja Council 4 - Playable Characters - Gaara.png"]
+    work:    "Gaara (Naruto Shippuden: Ninja Council 4 / \"Saikyo Ninja Daikesshu 5\") + Shukaku (One-Tail)",
+    artists: ["Pakis Pride (ripper)", "DS Ripping Forum", "Altair (Shukaku sheet)"],
+    source:  "Gaara: game sprite rip (DS/DSi \"Naruto Shippuden: Ninja Council 4\" / \"Naruto: Saikyo Ninja Daikesshu 5\"; in-sheet credit box \"By: Pakis Pride — Give Credit if Used\"). Shukaku: fan boss sprite sheet by Altair (AltairFrameMaker).",
+    files:   ["gaara_*_uniform.png", "DS _ DSi - Naruto Shippuden_ Ninja Council 4 - Playable Characters - Gaara.png", "shukaku_boss_sprite_sheet_altair_by_altairframemaker_de211mq.png"]
   },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.

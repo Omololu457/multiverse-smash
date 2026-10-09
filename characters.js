@@ -7052,7 +7052,7 @@ const gaara = {
     sandDome:     { cost: 24, effect: "Back + Special: Sand Dome — the sand closes into a brief all-direction guard around Gaara (i-frames + radial shove, cooldown)." },
     sandShunshin: { cost: 18, effect: "Up + Special: Sand Shunshin — a short sand-flicker dodge-teleport (retreat) with i-frames." }
   },
-  ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — a 砂瀑大葬 kanji cut-in, then Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Guaranteed ~197 dmg (25% on block)." },
+  ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — a 砂瀑大葬 kanji cut-in, then Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Guaranteed ~197 dmg (25% on block). DOWN + Ultimate (One-Tail gauge full) instead SUMMONS Shukaku." },
   hasSprites: true,
   // Idle content ≈65px × 1.5 ≈ 98px on-screen — alongside Sakura (106) / Boruto (108). REQUIRES the skins.js
   // gaara default entry or getSkins() clobbers this to 1.

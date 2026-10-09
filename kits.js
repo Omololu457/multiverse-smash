@@ -332,7 +332,7 @@ export const KITS = {
       { name: "Sand Shunshin", input: "Up + Special",      cost: 18, desc: "short sand-flicker dodge-teleport (retreat) with i-frames [CANON-ADJACENT]" },
       { name: "Sand Bullet",   input: "Down + Special",    cost: 14, desc: "flings a compressed sand ball — a basic zoning projectile; ground / air / crouch pose [CANON-ADJACENT]" }
     ],
-    passiveNote: "One-Tail Gauge (Phase 4): fills as Gaara takes damage and his sand moves hit. When full, Down+Ultimate summons Shukaku; while Shukaku is out, Gaara's specials re-route to Sand Volley / Shukaku Swipe / Sand Shuriken / Pyramid Seal, and its Ultimate is the Tailed Beast Ball.",
+    passiveNote: "ONE-TAIL GAUGE (bar above Gaara): fills as he takes damage and his sand moves hit. When FULL, DOWN + ULTIMATE summons SHUKAKU — a giant One-Tail ally that rises behind Gaara while he CHANNELS (locked in place, still hittable). While Shukaku is out, Gaara's specials RE-ROUTE: Special = Sand Volley (6 sand balls) · Fwd+Special = Shukaku Swipe (giant arm, launches) · Back+Special = Sand Shuriken (4 shuriken) · Down+Special = Pyramid Seal (bind → damage); and ULTIMATE = Tailed Beast Ball (huge, ENDS the summon). Shukaku ends on 3 clean hits on Gaara, the ~12s timer, or pressing Block — always playing its LOSE collapse.",
     ultimate: { name: "Sabaku Taisou", input: "Ultimate (full meter)", cost: 100, desc: "Giant Sand Burial — a 砂瀑大葬 kanji cut-in, then sand ripples → giant hands → engulfing dome collapses on the foe, then a kneeling ground burst. Guaranteed ~197 dmg, 25% on block [CANON]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "sand-spike launcher into aerial pressure" }

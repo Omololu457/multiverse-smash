@@ -6956,11 +6956,11 @@ const hinata = {
   // Canon labels: Sixty-Four Palms / Mountain Crusher / Protective Eight Trigrams = CANON (Hinata's Jūken
   // techniques); Rotation sphere + Byakugan-as-buff = CANON-ADJACENT (canon moves, re-cast as a toggle/guard).
   specials: {
-    gentleFist64:  { cost: 30, effect: "Special: Juukenhou Hakke Rokujuuyon Shou (Eight Trigrams Sixty-Four Palms) — a precise Gentle-Fist palm rush. [Phase 2]" },
-    hakkeHasangeki:{ cost: 28, effect: "Fwd + Special: Hakke Hasangeki (Eight Trigrams Mountain Crusher) — an advancing double-palm thrust. [Phase 2]" },
-    shugoHakke:    { cost: 26, effect: "Back + Special: Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams Sixty-Four Palms) — a defensive palm guard. [Phase 2]" },
-    hakkeshoGuuten:{ cost: 24, effect: "Up + Special: Hakkesho Guuten — a rotating chakra sphere that deflects projectiles (defensive). [Phase 2]" },
-    byakugan:      { cost: 18, effect: "Down + Special: Byakugan — a short precision/awareness buff window. [Phase 2]" }
+    gentleFist64:  { cost: 30, effect: "Special: Juukenhou Hakke Rokujuuyon Shou (Eight Trigrams Sixty-Four Palms) — advancing 8-hit Gentle-Fist palm rush that SEALS chakra (drains the foe's meter); green trigram-field FX." },
+    hakkeHasangeki:{ cost: 28, effect: "Fwd + Special: Hakke Hasangeki (Eight Trigrams Mountain Crusher) — advancing double-palm thrust, big knockback + chakra seal." },
+    shugoHakke:    { cost: 26, effect: "Back + Special: Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams Sixty-Four Palms) — defensive palm guard: i-frames + a radial counter that knocks the foe away." },
+    hakkeshoGuuten:{ cost: 24, effect: "Up + Special: Hakkesho Guuten — spin into a rotating chakra sphere that DEFLECTS incoming projectiles + a radial push (i-frames, ghost afterimages)." },
+    byakugan:      { cost: 18, effect: "Down + Special: Byakugan — a ~5s buff window: +18% special damage and chakra regen; pulse-ring FX." }
   },
   ultimate: { name: "Juuhou Soshiken", cost: 100, description: "Gentle Step Twin Lion Fists — Hinata shapes her chakra into two lion-head fists and delivers a devastating Gentle-Fist barrage. [Phase 3]" },
   hasSprites: true,
@@ -6987,7 +6987,13 @@ const hinata = {
     heavy:    { frames: 8, width: 73, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_heavy_uniform.png" },      // Strong Attack — committed chakra palm
     up:       { frames: 7, width: 81, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_up_uniform.png" },         // Strong (Up) — rising chakra-arc LAUNCHER
     air:      { frames: 7, width: 66, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_air_uniform.png" },        // Attack Combo (Air) — aerial palm
-    down_air: { frames: 5, width: 77, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_down_air_uniform.png" }    // Strong (Down) — slam spike
+    down_air: { frames: 5, width: 77, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_down_air_uniform.png" },   // Strong (Down) — slam spike
+    // ── SPECIAL CAST POSES (Phase 2; currentMove/_spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
+    hhByakugan:   { frames: 4, width: 88, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_byakugan_uniform.png" },   // D — Byakugan activation
+    hhShugo:      { frames: 6, width: 71, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_shugo_uniform.png" },      // B — Shugo Hakke (protective rotation)
+    hhHasangeki:  { frames: 4, width: 77, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hasangeki_uniform.png" },  // F — Hakke Hasangeki (double palm)
+    hhGentleFist: { frames: 9, width: 93, height: 51, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_gf_rush_uniform.png" },    // N — Sixty-Four Palms rush
+    hhHakkesho:   { frames: 8, width: 71, height: 75, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hakkesho_uniform.png" }     // U — Hakkesho Guuten (rotation)
   }
 }
 

@@ -325,6 +325,11 @@ const MOVE_TO_ACTION = {
   sakuraShannaro: "sakuraShannaro", sakuraHeavenKick: "sakuraHeavenKick", sakuraStrike: "sakuraStrike",
   sakuraByakugou: "sakuraByakugou", sakuraThrow: "sakuraThrow", sakuraDaichi: "sakuraDaichi",
 
+  // Hinata Hyuga (Phase 2): Gentle-Fist special cast poses (_spriteCastMove / currentMove). Identity maps
+  // so a cast/strike recovery tail resolves to the real sheet, never the 128² fallback box.
+  hhByakugan: "hhByakugan", hhShugo: "hhShugo", hhHasangeki: "hhHasangeki",
+  hhGentleFist: "hhGentleFist", hhHakkesho: "hhHakkesho",
+
   // Sasuke (Sensei): Raiton cast poses (currentMove / _spriteCastMove). Identity maps so a cast/strike
   // recovery tail resolves to the real sheet, never the 128² fallback box. (Mangekyou/Rinnegan poses added in Phases 2-3.)
   ssChidori: "ssChidori", ssChidoriAir: "ssChidoriAir", ssChidoriEisou: "ssChidoriEisou",

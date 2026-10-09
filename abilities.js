@@ -4722,6 +4722,144 @@ const JIRAIYA_HERMIT_DURATION = 1200                 // ~20s @60fps (timer-based
 const JIRAIYA_HERMIT_MULT = { dmg: 1.18, spd: 1.10, def: 1.12 }   // modest buffs
 const JIRAIYA_HERMIT_CINE = { key: "jiraiyaHermit", holdPose: "jiraiyaHermitTransform", auraInner: "rgba(255,230,120,A)", auraMid: "rgba(230,150,30,A)", flash: "#fff0b0", backdrop: "#1a1205" }
 function jiraiyaIsHermit(f) { return !!(f && f._jiraiyaHermit) }
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// HINATA HYUGA (rosterKey "hinata") — PHASE 2: Gentle-Fist specials + Byakugan + FX.
+// Directional kit (reads _specialHeldDir, like Sasuke-Sensei): N=Sixty-Four Palms (multi-hit palm rush
+// + chakra drain, trigram-field FX) / F=Hakke Hasangeki (advancing double-palm, big knockback) /
+// B=Shugo Hakke Rokujuuyonshou (defensive palm guard — i-frames + radial counter) / U=Hakkesho Guuten
+// (rotating chakra sphere — DEFLECTS projectiles + radial push, ghost afterimages + cyan-sphere FX) /
+// D=Byakugan (short buff: +18% special dmg + chakra regen, pulse-ring FX). Cast poses play the sliced
+// special sheets (sprite.js identity maps). FX are rendered in game.js (drawHinataFx). Gentle-Fist chakra
+// DRAIN on her palm specials is applied HERE (abilities.js hit path) — no combat.js edit. ULT=Juuhou
+// Soshiken is Phase 3 (no ultimate dispatch case yet → safe no-op).
+function hhIsHinata(f) { return !!f && (f.rosterKey || "").toLowerCase() === "hinata" }
+function _hhDmg(fighter, raw) { return (fighter?._hhByakugan > 0) ? Math.round(raw * 1.18) : raw }   // Byakugan dmg buff
+function _hhDrain(fighter, opp, amt) {   // Gentle Fist seals tenketsu: drain the foe's chakra (no combat.js hook needed)
+  if (!opp || !amt) return
+  if (opp.maxEnergy) opp.energy = Math.max(0, (opp.energy || 0) - amt)
+}
+function _hhBeat(fighter, context, dmgRaw, opts = {}) {
+  const { knockback = false, drain = 0, hitstun = 18, reach = 128, vy = 0 } = opts
+  const opp = getTargetResolver(context)(fighter)
+  if (!opp || opp.eliminated) return
+  const ocx = opp.x + (opp.w || 0) / 2, fcx = fighter.x + (fighter.w || 0) / 2
+  if (Math.abs(ocx - fcx) > reach) return              // proximity-gated (a real rush, not guaranteed)
+  if ((opp.invulnTimer || 0) > 0) return
+  const dir = (opp.x >= fighter.x ? 1 : -1)
+  const dmg = _hhDmg(fighter, dmgRaw)
+  if (opp.isBlocking) { opp.blockstun = 12; applyScaledDamage(opp, Math.floor(dmg * 0.25), { source: "ability" }); return }
+  opp.hitstun = hitstun; opp.colorFlash = 10
+  if (knockback) { opp.vx = dir * 9; opp.vy = vy || -6 }
+  applyScaledDamage(opp, dmg, { source: "ability" })
+  if (drain) _hhDrain(fighter, opp, drain)
+}
+const HH_HASANGEKI = { damage: 62, startup: 8, active: 5, recovery: 20, hitstun: 24, knockbackX: 11, knockbackY: -2, rangeX: 110, rangeY: 54, cost: 28, advance: 7, category: "heavy" }
+// N — Juukenhou Hakke Rokujuuyon Shou (Eight Trigrams Sixty-Four Palms) [CANON]. Advancing palm rush:
+// 8 escalating Gentle-Fist strikes (each drains chakra), finishing with a knockback palm. Trigram-field FX.
+function hhSixtyFourPalms(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  const face = fighter.facing || 1
+  fighter.attackCooldown = getAttackDuration(46, fighter)
+  fighter._spriteCastMove = "hhGentleFist"; fighter._spriteCastTimer = 44
+  fighter._hhTrigramFx = 40           // green 8-trigram battlefield (render flag)
+  fighter.vx = face * 6
+  for (let i = 0; i < 8; i++) {
+    schedulePendingSpawn(6 + i * 4, () => {
+      if (fighter.eliminated) return
+      if (i < 7) { fighter.vx = (fighter.facing || 1) * 4; _hhBeat(fighter, context, 14, { drain: 3, hitstun: 12, reach: 120 }) }
+      else       { _hhBeat(fighter, context, 30, { knockback: true, drain: 4, hitstun: 24, reach: 130 }) }   // 64th palm
+    })
+  }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// F — Hakke Hasangeki (Eight Trigrams Mountain Crusher) [CANON]. Single advancing double-palm, big knockback + drain.
+function hhHasangeki(fighter, context) {
+  const md = HH_HASANGEKI
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "hhHasangeki", { ...md, damage: _hhDmg(fighter, md.damage) }, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.category = "heavy"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter.vx = (fighter.facing || 1) * md.advance
+  schedulePendingSpawn(md.startup + 1, () => _hhDrain(fighter, getTargetResolver(context)(fighter), 8))   // seal chakra on the thrust
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+// B — Shugo Hakke Rokujuuyonshou (Protective Eight Trigrams 64 Palms) [CANON]. Defensive rotating palm guard:
+// i-frames + a radial counter that knocks a nearby foe away.
+function hhShugoHakke(fighter, context) {
+  if (!spendEnergy(fighter, 26)) return false
+  fighter.attackCooldown = getAttackDuration(40, fighter)
+  fighter._spriteCastMove = "hhShugo"; fighter._spriteCastTimer = 38
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 30)   // protective dome
+  fighter._hhShugoFx = 36
+  schedulePendingSpawn(10, () => _hhBeat(fighter, context, 28, { knockback: true, hitstun: 20, reach: 110, vy: -5 }))
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// U — Hakkesho Guuten (Rotation sphere) [CANON-ADJACENT]. Spin into a chakra sphere: a window that DEFLECTS
+// enemy projectiles (applyHinataGuutenToProjectiles) + one radial push, with translucent ghost afterimages.
+function hhHakkeshoGuuten(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  fighter.attackCooldown = getAttackDuration(42, fighter)
+  fighter._spriteCastMove = "hhHakkesho"; fighter._spriteCastTimer = 40
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)
+  fighter._hhGuuten = 34        // projectile-deflect window (ticked in updateHinata / applyHinataGuutenToProjectiles)
+  fighter._hhSphereFx = 40      // cyan rotation-sphere render flag
+  fighter._hhGhostFx = 40       // translucent ghost afterimages
+  schedulePendingSpawn(8, () => _hhBeat(fighter, context, 24, { knockback: true, hitstun: 18, reach: 118, vy: -7 }))   // radial push
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+// D — Byakugan [CANON-ADJACENT]. Short buff window: +18% special damage + faster chakra regen. Pulse-ring FX.
+function hhByakugan(fighter, context) {
+  if (!spendEnergy(fighter, 18)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "hhByakugan"; fighter._spriteCastTimer = 24
+  fighter._hhByakugan = 300     // ~5s buff window (ticked in updateHinata)
+  fighter._hhPulseFx = 30       // pulse-ring render flag
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+function executeHinataSpecial(fighter, context) {
+  if (!hhIsHinata(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return hhHasangeki(fighter, context)       // Fwd  = Mountain Crusher
+  if (dir === "B") return hhShugoHakke(fighter, context)      // Back = Protective 64 Palms (guard)
+  if (dir === "U") return hhHakkeshoGuuten(fighter, context)  // Up   = Rotation sphere (deflect)
+  if (dir === "D") return hhByakugan(fighter, context)        // Down = Byakugan (buff)
+  return hhSixtyFourPalms(fighter, context)                   // neutral = Sixty-Four Palms (rush)
+}
+// Per-frame tick (called from game.js battle loop for p1 & p2). Decrements buff/FX timers; a pure no-op
+// for every other fighter.
+export function updateHinata(fighter) {
+  if (!hhIsHinata(fighter)) return
+  if (fighter._hhByakugan > 0) {
+    fighter._hhByakugan--
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + 0.14)   // Byakugan chakra regen (~42 over the 5s window)
+  }
+  for (const k of ["_hhTrigramFx", "_hhShugoFx", "_hhSphereFx", "_hhGhostFx", "_hhPulseFx", "_hhGuuten"]) {
+    if (fighter[k] > 0) fighter[k]--
+  }
+}
+// Hakkesho Guuten projectile deflection — during the rotation window, enemy projectiles near Hinata are
+// slowed and despawned (reuses the Gojo-Infinity projectile-sweep pattern). No-op otherwise.
+export function applyHinataGuutenToProjectiles(hinata) {
+  if (!hhIsHinata(hinata) || !(hinata._hhGuuten > 0)) return
+  const cx = hinata.x + (hinata.w || 0) / 2, cy = hinata.y + (hinata.h || 0) / 2
+  const R = 150
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (!p || p.owner === hinata) continue
+    if (Math.hypot((p.x ?? 0) - cx, (p.y ?? 0) - cy) > R) continue
+    p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6
+    if (p.radius != null) p.radius *= 0.85
+    activeProjectiles.splice(i, 1)   // spun away
+  }
+}
+
 
 function executeJiraiyaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jiraiya") return false
@@ -26116,6 +26254,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "rick":    return executeRickSpecial(fighter, context)
+    case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE

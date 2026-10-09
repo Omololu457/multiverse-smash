@@ -1,0 +1,80 @@
+{
+ "byakugan": {
+  "frames": 4,
+  "width": 88,
+  "height": 71,
+  "sheet": "./hinata_byakugan_uniform.png"
+ },
+ "shugo": {
+  "frames": 6,
+  "width": 71,
+  "height": 72,
+  "sheet": "./hinata_shugo_uniform.png"
+ },
+ "hasangeki": {
+  "frames": 4,
+  "width": 77,
+  "height": 71,
+  "sheet": "./hinata_hasangeki_uniform.png"
+ },
+ "gf_setup": {
+  "frames": 3,
+  "width": 56,
+  "height": 71,
+  "sheet": "./hinata_gf_setup_uniform.png"
+ },
+ "gf_end": {
+  "frames": 2,
+  "width": 77,
+  "height": 76,
+  "sheet": "./hinata_gf_end_uniform.png"
+ },
+ "gf_rush": {
+  "frames": 9,
+  "width": 93,
+  "height": 51,
+  "sheet": "./hinata_gf_rush_uniform.png"
+ },
+ "hakkesho": {
+  "frames": 8,
+  "width": 71,
+  "height": 75,
+  "sheet": "./hinata_hakkesho_uniform.png"
+ },
+ "hakkesho_recover": {
+  "frames": 4,
+  "width": 73,
+  "height": 77,
+  "sheet": "./hinata_hakkesho_recover_uniform.png"
+ },
+ "hakkesho_ghost": {
+  "frames": 6,
+  "width": 72,
+  "height": 76,
+  "sheet": "./hinata_hakkesho_ghost_uniform.png"
+ },
+ "fx_pulse": {
+  "frames": 4,
+  "width": 52,
+  "height": 61,
+  "sheet": "./hinata_fx_pulse_uniform.png"
+ },
+ "fx_trigram": {
+  "frames": 1,
+  "width": 195,
+  "height": 84,
+  "sheet": "./hinata_fx_trigram_uniform.png"
+ },
+ "fx_sphere": {
+  "frames": 4,
+  "width": 132,
+  "height": 117,
+  "sheet": "./hinata_fx_sphere_uniform.png"
+ },
+ "fx_arrow": {
+  "frames": 1,
+  "width": 141,
+  "height": 31,
+  "sheet": "./hinata_fx_arrow_uniform.png"
+ }
+}

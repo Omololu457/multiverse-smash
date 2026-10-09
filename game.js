@@ -262,7 +262,8 @@ import {
   fireCloneOneShotStrike,      // one-shot clone (h): a clone appears in front, strikes once (launcher), vanishes
   fireCloneOneShotProjectile,  // one-shot clone (h+Fwd): a clone-shaped projectile flies forward, hits, vanishes
   fireCloneSubstitution,       // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
-  spawnGuaranteedCloneHit      // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
+  spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
+  updateHinata, applyHinataGuutenToProjectiles   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 // Naruto-ONLY authored clone choreography (replaces his persistent + one-shot clone systems).
@@ -12422,6 +12423,56 @@ function drawByakuyaSpecialFx(c, fighter) {
       c.translate(bodyCX + face * w * 0.5, feetY - h * 0.42)
       c.scale(face, 1)
       c.drawImage(img, fi * fw, 0, fw, fh, -dw * 0.15, -dh / 2, dw, dh)
+
+// ── HINATA HYUGA (Phase 2) — Gentle-Fist FX overlays (sliced sheets, blit with additive glow). Driven by
+// the per-cast timers set in abilities.js (_hhTrigramFx / _hhPulseFx / _hhSphereFx / _hhShugoFx). Gated on
+// rosterKey → a pure no-op for every other fighter. The chakra-palm FX on the normals/casts are baked into
+// the sprites; THESE are the standalone technique FX the sheet carries on separate rows.
+const _hinataFxImgs = {}
+function _hinataFxImg(src) {
+  if (!_hinataFxImgs[src]) { const i = new Image(); i.src = src; _hinataFxImgs[src] = i }
+  return _hinataFxImgs[src]
+}
+function _hinataBlitFx(c, img, frames, fi, cx, cy, sc, alpha, additive = true) {
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight
+  const dw = fw * sc, dh = fh * sc
+  c.save()
+  if (additive) c.globalCompositeOperation = "lighter"
+  c.globalAlpha = alpha
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh)
+  c.restore()
+}
+function drawHinataFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "hinata") return
+  const sc = (fighter.spriteScale || 1.5)
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const cx = fighter.x + w / 2, bodyCY = fighter.y + h * 0.5, feetY = fighter.y + h
+  // (N) Sixty-Four Palms — green 8-trigram battlefield at her feet (expands then fades).
+  const tg = fighter._hhTrigramFx || 0
+  if (tg > 0) {
+    const t = 1 - tg / 40
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_trigram_uniform.png"), 1, 0, cx, feetY - h * 0.12, sc * (0.7 + t * 0.6), Math.min(0.8, tg / 20))
+  }
+  // (U) Hakkesho Guuten — rotating cyan sphere enveloping her + translucent ghost afterimage.
+  const sp = fighter._hhSphereFx || 0
+  if (sp > 0) {
+    const fi = Math.floor((40 - sp) / 2) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_sphere_uniform.png"), 4, fi, cx, bodyCY, sc * 1.35, Math.min(0.85, sp / 24))
+  }
+  // (D) Byakugan — expanding pulse rings on activation.
+  const pu = fighter._hhPulseFx || 0
+  if (pu > 0) {
+    const fi = Math.floor((30 - pu) / 2) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * (0.8 + (30 - pu) / 30 * 0.8), Math.min(0.9, pu / 18))
+  }
+  // (B) Shugo Hakke — faint protective dome ring (reuse the pulse ring, tinted, slower).
+  const sh = fighter._hhShugoFx || 0
+  if (sh > 0) {
+    const fi = Math.floor((36 - sh) / 3) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * 1.5, Math.min(0.5, sh / 30))
+  }
+}
       c.restore()
     }
   }
@@ -14234,6 +14285,8 @@ function updateBattle() {
       const seqKey = f._pendingChoreoDirect; f._pendingChoreoDirect = null
       const rk = (f.rosterKey || "").toLowerCase()
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
+  updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
+  applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
     }
   }
   updateCloneFormations(getStageWorldWidth())

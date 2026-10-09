@@ -290,8 +290,8 @@ export const KITS = {
 
   hinata: {
     type: "Gentle-Fist Technician", energy: "Chakra", difficulty: "Medium",
-    summary: "The Byakugan princess of the Hyūga — a precise, agile Gentle-Fist (Jūken) fighter who seals chakra points with pinpoint palm strikes. PHASE 1 ships her normals, movement, intro and win; the Gentle-Fist specials + Byakugan land in Phase 2 and the Twin Lion Fists ultimate in Phase 3.",
-    passive: { name: "Byakugan", effect: "The Hyūga dōjutsu — Hinata's Gentle Fist strikes seal tenketsu with pinpoint precision. (Byakugan activation + Gentle-Fist techniques land in Phase 2.)" },
+    summary: "The Byakugan princess of the Hyūga — a precise, agile Gentle-Fist (Jūken) fighter who seals chakra points with pinpoint palm strikes. Her directional specials are the Eight Trigrams techniques (Sixty-Four Palms rush, Mountain Crusher, Protective guard, Rotation sphere) plus a Byakugan buff. The Twin Lion Fists ultimate lands in Phase 3.",
+    passive: { name: "Byakugan + Gentle Fist", effect: "The Hyūga dōjutsu lets Hinata seal tenketsu — her Sixty-Four Palms / Mountain Crusher palm hits DRAIN the foe's chakra. Down+Special activates the Byakugan buff (+special damage + chakra regen)." },
     basics: [
       { name: "Palm Jab String", input: "Light",                   desc: "fast close-range Gentle-Fist palm combo" },
       { name: "Chakra Palm",     input: "Heavy",                   desc: "committed chakra palm strike with knockback" },
@@ -300,12 +300,13 @@ export const KITS = {
       { name: "Slam Spike",      input: "Down-Air (jump + Heavy)", desc: "downward aerial slam" }
     ],
     specials: [
-      { name: "Sixty-Four Palms",      input: "Special",          cost: 30, desc: "Juukenhou Hakke Rokujuuyon Shou — a precise Gentle-Fist palm rush [CANON] — [wired in Phase 2]" },
-      { name: "Mountain Crusher",      input: "Forward + Special", cost: 28, desc: "Hakke Hasangeki — advancing double-palm thrust [CANON] — [Phase 2]" },
-      { name: "Protective 64 Palms",   input: "Back + Special",    cost: 26, desc: "Shugo Hakke Rokujuuyonshou — defensive palm guard [CANON] — [Phase 2]" },
-      { name: "Rotation Sphere",       input: "Up + Special",      cost: 24, desc: "Hakkesho Guuten — rotating chakra sphere, deflects projectiles [CANON-ADJACENT] — [Phase 2]" },
-      { name: "Byakugan",              input: "Down + Special",    cost: 18, desc: "short precision/awareness buff window [CANON-ADJACENT] — [Phase 2]" }
+      { name: "Sixty-Four Palms",      input: "Special",          cost: 30, desc: "Juukenhou Hakke Rokujuuyon Shou — advancing 8-hit palm rush that SEALS chakra (drains foe's meter); trigram-field FX [CANON]" },
+      { name: "Mountain Crusher",      input: "Forward + Special", cost: 28, desc: "Hakke Hasangeki — advancing double-palm thrust, big knockback + chakra seal [CANON]" },
+      { name: "Protective 64 Palms",   input: "Back + Special",    cost: 26, desc: "Shugo Hakke Rokujuuyonshou — defensive palm guard: i-frames + radial counter [CANON]" },
+      { name: "Rotation Sphere",       input: "Up + Special",      cost: 24, desc: "Hakkesho Guuten — rotating chakra sphere, deflects projectiles + radial push [CANON-ADJACENT]" },
+      { name: "Byakugan",              input: "Down + Special",    cost: 18, desc: "~5s buff: +18% special damage + chakra regen; pulse-ring FX [CANON-ADJACENT]" }
     ],
+    passiveNote: "Gentle Fist drain: her Sixty-Four Palms / Mountain Crusher palm hits also seal the foe's chakra (drain their meter).",
     ultimate: { name: "Juuhou Soshiken", input: "Ultimate (full meter)", cost: 100, desc: "Gentle Step Twin Lion Fists — twin lion-head chakra fists deliver a Gentle-Fist barrage [CANON] — [wired in Phase 3]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-palm launcher into aerial pressure" }

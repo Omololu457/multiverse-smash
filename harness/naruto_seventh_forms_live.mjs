@@ -29,7 +29,7 @@ async function settle(){await page.evaluate(()=>{window.__harness.healP1();windo
 async function prep(gap=80){await settle();const a=await page.evaluate(()=>window.__harness.p1());await page.evaluate(x=>window.__harness.setP2X(x),a.x+(a.facing>=0?gap:-gap));await wf(2);return a;}
 async function hold(){await page.keyboard.down(K.charge);await wf(16);await page.keyboard.up(K.charge);await wf(10);}
 async function exitForm(){await page.keyboard.down(K.charge);await wf(3);await page.keyboard.up(K.charge);await wf(8);}
-async function toForm(pts){await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await page.evaluate(p=>window.__harness.setN7Bond(p),pts); await prep(80); if((await n7()).n7form!=="base") await exitForm(); await page.evaluate(p=>window.__harness.setN7Bond(p),pts); await hold(); await wf(6); }
+async function toForm(pts){const form=pts>=80?"kcm":pts>=60?"fourtails":pts>=30?"red":"base"; await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await prep(80); await page.evaluate(f=>window.__harness.setN7Form(f),form); await wf(6); }
 
 // ── 1. BOND 1 → RED CHAKRA SHROUD ──
 await toForm(30);

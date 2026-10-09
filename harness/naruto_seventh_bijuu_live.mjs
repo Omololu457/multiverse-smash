@@ -27,11 +27,8 @@ const a0=await page.evaluate(()=>window.__harness.p1()); FWD=a0.facing>=0?"d":"a
 async function settle(){await page.evaluate(()=>{window.__harness.healP1();window.__harness.healP2();window.__harness.clearProjectiles();window.__harness.clearSummons();window.__harness.resetFighterInput("p1");window.__harness.resetFighterInput("p2");window.__harness.fillEnergy();});await wf(3);}
 async function prep(gap=240){await settle();const a=await page.evaluate(()=>window.__harness.p1());await page.evaluate(x=>window.__harness.setP2X(x),a.x+(a.facing>=0?gap:-gap));await wf(2);return a;}
 async function enterKCM(gap=240){
-  await page.evaluate(()=>{window.__harness.setN7Oiroke(false);window.__harness.setN7Bond(100);window.__harness.setN7RikudouUsed(false);}); await settle();
-  if((await n7()).kcm){await page.keyboard.down(K.charge);await wf(3);await page.keyboard.up(K.charge);await wf(6);}
-  await prep(gap);
-  for(let t=0;t<2&&!(await n7()).kcm;t++){await page.keyboard.down(K.charge);await wf(16);await page.keyboard.up(K.charge);await wf(8);}
-  await wf(10);
+  await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await prep(gap);
+  await page.evaluate(()=>{window.__harness.setN7Form("kcm");window.__harness.setN7Bond(100);window.__harness.setN7RikudouUsed(false);}); await wf(8);
 }
 const byName=(ps,n)=>ps.filter(p=>p.name===n);
 

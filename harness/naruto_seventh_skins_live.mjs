@@ -45,9 +45,8 @@ log.push(["green-skin-applies", applied==="n7Green"]);
 log.push(["green-recolors-vest", cg.orange < cd.orange*0.6 && cg.green > cd.green]);   // orange vest → green
 
 // ── 3. KCM overrides to GOLDEN (base-only recolor — KCM not green) ──
-await page.evaluate(()=>{window.__harness.setN7Oiroke(false);window.__harness.setN7Bond(80);}); await settle();
-for(let t=0;t<2&&!(await n7()).kcm;t++){await page.keyboard.down(K.charge);await wf(16);await page.keyboard.up(K.charge);await wf(8);}
-await wf(10);
+await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await settle();
+await page.evaluate(()=>window.__harness.setN7Form("kcm")); await wf(8);   // force KCM (ladder-agnostic) — golden must override the green recolor
 const ck=await colors(); console.log("  KCM(on green skin) colors:",JSON.stringify(ck),"kcm",(await n7()).kcm);
 await shot("49_skin_green_kcm.png");
 log.push(["kcm-overrides-to-golden", ck.golden>200 && (await n7()).kcm===true]);

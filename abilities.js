@@ -4378,8 +4378,7 @@ function n7ThrowWeapon(fighter, context, air) {
 
 // ULTIMATE dispatcher. BASE = Kuchiyose: Gamabunta. KCM = BIGGER Bijuudama (neutral) / Rikudou (Down, PHASE 4).
 function executeNarutoSeventhUltimate(fighter, context) {
-  if (!isN7Char(fighter)) return false
-  if (!fighter._n7KCMActive) return false                          // the ULTIMATE is KCM-ONLY — Gamabunta is now a Down+Special
+  if (!isN7Char(fighter)) return false                             // fires with chakra in ANY state (no longer KCM-gated)
   const v = fighter._ultVariant || ""
   if (v === "rikudou"   && n7Rikudou(fighter, context))      return true   // Fwd+Ult  = Rikudou apex (Bond 4, once/round)
   if (v === "foxSummon" && n7KuramaSummon(fighter, context)) return true   // Down+Ult = summon the GIANT nine-tails (Kurama) + fire a Tailed Beast Bomb
@@ -4554,15 +4553,17 @@ export function revertN7FourTails(fighter) {
   fighter._skinAnim = fighter._baseSkinAnim || null                    // → skin / base body
   fighter.currentForm = "base"; fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
 }
-// hold Charge: enter the HIGHEST nine-tails form your Bond allows (Bond 3 KCM / 2 Four-Tails / 1 Red Shroud).
+// DBZ-style LADDER: hold Charge STEPS UP one form at a time (base → Red → Four-Tails → KCM), each gated by
+// your Kurama Bond level. (Holding Charge also CHARGES the Bond meter — see applyNarutoSeventhSystem — so you
+// can charge up to unlock the next form, then hold again to transform into it.)
 export function enterNarutoSeventhForm(fighter, context = {}) {
-  if (!isN7Char(fighter) || (fighter._n7Form && fighter._n7Form !== "base")) return false
+  if (!isN7Char(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
-  const bond = fighter._n7Bond || 0
-  if (bond >= 3) return enterNarutoSeventhKCM(fighter, context)
-  if (bond >= 2) return enterN7FourTails(fighter, context)
-  if (bond >= 1) return enterN7Red(fighter, context)
-  return false
+  const cur = fighter._n7Form || "base", bond = fighter._n7Bond || 0
+  if (cur === "base")           { if (bond >= 1) return enterN7Red(fighter, context) }
+  else if (cur === "red")       { if (bond >= 2) { revertN7Red(fighter); return enterN7FourTails(fighter, context) } }
+  else if (cur === "fourtails") { if (bond >= 3) { revertN7FourTails(fighter); return enterNarutoSeventhKCM(fighter, context) } }
+  return false   // already at KCM (top), or Bond too low to step up
 }
 export function revertNarutoSeventhForm(fighter) {
   if (!fighter) return
@@ -4661,7 +4662,7 @@ function n7KuramaSummon(fighter, context) {
   const face = fighter.facing || 1
   const groundY = fighter.y + (fighter.h || 100)
   const stageW = getWorldWidth(context) || 3200
-  const headOnscreen = Math.min(111 * 5.2, 580)                 // the GIANT fox head (tailed-beast looming)
+  const headOnscreen = Math.min(111 * 4.0, 444)                 // the GIANT fox head (tailed-beast looming; framed on-screen)
   schedulePendingSpawn(12, () => {                              // Kurama rises — huge head, mouth toward the foe
     spawnProjectile(fighter, "n7KuramaGiant", {
       sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
@@ -4694,7 +4695,7 @@ function n7KuramaSummon(fighter, context) {
 // anims). ENDS IN BASE (drops KCM) and RESETS the Bond meter. [CANON-ADJACENT]
 function n7Rikudou(fighter, context) {
   if (!isN7Char(fighter)) return false
-  if (!fighter._n7KCMActive || (fighter._n7Bond || 0) < 4) return false   // needs KCM + BOND 4
+  if ((fighter._n7Bond || 0) < 4) return false                            // needs BOND 4 (any form)
   if (fighter._n7RikudouUsed) return false                                 // once per round
   if (!spendEnergy(fighter, 80)) return false
   fighter._n7RikudouUsed = true
@@ -4723,7 +4724,7 @@ function n7Rikudou(fighter, context) {
   }))
   // ENDS IN BASE + RESETS the Bond meter (the apex is spent)
   schedulePendingSpawn(DUR + 2, () => {
-    revertNarutoSeventhKCM(fighter)
+    revertNarutoSeventhForm(fighter)
     fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
   })
   return true
@@ -4739,6 +4740,7 @@ function n7Rikudou(fighter, context) {
 // No gameRng — pure frame counters + HP deltas. Numbers (reported in the build log):
 const N7_BOND = {
   HIT_FILL:   7,      // pts per melee hit LANDED (_cmdHitLanded rising edge)
+  CHARGE_FILL: 0.7,   // pts/frame while HOLDING Charge (DBZ-style charge-up → ~0.6s per Bond level)
   DMG_FILL:   0.18,   // pts per 1 HP of damage TAKEN
   IDLE_GAP:   120,    // frames with no fill before decay starts (~2s)
   DECAY:      0.10,   // pts/frame decay once idle
@@ -4849,6 +4851,8 @@ export function applyNarutoSeventhSystem(fighter) {
   const lost = prevHP - (fighter.health || 0)
   if (lost > 0) { pts += lost * N7_BOND.DMG_FILL; filled = true }
   fighter._n7PrevHealth = fighter.health
+  // CHARGE UP (DBZ-style): holding Charge builds the Kurama Bond so you can charge up to the next form.
+  if (fighter.isCharging) { pts += N7_BOND.CHARGE_FILL; filled = true }
   // idle decay
   if (filled) fighter._n7BondIdle = 0
   else { fighter._n7BondIdle = (fighter._n7BondIdle || 0) + 1; if (fighter._n7BondIdle > N7_BOND.IDLE_GAP) pts -= N7_BOND.DECAY }

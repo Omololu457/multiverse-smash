@@ -29,11 +29,8 @@ console.log("  booted",a0.key);
 async function settle(){await page.evaluate(()=>{window.__harness.healP1();window.__harness.healP2();window.__harness.clearProjectiles();window.__harness.clearSummons();window.__harness.resetFighterInput("p1");window.__harness.resetFighterInput("p2");window.__harness.fillEnergy();});await wf(3);}
 async function prep(gap=120){await settle();const a=await page.evaluate(()=>window.__harness.p1());await page.evaluate(x=>window.__harness.setP2X(x),a.x+(a.facing>=0?gap:-gap));await wf(2);return a;}
 async function enterKCM(gap=120){
-  await page.evaluate(()=>{window.__harness.setN7Oiroke(false);window.__harness.setN7Bond(80);}); await settle();
-  if((await n7()).kcm){await page.keyboard.down(K.charge);await wf(3);await page.keyboard.up(K.charge);await wf(6);}
-  await prep(gap);
-  for(let t=0;t<2&&!(await n7()).kcm;t++){await page.keyboard.down(K.charge);await wf(16);await page.keyboard.up(K.charge);await wf(8);}
-  await wf(10);
+  await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await prep(gap);
+  await page.evaluate(()=>window.__harness.setN7Form("kcm")); await wf(8);   // force KCM (ladder-agnostic)
 }
 
 // ── 1. GAMABUNTA is now a Down+Special (ground) — fires + damages ──
@@ -46,12 +43,12 @@ console.log("  Gamabunta(Down+Sp ground): cast",gCast.cast,"E",e0,"->",g.energy,
 log.push(["gamabunta-is-down-special", gCast.cast==="n7Kuchiyose" && g.energy<e0]);
 log.push(["gamabunta-damages", (oh0-g.oppHealth)>80]);
 
-// ── 2. BASE ultimate does NOTHING (KCM-only now) ──
-await prep(150); e0=(await n7()).energy;
+// ── 2. BASE ultimate now FIRES the Bijuudama (no longer KCM-gated) ──
+await page.evaluate(()=>window.__harness.setN7Form("base")); await prep(150); e0=(await n7()).energy;
 await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await wf(10);
 let u=await n7();
-console.log("  base ultimate: cast",u.cast,"E",e0,"->",u.energy,"(should be unchanged / no Bijuudama)");
-log.push(["base-ult-is-kcm-only", u.cast!=="n7Bijuudama" && Math.abs(u.energy-e0)<5]);
+console.log("  base ultimate: cast",u.cast,"E",e0,"->",u.energy,"(fires Bijuudama from base now)");
+log.push(["base-ult-fires-bijuudama", u.cast==="n7Bijuudama" && u.energy<e0]);
 
 // ── 3. KCM ultimate = BIGGER Bijuudama ──
 await enterKCM(220); await page.evaluate(()=>window.__harness.healP2());

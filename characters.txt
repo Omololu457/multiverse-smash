@@ -205,3 +205,51 @@ SASUKE (SENSEI / Boruto-era — EYE-SET gated)
       then steer with Up / Down, and re-press to snuff it (+ refund).
   No Susanoo.
 ========================================================================
+
+
+========================================================================
+WAR-SUSANO'O — TIER 1 (sasuke_sensei + sasuke_adult ONLY; teen Sasuke excluded)
+How to actually trigger it + where to see the proof screenshots
+========================================================================
+
+★ IMPORTANT — WHY IT "DIDN'T WORK": the two Tier-1 moves are NOT on the
+  normal purple special. They are:
+
+  (1) SUSANO'O ARM GRAB   =  hold FORWARD + press GRAB (the "O" key)
+         - NOT a Special. It's the GRAB button with Forward held.
+         - Works in ANY eye-set (base form). A purple skeletal arm + claw
+           shoots forward with long reach and grabs/throws. CHEAPEST move (15 chakra).
+         - P1 keys: Forward = D (toward the foe) + Grab = O.
+
+  (2) RIBCAGE GUARD       =  UP + SPECIAL, but ONLY while the SUSANO'O eye-set is active
+         - You MUST first switch to the Susano'o eye-set:
+              press  UP + ULTIMATE  (W + U)  to cycle the eye:
+              Raiton -> Mangekyo -> Rinnegan -> SUSANO'O   (press it 3 times from the start;
+              the active eye flashes above Sasuke's head).
+         - THEN press  UP + SPECIAL  (W + L)  = the rib-ring guard shell (20 chakra).
+         - TIP: tap Special quickly — if you HOLD Up too long first you'll JUMP
+           instead (Up = jump). Hold Up and tap L almost together.
+
+  Other Susano'o-set inputs (N/F/B/D Special + the Ultimate) are RESERVED —
+  they do nothing yet (Tier 2 = torso, Tier 3 = Soldier; coming in later phases).
+
+PROOF SCREENSHOTS (open these to see it working):
+  harness/shots/SHOW_armgrab_reach.png   — the purple arm + claw reaching forward
+  harness/shots/SHOW_armgrab_catch.png   — the arm catching the opponent
+  harness/shots/SHOW_ribcage_guard.png   — the rib-cage guard shell wrapped around Sasuke
+========================================================================
+
+------------------------------------------------------------------------
+WAR-SUSANO'O — TIER 2 (torso)   [in the SUSANO'O eye-set; sensei]
+------------------------------------------------------------------------
+  First switch to the Susano'o eye-set (Up+Ultimate x3), then:
+    Torso Arrow   =  (neutral) + Special     — the bust draws its bow, fires a homing arrow (34 chakra)
+    Claw Smash    =  Forward + Special        — fast claw rake (32 chakra)
+    Blade Swing   =  Back + Special           — heavy, longest-reach blade (38 chakra)
+  The Susano'o BUST materializes + follows Sasuke for a few seconds while you use these.
+  (Up+Special is still the Tier-1 Ribcage Guard.)
+  Proof screenshots:
+    harness/shots/war2_sensei_torso_arrow.png  — bust + bow + the arrow in flight
+    harness/shots/war2_sensei_torso_blade.png  — bust swinging its blade
+    harness/shots/war2_sensei_torso_claw.png   — bust claw smash
+========================================================================

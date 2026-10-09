@@ -5299,6 +5299,11 @@ export function susanoAllowed(fighter) { return !!fighter && SUSANO_ALLOW.has((f
 const WARSUSANO = {
   ARM_GRAB_COST: 15, ARM_GRAB_REACH: 280, ARM_GRAB_STARTUP: 16, ARM_GRAB_WHIFF: 26, ARM_GRAB_THROW: 110,
   GUARD_COST: 20, GUARD_WINDOW: 40, GUARD_CD: 90, GUARD_DEFMULT: 2.85,   // damage taken ≈ ×0.35 during the window
+  // TIER 2 — torso. MID chakra: every torso cost is strictly > the Tier-1 Arm Grab (15), which stays cheapest.
+  TORSO_WINDOW: 180, TORSO_FX: 24,
+  TORSO_ARROW_COST: 34, TORSO_ARROW_DMG: 70,   // N — ranged bow shot
+  TORSO_CLAW_COST: 32,  TORSO_CLAW_DMG: 78,    // F — fast claw smash
+  TORSO_BLADE_COST: 38, TORSO_BLADE_DMG: 92,   // B — heavy blade swing (longest reach)
 }
 
 // TIER 1 — SUSANOO ARM GRAB (CANON): a partial ribcage forms + a skeletal arm (upper→fore→claw, assembled
@@ -5352,6 +5357,9 @@ export function updateSasukeWarSusano(fighter) {
     fighter._warGuard--
     if (fighter._warGuard <= 0) { fighter.defenseMultiplier = (fighter._warGuardDefPrev != null) ? fighter._warGuardDefPrev : 1; fighter._warGuardDefPrev = null }
   }
+  // TIER 2 — torso window + the per-attack bust-FX timer
+  if ((fighter._warTorso || 0) > 0) { fighter._warTorso--; if (fighter._warTorso <= 0) { fighter._warTorso = 0; fighter._warTorsoFx = null } }
+  if (fighter._warTorsoFx) { fighter._warTorsoFx.t++; if (fighter._warTorsoFx.t >= fighter._warTorsoFx.max) fighter._warTorsoFx = null }
 }
 
 // Forward+Grab → Susanoo Arm Grab (base form, any eye-set). Allowlist-gated; mirrors updateSasukeCommandCombat.
@@ -5370,12 +5378,48 @@ export function updateSasukeWarSusanoCombat(fighter, inputState, context) {
   return fireSasukeWarArmGrab(fighter, context)
 }
 
-// SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo"). Phase 1: U = Ribcage Guard.
-// N/F/B = Tier-2 torso (phase 2, reserved — no-op, no meter). D = free. Arm Grab is Forward+Grab (base, above).
+// TIER 2 — SUSANOO TORSO. The helmet bust materializes around Sasuke for a short window (the first torso
+// special summons it; it then FOLLOWS him while active — code-drawn overlay in game.js drawSasukeWarTorso,
+// playing the matching attack frames). N = Torso Arrow (bow), F = Claw Smash, B = Blade Swing. MID chakra.
+// Melee via the shared createAttackFromMove pipeline; the arrow via spawnProjectile. combat.js UNTOUCHED.
+function fireSasukeTorso(fighter, context, which) {
+  if (!susanoAllowed(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = which === "arrow" ? WARSUSANO.TORSO_ARROW_COST : which === "blade" ? WARSUSANO.TORSO_BLADE_COST : WARSUSANO.TORSO_CLAW_COST
+  if (!spendEnergy(fighter, cost)) return false
+  const getOpp = getTargetResolver(context); const target = getOpp(fighter)
+  fighter._warTorso = WARSUSANO.TORSO_WINDOW                 // (re)arm the torso window — the bust follows Sasuke
+  fighter._warTorsoFx = { action: which, t: 0, max: WARSUSANO.TORSO_FX }   // bust plays this attack's frames
+  if (which === "arrow") {
+    fighter.attackCooldown = getAttackDuration(22, fighter)
+    const aim = target ? { x: target.x + (target.w || 60) / 2, y: target.y + (target.h || 100) * 0.45 } : null
+    spawnProjectile(fighter, "susanoArrow", {
+      damage: WARSUSANO.TORSO_ARROW_DMG, speed: 15, lifetime: 70, hitstun: 28, knockbackX: 11, knockbackY: -3,
+      color: "#bfe8ff", w: 40, h: 16, spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.2, aimAt: aim,
+      sheet: "./sasuke_susano_arrow.png", spriteFrames: 1, spriteW: 160, spriteH: 116, spriteScale: 0.9
+    }, context)
+  } else {
+    const md = which === "blade"
+      ? { damage: WARSUSANO.TORSO_BLADE_DMG, startup: 12, active: 8, recovery: 22, hitstun: 30, knockbackX: 13, knockbackY: -5, rangeX: 200, rangeY: 130 }
+      : { damage: WARSUSANO.TORSO_CLAW_DMG,  startup: 10, active: 8, recovery: 20, hitstun: 26, knockbackX: 10, knockbackY: -3, rangeX: 150, rangeY: 120 }
+    const atk = createAttackFromMove(fighter, which === "blade" ? "susanoBlade" : "susanoClaw", md)
+    atk.isSpecial = true
+    setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+  }
+  try { focusCameraOnAction(context, fighter, target, 0.97, 8); shakeCamera(context, which === "arrow" ? 5 : 8, 8) } catch (_) {}
+  return true
+}
+
+// SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo").
+//   N = Torso Arrow · F = Claw Smash · B = Blade Swing (Tier 2) · U = Ribcage Guard (Tier 1) · D = free.
+// Arm Grab is Forward+Grab (base form, any eye-set — handled by updateSasukeWarSusanoCombat, not here).
 function ssSusanoSpecial(fighter, context) {
   const dir = fighter._specialHeldDir || null
-  if (dir === "U") return fireSasukeRibcageGuard(fighter, context)
-  return false   // N/F/B/D reserved for Tier 2/3 — fall through harmlessly (no chakra spent)
+  if (dir === "U") return fireSasukeRibcageGuard(fighter, context)       // Tier 1
+  if (dir === "F") return fireSasukeTorso(fighter, context, "claw")      // Tier 2 — Claw Smash
+  if (dir === "B") return fireSasukeTorso(fighter, context, "blade")     // Tier 2 — Blade Swing
+  if (!dir)        return fireSasukeTorso(fighter, context, "arrow")     // Tier 2 — Torso Arrow (neutral)
+  return false   // D reserved (Susano'o-set Ultimate = Soldier, Phase 3)
 }
 
 // ─── RINNEGAN SET (Phase 3) ────────────────────────────────────────────────────────────────────────

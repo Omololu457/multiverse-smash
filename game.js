@@ -8820,6 +8820,31 @@ function drawSasukeWarGuard(c, fighter) {
   _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.55, h * 0.72, 1, a)
   _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.55, h * 0.72, -1, a)
 }
+// TIER 2 — the Susano'o TORSO bust materialized around Sasuke, FOLLOWING him. Translucent so his body reads
+// through it. Plays the matching attack frames (claw/blade/bow strip) during a _warTorsoFx, else the idle bust.
+function drawSasukeWarTorso(c, fighter) {
+  if (!c || !susanoAllowed(fighter) || (fighter._warTorso || 0) <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const face = fighter.facing || 1
+  const fx = fighter._warTorsoFx
+  let src = "./sasuke_susano_bust_idle.png", frames = 1
+  if (fx) {
+    if (fx.action === "claw") { src = "./sasuke_susano_bust_claw.png"; frames = 3 }
+    else if (fx.action === "blade") { src = "./sasuke_susano_bust_blade.png"; frames = 2 }
+    else if (fx.action === "arrow") { src = "./sasuke_susano_bust_bow.png"; frames = 4 }
+  }
+  const img = _susanoImg(src); if (!img.complete || !img.naturalWidth) return
+  const cellW = img.naturalWidth / frames
+  const fi = fx ? Math.min(frames - 1, Math.floor((fx.t / fx.max) * frames)) : 0
+  const bustH = h * 1.7, bustW = bustH * (cellW / img.naturalHeight)
+  const cx = x + w / 2, cy = y + h * 0.4
+  const fade = Math.min(1, (fighter._warTorso || 0) / 10)   // fade in on summon / out on expiry
+  c.save(); c.globalAlpha = 0.7 * fade
+  c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
+  c.drawImage(img, fi * cellW, 0, cellW, img.naturalHeight, -bustW * 0.5, -bustH * 0.5, bustW, bustH)
+  c.restore()
+}
 
 function drawSasukeDojutsuFx(c, fighter) {
   if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
@@ -15090,6 +15115,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
+    drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
     drawSasukeWarGuard(c, fighter)          // War-Susano'o (sensei/adult) — Ribcage Guard shell (code-drawn, keyed rib bands)
     drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
@@ -21457,7 +21483,7 @@ gameLoop()
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)
     fireGuard: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._warGuardCd = 0; f.attackCooldown = 0; f.attacking = false; return fireSasukeRibcageGuard(f, getAbilityContext()) },   // test-only: fire Ribcage Guard directly (no input/jump)
-    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1 state
+    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

@@ -5707,8 +5707,8 @@ function gaaraAddGauge(fighter, amt) {
 
 function gaaraSummonShukaku(fighter, context) {
   if (fighter._shukaku) return false
-  if ((fighter._oneTailGauge || 0) < GAARA_GAUGE_MAX) return false     // gauge must be FULL
-  if (context && context.cinematicSafe === false) return false         // refuse during cinematics/KO/Brutality/domains/Rick-rewind
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false   // Down+Ult summons directly (ultimate meter) — no gauge prerequisite
+  if (context && context.cinematicSafe === false) { fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + (fighter.ultimate?.cost ?? 100)); return false }   // refuse during cinematics/KO/Brutality/domains/Rick-rewind (refund)
   const opp = getTargetResolver(context)(fighter)
   fighter.facing = opp ? (opp.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
   fighter._oneTailGauge = 0

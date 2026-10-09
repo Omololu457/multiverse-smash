@@ -21515,7 +21515,7 @@ gameLoop()
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {
       fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },
-      summon:    () => { if (!p1) return null; p1._oneTailGauge = 100; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._ultVariant = "shukaku"; const ok = triggerUltimate(p1, getAbilityContext()); return { ok: !!ok, active: !!p1._shukaku } },
+      summon:    () => { if (!p1) return null; p1.energy = p1.maxEnergy || 180; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._ultVariant = "shukaku"; const ok = triggerUltimate(p1, getAbilityContext()); return { ok: !!ok, active: !!p1._shukaku } },
       command:   (dir = null) => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { cast: p1._spriteCastMove || null, pose: p1._shukaku?.pose || null } },
       tbb:       () => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1.ultimateCooldown = 0; const ok = triggerUltimate(p1, getAbilityContext()); return { ok: !!ok, charge: p1._gaaraTbbCharge || 0 } },
       state:     () => { const s = p1?._shukaku; return { gauge: Math.round(p1?._oneTailGauge || 0), active: !!s, timer: s?.timer ?? 0, hitCount: s?.hitCount ?? 0, pose: s?.pose ?? null, ending: !!s?.ending } },

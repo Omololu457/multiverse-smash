@@ -155,8 +155,9 @@ import {
   narutoHokageChargeAction,   // Naruto (Hokage) — charge-hold → enter KCM / tap → exit
   revertNarutoHokageKCM,      // Naruto (Hokage) — revert KCM (tap / drain-empty / KO / match reset)
   applyNarutoHokageKCMSystem, // Naruto (Hokage) — per-frame KCM chakra drain + auto-revert at 0
-  applyNarutoSeventhSystem,   // Naruto (Seventh) — per-frame Doton-wall projectile-block (Phase 2: Kurama-Bond meter)
+  applyNarutoSeventhSystem,   // Naruto (Seventh) — per-frame Doton-wall projectile-block + Kurama-Bond meter
   revertNarutoSeventhState,   // Naruto (Seventh) — clear per-match state (Doton wall / Bond) on reset
+  updateNarutoSeventhCommandCombat,   // Naruto (Seventh) — Down+Heavy → Strong Down (red-flame) command normal
   toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
@@ -7982,6 +7983,11 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "goku" && !charging &&
       updateGokuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // NARUTO (SEVENTH): Down+Heavy → Strong Down (red-flame command normal). At Bond 1+ it gains the
+  // Red-Chakra +dmg/+hitbox. Consumes the input only when it fires; neutral heavy stays the normal Strong.
+  if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh" && !charging &&
+      updateNarutoSeventhCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // DARK VEGETA "Villain's Rush": Fwd+Heavy opens vegetaDarkRush1 (lunge-thrust), re-tap Heavy during recovery
   // to cancel into vegetaDarkRush2 (flurry) → vegetaDarkRush3 (rising uppercut launcher) — cancel-on-hit;
   // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the side-kick.
@@ -8425,6 +8431,36 @@ function drawNHTierAura(c, fighter) {
   const spread = 6 + tier * 5
   c.save()
   c.globalAlpha  = 0.10 + tier * 0.06 + pulse * 0.06
+  c.shadowBlur   = spread * 2
+  c.shadowColor  = color
+  c.strokeStyle  = color
+  c.lineWidth    = spread
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 16
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
+// NARUTO (SEVENTH) — KURAMA-BOND aura. A red chakra glow behind the body, brightening with Bond level
+// (1-4). Red Chakra lights up at Bond 1. Same pulsing rounded-rect pattern as drawNHTierAura; drawn
+// BEFORE the body. No-op for anyone else / Bond 0. (Reused in later phases for KCM/Rikudou shades.)
+const N7_BOND_AURA = ["#f87171", "#ef4444", "#dc2626", "#b91c1c"]   // Bond 1 / 2 / 3 / 4
+function drawN7BondAura(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naruto_seventh") return
+  const bond = Math.max(0, Math.min(4, fighter._n7Bond || 0))
+  if (bond < 1) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const color  = N7_BOND_AURA[bond - 1]
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._n7AuraPulse = (fighter._n7AuraPulse || 0) + 0.18)
+  const spread = 5 + bond * 4
+  c.save()
+  c.globalAlpha  = 0.10 + bond * 0.05 + pulse * 0.07
   c.shadowBlur   = spread * 2
   c.shadowColor  = color
   c.strokeStyle  = color
@@ -14594,6 +14630,7 @@ function renderHybridFighter(fighter) {
   const drawTo = (c) => {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
+    drawN7BondAura(c, fighter)         // Naruto (Seventh) Kurama-Bond red aura, behind the body (naruto_seventh only, Bond 1+)
     drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
     drawSupermanSolarFlareAura(c, fighter)   // Superman Solar Flare gold radiant halo, behind the body (Superman only)
     drawSupermanOverloadAura(c, fighter)     // Superman Kryptonian Overload blue electric crackle, behind the body (Superman only)
@@ -20930,6 +20967,8 @@ gameLoop()
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
+    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond state
+    setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}

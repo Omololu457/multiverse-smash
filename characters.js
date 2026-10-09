@@ -10037,8 +10037,13 @@ const narutoSeventh = {
     rasengan:      { cost: 30, effect: "Neutral+Special: Rasengan — a spiraling chakra-sphere palm thrust (air = diving Rasengan). Sphere is code-drawn FX. [CANON]" },
     rasenshuriken: { cost: 40, effect: "Fwd+Special: Rasenshuriken — hurls a screaming wind-natured chakra shuriken (ground & air). Disc is code-drawn FX. [CANON]" },
     dotonWall:     { cost: 28, effect: "Back+Special: Doton — Earth-Style Wall — six rising rock pillars that block incoming projectiles while raised. [CANON-ADJACENT]" },
-    throwWeapon:   { cost: 10, effect: "Down+Special (also the free projectile): Throw Weapon — flings a kunai as a ranged poke (ground & air). [CANON]" }
+    throwWeapon:   { cost: 10, effect: "Down+Special (also the free projectile): Throw Weapon — flings a kunai as a ranged poke (ground & air). [CANON]" },
+    strongDown:    { cost: 0,  effect: "Down+Heavy: Strong Down — a red-flame overhead spike. KURAMA BOND 1+ (Red Chakra) gives it +25% damage & +20% hitbox. [CANON-ADJACENT]" },
+    fourTails:     { cost: 0,  effect: "Up+Special — KURAMA BOND 2+: Four-Tails Rampage — a committed red-cloak beast combo (4 hits, high damage); the cloak BURNS ~12% of your own HP. Returns to Base. [CANON-ADJACENT]" }
   },
+  // KURAMA BOND: a meter (0-4) that fills as Naruto FIGHTS (lands hits / takes damage) and decays when idle,
+  // shown in the Chakra label. BOND 1 = Red Chakra (aura + buffed Strong Up/Down) · BOND 2 = Four-Tails ·
+  // BOND 3 = KCM (hold Charge, Phase 3) · BOND 4 = Rikudou (KCM Down+Ult, Phase 4). Strong Up = the up-attack.
   ultimate: {
     name: "Kuchiyose: Gamabunta", cost: 70, damage: 192,
     description: "Summoning-seal burst → the Toad Boss Gamabunta rises and delivers a sure-hit dagger slash (half damage on block). [CANON]"
@@ -10079,7 +10084,10 @@ const narutoSeventh = {
     n7Charge:      { frames: 4, width: 47, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_charge_uniform.png" },
     n7Kuchiyose:   { frames: 6, width: 104, height: 91, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kuchiyose_uniform.png" },
     n7StrongFwd:   { frames: 4, width: 61, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_strong_fwd_uniform.png" },
-    n7StrongDown:  { frames: 6, width: 78, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_strong_down_uniform.png" }
+    n7StrongDown:  { frames: 6, width: 78, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_strong_down_uniform.png" },
+    // PHASE 2 — Four-Tails Rampage (Sp5): base → red cloak engulfs → beast lunges/claws/tail-slams → base. 38f
+    // committed cinematic (speed 3 → ~114f). From the sheet's OWN Sp5 section (never crosses modes).
+    n7FourTails:   { frames: 38, width: 83, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_fourtails_uniform.png" }
   }
 }
 

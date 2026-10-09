@@ -4075,7 +4075,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     // Ultimate-cooldown hint (optional): while the universal recast lockout ticks,
     // append "· ULT Ns" to the meter label so ULT-not-ready is visible even at full meter.
     const ultCd = (fighter.ultimateCooldown || 0) > 0 ? `  · ULT ${Math.ceil(fighter.ultimateCooldown / 60)}s` : ""
-    ctx.fillText(label + ultCd, labelX, enY - 2)
+    // Naruto (Seventh) — surface the Kurama-Bond level in the meter label (e.g. "Chakra · Bond 2").
+    const bondTag = ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh" && (fighter._n7Bond || 0) > 0)
+      ? `  · Bond ${fighter._n7Bond}` : ""
+    ctx.fillText(label + bondTag + ultCd, labelX, enY - 2)
 
     if (!hasEnergy) return
 

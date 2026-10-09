@@ -234,7 +234,7 @@ const MOVE_TO_ACTION = {
   // tail never resolves to the fallback box. (Rasengan / Rasenshuriken / Doton / Throw / Charge / Gamabunta.)
   n7Rasengan: "n7Rasengan", n7RasenganAir: "n7RasenganAir", n7Rsk: "n7Rsk", n7RskAir: "n7RskAir",
   n7Doton: "n7Doton", n7Throw: "n7Throw", n7ThrowAir: "n7ThrowAir", n7Charge: "n7Charge",
-  n7Kuchiyose: "n7Kuchiyose", n7StrongFwd: "n7StrongFwd", n7StrongDown: "n7StrongDown",
+  n7Kuchiyose: "n7Kuchiyose", n7StrongFwd: "n7StrongFwd", n7StrongDown: "n7StrongDown", n7FourTails: "n7FourTails",
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.

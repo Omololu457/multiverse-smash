@@ -4260,7 +4260,7 @@ function executeNarutoSeventhSpecial(fighter, context) {
   if (dir === "F") return n7Rasenshuriken(fighter, context, air)   // Fwd  — Rasenshuriken
   if (dir === "B") return n7DotonWall(fighter, context)            // Back — Doton Earth-Wall
   if (dir === "D") return n7ThrowWeapon(fighter, context, air)     // Down — Throw Weapon (also the free projectile)
-  if (dir === "U") return false                                    // Up   — Four-Tails Rampage (Bond 2+, PHASE 2)
+  if (dir === "U") return n7FourTails(fighter, context)            // Up   — Four-Tails Rampage (Bond 2+)
   return n7Rasengan(fighter, context, air)                         // Neutral — Rasengan (air = diving)
 }
 
@@ -4381,11 +4381,125 @@ function executeNarutoSeventhUltimate(fighter, context) {
   return true
 }
 
-// Per-frame system (gated on rosterKey → pure no-op for everyone else). PHASE 1: tick the Doton-wall window
-// and BLOCK enemy projectiles crossing the wall column while it stands. (PHASE 2 extends this with the
-// Kurama-Bond meter.) Called from the game.js per-frame update, beside applyNarutoHokageKCMSystem.
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 2 — KURAMA BOND LADDER. A deterministic meter (0-100 pts → level 0-4) that fills as Naruto FIGHTS
+// (lands melee hits + takes damage) and decays slowly when idle. Levels gate the Nine-Tails powers:
+//   BOND 1 (pts≥25) — RED CHAKRA: red aura + the red-flame Strong Up / Strong Down get +dmg/+hitbox.
+//   BOND 2 (pts≥50) — FOUR-TAILS RAMPAGE unlocks (Up+Special).
+//   BOND 3 (pts≥75) — KCM unlocks (hold Charge) — PHASE 3.
+//   BOND 4 (pts=100) — RIKUDOU unlocks (from KCM, Down+Ult) — PHASE 4; firing it resets the meter.
+// No gameRng — pure frame counters + HP deltas. Numbers (reported in the build log):
+const N7_BOND = {
+  HIT_FILL:   7,      // pts per melee hit LANDED (_cmdHitLanded rising edge)
+  DMG_FILL:   0.18,   // pts per 1 HP of damage TAKEN
+  IDLE_GAP:   120,    // frames with no fill before decay starts (~2s)
+  DECAY:      0.10,   // pts/frame decay once idle
+  THRESH:     [25, 50, 75, 100],   // Bond 1 / 2 / 3 / 4
+  RED_DMG:    1.25,   // Bond-1 red-flame damage multiplier (Strong Up / Strong Down)
+  RED_HITBOX: 1.20    // Bond-1 red-flame hitbox multiplier (Strong Down — scaled at fire)
+}
+function n7BondLevel(pts) { let l = 0; for (const t of N7_BOND.THRESH) if (pts >= t) l++; return l }
+export function narutoSeventhBond(f) { return f ? (f._n7Bond || 0) : 0 }
+
+// Up — FOUR-TAILS RAMPAGE (Bond 2+). A committed ~1.9s beast combo from the Sp5 section: base → red cloak
+// engulfs → beast lunges / claws / tail-slams → returns to base. High scripted damage; the cloak BURNS
+// Naruto for a small % of his OWN HP. Locked + i-frames through the sequence. [CANON-ADJACENT]
+function n7FourTails(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if ((fighter._n7Bond || 0) < 2) return false                      // needs Bond 2
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const DUR = 38 * 3                                                 // n7FourTails anim: 38f × speed 3 ≈ 114f
+  _n7SetCast(fighter, "n7FourTails", DUR)
+  fighter.attackCooldown = getAttackDuration(DUR, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, DUR)      // committed — i-frames through the beast
+  fighter.vx = 0
+  // the cloak burns him: small % of his OWN max HP (does NOT self-KO, clamped ≥1; not counted as Bond fill)
+  const selfCost = Math.floor((fighter.maxHealth || 1200) * 0.12)
+  fighter.health = Math.max(1, (fighter.health || 1) - selfCost)
+  fighter._n7PrevHealth = fighter.health                            // don't let the cloak-burn refill Bond
+  fighter._n7SelfBurn = selfCost
+  const face = fighter.facing || 1
+  // scripted damage beats (lunge → claw → claw → tail-slam) — proximity-gated, half on block
+  const beats = [[22, 42, 7], [48, 46, 9], [78, 54, 10], [100, 74, 15]]
+  beats.forEach(([d, dmg, hs]) => schedulePendingSpawn(d, () => {
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 200) return
+    const kdir = tcx >= cx ? 1 : -1
+    if (opp.isBlocking) { opp.blockstun = hs; applyScaledDamage(opp, Math.floor(dmg * 0.5), { source: "ability" }); opp.vx = kdir * 5; return }
+    opp.hitstun = hs; opp.vx = kdir * (dmg > 60 ? 14 : 6); opp.vy = dmg > 60 ? -12 : -3; opp.colorFlash = 12
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, dmg > 60 ? 8 : 4, 8) } catch (_) {}
+  }))
+  try { shakeCamera(context, 7, 14) } catch (_) {}
+  return true
+}
+
+// Down+Heavy — STRONG DOWN (red-flame command normal, n7StrongDown art). A grounded overhead-ish spike.
+// At Bond 1+ it gains the RED-CHAKRA damage + hitbox bonus (scaled here, at fire). [CANON-ADJACENT]
+const N7_STRONG_DOWN = { damage: 72, startup: 9, active: 5, recovery: 16, hitstun: 22, knockbackX: 4, knockbackY: 9, rangeX: 90, rangeY: 66, cd: 32, spike: true }
+function fireN7StrongDown(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const md = { ...N7_STRONG_DOWN }
+  if ((fighter._n7Bond || 0) >= 1) {                                // RED CHAKRA buff
+    md.damage = Math.round(md.damage * N7_BOND.RED_DMG)
+    md.rangeX = Math.round(md.rangeX * N7_BOND.RED_HITBOX)
+    md.rangeY = Math.round(md.rangeY * N7_BOND.RED_HITBOX)
+  }
+  const attack = createAttackFromMove(fighter, "n7StrongDown", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)
+  fighter._cmdHitLanded = false
+  return true
+}
+
+// Command-normal dispatch (Down+Heavy → Strong Down). Mirrors updateSaitamaCommandCombat; registered in
+// game.js before the standard normal path. Gated on rosterKey → no-op for everyone else.
+export function updateNarutoSeventhCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || !isN7Char(fighter) || !inputState) return false
+  const heavyEdge = !!inputState.heavy && !fighter._n7PrevHeavy
+  fighter._n7PrevHeavy = !!inputState.heavy
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const down = !!inputState.down
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (down && heavyEdge) return fireN7StrongDown(fighter, context)   // Down+Heavy → Strong Down
+  return false
+}
+
+// Per-frame system (gated on rosterKey → pure no-op for everyone else). PHASE 1: Doton-wall projectile-block.
+// PHASE 2: tick the Kurama-Bond meter (fill on hits landed / damage taken, idle decay), derive the Bond
+// level, and apply the Bond-1 RED-CHAKRA damage buff to the Strong-Up (up-attack) via the scoped
+// damageMultiplier (combat.js reads it; Strong Down scales itself at fire). Called from the game.js
+// per-frame update, beside applyNarutoHokageKCMSystem.
 export function applyNarutoSeventhSystem(fighter) {
   if (!isN7Char(fighter)) return
+  if (fighter._n7Bond == null) { fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0; fighter._n7PrevHealth = fighter.health; fighter._n7PrevCombo = fighter.comboCounter || 0 }
+
+  // ── Kurama-Bond fill / decay ──
+  let pts = fighter._n7BondPts || 0, filled = false
+  // hits LANDED — each increment of his own comboCounter (combat.js bumps it per clean hit this fighter lands;
+  // resets to 0 when the combo drops). Universal signal (not the rekka-only _cmdHitLanded).
+  const combo = fighter.comboCounter || 0
+  if (combo > (fighter._n7PrevCombo || 0)) { pts += (combo - (fighter._n7PrevCombo || 0)) * N7_BOND.HIT_FILL; filled = true }
+  fighter._n7PrevCombo = combo
+  // damage TAKEN — own HP drop (self cloak-burn already excluded by resetting _n7PrevHealth at cast)
+  const prevHP = (fighter._n7PrevHealth != null) ? fighter._n7PrevHealth : fighter.health
+  const lost = prevHP - (fighter.health || 0)
+  if (lost > 0) { pts += lost * N7_BOND.DMG_FILL; filled = true }
+  fighter._n7PrevHealth = fighter.health
+  // idle decay
+  if (filled) fighter._n7BondIdle = 0
+  else { fighter._n7BondIdle = (fighter._n7BondIdle || 0) + 1; if (fighter._n7BondIdle > N7_BOND.IDLE_GAP) pts -= N7_BOND.DECAY }
+  pts = Math.max(0, Math.min(100, pts))
+  fighter._n7BondPts = pts
+  fighter._n7Bond = n7BondLevel(pts)
+
+  // ── Bond-1 RED CHAKRA buff on Strong Up (the up-attack) — scoped via damageMultiplier so ONLY that move
+  //    is boosted (Strong Down scales itself at fire; specials/Four-Tails are unaffected). ──
+  const redUp = fighter.currentMove === "up" && fighter._n7Bond >= 1
+  fighter.damageMultiplier = redUp ? N7_BOND.RED_DMG : 1
+
+  // ── PHASE 1 — Doton wall projectile-block ──
   const w = fighter._n7Wall
   if (w && w.until > 0) {
     w.until--
@@ -4405,6 +4519,9 @@ export function applyNarutoSeventhSystem(fighter) {
 export function revertNarutoSeventhState(fighter) {
   if (!fighter) return
   fighter._n7Wall = null
+  fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
+  fighter._n7PrevHealth = fighter.health; fighter._n7PrevCombo = 0
+  fighter.damageMultiplier = 1
 }
 
 

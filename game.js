@@ -7651,7 +7651,7 @@ function _updatePlayerCombatBody(fighter) {
     const _drk = (fighter.rosterKey || "").toLowerCase()
     const _dbind = SASUKE_DOJUTSU_BIND[_drk]
     if (_dbind && (fighter.blockstun || 0) > 0 && getFighterInput(fighter).special &&
-        !brutalityState.active && !rewindState.active &&
+        !brutalityState.active && !rewindState.active && !sasukeInSusanoo(fighter) &&   // Susanoo keeps its own Special routing
         (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan") &&
         counterSwap(fighter, getAbilityContext(), _dbind)) {
       updateCombat(fighter, getOpponent(fighter), {}, opts); return
@@ -7805,7 +7805,7 @@ function _updatePlayerCombatBody(fighter) {
       const _drk = (fighter.rosterKey || "").toLowerCase()
       const _dbind = SASUKE_DOJUTSU_BIND[_drk]
       if (_dbind && inputState.charge && (fighter.attackCooldown || 0) <= 0 && !fighter.attacking &&
-          !brutalityState.active && !rewindState.active &&
+          !brutalityState.active && !rewindState.active && !sasukeInSusanoo(fighter) &&   // Susanoo keeps its own Charge+Special routing
           (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan")) {
         const _dc = getAbilityContext()
         const _dd = betaHeldDirFromInput(inputState, fighter.facing)
@@ -20927,6 +20927,7 @@ gameLoop()
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
+    setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

@@ -27669,3 +27669,9 @@ export function activateUltimate(fighter) {
   fighter.isUltimateActive = true
   fighter.ultimateTimer    = (fighter.ultimate?.duration || 8) * 60
 }
+
+// Inject engine deps into the shared Sasuke dōjutsu module (one-time, module-load). sasukeDojutsu.js imports
+// nothing (no circular deps) and reads these through its injected API. All referenced symbols are abilities.js
+// module-scope (spendEnergy/spawnProjectile/schedulePendingSpawn/activeProjectiles) or combat.js imports
+// (applyScaledDamage). Without this call API stays null and every dōjutsu move throws → it MUST run on load.
+initSasukeDojutsu({ spendEnergy, spawnProjectile, schedulePendingSpawn, activeProjectiles, applyScaledDamage })

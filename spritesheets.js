@@ -432,6 +432,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./sasuke_sensei_idle_uniform.png" }
   },
 
+  // Gaara (universe: naruto), defensive sand zoner — gates spritesReady() by decoding the idle strip
+  // (flips from procedural box to sprite handler). Per-action rendering reads characters.js →
+  // gaara.animationData (each action carries its own .sheet). Idle = border-flood-fill-keyed uniform
+  // strip (tools/gaara/slice.py; bright-green DS/DSi sheet keyed to transparent).
+  gaara: {
+    actions: { idle: "./gaara_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

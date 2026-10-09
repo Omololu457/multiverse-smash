@@ -794,6 +794,11 @@ export const SKINS = {
   sasuke_sensei: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke_sensei?.portrait, spriteScale: characters.sasuke_sensei?.spriteScale, animationData: null },
   ],
+  // Gaara — DEFAULT ONLY (per the build brief). The entry is REQUIRED so getSkins() preserves the
+  // characters.js spriteScale (1.5); without it the fallback clobbers it to native 1.0.
+  gaara: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gaara?.portrait, spriteScale: characters.gaara?.spriteScale, animationData: null },
+  ],
   // Hinata Hyuga — DEFAULT (the palette-NORMALIZED dark palette) + the other three Color-Palettes-row
   // variants as recolor skins (tools/gen_hinata_recolor.py: dark-jacket → Purple/Gray/Blue via the swatch
   // LUT + nearest-palette classifier; skin/hair/sandals preserved). All free, cosmetic. recolorSkinAnim

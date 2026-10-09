@@ -205,6 +205,10 @@ export const ZONER = [
   "naruto_seventh",  // NEW additive standalone (Seventh Hokage, padakun H sheet): base Combo-1 light (single
                      //   swing, not a rekka) + directional specials (Rasengan/Rasenshuriken/Doton/Throw) +
                      //   Gamabunta ult; no Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke.
+  "gaara",           // NEW additive standalone (Gaara, DS/DSi Ninja Council 4 sheet): defensive SAND zoner —
+                     //   base normals + a Down+Special Sand Bullet projectile (Phase 1); directional sand
+                     //   specials (Phase 2) + Sabaku Taisou ult (Phase 3) + Shukaku (Phase 4). No Fwd+Heavy
+                     //   rekka driver and not in STANDARD_STRING_CHARS → single-poke (same bucket as sakura/sasuke_sensei).
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -268,6 +272,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                27,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          111,       // 71 rekka + 13 standard-string + 27 single-poke = 111 (naruto_seventh added)
+  zoner:                28,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          112,       // 71 rekka + 13 standard-string + 28 single-poke = 112 (gaara added)
 }

@@ -6999,6 +6999,96 @@ const hinata = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// GAARA  (rosterKey "gaara", universe "naruto"). Shippuden-era Gaara of the Desert — the Fifth Kazekage,
+// a defensive SAND zoner. Built from the DS/DSi "Naruto Shippuden: Ninja Council 4" (Saikyo Ninja
+// Daikesshu 5) playable-characters sheet (ripped by Pakis Pride / DS Ripping Forum) — border-flood-fill
+// keyed (bright-green 0,204,0 bg → transparent; beige sand FX + the dark gourd survive, not border-
+// connected) + per-action uniform strips (tools/gaara/slice.py) → gaara_*_uniform.png. Jesus/Sakura
+// discipline: the sprite BODY is the sheet; every sand EFFECT is procedural (abilities.js executeGaara*)
+// — the sheet's own sand FX are BAKED into the attack frames. Credited to Pakis Pride + DS Ripping Forum
+// (credits.js, Phase 1). NOT brutality-eligible (Shippuden Gaara is a teenager).
+//   ENERGY: energyType "sand" → ui label "Sand" (added to ui.js ENERGY_TYPE_LABELS). No voice clips exist.
+//   STATS: durable SAND TANK — high HP + top-band defence, SLOW walk, strong zoning (per the brief).
+//   PHASE 1 ships: body + normals (light/heavy=sand wave/up launcher/air/down_air/crouch low) + a basic
+//     SAND THROW projectile on Down+Special (context-sensitive ground/air/crouch pose; combat.js untouched)
+//     + select portrait + the Sand Shield guard FX. SPECIALS (Sand Coffin/Tsunami/Dome/Shunshin + passives)
+//     = Phase 2; SABAKU TAISOU ultimate = Phase 3; SHUKAKU summon = Phase 4.
+//   GAPS (honest reuse, flagged): walk = dedicated Walk row · run = Run row · dash = reuse Run · fall =
+//     reuse Jump airborne pose · lose = reuse knockdown lying pose · intro/charge = reuse Stance · guard =
+//     Stance pose (sand-wall FX drawn procedurally) · down_air = REUSE Jump Attack (no dedicated down-air
+//     on the sheet) · taunt/grab = NONE on sheet (omitted). Teleport (sand-flicker, 2f) sliced but reserved
+//     for the Phase 2 Sand Shunshin. Sabaku Taisou / cut-in / Shukaku FX rows parked for Phases 3-4.
+const gaara = {
+  rosterKey: "gaara", name: "Gaara", universe: "naruto", color: "#c9a24b",
+  portrait: "./gaara_portrait.png",   // bust cropped from the sheet's select-portrait region (tools/gaara)
+  archetypes: ["zoner", "technical"],
+  primary: "ranged", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "sand", mobility: "low", scaling: "controlled", animeMovement: true },
+  passive: { name: "Shield of Sand", effect: "Gaara's Sand Armor and the Ultimate Defense — his automatic sand shield — rise from the gourd without a hand sign. (Sand Shield guard ships in Phase 1; Ultimate Defense + Sand Armor passives land in Phase 2.)" },
+  // DURABLE SAND TANK: above the Naruto melee band on HP/defence (naruto/sasuke 1180/89), SLOW walk, moderate
+  // attack (zoning + control over raw power). maxEnergy 180 = Sand. Strong zoning via the sand throw/specials.
+  stats: { maxHealth: 1280, maxEnergy: 180, attack: 83, defense: 96, speed: 76, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
+  movement: { crouchIdle: true },   // opt-in: holding Down shows the dedicated Crouch strip
+  // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air +
+  // crouchLight). RAW damage (engine scales ×0.60). Sand striker: Y-Combo sand fist (light), advancing
+  // ground SAND WAVE (heavy, long reach — the Run-Attack row), rising sand SPIKE launcher (up), aerial
+  // sand-whip arc (air), downward slam (down_air = reuses the air whip), low sand sweep (crouchLight).
+  basic_attacks: {
+    light:      { damage: 42, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 62, rangeY: 46 },
+    heavy:      { damage: 78, startup: 10, active: 5, recovery: 18, hitstun: 18, knockbackX: 8, knockbackY: 1, rangeX: 104, rangeY: 48 },
+    upAttack:   { type: "launcher", damage: 62, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -5, airOK: false },
+    airAttack:  { damage: 54, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:    { damage: 58, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11, rangeX: 66, rangeY: 64 },
+    crouchLight:{ damage: 38, startup: 5, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 }   // low sand SWEEP — auto-swapped from light by _setCrouchVariant while crouching
+  },
+  // KIT METADATA (Move List display; detailed copy in kits.js). Phase 1 wires ONLY the Sand Throw (D+Special).
+  // Canon labels: Sand Coffin/Burial, Sabaku Kyuu, Sand Tsunami, Sand shield = CANON; Sand Dome/Shunshin =
+  // CANON-ADJACENT (canon sand uses re-cast as a dome-guard / dodge). Sand Throw = CANON-ADJACENT (basic
+  // ranged sand bullet). Wiring + costs land across Phases 2-4.
+  specials: {
+    sandThrow:    { cost: 14, effect: "Down + Special: Sand Bullet — Gaara flings a compressed sand ball (ground / air / crouch pose). A basic zoning projectile. [Phase 1]" },
+    sandCoffin:   { cost: 30, effect: "Special: Sabaku Kyuu (Sand Coffin) — sand hands rise under the foe and bind; press Special again in the window for Sabaku Sousou (Sand Burial) damage. [Phase 2]" },
+    sandTsunami:  { cost: 28, effect: "Fwd + Special: Sand Tsunami — a travelling wave of sand surges forward. [Phase 2]" },
+    sandDome:     { cost: 24, effect: "Back + Special: Sand Dome — the sand closes into a brief all-direction guard around Gaara (cooldown). [Phase 2]" },
+    sandShunshin: { cost: 18, effect: "Up + Special: Sand Shunshin — a short sand-flicker dodge-teleport. [Phase 2]" }
+  },
+  ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Big damage. [Phase 3]" },
+  hasSprites: true,
+  // Idle content ≈65px × 1.5 ≈ 98px on-screen — alongside Sakura (106) / Boruto (108). REQUIRES the skins.js
+  // gaara default entry or getSkins() clobbers this to 1.
+  spriteScale: 1.5,
+  animationData: {
+    // ── MOVEMENT / STATE ──
+    idle:  { frames: 6, width: 39, height: 65, speed: 8, anchorY: 0, loop: true,  sheet: "./gaara_idle_uniform.png" },
+    walk:  { frames: 6, width: 43, height: 65, speed: 7, anchorY: 0, loop: true,  sheet: "./gaara_walk_uniform.png" },
+    run:   { frames: 6, width: 50, height: 59, speed: 5, anchorY: 0, loop: true,  sheet: "./gaara_run_uniform.png" },
+    dash:  { frames: 6, width: 50, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_run_uniform.png" },   // no dash frames → reuse Run
+    jump:  { frames: 4, width: 51, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_jump_uniform.png" },
+    fall:  { frames: 4, width: 51, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_jump_uniform.png" },   // reuse Jump airborne pose
+    hurt:      { frames: 2, width: 50, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_hurt_uniform.png" },
+    knockdown: { frames: 4, width: 66, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_knockdown_uniform.png" },
+    lose:      { frames: 4, width: 66, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_knockdown_uniform.png" },   // defeat = knockdown lying pose
+    getup:     { frames: 2, width: 49, height: 57, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_getup_uniform.png" },
+    crouch:    { frames: 3, width: 41, height: 60, speed: 6, anchorY: 0, loop: true,  sheet: "./gaara_crouch_uniform.png" },
+    guard:     { frames: 2, width: 39, height: 65, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_guard_uniform.png" },   // Sand Shield: stance pose; sand-wall FX drawn procedurally
+    intro:     { frames: 6, width: 39, height: 65, speed: 8, anchorY: 0, loop: true,  sheet: "./gaara_idle_uniform.png" },   // no intro frames → reuse Stance
+    win:       { frames: 4, width: 47, height: 83, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_win_uniform.png" },
+    charge:    { frames: 6, width: 39, height: 65, speed: 8, anchorY: 0, loop: true,  sheet: "./gaara_idle_uniform.png" },   // no charge frames → reuse Stance
+    // ── NORMALS (sand FX baked into the source frames) ──
+    light:       { frames: 6, width: 55,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_light_uniform.png" },        // Y Combo — sand fist string
+    heavy:       { frames: 8, width: 116, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_heavy_uniform.png" },        // Run Attack — advancing ground sand wave
+    up:          { frames: 7, width: 129, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_up_uniform.png" },           // Up Y Attack — rising sand-spike LAUNCHER
+    air:         { frames: 7, width: 69,  height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_air_uniform.png" },          // Jump Attack — aerial sand-whip arc
+    down_air:    { frames: 7, width: 69,  height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_down_air_uniform.png" },     // reuse Jump Attack (no dedicated down-air)
+    crouchLight: { frames: 4, width: 53,  height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_crouchLight_uniform.png" },  // Crouch Attack — low sand sweep
+    // ── PROJECTILE CAST POSES (Sand Throw; _spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
+    gaaraThrow:       { frames: 2, width: 59, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throw_uniform.png" },        // ground throw
+    gaaraThrowAir:    { frames: 3, width: 54, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwAir_uniform.png" },     // jump throw
+    gaaraThrowCrouch: { frames: 5, width: 64, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwCrouch_uniform.png" }   // crouch throw
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SASUKE (SENSEI)  (rosterKey "sasuke_sensei", universe "naruto"). Boruto-era Sasuke at his peak — the
 // travelling-cloak dōjutsu master. Built from the RBM-Kyuubi "Sasuke Sensei NZC v2" JUS sheet
 // (sasuke_sensei_nzc_v2_end_by_rbm_kyuubi) — border-flood-fill keyed (navy bg + the Hebi's near-navy
@@ -10144,6 +10234,7 @@ export const characters = {
   sakura,
   sasuke_sensei,
   hinata,
+  gaara,
   boruto,
   light,
   l_ryuuzaki: lRyuuzaki,

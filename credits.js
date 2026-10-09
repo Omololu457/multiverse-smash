@@ -36,6 +36,17 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (hinata_naruto_the_last__by_aryasyddanwahab_deapca3.png; uploader handle in filename; no in-sheet credits box — verify on the source page)",
     files:   ["hinata_*_uniform.png", "hinata_naruto_the_last__by_aryasyddanwahab_deapca3.png"]
   },
+  // Gaara (Naruto) — ripped from the DS/DSi "Naruto Shippuden: Ninja Council 4" (JP: "Naruto: Saikyo Ninja
+  // Daikesshu 5") playable-characters sheet. The sheet carries a baked in-sheet credit box reading "Naruto:
+  // Saikyo Ninja Daikesshu 5 / By: Pakis Pride / Give Credit if Used / Don't Claim As Own" (verified at full
+  // resolution). Attribution MANDATORY per those terms. Border-flood-fill keyed (bright-green bg) + per-action
+  // sliced (tools/gaara/slice.py) → gaara_*_uniform.png. (Shukaku's summon sheet — Altair — is added in Phase 4.)
+  gaara: {
+    work:    "Gaara (Naruto Shippuden: Ninja Council 4 / \"Saikyo Ninja Daikesshu 5\")",
+    artists: ["Pakis Pride (ripper)", "DS Ripping Forum"],
+    source:  "game sprite rip (DS/DSi \"Naruto Shippuden: Ninja Council 4\" / \"Naruto: Saikyo Ninja Daikesshu 5\"; in-sheet credit box \"By: Pakis Pride — Give Credit if Used\")",
+    files:   ["gaara_*_uniform.png", "DS _ DSi - Naruto Shippuden_ Ninja Council 4 - Playable Characters - Gaara.png"]
+  },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
   // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.

@@ -268,7 +268,8 @@ import {
   fireCloneOneShotProjectile,  // one-shot clone (h+Fwd): a clone-shaped projectile flies forward, hits, vanishes
   fireCloneSubstitution,       // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
-  updateHinata, applyHinataGuutenToProjectiles   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
+  updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
+  updateGaara   // GAARA (Phase 1) — per-frame FX-timer tick (no-op otherwise; Phases 2-4 extend it)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -12620,6 +12621,55 @@ function drawHinataFx(c, fighter) {
   }
 }
 
+// GAARA — SAND SHIELD guard FX. While Gaara holds Block, his gourd sand rises as a wall in FRONT of him
+// (toward his facing). Render-only + code-drawn (no new art): a mound of beige sand grains that rises and
+// settles. Normal block rules are UNCHANGED (combat.js handles the actual block) — this is purely the
+// visual tell the brief asks for. Gated on rosterKey + isBlocking → a pure no-op for every other fighter.
+function drawGaaraFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
+  if (!fighter.isBlocking) { fighter._gaaraShieldAnim = 0; return }
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const facing = fighter.facing || 1
+  // rise envelope: ramps up over ~10 frames while blocking, holds
+  const rise = Math.min(1, (fighter._gaaraShieldAnim = Math.min(12, (fighter._gaaraShieldAnim || 0) + 1)) / 10)
+  const t = (fighter._gaaraShieldT = (fighter._gaaraShieldT || 0) + 1)
+  // wall base: just in front of the body, grounded at the feet
+  const frontX = facing === 1 ? fighter.x + w * 0.78 : fighter.x + w * 0.22
+  const feetY = fighter.y + h
+  const wallH = h * 0.86 * rise
+  const wallW = w * 0.46
+  c.save()
+  c.translate(frontX, feetY)
+  // soft shadow/body of the sand wall
+  c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.7)"
+  const grad = c.createLinearGradient(0, 0, 0, -wallH)
+  grad.addColorStop(0, "rgba(176,146,92,0.95)")
+  grad.addColorStop(1, "rgba(216,195,154,0.78)")
+  c.fillStyle = grad
+  c.beginPath()
+  c.moveTo(-wallW * 0.5, 0)
+  // wobbling crest built from a few sine humps (deterministic in t → no RNG)
+  const segs = 6
+  for (let i = 0; i <= segs; i++) {
+    const fx = -wallW * 0.5 + (wallW * i / segs)
+    const crest = -wallH * (0.8 + 0.2 * Math.sin(t * 0.18 + i * 1.3)) - Math.sin(i * 2.1) * 4
+    c.lineTo(fx, crest)
+  }
+  c.lineTo(wallW * 0.5, 0)
+  c.closePath(); c.fill()
+  // drifting grains rising along the wall
+  c.shadowBlur = 0; c.fillStyle = "rgba(120,96,56,0.8)"
+  for (let k = 0; k < 10; k++) {
+    const gx = -wallW * 0.45 + (wallW * 0.9) * ((k + 0.5) / 10)
+    const ph = (t * 0.06 + k * 0.7) % 1
+    const gy = -wallH * (0.1 + ph * 0.9)
+    const gr = 1 + 1.4 * (1 - ph)
+    c.globalAlpha = (1 - ph) * 0.8 * rise
+    c.beginPath(); c.arc(gx + Math.sin(t * 0.1 + k) * 3, gy, gr, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 // ISSHIKI VOID SOVEREIGN — crimson Karma aura on the full-black body (same architecture as Jason's Nightmare
 // Void: seeded ONCE, normalized to the drawn bbox so it tracks pose/scale). Drifting crimson Kāma-seal motes
 // + soft low glow pools + burning red eyes on the horned head. Gated on the skin id → no-op for every other skin.
@@ -14430,6 +14480,7 @@ function updateBattle() {
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
+  updateGaara(p1); updateGaara(p2)                                 // GAARA: tick sand FX timers (no-op otherwise)
     }
   }
   updateCloneFormations(getStageWorldWidth())
@@ -14695,6 +14746,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
+    drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")

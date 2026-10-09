@@ -18,6 +18,7 @@ import * as theme from "./theme.js"           // live-swappable UI theme (accent
 const ENERGY_TYPE_LABELS = {
   ki:               "Ki",                       // Dragon Ball (Goku, Vegeta, Goku Black, Piccolo, Frieza, Cell)
   chakra:           "Chakra",                   // Naruto (Naruto, Sasuke)
+  sand:             "Sand",                      // Naruto (Gaara) — his gourd sand is the resource; fuels the sand throw/specials + Sabaku Taisou + Shukaku
   cursed_energy:    "Cursed Energy",            // Jujutsu Kaisen (Gojo, Sukuna)
   nen:              "Nen",                       // Hunter x Hunter (Gon, Killua, …) — "Nen" over "Aura": matches the energyType field + is the series' proper term
   bullshit_science: "Bullshit Science Energy",  // Rick & Morty (Rick) — mirrors his energyConfig.label; kept here as a fallback
@@ -3605,6 +3606,25 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, Math.PI * 2); ctx.fill()
         ctx.fillStyle = "#ffffff"
         ctx.beginPath(); ctx.arc(0, 0, R * 0.12, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "sand") {
+        // GAARA — SAND BULLET: a compressed ball of gourd sand (ART RULE 3 — code-drawn). A soft beige
+        // core with a swirl of darker grains orbiting it + a faint dust trail. Gated on drawKind → no-op
+        // for every other projectile; a real sprite in p.sheet later takes precedence.
+        const R = Math.max(10, p.radius || 14)
+        const base = p.color || "#d8c39a"
+        ctx.translate(x, y)
+        ctx.shadowBlur = 10; ctx.shadowColor = "rgba(180,150,96,0.8)"
+        ctx.fillStyle = base                                   // sand body
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill()
+        ctx.shadowBlur = 0
+        ctx.fillStyle = "rgba(120,96,56,0.85)"                 // orbiting darker grains
+        for (let k = 0; k < 7; k++) {
+          const a = t * 0.18 + k * (Math.PI * 2 / 7)
+          const rr = R * (0.55 + 0.4 * Math.sin(t * 0.1 + k))
+          ctx.beginPath(); ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, Math.max(1, R * 0.16), 0, Math.PI * 2); ctx.fill()
+        }
+        ctx.fillStyle = "#f0e4c6"                              // bright packed core
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.42, 0, Math.PI * 2); ctx.fill()
       }
       ctx.restore()
       return

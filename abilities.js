@@ -5370,6 +5370,57 @@ function executeHinataUltimate(fighter, context) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// GAARA — defensive SAND zoner (rosterKey "gaara"). PHASE 1: a basic SAND BULLET projectile on
+// Down+Special (context-sensitive ground/air/crouch cast pose). The four directional sand specials
+// (Sand Coffin/Tsunami/Dome/Shunshin + Ultimate Defense / Sand Armor passives) land in Phase 2, the
+// Sabaku Taisou ultimate in Phase 3, Shukaku in Phase 4. combat.js is UNTOUCHED — the projectile uses
+// the shared spawnProjectile API; the sand FX is the "sand" drawKind (code-drawn in ui.drawProjectiles).
+function gaaraIsGaara(f) { return !!f && (f.rosterKey || "").toLowerCase() === "gaara" }
+
+// SAND BULLET (Down+Special) — fling a compressed sand ball forward. Pose picks ground / air / crouch
+// from the live state; airborne shots angle slightly downward. Deterministic, LAN-safe (no gameRng).
+function gaaraSandBullet(fighter, context) {
+  const cost = fighter.specials?.sandThrow?.cost ?? 14
+  if (!spendEnergy(fighter, cost)) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  const crouching = !!fighter._crouching
+  const pose = !grounded ? "gaaraThrowAir" : (crouching ? "gaaraThrowCrouch" : "gaaraThrow")
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._spriteCastMove = pose; fighter._spriteCastTimer = 22
+  const h = fighter.h || 100
+  schedulePendingSpawn(8, () => {
+    const spawnY = fighter.y + h * (crouching ? 0.62 : 0.42)
+    spawnProjectile(fighter, "gaara_sand_bullet", {
+      w: 22, h: 22, radius: 13, speed: 12,
+      spawnY,
+      vy: !grounded ? 3.2 : 0,                 // air shot drifts down toward a grounded foe
+      damage: 56, hitstun: 16, knockbackX: 6, knockbackY: -2,
+      lifetime: 96, color: "#d8c39a", drawKind: "sand",
+      isSpecial: true
+    }, context)
+  })
+  try { shakeCamera(context, 1, 3) } catch (_) {}
+  return true
+}
+
+function executeGaaraSpecial(fighter, context) {
+  if (!gaaraIsGaara(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "D") return gaaraSandBullet(fighter, context)   // Down = Sand Bullet (Phase 1)
+  // N / F / B / U reserved for the Phase 2 sand specials (Sand Coffin/Tsunami/Dome/Shunshin).
+  return false
+}
+
+// Per-frame tick (called from game.js battle loop for p1 & p2). Phase 1 decrements any Gaara FX timers;
+// a pure no-op for every other fighter. Phases 2-4 extend this (Ultimate Defense scan, gauge, Shukaku).
+export function updateGaara(fighter) {
+  if (!gaaraIsGaara(fighter)) return
+  for (const k of ["_gaaraShieldFx"]) {
+    if (fighter[k] > 0) fighter[k]--
+  }
+}
 
 function executeJiraiyaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jiraiya") return false
@@ -26767,6 +26818,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)
     case "rick":    return executeRickSpecial(fighter, context)
     case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
+    case "gaara":   return executeGaaraSpecial(fighter, context)   // Phase 1: D=Sand Bullet (projectile). N/F/B/U sand specials = Phase 2; Sabaku Taisou ULT = Phase 3; Shukaku = Phase 4
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE

@@ -7024,7 +7024,7 @@ const gaara = {
   archetypes: ["zoner", "technical"],
   primary: "ranged", secondary: ["zoner"],
   traits: { hasEnergy: true, energyType: "sand", mobility: "low", scaling: "controlled", animeMovement: true },
-  passive: { name: "Shield of Sand", effect: "Gaara's Sand Armor and the Ultimate Defense — his automatic sand shield — rise from the gourd without a hand sign. (Sand Shield guard ships in Phase 1; Ultimate Defense + Sand Armor passives land in Phase 2.)" },
+  passive: { name: "Shield of Sand", effect: "Gaara's automatic sand defence rises from the gourd with no hand sign. Holding Block raises the Sand Shield wall; while standing still with high Sand the Ultimate Defense auto-stops the first incoming projectile, and the Sand Armor reduces incoming damage (spending Sand per hit) while Sand is high." },
   // DURABLE SAND TANK: above the Naruto melee band on HP/defence (naruto/sasuke 1180/89), SLOW walk, moderate
   // attack (zoning + control over raw power). maxEnergy 180 = Sand. Strong zoning via the sand throw/specials.
   stats: { maxHealth: 1280, maxEnergy: 180, attack: 83, defense: 96, speed: 76, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
@@ -7046,11 +7046,11 @@ const gaara = {
   // CANON-ADJACENT (canon sand uses re-cast as a dome-guard / dodge). Sand Throw = CANON-ADJACENT (basic
   // ranged sand bullet). Wiring + costs land across Phases 2-4.
   specials: {
-    sandThrow:    { cost: 14, effect: "Down + Special: Sand Bullet — Gaara flings a compressed sand ball (ground / air / crouch pose). A basic zoning projectile. [Phase 1]" },
-    sandCoffin:   { cost: 30, effect: "Special: Sabaku Kyuu (Sand Coffin) — sand hands rise under the foe and bind; press Special again in the window for Sabaku Sousou (Sand Burial) damage. [Phase 2]" },
-    sandTsunami:  { cost: 28, effect: "Fwd + Special: Sand Tsunami — a travelling wave of sand surges forward. [Phase 2]" },
-    sandDome:     { cost: 24, effect: "Back + Special: Sand Dome — the sand closes into a brief all-direction guard around Gaara (cooldown). [Phase 2]" },
-    sandShunshin: { cost: 18, effect: "Up + Special: Sand Shunshin — a short sand-flicker dodge-teleport. [Phase 2]" }
+    sandThrow:    { cost: 14, effect: "Down + Special: Sand Bullet — Gaara flings a compressed sand ball (ground / air / crouch pose). A basic zoning projectile." },
+    sandCoffin:   { cost: 30, effect: "Special: Sabaku Kyuu (Sand Coffin) — sand hands rise under the foe and bind; press Special again in the window for Sabaku Sousou (Sand Burial) damage." },
+    sandTsunami:  { cost: 28, effect: "Fwd + Special: Sand Tsunami — a travelling wave of sand surges forward." },
+    sandDome:     { cost: 24, effect: "Back + Special: Sand Dome — the sand closes into a brief all-direction guard around Gaara (i-frames + radial shove, cooldown)." },
+    sandShunshin: { cost: 18, effect: "Up + Special: Sand Shunshin — a short sand-flicker dodge-teleport (retreat) with i-frames." }
   },
   ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Big damage. [Phase 3]" },
   hasSprites: true,
@@ -7084,7 +7084,9 @@ const gaara = {
     // ── PROJECTILE CAST POSES (Sand Throw; _spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
     gaaraThrow:       { frames: 2, width: 59, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throw_uniform.png" },        // ground throw
     gaaraThrowAir:    { frames: 3, width: 54, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwAir_uniform.png" },     // jump throw
-    gaaraThrowCrouch: { frames: 5, width: 64, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwCrouch_uniform.png" }   // crouch throw
+    gaaraThrowCrouch: { frames: 5, width: 64, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwCrouch_uniform.png" },  // crouch throw
+    // ── PHASE 2 — SAND JUTSU CAST POSE (arm-raised; shared by Sand Coffin/Burial/Tsunami/Dome casts) ──
+    gaaraSandCast:    { frames: 5, width: 41, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_sandcast_uniform.png" }       // Sabaku Taisou Part-1 cast poses (reused at special scale)
   }
 }
 

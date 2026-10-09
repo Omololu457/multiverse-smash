@@ -269,7 +269,7 @@ import {
   fireCloneSubstitution,       // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
-  updateGaara   // GAARA (Phase 1) — per-frame FX-timer tick (no-op otherwise; Phases 2-4 extend it)
+  updateGaara, applyGaaraUltimateDefense   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -12625,49 +12625,92 @@ function drawHinataFx(c, fighter) {
 // (toward his facing). Render-only + code-drawn (no new art): a mound of beige sand grains that rises and
 // settles. Normal block rules are UNCHANGED (combat.js handles the actual block) — this is purely the
 // visual tell the brief asks for. Gated on rosterKey + isBlocking → a pure no-op for every other fighter.
+const _gaaraFxImgs = {}
+function _gaaraFxImg(src) {
+  if (!_gaaraFxImgs[src]) { const i = new Image(); i.src = src; _gaaraFxImgs[src] = i }
+  return _gaaraFxImgs[src]
+}
+// Blit one frame of a sand-FX strip, BOTTOM-anchored at (cx, bottomY) so a rising hand / dome grows up
+// from the ground. frames = strip frame count; fi = frame index; sc = scale; alpha = opacity.
+function _gaaraBlitFx(c, img, frames, fi, cx, bottomY, sc, alpha) {
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight
+  const dw = fw * sc, dh = fh * sc
+  c.save(); c.globalAlpha = alpha
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, bottomY - dh, dw, dh)
+  c.restore()
+}
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
-  if (!fighter.isBlocking) { fighter._gaaraShieldAnim = 0; return }
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const facing = fighter.facing || 1
-  // rise envelope: ramps up over ~10 frames while blocking, holds
-  const rise = Math.min(1, (fighter._gaaraShieldAnim = Math.min(12, (fighter._gaaraShieldAnim || 0) + 1)) / 10)
-  const t = (fighter._gaaraShieldT = (fighter._gaaraShieldT || 0) + 1)
-  // wall base: just in front of the body, grounded at the feet
-  const frontX = facing === 1 ? fighter.x + w * 0.78 : fighter.x + w * 0.22
-  const feetY = fighter.y + h
-  const wallH = h * 0.86 * rise
-  const wallW = w * 0.46
-  c.save()
-  c.translate(frontX, feetY)
-  // soft shadow/body of the sand wall
-  c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.7)"
-  const grad = c.createLinearGradient(0, 0, 0, -wallH)
-  grad.addColorStop(0, "rgba(176,146,92,0.95)")
-  grad.addColorStop(1, "rgba(216,195,154,0.78)")
-  c.fillStyle = grad
-  c.beginPath()
-  c.moveTo(-wallW * 0.5, 0)
-  // wobbling crest built from a few sine humps (deterministic in t → no RNG)
-  const segs = 6
-  for (let i = 0; i <= segs; i++) {
-    const fx = -wallW * 0.5 + (wallW * i / segs)
-    const crest = -wallH * (0.8 + 0.2 * Math.sin(t * 0.18 + i * 1.3)) - Math.sin(i * 2.1) * 4
-    c.lineTo(fx, crest)
+  const cx = fighter.x + w / 2, feetY = fighter.y + h
+
+  // (Phase 1) SAND SHIELD — sand wall rising in front while blocking.
+  if (fighter.isBlocking) {
+    const rise = Math.min(1, (fighter._gaaraShieldAnim = Math.min(12, (fighter._gaaraShieldAnim || 0) + 1)) / 10)
+    const t = (fighter._gaaraShieldT = (fighter._gaaraShieldT || 0) + 1)
+    const frontX = facing === 1 ? fighter.x + w * 0.78 : fighter.x + w * 0.22
+    const wallH = h * 0.86 * rise, wallW = w * 0.46
+    c.save(); c.translate(frontX, feetY)
+    c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.7)"
+    const grad = c.createLinearGradient(0, 0, 0, -wallH)
+    grad.addColorStop(0, "rgba(176,146,92,0.95)"); grad.addColorStop(1, "rgba(216,195,154,0.78)")
+    c.fillStyle = grad; c.beginPath(); c.moveTo(-wallW * 0.5, 0)
+    for (let i = 0; i <= 6; i++) {
+      const fx = -wallW * 0.5 + (wallW * i / 6)
+      const crest = -wallH * (0.8 + 0.2 * Math.sin(t * 0.18 + i * 1.3)) - Math.sin(i * 2.1) * 4
+      c.lineTo(fx, crest)
+    }
+    c.lineTo(wallW * 0.5, 0); c.closePath(); c.fill()
+    c.shadowBlur = 0; c.fillStyle = "rgba(120,96,56,0.8)"
+    for (let k = 0; k < 10; k++) {
+      const gx = -wallW * 0.45 + (wallW * 0.9) * ((k + 0.5) / 10)
+      const ph = (t * 0.06 + k * 0.7) % 1
+      c.globalAlpha = (1 - ph) * 0.8 * rise
+      c.beginPath(); c.arc(gx + Math.sin(t * 0.1 + k) * 3, -wallH * (0.1 + ph * 0.9), 1 + 1.4 * (1 - ph), 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+  } else { fighter._gaaraShieldAnim = 0 }
+
+  // (Phase 2) SAND COFFIN — giant sand hands rising at the bound foe's feet.
+  const hf = fighter._gaaraHandsFx || 0
+  if (hf > 0) {
+    const fi = Math.floor((40 - hf) / 40 * 5)
+    _gaaraBlitFx(c, _gaaraFxImg("./gaara_fx_hands_uniform.png"), 5, fi, fighter._gaaraHandsX ?? cx, fighter._gaaraHandsY ?? feetY, 0.5, Math.min(0.92, hf / 10))
   }
-  c.lineTo(wallW * 0.5, 0)
-  c.closePath(); c.fill()
-  // drifting grains rising along the wall
-  c.shadowBlur = 0; c.fillStyle = "rgba(120,96,56,0.8)"
-  for (let k = 0; k < 10; k++) {
-    const gx = -wallW * 0.45 + (wallW * 0.9) * ((k + 0.5) / 10)
-    const ph = (t * 0.06 + k * 0.7) % 1
-    const gy = -wallH * (0.1 + ph * 0.9)
-    const gr = 1 + 1.4 * (1 - ph)
-    c.globalAlpha = (1 - ph) * 0.8 * rise
-    c.beginPath(); c.arc(gx + Math.sin(t * 0.1 + k) * 3, gy, gr, 0, Math.PI * 2); c.fill()
+  // (Phase 2) SAND BURIAL — the dome collapses on the bound foe.
+  const cf = fighter._gaaraCollapseFx || 0
+  if (cf > 0) {
+    const fi = Math.floor((30 - cf) / 30 * 4)
+    _gaaraBlitFx(c, _gaaraFxImg("./gaara_fx_collapse_uniform.png"), 4, fi, fighter._gaaraCollapseX ?? cx, fighter._gaaraCollapseY ?? feetY, 0.55, Math.min(0.92, cf / 10))
   }
-  c.restore()
+  // (Phase 2) SAND DOME — the dome shrunk around Gaara (brief all-direction guard).
+  const df = fighter._gaaraDomeFx || 0
+  if (df > 0) {
+    const fi = Math.floor((28 - df) / 28 * 4)
+    _gaaraBlitFx(c, _gaaraFxImg("./gaara_fx_dome_uniform.png"), 4, fi, cx, feetY + h * 0.06, (w * 1.7) / 260, Math.min(0.85, df / 10))
+  }
+  // (Phase 2) SAND SHUNSHIN — a sand-flicker puff where Gaara blinks.
+  const sf = fighter._gaaraShunshinFx || 0
+  if (sf > 0) {
+    c.save(); c.globalAlpha = Math.min(0.8, sf / 10); c.fillStyle = "rgba(205,184,135,0.85)"; c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.8)"
+    for (let k = 0; k < 12; k++) {
+      const a = k * (Math.PI * 2 / 12), rr = (16 - sf) * 3 + 6
+      c.beginPath(); c.arc(cx + Math.cos(a) * rr, fighter.y + h * 0.5 + Math.sin(a) * rr * 0.8, 2 + (k % 3), 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+  }
+  // (Phase 2) SAND BURST — Ultimate Defense projectile-stop / Sand Armor hit absorb.
+  const bf = fighter._gaaraBurstFx || 0
+  if (bf > 0) {
+    c.save(); c.globalAlpha = Math.min(0.85, bf / 10); c.strokeStyle = "rgba(216,195,154,0.9)"; c.lineWidth = 3; c.shadowBlur = 10; c.shadowColor = "rgba(150,120,70,0.8)"
+    const rr = (16 - bf) * 5 + 8
+    c.beginPath(); c.arc(cx, fighter.y + h * 0.5, rr, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = "rgba(205,184,135,0.8)"
+    for (let k = 0; k < 8; k++) { const a = k * (Math.PI / 4); c.beginPath(); c.arc(cx + Math.cos(a) * rr, fighter.y + h * 0.5 + Math.sin(a) * rr, 2.5, 0, Math.PI * 2); c.fill() }
+    c.restore()
+  }
 }
 
 // ISSHIKI VOID SOVEREIGN — crimson Karma aura on the full-black body (same architecture as Jason's Nightmare
@@ -14480,7 +14523,8 @@ function updateBattle() {
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
-  updateGaara(p1); updateGaara(p2)                                 // GAARA: tick sand FX timers (no-op otherwise)
+  updateGaara(p1); updateGaara(p2)                                 // GAARA: tick sand FX + Sand Armor passive (no-op otherwise)
+  applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
     }
   }
   updateCloneFormations(getStageWorldWidth())

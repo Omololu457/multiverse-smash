@@ -3625,6 +3625,33 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         }
         ctx.fillStyle = "#f0e4c6"                              // bright packed core
         ctx.beginPath(); ctx.arc(0, 0, R * 0.42, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "sandwave") {
+        // GAARA — SAND TSUNAMI: a wide, low travelling wave of sand (his Run-Attack wave, scaled up).
+        // A rolling crest built from layered humps + a spray of grains off the leading edge. Code-drawn.
+        const R = Math.max(30, p.radius || 42)
+        const base = p.color || "#cdb487"
+        const face = (p.vx || 0) >= 0 ? 1 : -1
+        ctx.translate(x, y); ctx.scale(face, 1)
+        ctx.shadowBlur = 12; ctx.shadowColor = "rgba(150,120,70,0.7)"
+        const grad = ctx.createLinearGradient(0, R * 0.9, 0, -R * 1.1)
+        grad.addColorStop(0, "rgba(150,120,72,0.95)")
+        grad.addColorStop(1, "rgba(221,201,160,0.8)")
+        ctx.fillStyle = grad
+        ctx.beginPath(); ctx.moveTo(-R * 1.3, R * 0.9)
+        const segs = 8
+        for (let i = 0; i <= segs; i++) {
+          const fx = -R * 1.3 + (R * 2.6 * i / segs)
+          const crest = -R * (0.3 + 0.75 * Math.sin((i / segs) * Math.PI)) - Math.sin(t * 0.3 + i) * 4
+          ctx.lineTo(fx, crest)
+        }
+        ctx.lineTo(R * 1.3, R * 0.9); ctx.closePath(); ctx.fill()
+        ctx.shadowBlur = 0; ctx.fillStyle = "rgba(120,96,56,0.8)"   // leading-edge spray
+        for (let k = 0; k < 9; k++) {
+          const sx = R * (0.6 + 0.6 * ((k * 2.3 + t * 0.2) % 1))
+          const sy = -R * (0.2 + 0.8 * ((k * 1.7) % 1)) - Math.sin(t * 0.4 + k) * 3
+          ctx.globalAlpha = 0.7
+          ctx.beginPath(); ctx.arc(sx, sy, 1.5 + (k % 3), 0, Math.PI * 2); ctx.fill()
+        }
       }
       ctx.restore()
       return

@@ -315,8 +315,8 @@ export const KITS = {
 
   gaara: {
     type: "Sand Zoner / Defensive Tank", energy: "Sand", difficulty: "Medium",
-    summary: "Gaara of the Desert — the Fifth Kazekage. A durable, slow SAND zoner who fights at range and turtles behind his gourd sand. His ground sand wave, rising sand spikes and sand-bullet throw control space; his specials (Sand Coffin/Burial bind, Sand Tsunami, Sand Dome guard, Sand Shunshin dodge) land in Phase 2, the Sabaku Taisou burial ultimate in Phase 3, and the One-Tail Shukaku summon in Phase 4.",
-    passive: { name: "Shield of Sand", effect: "Automatic sand defence rises from the gourd with no hand sign. Holding Block raises the Sand Shield wall (Phase 1). Ultimate Defense (auto-blocks the first projectile) + Sand Armor (chip damage reduction) activate in Phase 2." },
+    summary: "Gaara of the Desert — the Fifth Kazekage. A durable, slow SAND zoner who fights at range and turtles behind his gourd sand. His ground sand wave, rising sand spikes and sand-bullet throw control space; his specials bind (Sand Coffin → Burial), zone (Sand Tsunami), guard (Sand Dome) and dodge (Sand Shunshin), backed by the passive Ultimate Defense + Sand Armor. The Sabaku Taisou burial ultimate lands in Phase 3 and the One-Tail Shukaku summon in Phase 4.",
+    passive: { name: "Shield of Sand", effect: "Automatic sand defence rises from the gourd with no hand sign. Holding Block raises the Sand Shield wall. ULTIMATE DEFENSE: while standing still with high Sand, the first incoming projectile is auto-stopped by a sand burst (costs Sand). SAND ARMOR: while Sand is high, incoming damage is reduced — each hit spends Sand to absorb it." },
     basics: [
       { name: "Sand Fist",      input: "Light",                   desc: "close sand-fist jab string" },
       { name: "Sand Wave",      input: "Heavy",                   desc: "advancing ground sand wave — long reach, big knockback" },
@@ -326,11 +326,11 @@ export const KITS = {
       { name: "Low Sand Sweep", input: "Crouch + Light",          desc: "low sweeping sand poke" }
     ],
     specials: [
-      { name: "Sand Bullet",   input: "Down + Special",    cost: 14, desc: "flings a compressed sand ball — a basic zoning projectile; ground / air / crouch pose [CANON-ADJACENT] [Phase 1]" },
-      { name: "Sand Coffin",   input: "Special",           cost: 30, desc: "Sabaku Kyuu — sand hands rise under the foe and bind; press Special again for Sabaku Sousou (Sand Burial) damage [CANON] [Phase 2]" },
-      { name: "Sand Tsunami",  input: "Forward + Special", cost: 28, desc: "a travelling wave of sand surges forward [CANON] [Phase 2]" },
-      { name: "Sand Dome",     input: "Back + Special",    cost: 24, desc: "sand closes into a brief all-direction guard (cooldown) [CANON-ADJACENT] [Phase 2]" },
-      { name: "Sand Shunshin", input: "Up + Special",      cost: 18, desc: "short sand-flicker dodge-teleport [CANON-ADJACENT] [Phase 2]" }
+      { name: "Sand Coffin",   input: "Special",           cost: 30, desc: "Sabaku Kyuu — sand hands rise under the foe and BIND; press Special again in the window for Sabaku Sousou (Sand Burial) damage [CANON]" },
+      { name: "Sand Tsunami",  input: "Forward + Special", cost: 28, desc: "a travelling wave of sand surges forward (his sand wave, scaled up) [CANON]" },
+      { name: "Sand Dome",     input: "Back + Special",    cost: 24, desc: "sand closes into a brief all-direction guard — i-frames + radial shove (cooldown) [CANON-ADJACENT]" },
+      { name: "Sand Shunshin", input: "Up + Special",      cost: 18, desc: "short sand-flicker dodge-teleport (retreat) with i-frames [CANON-ADJACENT]" },
+      { name: "Sand Bullet",   input: "Down + Special",    cost: 14, desc: "flings a compressed sand ball — a basic zoning projectile; ground / air / crouch pose [CANON-ADJACENT]" }
     ],
     passiveNote: "One-Tail Gauge (Phase 4): fills as Gaara takes damage and his sand moves hit. When full, Down+Ultimate summons Shukaku; while Shukaku is out, Gaara's specials re-route to Sand Volley / Shukaku Swipe / Sand Shuriken / Pyramid Seal, and its Ultimate is the Tailed Beast Ball.",
     ultimate: { name: "Sabaku Taisou", input: "Ultimate (full meter)", cost: 100, desc: "Giant Sand Burial — sand ripples → giant hands → engulfing dome collapses on the foe, then a kneeling ground burst. Big damage [CANON] [Phase 3]" },

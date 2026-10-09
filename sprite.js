@@ -229,6 +229,7 @@ const MOVE_TO_ACTION = {
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",
+  gaaraSandCast: "gaaraSandCast",   // Phase 2: shared sand-jutsu cast pose (Coffin/Burial/Tsunami/Dome). Identity map.
   // Naruto (Adult KCM) — special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
   // Chakra Arm Strike / Gamabunta+TBB gather pose.)

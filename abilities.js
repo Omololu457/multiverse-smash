@@ -5404,21 +5404,206 @@ function gaaraSandBullet(fighter, context) {
   return true
 }
 
+// ── PHASE 2 SAND SPECIALS ────────────────────────────────────────────────────────────────────────
+// All deterministic + LAN-safe (no gameRng). The EFFECTS are procedural (FX timers drawn in
+// game.drawGaaraFx); Gaara's body plays the shared sandcast pose. combat.js stays UNTOUCHED — binds use
+// the existing hitstun/zero-velocity pin, damage uses the shared applyScaledDamage, dodges use invulnTimer.
+const GAARA_COFFIN_RANGE = 440   // horizontal reach of the sand hands (zoner-friendly)
+
+// SAND COFFIN (neutral Special) — sand hands rise under the foe and BIND (hitstun pin). Opens a short
+// follow-up window: pressing Special again = SAND BURIAL (damage). Without the follow-up the bind just ends.
+function gaaraSandCoffin(fighter, context) {
+  const cost = fighter.specials?.sandCoffin?.cost ?? 30
+  if (!spendEnergy(fighter, cost)) return false
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._spriteCastMove = "gaaraSandCast"; fighter._spriteCastTimer = 26
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    fighter._coffinWindow = 34   // the Sand Burial follow-up window opens either way (so a whiff still "commits")
+    if (!opp || opp.eliminated) return
+    const dx = Math.abs((opp.x + (opp.w || 0) / 2) - (fighter.x + (fighter.w || 0) / 2))
+    if (dx > GAARA_COFFIN_RANGE || (opp.invulnTimer || 0) > 0) return
+    // BIND: pin the foe (hitstun + zero velocity) for the bind window; re-pinned each frame in updateGaara.
+    fighter._coffinTarget = opp
+    fighter._coffinBind = 40
+    opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = 0; opp.vy = 0
+    // hands FX at the foe's feet
+    fighter._gaaraHandsFx = 40
+    fighter._gaaraHandsX = opp.x + (opp.w || 0) / 2
+    fighter._gaaraHandsY = opp.y + (opp.h || 100)
+  })
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+
+// SAND BURIAL (Special again, inside the Coffin window) — Sabaku Sousou: the dome closes and collapses on
+// the bound foe for damage. NO gore (a clean crush). Ends the bind.
+function gaaraSandBurial(fighter, context) {
+  const cost = 20
+  if (!spendEnergy(fighter, cost)) { fighter._coffinWindow = 0; return false }
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  fighter._spriteCastMove = "gaaraSandCast"; fighter._spriteCastTimer = 24
+  fighter._coffinWindow = 0
+  const opp = fighter._coffinTarget || getTargetResolver(context)(fighter)
+  const fx = (opp && !opp.eliminated) ? opp : fighter
+  fighter._gaaraCollapseFx = 30
+  fighter._gaaraCollapseX = fx.x + (fx.w || 0) / 2
+  fighter._gaaraCollapseY = fx.y + (fx.h || 100)
+  schedulePendingSpawn(8, () => {
+    const o = fighter._coffinTarget || getTargetResolver(context)(fighter)
+    fighter._coffinBind = 0; fighter._coffinTarget = null
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    // the collapse only crushes a foe AT the collapse point (a bound / nearby foe) — a cross-map Burial whiffs.
+    const ocx = o.x + (o.w || 0) / 2
+    if (Math.abs(ocx - (fighter._gaaraCollapseX ?? ocx)) > 230) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 22; applyScaledDamage(o, Math.floor(104 * 0.25), { source: "ability" }); return }
+    o.hitstun = 34; o.vx = dir * 5; o.vy = -6; o.colorFlash = 14
+    applyScaledDamage(o, 104, { source: "ability" })
+  })
+  try { shakeCamera(context, 5, 12) } catch (_) {}
+  return true
+}
+
+// SAND TSUNAMI (Forward + Special) — a travelling wave of sand surges forward (his Run-Attack wave, scaled
+// up), a wide low hazard. Procedural "sandwave" drawKind projectile — no new art.
+function gaaraSandTsunami(fighter, context) {
+  const cost = fighter.specials?.sandTsunami?.cost ?? 28
+  if (!spendEnergy(fighter, cost)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._spriteCastMove = "gaaraSandCast"; fighter._spriteCastTimer = 24
+  const h = fighter.h || 100
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "gaara_sand_tsunami", {
+      w: 84, h: 70, radius: 42, speed: 9,
+      spawnY: fighter.y + h * 0.66,
+      damage: 76, hitstun: 22, knockbackX: 11, knockbackY: -4,
+      lifetime: 90, color: "#cdb487", drawKind: "sandwave",
+      isSpecial: true
+    }, context)
+  })
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+// SAND DOME (Back + Special) — the sand closes into a brief all-direction guard around Gaara (i-frames +
+// a radial shove), on a cooldown so it isn't a spammable panic button. CANON-ADJACENT.
+function gaaraSandDome(fighter, context) {
+  if ((fighter._gaaraDomeCd || 0) > 0) return false
+  const cost = fighter.specials?.sandDome?.cost ?? 24
+  if (!spendEnergy(fighter, cost)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "gaaraSandCast"; fighter._spriteCastTimer = 24
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)   // the dome protects from all directions
+  fighter._gaaraDomeFx = 28
+  fighter._gaaraDomeCd = 120                                      // ~2s cooldown
+  // radial shove: push a nearby foe out
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {
+    const dx = (opp.x + (opp.w || 0) / 2) - (fighter.x + (fighter.w || 0) / 2)
+    if (Math.abs(dx) < 150 && Math.abs((opp.y) - (fighter.y)) < 120) {
+      const dir = dx >= 0 ? 1 : -1
+      opp.vx = dir * 9; opp.vy = -4; opp.hitstun = Math.max(opp.hitstun || 0, 14)
+    }
+  }
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+
+// SAND SHUNSHIN (Up + Special) — a short sand-flicker dodge-teleport (retreat, away from the foe) with
+// brief i-frames. Reuses the teleport reposition pattern + teleportFlash. CANON-ADJACENT.
+function gaaraSandShunshin(fighter, context) {
+  const cost = fighter.specials?.sandShunshin?.cost ?? 18
+  if (!spendEnergy(fighter, cost)) return false
+  const sw = context?.worldWidth || 3200
+  const gap = 180
+  const opp = getTargetResolver(context)(fighter)
+  // retreat AWAY from the foe (or just backward from facing if no foe)
+  const awayDir = opp ? ((fighter.x <= opp.x) ? -1 : 1) : -fighter.facing
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 16)   // dodge i-frames
+  fighter.teleportFlash = 16
+  fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 16
+  fighter._gaaraShunshinFx = 16
+  schedulePendingSpawn(4, () => {
+    fighter.x = Math.max(0, Math.min(sw - (fighter.w || 0), fighter.x + awayDir * gap))
+    fighter.vx = 0; fighter.vy = 0
+    fighter.teleportFlash = 14
+    fighter._gaaraShunshinFx = 14
+  })
+  return true
+}
+
 function executeGaaraSpecial(fighter, context) {
   if (!gaaraIsGaara(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // SAND BURIAL follow-up: a Special inside the open Coffin window (any direction) → the dome collapses.
+  if ((fighter._coffinWindow || 0) > 0) return gaaraSandBurial(fighter, context)
   const dir = fighter._specialHeldDir || null
-  if (dir === "D") return gaaraSandBullet(fighter, context)   // Down = Sand Bullet (Phase 1)
-  // N / F / B / U reserved for the Phase 2 sand specials (Sand Coffin/Tsunami/Dome/Shunshin).
-  return false
+  if (dir === "D") return gaaraSandBullet(fighter, context)    // Down    = Sand Bullet (Phase 1 projectile)
+  if (dir === "F") return gaaraSandTsunami(fighter, context)   // Forward = Sand Tsunami
+  if (dir === "B") return gaaraSandDome(fighter, context)      // Back    = Sand Dome (guard)
+  if (dir === "U") return gaaraSandShunshin(fighter, context)  // Up      = Sand Shunshin (dodge)
+  return gaaraSandCoffin(fighter, context)                     // neutral = Sand Coffin (bind → Burial)
 }
 
-// Per-frame tick (called from game.js battle loop for p1 & p2). Phase 1 decrements any Gaara FX timers;
-// a pure no-op for every other fighter. Phases 2-4 extend this (Ultimate Defense scan, gauge, Shukaku).
+// ULTIMATE DEFENSE (passive) — while standing still with Sand ≥ threshold, the FIRST incoming ENEMY
+// PROJECTILE near Gaara is stopped by an automatic sand burst (costs Sand + a cooldown). NEVER triggers
+// against melee (only scans activeProjectiles). Mirrors applyHinataGuutenToProjectiles — no combat.js.
+const GAARA_ULTDEF_THRESHOLD = 40
+export function applyGaaraUltimateDefense(gaara) {
+  if (!gaaraIsGaara(gaara) || gaara.eliminated) return
+  if ((gaara._gaaraUltDefCd || 0) > 0) { gaara._gaaraUltDefCd--; return }
+  const grounded = gaara.onGround ?? gaara.grounded ?? true
+  const still = Math.abs(gaara.vx || 0) < 1.2 && grounded && !gaara.attacking && (gaara.hitstun || 0) <= 0
+  if (!still || (gaara.energy || 0) < GAARA_ULTDEF_THRESHOLD) return
+  const cx = gaara.x + (gaara.w || 0) / 2, cy = gaara.y + (gaara.h || 100) / 2
+  const R = 120
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (!p || p.owner === gaara || p.visualOnly) continue
+    // only an INCOMING projectile (moving toward Gaara) within reach
+    if (Math.hypot((p.x ?? 0) - cx, (p.y ?? 0) - cy) > R) continue
+    const approaching = ((p.x ?? 0) < cx && (p.vx || 0) > 0) || ((p.x ?? 0) > cx && (p.vx || 0) < 0)
+    if (!approaching) continue
+    if (!spendEnergy(gaara, 18)) break   // not enough Sand → the shield can't form this time
+    activeProjectiles.splice(i, 1)       // sand burst swallows it
+    gaara._gaaraUltDefCd = 40
+    gaara._gaaraBurstFx = 16
+    break                                // stops only the FIRST projectile
+  }
+}
+
+// Per-frame tick (called from game.js battle loop for p1 & p2). Ticks all Gaara FX/cooldown timers, the
+// Sand Coffin bind pin, and the SAND ARMOR passive (defenseMultiplier while Sand is high + drain per hit).
+// A pure no-op for every other fighter. Phases 3-4 extend this (Shukaku gauge/summon).
+const GAARA_ARMOR_THRESHOLD = 60
 export function updateGaara(fighter) {
   if (!gaaraIsGaara(fighter)) return
-  for (const k of ["_gaaraShieldFx"]) {
+  for (const k of ["_gaaraShieldFx", "_gaaraHandsFx", "_gaaraDomeFx", "_gaaraCollapseFx",
+                   "_gaaraShunshinFx", "_gaaraBurstFx", "_coffinWindow", "_gaaraDomeCd"]) {
     if (fighter[k] > 0) fighter[k]--
+  }
+  // SAND COFFIN bind: keep the foe pinned (hitstun + zero velocity) for the bind window.
+  if ((fighter._coffinBind || 0) > 0) {
+    fighter._coffinBind--
+    const o = fighter._coffinTarget
+    if (o && !o.eliminated) { o.hitstun = Math.max(o.hitstun || 0, 6); o.vx = 0 }
+    else fighter._coffinBind = 0
+  }
+  // SAND ARMOR (passive): while Sand ≥ threshold, incoming damage is reduced (existing defenseMultiplier
+  // hook); each hit taken drains Sand (the shield "spends" to absorb it). Reverts cleanly when Sand drops.
+  const hp = fighter.health || 0
+  if (fighter._gaaraLastHp == null) fighter._gaaraLastHp = hp
+  const tookHit = hp < fighter._gaaraLastHp
+  fighter._gaaraLastHp = hp
+  if ((fighter.energy || 0) >= GAARA_ARMOR_THRESHOLD) {
+    fighter.defenseMultiplier = 1.25   // ~20% damage reduction (Gaara has no other defenseMultiplier source)
+    fighter._gaaraArmorOn = true
+    if (tookHit) { fighter.energy = Math.max(0, (fighter.energy || 0) - 8); fighter._gaaraBurstFx = Math.max(fighter._gaaraBurstFx || 0, 8) }
+  } else if (fighter._gaaraArmorOn) {
+    fighter.defenseMultiplier = 1       // revert once Sand runs low
+    fighter._gaaraArmorOn = false
   }
 }
 

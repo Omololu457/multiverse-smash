@@ -43,11 +43,25 @@ def trim(cell):
     return cell[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
 
-def build(keyed, y0, y1, boxes, name, feet_align=True):
-    """boxes = list of (x0,x1). Returns (strip Image, frames, cw, ch)."""
+def strip_green(cell):
+    """Zero the alpha of any greenish pixel. Safe ONLY for the sand FX rows (sand is beige/brown, never
+    green) — kills the enclosed green-background pockets the border flood-fill can't reach + the sheet's
+    green spawn-point marker dots. Not used on the body sprites (which could legitimately hold other hues)."""
+    out = cell.copy()
+    rgb = out[..., :3].astype(int)
+    greenish = (rgb[..., 1] > 110) & (rgb[..., 1] - rgb[..., 0] > 35) & (rgb[..., 1] - rgb[..., 2] > 35)
+    out[greenish, 3] = 0
+    return out
+
+
+def build(keyed, y0, y1, boxes, name, feet_align=True, degreen=False):
+    """boxes = list of (x0,x1). Returns (strip Image, frames, cw, ch). degreen=True strips residual
+    green-bg pockets (sand FX only)."""
     frames = []
     for (x0, x1) in boxes:
         sub = keyed[y0:y1, x0:x1]
+        if degreen:
+            sub = strip_green(sub)
         t = trim(sub)
         if t is not None:
             frames.append(t)
@@ -113,6 +127,16 @@ def main():
 
     # ── GUARD (Sand Shield): stance pose; sand-wall FX drawn separately ──
     build(keyed, 75, 136, [(19, 54), (73, 106)], "guard")
+
+    # ── PHASE 2 — SAND JUTSU CAST POSE + FX ROWS (Sabaku Taisou Part-1 art, reused at special scale) ──
+    # Gaara's sand-jutsu cast pose (arm raised) — first 5 of the 11 Part-1 cast frames.
+    build(keyed, 990, 1055, [(47, 84), (99, 128), (141, 170), (183, 214), (226, 260)], "sandcast")
+    # Giant sand HANDS rising (Sand Coffin bind) — 5f (split the merged 4th box). degreen: drop enclosed bg pockets.
+    build(keyed, 1128, 1295, [(43, 249), (271, 481), (492, 704), (719, 964), (964, 1210)], "fx_hands", feet_align=True, degreen=True)
+    # Engulf-to-DOME (Sand Dome guard + Sand Burial close) — 4f.
+    build(keyed, 1305, 1495, [(24, 280), (314, 570), (602, 858), (890, 1146)], "fx_dome", feet_align=True, degreen=True)
+    # COLLAPSE (Sand Burial damage) — 4f.
+    build(keyed, 1500, 1690, [(32, 288), (317, 573), (591, 847), (870, 1126)], "fx_collapse", feet_align=True, degreen=True)
 
     print("\nDONE — uniform strips written to project root.")
 

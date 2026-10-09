@@ -333,7 +333,7 @@ export const KITS = {
       { name: "Sand Bullet",   input: "Down + Special",    cost: 14, desc: "flings a compressed sand ball — a basic zoning projectile; ground / air / crouch pose [CANON-ADJACENT]" }
     ],
     passiveNote: "One-Tail Gauge (Phase 4): fills as Gaara takes damage and his sand moves hit. When full, Down+Ultimate summons Shukaku; while Shukaku is out, Gaara's specials re-route to Sand Volley / Shukaku Swipe / Sand Shuriken / Pyramid Seal, and its Ultimate is the Tailed Beast Ball.",
-    ultimate: { name: "Sabaku Taisou", input: "Ultimate (full meter)", cost: 100, desc: "Giant Sand Burial — sand ripples → giant hands → engulfing dome collapses on the foe, then a kneeling ground burst. Big damage [CANON] [Phase 3]" },
+    ultimate: { name: "Sabaku Taisou", input: "Ultimate (full meter)", cost: 100, desc: "Giant Sand Burial — a 砂瀑大葬 kanji cut-in, then sand ripples → giant hands → engulfing dome collapses on the foe, then a kneeling ground burst. Guaranteed ~197 dmg, 25% on block [CANON]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "sand-spike launcher into aerial pressure" }
     ]

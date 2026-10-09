@@ -7052,7 +7052,7 @@ const gaara = {
     sandDome:     { cost: 24, effect: "Back + Special: Sand Dome — the sand closes into a brief all-direction guard around Gaara (i-frames + radial shove, cooldown)." },
     sandShunshin: { cost: 18, effect: "Up + Special: Sand Shunshin — a short sand-flicker dodge-teleport (retreat) with i-frames." }
   },
-  ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Big damage. [Phase 3]" },
+  ultimate: { name: "Sabaku Taisou", cost: 100, description: "Giant Sand Burial — a 砂瀑大葬 kanji cut-in, then Gaara buries the battlefield: sand ripples → giant hands → an engulfing dome collapses on the foe, then he kneels and the ground erupts. Guaranteed ~197 dmg (25% on block)." },
   hasSprites: true,
   // Idle content ≈65px × 1.5 ≈ 98px on-screen — alongside Sakura (106) / Boruto (108). REQUIRES the skins.js
   // gaara default entry or getSkins() clobbers this to 1.
@@ -7086,7 +7086,10 @@ const gaara = {
     gaaraThrowAir:    { frames: 3, width: 54, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwAir_uniform.png" },     // jump throw
     gaaraThrowCrouch: { frames: 5, width: 64, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwCrouch_uniform.png" },  // crouch throw
     // ── PHASE 2 — SAND JUTSU CAST POSE (arm-raised; shared by Sand Coffin/Burial/Tsunami/Dome casts) ──
-    gaaraSandCast:    { frames: 5, width: 41, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_sandcast_uniform.png" }       // Sabaku Taisou Part-1 cast poses (reused at special scale)
+    gaaraSandCast:    { frames: 5, width: 41, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_sandcast_uniform.png" },      // Sabaku Taisou Part-1 cast poses (reused at special scale)
+    // ── PHASE 3 — SABAKU TAISOU ULTIMATE poses (full Part-1 cast loop + Part-2 kneel) ──
+    gaaraUltCast:     { frames: 11, width: 54, height: 69, speed: 5, anchorY: 0, loop: true,  sheet: "./gaara_ult_cast_uniform.png" },    // Part-1 cast (loops through the cinematic)
+    gaaraUltKneel:    { frames: 7,  width: 89, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_ult_kneel_uniform.png" }   // Part-2 kneel (palms to the ground)
   }
 }
 

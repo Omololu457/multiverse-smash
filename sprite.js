@@ -230,6 +230,7 @@ const MOVE_TO_ACTION = {
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",
   gaaraSandCast: "gaaraSandCast",   // Phase 2: shared sand-jutsu cast pose (Coffin/Burial/Tsunami/Dome). Identity map.
+  gaaraUltCast: "gaaraUltCast", gaaraUltKneel: "gaaraUltKneel",   // Phase 3: Sabaku Taisou Part-1 cast loop + Part-2 kneel. Identity maps.
   // Naruto (Adult KCM) — special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
   // Chakra Arm Strike / Gamabunta+TBB gather pose.)
@@ -240,8 +241,8 @@ const MOVE_TO_ACTION = {
   n7Doton: "n7Doton", n7Throw: "n7Throw", n7ThrowAir: "n7ThrowAir", n7Charge: "n7Charge",
   n7Kuchiyose: "n7Kuchiyose", n7StrongFwd: "n7StrongFwd", n7StrongDown: "n7StrongDown", n7FourTails: "n7FourTails",
   n7Rasenkyugan: "n7Rasenkyugan", n7Wakusei: "n7Wakusei", n7Bijuudama: "n7Bijuudama",   // KCM special cast poses (Phase 3)
-  air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   n7Rikudou: "n7Rikudou", n7Oiroke: "n7Oiroke",   // Rikudou apex + Oiroke (Phase 4)
+  air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.
   madaraGunbaiSwing:  "madaraGunbaiSwing",    // Madara (Stage 3): Gunbai Fan-Swing overhead melee pose. Identity map.

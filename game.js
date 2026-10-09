@@ -12633,6 +12633,11 @@ function _gaaraFxImg(src) {
   if (!_gaaraFxImgs[src]) { const i = new Image(); i.src = src; _gaaraFxImgs[src] = i }
   return _gaaraFxImgs[src]
 }
+// Preload the Sabaku Taisou ultimate FX + the kanji cut-in at module init so they're decoded BEFORE the
+// first ult fires (the cut-in's slide window is short — a cold-load would miss panel.complete and skip it).
+;["./gaara_cutin_uniform.png", "./gaara_fx_ripples_uniform.png", "./gaara_fx_hands_uniform.png",
+  "./gaara_fx_dome_uniform.png", "./gaara_fx_collapse_uniform.png", "./gaara_fx_burst_uniform.png",
+  "./gaara_fx_mounds_uniform.png"].forEach(_gaaraFxImg)
 // Blit one frame of a sand-FX strip, BOTTOM-anchored at (cx, bottomY) so a rising hand / dome grows up
 // from the ground. frames = strip frame count; fi = frame index; sc = scale; alpha = opacity.
 function _gaaraBlitFx(c, img, frames, fi, cx, bottomY, sc, alpha) {
@@ -12713,6 +12718,30 @@ function drawGaaraFx(c, fighter) {
     c.fillStyle = "rgba(205,184,135,0.8)"
     for (let k = 0; k < 8; k++) { const a = k * (Math.PI / 4); c.beginPath(); c.arc(cx + Math.cos(a) * rr, fighter.y + h * 0.5 + Math.sin(a) * rr, 2.5, 0, Math.PI * 2); c.fill() }
     c.restore()
+  }
+
+  // (Phase 3) SABAKU TAISOU — the world-space sand burial stages play at the captured burial point
+  // (_gaaraUltTX/TY). Each stage blits its sheet over a window with a fade-in/out envelope. The kanji
+  // cut-in + vignette are screen-space (drawGaaraSabakuTaisouCinematic).
+  // uT counts DOWN 210→0. Each stage plays over a [lo,hi] uT window (hi = earlier, lo = later), with a
+  // fade in/out envelope. Keyed off uT directly (not an elapsed/_gaaraUltMax derivation) so the windows
+  // can't drift. Windows roughly align with the damage beats (hands 78-102, dome 118-130, collapse 152).
+  const uT = fighter._gaaraUltTimer || 0
+  if (uT > 0) {
+    const bx = fighter._gaaraUltTX ?? cx, by = fighter._gaaraUltTY ?? feetY
+    const stage = (src, frames, hi, lo, sc) => {   // active while lo <= uT <= hi
+      if (uT > hi || uT < lo) return
+      const l = (hi - uT) / (hi - lo)                                   // 0 → 1 across the window
+      const e = Math.min(1, l / 0.22) * Math.min(1, (1 - l) / 0.28)     // fade in/out edges
+      if (e <= 0) return
+      _gaaraBlitFx(c, _gaaraFxImg(src), frames, Math.min(frames - 1, Math.floor(l * frames)), bx, by, sc, 0.92 * e)
+    }
+    stage("./gaara_fx_ripples_uniform.png",  8, 202, 138, 0.9)   // sand ripples spread (uT 202→138)
+    stage("./gaara_fx_hands_uniform.png",    5, 150, 94,  0.95)  // giant hands rise (dmg beats uT ~132-108)
+    stage("./gaara_fx_dome_uniform.png",     4, 102, 60,  1.05)  // engulf dome (dmg beats uT ~92-80)
+    stage("./gaara_fx_collapse_uniform.png", 4, 64,  30,  1.05)  // collapse (dmg beat uT ~58)
+    stage("./gaara_fx_burst_uniform.png",    3, 38,  10,  0.95)  // Part-2 ground burst (dmg beat uT ~26)
+    stage("./gaara_fx_mounds_uniform.png",   3, 14,  0,   0.9)   // mounds settle
   }
 }
 
@@ -14524,12 +14553,15 @@ function updateBattle() {
       const seqKey = f._pendingChoreoDirect; f._pendingChoreoDirect = null
       const rk = (f.rosterKey || "").toLowerCase()
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
+    }
+  }
+  // ── PER-FRAME CHARACTER TICKS (top level — run EVERY frame, not gated by the choreography loop above).
+  //    (Previously mis-nested inside the _pendingChoreoDirect if-block, so they only ran during a clone
+  //    sequence; their FX timers never decremented. Fixed to run every frame for Hinata + Gaara.)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
   updateGaara(p1); updateGaara(p2)                                 // GAARA: tick sand FX + Sand Armor passive (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
-    }
-  }
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
@@ -16069,6 +16101,57 @@ function drawLightKiraCinematic(ctx, canvas) {
   ctx.restore()
 }
 
+// GAARA — SABAKU TAISOU ultimate: SCREEN-space cut-in overlay (the kanji 砂瀑大葬 panel slides in) + a
+// sand-tan vignette + an additive dust flash on the collapse beat. Driven by the LIVE caster's
+// _gaaraUltTimer (abilities.executeGaaraUltimate) — NO duplicate fighter instance (the real Gaara holds
+// the cast/kneel pose underneath via _spriteCastMove). The world-space sand burial FX are in drawGaaraFx;
+// the existing roster-wide ultimate zoom-crop auto-fires on the collapse hitstop. No-op when no Gaara is
+// mid-ultimate. Mirrors drawLightKiraCinematic (cut-in panel pattern).
+function drawGaaraSabakuTaisouCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._gaaraUltTimer || 0) > 0)
+  if (!caster) return
+  const uT = caster._gaaraUltTimer || 0   // counts DOWN 210→0; keyed directly (no _gaaraUltMax derivation)
+  const cw = canvas.width, ch = canvas.height
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                             // SCREEN space
+  // 1) sand-tan vignette that builds through the early burial (uT 210→150) then releases.
+  const vgEnv = uT > 150 ? (210 - uT) / 60 : Math.max(0, uT / 150)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, ch * 0.10, cw / 2, ch * 0.52, ch * 0.95)
+  vg.addColorStop(0, `rgba(40,30,12,${0.06 * vgEnv})`); vg.addColorStop(1, `rgba(28,20,8,${0.62 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) the kanji cut-in SLIDES in over uT 210→196, HOLDS to uT 130, slides out by uT 116. A wide hold so
+  //    the cut-in is reliably on screen through the early burial (narrow windows get missed — uT lingers
+  //    near 210 at cast). pEnv 0→1→0. A REAL panel image is used when decoded; a code-drawn kanji card is
+  //    the fallback so the cut-in NEVER silently vanishes on a cold image cache.
+  // slide in uT 210→196, HOLD uT 196→70, slide out uT 70→56 (clears before the ult fully ends)
+  const pEnv = uT >= 196 ? (210 - uT) / 14 : uT >= 70 ? 1 : uT >= 56 ? (uT - 56) / 14 : 0
+  if (pEnv > 0) {
+    const panel = _gaaraFxImg("./gaara_cutin_uniform.png")
+    const ready = panel && panel.complete && panel.naturalWidth > 0
+    const dh = ch * 0.40
+    const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.46
+    const slide = (1 - pEnv) * (dw + 40)                         // off-screen-left when pEnv→0
+    const dx = cw * 0.06 - slide, dy = ch * 0.30
+    ctx.globalAlpha = 0.5 * pEnv; ctx.fillStyle = "#120c04"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
+    ctx.globalAlpha = pEnv
+    if (ready) {
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(panel, dx, dy, dw, dh)
+    } else {
+      // code-drawn fallback card: tan panel + "砂瀑大葬" kanji
+      ctx.fillStyle = "#cdb487"; ctx.fillRect(dx, dy, dw, dh)
+      ctx.fillStyle = "#2a1d0a"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      ctx.font = `bold ${Math.floor(dh * 0.32)}px serif`
+      ctx.fillText("砂瀑大葬", dx + dw / 2, dy + dh / 2)
+    }
+    ctx.globalAlpha = 1; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"
+  }
+  // 3) additive sand-dust flash on the COLLAPSE payoff beat (uT ≈ 58).
+  const fl = 1 - Math.min(1, Math.abs(uT - 58) / 14)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.42 * fl; ctx.fillStyle = "#d8c39a"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
 // KIBA ULTIMATE — "Three-Headed Wolf" (beast-fusion tier 3). Freeze/camera-focus cinematic OVERLAY driven by
 // the LIVE caster's _kibaThwTimer (abilities.executeKibaUltimate) — NO duplicate fighter instance (the real
 // Kiba holds the feral all-fours crouch underneath, via _spriteCastMove="kibaFourLegs"). The camera is already
@@ -16834,6 +16917,7 @@ function drawBattle() {
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawLightKiraCinematic(ctx, canvas)         // fullscreen "I Am Kira" scythe-ult overlay (crimson vignette → I'M KIRA cut-in panel → purple swing flash)
+  drawGaaraSabakuTaisouCinematic(ctx, canvas) // Gaara Sabaku Taisou ult — 砂瀑大葬 kanji cut-in slide + sand vignette + collapse dust flash (world-space burial FX in drawGaaraFx)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
   drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
   drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)
@@ -21084,6 +21168,8 @@ gameLoop()
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
     narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
     setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
+    setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
+    setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
@@ -21148,8 +21234,6 @@ gameLoop()
     p1MotionHistory: () => ((p1?.motionHistory) || []).map(d => d.dir),   // classic motion buffer contents (test assertions: populated for Naruto-universe, empty otherwise)
     p1DetectMotion: (name) => (p1 ? detectMotion(p1, name) : false),      // query the motion engine directly (Stage-1 engine proof)
     p1RecentMotions: () => (p1 ? getRecentMotions(p1) : []),
-    setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
-    setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     setCloneTell: (on) => { setCloneTell(on); return isCloneTell() },     // decoy visual-tell toggle (Stage 4 no-tell mode)
     cloneTell: () => isCloneTell(),
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden, atk: s._atk || null, vx: Math.round((s.vx || 0) * 10) / 10 })),   // clone lifecycle + behavior-AI inspection

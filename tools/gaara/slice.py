@@ -138,6 +138,20 @@ def main():
     # COLLAPSE (Sand Burial damage) — 4f.
     build(keyed, 1500, 1690, [(32, 288), (317, 573), (591, 847), (870, 1126)], "fx_collapse", feet_align=True, degreen=True)
 
+    # ── PHASE 3 — SABAKU TAISOU ULTIMATE (full cast loop + ripples + Part-2 kneel/burst/mounds + kanji cut-in) ──
+    # Full Part-1 cast sequence (11f; the cinematic loops the last 3).
+    build(keyed, 990, 1055, [(47, 84), (99, 128), (141, 170), (183, 214), (226, 260), (273, 310), (326, 367), (381, 424), (440, 489), (501, 546), (557, 607)], "ult_cast")
+    # Sand RIPPLES spreading along the ground (8f).
+    build(keyed, 1062, 1116, [(33, 125), (171, 265), (282, 374), (396, 490), (504, 592), (600, 690), (704, 904), (909, 1107)], "fx_ripples", feet_align=True, degreen=True)
+    # Part-2 KNEEL (palms to the ground, 7f).
+    build(keyed, 1905, 1976, [(49, 134), (146, 184), (202, 243), (263, 305), (326, 369), (390, 430), (454, 494)], "ult_kneel")
+    # Part-2 ground BURST / settling (3f — split the wide 2nd box).
+    build(keyed, 1980, 2063, [(40, 292), (304, 561), (561, 819)], "fx_burst", feet_align=True, degreen=True)
+    # Settling MOUNDS (3f).
+    build(keyed, 1720, 1762, [(49, 94), (188, 237), (258, 305)], "fx_mounds", feet_align=True, degreen=True)
+    # KANJI CUT-IN (砂瀑大葬 "Sabaku Taisou" — Gaara bust + kanji label, 1 composite frame). NOT feet-aligned.
+    build(keyed, 1810, 1975, [(918, 1152)], "cutin", feet_align=False)
+
     print("\nDONE — uniform strips written to project root.")
 
 

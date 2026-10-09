@@ -5625,6 +5625,49 @@ function executeGaaraSpecial(fighter, context) {
   return gaaraSandCoffin(fighter, context)                     // neutral = Sand Coffin (bind → Burial)
 }
 
+// ── PHASE 3 ULTIMATE — SABAKU TAISOU (Giant Sand Burial) ─────────────────────────────────────────────
+// Inline freeze-cinematic economy (live fighter, no dup instance; mirrors Hinata Juuhou / Kirin). A
+// kanji cut-in (砂瀑大葬) slides in (screen-space drawGaaraSabakuTaisouCinematic) + the existing ultimate
+// zoom-crop auto-fires on the big beats; the world-space FX play the sheet's Sabaku Taisou stages at the
+// foe (ripples → giant hands → engulf dome → collapse → Part-2 kneel ground burst → mounds settle).
+// Guaranteed, range-independent beats (328 raw → ~197 EFF, the project ult band); blocked beats = 25%.
+// combat.js UNTOUCHED — damage via the shared applyScaledDamage, i-frames via invulnTimer.
+const GAARA_ULT_LEN = 210
+function executeGaaraUltimate(fighter, context) {
+  if (!gaaraIsGaara(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const opp0 = getTargetResolver(context)(fighter)
+  // capture the burial point (the foe's feet), so the FX engulf the opponent even if they're knocked around
+  fighter._gaaraUltTX = opp0 ? opp0.x + (opp0.w || 0) / 2 : fighter.x + (fighter.facing || 1) * 220
+  fighter._gaaraUltTY = opp0 ? opp0.y + (opp0.h || 100) : fighter.y + (fighter.h || 100)
+  fighter._gaaraUltTimer = GAARA_ULT_LEN; fighter._gaaraUltMax = GAARA_ULT_LEN
+  fighter.attackCooldown = getAttackDuration(GAARA_ULT_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, GAARA_ULT_LEN)   // i-frames through the cinematic
+  fighter._spriteCastMove = "gaaraUltCast"; fighter._spriteCastTimer = 150   // Part-1 cast (loops ~150f)
+  // Part-2 KNEEL pose — scheduled as a FRESH cast (same path as the initial cast / the damage beats, so it
+  // switches cleanly; a per-frame _spriteCastMove mutation is shadowed by the render-order and doesn't take).
+  schedulePendingSpawn(150, () => { fighter._spriteCastMove = "gaaraUltKneel"; fighter._spriteCastTimer = 64 })
+  // guaranteed damage beats (range-independent, like Hinata/Kirin). Big beats carry a hitstop that
+  // auto-triggers the roster-wide ultimate zoom-crop (game.js ULT_CROP_HITSTOP rising-edge).
+  const beats = [
+    { at: 78, dmg: 16 }, { at: 90, dmg: 16 }, { at: 102, dmg: 16 },   // giant hands grab (3 chip)
+    { at: 118, dmg: 20 }, { at: 130, dmg: 20 },                        // engulf dome
+    { at: 152, dmg: 160, big: true },                                  // collapse (the crush)
+    { at: 184, dmg: 80, big: true }                                    // Part-2 ground burst
+  ]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = b.big ? 26 : 14; applyScaledDamage(o, Math.floor(b.dmg * 0.25), { source: "ability" }); return }
+    o.hitstun = b.big ? 40 : 20; o.vx = dir * (b.big ? 6 : 1); o.vy = b.big ? -8 : 0; o.colorFlash = b.big ? 16 : 10
+    if (b.big) o.hitstop = Math.max(o.hitstop || 0, 26)   // → ult zoom-crop
+    applyScaledDamage(o, b.dmg, { source: "ability" })
+  }))
+  try { focusCameraOnAction(context, fighter, opp0, 1.1, 20); shakeCamera(context, 4, 12) } catch (_) {}
+  return true
+}
+
 // ULTIMATE DEFENSE (passive) — while standing still with Sand ≥ threshold, the FIRST incoming ENEMY
 // PROJECTILE near Gaara is stopped by an automatic sand burst (costs Sand + a cooldown). NEVER triggers
 // against melee (only scans activeProjectiles). Mirrors applyHinataGuutenToProjectiles — no combat.js.
@@ -5661,6 +5704,16 @@ export function updateGaara(fighter) {
   for (const k of ["_gaaraShieldFx", "_gaaraHandsFx", "_gaaraDomeFx", "_gaaraCollapseFx",
                    "_gaaraShunshinFx", "_gaaraBurstFx", "_coffinWindow", "_gaaraDomeCd"]) {
     if (fighter[k] > 0) fighter[k]--
+  }
+  // SABAKU TAISOU ultimate driver: tick the cinematic timer (drives the screen-space cut-in + the world-
+  // space burial FX stages in drawGaaraFx) + hold the i-frames. The cast / Part-2-kneel POSES are set as
+  // fresh casts (executeGaaraUltimate + its scheduled kneel) — NOT re-asserted here, since a per-frame
+  // _spriteCastMove mutation is shadowed by the render order. Just keep the cast strip alive + i-frames.
+  if ((fighter._gaaraUltTimer || 0) > 0) {
+    fighter._gaaraUltTimer--
+    fighter._spriteCastTimer = Math.max(fighter._spriteCastTimer || 0, 2)   // don't let the cast strip lapse mid-cinematic
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+    if (fighter._gaaraUltTimer === 0) { fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
   }
   // SAND COFFIN bind: keep the foe pinned (hitstun + zero velocity) for the bind window.
   if ((fighter._coffinBind || 0) > 0) {
@@ -27374,6 +27427,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
       case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
       case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
+      case "gaara":   cast = executeGaaraUltimate(fighter, context);  break   // Sabaku Taisou (Giant Sand Burial) — kanji cut-in + sand ripples→hands→dome→collapse→Part-2 kneel burst; guaranteed ~197 EFF
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break

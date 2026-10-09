@@ -4378,9 +4378,11 @@ function n7ThrowWeapon(fighter, context, air) {
 // ULTIMATE dispatcher. BASE = Kuchiyose: Gamabunta. KCM = BIGGER Bijuudama (neutral) / Rikudou (Down, PHASE 4).
 function executeNarutoSeventhUltimate(fighter, context) {
   if (!isN7Char(fighter)) return false
-  if (!fighter._n7KCMActive) return false                          // the ULTIMATE (Bijuudama) is KCM-ONLY — Gamabunta is now a Down+Special
-  if ((fighter._ultVariant || "") === "rikudou" && n7Rikudou(fighter, context)) return true   // Down+Ult = Rikudou apex if available (Bond 4, once/round)
-  return n7Bijuudama(fighter, context)                             // else neutral = BIGGER Bijuudama (the two nine-tails Kurama heads + sphere, like naruto_hokage)
+  if (!fighter._n7KCMActive) return false                          // the ULTIMATE is KCM-ONLY — Gamabunta is now a Down+Special
+  const v = fighter._ultVariant || ""
+  if (v === "rikudou"   && n7Rikudou(fighter, context))      return true   // Fwd+Ult  = Rikudou apex (Bond 4, once/round)
+  if (v === "foxSummon" && n7KuramaSummon(fighter, context)) return true   // Down+Ult = summon the GIANT nine-tails (Kurama) + fire a Tailed Beast Bomb
+  return n7Bijuudama(fighter, context)                             // neutral  = GIGANTIC Bijuudama (Kurama heads + huge sphere)
 }
 
 // Down+Special (BASE) — KUCHIYOSE: GAMABUNTA (now a SPECIAL, per the user's request — was the ultimate).
@@ -4536,33 +4538,71 @@ function n7Wakusei(fighter, context) {
 // ultimate zoom-crop (auto, via isUltimate hitstop). [CANON]
 function n7Bijuudama(fighter, context) {
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
-  _n7SetCast(fighter, "n7Bijuudama", 56)
-  fighter.attackCooldown = getAttackDuration(62, fighter)
-  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)
+  _n7SetCast(fighter, "n7Bijuudama", 60)
+  fighter.attackCooldown = getAttackDuration(66, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 58)
   const face = fighter.facing || 1
   const cy = fighter.y + (fighter.h || 100) * 0.26
-  const HEAD_SCALE = 2.8, SPHERE_NATIVE = 174
-  schedulePendingSpawn(14, () => {                     // two Kurama heads flank
+  const SPHERE_NATIVE = 174
+  schedulePendingSpawn(14, () => {                     // two Kurama (nine-tails) heads flank — BIGGER (3.6×)
     spawnProjectile(fighter, "n7KuramaHead", {
-      sheet: "./naruto_seventh_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
-      spriteSpeed: 10, spriteScale: HEAD_SCALE, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
-      lifetime: 46, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 170
+      sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
+      spriteSpeed: 10, spriteScale: 3.6, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 50, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 230
     }, context)
-    try { shakeCamera(context, 8, 14) } catch (_) {}
+    try { shakeCamera(context, 10, 16) } catch (_) {}
   })
-  schedulePendingSpawn(42, () => {                     // the HUGE sphere — hitbox/radius matched, capped ~half stage
+  schedulePendingSpawn(44, () => {                     // the GIGANTIC sphere — hitbox/radius matched, capped ~60% stage
     const stageW = getWorldWidth(context) || 3200
-    const onscreen = Math.min(SPHERE_NATIVE * 2.8, stageW * 0.5)
+    const onscreen = Math.min(SPHERE_NATIVE * 5.5, stageW * 0.6)
     const scale = onscreen / SPHERE_NATIVE
     spawnProjectile(fighter, "n7Bijuudama", {
       sheet: "./naruto_seventh_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 174, spriteH: 148, spriteScale: scale,
-      damage: 300, speed: 10, lifetime: 104, hitstun: 56,
-      knockbackX: face * 22, knockbackY: -16,
+      damage: 340, speed: 10, lifetime: 110, hitstun: 58,
+      knockbackX: face * 24, knockbackY: -18,
       w: Math.round(onscreen * 0.9), h: Math.round(onscreen * 0.9),
-      radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.7),
+      radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.72),
       isSpecial: true, isUltimate: true, vx: face * 10, spawnY: cy
     }, context)
-    try { shakeCamera(context, 14, 26) } catch (_) {}
+    try { shakeCamera(context, 18, 32) } catch (_) {}
+  })
+  return true
+}
+
+// KCM Down+Ultimate — SUMMON THE GIANT NINE-TAILS (Kurama). A GIGANTIC Kurama fox head rears up, bottom-
+// anchored (the full tailed-beast looming), then fires a GIGANTIC Tailed Beast Bomb from its mouth.
+// Uses the naruto_hokage Kurama-head art (the nine-tails fox head). [CANON]
+function n7KuramaSummon(fighter, context) {
+  if (!spendEnergy(fighter, 85)) return false
+  _n7SetCast(fighter, "n7Bijuudama", 66)
+  fighter.attackCooldown = getAttackDuration(72, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 66)
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  const stageW = getWorldWidth(context) || 3200
+  const headOnscreen = Math.min(111 * 5.2, 580)                 // the GIANT fox head (tailed-beast looming)
+  schedulePendingSpawn(12, () => {                              // Kurama rises — huge head, mouth toward the foe
+    spawnProjectile(fighter, "n7KuramaGiant", {
+      sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
+      spriteSpeed: 12, spriteScale: headOnscreen / 111, spriteOnce: true, spriteBottomY: groundY,
+      visualOnly: true, speed: 0, vx: 0, vy: 0, lifetime: 84,
+      spawnX: fighter.x - face * 50, spawnY: groundY - headOnscreen
+    }, context)
+    try { shakeCamera(context, 12, 20) } catch (_) {}
+  })
+  schedulePendingSpawn(48, () => {                              // the fox FIRES a gigantic Tailed Beast Bomb from its mouth
+    const onscreen = Math.min(174 * 5.0, stageW * 0.55)
+    const scale = onscreen / 174
+    spawnProjectile(fighter, "n7Bijuudama", {
+      sheet: "./naruto_seventh_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 174, spriteH: 148, spriteScale: scale,
+      damage: 370, speed: 11, lifetime: 112, hitstun: 60,
+      knockbackX: face * 26, knockbackY: -18,
+      w: Math.round(onscreen * 0.9), h: Math.round(onscreen * 0.9),
+      radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.72),
+      isSpecial: true, isUltimate: true, vx: face * 11,
+      spawnX: fighter.x + face * 70, spawnY: groundY - headOnscreen * 0.55
+    }, context)
+    try { shakeCamera(context, 18, 34) } catch (_) {}
   })
   return true
 }

@@ -10140,14 +10140,15 @@ const narutoSeventh = {
     kcm:           { cost: 60, effect: "Hold Charge — KURAMA BOND 3+: enter KCM (golden Kurama Chakra Mode) — timed, drains chakra, +dmg/+speed, Light→Combo 2. NO guard (pure offense). Tap Charge to exit. [CANON]" },
     rasenkyugan:   { cost: 40, effect: "KCM Neutral+Special: Rasenkyugan — a rapid multi chakra-arm barrage (reaches far) → launcher. [CANON]" },
     wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" },
-    rikudou:       { cost: 80, effect: "KCM Down+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — code-drawn gold entry flash → committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" }
+    rikudou:       { cost: 80, effect: "KCM Fwd+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — code-drawn gold entry flash → committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" },
+    kuramaSummon:  { cost: 85, effect: "KCM Down+Ultimate: Summon the GIANT Nine-Tails (Kurama) — the colossal fox rears up and fires a GIGANTIC Tailed Beast Bomb from its mouth. [CANON]" }
   },
   // KURAMA BOND: a meter (0-4) that fills as Naruto FIGHTS (lands hits / takes damage) and decays when idle,
   // shown in the Chakra label. BOND 1 = Red Chakra (aura + buffed Strong Up/Down) · BOND 2 = Four-Tails ·
   // BOND 3 = KCM (hold Charge, Phase 3) · BOND 4 = Rikudou (KCM Down+Ult, Phase 4). Strong Up = the up-attack.
   ultimate: {
-    name: "Bijuudama (Tailed Beast Bomb)", cost: 70, damage: 300,
-    description: "KCM ONLY (Gamabunta is now a Down+Special). Neutral: BIGGER Bijuudama — the two nine-tails (Kurama) heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom), like the Adult-KCM Naruto. Down+Ult (Bond 4, once/round): RIKUDOU apex — a committed black/gold Six-Paths combo with a code-drawn entry flash that ends in Base and resets the Bond. [CANON]"
+    name: "Bijuudama (Tailed Beast Bomb)", cost: 70, damage: 340,
+    description: "KCM ONLY (Gamabunta is now a Down+Special), directional. NEUTRAL: GIGANTIC Bijuudama — the two nine-tails (Kurama) heads flank and a colossal dark-chakra sphere erupts forward (camera shake + ultimate zoom). DOWN: Summon the GIANT Nine-Tails (Kurama) — the full fox rears up and fires a gigantic Tailed Beast Bomb from its mouth. FWD (Bond 4, once/round): RIKUDOU apex — a committed black/gold Six-Paths combo with a code-drawn entry flash that ends in Base and resets the Bond. [CANON]"
   },
   // Kurama-Bond ladder (Phases 2-4) lives in abilities.js (N7 state), NOT a transformations-based swap.
   transformationOrder: ["base"],

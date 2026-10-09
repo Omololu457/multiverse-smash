@@ -7892,7 +7892,7 @@ function _updatePlayerCombatBody(fighter) {
   // NARUTO (SEVENTH) — in KCM the Ultimate is directional: NEUTRAL = bigger Bijuudama, DOWN = Rikudou
   // (Bond 4, PHASE 4). In BASE form the Ultimate is always Gamabunta. Stamp the held dir for the branch.
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
-    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "rikudou" : "bijuudama"
+    { const _hd = betaHeldDirFromInput(inputState, fighter.facing); fighter._ultVariant = _hd === "D" ? "foxSummon" : _hd === "F" ? "rikudou" : "bijuudama" }   // Down = summon Giant Kurama + TBB, Fwd = Rikudou, neutral = gigantic Bijuudama
   }
   // GAARA (PHASE 4) — the Ultimate is directional: NEUTRAL = Sabaku Taisou (Phase 3), DOWN = summon Shukaku
   // (when the One-Tail gauge is full). While Shukaku is already out, ANY Ultimate press = Tailed Beast Ball

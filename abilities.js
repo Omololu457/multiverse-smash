@@ -4257,11 +4257,14 @@ function executeNarutoSeventhSpecial(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
   const air = _n7Airborne(fighter)
-  if (dir === "F") return n7Rasenshuriken(fighter, context, air)   // Fwd  — Rasenshuriken
-  if (dir === "B") return n7DotonWall(fighter, context)            // Back — Doton Earth-Wall
-  if (dir === "D") return n7ThrowWeapon(fighter, context, air)     // Down — Throw Weapon (also the free projectile)
-  if (dir === "U") return n7FourTails(fighter, context)            // Up   — Four-Tails Rampage (Bond 2+)
-  return n7Rasengan(fighter, context, air)                         // Neutral — Rasengan (air = diving)
+  const kcm = !!fighter._n7KCMActive
+  // In KCM the kit is golden-only (Rasenkyugan / Wakusei / Bijuudama); the base-only specials (which carry
+  // ORANGE cast art) are disabled while golden so no frame crosses modes.
+  if (dir === "F") return kcm ? n7Wakusei(fighter, context) : n7Rasenshuriken(fighter, context, air)   // Fwd — KCM Wakusei / base Rasenshuriken
+  if (dir === "B") return kcm ? false : n7DotonWall(fighter, context)        // Back — Doton Earth-Wall (BASE only)
+  if (dir === "D") return kcm ? false : n7ThrowWeapon(fighter, context, air) // Down — Throw Weapon (BASE only)
+  if (dir === "U") return kcm ? false : n7FourTails(fighter, context)        // Up   — Four-Tails Rampage (BASE, Bond 2+)
+  return kcm ? n7Rasenkyugan(fighter, context) : n7Rasengan(fighter, context, air)   // Neutral — KCM Rasenkyugan / base Rasengan (air = diving)
 }
 
 // Neutral — RASENGAN: a spiraling chakra-sphere palm thrust. Short-range disjoint; the sphere is a code-drawn
@@ -4349,9 +4352,19 @@ function n7ThrowWeapon(fighter, context, air) {
   return true
 }
 
-// ULTIMATE — KUCHIYOSE: GAMABUNTA. Summon-seal burst → the Toad Boss rises (4 big H frames) and delivers one
-// guaranteed dagger slash (half on block). Cast pose = the hands-together summon pose. [CANON]
+// ULTIMATE dispatcher. BASE = Kuchiyose: Gamabunta. KCM = BIGGER Bijuudama (neutral) / Rikudou (Down, PHASE 4).
 function executeNarutoSeventhUltimate(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if (fighter._n7KCMActive) {
+    if ((fighter._ultVariant || "") === "rikudou") return false   // Rikudou = Down+Ult, PHASE 4 (no-op here)
+    return n7Bijuudama(fighter, context)                           // KCM neutral ult = bigger Bijuudama
+  }
+  return n7Gamabunta(fighter, context)                            // base ult = Kuchiyose: Gamabunta
+}
+
+// BASE ULTIMATE — KUCHIYOSE: GAMABUNTA. Summon-seal burst → the Toad Boss rises (4 big H frames) and delivers
+// one guaranteed dagger slash (half on block). Cast pose = the hands-together summon pose. [CANON]
+function n7Gamabunta(fighter, context) {
   if (!isN7Char(fighter)) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
   _n7SetCast(fighter, "n7Kuchiyose", 54)
@@ -4377,6 +4390,152 @@ function executeNarutoSeventhUltimate(fighter, context) {
     opp.hitstun = 50; opp.vx = kdir * 17; opp.vy = -13; opp.colorFlash = 16
     applyScaledDamage(opp, dmg, { source: "ultimate" })
     try { shakeCamera(context, 10, 18) } catch (_) {}
+  })
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PHASE 3 — KCM (Kurama Chakra Mode). A TIMED golden transformation entered at BOND 3 by HOLDING Charge.
+// The body swaps to the sheet's OWN golden frames via fighter._skinAnim (the engine's form-override: the
+// renderer checks _skinAnim[action] before base animationData — no sprite.js edit). Per the art rules KCM
+// has NO guard / run / jump art, so he GLIDES on the single golden stance pose (locomotion → stance) and
+// CANNOT block (_n7KCMNoBlock — pure offense). Timed + chakra-drain; reverts at timeout / 0 chakra. Modest
+// speed/damage buff. KIT: Light = Combo 2 (golden) · Air = Combo 2 Air · N+Sp = Rasenkyugan · F+Sp = Wakusei
+// Rasengan · Ultimate = BIGGER Bijuudama. Deterministic. [CANON]
+const N7_KCM = { dmg: 1.30, spd: 1.15, drain: 0.20, dur: 360, cost: 60 }   // ~6s @60fps; drains chakra; modest buffs
+// Golden form-override anim (fighter._skinAnim). Locomotion/hurt/win all point at the single golden stance
+// (he glides — no KCM locomotion art); light/heavy = golden Combo 2; air/down_air = golden Combo 2 Air.
+const NARUTO_SEVENTH_KCM_ANIM = {
+  idle:      { frames: 1, width: 31, height: 62, speed: 8, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  walk:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  run:       { frames: 1, width: 31, height: 62, speed: 4, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  dash:      { frames: 1, width: 31, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  jump:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  fall:      { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  guard:     { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  hurt:      { frames: 1, width: 31, height: 62, speed: 5, anchorY: 0, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  knockdown: { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  getup:     { frames: 1, width: 31, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  light:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
+  heavy:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
+  up:        { frames: 1,  width: 31, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // no golden up art → stance glide
+  air:       { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
+  down_air:  { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
+  intro:     { frames: 1, width: 31, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
+  win:       { frames: 1, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" }
+}
+export function narutoSeventhKCMActive(f) { return !!(f && f._n7KCMActive) }
+
+// ENTER KCM (Bond 3, hold Charge). base frame → golden burst FX (Win-row rings/lightning) → golden body.
+export function enterNarutoSeventhKCM(fighter, context = {}) {
+  if (!isN7Char(fighter) || fighter._n7KCMActive) return false
+  if ((fighter._n7Bond || 0) < 3) return false                          // BOND 3 unlocks KCM
+  if ((fighter.energy || 0) < N7_KCM.cost) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
+  spendEnergy(fighter, N7_KCM.cost)
+  fighter._n7KCMActive = true
+  fighter._n7KCMTimer  = N7_KCM.dur
+  fighter._skinAnim    = NARUTO_SEVENTH_KCM_ANIM                         // engine form-override → golden body
+  fighter._n7KCMNoBlock = true                                          // pure offense: no guard in KCM
+  fighter.isBlocking   = false
+  fighter.currentForm  = "n7_kcm"
+  fighter.teleportFlash = 18
+  fighter.attackCooldown = 8
+  // golden transformation BURST FX (the sheet's own Win-row rings/lightning) over the now-golden body
+  spawnProjectile(fighter, "n7KcmBurst", {
+    sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
+    spriteSpeed: 4, spriteScale: 2.2, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+    lifetime: 6 * 4 + 8, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  try { shakeCamera(context, 7, 14) } catch (_) {}
+  return true
+}
+
+// REVERT KCM (timeout / 0 chakra / tap-Charge / KO / round reset). Restores the base (orange) body.
+export function revertNarutoSeventhKCM(fighter) {
+  if (!fighter || !fighter._n7KCMActive) return
+  fighter._n7KCMActive = false
+  fighter._n7KCMTimer  = 0
+  fighter._skinAnim    = null                                           // → base animationData (orange body)
+  fighter._n7KCMNoBlock = false
+  fighter.currentForm  = "base"
+  fighter.damageMultiplier = 1; fighter.speedMultiplier = 1
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+}
+
+// KCM Neutral — RASENKYUGAN: a rapid multi chakra-arm barrage (reaches far) → launcher finisher. [CANON]
+function n7Rasenkyugan(fighter, context) {
+  if (!spendEnergy(fighter, 40)) return false
+  _n7SetCast(fighter, "n7Rasenkyugan", 44)
+  fighter.attackCooldown = getAttackDuration(46, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  const face = fighter.facing || 1
+  fighter.vx = face * 6
+  const beats = [[10, 34], [18, 34], [26, 38], [36, 56]]                 // rapid chakra-arm punches → launcher
+  beats.forEach(([d, dmg], i) => schedulePendingSpawn(d, () => {
+    const last = i === beats.length - 1
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 190) return
+    const kdir = tcx >= cx ? 1 : -1
+    if (opp.isBlocking) { opp.blockstun = 14; applyScaledDamage(opp, Math.floor(dmg * 0.4), { source: "ability" }); return }
+    opp.hitstun = last ? 40 : 16; opp.vx = kdir * (last ? 12 : 4); opp.vy = last ? -16 : -2; opp.colorFlash = 10
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, last ? 6 : 3, 6) } catch (_) {}
+  }))
+  return true
+}
+
+// KCM Fwd — WAKUSEI RASENGAN (Planetary Rasengan): a huge slow code-drawn Rasengan rolls forward. [CANON]
+function n7Wakusei(fighter, context) {
+  if (!spendEnergy(fighter, 50)) return false
+  _n7SetCast(fighter, "n7Wakusei", 40)
+  fighter.attackCooldown = getAttackDuration(42, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "n7Wakusei", {
+      drawKind: "rasengan", damage: 120, radius: 52, w: 104, h: 104,
+      speed: 8, vx: face * 8, vy: 0, lifetime: 72, hitstun: 44,
+      knockbackX: face * 20, knockbackY: -8, isSpecial: true, color: "#a7e0ff",
+      spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  return true
+}
+
+// KCM ULTIMATE — BIGGER BIJUUDAMA. Two Kurama heads flank (2.8× native) → a HUGE dark-chakra sphere (2.8×
+// native, hitbox/radius matched, capped ~half stage width) erupts forward. Camera shake + the existing
+// ultimate zoom-crop (auto, via isUltimate hitstop). [CANON]
+function n7Bijuudama(fighter, context) {
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
+  _n7SetCast(fighter, "n7Bijuudama", 56)
+  fighter.attackCooldown = getAttackDuration(62, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)
+  const face = fighter.facing || 1
+  const cy = fighter.y + (fighter.h || 100) * 0.26
+  const HEAD_SCALE = 2.8, SPHERE_NATIVE = 174
+  schedulePendingSpawn(14, () => {                     // two Kurama heads flank
+    spawnProjectile(fighter, "n7KuramaHead", {
+      sheet: "./naruto_seventh_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
+      spriteSpeed: 10, spriteScale: HEAD_SCALE, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 46, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 170
+    }, context)
+    try { shakeCamera(context, 8, 14) } catch (_) {}
+  })
+  schedulePendingSpawn(42, () => {                     // the HUGE sphere — hitbox/radius matched, capped ~half stage
+    const stageW = getWorldWidth(context) || 3200
+    const onscreen = Math.min(SPHERE_NATIVE * 2.8, stageW * 0.5)
+    const scale = onscreen / SPHERE_NATIVE
+    spawnProjectile(fighter, "n7Bijuudama", {
+      sheet: "./naruto_seventh_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 174, spriteH: 148, spriteScale: scale,
+      damage: 300, speed: 10, lifetime: 104, hitstun: 56,
+      knockbackX: face * 22, knockbackY: -16,
+      w: Math.round(onscreen * 0.9), h: Math.round(onscreen * 0.9),
+      radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.7),
+      isSpecial: true, isUltimate: true, vx: face * 10, spawnY: cy
+    }, context)
+    try { shakeCamera(context, 14, 26) } catch (_) {}
   })
   return true
 }
@@ -4458,11 +4617,12 @@ export function updateNarutoSeventhCommandCombat(fighter, inputState, context, g
   if (!fighter || !isN7Char(fighter) || !inputState) return false
   const heavyEdge = !!inputState.heavy && !fighter._n7PrevHeavy
   fighter._n7PrevHeavy = !!inputState.heavy
+  if (fighter._n7KCMActive) return false                             // KCM: Down+Heavy stays the golden Combo-2 heavy
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const down = !!inputState.down
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (!canStart || !grounded) return false
-  if (down && heavyEdge) return fireN7StrongDown(fighter, context)   // Down+Heavy → Strong Down
+  if (down && heavyEdge) return fireN7StrongDown(fighter, context)   // Down+Heavy → Strong Down (red-flame)
   return false
 }
 
@@ -4494,10 +4654,19 @@ export function applyNarutoSeventhSystem(fighter) {
   fighter._n7BondPts = pts
   fighter._n7Bond = n7BondLevel(pts)
 
-  // ── Bond-1 RED CHAKRA buff on Strong Up (the up-attack) — scoped via damageMultiplier so ONLY that move
-  //    is boosted (Strong Down scales itself at fire; specials/Four-Tails are unaffected). ──
-  const redUp = fighter.currentMove === "up" && fighter._n7Bond >= 1
-  fighter.damageMultiplier = redUp ? N7_BOND.RED_DMG : 1
+  // ── KCM form tick (PHASE 3): timed + chakra drain; auto-revert at timeout / 0 chakra. ──
+  if (fighter._n7KCMActive) {
+    fighter._n7KCMTimer = (fighter._n7KCMTimer || 0) - 1
+    fighter.energy = Math.max(0, (fighter.energy || 0) - N7_KCM.drain)
+    if (fighter._n7KCMNoBlock) fighter.isBlocking = false            // enforce no-guard while golden
+    if (fighter._n7KCMTimer <= 0 || (fighter.energy || 0) <= 0) revertNarutoSeventhKCM(fighter)
+  }
+  // ── combat multipliers: KCM modest buff + Bond-1 RED-CHAKRA on Strong Up (up-attack). Scoped so the
+  //    red-flame bonus only lifts the up-attack; Strong Down scales itself at fire; specials unaffected. ──
+  let dmgMul = fighter._n7KCMActive ? N7_KCM.dmg : 1
+  if (fighter.currentMove === "up" && (fighter._n7Bond || 0) >= 1) dmgMul = Math.max(dmgMul, N7_BOND.RED_DMG)
+  fighter.damageMultiplier = dmgMul
+  fighter.speedMultiplier = fighter._n7KCMActive ? N7_KCM.spd : 1
 
   // ── PHASE 1 — Doton wall projectile-block ──
   const w = fighter._n7Wall
@@ -4518,10 +4687,11 @@ export function applyNarutoSeventhSystem(fighter) {
 // Clear per-match / round-reset state (mirrors the revert* functions the game.js reset lists call).
 export function revertNarutoSeventhState(fighter) {
   if (!fighter) return
+  revertNarutoSeventhKCM(fighter)                 // drop KCM form + restore base (orange) body
   fighter._n7Wall = null
   fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
   fighter._n7PrevHealth = fighter.health; fighter._n7PrevCombo = 0
-  fighter.damageMultiplier = 1
+  fighter.damageMultiplier = 1; fighter.speedMultiplier = 1
 }
 
 

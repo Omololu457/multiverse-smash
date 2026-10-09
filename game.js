@@ -158,6 +158,8 @@ import {
   applyNarutoSeventhSystem,   // Naruto (Seventh) — per-frame Doton-wall projectile-block + Kurama-Bond meter
   revertNarutoSeventhState,   // Naruto (Seventh) — clear per-match state (Doton wall / Bond) on reset
   updateNarutoSeventhCommandCombat,   // Naruto (Seventh) — Down+Heavy → Strong Down (red-flame) command normal
+  enterNarutoSeventhKCM,              // Naruto (Seventh) — hold Charge (Bond 3+) → enter KCM golden form
+  revertNarutoSeventhKCM,             // Naruto (Seventh) — exit KCM (tap Charge / timeout / 0 chakra)
   toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
@@ -6733,6 +6735,14 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // NARUTO (SEVENTH) — hold Charge (Bond 3+) to enter KCM golden form (timed, drains chakra, no guard);
+  // a quick TAP while in KCM exits early. applyNarutoSeventhSystem ticks the timer + auto-reverts.
+  if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
+    if (fighter._n7KCMActive) { if (wasTap) revertNarutoSeventhKCM(fighter) }
+    else if (wasHeld) enterNarutoSeventhKCM(fighter, getAbilityContext())
+    return
+  }
+
   // TEEN GOHAN — SUPER SAIYAN 2: same charge idiom. Hold P to build Ki; a RELEASE at/above threshold morphs to
   // SSJ2. ★ART-FAITHFUL (owner): NO tap-revert — there is intentionally no player revert. Continuous Ki drain
   // (applyGohanFormSystem) auto-reverts at 0, and a KNOCKDOWN reverts the form (the SSJ2 sheet's KO revert art).
@@ -7484,6 +7494,7 @@ function updateMovementInput(fighter) {
   // Down so crouch / Down-air (S+J) / Down-motion specials / the taunt Down-hold no longer double as guard.
   if ((inputState.block || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
+      !fighter._n7KCMNoBlock &&   // Naruto (Seventh) KCM: pure offense — no guard while golden
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
   // FLAWLESS BLOCK support: count how many CONSECUTIVE frames this guard has been held (0 when not
   // guarding). A fresh guard reads 1 on its first frame → combat.isFlawlessBlock() treats a hit within
@@ -7869,6 +7880,11 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_hokage") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "F" ? "fourTails" : _hd === "D" ? "rikudou" : "bijuudama"
+  }
+  // NARUTO (SEVENTH) — in KCM the Ultimate is directional: NEUTRAL = bigger Bijuudama, DOWN = Rikudou
+  // (Bond 4, PHASE 4). In BASE form the Ultimate is always Gamabunta. Stamp the held dir for the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "rikudou" : "bijuudama"
   }
   // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
   // FWD = Shinra Tensei (repulsion blast), BACK = Banshou Tenin (gravity reel-in). Stamp the held direction
@@ -20967,7 +20983,7 @@ gameLoop()
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
-    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond state
+    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
     setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo

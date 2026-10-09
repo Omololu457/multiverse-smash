@@ -7028,7 +7028,7 @@ const gaara = {
   // DURABLE SAND TANK: above the Naruto melee band on HP/defence (naruto/sasuke 1180/89), SLOW walk, moderate
   // attack (zoning + control over raw power). maxEnergy 180 = Sand. Strong zoning via the sand throw/specials.
   stats: { maxHealth: 1280, maxEnergy: 180, attack: 83, defense: 96, speed: 76, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
-  movement: { crouchIdle: true },   // opt-in: holding Down shows the dedicated Crouch strip
+  movement: { crouchIdle: true, dashTeleport: true },   // crouchIdle: holding Down shows the Crouch strip. dashTeleport: double-tap TOWARD = Sand Shunshin body-flicker blink-behind (sand-themed, teleport sheet + sand puff)
   // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air +
   // crouchLight). RAW damage (engine scales ×0.60). Sand striker: Y-Combo sand fist (light), advancing
   // ground SAND WAVE (heavy, long reach — the Run-Attack row), rising sand SPIKE launcher (up), aerial
@@ -7085,6 +7085,7 @@ const gaara = {
     gaaraThrow:       { frames: 2, width: 59, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throw_uniform.png" },        // ground throw
     gaaraThrowAir:    { frames: 3, width: 54, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwAir_uniform.png" },     // jump throw
     gaaraThrowCrouch: { frames: 5, width: 64, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_throwCrouch_uniform.png" },  // crouch throw
+    teleport:         { frames: 2, width: 36, height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_teleport_uniform.png" },     // sand body-flicker — Sand Shunshin dodge + the double-tap teleport blink
     // ── PHASE 2 — SAND JUTSU CAST POSE (arm-raised; shared by Sand Coffin/Burial/Tsunami/Dome casts) ──
     gaaraSandCast:    { frames: 5, width: 41, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gaara_sandcast_uniform.png" },      // Sabaku Taisou Part-1 cast poses (reused at special scale)
     // ── PHASE 3 — SABAKU TAISOU ULTIMATE poses (full Part-1 cast loop + Part-2 kneel) ──

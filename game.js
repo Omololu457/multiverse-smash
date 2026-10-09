@@ -7046,6 +7046,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       // his own DASH pose (obito_dash_uniform). His Kamui blink art (obitoTeleport) is reserved
       // for the actual space-time moves (self-portal / teleport-grab), never this speed dash.
       else if (fighter.rosterKey === "omniman" || fighter.rosterKey === "superman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite/Kryptonian speed-blitz: reposition-only, the streaking flyMove pose sells the blink
+      else if (fighter.rosterKey === "gaara") { fighter._spriteCastMove = "teleport"; fighter._spriteCastTimer = 14; fighter._gaaraShunshinFx = 16; fighter.teleportFlash = 0 }  // SAND SHUNSHIN body-flicker: the sand-flicker teleport sheet + a sand-burst puff (drawGaaraFx), no generic white flash
       // DASH-POSE DEFAULT: show the character's OWN dash sprite on the blink. Any teleport-dasher that
       // didn't already pick a specific pose above (Rick portal / Omni-Man·Superman flyMove / Sukuna
       // malevolent dash / Sasuke·Tobirama·Minato dash) falls back to its dedicated dash sheet. This

@@ -288,6 +288,11 @@ export const SKINS = {
   // Kakashi (Naruto universe) — STAGE 1. WITHOUT a default skin, applySkin() pulls the getSkins()
   // spriteScale:1 fallback and he renders at native ~65px (half size). This entry sources his real
   // spriteScale from the character. No alt skins yet (creative recolors are a later stage).
+  // Kakashi (ANBU) — NEW additive fighter. Default-only (owner decision). REQUIRED entry or getSkins()
+  // clobbers spriteScale to the 1.0 fallback (native/half size).
+  kakashi_anbu: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi_anbu?.portrait, spriteScale: characters.kakashi_anbu?.spriteScale, animationData: null },
+  ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

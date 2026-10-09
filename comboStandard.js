@@ -209,6 +209,10 @@ export const ZONER = [
                      //   base normals + a Down+Special Sand Bullet projectile (Phase 1); directional sand
                      //   specials (Phase 2) + Sabaku Taisou ult (Phase 3) + Shukaku (Phase 4). No Fwd+Heavy
                      //   rekka driver and not in STANDARD_STRING_CHARS → single-poke (same bucket as sakura/sasuke_sensei).
+  "kakashi_anbu",    // NEW additive standalone (Kakashi ANBU, dantewreckmen sheet): technical shinobi —
+                     //   base normals (light=Y-combo opener, heavy=finisher) + a Fwd+Special Body Flicker dodge
+                     //   (Phase 1); Sharingan/Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy/Mangekyō/Kamui (P4).
+                     //   No Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -272,6 +276,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                28,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          112,       // 71 rekka + 13 standard-string + 28 single-poke = 112 (gaara added)
+  zoner:                29,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara + kakashi_anbu (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          113,       // 71 rekka + 13 standard-string + 29 single-poke = 113 (kakashi_anbu added)
 }

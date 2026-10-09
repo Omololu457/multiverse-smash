@@ -4051,6 +4051,7 @@ const INTRO_VOICE = {
   iron_man: { pool: IRON_MAN_VOICE.intro, gateReveal: false },
   // Kakashi: "I'll be your opponent." / "Kakashi of the Sharingan." No taunt action → taunt rides offense-connect. JA.
   kakashi: { pool: KAKASHI_VOICE.intro, gateReveal: false },
+  kakashi_anbu: { pool: KAKASHI_VOICE.intro, gateReveal: false },   // NEW additive ANBU variant reuses base Kakashi's intro pool (no new audio; combat.js untouched)
   // L (Ryuzaki): cryptic "monsters in this world" opener. No taunt action → taunt rides offense-connect. EN.
   l_ryuuzaki: { pool: L_RYUUZAKI_VOICE.intro, gateReveal: false },
   // Piccolo: "I have new, unbelievable power!" No taunt action → taunt rides offense-connect. EN.
@@ -6052,7 +6053,7 @@ function _checkMatchOver() {
         sound.playSfxFile?.(pickIronManVoice("win"), null)
       }
       // KAKASHI win voice — "That's the end. Next!" Fires only when the WINNER is Kakashi. JA.
-      if (winFighter?.rosterKey === "kakashi") {
+      if (winFighter?.rosterKey === "kakashi" || winFighter?.rosterKey === "kakashi_anbu") {   // ANBU variant reuses base Kakashi's win line (no new audio)
         sound.playSfxFile?.(pickKakashiVoice("win"), null)
       }
       // PICCOLO win voice — "It's over. Special Beam Cannon!" Fires only when the WINNER is Piccolo. EN.

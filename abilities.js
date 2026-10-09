@@ -9537,6 +9537,34 @@ export function executeKakashiSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// KAKASHI (ANBU) — rosterKey "kakashi_anbu". NEW additive fighter; the base `kakashi` path above is
+// UNTOUCHED. All logic is namespaced here + in game.js FX. deterministic / LAN-safe (no gameRng).
+//   PHASE 1 (live): F+Special = BODY FLICKER (shunshin teleport-dodge: brief i-frames + short forward blink).
+//   RESERVED (later phases, all return false for now): N=Raikiri(P2) · D=Ninken(P3) · B=Read(P3) · U=Genjutsu(P3).
+// ─────────────────────────────────────────────────────────────────────────────
+const KAKASHI_ANBU_FLICKER = { cost: 12, dist: 110, iframes: 14, dur: 16 }   // reported numbers
+function fireKakashiAnbuBodyFlicker(fighter, context) {
+  const F = KAKASHI_ANBU_FLICKER
+  if (!spendEnergy(fighter, F.cost)) return false
+  const sw = context?.worldWidth || 3200
+  const face = fighter.facing || 1
+  fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x + face * F.dist))   // short forward blink, clamped in-bounds
+  fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F.iframes)   // brief i-frames (hit detection skips on invulnTimer)
+  fighter._spriteCastMove = "anbuFlicker"; fighter._spriteCastTimer = F.dur   // teleport dissolve pose
+  fighter.attackCooldown = getAttackDuration(F.dur, fighter)
+  return true
+}
+export function executeKakashiAnbuSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (grounded && dir === "F") return fireKakashiAnbuBodyFlicker(fighter, context)   // PHASE 1 — Body Flicker
+  return false   // N / U / D / B + airborne = RESERVED for later phases (no-op for now)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // VEGITO (Dragon Ball) — Stage 4 SPECIALS (fixed-slot large ki kit; 6 named specials + Kamehameha ULT).
 // Directional / air branch (mirrors executePiccoloSpecial):
 //   neutral GROUND = Big Bang Attack   — big slow growing white/blue sphere (offense-scaled radius)
@@ -27786,6 +27814,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "ippo":    return executeIppoSpecial(fighter, context)     // MELEE-ONLY (boxer) — neutral=Gazelle Punch (leaping counter, launcher) / Fwd=spinning hook punch / Up=heavy uppercut (launcher) / Down=heavy body-blow / AIR=aerial hook. NO projectiles (not invented)
     case "vegito":  return executeVegitoSpecial(fighter, context)   // neutral=Big Bang (big sphere) / Fwd=Galick Gun (purple piercing beam) / Back=Banshee Blast (gold rapid-fire volley) / Down=Spread Finger Beam (yellow fan) / U=Air Ki Blast (rising dart) / AIR=Perfect Shot (cyan dart pair)
     case "kakashi": return executeKakashiSpecial(fighter, context)  // Stage 4 "Weapon Throw" kunai (orange spinning-slash), 3 stance contexts: standing (ground) / crouch (Down) / air (airborne). Summons/Raikiri/Mangekyou land in later stages.
+    case "kakashi_anbu": return executeKakashiAnbuSpecial(fighter, context)  // NEW additive. PHASE 1: F+Special = Body Flicker (teleport-dodge). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu)
     case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
     case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
     case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.

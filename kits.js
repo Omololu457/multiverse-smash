@@ -339,6 +339,30 @@ export const KITS = {
     ]
   },
 
+  // Kakashi (ANBU) — NEW additive fighter. Move list GROWS per phase; Phase 1 = normals + Body Flicker.
+  // Sharingan toggle + Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) add rows later.
+  kakashi_anbu: {
+    type: "Technical Shinobi / Rushdown", energy: "Chakra", difficulty: "Hard",
+    summary: "Teen-era ANBU Hatake Kakashi — a fast, technical, lower-HP shinobi who fights with the tanto and Sharingan trickery. His Y-combo tanto string, rising kick launcher and diving aerials pressure up close; the Body Flicker (shunshin) teleport-dodge repositions with i-frames. The Sharingan toggle, Raikiri, Ninken summon, Sharingan Read counter, Genjutsu stun, Copy Ninja, and the Mangekyō→Kamui awakening arrive across later phases.",
+    passive: { name: "Sharingan (ANBU)", effect: "Phase 2+: Charge toggles the Sharingan (code-drawn red eye + afterimage) — it drains Chakra while active and sharpens Raikiri tracking, Reads and Genjutsu; at 0 Chakra it shuts off and Kakashi is briefly fatigued." },
+    basics: [
+      { name: "Tanto Slash",    input: "Light",                   desc: "Y-combo opener — quick tanto slash string" },
+      { name: "Tanto Finisher", input: "Heavy",                   desc: "committed Y-combo finisher with an orange blade arc" },
+      { name: "Rising Kick",    input: "Up-Attack",               desc: "launcher — rising overhead kick, starts air combos" },
+      { name: "Diving Strike",  input: "Air (jump + Light)",      desc: "aerial diving tanto strike" },
+      { name: "Air Slam",       input: "Down-Air (jump + Heavy)", desc: "downward aerial strike (reuses the diving art)" },
+      { name: "Low Slash",      input: "Crouch + Light",          desc: "low sliding tanto poke" }
+    ],
+    specials: [
+      { name: "Body Flicker",   input: "Forward + Special",       cost: 12, desc: "Shunshin no Jutsu — a short forward teleport-dodge with brief i-frames (teleport art) [CANON]" }
+    ],
+    passiveNote: "PHASE 1 of 4 live: body, normals, Body Flicker, intro. Coming: Sharingan toggle + Raikiri (N+Special, charge-hold) + Full-Charge Raikiri ultimate (P2); Ninken Tsuiga (Down+Special), Sharingan Read counter (Back+Special), Sharingan Genjutsu (Up+Special) (P3); Copy Ninja (Down+Ultimate) + Mangekyō Awakening → Kamui Rift (Up+Ultimate) (P4). Later Special directions REQUIRE the Sharingan where noted.",
+    ultimate: { name: "Full-Charge Raikiri", input: "Ultimate (full meter)", cost: 100, desc: "Lightning Blade — illustration cut-in, full charge-loop, then a guaranteed tracking lightning thrust (wired Phase 2)." },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-kick launcher into aerial pressure" }
+    ]
+  },
+
   sasuke_sensei: {
     type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
     summary: "Boruto-era Sasuke at his peak — a dōjutsu master with THREE cycling eye-sets. RAITON (lightning blades + Kirin), MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) and RINNEGAN (gravity: repulsion, pull, absorb + Chibaku Tensei). Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques; the active set flashes above Sasuke.",

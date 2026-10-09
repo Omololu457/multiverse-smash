@@ -7923,6 +7923,14 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gaara") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "shukaku" : "sabakuTaisou"
   }
+  // KAKASHI (ANBU) — Ultimate is directional: NEUTRAL = Full-Charge Raikiri · Down = Copy Ninja (mirror the
+  // foe's recent projectile; needs Sharingan + copy-ready) · Up = Kamui Rift (only after the Mangekyō awakening).
+  // Copy/Kamui self-gate in executeKakashiAnbuUltimate (no-op → ult not consumed when unavailable).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "kakashi_anbu") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "kamuiRift" : "raikiri"
+    fighter._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen   // fresh gate (updateBattle's tick is skipped during cinematics)
+  }
   // SASUKE (ADULT + SENSEI) — the earlier Charge+Ultimate giant Susanoo (enterSasukeFormSusanoo) is UNBOUND
   // here: the War-Susano'o rework (sasuke_susano_*) replaces it. Teen's Ultimate-button Susanoo is untouched.
   // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
@@ -13024,6 +13032,45 @@ function drawKakashiAnbuFx(c, fighter) {
     }
     c.restore()
   }
+  // MANGEKYŌ pattern — once awakened, a slow-spinning 3-blade red pinwheel over the eye (code-drawn, no art).
+  if (fighter._kanbuMangekyou) {
+    const t = (fighter._mangekyouT = (fighter._mangekyouT || 0) + 1)
+    const ex = cx + facing * w * 0.12, ey = fighter.y + h * 0.17
+    c.save(); c.translate(ex, ey); c.rotate(t * 0.08)
+    c.fillStyle = "rgba(210,16,16,0.92)"
+    for (let k = 0; k < 3; k++) {
+      c.rotate(Math.PI * 2 / 3)
+      c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(2.4, 1.2, 0, 3.4); c.quadraticCurveTo(-1.2, 1.4, 0, 0); c.fill()
+    }
+    c.fillStyle = "rgba(255,230,230,0.9)"; c.beginPath(); c.arc(0, 0, 0.9, 0, Math.PI * 2); c.fill()
+    c.restore()
+    if ((fighter._kanbuAwakenFlash || 0) > 0) {   // awakening burst — expanding red ring around the body
+      const fr = 1 - (fighter._kanbuAwakenFlash / 32)
+      c.save(); c.globalAlpha = (1 - fr) * 0.8; c.strokeStyle = "rgba(230,30,30,0.9)"; c.lineWidth = 3
+      c.beginPath(); c.arc(cx, cy, w * (0.5 + fr * 1.2), 0, Math.PI * 2); c.stroke(); c.restore()
+    }
+  }
+  // KAMUI RIFT — code-drawn spatial-distortion swirl at the rift position (a drawn-in spiral + violet void).
+  if (fighter._kamuiRift) {
+    const rift = fighter._kamuiRift, rt = rift.max - rift.t
+    const env = Math.min(1, rt / 8) * Math.min(1, rift.t / 10)          // ease in/out
+    const rad = w * (0.5 + 0.5 * Math.min(1, rt / 10))
+    c.save(); c.translate(rift.x, rift.y); c.rotate(rt * 0.22); c.globalAlpha = env
+    const vg = c.createRadialGradient(0, 0, 2, 0, 0, rad)
+    vg.addColorStop(0, "rgba(20,0,30,0.92)"); vg.addColorStop(0.7, "rgba(120,60,200,0.55)"); vg.addColorStop(1, "rgba(120,60,200,0)")
+    c.fillStyle = vg; c.beginPath(); c.arc(0, 0, rad, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = "rgba(190,150,255,0.85)"; c.lineWidth = 1.6
+    for (let s = 0; s < 3; s++) {                                       // 3 inward spiral arms
+      c.beginPath()
+      for (let a = 0; a < Math.PI * 3; a += 0.3) {
+        const rr = rad * (1 - a / (Math.PI * 3)); const ang = a + s * (Math.PI * 2 / 3)
+        const px = Math.cos(ang) * rr, py = Math.sin(ang) * rr
+        if (a === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.stroke()
+    }
+    c.restore()
+  }
 }
 // ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
 //    panel slides in with a red flash while _kanbuUltCutin ticks down (set by executeKakashiAnbuUltimate).
@@ -14975,7 +15022,7 @@ function updateBattle() {
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
   { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
-  { const _kctx = getAbilityContext(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special) }   // KAKASHI (ANBU): Sharingan drain/fatigue + Raikiri charge-hold/release + dash travel/homing/contact + FX timers (no-op otherwise)
+  { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
@@ -21784,10 +21831,15 @@ gameLoop()
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
     // KAKASHI (ANBU) Phase 2 — read Sharingan/Raikiri state (custom fields the p1() snapshot omits) + toggle hook.
     kakashiAnbu: {
-      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
+      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), copyReady: f._copyReady || 0, copyCapture: f._copyCapture?.source || null, mangekyou: !!f._kanbuMangekyou, kamuiUnlocked: !!f._kamuiUnlocked, awakenFlash: f._kanbuAwakenFlash || 0, kamuiRift: !!f._kamuiRift, kamuiExhaust: f._kamuiExhaust || 0, ultVariant: f._ultVariant || null, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
       putOppNear: (dist = 110) => { if (!p1 || !p2) return null; p2.x = p1.x + (p1.facing || 1) * dist; return Math.round(p2.x) },   // test-only: position the foe in range
       forceOppAttack: () => { if (!p2) return false; p2.attacking = true; p2.currentMove = "light"; return true },                   // test-only: mark the foe mid-attack (drives the Read counter)
+      ult: (variant = "raikiri", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._ultVariant = variant; f._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!f.domainFrozen; f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; const eBefore = f.energy; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, variant: f._ultVariant, spent: eBefore - f.energy, kamuiRift: !!f._kamuiRift, copyReady: f._copyReady || 0 } },   // test-only: fire a directional ult (mirrors the real ult-press gate)
+      armCopy: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._copyReady = 180; return f ? f._copyReady : 0 },        // test-only: simulate the foe's recent projectile
+      oppFireProjectile: (dir = "D") => { if (!p2) return false; p2._specialHeldDir = dir; p2.attackCooldown = 0; p2.attacking = false; p2.energy = p2.maxEnergy || 200; return !!triggerSpecial(p2, getAbilityContext()) },   // test-only: make the foe cast a real projectile special
+      setDomainFrozen: (v = true, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f.domainFrozen = !!v; return !!f?.domainFrozen },   // test-only: exercise the cinematic-refusal path
+      setRewind: (v = true) => { rewindState.active = !!v; return rewindState.active },   // test-only: cinematic-refusal path (rewindState doesn't auto-reset like domainFrozen)
     },
     // Naoya test isolation — clear all Projection-Sorcery transient state on BOTH fighters (snare/freeze/route
     // + HUD flashes) so back-to-back cases don't leak a lingering snare/route between them. Test-only.

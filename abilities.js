@@ -9647,8 +9647,16 @@ function kanbuAABBHit(fighter, opp, reach) {
 // ── FULL-CHARGE RAIKIRI — ULTIMATE (neutral U): illustration cut-in → full charge loop → GUARANTEED tracking
 //    dash → one big lightning thrust. Mirrors base Kakashi's Raikiri-ult shape (330 raw → ~198 EFF). ──
 const KAKASHI_ANBU_RAIKIRI_ULT = { cost: 100, cinematic: 72, loopAt: 10, dashAt: 48, impactAt: 62, raw: 330, hitstun: 42, kb: 14, vy: -9, dashSpeed: 32 }
+// ULT DISPATCHER (neutral = Full-Charge Raikiri · Down = Copy Ninja · Up = Kamui Rift). _ultVariant is stamped
+// by game.js when Ultimate is pressed. Copy/Kamui gate themselves (no-op → ult not consumed) if unavailable.
 export function executeKakashiAnbuUltimate(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  const v = fighter._ultVariant || "raikiri"
+  if (v === "copyNinja") return executeKakashiAnbuCopyNinja(fighter, context)   // PHASE 4
+  if (v === "kamuiRift") return executeKakashiAnbuKamuiRift(fighter, context)   // PHASE 4
+  return executeKakashiAnbuRaikiriUlt(fighter, context)
+}
+function executeKakashiAnbuRaikiriUlt(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, KAKASHI_ANBU_RAIKIRI_ULT.cost)) return false
   const U = KAKASHI_ANBU_RAIKIRI_ULT
@@ -9775,17 +9783,120 @@ function fireKakashiAnbuGenjutsu(fighter, context) {
   return true
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU) — PHASE 4: Copy Ninja (Down+Ult) · Mangekyō Awakening (auto) → Kamui Rift (Up+Ult) + exhaustion.
+// Deterministic / LAN-safe (frame-based, no gameRng). combat.js UNTOUCHED. Cinematics refused during KO /
+// Brutality / Domain / Rick-Prime-rewind (fighter._kanbuCinematicsBlocked, set from game.js).
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_ANBU_COPY   = { cost: 100, window: 180, cast: 20 }                 // copy-ready for ~3s after the foe fires a projectile
+const KAKASHI_ANBU_KAMUI  = { cost: 100, riftFrames: 54, dot: 11, dotEvery: 6, exhaustSlow: 0.5, exhaustFrames: 120 }
+const KAKASHI_ANBU_MANGEKYOU = { hpGate: 0.25, flash: 32 }
+
+// COPY NINJA (Down+Ultimate; needs Sharingan + copy-ready): if the foe fired a PROJECTILE special in the last
+// ~3s, Kakashi casts with his OWN hand-seal frames and fires ONE mirrored copy. Reuses Rick Prime's Energy
+// Siphon borrow-fire (copy-only; Rick's code is never modified). No projectile / no eye / not ready → no-op.
+function executeKakashiAnbuCopyNinja(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!fighter._sharinganActive) return false                                   // copy needs the Sharingan
+  if ((fighter._copyReady || 0) <= 0) return false                              // the foe hasn't fired a projectile recently
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp || !_rickPrimeFindOppProjectile(opp)) return false                   // foe has no projectile → input does nothing
+  if (!spendEnergy(fighter, KAKASHI_ANBU_COPY.cost)) return false
+  fighter.vx = 0; fighter.colorFlash = 12
+  fighter._spriteCastMove = "ninken_cast"; fighter._spriteCastTimer = KAKASHI_ANBU_COPY.cast   // his own hand-seal frames
+  fighter.attackCooldown = getAttackDuration(KAKASHI_ANBU_COPY.cast + 8, fighter)
+  fighter._copyReady = 0                                                         // one copy per read
+  schedulePendingSpawn(KAKASHI_ANBU_COPY.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    if (o) { _rickPrimeBorrowFireProjectile(fighter, o, context); fighter._copyCapture = { source: (o.rosterKey || "").toLowerCase() } }   // borrow fires the copy; its return (refund gate) is unreliable for non-pending spawns → set capture regardless
+  })
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+
+// KAMUI RIFT (Up+Ultimate; unlocked by the Mangekyō awakening): a long-range spatial distortion at the foe's
+// position (code-drawn swirl) that deals damage over a moment. After it: EXHAUSTION — Chakra drained to 0 and
+// Kakashi is slowed ~2s (canon: he collapses after Kamui). Refused during KO/Brutality/Domain/rewind.
+function executeKakashiAnbuKamuiRift(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!fighter._kamuiUnlocked) return false                                     // only after the Mangekyō awakening
+  if (fighter._kanbuCinematicsBlocked) return false                             // KO / Brutality / Domain / rewind
+  if (!spendEnergy(fighter, KAKASHI_ANBU_KAMUI.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown = getAttackDuration(KAKASHI_ANBU_KAMUI.riftFrames + 12, fighter)
+  fighter._kanbuUltCutin = 28                                                   // reuse the illustration cut-in (+ Mangekyō tint)
+  const rx = opp ? (opp.x + (opp.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 320)
+  const ry = opp ? (opp.y + (opp.h || 100) * 0.42) : (fighter.y + (fighter.h || 100) * 0.42)
+  fighter._kamuiRift = { t: KAKASHI_ANBU_KAMUI.riftFrames, max: KAKASHI_ANBU_KAMUI.riftFrames, x: rx, y: ry }
+  fighter._kamuiPendingExhaust = true                                           // exhaustion applied when the rift ends
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 16); shakeCamera(context, 8, 12) } catch (_) {}
+  return true
+}
+
 // Per-frame STATE tick (called from updateBattle AFTER updateCombat; no-op off-char). Runs unconditionally
 // so it never freezes physics/hitstun. heldSpecial = side-effect-free held Special key (readRawControls),
 // used to drive the Raikiri charge HOLD/RELEASE (started by startKakashiAnbuRaikiri in updatePlayerCombat).
 // Handles: Sharingan drain + fatigue, Raikiri charge loop → release, dash travel + homing + contact, FX timers,
 // Ninken pin (root + damage), Sharingan Read window + counter, and cooldowns.
-export function updateKakashiAnbu(fighter, context, heldSpecial = false) {
+export function updateKakashiAnbu(fighter, context, heldSpecial = false, blockCinematics = false) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
   const S = KAKASHI_ANBU_SHARINGAN, R = KAKASHI_ANBU_RAIKIRI
+  fighter._kanbuCinematicsBlocked = !!(blockCinematics || fighter.domainFrozen)   // read by Kamui Rift / awakening
   // ── PHASE 3 cooldowns + FX timers ──
   if ((fighter._readCd || 0) > 0) fighter._readCd--
   if ((fighter._genjutsuCd || 0) > 0) fighter._genjutsuCd--
+
+  // ── PHASE 4: round reset — when the fighter is restored to (near) full HP at a new round, clear the
+  //    once-per-round awakening + Kamui unlock. ──
+  if ((fighter.health || 0) >= (fighter.maxHealth || 1000) * 0.95) {
+    fighter._kanbuMangekyou = false; fighter._kamuiUnlocked = false
+  }
+  // COPY-READY tracking: if the foe has a live projectile out, Copy Ninja is "ready" for ~3s afterward.
+  if ((fighter._copyReady || 0) > 0) fighter._copyReady--
+  {
+    const opp = getTargetResolver(context)(fighter) || null
+    if (opp && Array.isArray(activeProjectiles) && activeProjectiles.some(p => p && p.owner === opp && !p.visualOnly))
+      fighter._copyReady = KAKASHI_ANBU_COPY.window
+  }
+  // MANGEKYŌ AWAKENING (auto, once per round): HP ≤ 25% with the Sharingan ON → red-flash cut-in + code-drawn
+  // Mangekyō pattern; unlocks Up+Ult KAMUI RIFT until the round ends. Refused during KO/Brutality/Domain/rewind.
+  if (!fighter._kanbuMangekyou && fighter._sharinganActive && !fighter._kanbuCinematicsBlocked &&
+      !fighter.eliminated && (fighter.health || 0) > 0 &&
+      (fighter.health || 0) <= (fighter.maxHealth || 1000) * KAKASHI_ANBU_MANGEKYOU.hpGate) {
+    fighter._kanbuMangekyou = true; fighter._kamuiUnlocked = true
+    fighter._kanbuAwakenFlash = KAKASHI_ANBU_MANGEKYOU.flash; fighter._kanbuUltCutin = 28
+    try { shakeCamera(context, 6, 12) } catch (_) {}
+  }
+  if ((fighter._kanbuAwakenFlash || 0) > 0) fighter._kanbuAwakenFlash--
+  // KAMUI RIFT: spatial-distortion DoT over its window → then EXHAUSTION (Chakra to 0, slowed ~2s).
+  if (fighter._kamuiRift) {
+    const K = KAKASHI_ANBU_KAMUI, rift = fighter._kamuiRift
+    rift.t--
+    const opp = getTargetResolver(context)(fighter) || null
+    if (opp && !opp.eliminated) {
+      const dist = Math.abs((opp.x + (opp.w || 60) / 2) - rift.x)
+      if (dist <= 120) {                                              // the foe is caught in the rift
+        const elapsed = rift.max - rift.t
+        opp.vx *= 0.7; opp.vy *= 0.7
+        if (elapsed > 0 && elapsed % K.dotEvery === 0) { applyScaledDamage(opp, K.dot, { source: "kakashi_anbu-kamui" }); opp.colorFlash = 10 }
+      }
+    }
+    if (rift.t <= 0) {
+      fighter._kamuiRift = null
+      if (fighter._kamuiPendingExhaust) {                            // EXHAUSTION — canon collapse after Kamui
+        fighter._kamuiPendingExhaust = false
+        fighter.energy = 0; fighter._sharinganActive = false
+        fighter._kamuiExhaust = K.exhaustFrames
+      }
+    }
+  }
+  if ((fighter._kamuiExhaust || 0) > 0) {
+    fighter.speedMultiplier = KAKASHI_ANBU_KAMUI.exhaustSlow
+    fighter._kamuiExhaust--
+    if (fighter._kamuiExhaust <= 0 && (fighter._sharinganFatigue || 0) <= 0) { fighter._kamuiExhaust = 0; fighter.speedMultiplier = 1 }
+  }
 
   // ── NINKEN pin: root the foe + damage ticks + Bull bite → dismissal smoke. ──
   if (fighter._ninkenPin) {

@@ -9157,7 +9157,7 @@ const kakashiAnbu = {
     genjutsu:    { cost: 22, damage: 10, subtype: "stun",      effect: "Sharingan Genjutsu (Up+Special; needs Sharingan) — a close-range stare that briefly STUNS the foe (tomoe swirl). Cooldown" },
     sharingan:   { cost: 0,  damage: 0,  subtype: "stance",    effect: "Sharingan (Charge-tap) — toggles the red eye: drains Chakra while active, sharpens Raikiri tracking + gates Read/Genjutsu; at 0 Chakra it shuts off and Kakashi is briefly fatigued" }
   },
-  ultimate: { name: "Full-Charge Raikiri", cost: 100, description: "Lightning Blade — illustration cut-in, full charge-loop, then a GUARANTEED tracking lightning thrust (~198 EFF, half on block)." },
+  ultimate: { name: "Full-Charge Raikiri / Copy Ninja / Kamui Rift", cost: 100, description: "Directional ULT — neutral = Full-Charge Raikiri (~198 EFF guaranteed tracking thrust) · Down = Copy Ninja (mirror the foe's recent projectile; needs Sharingan + copy-ready) · Up = Kamui Rift (spatial-distortion DoT; unlocked by the Mangekyō awakening at ≤25% HP, then EXHAUSTION)." },
   hasSprites: true,
   // idle content ~63px × 1.75 ≈ 110px on-screen ≈ roster mid-band. REQUIRES the skins.js `kakashi_anbu`
   // default entry (else applySkin() pulls the spriteScale:1 fallback → half size) + the spritesheets.js idle

@@ -10129,19 +10129,21 @@ const narutoSeventh = {
     rasengan:      { cost: 30, effect: "Neutral+Special: Rasengan — a spiraling chakra-sphere palm thrust (air = diving Rasengan). Sphere is code-drawn FX. [CANON]" },
     rasenshuriken: { cost: 40, effect: "Fwd+Special: Rasenshuriken — hurls a screaming wind-natured chakra shuriken (ground & air). Disc is code-drawn FX. [CANON]" },
     dotonWall:     { cost: 28, effect: "Back+Special: Doton — Earth-Style Wall — six rising rock pillars that block incoming projectiles while raised. [CANON-ADJACENT]" },
-    throwWeapon:   { cost: 10, effect: "Down+Special (also the free projectile): Throw Weapon — flings a kunai as a ranged poke (ground & air). [CANON]" },
+    gamabunta:     { cost: 55, effect: "Down+Special (ground): Kuchiyose: Gamabunta — summon-seal burst → the Toad Boss's sure-hit dagger slash (half on block). Now a SPECIAL. [CANON]" },
+    throwWeapon:   { cost: 10, effect: "Down+Special (AIR): Throw Weapon — flings a kunai as a ranged air poke. [CANON]" },
     strongDown:    { cost: 0,  effect: "Down+Heavy: Strong Down — a red-flame overhead spike. KURAMA BOND 1+ (Red Chakra) gives it +25% damage & +20% hitbox. [CANON-ADJACENT]" },
     fourTails:     { cost: 0,  effect: "Up+Special — KURAMA BOND 2+: Four-Tails Rampage — a committed red-cloak beast combo (4 hits, high damage); the cloak BURNS ~12% of your own HP. Returns to Base. [CANON-ADJACENT]" },
     kcm:           { cost: 60, effect: "Hold Charge — KURAMA BOND 3+: enter KCM (golden Kurama Chakra Mode) — timed, drains chakra, +dmg/+speed, Light→Combo 2. NO guard (pure offense). Tap Charge to exit. [CANON]" },
     rasenkyugan:   { cost: 40, effect: "KCM Neutral+Special: Rasenkyugan — a rapid multi chakra-arm barrage (reaches far) → launcher. [CANON]" },
-    wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" }
+    wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" },
+    rikudou:       { cost: 80, effect: "KCM Down+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — code-drawn gold entry flash → committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" }
   },
   // KURAMA BOND: a meter (0-4) that fills as Naruto FIGHTS (lands hits / takes damage) and decays when idle,
   // shown in the Chakra label. BOND 1 = Red Chakra (aura + buffed Strong Up/Down) · BOND 2 = Four-Tails ·
   // BOND 3 = KCM (hold Charge, Phase 3) · BOND 4 = Rikudou (KCM Down+Ult, Phase 4). Strong Up = the up-attack.
   ultimate: {
-    name: "Kuchiyose: Gamabunta", cost: 70, damage: 192,
-    description: "BASE: Summoning-seal burst → the Toad Boss Gamabunta rises and delivers a sure-hit dagger slash (half on block). KCM: the ultimate becomes a BIGGER Bijuudama — two Kurama heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom). [CANON]"
+    name: "Bijuudama (Tailed Beast Bomb)", cost: 70, damage: 300,
+    description: "KCM ONLY (Gamabunta is now a Down+Special). Neutral: BIGGER Bijuudama — the two nine-tails (Kurama) heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom), like the Adult-KCM Naruto. Down+Ult (Bond 4, once/round): RIKUDOU apex — a committed black/gold Six-Paths combo with a code-drawn entry flash that ends in Base and resets the Bond. [CANON]"
   },
   // Kurama-Bond ladder (Phases 2-4) lives in abilities.js (N7 state), NOT a transformations-based swap.
   transformationOrder: ["base"],
@@ -10158,7 +10160,7 @@ const narutoSeventh = {
     jump:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_jump_uniform.png" },
     fall:      { frames: 5, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_jump_uniform.png" },
     guard:     { frames: 2, width: 39, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_guard_uniform.png" },
-    hurt:      { frames: 3, width: 66, height: 63, speed: 5, anchorY: 0, sheet: "./naruto_seventh_hurt_uniform.png" },   // sheet has 7; play first 3 stagger frames
+    hurt:      { frames: 7, width: 66, height: 63, speed: 5, anchorY: 0, sheet: "./naruto_seventh_hurt_uniform.png" },   // full 7-frame hit-reaction (hitstun gates how far it plays)
     knockdown: { frames: 1, width: 53, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_getup_uniform.png" },   // frame 0 = prone (also defeat hold)
     getup:     { frames: 4, width: 53, height: 41, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_getup_uniform.png" },
     light:     { frames: 9, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_light_uniform.png" },   // Combo 1 (3 strings)
@@ -10186,7 +10188,10 @@ const narutoSeventh = {
     // PHASE 3 — KCM special cast poses (golden sections; resolve even under the _skinAnim form-override via fallback).
     n7Rasenkyugan: { frames: 14, width: 102, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rasenkyugan_uniform.png" },
     n7Wakusei:     { frames: 11, width: 142, height: 86, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_wakusei_uniform.png" },
-    n7Bijuudama:   { frames: 1,  width: 31,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" }   // golden gather stance (heads+sphere are the spectacle)
+    n7Bijuudama:   { frames: 1,  width: 31,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // golden gather stance (heads+sphere are the spectacle)
+    // Rikudou (Sp6, black/gold) committed apex + Oiroke (Sp4 gag) opt-in. From H's OWN sections (never cross modes).
+    n7Rikudou:     { frames: 27, width: 82, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rikudou_uniform.png" },
+    n7Oiroke:      { frames: 8,  width: 46, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_oiroke_uniform.png" }
   }
 }
 

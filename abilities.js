@@ -4252,6 +4252,29 @@ function isN7Char(f) { return (f?.rosterKey || "").toLowerCase() === "naruto_sev
 function _n7SetCast(fighter, pose, frames) { fighter._spriteCastMove = pose; fighter._spriteCastTimer = frames }
 function _n7Airborne(f) { return !(f.onGround ?? f.grounded ?? true) }
 
+// OIROKE NO JUTSU — OPT-IN (default OFF, same localStorage pattern as the Brutality toggle). A short gag
+// DISTRACTION: when enabled, a quick Charge TAP (in base) transforms into the gag form and briefly stuns a
+// nearby facing opponent (no damage). Persisted in localStorage "ms_oiroke_enabled". [CANON (gag)]
+let _n7OirokeEnabled = (() => { try { return (typeof localStorage !== "undefined") && localStorage.getItem("ms_oiroke_enabled") === "1" } catch (_) { return false } })()
+export function setNarutoSeventhOiroke(on) { _n7OirokeEnabled = !!on; try { localStorage.setItem("ms_oiroke_enabled", on ? "1" : "0") } catch (_) {} }
+export function narutoSeventhOirokeEnabled() { return _n7OirokeEnabled }
+export function n7Oiroke(fighter, context) {
+  if (!isN7Char(fighter) || !_n7OirokeEnabled) return false                // gated on the opt-in
+  if (fighter._n7KCMActive) return false                                   // base-only (orange gag art)
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 12)) return false
+  _n7SetCast(fighter, "n7Oiroke", 32)
+  fighter.attackCooldown = getAttackDuration(34, fighter)
+  schedulePendingSpawn(14, () => {                                         // the "distraction" — brief stun, NO damage
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 220) return
+    opp.stun = Math.max(opp.stun || 0, 44); opp.attackCooldown = Math.max(opp.attackCooldown || 0, 44)
+    opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.colorFlash = 8       // flinch (distracted), no HP loss
+  })
+  return true
+}
+
 function executeNarutoSeventhSpecial(fighter, context) {
   if (!isN7Char(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -4262,7 +4285,7 @@ function executeNarutoSeventhSpecial(fighter, context) {
   // ORANGE cast art) are disabled while golden so no frame crosses modes.
   if (dir === "F") return kcm ? n7Wakusei(fighter, context) : n7Rasenshuriken(fighter, context, air)   // Fwd — KCM Wakusei / base Rasenshuriken
   if (dir === "B") return kcm ? false : n7DotonWall(fighter, context)        // Back — Doton Earth-Wall (BASE only)
-  if (dir === "D") return kcm ? false : n7ThrowWeapon(fighter, context, air) // Down — Throw Weapon (BASE only)
+  if (dir === "D") return kcm ? false : (air ? n7ThrowWeapon(fighter, context, true) : n7Gamabunta(fighter, context))   // Down — ground = Kuchiyose: Gamabunta (now a SPECIAL), air = Throw Weapon (BASE only)
   if (dir === "U") return kcm ? false : n7FourTails(fighter, context)        // Up   — Four-Tails Rampage (BASE, Bond 2+)
   return kcm ? n7Rasenkyugan(fighter, context) : n7Rasengan(fighter, context, air)   // Neutral — KCM Rasenkyugan / base Rasengan (air = diving)
 }
@@ -4355,18 +4378,18 @@ function n7ThrowWeapon(fighter, context, air) {
 // ULTIMATE dispatcher. BASE = Kuchiyose: Gamabunta. KCM = BIGGER Bijuudama (neutral) / Rikudou (Down, PHASE 4).
 function executeNarutoSeventhUltimate(fighter, context) {
   if (!isN7Char(fighter)) return false
-  if (fighter._n7KCMActive) {
-    if ((fighter._ultVariant || "") === "rikudou") return false   // Rikudou = Down+Ult, PHASE 4 (no-op here)
-    return n7Bijuudama(fighter, context)                           // KCM neutral ult = bigger Bijuudama
-  }
-  return n7Gamabunta(fighter, context)                            // base ult = Kuchiyose: Gamabunta
+  if (!fighter._n7KCMActive) return false                          // the ULTIMATE (Bijuudama) is KCM-ONLY — Gamabunta is now a Down+Special
+  if ((fighter._ultVariant || "") === "rikudou" && n7Rikudou(fighter, context)) return true   // Down+Ult = Rikudou apex if available (Bond 4, once/round)
+  return n7Bijuudama(fighter, context)                             // else neutral = BIGGER Bijuudama (the two nine-tails Kurama heads + sphere, like naruto_hokage)
 }
 
-// BASE ULTIMATE — KUCHIYOSE: GAMABUNTA. Summon-seal burst → the Toad Boss rises (4 big H frames) and delivers
-// one guaranteed dagger slash (half on block). Cast pose = the hands-together summon pose. [CANON]
+// Down+Special (BASE) — KUCHIYOSE: GAMABUNTA (now a SPECIAL, per the user's request — was the ultimate).
+// Summon-seal burst → the Toad Boss rises (4 big H frames) and delivers one guaranteed dagger slash
+// (half on block). Cast pose = the hands-together summon pose. [CANON]
 function n7Gamabunta(fighter, context) {
   if (!isN7Char(fighter)) return false
-  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 55)) return false                      // special-tier cost (was 70 as the ultimate)
   _n7SetCast(fighter, "n7Kuchiyose", 54)
   fighter.attackCooldown = getAttackDuration(60, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 34)
@@ -4540,6 +4563,47 @@ function n7Bijuudama(fighter, context) {
   return true
 }
 
+// KCM Down+Ultimate — RIKUDOU (Six Paths) APEX (Bond 4, ONCE PER ROUND). A code-drawn gold entry FLASH
+// (ART RULE 3) → the committed 27-frame black/gold Sp6 apex combo (rod slashes → afterimages → giant golden
+// chakra fist). Fully locked + i-frames; uses ONLY its own Rikudou frames (committed — no walk/attack/other
+// anims). ENDS IN BASE (drops KCM) and RESETS the Bond meter. [CANON-ADJACENT]
+function n7Rikudou(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if (!fighter._n7KCMActive || (fighter._n7Bond || 0) < 4) return false   // needs KCM + BOND 4
+  if (fighter._n7RikudouUsed) return false                                 // once per round
+  if (!spendEnergy(fighter, 80)) return false
+  fighter._n7RikudouUsed = true
+  const DUR = 27 * 3                                                       // n7Rikudou anim: 27f × speed 3 ≈ 81f
+  _n7SetCast(fighter, "n7Rikudou", DUR)
+  fighter.attackCooldown = getAttackDuration(DUR + 10, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, DUR + 10)
+  fighter.vx = 0
+  // code-drawn Six-Paths entry FLASH — expanding gold ring + white core (no entry-flash art on the sheet)
+  spawnProjectile(fighter, "n7RikudouFlash", {
+    drawKind: "rikudouflash", visualOnly: true, speed: 0, vx: 0, vy: 0, lifetime: 28,
+    w: 40, h: 40, radius: 20, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  try { shakeCamera(context, 10, 18) } catch (_) {}
+  // scripted apex beats (rod slashes → afterimage flurry → GIANT golden chakra fist finisher)
+  const beats = [[22, 48, 16], [40, 52, 18], [60, 60, 20], [84, 110, 42]]
+  beats.forEach(([d, dmg, hs]) => schedulePendingSpawn(d, () => {
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 230) return
+    const kdir = tcx >= cx ? 1 : -1
+    if (opp.isBlocking) { opp.blockstun = hs; applyScaledDamage(opp, Math.floor(dmg * 0.5), { source: "ability" }); opp.vx = kdir * 6; return }
+    opp.hitstun = hs; opp.vx = kdir * (dmg > 80 ? 18 : 7); opp.vy = dmg > 80 ? -16 : -3; opp.colorFlash = 14
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, dmg > 80 ? 12 : 4, 10) } catch (_) {}
+  }))
+  // ENDS IN BASE + RESETS the Bond meter (the apex is spent)
+  schedulePendingSpawn(DUR + 2, () => {
+    revertNarutoSeventhKCM(fighter)
+    fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
+  })
+  return true
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PHASE 2 — KURAMA BOND LADDER. A deterministic meter (0-100 pts → level 0-4) that fills as Naruto FIGHTS
 // (lands melee hits + takes damage) and decays slowly when idle. Levels gate the Nine-Tails powers:
@@ -4611,6 +4675,17 @@ function fireN7StrongDown(fighter, context) {
   return true
 }
 
+// Fwd+Heavy — STRONG FORWARD (the sheet's own Forward-Strong 4f). A lunging forward heavy with reach. [CANON-ADJACENT]
+const N7_STRONG_FWD = { damage: 76, startup: 8, active: 4, recovery: 15, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 96, rangeY: 56, cd: 30 }
+function fireN7StrongFwd(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, "n7StrongFwd", { ...N7_STRONG_FWD }, { minActiveStart: N7_STRONG_FWD.startup, minActiveEnd: N7_STRONG_FWD.startup + N7_STRONG_FWD.active })
+  setAttackState(fighter, attack, N7_STRONG_FWD.cd)
+  fighter.vx = (fighter.facing || 1) * 7   // forward lunge
+  fighter._cmdHitLanded = false
+  return true
+}
+
 // Command-normal dispatch (Down+Heavy → Strong Down). Mirrors updateSaitamaCommandCombat; registered in
 // game.js before the standard normal path. Gated on rosterKey → no-op for everyone else.
 export function updateNarutoSeventhCommandCombat(fighter, inputState, context, getPhase) {
@@ -4620,9 +4695,11 @@ export function updateNarutoSeventhCommandCombat(fighter, inputState, context, g
   if (fighter._n7KCMActive) return false                             // KCM: Down+Heavy stays the golden Combo-2 heavy
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const down = !!inputState.down
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (!canStart || !grounded) return false
-  if (down && heavyEdge) return fireN7StrongDown(fighter, context)   // Down+Heavy → Strong Down (red-flame)
+  if (down && heavyEdge)    return fireN7StrongDown(fighter, context)   // Down+Heavy → Strong Down (red-flame)
+  if (forward && heavyEdge) return fireN7StrongFwd(fighter, context)    // Fwd+Heavy  → Strong Forward (lunge)
   return false
 }
 
@@ -4690,6 +4767,7 @@ export function revertNarutoSeventhState(fighter) {
   revertNarutoSeventhKCM(fighter)                 // drop KCM form + restore base (orange) body
   fighter._n7Wall = null
   fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
+  fighter._n7RikudouUsed = false                  // Rikudou is once-per-round → re-arm each round
   fighter._n7PrevHealth = fighter.health; fighter._n7PrevCombo = 0
   fighter.damageMultiplier = 1; fighter.speedMultiplier = 1
 }

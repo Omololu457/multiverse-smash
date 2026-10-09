@@ -3606,6 +3606,25 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, Math.PI * 2); ctx.fill()
         ctx.fillStyle = "#ffffff"
         ctx.beginPath(); ctx.arc(0, 0, R * 0.12, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "rikudouflash") {
+        // NARUTO (SEVENTH) — RIKUDOU (Six Paths) ENTRY FLASH (ART RULE 3 — code-drawn; the sheet has none).
+        // An expanding gold ring + inner ring + radiating light spokes + white-hot core that bloom then fade.
+        const prog = Math.min(1, t / 22)
+        const R = 20 + prog * 180
+        ctx.translate(x, y)
+        ctx.globalAlpha = (1 - prog) * 0.9
+        ctx.shadowBlur = 30; ctx.shadowColor = "#ffe9a8"
+        ctx.strokeStyle = "#ffd766"; ctx.lineWidth = 6 * (1 - prog) + 2            // expanding gold ring
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke()
+        ctx.strokeStyle = "#fff6d8"; ctx.lineWidth = 2
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, Math.PI * 2); ctx.stroke()
+        ctx.globalAlpha = (1 - prog); ctx.strokeStyle = "#ffe9a8"; ctx.lineWidth = 3   // radiating spokes
+        for (let k = 0; k < 10; k++) {
+          const a0 = k * Math.PI / 5
+          ctx.beginPath(); ctx.moveTo(Math.cos(a0) * R * 0.3, Math.sin(a0) * R * 0.3); ctx.lineTo(Math.cos(a0) * R, Math.sin(a0) * R); ctx.stroke()
+        }
+        ctx.shadowBlur = 0; ctx.globalAlpha = (1 - prog) * 0.95; ctx.fillStyle = "#fffdf4"   // white-hot core
+        ctx.beginPath(); ctx.arc(0, 0, 18 * (1 - prog) + 6, 0, Math.PI * 2); ctx.fill()
       } else if (p.drawKind === "sand") {
         // GAARA — SAND BULLET: a compressed ball of gourd sand (ART RULE 3 — code-drawn). A soft beige
         // core with a swirl of darker grains orbiting it + a faint dust trail. Gated on drawKind → no-op

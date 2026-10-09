@@ -241,6 +241,7 @@ const MOVE_TO_ACTION = {
   n7Kuchiyose: "n7Kuchiyose", n7StrongFwd: "n7StrongFwd", n7StrongDown: "n7StrongDown", n7FourTails: "n7FourTails",
   n7Rasenkyugan: "n7Rasenkyugan", n7Wakusei: "n7Wakusei", n7Bijuudama: "n7Bijuudama",   // KCM special cast poses (Phase 3)
   air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
+  n7Rikudou: "n7Rikudou", n7Oiroke: "n7Oiroke",   // Rikudou apex + Oiroke (Phase 4)
   madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
   madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.
   madaraGunbaiSwing:  "madaraGunbaiSwing",    // Madara (Stage 3): Gunbai Fan-Swing overhead melee pose. Identity map.

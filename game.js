@@ -160,6 +160,7 @@ import {
   updateNarutoSeventhCommandCombat,   // Naruto (Seventh) — Down+Heavy → Strong Down (red-flame) command normal
   enterNarutoSeventhKCM,              // Naruto (Seventh) — hold Charge (Bond 3+) → enter KCM golden form
   revertNarutoSeventhKCM,             // Naruto (Seventh) — exit KCM (tap Charge / timeout / 0 chakra)
+  n7Oiroke, narutoSeventhOirokeEnabled, setNarutoSeventhOiroke,   // Naruto (Seventh) — Oiroke opt-in (default OFF) distraction + toggle
   toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
@@ -6737,9 +6738,11 @@ function handleChargeRelease(fighter, key) {
   }
 
   // NARUTO (SEVENTH) — hold Charge (Bond 3+) to enter KCM golden form (timed, drains chakra, no guard);
-  // a quick TAP while in KCM exits early. applyNarutoSeventhSystem ticks the timer + auto-reverts.
+  // a quick TAP while in KCM exits early. In base, a quick TAP fires Oiroke IF the opt-in is on (else the
+  // hold path enters KCM). applyNarutoSeventhSystem ticks the timer + auto-reverts.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
     if (fighter._n7KCMActive) { if (wasTap) revertNarutoSeventhKCM(fighter) }
+    else if (wasTap && narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())   // base TAP = Oiroke (opt-in)
     else if (wasHeld) enterNarutoSeventhKCM(fighter, getAbilityContext())
     return
   }
@@ -21145,6 +21148,8 @@ gameLoop()
     p1MotionHistory: () => ((p1?.motionHistory) || []).map(d => d.dir),   // classic motion buffer contents (test assertions: populated for Naruto-universe, empty otherwise)
     p1DetectMotion: (name) => (p1 ? detectMotion(p1, name) : false),      // query the motion engine directly (Stage-1 engine proof)
     p1RecentMotions: () => (p1 ? getRecentMotions(p1) : []),
+    setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
+    setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     setCloneTell: (on) => { setCloneTell(on); return isCloneTell() },     // decoy visual-tell toggle (Stage 4 no-tell mode)
     cloneTell: () => isCloneTell(),
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden, atk: s._atk || null, vx: Math.round((s.vx || 0) * 10) / 10 })),   // clone lifecycle + behavior-AI inspection

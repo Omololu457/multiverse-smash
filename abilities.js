@@ -177,7 +177,7 @@ function canSpendEnergy(fighter, cost = 0) {
   return (fighter?.energy || 0) >= cost
 }
 
-function spendEnergy(fighter, cost = 0) {
+export function spendEnergy(fighter, cost = 0) {
   if (!fighter || !cost) return true
   if (fighter.infiniteEnergy) return true   // vow: fire freely, never deduct
   if (!canSpendEnergy(fighter, cost)) return false
@@ -201,12 +201,12 @@ function isSpecialDisabled(fighter, moveName) {
   return Array.isArray(fighter.disabledSpecials) && fighter.disabledSpecials.includes(moveName)
 }
 
-function getTargetResolver(context) {
+export function getTargetResolver(context) {
   if (typeof context?.getOpponent === "function") return context.getOpponent
   return (fighter) => (fighter?.side === "p1" ? context?.p2 : context?.p1)
 }
 
-function getWorldWidth(context) {
+export function getWorldWidth(context) {
   return context?.worldWidth || WORLD_WIDTH_FALLBACK
 }
 
@@ -4722,10 +4722,6 @@ function ssChibakuUltimate(fighter, context) {
 //           Up = Frog Song (sound genjutsu stun) · Down = giant-scroll smash.
 //   ULT:    neutral = enter Hermit/Sage Mode (base) OR Chou Odama Rasengan (while hermit) ·
 //           Down = Summoning: Gamabunta (giant-toad blade strike, built from the S-sheet art).
-const JIRAIYA_HERMIT_DURATION = 1200                 // ~20s @60fps (timer-based; deterministic)
-const JIRAIYA_HERMIT_MULT = { dmg: 1.18, spd: 1.10, def: 1.12 }   // modest buffs
-const JIRAIYA_HERMIT_CINE = { key: "jiraiyaHermit", holdPose: "jiraiyaHermitTransform", auraInner: "rgba(255,230,120,A)", auraMid: "rgba(230,150,30,A)", flash: "#fff0b0", backdrop: "#1a1205" }
-function jiraiyaIsHermit(f) { return !!(f && f._jiraiyaHermit) }
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // HINATA HYUGA (rosterKey "hinata") — PHASE 2: Gentle-Fist specials + Byakugan + FX.
 // Directional kit (reads _specialHeldDir, like Sasuke-Sensei): N=Sixty-Four Palms (multi-hit palm rush
@@ -4869,6 +4865,10 @@ export function applyHinataGuutenToProjectiles(hinata) {
     if (!p || p.owner === hinata) continue
     if (Math.hypot((p.x ?? 0) - cx, (p.y ?? 0) - cy) > R) continue
     p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6
+    if (p.radius != null) p.radius *= 0.85
+    activeProjectiles.splice(i, 1)   // spun away
+  }
+}
 // ULTIMATE (Phase 3) — JUUHOU SOSHIKEN (Gentle Step Twin Lion Fists) [CANON]. Hinata shapes her chakra
 // into twin lion-head fists and delivers a guaranteed Gentle-Fist barrage. Inline freeze-cinematic economy
 // (live fighter, i-frame cast → range-independent guaranteed beats, respects opponent i-frames), mirroring
@@ -4906,11 +4906,11 @@ function executeHinataUltimate(fighter, context) {
   try { shakeCamera(context, 6, 16) } catch (_) {}
   return true
 }
-    if (p.radius != null) p.radius *= 0.85
-    activeProjectiles.splice(i, 1)   // spun away
-  }
-}
 
+const JIRAIYA_HERMIT_DURATION = 1200                 // ~20s @60fps (timer-based; deterministic)
+const JIRAIYA_HERMIT_MULT = { dmg: 1.18, spd: 1.10, def: 1.12 }   // modest buffs
+const JIRAIYA_HERMIT_CINE = { key: "jiraiyaHermit", holdPose: "jiraiyaHermitTransform", auraInner: "rgba(255,230,120,A)", auraMid: "rgba(230,150,30,A)", flash: "#fff0b0", backdrop: "#1a1205" }
+function jiraiyaIsHermit(f) { return !!(f && f._jiraiyaHermit) }
 
 function executeJiraiyaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jiraiya") return false
@@ -26302,11 +26302,11 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
     case "sakura":  return executeSakuraSpecial(fighter, context)   // neutral=Shannaro Rush / F=Heaven-Spin Kick / U=Cherry-Blossom Impact / B=Byakugou Seal(heal) / D=Summon Katsuyu(wall) / air=Kunai Throw
+    case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "sasuke_sensei": return executeSasukeSenseiSpecial(fighter, context)   // RAITON set (Phase 1): N=Chidori / F=Chidori Eisou / B=Raiton Sword *1 / U=Raiton Sword *2 / D=Raiton Sword *3 / air=Chidori dive. Mangekyou/Rinnegan sets = Phases 2-3 (_eyeSet)
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "rick":    return executeRickSpecial(fighter, context)
-    case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
@@ -26539,8 +26539,8 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
-      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
+      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
@@ -27669,3 +27669,6 @@ export function activateUltimate(fighter) {
   fighter.isUltimateActive = true
   fighter.ultimateTimer    = (fighter.ultimate?.duration || 8) * 60
 }
+
+// ── wire the shared Sasuke-dojutsu module: inject engine deps (deterministic; no circular import) ──
+initSasukeDojutsu({ spendEnergy, spawnProjectile, schedulePendingSpawn, activeProjectiles, applyScaledDamage })

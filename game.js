@@ -7651,7 +7651,7 @@ function _updatePlayerCombatBody(fighter) {
     const _drk = (fighter.rosterKey || "").toLowerCase()
     const _dbind = SASUKE_DOJUTSU_BIND[_drk]
     if (_dbind && (fighter.blockstun || 0) > 0 && getFighterInput(fighter).special &&
-        !brutalityState.active && !rewindState.active &&
+        !brutalityState.active && !rewindState.active && !sasukeInSusanoo(fighter) &&   // Susanoo keeps its own Special routing
         (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan") &&
         counterSwap(fighter, getAbilityContext(), _dbind)) {
       updateCombat(fighter, getOpponent(fighter), {}, opts); return
@@ -7805,7 +7805,7 @@ function _updatePlayerCombatBody(fighter) {
       const _drk = (fighter.rosterKey || "").toLowerCase()
       const _dbind = SASUKE_DOJUTSU_BIND[_drk]
       if (_dbind && inputState.charge && (fighter.attackCooldown || 0) <= 0 && !fighter.attacking &&
-          !brutalityState.active && !rewindState.active &&
+          !brutalityState.active && !rewindState.active && !sasukeInSusanoo(fighter) &&   // Susanoo keeps its own Charge+Special routing
           (!_dbind.rinneganGated || (fighter._eyeSet || "raiton") === "rinnegan")) {
         const _dc = getAbilityContext()
         const _dd = betaHeldDirFromInput(inputState, fighter.facing)
@@ -12423,6 +12423,56 @@ function _byakuyaFxImg(src) {
   if (!_byakuyaFxImgs[src]) { const i = new Image(); i.src = src; _byakuyaFxImgs[src] = i }
   return _byakuyaFxImgs[src]
 }
+
+// ── HINATA HYUGA (Phase 2) — Gentle-Fist FX overlays (sliced sheets, blit with additive glow). Driven by
+// the per-cast timers set in abilities.js (_hhTrigramFx / _hhPulseFx / _hhSphereFx / _hhShugoFx). Gated on
+// rosterKey → a pure no-op for every other fighter. The chakra-palm FX on the normals/casts are baked into
+// the sprites; THESE are the standalone technique FX the sheet carries on separate rows.
+const _hinataFxImgs = {}
+function _hinataFxImg(src) {
+  if (!_hinataFxImgs[src]) { const i = new Image(); i.src = src; _hinataFxImgs[src] = i }
+  return _hinataFxImgs[src]
+}
+function _hinataBlitFx(c, img, frames, fi, cx, cy, sc, alpha, additive = true) {
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight
+  const dw = fw * sc, dh = fh * sc
+  c.save()
+  if (additive) c.globalCompositeOperation = "lighter"
+  c.globalAlpha = alpha
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh)
+  c.restore()
+}
+function drawHinataFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "hinata") return
+  const sc = (fighter.spriteScale || 1.5)
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const cx = fighter.x + w / 2, bodyCY = fighter.y + h * 0.5, feetY = fighter.y + h
+  // (N) Sixty-Four Palms — green 8-trigram battlefield at her feet (expands then fades).
+  const tg = fighter._hhTrigramFx || 0
+  if (tg > 0) {
+    const t = 1 - tg / 40
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_trigram_uniform.png"), 1, 0, cx, feetY - h * 0.12, sc * (0.7 + t * 0.6), Math.min(0.8, tg / 20))
+  }
+  // (U) Hakkesho Guuten — rotating cyan sphere enveloping her + translucent ghost afterimage.
+  const sp = fighter._hhSphereFx || 0
+  if (sp > 0) {
+    const fi = Math.floor((40 - sp) / 2) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_sphere_uniform.png"), 4, fi, cx, bodyCY, sc * 1.35, Math.min(0.85, sp / 24))
+  }
+  // (D) Byakugan — expanding pulse rings on activation.
+  const pu = fighter._hhPulseFx || 0
+  if (pu > 0) {
+    const fi = Math.floor((30 - pu) / 2) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * (0.8 + (30 - pu) / 30 * 0.8), Math.min(0.9, pu / 18))
+  }
+  // (B) Shugo Hakke — faint protective dome ring (reuse the pulse ring, tinted, slower).
+  const sh = fighter._hhShugoFx || 0
+  if (sh > 0) {
+    const fi = Math.floor((36 - sh) / 3) % 4
+    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * 1.5, Math.min(0.5, sh / 30))
+  }
+}
 // Shunpo / Utsusemi body alpha-fade — faint the instant Byakuya vanishes, recover to solid as he re-forms.
 function _byakuyaFadeAlpha(fighter) {
   const t = fighter?._byakuyaFadeTimer || 0
@@ -12510,56 +12560,6 @@ function drawByakuyaSpecialFx(c, fighter) {
       c.translate(bodyCX + face * w * 0.5, feetY - h * 0.42)
       c.scale(face, 1)
       c.drawImage(img, fi * fw, 0, fw, fh, -dw * 0.15, -dh / 2, dw, dh)
-
-// ── HINATA HYUGA (Phase 2) — Gentle-Fist FX overlays (sliced sheets, blit with additive glow). Driven by
-// the per-cast timers set in abilities.js (_hhTrigramFx / _hhPulseFx / _hhSphereFx / _hhShugoFx). Gated on
-// rosterKey → a pure no-op for every other fighter. The chakra-palm FX on the normals/casts are baked into
-// the sprites; THESE are the standalone technique FX the sheet carries on separate rows.
-const _hinataFxImgs = {}
-function _hinataFxImg(src) {
-  if (!_hinataFxImgs[src]) { const i = new Image(); i.src = src; _hinataFxImgs[src] = i }
-  return _hinataFxImgs[src]
-}
-function _hinataBlitFx(c, img, frames, fi, cx, cy, sc, alpha, additive = true) {
-  if (!img.complete || img.naturalWidth === 0) return
-  const fw = img.naturalWidth / frames, fh = img.naturalHeight
-  const dw = fw * sc, dh = fh * sc
-  c.save()
-  if (additive) c.globalCompositeOperation = "lighter"
-  c.globalAlpha = alpha
-  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh)
-  c.restore()
-}
-function drawHinataFx(c, fighter) {
-  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "hinata") return
-  const sc = (fighter.spriteScale || 1.5)
-  const w = fighter.w ?? 60, h = fighter.h ?? 100
-  const cx = fighter.x + w / 2, bodyCY = fighter.y + h * 0.5, feetY = fighter.y + h
-  // (N) Sixty-Four Palms — green 8-trigram battlefield at her feet (expands then fades).
-  const tg = fighter._hhTrigramFx || 0
-  if (tg > 0) {
-    const t = 1 - tg / 40
-    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_trigram_uniform.png"), 1, 0, cx, feetY - h * 0.12, sc * (0.7 + t * 0.6), Math.min(0.8, tg / 20))
-  }
-  // (U) Hakkesho Guuten — rotating cyan sphere enveloping her + translucent ghost afterimage.
-  const sp = fighter._hhSphereFx || 0
-  if (sp > 0) {
-    const fi = Math.floor((40 - sp) / 2) % 4
-    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_sphere_uniform.png"), 4, fi, cx, bodyCY, sc * 1.35, Math.min(0.85, sp / 24))
-  }
-  // (D) Byakugan — expanding pulse rings on activation.
-  const pu = fighter._hhPulseFx || 0
-  if (pu > 0) {
-    const fi = Math.floor((30 - pu) / 2) % 4
-    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * (0.8 + (30 - pu) / 30 * 0.8), Math.min(0.9, pu / 18))
-  }
-  // (B) Shugo Hakke — faint protective dome ring (reuse the pulse ring, tinted, slower).
-  const sh = fighter._hhShugoFx || 0
-  if (sh > 0) {
-    const fi = Math.floor((36 - sh) / 3) % 4
-    _hinataBlitFx(c, _hinataFxImg("./hinata_fx_pulse_uniform.png"), 4, fi, cx, bodyCY, sc * 1.5, Math.min(0.5, sh / 30))
-  }
-}
       c.restore()
     }
   }
@@ -14285,6 +14285,8 @@ function updateBattle() {
   applyGojoInfinityField(p2, p1)
   applyGojoInfinityToProjectiles(p1)   // TASK 4: slow/shrink/despawn enemy projectiles in the zone
   applyGojoInfinityToProjectiles(p2)
+  updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
+  applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
 
   updatePlatforms()   // Wood Release climbable terrain: advance grow/hold/recede BEFORE physics so the floor query reads the current top-Y
 
@@ -14372,8 +14374,6 @@ function updateBattle() {
       const seqKey = f._pendingChoreoDirect; f._pendingChoreoDirect = null
       const rk = (f.rosterKey || "").toLowerCase()
       if (isChoreoSupported(rk) && !isChoreoActiveFor(f)) startCloneChoreo(f, getOpponent(f), rk, seqKey)
-  updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
-  applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
     }
   }
   updateCloneFormations(getStageWorldWidth())
@@ -14637,6 +14637,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
+    drawHinataFx(c, fighter)                // Hinata — Gentle-Fist technique FX: trigram field / rotation sphere / Byakugan pulse rings / protective dome (hinata only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
@@ -20927,6 +20928,7 @@ gameLoop()
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
+    setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

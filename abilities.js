@@ -13247,6 +13247,48 @@ function executeSasukeUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// SASUKE (ADULT + SENSEI) — SUSANOO on CHARGE + Ultimate (additive)
+// The adult & sensei Sasukes are the SAME character as the original, so they share his giant Susanoo form:
+// this reuses the GENERIC engine (_enterSusanooStage + SUSANOO_LVL1/2_ANIM body-swap + the _susanooStage
+// systems that drive the giant hurtbox, half-arena lock, round-clock pause, purple HUD timer and the dojutsu
+// gate — all keyed on sasukeInSusanoo(), NOT on rosterKey). No new/invented art: it swaps to the original
+// Sasuke's sasuke_susanoo_lvl_1/2_anim.png. Two-stage like the original (tap Charge+Ult = Lv1; release then
+// re-press = Lv2 drains energy to 0), but WITHOUT the teen-only Sharingan cinematic (direct escalation) so it
+// stays decoupled from executeSasukeUltimate. Their own plain/directional Ultimates are left untouched — this
+// lives purely on the otherwise-dead Charge+Ultimate combo (every normal ult handler is gated on !charging).
+export function enterSasukeFormSusanoo(fighter, context) {
+  const k = (fighter && (fighter.rosterKey || "")).toLowerCase()
+  if (k !== "sasuke_adult" && k !== "sasuke_sensei") return false
+  const stage = fighter._susanooStage || 0
+  if (stage === 0) {
+    const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)   // 50% max energy, roster ultimate convention
+    if (!spendEnergy(fighter, cost)) return false
+    _enterSusanooStage(fighter, 1)
+    sound.playSfxFile?.("sasuke_susanoo_activate.mp3", null)   // VOICE: "Susanoo!"
+    fighter._susanooTimer = SASUKE_SUSANOO_DURATION_FRAMES     // ~13.3s shared window (Lv2 does NOT reset it)
+    fighter._suppressUltCooldown = true                        // no cooldown yet — allow Stage-2 escalation
+    fighter._ultReleasedSinceStage1 = false                    // require a genuine 2nd press for Lv2
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 14)
+    fighter.attackCooldown = getAttackDuration(15, fighter)
+    focusCameraOnAction(context, fighter, null, 0.9, 20)
+    shakeCamera(context, 11, 14)
+    return true
+  }
+  if (stage === 1) {
+    if (!fighter._ultReleasedSinceStage1) return false         // blocks a held button from auto-escalating
+    sound.playSfxFile?.("sasuke_ultimate_cast.mp3", null)
+    fighter.energy = 0                                         // Lv2 drains all remaining chakra (risk/reward)
+    _enterSusanooStage(fighter, 2)
+    fighter._suppressUltCooldown = true
+    fighter.attackCooldown = getAttackDuration(24, fighter)
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 14)
+    shakeCamera(context, 11, 14)
+    return true
+  }
+  return false   // already Lv2 — no-op; the timer (or revert) ends it
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // ITACHI — SUSANOO ULTIMATE  (single-tier, creature-only)
 // Mirrors Sasuke's self-managed giant Susanoo, COLLAPSED to one tier (no Lv2
 // escalation, no re-press). Reuses the GENERIC engine support: _susanooActive

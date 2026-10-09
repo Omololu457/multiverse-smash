@@ -93,6 +93,7 @@ import {
   regenEnergy, updatePendingSpawns, clearAbilityState, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
   sasukeInSusanoo, SUSANOO_DURATION_FRAMES, SASUKE_SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout (Sasuke timer-bar max is the Stage-3e Sasuke-specific value)
+  enterSasukeFormSusanoo,   // adult + sensei Sasuke share the giant Susanoo form on Charge+Ultimate (reuses the generic _susanooStage engine)
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
 
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
@@ -7890,6 +7891,19 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "rikudou" : "bijuudama"
   }
+  // GAARA (PHASE 4) — the Ultimate is directional: NEUTRAL = Sabaku Taisou (Phase 3), DOWN = summon Shukaku
+  // (when the One-Tail gauge is full). While Shukaku is already out, ANY Ultimate press = Tailed Beast Ball
+  // (executeGaaraUltimate reads _shukaku first). Stamp the held dir so the handler picks the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gaara") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "shukaku" : "sabakuTaisou"
+  }
+  // SASUKE (ADULT + SENSEI) — SUSANOO on CHARGE + Ultimate. Every normal/directional Ultimate handler below
+  // (and the sensei Up+Ult eye-cycle) is gated on !charging, so HOLDING Charge frees the Ultimate button for
+  // the shared giant Susanoo form (same character → reuses the original Sasuke's Lv1/Lv2 body + the generic
+  // _susanooStage engine). Tap = Lv1; release + re-press = Lv2. Additive — their own ultimates are untouched.
+  if (canStart && inputState.charge && inputState.ultimate && (fighter.attackCooldown || 0) <= 0 &&   // 15f recovery > input-buffer blocks a buffered auto-escalate to Lv2
+      ((fighter.rosterKey || "").toLowerCase() === "sasuke_adult" || (fighter.rosterKey || "").toLowerCase() === "sasuke_sensei") &&
+      enterSasukeFormSusanoo(fighter, getAbilityContext())) { announce("ultActivate", { priority: true, minGap: 900 }); return }
   // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
   // FWD = Shinra Tensei (repulsion blast), BACK = Banshou Tenin (gravity reel-in). Stamp the held direction
   // the frame Ultimate is pressed so executeSasukeAdultUltimate picks the branch (mirrors the special path).

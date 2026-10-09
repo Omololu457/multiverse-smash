@@ -4436,18 +4436,18 @@ const N7_KCM = { dmg: 1.30, spd: 1.15, drain: 0.20, dur: 360, cost: 60 }   // ~6
 // rising/lowering). dash/jump/fall/guard hold the ready pose. light/heavy = golden Combo 2; air = Combo 2 Air.
 const NARUTO_SEVENTH_KCM_ANIM = {
   idle:      { frames: 3, width: 37, height: 62, speed: 14, anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // slow breathing
-  walk:      { frames: 3, width: 43, height: 65, speed: 8,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_glide_uniform.png" },  // gentle golden sway
-  run:       { frames: 3, width: 43, height: 65, speed: 6,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_glide_uniform.png" },
-  dash:      { frames: 1, width: 43, height: 65, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },   // ready pose
-  jump:      { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
-  fall:      { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
-  guard:     { frames: 1, width: 43, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_glide_uniform.png" },
+  walk:      { frames: 4, width: 43, height: 54, speed: 6,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_run_uniform.png" },   // golden RUN cycle (slowed for walk)
+  run:       { frames: 4, width: 43, height: 54, speed: 4,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_kcm_run_uniform.png" },   // golden RUN cycle
+  dash:      { frames: 3, width: 54, height: 54, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_dash_uniform.png" },   // golden forward burst
+  jump:      { frames: 2, width: 58, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_jump_uniform.png" },   // golden leap
+  fall:      { frames: 2, width: 58, height: 65, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_jump_uniform.png" },
+  guard:     { frames: 1, width: 37, height: 62, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
   hurt:      { frames: 3, width: 37, height: 62, speed: 5,  anchorY: 0, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
   knockdown: { frames: 1, width: 37, height: 62, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
   getup:     { frames: 3, width: 37, height: 62, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
   light:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
-  heavy:     { frames: 12, width: 75, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_light_uniform.png" },
-  up:        { frames: 3,  width: 37, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // no golden up art → golden breathing pose
+  heavy:     { frames: 3, width: 82, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_arm_uniform.png" },   // golden chakra-arm strike
+  up:        { frames: 3, width: 82, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_arm_uniform.png" },   // chakra-arm launcher
   air:       { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
   down_air:  { frames: 12, width: 107, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_air_uniform.png" },
   intro:     { frames: 3, width: 37, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },
@@ -4506,23 +4506,23 @@ const N7_FORM = {
   fourtails: { dmg: 1.38, spd: 1.12, drain: 0.26, dur: 360, cost: 50 },
 }
 const NARUTO_SEVENTH_FOURTAILS_ANIM = {
-  idle:      { frames: 2, width: 65, height: 61, speed: 10, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  walk:      { frames: 3, width: 83, height: 66, speed: 7,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_walk_uniform.png" },
-  run:       { frames: 3, width: 83, height: 66, speed: 5,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_walk_uniform.png" },
-  dash:      { frames: 3, width: 83, height: 66, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_walk_uniform.png" },
-  jump:      { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  fall:      { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  guard:     { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  hurt:      { frames: 2, width: 65, height: 61, speed: 5,  anchorY: 0, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  knockdown: { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  getup:     { frames: 2, width: 65, height: 61, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  light:     { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
-  heavy:     { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_heavy_uniform.png" },
-  up:        { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_heavy_uniform.png" },   // beast slam launcher
-  air:       { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
-  down_air:  { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
-  intro:     { frames: 2, width: 65, height: 61, speed: 7,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
-  win:       { frames: 2, width: 65, height: 61, speed: 12, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  idle:      { frames: 2, width: 65, height: 53, speed: 10, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  walk:      { frames: 3, width: 82, height: 39, speed: 7,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_run_uniform.png" },    // quadruped run (slowed for walk)
+  run:       { frames: 3, width: 82, height: 39, speed: 5,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_run_uniform.png" },    // beast quadruped run cycle
+  dash:      { frames: 3, width: 82, height: 39, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_run_uniform.png" },
+  jump:      { frames: 1, width: 65, height: 53, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  fall:      { frames: 1, width: 65, height: 53, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  guard:     { frames: 1, width: 65, height: 53, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  hurt:      { frames: 2, width: 65, height: 53, speed: 5,  anchorY: 0, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  knockdown: { frames: 1, width: 65, height: 53, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  getup:     { frames: 2, width: 65, height: 53, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle2_uniform.png" },
+  light:     { frames: 3, width: 65, height: 61, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_claw_uniform.png" },   // beast claw swipe
+  heavy:     { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_arm_uniform.png" },    // chakra-arm slam
+  up:        { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_arm_uniform.png" },    // chakra-arm launcher
+  air:       { frames: 3, width: 65, height: 61, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_claw_uniform.png" },
+  down_air:  { frames: 3, width: 65, height: 61, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_claw_uniform.png" },
+  intro:     { frames: 3, width: 56, height: 51, speed: 7,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_morph_uniform.png" },  // base→beast transformation
+  win:       { frames: 2, width: 65, height: 53, speed: 12, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle2_uniform.png" },
 }
 
 function enterN7Red(fighter, context) {

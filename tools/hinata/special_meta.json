@@ -65,6 +65,24 @@
   "height": 84,
   "sheet": "./hinata_fx_trigram_uniform.png"
  },
+ "juuhou": {
+  "frames": 10,
+  "width": 72,
+  "height": 71,
+  "sheet": "./hinata_juuhou_uniform.png"
+ },
+ "unused1": {
+  "frames": 6,
+  "width": 73,
+  "height": 70,
+  "sheet": "./hinata_unused1_uniform.png"
+ },
+ "unused2": {
+  "frames": 11,
+  "width": 70,
+  "height": 79,
+  "sheet": "./hinata_unused2_uniform.png"
+ },
  "fx_sphere": {
   "frames": 4,
   "width": 132,

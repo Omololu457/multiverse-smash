@@ -787,12 +787,15 @@ export const SKINS = {
   sasuke_sensei: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke_sensei?.portrait, spriteScale: characters.sasuke_sensei?.spriteScale, animationData: null },
   ],
-  // Hinata Hyuga — DEFAULT (the palette-NORMALIZED dark palette) only for now (REQUIRED: without it
-  // getSkins() clobbers spriteScale 1.5 → 1). The source sheet's 4-swatch "Color Palettes" row
-  // (Purple / Dark / Gray / Blue jackets) is the reference for the Phase-3 recolor pass
-  // (tools/gen_hinata_recolor.py) — the Purple/Gray/Blue swatches become selectable skins there.
+  // Hinata Hyuga — DEFAULT (the palette-NORMALIZED dark palette) + the other three Color-Palettes-row
+  // variants as recolor skins (tools/gen_hinata_recolor.py: dark-jacket → Purple/Gray/Blue via the swatch
+  // LUT + nearest-palette classifier; skin/hair/sandals preserved). All free, cosmetic. recolorSkinAnim
+  // maps every animationData sheet X.png → X__<tag>.png.
   hinata: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hinata?.portrait, spriteScale: characters.hinata?.spriteScale, animationData: null },
+    { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
+    { id: "lavender", name: "Lavender", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },
+    { id: "slate",    name: "Slate",    unlockLevel: 0, portrait: recolorPortrait("hinata", "gray"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "gray") },
+    { id: "azure",    name: "Azure",    unlockLevel: 0, portrait: recolorPortrait("hinata", "blue"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "blue") },
   ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },

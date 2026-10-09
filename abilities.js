@@ -4859,6 +4859,43 @@ export function applyHinataGuutenToProjectiles(hinata) {
     if (!p || p.owner === hinata) continue
     if (Math.hypot((p.x ?? 0) - cx, (p.y ?? 0) - cy) > R) continue
     p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6
+// ULTIMATE (Phase 3) — JUUHOU SOSHIKEN (Gentle Step Twin Lion Fists) [CANON]. Hinata shapes her chakra
+// into twin lion-head fists and delivers a guaranteed Gentle-Fist barrage. Inline freeze-cinematic economy
+// (live fighter, i-frame cast → range-independent guaranteed beats, respects opponent i-frames), mirroring
+// Kirin. Raw 8×24 + 138 = 330 → ~198 EFF (the project ult band); blocked beats = 25%. Also SEALS a big
+// chunk of the foe's chakra (Gentle Fist). FX reuse the pulse-ring + trigram render flags (no new art).
+// Callee-spends meter; triggerUltimate adds the ult cooldown + cam.
+function executeHinataUltimate(fighter, context) {
+  if (!hhIsHinata(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(56, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 56)   // lion-fist cinematic i-frames
+  fighter._spriteCastMove = "hhJuuhou"; fighter._spriteCastTimer = 56
+  fighter._hhPulseFx = 30; fighter._hhTrigramFx = 46   // chakra buildup FX (reuse existing render flags)
+  const beats = [10, 16, 22, 28, 34, 40, 46, 52]       // 8 rapid lion-fist strikes
+  beats.forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+      const dir = (opp.x >= fighter.x ? 1 : -1)
+      if (opp.isBlocking) { opp.blockstun = 14; applyScaledDamage(opp, Math.floor(24 * 0.25), { source: "ability" }); return }
+      opp.hitstun = 20; opp.vx = dir * 3; opp.colorFlash = 10
+      applyScaledDamage(opp, 24, { source: "ability" })
+      _hhDrain(fighter, opp, 5)   // Gentle Fist seals tenketsu each strike
+    })
+  })
+  schedulePendingSpawn(58, () => {   // the twin-lion finishing palm — knockback
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const dir = (opp.x >= fighter.x ? 1 : -1)
+    if (opp.isBlocking) { opp.blockstun = 24; applyScaledDamage(opp, Math.floor(138 * 0.25), { source: "ability" }); return }
+    opp.hitstun = 46; opp.vx = dir * 13; opp.vy = -12; opp.colorFlash = 16
+    applyScaledDamage(opp, 138, { source: "ability" })
+    _hhDrain(fighter, opp, 20)
+  })
+  try { shakeCamera(context, 6, 16) } catch (_) {}
+  return true
+}
     if (p.radius != null) p.radius *= 0.85
     activeProjectiles.splice(i, 1)   // spun away
   }
@@ -26492,6 +26529,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
+      case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break

@@ -307,7 +307,7 @@ export const KITS = {
       { name: "Byakugan",              input: "Down + Special",    cost: 18, desc: "~5s buff: +18% special damage + chakra regen; pulse-ring FX [CANON-ADJACENT]" }
     ],
     passiveNote: "Gentle Fist drain: her Sixty-Four Palms / Mountain Crusher palm hits also seal the foe's chakra (drain their meter).",
-    ultimate: { name: "Juuhou Soshiken", input: "Ultimate (full meter)", cost: 100, desc: "Gentle Step Twin Lion Fists — twin lion-head chakra fists deliver a Gentle-Fist barrage [CANON] — [wired in Phase 3]" },
+    ultimate: { name: "Juuhou Soshiken", input: "Ultimate (full meter)", cost: 100, desc: "Gentle Step Twin Lion Fists — twin lion-head chakra fists deliver a guaranteed Gentle-Fist barrage (~198 dmg + chakra seal); i-frames during the cast, 25% on block [CANON]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-palm launcher into aerial pressure" }
     ]

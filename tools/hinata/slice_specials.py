@@ -104,6 +104,10 @@ meta["hakkesho_ghost"] = emit_char("hakkesho_ghost", 2616, 2693, 0, 420, 6, alph
 # ── NAVY FX (center-packed) ──
 meta["fx_pulse"]   = emit_char("fx_pulse",   1889, 1960, 260, 620, 4, align="center")  # Byakugan pulse rings
 meta["fx_trigram"] = emit_char("fx_trigram", 2280, 2364, 205, 410, 1, align="center")  # 8-trigram yin-yang field
+# ── PHASE 3: ULTIMATE + unused attacks ──
+meta["juuhou"]  = emit_char("juuhou",  2749, 2820, 0, 590, 10)   # ULT — Juuhou Soshiken (Twin Lion Fists): gather → lion-fist loop
+meta["unused1"] = emit_char("unused1", 2874, 2944, 0, 420, 6)    # Unused Attack 1 — two-handed chakra-palm burst (documented unused)
+meta["unused2"] = emit_char("unused2", 2977, 3056, 0, 750, 11)   # Unused Attack 2 — spinning chakra-kick string (documented unused)
 # ── BLACK-BACKED GLOW FX (luminance alpha) ──
 meta["fx_sphere"] = emit_glow("fx_sphere", [(22, 144), (167, 289), (311, 432), (450, 619)], 3078, 3227)  # cyan rotation sphere
 meta["fx_arrow"]  = emit_glow("fx_arrow",  [(405, 575)], 2300, 2352)  # Sixty-Four Palms arrow

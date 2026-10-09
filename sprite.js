@@ -328,7 +328,7 @@ const MOVE_TO_ACTION = {
   // Hinata Hyuga (Phase 2): Gentle-Fist special cast poses (_spriteCastMove / currentMove). Identity maps
   // so a cast/strike recovery tail resolves to the real sheet, never the 128² fallback box.
   hhByakugan: "hhByakugan", hhShugo: "hhShugo", hhHasangeki: "hhHasangeki",
-  hhGentleFist: "hhGentleFist", hhHakkesho: "hhHakkesho",
+  hhGentleFist: "hhGentleFist", hhHakkesho: "hhHakkesho", hhJuuhou: "hhJuuhou",
 
   // Sasuke (Sensei): Raiton cast poses (currentMove / _spriteCastMove). Identity maps so a cast/strike
   // recovery tail resolves to the real sheet, never the 128² fallback box. (Mangekyou/Rinnegan poses added in Phases 2-3.)

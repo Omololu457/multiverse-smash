@@ -6962,7 +6962,7 @@ const hinata = {
     hakkeshoGuuten:{ cost: 24, effect: "Up + Special: Hakkesho Guuten — spin into a rotating chakra sphere that DEFLECTS incoming projectiles + a radial push (i-frames, ghost afterimages)." },
     byakugan:      { cost: 18, effect: "Down + Special: Byakugan — a ~5s buff window: +18% special damage and chakra regen; pulse-ring FX." }
   },
-  ultimate: { name: "Juuhou Soshiken", cost: 100, description: "Gentle Step Twin Lion Fists — Hinata shapes her chakra into two lion-head fists and delivers a devastating Gentle-Fist barrage. [Phase 3]" },
+  ultimate: { name: "Juuhou Soshiken", cost: 100, description: "Gentle Step Twin Lion Fists — Hinata shapes her chakra into twin lion-head fists and delivers a guaranteed Gentle-Fist barrage (~198 dmg, seals chakra); i-frames during the cast, blocked hits deal 25%." },
   hasSprites: true,
   // Idle content ≈68px × 1.5 ≈ 102px on-screen — alongside Sakura (106) / Boruto (108), appropriate for
   // Hinata's canonical height. REQUIRES the skins.js hinata default entry or getSkins() clobbers this to 1.
@@ -6993,7 +6993,8 @@ const hinata = {
     hhShugo:      { frames: 6, width: 71, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_shugo_uniform.png" },      // B — Shugo Hakke (protective rotation)
     hhHasangeki:  { frames: 4, width: 77, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hasangeki_uniform.png" },  // F — Hakke Hasangeki (double palm)
     hhGentleFist: { frames: 9, width: 93, height: 51, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_gf_rush_uniform.png" },    // N — Sixty-Four Palms rush
-    hhHakkesho:   { frames: 8, width: 71, height: 75, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hakkesho_uniform.png" }     // U — Hakkesho Guuten (rotation)
+    hhHakkesho:   { frames: 8, width: 71, height: 75, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_hakkesho_uniform.png" },    // U — Hakkesho Guuten (rotation)
+    hhJuuhou:     { frames: 10, width: 72, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hinata_juuhou_uniform.png" }      // ULT — Juuhou Soshiken (Twin Lion Fists)
   }
 }
 

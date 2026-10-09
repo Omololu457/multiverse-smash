@@ -26119,6 +26119,7 @@ function fireSasukeAdultChidoriNagashi(fighter, context) {
 
 // AMATERASU — reuses Itachi's black-flame projectile (./itachi_amaterasu_flame_uniform.png) + its DOT.
 function fireSasukeAdultAmaterasu(fighter, context) {
+  if (hasActiveKagutsuchi(fighter) && extinguishKagutsuchi(fighter, context)) { fighter.attackCooldown = getAttackDuration(12, fighter); return true }   // M1 Kagutsuchi: re-press snuffs the live flame (+refund); steering (hold Up/Down) ticks in game.js
   if (!spendEnergy(fighter, 40)) return false
   const face = fighter.facing || 1
   fighter.vx = 0

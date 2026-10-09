@@ -4281,8 +4281,9 @@ function executeNarutoSeventhSpecial(fighter, context) {
   const dir = fighter._specialHeldDir || null
   const air = _n7Airborne(fighter)
   const kcm = !!fighter._n7KCMActive
+  if ((fighter._n7Form || "base") === "fourtails") return false   // Four-Tails beast fights with claws (light/heavy) — no ninjutsu specials
   // In KCM the kit is golden-only (Rasenkyugan / Wakusei / Bijuudama); the base-only specials (which carry
-  // ORANGE cast art) are disabled while golden so no frame crosses modes.
+  // ORANGE cast art) are disabled while golden so no frame crosses modes. RED shroud keeps the base kit.
   if (dir === "F") return kcm ? n7Wakusei(fighter, context) : n7Rasenshuriken(fighter, context, air)   // Fwd — KCM Wakusei / base Rasenshuriken
   if (dir === "B") return kcm ? false : n7DotonWall(fighter, context)        // Back — Doton Earth-Wall (BASE only)
   if (dir === "D") return kcm ? false : (air ? n7ThrowWeapon(fighter, context, true) : n7Gamabunta(fighter, context))   // Down — ground = Kuchiyose: Gamabunta (now a SPECIAL), air = Throw Weapon (BASE only)
@@ -4463,6 +4464,8 @@ export function enterNarutoSeventhKCM(fighter, context = {}) {
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
   spendEnergy(fighter, N7_KCM.cost)
   fighter._n7KCMActive = true
+  fighter._n7Form      = "kcm"
+  fighter._n7FormTimer = N7_KCM.dur
   fighter._n7KCMTimer  = N7_KCM.dur
   fighter._skinAnim    = NARUTO_SEVENTH_KCM_ANIM                         // engine form-override → golden body
   fighter._n7KCMNoBlock = true                                          // pure offense: no guard in KCM
@@ -4484,13 +4487,91 @@ export function enterNarutoSeventhKCM(fighter, context = {}) {
 export function revertNarutoSeventhKCM(fighter) {
   if (!fighter || !fighter._n7KCMActive) return
   fighter._n7KCMActive = false
-  fighter._n7KCMTimer  = 0
+  fighter._n7Form      = "base"
+  fighter._n7KCMTimer  = 0; fighter._n7FormTimer = 0
   fighter._skinAnim    = fighter._baseSkinAnim || null                  // → the active SKIN's anim (recolor) or base
   fighter._n7KCMNoBlock = false
   fighter.currentForm  = "base"
   fighter.damageMultiplier = 1; fighter.speedMultiplier = 1
   fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NINE-TAILS FORM LADDER (hold Charge enters the highest form your Bond allows):
+//   BOND 1 → RED CHAKRA SHROUD (base body + red tint + code-drawn chakra-shroud flames; buff; red-flame
+//            Strong Up/Down). BOND 2 → FOUR-TAILS CLOAK (beast body via _skinAnim from the Sp5 beast frames;
+//            big buff; claws = light/heavy). BOND 3 → KCM (golden). All timed + chakra-drain + auto-revert.
+// Four-Tails beast body — idle/walk/light(claw)/heavy(slam) from the user-verified Sp5 bboxes (own frames only).
+const N7_FORM = {
+  red:       { dmg: 1.20, spd: 1.08, drain: 0.12, dur: 420, cost: 30 },
+  fourtails: { dmg: 1.38, spd: 1.12, drain: 0.26, dur: 360, cost: 50 },
+}
+const NARUTO_SEVENTH_FOURTAILS_ANIM = {
+  idle:      { frames: 2, width: 65, height: 61, speed: 10, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  walk:      { frames: 3, width: 83, height: 66, speed: 7,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_walk_uniform.png" },
+  run:       { frames: 3, width: 83, height: 66, speed: 5,  anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_walk_uniform.png" },
+  dash:      { frames: 3, width: 83, height: 66, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_walk_uniform.png" },
+  jump:      { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  fall:      { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  guard:     { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  hurt:      { frames: 2, width: 65, height: 61, speed: 5,  anchorY: 0, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  knockdown: { frames: 1, width: 65, height: 61, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  getup:     { frames: 2, width: 65, height: 61, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  light:     { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
+  heavy:     { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_heavy_uniform.png" },
+  up:        { frames: 3, width: 65, height: 64, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_heavy_uniform.png" },   // beast slam launcher
+  air:       { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
+  down_air:  { frames: 2, width: 70, height: 53, speed: 3,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_light_uniform.png" },
+  intro:     { frames: 2, width: 65, height: 61, speed: 7,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_ft_idle_uniform.png" },
+  win:       { frames: 2, width: 65, height: 61, speed: 12, anchorY: 0, loop: true,  sheet: "./naruto_seventh_ft_idle_uniform.png" },
+}
+
+function enterN7Red(fighter, context) {
+  if ((fighter._n7Bond || 0) < 1 || (fighter.energy || 0) < N7_FORM.red.cost) return false
+  spendEnergy(fighter, N7_FORM.red.cost)
+  fighter._n7Form = "red"; fighter._n7FormTimer = N7_FORM.red.dur
+  fighter.currentForm = "n7_red"; fighter.teleportFlash = 14; fighter.attackCooldown = 6
+  try { shakeCamera(context, 6, 12) } catch (_) {}
+  return true
+}
+export function revertN7Red(fighter) {
+  if (!fighter || fighter._n7Form !== "red") return
+  fighter._n7Form = "base"; fighter._n7FormTimer = 0; fighter.currentForm = "base"
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+}
+function enterN7FourTails(fighter, context) {
+  if ((fighter._n7Bond || 0) < 2 || (fighter.energy || 0) < N7_FORM.fourtails.cost) return false
+  spendEnergy(fighter, N7_FORM.fourtails.cost)
+  fighter._n7Form = "fourtails"; fighter._n7FormTimer = N7_FORM.fourtails.dur
+  fighter._skinAnim = NARUTO_SEVENTH_FOURTAILS_ANIM                     // engine form-override → beast body
+  fighter.currentForm = "n7_fourtails"; fighter.teleportFlash = 18; fighter.attackCooldown = 8
+  try { shakeCamera(context, 9, 16) } catch (_) {}
+  return true
+}
+export function revertN7FourTails(fighter) {
+  if (!fighter || fighter._n7Form !== "fourtails") return
+  fighter._n7Form = "base"; fighter._n7FormTimer = 0
+  fighter._skinAnim = fighter._baseSkinAnim || null                    // → skin / base body
+  fighter.currentForm = "base"; fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+}
+// hold Charge: enter the HIGHEST nine-tails form your Bond allows (Bond 3 KCM / 2 Four-Tails / 1 Red Shroud).
+export function enterNarutoSeventhForm(fighter, context = {}) {
+  if (!isN7Char(fighter) || (fighter._n7Form && fighter._n7Form !== "base")) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
+  const bond = fighter._n7Bond || 0
+  if (bond >= 3) return enterNarutoSeventhKCM(fighter, context)
+  if (bond >= 2) return enterN7FourTails(fighter, context)
+  if (bond >= 1) return enterN7Red(fighter, context)
+  return false
+}
+export function revertNarutoSeventhForm(fighter) {
+  if (!fighter) return
+  const f = fighter._n7Form
+  if (f === "kcm") revertNarutoSeventhKCM(fighter)
+  else if (f === "fourtails") revertN7FourTails(fighter)
+  else if (f === "red") revertN7Red(fighter)
+}
+export function narutoSeventhForm(f) { return (f && f._n7Form) || "base" }
 
 // KCM Neutral — RASENKYUGAN: a rapid multi chakra-arm barrage (reaches far) → launcher finisher. [CANON]
 function n7Rasenkyugan(fighter, context) {
@@ -4775,19 +4856,25 @@ export function applyNarutoSeventhSystem(fighter) {
   fighter._n7BondPts = pts
   fighter._n7Bond = n7BondLevel(pts)
 
-  // ── KCM form tick (PHASE 3): timed + chakra drain; auto-revert at timeout / 0 chakra. ──
-  if (fighter._n7KCMActive) {
-    fighter._n7KCMTimer = (fighter._n7KCMTimer || 0) - 1
-    fighter.energy = Math.max(0, (fighter.energy || 0) - N7_KCM.drain)
-    if (fighter._n7KCMNoBlock) fighter.isBlocking = false            // enforce no-guard while golden
-    if (fighter._n7KCMTimer <= 0 || (fighter.energy || 0) <= 0) revertNarutoSeventhKCM(fighter)
+  // ── NINE-TAILS FORM tick: timed + chakra drain; auto-revert at timeout / 0 chakra (Red / Four-Tails / KCM). ──
+  const form = fighter._n7Form || "base"
+  if (form !== "base") {
+    const cfg = form === "kcm" ? N7_KCM : N7_FORM[form]
+    fighter._n7FormTimer = (fighter._n7FormTimer || 0) - 1
+    fighter._n7KCMTimer = fighter._n7FormTimer                        // keep the legacy field in sync
+    fighter.energy = Math.max(0, (fighter.energy || 0) - (cfg ? cfg.drain : 0))
+    if (fighter._n7KCMNoBlock) fighter.isBlocking = false             // KCM = no guard
+    if (fighter._n7FormTimer <= 0 || (fighter.energy || 0) <= 0) revertNarutoSeventhForm(fighter)
   }
-  // ── combat multipliers: KCM modest buff + Bond-1 RED-CHAKRA on Strong Up (up-attack). Scoped so the
-  //    red-flame bonus only lifts the up-attack; Strong Down scales itself at fire; specials unaffected. ──
-  let dmgMul = fighter._n7KCMActive ? N7_KCM.dmg : 1
-  if (fighter.currentMove === "up" && (fighter._n7Bond || 0) >= 1) dmgMul = Math.max(dmgMul, N7_BOND.RED_DMG)
+  // ── combat multipliers by form; in BASE the Bond-1 RED-CHAKRA still lifts the Strong Up (up-attack). ──
+  const f2 = fighter._n7Form || "base"
+  let dmgMul = 1, spdMul = 1
+  if (f2 === "kcm")            { dmgMul = N7_KCM.dmg;            spdMul = N7_KCM.spd }
+  else if (f2 === "fourtails") { dmgMul = N7_FORM.fourtails.dmg; spdMul = N7_FORM.fourtails.spd }
+  else if (f2 === "red")       { dmgMul = N7_FORM.red.dmg;       spdMul = N7_FORM.red.spd }
+  else if (fighter.currentMove === "up" && (fighter._n7Bond || 0) >= 1) dmgMul = N7_BOND.RED_DMG   // base red-flame up
   fighter.damageMultiplier = dmgMul
-  fighter.speedMultiplier = fighter._n7KCMActive ? N7_KCM.spd : 1
+  fighter.speedMultiplier = spdMul
 
   // ── PHASE 1 — Doton wall projectile-block ──
   const w = fighter._n7Wall
@@ -4808,7 +4895,7 @@ export function applyNarutoSeventhSystem(fighter) {
 // Clear per-match / round-reset state (mirrors the revert* functions the game.js reset lists call).
 export function revertNarutoSeventhState(fighter) {
   if (!fighter) return
-  revertNarutoSeventhKCM(fighter)                 // drop KCM form + restore base (orange) body
+  revertNarutoSeventhForm(fighter)                // drop any nine-tails form (red / four-tails / KCM) → base
   fighter._n7Wall = null
   fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
   fighter._n7RikudouUsed = false                  // Rikudou is once-per-round → re-arm each round
@@ -5025,6 +5112,7 @@ function executeSasukeSenseiSpecial(fighter, context) {
   const set = fighter._eyeSet || "raiton"
   if (set === "mangekyou") return ssMangekyouSpecial(fighter, context)
   if (set === "rinnegan")  return ssRinneganSpecial(fighter, context)
+  if (set === "susanoo")   return ssSusanoSpecial(fighter, context)       // War-Susano'o set (U=Ribcage Guard; N/F/B Tier-2 reserved)
   return ssRaitonSpecial(fighter, context)
 }
 
@@ -5035,6 +5123,7 @@ function executeSasukeSenseiUltimate(fighter, context) {
   const set = fighter._eyeSet || "raiton"
   if (set === "mangekyou") return ssHebiUltimate(fighter, context)
   if (set === "rinnegan")  return ssChibakuUltimate(fighter, context)
+  if (set === "susanoo")   return false   // Susano'o-set Ultimate = Soldier transformation — reserved for Phase 3 (no-op, no meter)
   return ssKirinUltimate(fighter, context)
 }
 
@@ -5177,8 +5266,8 @@ function ssHebiUltimate(fighter, context) {
 // EYE-SET CYCLE — Up+Ultimate rotates the active set (game.js intercepts before the generic ult dispatch).
 // raiton → mangekyou → rinnegan → raiton. Does NOT spend meter; _eyeSetCd (ticked in game.js) debounces a
 // held input; _eyeSet(Toast/Label) drive the HUD set-indicator (game.js drawSasukeSenseiEyeHud).
-export const SS_EYE_SETS = ["raiton", "mangekyou", "rinnegan"]
-export const SS_EYE_LABEL = { raiton: "RAITON", mangekyou: "MANGEKYŌ", rinnegan: "RINNEGAN" }
+export const SS_EYE_SETS = ["raiton", "mangekyou", "rinnegan", "susanoo"]   // Up+Ult cycles; "susanoo" = War-Susano'o set (Tier 1+ here)
+export const SS_EYE_LABEL = { raiton: "RAITON", mangekyou: "MANGEKYŌ", rinnegan: "RINNEGAN", susanoo: "SUSANO'O" }
 export function cycleSasukeSenseiEyeSet(fighter) {
   if (!ssIsSensei(fighter)) return false
   if ((fighter._eyeSetCd || 0) > 0) return false
@@ -5187,6 +5276,102 @@ export function cycleSasukeSenseiEyeSet(fighter) {
   fighter._eyeSetCd = 20
   fighter._eyeSetToast = 100   // HUD flash timer (game.js draws the set name)
   return true
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// WAR-SUSANO'O  (sasuke_sensei + sasuke_adult ONLY — allowlist; the original teen Sasuke is EXCLUDED and
+// stays byte-identical). A 3-tier Susanoo built from the war-susano sheet (sasuke_susano_*.png, border
+// flood-fill keyed). This REPLACES the earlier Charge+Ultimate giant Susanoo on these two fighters (that
+// entry is unbound in game.js; the teen Ultimate Susanoo + _susanooStage engine are untouched).
+//   TIER 1 (this phase): Arm Grab (Forward+Grab, base form, CHEAPEST) + Ribcage Guard (U+Special, Susano'o set)
+//   TIER 2 (phase 2): torso Claw Smash / Blade Swing / Torso Arrow   TIER 3 (phase 3): Soldier transformation
+// Deterministic + LAN-safe (no gameRng / wall-clock; frame-counted schedulePendingSpawn, same sim path as
+// the existing Sasuke grabs). Damage via the shared applyScaledDamage/resolveGrab pipeline — combat.js UNTOUCHED.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+export const SUSANO_ALLOW = new Set(["sasuke_sensei", "sasuke_adult"])
+export function susanoAllowed(fighter) { return !!fighter && SUSANO_ALLOW.has((fighter.rosterKey || "").toLowerCase()) }
+
+// TIER-1 tunables. ARM GRAB is the CHEAPEST Susanoo move (stays strictly below every other Susanoo cost).
+const WARSUSANO = {
+  ARM_GRAB_COST: 15, ARM_GRAB_REACH: 280, ARM_GRAB_STARTUP: 16, ARM_GRAB_WHIFF: 26, ARM_GRAB_THROW: 110,
+  GUARD_COST: 20, GUARD_WINDOW: 40, GUARD_CD: 90, GUARD_DEFMULT: 2.85,   // damage taken ≈ ×0.35 during the window
+}
+
+// TIER 1 — SUSANOO ARM GRAB (CANON): a partial ribcage forms + a skeletal arm (upper→fore→claw, assembled
+// PROCEDURALLY in game.js drawSasukeWarArm from the keyed segments) extends FORWARD with long reach, grabs via
+// the shared resolveGrab pipeline, then throws. Slower startup, punishable whiff. The grab resolves at the
+// claw's reach on the STARTUP beat (frame-counted). Input: Forward+Grab (base form, any eye-set). Cheapest.
+export function fireSasukeWarArmGrab(fighter, context) {
+  if (!susanoAllowed(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, WARSUSANO.ARM_GRAB_COST)) return false
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+  // render state for the procedural arm (game.js): extends over STARTUP frames, holds, retracts.
+  fighter._warArm = { t: 0, max: WARSUSANO.ARM_GRAB_STARTUP + 14, startup: WARSUSANO.ARM_GRAB_STARTUP, reach: WARSUSANO.ARM_GRAB_REACH, facing: fighter.facing || 1, grabbed: false, resolved: false }
+  fighter.attackCooldown = getAttackDuration(WARSUSANO.ARM_GRAB_STARTUP + WARSUSANO.ARM_GRAB_WHIFF, fighter)
+  schedulePendingSpawn(WARSUSANO.ARM_GRAB_STARTUP, () => {
+    if (fighter.eliminated) return
+    const tgt = getOpp(fighter)
+    const grabbed = resolveGrab(fighter, tgt, context, WARSUSANO.ARM_GRAB_REACH)
+    if (grabbed) fighter._grabThrowDmg = WARSUSANO.ARM_GRAB_THROW
+    if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.resolved = true }
+  })
+  try { focusCameraOnAction(context, fighter, target, 0.98, 8); shakeCamera(context, 5, 8) } catch (_) {}
+  return true
+}
+
+// TIER 1 — RIBCAGE GUARD (CANON-ADJACENT): the rib-ring bands snap up as brief defensive armor — incoming
+// damage is cut (via defenseMultiplier, no combat.js edit) for a short window; cooldown-gated. Input: U+Special
+// while the Susano'o eye-set is active. Cheap (but still pricier than the Arm Grab, which stays the cheapest).
+export function fireSasukeRibcageGuard(fighter, context) {
+  if (!susanoAllowed(fighter)) return false
+  if ((fighter._warGuardCd || 0) > 0) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, WARSUSANO.GUARD_COST)) return false
+  fighter._warGuard = WARSUSANO.GUARD_WINDOW
+  fighter._warGuardCd = WARSUSANO.GUARD_CD
+  fighter._warGuardDefPrev = (fighter.defenseMultiplier != null) ? fighter.defenseMultiplier : 1
+  fighter.defenseMultiplier = WARSUSANO.GUARD_DEFMULT
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// Per-frame tick (game.js updateTransformationState): advance the arm render timer, run down the guard window
+// (restoring defenseMultiplier when it ends) and the cooldowns. No-op for non-allowlisted fighters.
+export function updateSasukeWarSusano(fighter) {
+  if (!susanoAllowed(fighter)) return
+  if (fighter._warArm) { fighter._warArm.t++; if (fighter._warArm.t >= fighter._warArm.max) fighter._warArm = null }
+  if ((fighter._warGuardCd || 0) > 0) fighter._warGuardCd--
+  if ((fighter._warGuard || 0) > 0) {
+    fighter._warGuard--
+    if (fighter._warGuard <= 0) { fighter.defenseMultiplier = (fighter._warGuardDefPrev != null) ? fighter._warGuardDefPrev : 1; fighter._warGuardDefPrev = null }
+  }
+}
+
+// Forward+Grab → Susanoo Arm Grab (base form, any eye-set). Allowlist-gated; mirrors updateSasukeCommandCombat.
+// Returns true ONLY when it fires (consume the grab, suppress the normal grab); plain grab stays normal.
+export function updateSasukeWarSusanoCombat(fighter, inputState, context) {
+  if (!susanoAllowed(fighter) || !inputState) return false
+  const grabHeld = !!inputState.grab
+  const edge = grabHeld && !fighter._warGrabPrev
+  fighter._warGrabPrev = grabHeld
+  if (!edge) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (!forward) return false                                  // only Forward+Grab (plain grab stays normal)
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const actionable = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0 && (fighter.hitstun || 0) <= 0
+  if (!grounded || !actionable) return false
+  return fireSasukeWarArmGrab(fighter, context)
+}
+
+// SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo"). Phase 1: U = Ribcage Guard.
+// N/F/B = Tier-2 torso (phase 2, reserved — no-op, no meter). D = free. Arm Grab is Forward+Grab (base, above).
+function ssSusanoSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "U") return fireSasukeRibcageGuard(fighter, context)
+  return false   // N/F/B/D reserved for Tier 2/3 — fall through harmlessly (no chakra spent)
 }
 
 // ─── RINNEGAN SET (Phase 3) ────────────────────────────────────────────────────────────────────────
@@ -27488,7 +27673,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "handler": return executeHandlerSpecial(fighter, context) // SHIKIGAMI cameo system: neutral=Divine Dogs (dog rush) / Fwd=Orochi (snake lunge) / Back=Datto (rabbit swarm) / Down=Max Elephant (heavy slam) / Up=Nue (bird anti-air) / AIR=Toad (drop). Each = a ×0.60 summon. Domain (2nd special)=deferred (art re-export); Mahoraga=S5 ULT.
     case "yuji":    return executeYujiSpecial(fighter, context)   // Cursed-Energy Y-family: Ball(neutral)/Beam(Fwd)/Pillar(Up)/Crescent(Down)/AirCombo(airborne)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
-    case "sasuke_adult": return sasukeInSusanoo(fighter) ? executeSasukeSusanooAttack(fighter, context) : executeSasukeAdultSpecial(fighter, context)   // in Susanoo → shared sword/arrow/grab; else N=Katon / F=Chidori / B=Chidori Nagashi / U=Amaterasu / D=Sword-Swap Strike
+    case "sasuke_adult": return executeSasukeAdultSpecial(fighter, context)   // N=Katon / F=Chidori / B=Chidori Nagashi / U=Amaterasu / D=Sword-Swap Strike (old Charge+Ult Susanoo UNBOUND — replaced by War-Susano'o)
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
     case "madara":  return executeMadaraSpecial(fighter, context)   // Stage 3 (one at a time): Katon Great Fireball (neutral); Gunbai/Mokuton/Susanoo set land in later passes
     case "obito":   return executeObitoSpecial(fighter, context)   // Ranged: Shuriken Throw (neutral/air) / Chakra Rod Throw (Fwd) / Giant Shuriken (Up)
@@ -27500,7 +27685,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "jesus":   return executeJesusSpecial(fighter, context)   // neutral=Lion / F=Holy Fire / B=Faith Barrier / U=Ascension / D=Blessed Roar(+lifesteal) / air=Holy Lightning
     case "sakura":  return executeSakuraSpecial(fighter, context)   // neutral=Shannaro Rush / F=Heaven-Spin Kick / U=Cherry-Blossom Impact / B=Byakugou Seal(heal) / D=Summon Katsuyu(wall) / air=Kunai Throw
-    case "sasuke_sensei": return sasukeInSusanoo(fighter) ? executeSasukeSusanooAttack(fighter, context) : executeSasukeSenseiSpecial(fighter, context)   // in Susanoo → shared sword/arrow/grab; else RAITON set: N=Chidori / F=Chidori Eisou / B/U/D=Raiton Sword *1-3 / air=Chidori dive (Mangekyou/Rinnegan via _eyeSet)
+    case "sasuke_sensei": return executeSasukeSenseiSpecial(fighter, context)   // eye-set dispatch: Raiton / Mangekyou / Rinnegan / Susano'o (via _eyeSet); old Charge+Ult Susanoo UNBOUND — replaced by War-Susano'o
     case "jiraiya": return executeJiraiyaSpecial(fighter, context)   // BASE: neutral=Rasengan / F=Gamayu Endan fire / B=Barrier / U=Ranjishigami / D=big toad flame · HERMIT: neutral=Goemon / F=tongue / B=Hari Jizo / U=Frog Song / D=scroll smash
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)

@@ -64,10 +64,10 @@ await wf(70); const bdDmg=bd0.oppHealth-(await n7()).oppHealth;
 console.log("  Bijuudama dmg",bdDmg); log.push(["bijuudama-damages", bdDmg>100]);
 await shot("41_bijuudama_ult.png");
 
-// ── 4. RIKUDOU (KCM + Bond 4 + Down+Ult, once/round, ends base + resets bond) ──
+// ── 4. RIKUDOU (KCM + Bond 4 + Fwd+Ult, once/round, ends base + resets bond) ──
 await enterKCM(150); await page.evaluate(()=>{window.__harness.setN7Bond(100);window.__harness.setN7RikudouUsed(false);window.__harness.healP2();});
 const rk0=await n7();
-await page.keyboard.down(DOWN); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(DOWN); await wf(14);
+await page.keyboard.down(FWD); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(FWD); await wf(14);
 let rk=await n7();
 console.log("  Rikudou: cast",rk.cast,"bond",rk0.bond,"->",rk.bond,"invuln",rk.invuln);
 log.push(["rikudou-fires-bond4", rk.cast==="n7Rikudou"]);
@@ -80,7 +80,7 @@ log.push(["rikudou-ends-base", rkEnd.kcm===false && rkEnd.skin==="base"]);
 log.push(["rikudou-resets-bond", rkEnd.bond===0]);
 // once per round: re-enter KCM + Bond4 but _n7RikudouUsed stays true → should NOT fire
 await enterKCM(150); await page.evaluate(()=>window.__harness.setN7Bond(100));   // note: setN7RikudouUsed NOT reset → still used
-await page.keyboard.down(DOWN); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(DOWN); await wf(10);
+await page.keyboard.down(FWD); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(FWD); await wf(10);
 let rk2=await n7();
 console.log("  Rikudou 2nd attempt (same round): cast",rk2.cast,"(should NOT be n7Rikudou)");
 log.push(["rikudou-once-per-round", rk2.cast!=="n7Rikudou"]);

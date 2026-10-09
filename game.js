@@ -161,6 +161,7 @@ import {
   updateNarutoSeventhCommandCombat,   // Naruto (Seventh) — Down+Heavy → Strong Down (red-flame) command normal
   enterNarutoSeventhKCM,              // Naruto (Seventh) — hold Charge (Bond 3+) → enter KCM golden form
   revertNarutoSeventhKCM,             // Naruto (Seventh) — exit KCM (tap Charge / timeout / 0 chakra)
+  enterNarutoSeventhForm, revertNarutoSeventhForm,   // Naruto (Seventh) — nine-tails form ladder (Red / Four-Tails / KCM)
   n7Oiroke, narutoSeventhOirokeEnabled, setNarutoSeventhOiroke,   // Naruto (Seventh) — Oiroke opt-in (default OFF) distraction + toggle
   toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
@@ -218,6 +219,7 @@ import {
   updateTobiKamui, toggleTobiKamui, deactivateTobiKamui,   // Tobi Stage-4 Kamui Intangibility (own `_tobi*` state; independent of Obito's `_kamui*`)
   updatePortalReflectStance,   // Obito/Tobi Kamui Portal-Reflect stance phase machine (Block+Special; reflect gate = `_portalActive`)
   updateSasukeCommandCombat,     // Sasuke grab button → standalone skeletal Susanoo command-grab (Tier-1, independent of the staged ultimate)
+  susanoAllowed, updateSasukeWarSusanoCombat, updateSasukeWarSusano,   // War-Susano'o (sasuke_sensei + sasuke_adult): Forward+Grab Arm Grab hook + per-frame tick + render gate
   revertMadaraSusanoo,           // Madara tier-3 Susanoo armor-mode auto-revert (Stage 3 special #7)
   revertMadaraCompleteSusanoo,   // Madara tier-4 Complete Susanoo giant-form auto-revert (Stage 5 HOLD ult)
   updateMinatoCommandCombat,   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
@@ -6739,13 +6741,13 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
-  // NARUTO (SEVENTH) — hold Charge (Bond 3+) to enter KCM golden form (timed, drains chakra, no guard);
-  // a quick TAP while in KCM exits early. In base, a quick TAP fires Oiroke IF the opt-in is on (else the
-  // hold path enters KCM). applyNarutoSeventhSystem ticks the timer + auto-reverts.
+  // NARUTO (SEVENTH) — hold Charge enters the HIGHEST nine-tails FORM your Bond allows (Bond 1 Red Shroud /
+  // 2 Four-Tails cloak / 3 KCM), each timed + chakra-draining. A quick TAP while in a form exits early. In
+  // base, a quick TAP fires Oiroke IF the opt-in is on. applyNarutoSeventhSystem ticks the timer + auto-reverts.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
-    if (fighter._n7KCMActive) { if (wasTap) revertNarutoSeventhKCM(fighter) }
+    if ((fighter._n7Form || "base") !== "base") { if (wasTap) revertNarutoSeventhForm(fighter) }
     else if (wasTap && narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())   // base TAP = Oiroke (opt-in)
-    else if (wasHeld) enterNarutoSeventhKCM(fighter, getAbilityContext())
+    else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())
     return
   }
 
@@ -7900,13 +7902,8 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gaara") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "shukaku" : "sabakuTaisou"
   }
-  // SASUKE (ADULT + SENSEI) — SUSANOO on CHARGE + Ultimate. Every normal/directional Ultimate handler below
-  // (and the sensei Up+Ult eye-cycle) is gated on !charging, so HOLDING Charge frees the Ultimate button for
-  // the shared giant Susanoo form (same character → reuses the original Sasuke's Lv1/Lv2 body + the generic
-  // _susanooStage engine). Tap = Lv1; release + re-press = Lv2. Additive — their own ultimates are untouched.
-  if (canStart && inputState.charge && inputState.ultimate && (fighter.attackCooldown || 0) <= 0 &&   // 15f recovery > input-buffer blocks a buffered auto-escalate to Lv2
-      ((fighter.rosterKey || "").toLowerCase() === "sasuke_adult" || (fighter.rosterKey || "").toLowerCase() === "sasuke_sensei") &&
-      enterSasukeFormSusanoo(fighter, getAbilityContext())) { announce("ultActivate", { priority: true, minGap: 900 }); return }
+  // SASUKE (ADULT + SENSEI) — the earlier Charge+Ultimate giant Susanoo (enterSasukeFormSusanoo) is UNBOUND
+  // here: the War-Susano'o rework (sasuke_susano_*) replaces it. Teen's Ultimate-button Susanoo is untouched.
   // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
   // FWD = Shinra Tensei (repulsion blast), BACK = Banshou Tenin (gravity reel-in). Stamp the held direction
   // the frame Ultimate is pressed so executeSasukeAdultUltimate picks the branch (mirrors the special path).
@@ -8300,6 +8297,11 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "sasuke" && !charging &&
       updateSasukeCommandCombat(fighter, inputState, getAbilityContext())) return
 
+  // SASUKE (SENSEI + ADULT) — War-Susano'o Tier-1 ARM GRAB on Forward+Grab (base form, any eye-set). Consumes
+  // the grab only when it fires (suppresses the normal grab); plain grab stays normal. Allowlist-gated inside.
+  if (susanoAllowed(fighter) && !charging &&
+      updateSasukeWarSusanoCombat(fighter, inputState, getAbilityContext())) return
+
   // MINATO "Yellow Flash Rush": Fwd+Heavy opens minatoRush1, re-tap Heavy on hit → minatoRush2 →
   // minatoRushFin (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Floor Combo,
   // Back+Heavy = Melee Rush. Consumes the input only when it fires; neutral normals stay on the normal path.
@@ -8491,8 +8493,29 @@ const N7_BOND_AURA = ["#f87171", "#ef4444", "#dc2626", "#b91c1c"]   // Bond 1 / 
 function drawN7BondAura(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naruto_seventh") return
   const bond = Math.max(0, Math.min(4, fighter._n7Bond || 0))
-  if (bond < 1) return
   const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  // RED CHAKRA SHROUD form — a visible code-drawn chakra cloak: licking red flame tongues + a bright red
+  // body-hugging glow (the "tinted body + shroud" the sheet has no body art for). Gated on the red form.
+  if ((fighter._n7Form || "base") === "red") {
+    const t = (fighter._n7ShroudT = (fighter._n7ShroudT || 0) + 1)
+    c.save()
+    c.globalCompositeOperation = "lighter"
+    c.shadowBlur = 16; c.shadowColor = "#ff3a1a"
+    const cx = x + w / 2
+    for (let k = 0; k < 9; k++) {                                  // flame tongues licking up around the body
+      const ph = t * 0.35 + k * 1.7
+      const fx = x - 6 + (k / 8) * (w + 12)
+      const fh = h * (0.34 + 0.26 * (0.5 + 0.5 * Math.sin(ph)))
+      const sway = Math.sin(ph * 1.3) * 7
+      c.globalAlpha = 0.5 + 0.2 * Math.sin(ph)
+      c.fillStyle = k % 2 ? "#ff6a2a" : "#e8231a"
+      c.beginPath(); c.moveTo(fx - 5, y + h); c.quadraticCurveTo(fx + sway, y + h - fh * 0.6, fx + sway * 0.4, y + h - fh); c.quadraticCurveTo(fx + sway, y + h - fh * 0.6, fx + 5, y + h); c.closePath(); c.fill()
+    }
+    c.globalAlpha = 0.18 + 0.06 * Math.sin(t * 0.3); c.shadowBlur = 24; c.fillStyle = "#ff2a14"   // red body glow
+    c.beginPath(); c.ellipse(cx, y + h * 0.5, w * 0.62, h * 0.56, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+  if (bond < 1) return
   const color  = N7_BOND_AURA[bond - 1]
   const pulse  = 0.5 + 0.5 * Math.sin(fighter._n7AuraPulse = (fighter._n7AuraPulse || 0) + 0.18)
   const spread = 5 + bond * 4
@@ -8730,6 +8753,65 @@ function seedVoidHunterField(fighter) {
 // ~100 frames after an Up+Ultimate cycle (fades out in the last 30). Render-only; sasuke_sensei + _eyeSetToast gated.
 // SASUKE Mangekyou/Rinnegan FX — ALL code-drawn (no sprite art): Rinnegan portal swirl-rings, the swap/warp
 // ripple flash, and the Rinnegan-strain purple aura + "STRAINED" lock HUD. Gated on sasukeDojutsu flags.
+// ── WAR-SUSANO'O render (sasuke_sensei + sasuke_adult) — code-drawn from the keyed war-susano pieces ──
+// PROCEDURAL arm: the keyed segment sprites are translated + stretched along the shoulder→claw line as the arm
+// extends/retracts (no new art). Anchored off the fighter's drawn rect (_lastDraw*, screen space). Scaled to
+// the fighter's drawn height + capped so it never exceeds the camera frame. Render-only (no sim/determinism).
+const _susanoImgCache = new Map()
+function _susanoImg(src) { if (!_susanoImgCache.has(src)) { const i = new Image(); i.src = src; _susanoImgCache.set(src, i) } return _susanoImgCache.get(src) }
+function _drawSusanoSprite(c, src, cx, cy, targetH, face, alpha) {
+  const img = _susanoImg(src); if (!img.complete || !img.naturalWidth) return
+  const dh = targetH, dw = dh * (img.naturalWidth / img.naturalHeight)
+  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha))
+  c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
+  c.drawImage(img, -dw / 2, -dh / 2, dw, dh); c.restore()
+}
+function _drawSusanoArmPiece(c, src, ax, ay, bx, by, face, targetH, alpha) {
+  const img = _susanoImg(src); if (!img.complete || !img.naturalWidth) return
+  const len = Math.max(2, Math.abs(bx - ax)); const left = Math.min(ax, bx)
+  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha))
+  if (face < 0) { c.translate(left + len, ay); c.scale(-1, 1); c.drawImage(img, 0, -targetH / 2, len, targetH) }
+  else { c.drawImage(img, left, ay - targetH / 2, len, targetH) }
+  c.restore()
+}
+function drawSasukeWarArm(c, fighter) {
+  if (!c || !susanoAllowed(fighter)) return
+  const A = fighter._warArm; if (!A) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const face = A.facing || fighter.facing || 1
+  const s2w = h / (fighter.h || 110)
+  const reachS = Math.min(A.reach * s2w, (canvas.width || 1280) * 0.55)   // cap to camera frame
+  const p = A.t <= A.startup ? A.t / A.startup : Math.max(0, 1 - (A.t - A.startup) / Math.max(1, A.max - A.startup))
+  const ease = p * p * (3 - 2 * p)
+  const sx = x + w * (face === 1 ? 0.58 : 0.42), sy = y + h * 0.42
+  const reachNow = reachS * ease
+  const armH = h * 0.26
+  const up = _susanoImg("./sasuke_susano_arm_upper.png"), cl = _susanoImg("./sasuke_susano_claw.png")
+  const upW = up.naturalWidth ? armH * (up.naturalWidth / up.naturalHeight) : armH * 0.7
+  const clW = cl.naturalWidth ? armH * 1.08 * (cl.naturalWidth / cl.naturalHeight) : armH * 1.6
+  const tipX = sx + face * reachNow
+  // partial ribcage forming on the body (behind the arm), fading in over the first few frames
+  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.5, h * 0.6, face, 0.75 * Math.min(1, A.t / 5))
+  // UPPER arm (natural) at the shoulder · CLAW (natural) at the reach · lattice FOREARM stretched between them.
+  const upCx = sx + face * upW * 0.4
+  const clawCx = tipX - face * clW * 0.42
+  // lattice FOREARM spans the whole shoulder→claw gap (always a connected limb), then the recognizable
+  // upper-arm + claw sit on top at natural aspect. Draw back-to-front.
+  _drawSusanoArmPiece(c, "./sasuke_susano_arm_fore.png", sx, clawCx, sy, face, armH * 0.82, 0.93)
+  _drawSusanoSprite(c, "./sasuke_susano_arm_upper.png", upCx, sy, armH, face, 0.97)
+  _drawSusanoSprite(c, "./sasuke_susano_claw.png", clawCx, sy, armH * 1.1, face, 0.98)
+}
+function drawSasukeWarGuard(c, fighter) {
+  if (!c || !susanoAllowed(fighter) || (fighter._warGuard || 0) <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const k = (fighter._warGuard || 0) / 40, a = 0.45 + 0.45 * k
+  // rib-ring bands snap up on BOTH sides → a full protective cage shell around Sasuke
+  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.55, h * 0.72, 1, a)
+  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.55, h * 0.72, -1, a)
+}
+
 function drawSasukeDojutsuFx(c, fighter) {
   if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
   const P = fighter._dojPortals
@@ -13572,6 +13654,7 @@ function resolvePortalDropLanding(f) {
 function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
+  updateSasukeWarSusano(updated)   // War-Susano'o: tick the Arm-Grab render timer, Ribcage-Guard window + cooldowns (no-op off-allowlist)
   applyGojoPassiveSystems(updated)
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
@@ -14998,6 +15081,8 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
+    drawSasukeWarGuard(c, fighter)          // War-Susano'o (sensei/adult) — Ribcage Guard shell (code-drawn, keyed rib bands)
+    drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
@@ -21354,12 +21439,13 @@ gameLoop()
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
-    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
+    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, n7form: f._n7Form || "base", formTimer: f._n7FormTimer || 0, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
     setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
     setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
     setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
+    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

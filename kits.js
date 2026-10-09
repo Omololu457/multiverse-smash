@@ -344,7 +344,7 @@ export const KITS = {
   kakashi_anbu: {
     type: "Technical Shinobi / Rushdown", energy: "Chakra", difficulty: "Hard",
     summary: "Teen-era ANBU Hatake Kakashi — a fast, technical, lower-HP shinobi who fights with the tanto and Sharingan trickery. His Y-combo tanto string, rising kick launcher and diving aerials pressure up close; the Body Flicker (shunshin) teleport-dodge repositions with i-frames. The Sharingan toggle, Raikiri, Ninken summon, Sharingan Read counter, Genjutsu stun, Copy Ninja, and the Mangekyō→Kamui awakening arrive across later phases.",
-    passive: { name: "Sharingan (ANBU)", effect: "Phase 2+: Charge toggles the Sharingan (code-drawn red eye + afterimage) — it drains Chakra while active and sharpens Raikiri tracking, Reads and Genjutsu; at 0 Chakra it shuts off and Kakashi is briefly fatigued." },
+    passive: { name: "Sharingan (ANBU)", effect: "Charge-TAP toggles the Sharingan (code-drawn red eye + afterimage aura). It drains Chakra while active and makes Raikiri TRACK the foe; at 0 Chakra it shuts off and Kakashi is briefly FATIGUED (slower). (Sharingan also gates Read + Genjutsu in Phase 3.)" },
     basics: [
       { name: "Tanto Slash",    input: "Light",                   desc: "Y-combo opener — quick tanto slash string" },
       { name: "Tanto Finisher", input: "Heavy",                   desc: "committed Y-combo finisher with an orange blade arc" },
@@ -354,10 +354,12 @@ export const KITS = {
       { name: "Low Slash",      input: "Crouch + Light",          desc: "low sliding tanto poke" }
     ],
     specials: [
-      { name: "Body Flicker",   input: "Forward + Special",       cost: 12, desc: "Shunshin no Jutsu — a short forward teleport-dodge with brief i-frames (teleport art) [CANON]" }
+      { name: "Sharingan",      input: "Charge (tap)",            cost: 0,  desc: "toggle the Sharingan — drains Chakra while active, makes Raikiri TRACK; at 0 Chakra it shuts off + brief fatigue [CANON]" },
+      { name: "Body Flicker",   input: "Forward + Special",       cost: 12, desc: "Shunshin no Jutsu — a short forward teleport-dodge with brief i-frames (teleport art) [CANON]" },
+      { name: "Raikiri",        input: "Neutral + Special (charge-hold)", cost: 30, desc: "Lightning Blade — teleport-in → HOLD Special to charge in the loop (more damage, capped) → release to DASH + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff [CANON]" }
     ],
-    passiveNote: "PHASE 1 of 4 live: body, normals, Body Flicker, intro. Coming: Sharingan toggle + Raikiri (N+Special, charge-hold) + Full-Charge Raikiri ultimate (P2); Ninken Tsuiga (Down+Special), Sharingan Read counter (Back+Special), Sharingan Genjutsu (Up+Special) (P3); Copy Ninja (Down+Ultimate) + Mangekyō Awakening → Kamui Rift (Up+Ultimate) (P4). Later Special directions REQUIRE the Sharingan where noted.",
-    ultimate: { name: "Full-Charge Raikiri", input: "Ultimate (full meter)", cost: 100, desc: "Lightning Blade — illustration cut-in, full charge-loop, then a guaranteed tracking lightning thrust (wired Phase 2)." },
+    passiveNote: "PHASE 2 of 4 live: body, normals, Body Flicker, Sharingan toggle (Charge-tap) + drain/fatigue, Raikiri (N+Special charge-hold; tracking gated on Sharingan), Full-Charge Raikiri ultimate. Coming: Ninken Tsuiga (Down+Special), Sharingan Read counter (Back+Special), Sharingan Genjutsu (Up+Special) (P3); Copy Ninja (Down+Ultimate) + Mangekyō Awakening → Kamui Rift (Up+Ultimate) (P4). Those Special directions REQUIRE the Sharingan where noted.",
+    ultimate: { name: "Full-Charge Raikiri", input: "Ultimate (full meter)", cost: 100, desc: "Lightning Blade — illustration cut-in, full charge-loop, then a GUARANTEED tracking lightning thrust (~198 EFF, half on block) [CANON-ADJACENT]" },
     combos: [
       { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-kick launcher into aerial pressure" }
     ]

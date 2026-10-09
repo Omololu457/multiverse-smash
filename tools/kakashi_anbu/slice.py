@@ -114,6 +114,16 @@ def main():
     # ── INTRO = Raikiri teleport-in + arrival + stance (first 3 of the charge row; degreen FX) ──
     build(keyed, 2082, 2156, [(39, 85), (106, 152), (165, 202)], "intro", feet_align=True, degreen=True)
 
+    # ── PHASE 2 — RAIKIRI (Lightning Blade). All degreen (thin blue/white FX, enclosed green pockets). ──
+    # charge WINDUP (brightening lightning in hand) — charge-row frames 4-8 (after teleport-in/arrival/stance).
+    build(keyed, 2082, 2156, [(214, 251), (264, 301), (310, 359), (371, 421), (443, 502)], "raikiri_charge", feet_align=True, degreen=True)
+    # REPEAT charge LOOP (y2208-2273) — the honored loop bracket; hold = stay here for more damage (capped).
+    build(keyed, 2208, 2273, [(37, 98), (112, 180), (191, 280), (294, 373), (406, 450), (464, 508), (526, 574), (588, 632), (646, 690), (704, 748)], "raikiri_loop", feet_align=True, degreen=True)
+    # DASH (y2291-2349) — lunges + speed streaks + sparks + arriving thrust.
+    build(keyed, 2291, 2349, [(26, 101), (115, 200), (219, 308), (339, 399), (434, 479), (607, 679), (710, 803), (818, 893), (906, 983)], "raikiri_dash", feet_align=True, degreen=True)
+    # STRIKE / recover (y2364-2426).
+    build(keyed, 2364, 2426, [(38, 108), (127, 195), (224, 289), (316, 397), (421, 497), (554, 619), (682, 747), (811, 876), (901, 966)], "raikiri_strike", feet_align=True, degreen=True)
+
     # ── ILLUSTRATION (exclude 2px black border) → select art / cut-in + face-bust portrait ──
     illus = keyed[58:505, 649:1052]
     Image.fromarray(illus).convert("RGB").save("kakashi_anbu_illus.png")

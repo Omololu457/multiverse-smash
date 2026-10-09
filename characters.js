@@ -9150,9 +9150,11 @@ const kakashiAnbu = {
   // HUD/movelist meta only — real logic in abilities.js executeKakashiAnbuSpecial. PHASE-1 live move =
   // Body Flicker (F+Special). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu/Kamui).
   specials: {
-    bodyFlicker: { cost: 12, damage: 0, subtype: "mobility", effect: "Body Flicker (Fwd+Special) — shunshin teleport-dodge: brief i-frames + a short forward blink (teleport art)" }
+    bodyFlicker: { cost: 12, damage: 0,  subtype: "mobility",  effect: "Body Flicker (Fwd+Special) — shunshin teleport-dodge: brief i-frames + a short forward blink (teleport art)" },
+    raikiri:     { cost: 30, damage: 78, subtype: "melee",     effect: "Raikiri (neutral Special) — charge-hold the Lightning Blade (hold for more damage, capped) then release to dash + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff" },
+    sharingan:   { cost: 0,  damage: 0,  subtype: "stance",    effect: "Sharingan (Charge-tap) — toggles the red eye: drains Chakra while active, sharpens Raikiri tracking; at 0 Chakra it shuts off and Kakashi is briefly fatigued" }
   },
-  ultimate: { name: "Full-Charge Raikiri", cost: 100, description: "Lightning Blade — full charge-loop then a guaranteed tracking lightning thrust (Phase 2; illustration cut-in)." },
+  ultimate: { name: "Full-Charge Raikiri", cost: 100, description: "Lightning Blade — illustration cut-in, full charge-loop, then a GUARANTEED tracking lightning thrust (~198 EFF, half on block)." },
   hasSprites: true,
   // idle content ~63px × 1.75 ≈ 110px on-screen ≈ roster mid-band. REQUIRES the skins.js `kakashi_anbu`
   // default entry (else applySkin() pulls the spriteScale:1 fallback → half size) + the spritesheets.js idle
@@ -9185,6 +9187,11 @@ const kakashiAnbu = {
     anbuFlicker:{ frames: 2, width: 50, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_teleport_uniform.png" },
     // ── INTRO (Raikiri teleport-in + arrival + stance) — played in place via introPool. ──
     intro:     { frames: 3, width: 50, height: 68, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_intro_uniform.png" },
+    // ── PHASE 2 RAIKIRI cast poses (_spriteCastMove → these keys via sprite.js identity fallback). ──
+    raikiri_charge: { frames: 5,  width: 63, height: 70, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_charge_uniform.png" },  // windup (brightening lightning)
+    raikiri_loop:   { frames: 10, width: 93, height: 69, speed: 4, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_raikiri_loop_uniform.png" },                        // REPEAT charge loop (held)
+    raikiri_dash:   { frames: 9,  width: 97, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_dash_uniform.png" },    // dashing lightning thrust
+    raikiri_strike: { frames: 9,  width: 85, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_strike_uniform.png" },  // strike + recover
     // ── RESERVED (Phase 3): Sharingan Read counter-slash = Y+Run sliding slash. Sliced, not yet wired. ──
     anbuReadSlash:{ frames: 6, width: 75, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_dashatk_uniform.png" }
   }

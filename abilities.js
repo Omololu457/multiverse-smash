@@ -4380,6 +4380,7 @@ function n7ThrowWeapon(fighter, context, air) {
 function executeNarutoSeventhUltimate(fighter, context) {
   if (!isN7Char(fighter)) return false                             // fires with chakra in ANY state (no longer KCM-gated)
   const v = fighter._ultVariant || ""
+  if (v === "avatar"    && n7KuramaAvatar(fighter, context)) return true   // Up+Ult   = NINE-TAILS AVATAR summon (Bond 4): giant Kurama looms + empowers Naruto ~6s
   if (v === "rikudou"   && n7Rikudou(fighter, context))      return true   // Fwd+Ult  = Rikudou apex (Bond 4, once/round)
   if (v === "foxSummon" && n7KuramaSummon(fighter, context)) return true   // Down+Ult = summon the GIANT nine-tails (Kurama) + fire a Tailed Beast Bomb
   return n7Bijuudama(fighter, context)                             // neutral  = GIGANTIC Bijuudama (Kurama heads + huge sphere)
@@ -4731,6 +4732,23 @@ function n7KuramaSummon(fighter, context) {
   return true
 }
 
+// ── NINE-TAILS AVATAR (Up+Ultimate, needs MAX Kurama Bond 4) — a TEMPORARY SUMMON/assist ───────────────────
+// The giant gold Six-Paths Kurama avatar (reconstructed from the parts sheet) rises BEHIND Naruto and looms
+// for ~6s, EMPOWERING his strikes (damage echo/boost), then fades. Does NOT replace any existing move — it's
+// layered on top. Rendered behind the body in drawN7BondAura; ticked (timer + buff) in applyNarutoSeventhSystem.
+const N7_AVATAR = { dmg: 1.4, dur: 360, cost: 45, bond: 4 }
+function n7KuramaAvatar(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if ((fighter._n7Bond || 0) < N7_AVATAR.bond) return false              // MAX Bond only
+  if ((fighter.energy || 0) < N7_AVATAR.cost) return false
+  if (fighter._n7Avatar) return false                                    // already summoned
+  spendEnergy(fighter, N7_AVATAR.cost)
+  fighter._n7Avatar = { timer: N7_AVATAR.dur, dur: N7_AVATAR.dur, t: 0 }
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+  try { shakeCamera(context, 14, 24) } catch (_) {}
+  return true
+}
+
 // KCM Down+Ultimate — RIKUDOU (Six Paths) APEX (Bond 4, ONCE PER ROUND). A code-drawn gold entry FLASH
 // (ART RULE 3) → the committed 27-frame black/gold Sp6 apex combo (rod slashes → afterimages → giant golden
 // chakra fist). Fully locked + i-frames; uses ONLY its own Rikudou frames (committed — no walk/attack/other
@@ -4919,6 +4937,14 @@ export function applyNarutoSeventhSystem(fighter) {
   else if (f2 === "fourtails") { dmgMul = N7_FORM.fourtails.dmg; spdMul = N7_FORM.fourtails.spd }
   else if (f2 === "red")       { dmgMul = N7_FORM.red.dmg;       spdMul = N7_FORM.red.spd }
   else if (fighter.currentMove === "up" && (fighter._n7Bond || 0) >= 1) dmgMul = N7_BOND.RED_DMG   // base red-flame up
+  // NINE-TAILS AVATAR summon — looms behind Naruto, ECHO-boosts his strikes, auto-despawns after ~6s.
+  if (fighter._n7Avatar) {
+    const av = fighter._n7Avatar
+    av.t = (av.t || 0) + 1
+    av.timer = (av.timer || 0) - 1
+    dmgMul *= N7_AVATAR.dmg                                           // the avatar empowers every hit
+    if (av.timer <= 0) fighter._n7Avatar = null
+  }
   fighter.damageMultiplier = dmgMul
   fighter.speedMultiplier = spdMul
 
@@ -4943,6 +4969,7 @@ export function revertNarutoSeventhState(fighter) {
   if (!fighter) return
   revertNarutoSeventhForm(fighter)                // drop any nine-tails form (red / four-tails / KCM) → base
   fighter._n7Wall = null
+  fighter._n7Avatar = null                        // despawn the Nine-Tails Avatar summon
   fighter._n7Bond = 0; fighter._n7BondPts = 0; fighter._n7BondIdle = 0
   fighter._n7RikudouUsed = false                  // Rikudou is once-per-round → re-arm each round
   fighter._n7PrevHealth = fighter.health; fighter._n7PrevCombo = 0

@@ -307,6 +307,12 @@ export const SKINS = {
     { id: "kwarRed",  name: "Red",  unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "red"),  spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "red"),  recolorTag: "red" },   // red flak vest (+ red-vest frog)
     { id: "kwarBlue", name: "Blue", unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "blue"), spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "blue"), recolorTag: "blue" },  // blue flak vest (+ blue-vest frog)
     { id: "kwarDark", name: "Dark", unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "dark"), spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "dark"), recolorTag: "dark" },  // dark/charcoal flak vest (+ dark-vest frog)
+    // OMOLOLU-style skins copied onto Kakashi (same HSV region-split transforms, kakashi_war_work/gen_omololu_skins.py).
+    // id "kwarAlienX" ENDS "AlienX" so game.js drawAlienXStarfield auto-gates the colourful runtime starfield onto the void-black sheets.
+    { id: "kwarAlienX",   name: "Alien X",        unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "alienx"),   spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "alienx"),   recolorTag: "alienx" },   // void-black body + runtime Celestialsapien starfield
+    { id: "kwarWebWeave", name: "Web-Weave Suit", unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "webweave"), spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "webweave"), recolorTag: "webweave" },  // white bodysuit + black seam linework
+    { id: "kwarViolet",   name: "Violet",         unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "violet"),   spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "violet"),   recolorTag: "violet" },   // violet-themed hair/outfit
+    { id: "kwarEmerald",  name: "Emerald",        unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "emerald"),  spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "emerald"),  recolorTag: "emerald" },  // emerald-themed hair/outfit
   ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },

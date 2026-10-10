@@ -10399,7 +10399,7 @@ const narutoSeventh = {
 // ultrasayiancoder101 "Goku Black SSJ Rosé 3" sheet. Canonical Zamasu/Goku-Black kit: Ki blasts, Black
 // Kamehameha, Sword of Light, the Scythe (God Split Cut), SSJ-Rosé power-up aura. combat.js UNTOUCHED.
 const gokuRose = {
-  rosterKey: "goku_rose", name: "Goku Black (Rosé 3)", universe: "dragon_ball", color: "#e85f9e",
+  rosterKey: "goku_rose", name: "Goku Black (Rosé 3)", universe: "dragon_ball", color: "#e85f9e", portrait: "./goku_rose_portrait.png",
   archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
   stats: { maxHealth: 1220, maxEnergy: 200, attack: 95, defense: 88, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10 },
@@ -10518,7 +10518,7 @@ const shisuiTrinity = {
 // ultrasayiancoder101 "Mega Ultra Instinct Hakaishin Gogeta" sheet (white bg, border-floodfill keyed).
 // Canonical fusion kit: Ki blasts, God/Big Bang Kamehameha, Stardust Breaker, Hakai, UI/Hakaishin aura.
 const gogetaUI = {
-  rosterKey: "gogeta", name: "Gogeta (Ultra Instinct)", universe: "dragon_ball", color: "#4aa3ff",
+  rosterKey: "gogeta", name: "Gogeta (Ultra Instinct)", universe: "dragon_ball", color: "#4aa3ff", portrait: "./gogeta_portrait.png",
   archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
   stats: { maxHealth: 1240, maxEnergy: 200, attack: 97, defense: 90, speed: 93, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 10 },

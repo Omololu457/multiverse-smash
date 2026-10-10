@@ -5445,8 +5445,13 @@ export function fireSasukeWarArmGrab(fighter, context) {
     const tgt = getOpp(fighter)
     const grabbed = resolveGrab(fighter, tgt, context, WARSUSANO.ARM_GRAB_REACH)
     if (grabbed) { fighter._grabThrowDmg = WARSUSANO.ARM_GRAB_THROW }
-    if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.target = grabbed ? tgt : null; fighter._warArm.resolved = true }
-    try { if (grabbed) shakeCamera(context, 10, 12) } catch (_) {}   // the catch + slam impact
+    if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.target = grabbed ? tgt : null; fighter._warArm.resolved = true; fighter._warArm.crushT = grabbed ? 0 : null }
+    if (grabbed) {
+      // CINEMATIC CATCH — a brief "caught!" HITSTOP freeze (both fighters hang for a beat) + a hard camera
+      // punch-in. The render adds a purple crush BURST at the grab point + a squeeze pulse on the claw.
+      fighter.hitstop = Math.max(fighter.hitstop || 0, 8); tgt.hitstop = Math.max(tgt.hitstop || 0, 8)
+      try { focusCameraOnAction(context, fighter, tgt, 1.12, 20); shakeCamera(context, 13, 16) } catch (_) {}
+    }
   })
   try { focusCameraOnAction(context, fighter, target, 0.98, 8); shakeCamera(context, 5, 8) } catch (_) {}
   return true
@@ -5475,6 +5480,7 @@ export function updateSasukeWarSusano(fighter) {
   if (!susanoAllowed(fighter)) return
   if (fighter._warArm) {
     const A = fighter._warArm
+    if (A.crushT != null) A.crushT++   // for the render's crush-burst fade
     // CINEMATIC HOLD: once the claw GRABS, it STAYS clutching the victim through the whole hold+throw (follows
     // the held body) instead of vanishing after a beat. While the grab is live (victim.grabTimer > 0) the arm
     // is frozen at full extension gripping them; after the throw it lingers ~0.4s, then releases.

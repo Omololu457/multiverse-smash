@@ -8899,7 +8899,9 @@ function drawSasukeWarArm(c, fighter) {
   // pop-in: scale springs 0.3 → 1.25 over the first ~7 frames (POPS OUT of nowhere), then settles to ~1.0.
   const pt = A.t
   const pop = pt < 7 ? (0.3 + (pt / 7) * 0.95) : Math.max(0.95, 1.25 - (pt - 7) * 0.03)
-  const clawH = h * 1.05 * pop            // BIG claw (cinematic)
+  // SQUEEZE PULSE — while clutching, the claw rhythmically squeezes the victim (crush).
+  const squeeze = (A._holding || A.grabbed) ? (1 + 0.06 * Math.sin((A.crushT || A.t) * 0.5)) : 1
+  const clawH = h * 1.05 * pop * squeeze     // BIG claw (cinematic)
   const sx = x + w * (face === 1 ? 0.6 : 0.4), sy = y + h * 0.4
   // faint chakra tendril from Sasuke to the claw (a connection, not the focus)
   c.save(); c.lineCap = "round"; c.globalAlpha = 0.28
@@ -8910,6 +8912,15 @@ function drawSasukeWarArm(c, fighter) {
   // the ribcage CLAW clutching at the target — face the claw TOWARD the target (grab from behind if it's behind)
   const clawFace = (tx >= sx) ? 1 : -1
   _drawSusanoSprite(c, "./sasuke_susano_claw.png", tx, ty, clawH, clawFace, Math.min(1, A.t / 2))
+  // CRUSH BURST — a purple shockwave ring + flash at the moment the claw catches (fades over ~14f).
+  if (A.crushT != null && A.crushT < 14) {
+    const k = A.crushT / 14, r = h * (0.25 + k * 0.9)
+    c.save(); c.globalAlpha = (1 - k) * 0.7
+    c.strokeStyle = "#c9a8ff"; c.lineWidth = h * 0.09 * (1 - k)
+    c.beginPath(); c.arc(tx, ty, r, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = "rgba(180,130,255," + ((1 - k) * 0.35) + ")"; c.beginPath(); c.arc(tx, ty, r * 0.5, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
 }
 function drawSasukeWarGuard(c, fighter) {
   if (!c || !susanoAllowed(fighter) || (fighter._warGuard || 0) <= 0) return

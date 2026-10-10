@@ -7939,7 +7939,7 @@ function _updatePlayerCombatBody(fighter) {
   // NARUTO (SEVENTH) — ULTIMATE (not charging) is directional: NEUTRAL = gigantic Bijuudama (auto-hit), DOWN =
   // summon Giant Kurama + TBB (auto-hit), FWD = Rikudou. Stamp the held dir so the handler picks the branch.
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
-    { const _hd = betaHeldDirFromInput(inputState, fighter.facing); fighter._ultVariant = _hd === "U" ? "avatar" : _hd === "D" ? "foxSummon" : _hd === "F" ? "rikudou" : "bijuudama" }   // Up = Nine-Tails Avatar (Bond 4), Down = Giant Kurama + TBB, Fwd = Rikudou, neutral = gigantic Bijuudama
+    { const _hd = betaHeldDirFromInput(inputState, fighter.facing); fighter._ultVariant = _hd === "D" ? "foxSummon" : _hd === "F" ? "rikudou" : "bijuudama" }   // Down = summon Giant Kurama + TBB, Fwd = Rikudou, neutral = gigantic Bijuudama
   }
   // GAARA (PHASE 4) — the Ultimate is directional: NEUTRAL = Sabaku Taisou (Phase 3), DOWN = summon Shukaku
   // (when the One-Tail gauge is full). While Shukaku is already out, ANY Ultimate press = Tailed Beast Ball
@@ -8555,40 +8555,10 @@ function drawNHTierAura(c, fighter) {
 // (1-4). Red Chakra lights up at Bond 1. Same pulsing rounded-rect pattern as drawNHTierAura; drawn
 // BEFORE the body. No-op for anyone else / Bond 0. (Reused in later phases for KCM/Rikudou shades.)
 const N7_BOND_AURA = ["#f87171", "#ef4444", "#dc2626", "#b91c1c"]   // Bond 1 / 2 / 3 / 4
-// Nine-Tails AVATAR summon art (reconstructed from the parts sheet). Cached + preloaded so it decodes before use.
-const _n7FxImgs = {}
-function _n7FxImg(src) { if (!_n7FxImgs[src]) { const i = new Image(); i.src = src; _n7FxImgs[src] = i } return _n7FxImgs[src] }
-_n7FxImg("./naruto_seventh_kurama_summon_uniform.png")
-// Blit one frame of the avatar strip, BOTTOM-anchored at (cx, bottomY); flips with the fighter's facing.
-function _n7BlitAvatar(c, img, frames, fi, cx, bottomY, sc, alpha, facing) {
-  if (!img.complete || img.naturalWidth === 0) return
-  const fw = img.naturalWidth / frames, fh = img.naturalHeight
-  const dw = fw * sc, dh = fh * sc
-  c.save(); c.globalAlpha = alpha
-  if (facing < 0) { c.translate(cx, 0); c.scale(-1, 1); c.translate(-cx, 0) }
-  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, bottomY - dh, dw, dh)
-  c.restore()
-}
 function drawN7BondAura(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naruto_seventh") return
   const bond = Math.max(0, Math.min(4, fighter._n7Bond || 0))
   const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
-  // ── NINE-TAILS AVATAR summon — the giant gold Kurama looms BEHIND Naruto while active (drawn first = behind). ──
-  if (fighter._n7Avatar && (fighter._n7Avatar.timer || 0) > 0) {
-    const av = fighter._n7Avatar, img = _n7FxImg("./naruto_seventh_kurama_summon_uniform.png")
-    const prog = 1 - (av.timer / av.dur)                              // 0→1 over its life
-    const sIn  = Math.min(1, (av.t || 0) / 10)                        // quick scale-in (~0.17s)
-    const sOut = Math.min(1, (av.timer || 0) / 24)                    // fade-out near the end
-    const facing = fighter.facing || 1
-    const targetH = h * 3.1                                           // looming — ~3× Naruto's height
-    const sc = targetH / (img.naturalHeight || 361) * (0.55 + 0.45 * sIn)
-    const fi = Math.floor((av.t || 0) / 20) % 2                       // slow 2-frame idle
-    const bob = Math.sin((av.t || 0) * 0.07) * 7
-    const cx = x + w / 2 - facing * w * 0.35                          // set back behind Naruto
-    const feetY = (fighter.groundY != null ? fighter.groundY : y + h) + 6 + bob   // GROUND-anchored (stays put if Naruto jumps)
-    const alpha = (0.46 + 0.14 * Math.sin((av.t || 0) * 0.12)) * sOut * (0.5 + 0.5 * sIn)   // ghostly chakra presence, fades in/out
-    _n7BlitAvatar(c, img, 2, fi, cx, feetY, sc, alpha, facing)
-  }
   // RED CHAKRA SHROUD form — a visible code-drawn chakra cloak: licking red flame tongues + a bright red
   // body-hugging glow (the "tinted body + shroud" the sheet has no body art for). Gated on the red form.
   if ((fighter._n7Form || "base") === "red") {
@@ -8922,10 +8892,10 @@ function drawSasukeWarTorso(c, fighter) {
   const img = _susanoImg(src); if (!img.complete || !img.naturalWidth) return
   const cellW = img.naturalWidth / frames
   const fi = fx ? Math.min(frames - 1, Math.floor((fx.t / fx.max) * frames)) : 0
-  const bustH = h * 1.7, bustW = bustH * (cellW / img.naturalHeight)
+  const bustH = h * 1.95, bustW = bustH * (cellW / img.naturalHeight)   // a tad bigger (the "first form")
   const cx = x + w / 2, cy = y + h * 0.4
   const fade = Math.min(1, (fighter._warTorso || 0) / 10)   // fade in on summon / out on expiry
-  c.save(); c.globalAlpha = 0.7 * fade
+  c.save(); c.globalAlpha = 0.9 * fade   // more opaque (less translucent)
   c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
   c.drawImage(img, fi * cellW, 0, cellW, img.naturalHeight, -bustW * 0.5, -bustH * 0.5, bustW, bustH)
   c.restore()
@@ -21859,12 +21829,11 @@ gameLoop()
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     dojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, eyeSet: f._eyeSet || null, strain: Math.round(f._rinStrain || 0), lock: f._rinLock || 0, markerArmed: !!f._dojMarkerArmed, portalActive: f._portalActive || 0, counterCd: f._dojCounterCd || 0, redirectCd: f._dojRedirectCd || 0, portals: !!f._dojPortals, x: Math.round(f.x), facing: f.facing, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0 } },   // test-only: Sasuke dojutsu state
-    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, n7form: f._n7Form || "base", formTimer: f._n7FormTimer || 0, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, avatar: !!f._n7Avatar, avatarTimer: f._n7Avatar?.timer || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
+    narutoSeventh: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, bond: f._n7Bond || 0, bondPts: Math.round(f._n7BondPts || 0), bondIdle: f._n7BondIdle || 0, combo: f.comboCounter || 0, move: f.currentMove || null, cast: f._spriteCastMove || null, dmgMul: f.damageMultiplier || 1, spdMul: f.speedMultiplier || 1, kcm: !!f._n7KCMActive, n7form: f._n7Form || "base", formTimer: f._n7FormTimer || 0, kcmTimer: f._n7KCMTimer || 0, skin: f._skinAnim ? "golden" : "base", noBlock: !!f._n7KCMNoBlock, isBlocking: !!f.isBlocking, form: f.currentForm || "base", health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, oppHealth: Math.round((who === "p2" ? p1 : p2)?.health || 0), wall: !!f._n7Wall, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },   // test-only: Naruto (Seventh) Kurama-Bond + KCM state
     setN7Bond: (pts = 50, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._n7BondPts = Math.max(0, Math.min(100, pts)); f._n7Bond = f._n7BondPts >= 100 ? 4 : f._n7BondPts >= 75 ? 3 : f._n7BondPts >= 50 ? 2 : f._n7BondPts >= 25 ? 1 : 0; f._n7BondIdle = 0; f._n7PrevHealth = f.health; return { bond: f._n7Bond, bondPts: Math.round(f._n7BondPts) } },   // test-only: drive the Bond meter to verify aura / Four-Tails / Strong Down buff
     setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
     setN7Form: (form = "kcm", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; try { revertNarutoSeventhForm(f) } catch (_) {} const need = { base: 0, red: 1, fourtails: 2, kcm: 3 }[form] ?? 3; f._n7Bond = need; f._n7BondPts = Math.min(100, need * 25 + 10); for (let i = 0; i < 4 && (f._n7Form || "base") !== form && (f._n7Form || "base") !== "kcm"; i++) { f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.hitstun = 0; try { enterNarutoSeventhForm(f, getAbilityContext()) } catch (_) {} } f.attackCooldown = 0; return f._n7Form || "base" },   // test-only: force a nine-tails form directly (steps up, bypassing input)
     setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
-    triggerN7Avatar: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._n7Bond = 4; f._n7BondPts = 100; f.energy = f.maxEnergy || 200; f._ultVariant = "avatar"; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.ultimateCooldown = 0; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, avatar: !!f._n7Avatar, timer: f._n7Avatar?.timer || 0 } },   // test-only: summon the Nine-Tails Avatar directly (no Up-jump confound)
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)

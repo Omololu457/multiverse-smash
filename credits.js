@@ -81,6 +81,15 @@ export const SOURCED_ART = {
     source:  "M.U.G.E.N sheet",
     files:   ["gojo_*_sheet.png", "gojo_sheet_source.png"]
   },
+  // Goku Black (Super Saiyan Rosé 3) (Dragon Ball) — NEW additive standalone fighter. EVERY frame sliced from
+  // the ONE ultrasayiancoder101 "Goku Black SSJ Rosé 3" sprite sheet (DeviantArt handle in the filename).
+  // Attribution MANDATORY.
+  goku_rose: {
+    work:    "Goku Black (Super Saiyan Rosé 3) — Ki blasts / Black Kamehameha / Sword of Light / Scythe",
+    artists: ["ultrasayiancoder101 (DeviantArt)"],
+    source:  "fan sprite sheet (goku_black_super_saiyan_rose_3_sprite_sheet_by_ultrasayiancoder101_deyslf3.png)",
+    files:   ["goku_rose_*_uniform.png", "goku_black_super_saiyan_rose_3_sprite_sheet_by_ultrasayiancoder101_deyslf3.png"]
+  },
   // Superman (Custom / DC Universe Customs) — a SEPARATE char from `superman` (Arcade), the 2nd of 4 Superman
   // roster entries. The source sheet carries a baked header credit: "Superman Sprites by Spellfire; Thanks
   // Nightmare, Sam and Mike Penner; ported by ProtoStar". Attribution is MANDATORY.

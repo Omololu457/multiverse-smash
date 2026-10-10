@@ -10395,8 +10395,56 @@ const narutoSeventh = {
   }
 }
 
+// ── Goku Black (Super Saiyan Rosé 3) — NEW additive standalone (Dragon Ball). Every frame sliced from the ONE
+// ultrasayiancoder101 "Goku Black SSJ Rosé 3" sheet. Canonical Zamasu/Goku-Black kit: Ki blasts, Black
+// Kamehameha, Sword of Light, the Scythe (God Split Cut), SSJ-Rosé power-up aura. combat.js UNTOUCHED.
+const gokuRose = {
+  rosterKey: "goku_rose", name: "Goku Black (Rosé 3)", universe: "dragon_ball", color: "#e85f9e",
+  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
+  stats: { maxHealth: 1220, maxEnergy: 200, attack: 95, defense: 88, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10 },
+  basic_attacks: { light: { damage: 14 }, heavy: { damage: 40 } },
+  specials: {
+    kiBlast:        { cost: 12, effect: "Neutral+Special: Rosé Ki Blast — a fast pink ki orb. [CANON]" },
+    blackKamehameha:{ cost: 34, effect: "Down+Special: Black Kamehameha — a piercing crimson-pink ki beam. [CANON]" },
+    swordOfLight:   { cost: 28, effect: "Fwd+Special: Sword of Light — a materialized pink ki-blade slash. [CANON]" },
+    scythe:         { cost: 40, effect: "Back+Special: God Split Cut — summon the energy SCYTHE and reap in a wide arc (Zamasu's signature). [CANON]" },
+    roseAura:       { cost: 30, effect: "Up+Special: Super Saiyan Rosé — erupt the divine pink aura for a short damage/speed buff. [CANON]" }
+  },
+  ultimate: { name: "Divine Retribution", cost: 100, damage: 360,
+    description: "Charge the full divine power → an unavoidable crimson-pink Black Kamehameha nuke (auto-hit; a held block chips it to half). [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true, spriteScale: 2.0, introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 8, width: 45, height: 57, speed: 8, anchorY: 0, loop: true,  sheet: "./goku_rose_idle_uniform.png" },
+    walk:      { frames: 6, width: 86, height: 56, speed: 6, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
+    run:       { frames: 6, width: 86, height: 56, speed: 4, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
+    dash:      { frames: 6, width: 86, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_walk_uniform.png" },
+    jump:      { frames: 6, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    fall:      { frames: 6, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    guard:     { frames: 1, width: 45, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_idle_uniform.png" },
+    hurt:      { frames: 2, width: 45, height: 57, speed: 5, anchorY: 0, sheet: "./goku_rose_idle_uniform.png" },
+    knockdown: { frames: 1, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    getup:     { frames: 3, width: 59, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    light:     { frames: 8, width: 93, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
+    heavy:     { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    up:        { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    air:       { frames: 8, width: 93, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
+    down_air:  { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    intro:     { frames: 10, width: 71, height: 79, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" },
+    win:       { frames: 10, width: 71, height: 79, speed: 10, anchorY: 0, loop: true, sheet: "./goku_rose_transform_uniform.png" },
+    // cast poses
+    roseKi:     { frames: 5,  width: 141, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
+    roseKameha: { frames: 5,  width: 141, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
+    roseSword:  { frames: 9,  width: 73,  height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_sword_uniform.png" },
+    roseScythe: { frames: 14, width: 135, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_scythe_uniform.png" },
+    roseAura:   { frames: 10, width: 71,  height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" }
+  }
+}
+
 export const characters = {
-  goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
+  goku, goku_black: gokuBlack, goku_rose: gokuRose, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, sasuke_adult: sasukeAdult, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,

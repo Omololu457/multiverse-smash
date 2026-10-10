@@ -234,6 +234,11 @@ export const SPRITE_MANIFEST = {
   naruto_seventh: {
     actions: { idle: "./naruto_seventh_idle_uniform.png" }
   },
+  // Goku Black (Super Saiyan Rosé 3) — NEW additive standalone (rosterKey goku_rose). Decodes the base idle
+  // strip → flips him from box to sprite; per-action rendering reads characters.js → gokuRose.animationData.
+  goku_rose: {
+    actions: { idle: "./goku_rose_idle_uniform.png" }
+  },
 
 
   // Dark Vegeta (universe: dragon_ball) — STAGE 1. STANDALONE, independent of the blue `vegeta`.

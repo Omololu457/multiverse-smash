@@ -1458,6 +1458,9 @@ export const SKINS = {
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~69px (half
   // size). This entry sources his real spriteScale (1.7) from the character. No alt skins yet
   // (the SSJ Rose body-swap is a transformation, not a skin — comes in a later stage).
+  goku_rose: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale, animationData: null },
+  ],
   goku_black: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — dark grey-blue gi → garment, red sash → accent;

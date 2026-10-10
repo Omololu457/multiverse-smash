@@ -704,6 +704,105 @@ function executeGokuSpecial(fighter, context) {
   return true
 }
 
+// ── GOKU BLACK (Super Saiyan Rosé 3) ──────────────────────────────
+// Canonical Zamasu/Goku-Black kit. Neutral = Rosé Ki Blast · Down = Black Kamehameha (beam) · Fwd = Sword of
+// Light (ki-blade slash) · Back = God Split Cut (the Scythe) · Up = Super Saiyan Rosé aura erupt (AOE pulse).
+function isGokuRose(f) { return (f?.rosterKey || "").toLowerCase() === "goku_rose" }
+function executeGokuRoseSpecial(fighter, context) {
+  if (!isGokuRose(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  const face = fighter.facing || 1
+  const getOpp = getTargetResolver(context)
+  if (dir === "D") {   // BLACK KAMEHAMEHA — piercing crimson-pink beam
+    if (!spendEnergy(fighter, 34)) return false
+    fighter._spriteCastMove = "roseKameha"; fighter._spriteCastTimer = 40
+    fighter.attackCooldown = getAttackDuration(44, fighter); fighter.vx = 0
+    schedulePendingSpawn(14, () => {
+      spawnProjectile(fighter, "roseKameha", {
+        w: 260, h: 34, radius: 26, speed: 15, vx: face * 15, damage: 96, hitstun: 34,
+        knockbackX: face * 18, knockbackY: -6, lifetime: 48, piercing: true, color: "#ff3d8b",
+        spawnY: fighter.y + (fighter.h || 100) * 0.34
+      }, context)
+      try { shakeCamera(context, 7, 10) } catch (_) {}
+    })
+    return true
+  }
+  if (dir === "F") {   // SWORD OF LIGHT — ki-blade slash
+    if (!spendEnergy(fighter, 28)) return false
+    fighter._spriteCastMove = "roseSword"; fighter._spriteCastTimer = 30
+    const atk = createAttackFromMove(fighter, "roseSword", { damage: 78, startup: 8, active: 6, recovery: 16, hitstun: 26, knockbackX: face * 10, knockbackY: -8, rangeX: 110, rangeY: 60 })
+    setAttackState(fighter, atk, 28); fighter.vx = face * 6
+    try { shakeCamera(context, 5, 7) } catch (_) {}
+    return true
+  }
+  if (dir === "B") {   // GOD SPLIT CUT — the Scythe, a wide reaping arc
+    if (!spendEnergy(fighter, 40)) return false
+    fighter._spriteCastMove = "roseScythe"; fighter._spriteCastTimer = 44
+    const atk = createAttackFromMove(fighter, "roseScythe", { damage: 104, startup: 12, active: 8, recovery: 22, hitstun: 32, knockbackX: face * 14, knockbackY: -12, rangeX: 135, rangeY: 80 })
+    setAttackState(fighter, atk, 40); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 18)
+    try { shakeCamera(context, 8, 10) } catch (_) {}
+    return true
+  }
+  if (dir === "U") {   // SUPER SAIYAN ROSÉ aura erupt — divine pink AOE pulse
+    if (!spendEnergy(fighter, 30)) return false
+    fighter._spriteCastMove = "roseAura"; fighter._spriteCastTimer = 40
+    fighter.attackCooldown = getAttackDuration(42, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 24)
+    schedulePendingSpawn(10, () => {
+      const opp = getOpp(fighter)
+      if (opp && !opp.eliminated) {
+        const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+        if (Math.abs(tcx - cx) < 150) {
+          const kdir = tcx >= cx ? 1 : -1
+          if (opp.isBlocking) { opp.blockstun = 18; applyScaledDamage(opp, 24, { source: "ability" }) }
+          else { opp.hitstun = 28; opp.vx = kdir * 12; opp.vy = -10; opp.colorFlash = 12; applyScaledDamage(opp, 60, { source: "ability" }) }
+        }
+      }
+      try { shakeCamera(context, 9, 12) } catch (_) {}
+    })
+    return true
+  }
+  // NEUTRAL → Rosé Ki Blast (fast pink orb)
+  if (!spendEnergy(fighter, 12)) return false
+  fighter._spriteCastMove = "roseKi"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "roseKi", {
+      w: 30, h: 30, radius: 16, speed: 13, vx: face * 13, damage: 34, hitstun: 18,
+      knockbackX: face * 8, knockbackY: -2, lifetime: 70, color: "#ff6ec7",
+      spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+  })
+  return true
+}
+// ULTIMATE — DIVINE RETRIBUTION: an unavoidable crimson-pink Black Kamehameha nuke (auto-hit, half on block).
+function executeGokuRoseUltimate(fighter, context) {
+  if (!isGokuRose(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter._spriteCastMove = "roseKameha"; fighter._spriteCastTimer = 70
+  fighter.attackCooldown = getAttackDuration(72, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 76); fighter.vx = 0
+  const face = fighter.facing || 1, getOpp = getTargetResolver(context)
+  schedulePendingSpawn(26, () => {                              // the colossal beam (visual)
+    spawnProjectile(fighter, "roseKameha", {
+      w: 520, h: 70, radius: 44, speed: 18, vx: face * 18, damage: 0, visualOnly: true,
+      lifetime: 60, piercing: true, isUltimate: true, color: "#ff2f7a",
+      spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+    try { shakeCamera(context, 18, 28) } catch (_) {}
+  })
+  schedulePendingSpawn(44, () => {                              // guaranteed auto-hit
+    const opp = getOpp(fighter)
+    if (opp && !opp.eliminated) {
+      let dmg = 360
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 56); opp.vx = face * 22; opp.vy = -16; opp.colorFlash = 16; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 50) }
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    }
+    try { shakeCamera(context, 22, 30) } catch (_) {}
+  })
+  return true
+}
+
 // ── TEEN GOHAN ────────────────────────────────────────────────────
 // STAGE 4 (2026-08-23): MELEE-ONLY. NO beam/charge/Ultimate art on either EB sheet (confirmed twice) → there is
 // NO ranged special, and none was invented (per prompt "flag rather than invent"). Owner kept ONE melee special
@@ -29231,6 +29330,7 @@ export function triggerSpecial(fighter, context = {}) {
 
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
+    case "goku_rose": return executeGokuRoseSpecial(fighter, context)
     case "gohan":   return executeGohanSpecial(fighter, context)   // Stage 4: LONE melee special "Meteor Smash" (no ranged — none on the sheet)
     case "naruto":  return executeNarutoSpecial(fighter, context)
     case "minato":  return executeMinatoSpecial(fighter, context)   // Stage 3: shadow-clone routes (Flying Raijin / Rasengan / Reaper land in S4-5)
@@ -29493,6 +29593,8 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
+      case "goku_rose": cast = executeGokuRoseUltimate(fighter, context); break   // Divine Retribution — auto-hit crimson Black Kamehameha nuke
+
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)

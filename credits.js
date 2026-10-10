@@ -207,6 +207,14 @@ export const SOURCED_ART = {
               "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png",
               "uchiha_shisui_jus_by_thegodgeminis_d843ju8.png"]
   },
+  // Shisui (Trinity) — THE BLADE identity (its own roster key shisui_blade). Haickal23's NZC sheet (the
+  // in-sheet credit box names Haickal23). Border-flood-fill keyed → shisui_blade_*_uniform.png. MANDATORY.
+  shisui_blade: {
+    work:    "Shisui Uchiha (Trinity) — THE BLADE",
+    artists: ["Haickal23"],
+    source:  "fan sprite sheet (shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png; Haickal23 + in-sheet credit box)",
+    files:   ["shisui_blade_*.png", "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

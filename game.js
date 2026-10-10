@@ -12982,9 +12982,27 @@ function drawShisuiFx(c, fighter) {
   if (!/^shisui_(trinity|blade|puppeteer)$/.test((fighter.rosterKey || "").toLowerCase())) return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const cx = fighter.x + w / 2, feetY = fighter.y + h, facing = fighter.facing || 1
-  // GUARD — a faint green Susanoo ribcage shimmers in front while blocking.
-  if (fighter.isBlocking) {
+  const _shiKey = (fighter.rosterKey || "").toLowerCase()
+  // GUARD (LOYALIST only) — a faint green Susanoo ribcage shimmers in front while blocking.
+  if (fighter.isBlocking && _shiKey === "shisui_trinity") {
     _gaaraBlitFx(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, 0, cx + facing * w * 0.3, feetY + 6, (h / 165) * 1.15, 0.33)
+  }
+  // THE BLADE — Mangekyou Focus speed-buff aura: a red eye-glint + cyan speed streaks while focused.
+  if ((fighter._shisuiBladeFocusFx || 0) > 0) {
+    fighter._shisuiBladeFocusFx--
+    c.save(); c.globalAlpha = 0.5
+    c.fillStyle = "rgba(220,30,30,0.9)"; c.beginPath(); c.arc(cx + facing * 3, fighter.y + h * 0.18, 2.6, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = "rgba(150,220,255,0.6)"; c.lineWidth = 2
+    for (let s = 0; s < 3; s++) { const ox = -facing * (6 + s * 9); c.beginPath(); c.moveTo(cx + ox, fighter.y + 16); c.lineTo(cx + ox, fighter.y + h - 12); c.stroke() }
+    c.restore()
+  }
+  // THE BLADE — Iaido / Rising slash: a white crescent arc swept in front.
+  if ((fighter._shisuiBladeSlashFx || 0) > 0) {
+    const bt = fighter._shisuiBladeSlashFx--
+    c.save(); c.globalAlpha = Math.min(0.75, bt / 10)
+    c.strokeStyle = "rgba(240,245,255,0.9)"; c.lineWidth = 4
+    c.beginPath(); c.arc(cx + facing * w * 0.5, fighter.y + h * 0.5, w * 0.7, facing === 1 ? -1.1 : (Math.PI - 0.0), facing === 1 ? 1.1 : (Math.PI + 1.1)); c.stroke()
+    c.restore()
   }
   // ULTIMATE — Susanoo Tsukumo: a green ribcage grows around Shisui + a spinning chest magatama.
   if ((fighter._shisuiSusanooFx || 0) > 0) {
@@ -13004,6 +13022,28 @@ function drawShisuiFx(c, fighter) {
     for (let s = 0; s < 3; s++) { const ox = -facing * (8 + s * 10); c.beginPath(); c.moveTo(cx + ox, fighter.y + 12); c.lineTo(cx + ox, fighter.y + h - 10); c.stroke() }
     c.restore()
   }
+}
+// MADARA — WAR UPGRADE Phase 1: PARTIAL SUSANOO ribcage as the GUARD visual. The blue ribcage GROWS
+// (7-frame strip sliced from P) as the block settles, then holds the full ribcage while guarding.
+// Render-only (a cosmetic growth counter, never read by the sim → LAN-safe). madara only; added because
+// his base guard had no Susanoo visual. The Complete/armored forms have their own look → skipped there.
+function drawMadaraRibcageGuard(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara") return
+  if ((fighter._madaraComplete || 0) > 0 || (fighter._madaraSusanoo || 0) > 0 || !fighter.isBlocking) { fighter._madRibcageT = 0; return }
+  const img = _susanoImg("./madara_susanoo_ribcage_growth_uniform.png")
+  if (!img.complete || !img.naturalWidth) return
+  const FR = 7, fw = img.naturalWidth / FR, fh = img.naturalHeight
+  const t = (fighter._madRibcageT = Math.min(FR * 4, (fighter._madRibcageT || 0) + 1))
+  const fi = Math.min(FR - 1, Math.floor(t / 4))     // 4 render-frames per growth frame → ~0.5s to full ribcage
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const face = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5
+  const dh = h * 0.78, dw = dh * (fw / fh)
+  const alpha = 0.42 + 0.12 * Math.sin(t * 0.25)     // faint pulsing Susanoo shell
+  c.save(); c.globalAlpha = Math.max(0, Math.min(0.72, alpha))
+  c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
+  c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  c.restore()
 }
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
@@ -15721,6 +15761,7 @@ function renderHybridFighter(fighter) {
     drawSasukeWarGuard(c, fighter)          // War-Susano'o (sensei/adult) — Ribcage Guard shell (code-drawn, keyed rib bands)
     drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
     drawSasukeWarCrater(c, fighter)         // War-Susano'o (sensei/adult) — ground-slam crater from the Arm Grab throw
+    drawMadaraRibcageGuard(c, fighter)      // Madara — Partial-Susanoo ribcage GUARD visual (grows while blocking; madara only, render-only)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)

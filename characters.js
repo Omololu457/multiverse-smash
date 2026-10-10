@@ -10559,6 +10559,74 @@ const gogetaUI = {
   }
 }
 
+// SHISUI (TRINITY) — THE BLADE identity (Haickal23 sheet). HIDDEN (isPlayable:false): reached only via the
+// Variant Swap (P4); in the harness it boots directly as ?p1=shisui_blade. Aggressive striker, overhead/low
+// mixups. Normalized to the same on-screen height (idle body 80px × 1.35 ≈ 108px). combat.js UNTOUCHED.
+const shisuiBlade = {
+  rosterKey: "shisui_blade", name: "Shisui (Blade)", universe: "naruto", color: "#4a4e57",
+  portrait: "./shisui_trinity_portrait.png",
+  isPlayable: false, hidden: true,
+  archetypes: ["rushdown", "technical"],
+  primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Outpace Them All", effect: "THE BLADE — the cocky one who keeps score. Overhead/low mixups and the fastest footwork of the three; Mangekyou Focus sharpens his speed further." },
+  stats: { maxHealth: 980, maxEnergy: 120, attack: 96, defense: 78, speed: 104, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 9, dashCooldownMax: 38 },
+  movement: { crouchIdle: true },
+  basic_attacks: {
+    light:      { damage: 32, startup: 4, active: 3, recovery: 8,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 76, rangeY: 48 },
+    heavy:      { type: "overhead", damage: 64, startup: 12, active: 4, recovery: 18, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 92, rangeY: 70 },
+    upAttack:   { type: "launcher", damage: 54, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -29, selfVy: -4, airOK: false },
+    airAttack:  { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:    { damage: 52, startup: 6, active: 4, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 62, rangeY: 60 },
+    crouchLight:{ damage: 28, startup: 4, active: 3, recovery: 8,  hitstun: 10, knockbackX: 2, knockbackY: 0 },
+    grab:       { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  specials: {
+    backstab:   { cost: 18, effect: "Fwd+Special: Shunshin Backstab — SHARED on all three identities (half on block). [CANON-ADJACENT]" },
+    kunai:      { cost: 20, effect: "Neutral+Special: Kunai Barrage — a tagged-kunai fan (4 kunai spread). [CANON-ADJACENT]" },
+    iaido:      { cost: 26, effect: "Down+Special: Iaido Draw — a quick forward draw-slash, a crescent cone in front (half on block). [CANON]" },
+    rising:     { cost: 28, effect: "Up+Special: Rising Overhead Slash — an upward launcher (overhead). [CANON-ADJACENT]" },
+    feint:      { cost: 16, effect: "Back+Special: Afterimage Feint — streak out, reappear behind the foe with brief i-frames + a light cut. [ORIGINAL]" },
+    focus:      { cost: 24, effect: "Charge+Special: Mangekyou Focus — his focus pose + red Mangekyō → a short speed buff (~4s). [CANON-ADJACENT]" }
+  },
+  ultimate: { name: "Shunshin: Thousand Cuts", cost: 100, description: "THE BLADE: body-flicker behind the foe and unleash his committed finisher string — a rapid multi-hit blade flurry capped by a heavy cut. Range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON-ADJACENT]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  spriteScale: 1.35,   // idle body 80px × 1.35 ≈ 108px on-screen (SAME target as the Loyalist/Puppeteer)
+  animationData: {
+    idle:  { frames: 2, width: 29, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },
+    walk:  { frames: 6, width: 64, height: 69, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_blade_run_uniform.png" },
+    run:   { frames: 6, width: 64, height: 69, speed: 5, anchorY: 0, loop: true,  sheet: "./shisui_blade_run_uniform.png" },
+    dash:  { frames: 6, width: 64, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_run_uniform.png" },
+    jump:  { frames: 4, width: 61, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_jump_uniform.png" },
+    fall:  { frames: 4, width: 61, height: 82, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_jump_uniform.png" },
+    hurt:  { frames: 2, width: 59, height: 68, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 85, height: 31, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_knockdown_uniform.png" },
+    lose:  { frames: 2, width: 85, height: 31, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_knockdown_uniform.png" },
+    getup: { frames: 1, width: 72, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_getup_uniform.png" },
+    guard: { frames: 1, width: 50, height: 83, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_guard_uniform.png" },
+    crouch:{ frames: 2, width: 29, height: 84, speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },
+    intro: { frames: 2, width: 29, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },
+    win:   { frames: 2, width: 49, height: 82, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_blade_win_uniform.png" },
+    charge:{ frames: 1, width: 26, height: 67, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_focus_uniform.png" },
+    light: { frames: 4, width: 68, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_light_uniform.png" },
+    heavy: { frames: 4, width: 70, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_heavy_uniform.png" },
+    up:    { frames: 4, width: 76, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_up_uniform.png" },
+    air:   { frames: 4, width: 69, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_air_uniform.png" },
+    down_air: { frames: 4, width: 69, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_air_uniform.png" },
+    crouchLight: { frames: 4, width: 68, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_light_uniform.png" },
+    // special cast poses (own blade sheets; shiBackstab is the shared move keyed to the blade's feint frames)
+    shiBackstab: { frames: 3, width: 71, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_feint_uniform.png" },
+    blKunai:     { frames: 3, width: 50, height: 57, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_kunai_uniform.png" },
+    blIaido:     { frames: 4, width: 81, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_iaido_uniform.png" },
+    blRising:    { frames: 4, width: 70, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_heavy_uniform.png" },
+    blFeint:     { frames: 3, width: 71, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_feint_uniform.png" },
+    blFocus:     { frames: 1, width: 26, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_focus_uniform.png" },
+    blThousand:  { frames: 8, width: 67, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_finisher_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -10636,7 +10704,8 @@ export const characters = {
   ippo,
   naruto_hokage: narutoHokage,       // additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
   naruto_seventh: narutoSeventh,     // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
-  shisui_trinity: shisuiTrinity      // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
+  shisui_trinity: shisuiTrinity,     // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
+  shisui_blade: shisuiBlade          // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
 }
 
 // The 7 characters shown in the starter roster select screen

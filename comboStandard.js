@@ -221,6 +221,10 @@ export const ZONER = [
                      //   normals (light=Attack Combo, heavy=Susanoo Arm Slam launcher) + directional Specials
                      //   (Backstab/Fireball/Genjutsu Grab/Kunai Rain/Flurry) + Susanoo Tsukumo ult (P1). No
                      //   Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke. Blade/Puppeteer P2/P3.
+  "shisui_blade",    // SHISUI — THE BLADE identity (P2, hidden isPlayable:false): aggressive striker, overhead/low
+                     //   mixups (light string, heavy=overhead, up launcher) + directional Specials (Backstab/Kunai
+                     //   Barrage/Iaido/Rising Overhead/Afterimage Feint) + Mangekyou Focus + Thousand Cuts ult. No
+                     //   Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -284,6 +288,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                31,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara + kakashi_anbu + kakashi_war + shisui_trinity (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          115,       // 71 rekka + 13 standard-string + 31 single-poke = 115 (shisui_trinity added)
+  zoner:                32,         // ... + shisui_trinity + shisui_blade (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          116,       // 71 rekka + 13 standard-string + 32 single-poke = 116 (shisui_blade added; NOTE: concurrent goku_rose + any other new fighter must add their OWN classification — not done here)
 }

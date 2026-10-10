@@ -29594,6 +29594,163 @@ function executeShisuiTrinityUltimate(fighter, context) {
   return true
 }
 
+// ══ THE BLADE (shisui_blade) — PHASE 2. Aggressive striker, overhead/low mixups. Hidden identity (reached
+// by the Variant Swap in P4; selectable only in the harness via ?p1=shisui_blade). Dispatch on _specialHeldDir;
+// Charge+Special = Mangekyou Focus (speed buff). Deterministic / LAN-safe. combat.js UNTOUCHED. ══════════════
+function executeShisuiBladeSpecial(fighter, context) {
+  if (shisuiBusy(fighter)) return false
+  if (fighter._specialHeldMods && fighter._specialHeldMods.charge) return fireBladeMangekyouFocus(fighter, context)  // Charge+Sp = Mangekyou Focus
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireShisuiBackstab(fighter, context)    // Fwd  = SHARED Shunshin Backstab
+  if (dir === "D") return fireBladeIaido(fighter, context)        // Down = Iaido Draw
+  if (dir === "U") return fireBladeRising(fighter, context)       // Up   = Rising Overhead Slash
+  if (dir === "B") return fireBladeFeint(fighter, context)        // Back = Afterimage Feint
+  return fireBladeKunaiBarrage(fighter, context)                  // neutral = Kunai Barrage
+}
+
+// Neutral+Special — KUNAI BARRAGE: a tagged-kunai fan (4 kunai in a spread). CANON-ADJACENT.
+const BLADE_KUNAI = { cost: 20, dmg: 20, cast: 12 }
+function fireBladeKunaiBarrage(fighter, context) {
+  const K = BLADE_KUNAI
+  if (!spendEnergy(fighter, K.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "blKunai"; fighter._spriteCastTimer = K.cast
+  fighter.attackCooldown = getAttackDuration(K.cast + 6, fighter)
+  const fac = fighter.facing || 1
+  const spreads = [-5, -2, 2, 5]
+  spreads.forEach((vy, i) => schedulePendingSpawn(K.cast - 6 + i * 2, () => {
+    spawnProjectile(fighter, "shisuiBladeKunai", {
+      damage: K.dmg, speed: 13, vx: fac * 13, vy, w: 14, h: 10, radius: 8,
+      hitstun: 12, knockbackX: 4, knockbackY: 0, lifetime: 70, color: "#c9cdd1"
+    }, context)
+  }))
+  return true
+}
+
+// Down+Special — IAIDO DRAW: a quick forward draw-slash — a sure-hit crescent cone in front (half on block). CANON.
+const BLADE_IAIDO = { cost: 26, dmg: 84, range: 150, cast: 16 }
+function fireBladeIaido(fighter, context) {
+  const I = BLADE_IAIDO
+  if (!spendEnergy(fighter, I.cost)) return false
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "blIaido"; fighter._spriteCastTimer = I.cast
+  fighter.attackCooldown = getAttackDuration(I.cast + 8, fighter)
+  fighter._shisuiBladeSlashFx = 18
+  if (opp0) fighter.facing = ((opp0.x + (opp0.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  schedulePendingSpawn(I.cast - 4, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dx = Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+    if (dx > I.range) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 18; applyScaledDamage(o, Math.floor(I.dmg * 0.5), { source: "shisui-blade-iaido" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 26); o.vx = dir * 7; o.vy = -2; o.colorFlash = 12
+    applyScaledDamage(o, I.dmg, { source: "shisui-blade-iaido" })
+    try { shakeCamera(context, 4, 8) } catch (_) {}
+  })
+  return true
+}
+
+// Up+Special — RISING OVERHEAD SLASH: an upward launcher (overhead property). CANON-ADJACENT.
+const BLADE_RISING = { cost: 28, dmg: 66, range: 120, cast: 16 }
+function fireBladeRising(fighter, context) {
+  const R = BLADE_RISING
+  if (!spendEnergy(fighter, R.cost)) return false
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "blRising"; fighter._spriteCastTimer = R.cast
+  fighter.attackCooldown = getAttackDuration(R.cast + 8, fighter)
+  fighter._shisuiBladeSlashFx = 16
+  schedulePendingSpawn(R.cast - 6, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dx = Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+    if (dx > R.range) return
+    if (o.isBlocking) { o.blockstun = 14; applyScaledDamage(o, Math.floor(R.dmg * 0.25), { source: "shisui-blade-rising" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 24); o.vx = 0; o.vy = -12; o.colorFlash = 11   // launcher
+    applyScaledDamage(o, R.dmg, { source: "shisui-blade-rising" })
+  })
+  return true
+}
+
+// Back+Special — AFTERIMAGE FEINT: streak out, reappear behind the foe with brief i-frames + a light cut. ORIGINAL.
+const BLADE_FEINT = { cost: 16, dmg: 40, iframes: 18, cast: 14 }
+function fireBladeFeint(fighter, context) {
+  const F = BLADE_FEINT
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp) return false
+  if (!spendEnergy(fighter, F.cost)) return false
+  fighter.teleportFlash = 12; fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F.iframes)
+  fighter._shisuiFlurryFx = 14
+  fighter.x = shisuiBehindX(fighter, opp, context, 10); fighter.y = opp.y
+  fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "blFeint"; fighter._spriteCastTimer = F.cast
+  fighter.attackCooldown = getAttackDuration(F.cast + 4, fighter)
+  schedulePendingSpawn(6, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 10; applyScaledDamage(o, Math.floor(F.dmg * 0.25), { source: "shisui-blade-feint" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 18); o.vx = dir * 4; o.colorFlash = 9
+    applyScaledDamage(o, F.dmg, { source: "shisui-blade-feint" })
+  })
+  return true
+}
+
+// Charge+Special — MANGEKYOU FOCUS: his focus pose + red Mangekyō icon → a short speed buff. CANON-ADJACENT.
+const BLADE_FOCUS = { cost: 24, dur: 240, mult: 1.35 }
+function fireBladeMangekyouFocus(fighter, context) {
+  const M = BLADE_FOCUS
+  if ((fighter._shisuiBladeFocus || 0) > 0) return false   // already focused
+  if (!spendEnergy(fighter, M.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "blFocus"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  fighter._shisuiBladeFocus = M.dur; fighter._shisuiBladeFocusFx = M.dur
+  fighter._shisuiBladeFocusPrevSpeed = fighter.speedMultiplier || 1
+  fighter.speedMultiplier = (fighter.speedMultiplier || 1) * M.mult
+  fighter.colorFlash = 14
+  schedulePendingSpawn(M.dur, () => {
+    fighter.speedMultiplier = fighter._shisuiBladeFocusPrevSpeed || 1
+    fighter._shisuiBladeFocus = 0
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// ══ THE BLADE — ULTIMATE: SHUNSHIN: THOUSAND CUTS (his finisher string — a committed multi-hit blade flurry) ══
+// Range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind.
+const BLADE_THOUSAND = { len: 140 }
+function executeShisuiBladeUltimate(fighter, context) {
+  if (fighter._shiCinematicsBlocked) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "blThousand"; fighter._spriteCastTimer = BLADE_THOUSAND.len
+  fighter.attackCooldown = getAttackDuration(BLADE_THOUSAND.len, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 54)
+  fighter._shisuiFlurryFx = BLADE_THOUSAND.len
+  if (opp0) { fighter.x = shisuiBehindX(fighter, opp0, context, 36); fighter.facing = (opp0.x >= fighter.x) ? 1 : -1; fighter.teleportFlash = 14 }
+  const beats = [
+    { at: 16, dmg: 12 }, { at: 24, dmg: 12 }, { at: 32, dmg: 12 }, { at: 40, dmg: 12 }, { at: 48, dmg: 12 },
+    { at: 58, dmg: 14 }, { at: 68, dmg: 14 }, { at: 80, dmg: 16 },
+    { at: 104, dmg: 72, big: true }
+  ]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = b.big ? 22 : 8; applyScaledDamage(o, Math.floor(b.dmg * 0.5), { source: "shisui-blade-thousandcuts" }); return }
+    o.hitstun = b.big ? 34 : 10; o.vx = dir * (b.big ? 7 : 1); o.vy = b.big ? -8 : 0; o.colorFlash = b.big ? 14 : 7
+    if (b.big) o.hitstop = Math.max(o.hitstop || 0, 24)
+    applyScaledDamage(o, b.dmg, { source: "shisui-blade-thousandcuts" })
+  }))
+  try { focusCameraOnAction(context, fighter, opp0, 1.1, 16); shakeCamera(context, 4, 12) } catch (_) {}
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -29675,6 +29832,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
     case "ghostface_exe": return executeGhostfaceExeSpecial(fighter, context)   // BILLY (base): Special = IDENTITY SWAP (Down+Sp → Sasuke / Up+Sp → Deathstroke). While swapped, rosterKey is sasuke/deathstroke → routes to THEIR special above.
     case "shisui_trinity": return executeShisuiTrinitySpecial(fighter, context)   // SHISUI — THE LOYALIST: Fwd=Backstab / N=Fireball / B=Genjutsu Grab / D=Kunai Rain / U=Flurry. Blade/Puppeteer identities (P2/P3) add their own cases.
+    case "shisui_blade": return executeShisuiBladeSpecial(fighter, context)   // SHISUI — THE BLADE: Fwd=Backstab / N=Kunai Barrage / D=Iaido Draw / U=Rising Overhead / B=Afterimage Feint / Charge+Sp=Mangekyou Focus.
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
     case "ghostface_billy": return executeBillyGhostfaceSpecial(fighter, context)   // Billy variant (live): knife specials only — Fwd/neutral=Gutting Lunge / Down=Low Gut (reuses shared un-gated helpers; NO companion swap)
     case "jason":   return executeJasonSpecial(fighter, context)   // Relentless Slash — the ONE special: committed lunging machete power-slash (Bloodlust; reuses the heavy art)
@@ -29939,6 +30097,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
       case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
       case "shisui_trinity": cast = executeShisuiTrinityUltimate(fighter, context); break   // SHISUI — THE LOYALIST: Susanoo Tsukumo (ribcage + magatama + needle volley). Blade/Puppeteer ults (P2/P3) add their own cases.
+      case "shisui_blade": cast = executeShisuiBladeUltimate(fighter, context); break   // SHISUI — THE BLADE: Shunshin: Thousand Cuts (committed multi-hit blade flurry).
       case "gaara":   cast = executeGaaraUltimate(fighter, context);  break   // Sabaku Taisou (Giant Sand Burial) — kanji cut-in + sand ripples→hands→dome→collapse→Part-2 kneel burst; guaranteed ~197 EFF
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).

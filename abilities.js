@@ -10304,6 +10304,7 @@ export function startKakashiWarRaikiri(fighter, context) {
   const R = KAKASHI_WAR_RAIKIRI
   if (fighter._raikiriCharging || fighter._raikiriDashing) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (fighter._giftActive) return fireKakashiWarMiniShuriken(fighter, context)   // PHASE 4 — neutral Special = Mini Kamui Shuriken during the Gift
   if (!spendEnergy(fighter, R.cost)) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? true
   fighter._raikiriAir = !grounded
@@ -10389,6 +10390,12 @@ export function executeKakashiWarSpecial(fighter, context) {
   if (fighter._raikiriCharging || fighter._raikiriDashing) return false   // Raikiri owns the Special while active
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
+  // DURING OBITO'S GIFT the directional Specials become Kamui tools: Fwd = Kamui Warp · Back = Kamui Intangibility.
+  // (neutral = Mini Kamui Shuriken, armed in game.js.) Down/Up keep Tsuiga/Sennen.
+  if (fighter._giftActive) {
+    if (dir === "F") return fireKakashiWarGiftWarp(fighter, context)       // PHASE 4 — Kamui Warp (teleport)
+    if (dir === "B") return fireKakashiWarGiftIntangible(fighter, context) // PHASE 4 — Kamui Intangibility
+  }
   if (dir === "B") return fireKakashiWarKawarimi(fighter, context)         // PHASE 1 — Kawarimi guard-escape
   if (dir === "F") return fireKakashiWarKamui(fighter, context)            // PHASE 2 — Kamui (needs Sharingan)
   if (dir === "D") return fireKakashiWarTsuiga(fighter, context)           // PHASE 2 — Doton: Tsuiga (dog pin)
@@ -10484,11 +10491,11 @@ function fireKakashiWarSennen(fighter, context) {
       const behind = (o.facing || 1) * ((fighter.x + (fighter.w || 60) / 2) - (o.x + (o.w || 60) / 2)) < 0
       if (behind) {
         o.hitstun = Math.max(o.hitstun || 0, 26); o.vy = S.launchVy; o.vx = (face) * 4; o.colorFlash = 14; o.knockdownState = false
-        applyScaledDamage(o, S.launchRaw, { source: "kakashi_war-sennen-launch" })
+        applyScaledDamage(o, S.launchRaw, { source: "kakashi_war-sennen-launch" }); kwarAddBond(fighter, KAKASHI_WAR_GIFT.bondSennen)
         try { shakeCamera(context, 8, 10) } catch (_) {}
       } else {
         o.hitstun = Math.max(o.hitstun || 0, S.hitstun); o.vx = face * S.kb; o.colorFlash = 10
-        applyScaledDamage(o, S.raw, { source: "kakashi_war-sennen" })
+        applyScaledDamage(o, S.raw, { source: "kakashi_war-sennen" }); kwarAddBond(fighter, KAKASHI_WAR_GIFT.bondSennen)
       }
     }
   })
@@ -10555,7 +10562,7 @@ function executeKakashiWarKamuiRaikiriUlt(fighter, context) {
       let dmg = U.raw
       if (o.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); o.blockstun = Math.max(o.blockstun || 0, 26) }
       else { o.hitstun = Math.max(o.hitstun || 0, U.hitstun); o.vx = (fighter.facing || 1) * U.kb; o.vy = U.vy; o.colorFlash = 16; o.knockdownState = true; o.knockdownTimer = Math.max(o.knockdownTimer || 0, 48) }
-      applyScaledDamage(o, dmg, { source: "kakashi_war-kamui-raikiri" })     // GUARANTEED (~204 EFF)
+      applyScaledDamage(o, dmg, { source: "kakashi_war-kamui-raikiri" }); kwarAddBond(fighter, KAKASHI_WAR_GIFT.bondRaikiri)     // GUARANTEED (~204 EFF)
     }
     try { focusCameraOnAction(context, fighter, o, 1.5, 12); shakeCamera(context, 22, 18) } catch (_) {}
     fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
@@ -10567,11 +10574,99 @@ function executeKakashiWarKamuiRaikiriUlt(fighter, context) {
 // stamped by game.js when Ultimate is pressed. Copy/Gift self-gate (no-op → ult not consumed) if unavailable.
 export function executeKakashiWarUltimate(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  // DURING OBITO'S GIFT the Ultimate becomes PERFECT SUSANOO (Phase 5) — takes priority over the stamped variant.
+  if (fighter._giftActive) return (typeof executeKakashiWarPerfectSusanoo === "function") ? executeKakashiWarPerfectSusanoo(fighter, context) : false
   const v = fighter._ultVariant || "kamuiRaikiri"
   if (v === "copyNinja") return executeKakashiWarCopyNinja(fighter, context)
-  if (v === "obitoGift") return (typeof executeKakashiWarObitoGift === "function") ? executeKakashiWarObitoGift(fighter, context) : false   // PHASE 4
+  if (v === "obitoGift") return executeKakashiWarObitoGift(fighter, context)              // PHASE 4
   return executeKakashiWarKamuiRaikiriUlt(fighter, context)
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (KAMUI) — PHASE 4: OBITO'S GIFT (canon: Obito lends both eyes in the Kaguya fight). A BOND meter
+// fills from Sharingan-moves landing + damage taken; at full, Up+Ultimate enters a timed DOUBLE-MANGEKYŌ mode:
+//   KAMUI INTANGIBILITY (Back+Special, cooldown) — phase through attacks (copy of omololu/obito: sustain
+//     invulnTimer; combat's generic negate reads it) · KAMUI WARP (Fwd+Special) — short self-teleport ·
+//   MINI KAMUI SHURIKEN (neutral Special) — small/fast projectile, warp stun + swirl FX on hit. The ULTIMATE
+//   during the Gift is PERFECT SUSANOO (Phase 5). WHEN THE GIFT ENDS: the eyes return to Obito → Kamui /
+//   Kamui-Raikiri / Kamui-Shuriken are DISABLED for the rest of the round (_kamuiLockout) + brief EXHAUSTION.
+// Deterministic / LAN-safe (frame-based). Refused during KO / Brutality / Domain / rewind. combat.js UNTOUCHED.
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_WAR_GIFT = {
+  bondMax: 100, bondKamui: 22, bondSennen: 12, bondRaikiri: 30, bondPerDamage: 0.28, bondPerDamageCap: 16,
+  dur: 432,                                      // ~7.2s double-Mangekyō window
+  intangFrames: 40, intangCd: 90,                // Kamui Intangibility burst + cooldown
+  warpDist: 210, warpIframes: 14,                // Kamui Warp teleport
+  shurRaw: 70, shurSpeed: 17, shurStun: 30, shurCd: 16,   // Mini Kamui Shuriken (shurStun = the "warp stun")
+  exhaustSlow: 0.55, exhaustFrames: 130,         // post-Gift exhaustion
+}
+function kwarAddBond(fighter, amt) {
+  if (!fighter || fighter._giftActive || fighter._kamuiLockout) return    // no meter gain while the Gift is live / locked out
+  fighter._obitoBond = Math.min(KAKASHI_WAR_GIFT.bondMax, (fighter._obitoBond || 0) + amt)
+}
+// ENTER THE GIFT — Up+Ultimate when the bond is full. Consumes the bond (not chakra). Eye-banner cut-in +
+// double-Mangekyō. Refused once-per-round after it has already been spent (lockout) or during cinematics.
+function executeKakashiWarObitoGift(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (fighter._giftActive || fighter._kamuiLockout) return false
+  if (fighter._warCineBlocked) return false
+  if ((fighter._obitoBond || 0) < KAKASHI_WAR_GIFT.bondMax) return false   // needs a FULL bond
+  fighter._obitoBond = 0
+  fighter._giftActive = true; fighter._giftTimer = KAKASHI_WAR_GIFT.dur
+  fighter._sharinganActive = true; fighter._sharinganFatigue = 0            // both eyes online
+  fighter._warUltCutin = 30; fighter.colorFlash = 14
+  fighter._suppressUltCooldown = true                                       // so the Gift's own Ultimate (Perfect Susanoo) can fire
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.3, 18); shakeCamera(context, 8, 14) } catch (_) {}
+  return true
+}
+// KAMUI INTANGIBILITY (Back+Special during the Gift) — a short phase-through window (copy of omololu's model:
+// sustain invulnTimer so combat's generic negate skips the hit). Cooldown.
+function fireKakashiWarGiftIntangible(fighter, context) {
+  if ((fighter._giftIntangCd || 0) > 0) return false
+  fighter._giftIntangible = KAKASHI_WAR_GIFT.intangFrames
+  fighter._giftIntangCd = KAKASHI_WAR_GIFT.intangCd
+  fighter._kamuiPhased = true
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 12
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+// KAMUI WARP (Fwd+Special during the Gift) — a short self-teleport through the dimension (+ swirl at the exit).
+function fireKakashiWarGiftWarp(fighter, context) {
+  const G = KAKASHI_WAR_GIFT, sw = context?.worldWidth || 3200, face = fighter.facing || 1
+  const ocx = (fighter.x || 0) + (fighter.w || 60) / 2, ocy = (fighter.y || 0) + (fighter.h || 100) * 0.42
+  fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), (fighter.x || 0) + face * G.warpDist))
+  fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, G.warpIframes)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+  fighter._kamuiSwirl = { t: 18, max: 18, x: ocx, y: ocy, hit: true }        // swirl where he vanished
+  fighter._spriteCastMove = "mangekyou_cast"; fighter._spriteCastTimer = 14
+  fighter.attackCooldown = getAttackDuration(10, fighter)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// MINI KAMUI SHURIKEN (neutral Special during the Gift) — small/fast projectile; the warp stun is the big
+// hitstun, and the Kamui swirl spawns as the projectile's impact FX on connect (game-canon, no Susanoo).
+function fireKakashiWarMiniShuriken(fighter, context) {
+  if ((fighter._shurCd || 0) > 0) return false
+  const G = KAKASHI_WAR_GIFT
+  fighter._shurCd = G.shurCd
+  spawnProjectile(fighter, "kakashi_war-mini-kamui", {
+    w: 22, h: 22, speed: G.shurSpeed, damage: G.shurRaw, hitstun: G.shurStun, knockbackX: 4, knockbackY: -1,
+    lifetime: 90, color: "#7fe0ff",
+    impact: { sheet: "./kakashi_war_kamui_swirl_uniform.png", frames: 9, w: 100, h: 101, speed: 3, scale: 1.0, lifetime: 24 },
+  }, context)
+  fighter._spriteCastMove = "mangekyou_cast"; fighter._spriteCastTimer = 14
+  fighter.attackCooldown = getAttackDuration(12, fighter)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// PERFECT SUSANOO — the Gift's own Ultimate (Phase 5). Stubbed here (no-op → ult not consumed) until P5.
+// Declared so executeKakashiWarUltimate's `typeof` check resolves; P5 replaces the body.
+function executeKakashiWarPerfectSusanoo(fighter, context) { return false }
+
+
 
 // ═════════════════════════════════════════════════════════════════════════════
 // KAKASHI (KAMUI) — PHASE 3: FROG HENGE (Henge no Jutsu gag transform). Input = CROUCH + Charge-tap (standing
@@ -10632,12 +10727,48 @@ export function updateKakashiWar(fighter, context, heldSpecial = false, blockCin
     return                                                                    // skip Raikiri/Kamui/etc. while a frog
   }
 
+  // ── PHASE 4: OBITO'S GIFT — bond meter (damage taken), Gift timer/end, intangibility, exhaustion, round reset ──
+  {
+    const G = KAKASHI_WAR_GIFT
+    const prevH = (fighter._kwarPrevHealth != null) ? fighter._kwarPrevHealth : (fighter.health || 0)
+    const delta = (fighter.health || 0) - prevH
+    // ROUND RESET: a big HEAL rising-edge (restored at a new round) → clear the once-per-round Gift + lockout +
+    // bond + exhaustion. (A continuous HP≥95% check would wipe the bond every frame while healthy — the bond
+    // is meant to BUILD from full HP.)
+    if (delta > 80) {
+      fighter._giftActive = false; fighter._giftTimer = 0; fighter._kamuiLockout = false; fighter._obitoBond = 0
+      fighter._kamuiExhaust = 0; fighter._giftIntangible = 0
+    }
+    // BOND from damage taken (health dropped since last frame).
+    if (delta < 0) kwarAddBond(fighter, Math.min(G.bondPerDamageCap, -delta * G.bondPerDamage))
+    fighter._kwarPrevHealth = fighter.health || 0
+    // Gift cooldowns
+    if ((fighter._giftIntangCd || 0) > 0) fighter._giftIntangCd--
+    if ((fighter._shurCd || 0) > 0) fighter._shurCd--
+    // Kamui Intangibility window — sustain invulnTimer (combat's generic negate reads it).
+    if ((fighter._giftIntangible || 0) > 0) { fighter._giftIntangible--; fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 3); fighter._kamuiPhased = true }
+    else fighter._kamuiPhased = false
+    // Gift timer → END: eyes return to Obito → Kamui lockout for the round + brief exhaustion.
+    if (fighter._giftActive) {
+      fighter._sharinganActive = true                                         // both eyes stay online during the Gift
+      fighter._giftTimer--
+      if (fighter._giftTimer <= 0) {
+        fighter._giftActive = false; fighter._kamuiLockout = true; fighter._sharinganActive = false
+        fighter._kamuiExhaust = G.exhaustFrames
+      }
+    }
+    if ((fighter._kamuiExhaust || 0) > 0) {
+      fighter.speedMultiplier = G.exhaustSlow; fighter._kamuiExhaust--
+      if (fighter._kamuiExhaust <= 0) { fighter._kamuiExhaust = 0; fighter.speedMultiplier = 1 }
+    }
+  }
+
   // ── Kawarimi cooldown + log/smoke FX timer ──
   if ((fighter._kwCd || 0) > 0) fighter._kwCd--
   if (fighter._kwLog) { fighter._kwLog.t--; if (fighter._kwLog.t <= 0) fighter._kwLog = null }
 
-  // ── PHASE 2: SHARINGAN drain → shutoff + fatigue ──
-  if (fighter._sharinganActive) {
+  // ── PHASE 2: SHARINGAN drain → shutoff + fatigue (NOT during Obito's Gift — the Gift is bond-powered) ──
+  if (fighter._sharinganActive && !fighter._giftActive) {
     fighter.energy = Math.max(0, (fighter.energy || 0) - KAKASHI_WAR_SHARINGAN.drain)
     if ((fighter.energy || 0) <= 0) { fighter._sharinganActive = false; fighter._sharinganFatigue = KAKASHI_WAR_SHARINGAN.fatigueFrames }
   }
@@ -10665,7 +10796,7 @@ export function updateKakashiWar(fighter, context, heldSpecial = false, blockCin
         let dmg = K.raw
         if (opp.isBlocking) { dmg = Math.round(dmg * 0.4); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
         else { opp.hitstun = Math.max(opp.hitstun || 0, K.warpStun); opp.vx = 0; opp.vy = 0; opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 14) }
-        applyScaledDamage(opp, dmg, { source: "kakashi_war-kamui" })
+        applyScaledDamage(opp, dmg, { source: "kakashi_war-kamui" }); kwarAddBond(fighter, KAKASHI_WAR_GIFT.bondKamui)
         try { shakeCamera(context, 8, 10) } catch (_) {}
       }
     }

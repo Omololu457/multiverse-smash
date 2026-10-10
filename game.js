@@ -13242,6 +13242,35 @@ function drawKakashiWarFx(c, fighter) {
     c.fillStyle = "rgba(20,0,0,0.95)"; c.beginPath(); c.arc(ex, ey, 1.0, 0, Math.PI * 2); c.fill()                              // pupil
     c.restore()
   }
+  // OBITO'S GIFT — DOUBLE-MANGEKYŌ mode: a pulsing violet aura + BOTH eyes glow red while the Gift is live.
+  if (fighter._giftActive) {
+    const t = (fighter._giftClock = (fighter._giftClock || 0) + 1)
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.2)
+    c.save()
+    const aura = c.createRadialGradient(cx, cy, w * 0.12, cx, cy, w * 1.05)
+    aura.addColorStop(0, `rgba(150,70,220,${0.16 + 0.10 * pulse})`); aura.addColorStop(1, "rgba(150,70,220,0)")
+    c.fillStyle = aura; c.beginPath(); c.arc(cx, cy, w * 1.05, 0, Math.PI * 2); c.fill()
+    c.shadowBlur = 7; c.shadowColor = "rgba(230,20,20,0.95)"; c.fillStyle = "rgba(220,18,18,0.98)"
+    for (const dx of [-0.1, 0.12]) { c.beginPath(); c.arc(cx + facing * w * dx, fighter.y + h * 0.2, 2.4, 0, Math.PI * 2); c.fill() }   // both eyes
+    c.restore()
+  }
+  // KAMUI INTANGIBILITY phase — a ghostly violet shimmer while phased (during a Gift intangibility burst).
+  if (fighter._kamuiPhased) { c.save(); c.globalAlpha = 0.24; c.fillStyle = "rgba(170,110,235,1)"; c.beginPath(); c.arc(cx, cy, w * 0.7, 0, Math.PI * 2); c.fill(); c.restore() }
+  // OBITO'S GIFT bond meter — a violet bar above the head (fills from Sharingan moves + damage taken; pulses
+  // gold-violet when full). Hidden while the Gift is live or once locked out for the round.
+  if (!fighter._giftActive && !fighter._kamuiLockout && (fighter._obitoBond || 0) > 0) {
+    const frac = Math.max(0, Math.min(1, (fighter._obitoBond || 0) / 100)), full = frac >= 1
+    const bw = Math.max(40, w * 1.1), bh = Math.max(4, h * 0.045)
+    const bx = fighter.x + (w - bw) / 2, by = fighter.y - h * 0.44 - bh
+    c.save()
+    c.fillStyle = "#1a0a28"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+    c.fillStyle = "#0d0616"; c.fillRect(bx, by, bw, bh)
+    const t = globalFrameCount
+    c.fillStyle = full ? (Math.floor(t / 6) % 2 ? "#e0b0ff" : "#b060e0") : "#8a4fd0"
+    c.fillRect(bx, by, bw * frac, bh)
+    if (full) { c.shadowBlur = 8; c.shadowColor = "#c080ff"; c.strokeStyle = "#e0b0ff"; c.lineWidth = 1; c.strokeRect(bx - 1, by - 1, bw + 2, bh + 2) }
+    c.restore()
+  }
   // KAMUI swirl (grow → twist → collapse) — sheet FX blit, centred at the rip position.
   if (fighter._kamuiSwirl) {
     const S = fighter._kamuiSwirl, img = _kwarFxImg("./kakashi_war_kamui_swirl_uniform.png")
@@ -22078,6 +22107,9 @@ gameLoop()
     kakashiAnbu: {
       state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), copyReady: f._copyReady || 0, copyCapture: f._copyCapture?.source || null, mangekyou: !!f._kanbuMangekyou, kamuiUnlocked: !!f._kamuiUnlocked, awakenFlash: f._kanbuAwakenFlash || 0, kamuiRift: !!f._kamuiRift, kamuiExhaust: f._kamuiExhaust || 0, ultVariant: f._ultVariant || null, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
+      // KAKASHI (KAMUI) Phase 4 — Obito's Gift test hooks (bond/gift state are snapshot-hidden). Read-only state +
+      // a bond setter so the live test can reach a full meter deterministically without grinding many hits.
+      kakashiWarGift: (who = "p1", setBond = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (setBond != null) f._obitoBond = setBond; return { bond: f._obitoBond || 0, gift: !!f._giftActive, giftTimer: f._giftTimer || 0, lockout: !!f._kamuiLockout, intangible: f._giftIntangible || 0, phased: !!f._kamuiPhased, exhaust: f._kamuiExhaust || 0, sharingan: !!f._sharinganActive } },
       putOppNear: (dist = 110) => { if (!p1 || !p2) return null; p2.x = p1.x + (p1.facing || 1) * dist; return Math.round(p2.x) },   // test-only: position the foe in range
       forceOppAttack: () => { if (!p2) return false; p2.attacking = true; p2.currentMove = "light"; return true },                   // test-only: mark the foe mid-attack (drives the Read counter)
       ult: (variant = "raikiri", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._ultVariant = variant; f._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!f.domainFrozen; f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; const eBefore = f.energy; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, variant: f._ultVariant, spent: eBefore - f.energy, kamuiRift: !!f._kamuiRift, copyReady: f._copyReady || 0 } },   // test-only: fire a directional ult (mirrors the real ult-press gate)

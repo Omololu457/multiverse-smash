@@ -5447,6 +5447,8 @@ function fireSasukeTorso(fighter, context, which) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const cost = which === "arrow" ? WARSUSANO.TORSO_ARROW_COST : which === "blade" ? WARSUSANO.TORSO_BLADE_COST : WARSUSANO.TORSO_CLAW_COST
   if (!spendEnergy(fighter, cost)) return false
+  // ADULT — War-Susano'o stance window (auto-expire; cleared once the Soldier is entered or on KO).
+  if ((fighter._adultSusanoStance || 0) > 0) { fighter._adultSusanoStance--; if (fighter._warSoldier || fighter.eliminated) fighter._adultSusanoStance = 0 }
   const getOpp = getTargetResolver(context); const target = getOpp(fighter)
   fighter._warTorso = WARSUSANO.TORSO_WINDOW                 // (re)arm the torso window — the bust follows Sasuke
   fighter._warTorsoFx = { action: which, t: 0, max: WARSUSANO.TORSO_FX }   // bust plays this attack's frames
@@ -5596,7 +5598,24 @@ export function fireSasukeIndrasArrow(fighter, context) {
   return true
 }
 
-// SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo").
+// ADULT — War-Susano'o STANCE. sasuke_adult has no eye-set, so this Charge+Ultimate TOGGLE is his gateway to
+// the War moves: while the stance is up his Special fires the Tier-1/2 kit (via ssSusanoSpecial) and his
+// Ultimate enters the Soldier (Tier 3). Toggle off with Charge+Ultimate again, or it auto-expires. OUTSIDE the
+// stance his normal kit (Katon/Chidori/Rinnegan ults + dojutsu + the Forward+Grab Arm Grab) is UNCHANGED.
+const ADULT_SUSANO_STANCE_DUR = 720   // ~12s window
+export function toggleAdultSusanoStance(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "sasuke_adult" || fighter._warSoldier) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._adultSusanoStance || 0) > 0) { fighter._adultSusanoStance = 0; return true }   // toggle OFF
+  fighter._adultSusanoStance = ADULT_SUSANO_STANCE_DUR                                           // toggle ON
+  fighter.attackCooldown = getAttackDuration(10, fighter)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+export function adultInSusanoStance(fighter) { return !!(fighter && (fighter._adultSusanoStance || 0) > 0) }
+
+// SUSANO'O special dispatch (sensei eye-set "susanoo" OR adult stance; also the Soldier specials).
 //   In SOLDIER: Fwd+Special = Wing Dash, else Arrow Volley.  Otherwise:
 //   N = Torso Arrow · F = Claw Smash · B = Blade Swing (Tier 2) · U = Ribcage Guard (Tier 1) · D = free.
 function ssSusanoSpecial(fighter, context) {
@@ -28671,6 +28690,8 @@ function executeSasukeAdultUltimate(fighter, context) {
   if (variant === "shinraTensei") {
     if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
     fighter.vx = 0
+  // War-Susano'o: in the Soldier OR the adult stance, Special fires the shared War kit (Tier 1/2/3).
+  if (fighter._warSoldier || (fighter._adultSusanoStance || 0) > 0) return ssSusanoSpecial(fighter, context)
     fighter._spriteCastMove  = "shinraTensei"; fighter._spriteCastTimer = 30
     fighter.attackCooldown   = getAttackDuration(30, fighter)
     schedulePendingSpawn(11, () => {
@@ -28689,6 +28710,9 @@ function executeSasukeAdultUltimate(fighter, context) {
     })
     return true
   }
+  // War-Susano'o: in the Soldier, Ultimate = Indra's Arrow (ends it). In the stance, Ultimate = enter Soldier.
+  if (fighter._warSoldier) return fireSasukeIndrasArrow(fighter, context)
+  if ((fighter._adultSusanoStance || 0) > 0) { const ok = enterSasukeSoldier(fighter, context); if (ok) fighter._adultSusanoStance = 0; return ok }
 
   // BANSHOU TENIN (Back) — gravity reel-in + follow-up hit (Pain's _grabPull reel).
   if (variant === "banshouTenin") {

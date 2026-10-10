@@ -220,6 +220,7 @@ import {
   updatePortalReflectStance,   // Obito/Tobi Kamui Portal-Reflect stance phase machine (Block+Special; reflect gate = `_portalActive`)
   updateSasukeCommandCombat,     // Sasuke grab button → standalone skeletal Susanoo command-grab (Tier-1, independent of the staged ultimate)
   susanoAllowed, updateSasukeWarSusanoCombat, updateSasukeWarSusano, fireSasukeRibcageGuard,   // War-Susano'o (sasuke_sensei + sasuke_adult): Forward+Grab Arm Grab hook + per-frame tick + render gate + guard (harness)
+  toggleAdultSusanoStance, adultInSusanoStance,   // War-Susano'o: adult's Charge+Ultimate stance toggle (gateway to the War kit, since adult has no eye-set)
   revertMadaraSusanoo,           // Madara tier-3 Susanoo armor-mode auto-revert (Stage 3 special #7)
   revertMadaraCompleteSusanoo,   // Madara tier-4 Complete Susanoo giant-form auto-revert (Stage 5 HOLD ult)
   updateMinatoCommandCombat,   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
@@ -7962,8 +7963,12 @@ function _updatePlayerCombatBody(fighter) {
     fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "obitoGift" : "kamuiRaikiri"
     fighter._warCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
   }
-  // SASUKE (ADULT + SENSEI) — the earlier Charge+Ultimate giant Susanoo (enterSasukeFormSusanoo) is UNBOUND
-  // here: the War-Susano'o rework (sasuke_susano_*) replaces it. Teen's Ultimate-button Susanoo is untouched.
+  // SASUKE (ADULT) — War-Susano'o STANCE on CHARGE + Ultimate (adult has no eye-set; this is his gateway to
+  // the War kit). Toggles the stance (Special → Tier-1/2 War moves; Ultimate → Soldier). Every normal/
+  // directional Ultimate handler below is gated on !charging, so holding Charge frees the button for this.
+  if (canStart && inputState.charge && inputState.ultimate && (fighter.attackCooldown || 0) <= 0 &&
+      (fighter.rosterKey || "").toLowerCase() === "sasuke_adult" &&
+      toggleAdultSusanoStance(fighter, getAbilityContext())) { announce("ultActivate", { priority: true, minGap: 900 }); return }
   // SASUKE (ADULT) — the Rinnegan Ultimate is directional: NEUTRAL = Chibaku Tensei (gravity-sphere crush),
   // FWD = Shinra Tensei (repulsion blast), BACK = Banshou Tenin (gravity reel-in). Stamp the held direction
   // the frame Ultimate is pressed so executeSasukeAdultUltimate picks the branch (mirrors the special path).
@@ -8900,6 +8905,17 @@ function drawSasukeDojutsuFx(c, fighter) {
   if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
   const P = fighter._dojPortals
   if (P && (P.t || 0) > 0) {
+// ADULT stance indicator — a faint persistent ribcage shell + a small "SUSANO'O" tag so the player knows the
+// War-Susano'o stance is active (adult has no eye-set HUD). Render-only.
+function drawSasukeAdultStance(c, fighter) {
+  if (!c || (fighter._adultSusanoStance || 0) <= 0 || fighter._warSoldier) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const pulse = 0.22 + 0.1 * Math.sin((fighter._adultSusanoStance || 0) * 0.2)
+  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.52, h * 0.66, 1, pulse)
+  c.save(); c.globalAlpha = 0.85; c.fillStyle = "#c8a8ff"; c.font = "bold 11px sans-serif"; c.textAlign = "center"
+  c.fillText("SUSANO'O", x + w / 2, y - 6); c.restore()
+}
     const k = (P.t || 0) / (P.max || 1)
     for (const node of [P.a, P.b]) {
       if (!node) continue
@@ -15478,6 +15494,7 @@ function renderHybridFighter(fighter) {
     drawDeathstrokeVoidAuraOverlay(c, fighter)  // Deathstroke Void Sovereign — drifting ash+ember battlefield particles + ember glow + his iconic SINGLE glowing eye (Alien-X), ON TOP of the void-black mercenary silhouette
     drawGohanVoidAuraOverlay(c, fighter)     // Teen Gohan Void Sovereign — drifting pale-lavender/white KI-CHARGE wisps + faint purple ki glow + glowing pale-purple eyes (Alien-X), ON TOP of the void-black silhouette
     drawBrainiacVoidAuraOverlay(c, fighter)  // Brainiac Void Sovereign — drifting binary/data-glyph fragments (0/1) + cyan-green data glow + glowing red diode-eyes (Alien-X), ON TOP of the void-black Coluan silhouette
+    drawSasukeAdultStance(c, fighter)       // War-Susano'o (adult) — stance indicator (faint ribcage + "SUSANO'O" tag)
     drawGreenLanternVoidAuraOverlay(c, fighter)  // Green Lantern Void Sovereign — drifting cosmic star-field (white/cyan/violet twinkles) + nebula glow + glowing green ring-light eyes (Alien-X), ON TOP of the void-black Corps silhouette
     drawAltSukunaVoidAuraOverlay(c, fighter)  // Alternate Sukuna Void Sovereign — slow-falling cherry-blossom petals + crimson cursed glow + glowing crimson eyes (Alien-X), ON TOP of the void-black cursed silhouette
     drawAoiTodoVoidAuraOverlay(c, fighter)    // Aoi Todo Void Sovereign — expanding clap-shockwave rings (Boogie Woogie) + pale-blue teleport afterimage streaks + glowing pale-blue eyes (Alien-X), ON TOP of the void-black cursed silhouette
@@ -21821,7 +21838,7 @@ gameLoop()
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)
     fireGuard: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._warGuardCd = 0; f.attackCooldown = 0; f.attacking = false; return fireSasukeRibcageGuard(f, getAbilityContext()) },   // test-only: fire Ribcage Guard directly (no input/jump)
-    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, soldier: !!f._warSoldier, soldierHP: Math.round(f._warSoldierHP || 0), soldierTimer: f._warSoldierTimer || 0, canvasFrac: f._canvasHeightFrac || 0, skin: f._skinAnim?.idle?.sheet || null, indra: !!f._warIndra, wing: !!f._warWing, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2/3 state
+    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, soldier: !!f._warSoldier, soldierHP: Math.round(f._warSoldierHP || 0), soldierTimer: f._warSoldierTimer || 0, canvasFrac: f._canvasHeightFrac || 0, skin: f._skinAnim?.idle?.sheet || null, indra: !!f._warIndra, wing: !!f._warWing, stance: f._adultSusanoStance || 0, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2/3 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

@@ -481,7 +481,10 @@ export const KITS = {
       { name: "Chidori",               input: "Forward + Special (ground / air)", cost: 30, desc: "lightning run-thrust dash-strike that closes the gap. [CANON]" },
       { name: "Chidori Nagashi",       input: "Back + Special",          cost: 34, desc: "stationary lightning-current AOE burst around Sasuke. [CANON]" },
       { name: "Amaterasu",             input: "Up + Special",            cost: 40, desc: "inextinguishable black flame — modest hit, heavy lingering burn. [CANON]" },
-      { name: "Sword-Swap Strike",     input: "Down + Special",          cost: 28, desc: "warp to the hurled sword and run the foe through (Amenotejikara-flavoured). [CANON-ADJACENT]" }
+      { name: "Sword-Swap Strike",     input: "Down + Special",          cost: 28, desc: "warp to the hurled sword and run the foe through (Amenotejikara-flavoured). [CANON-ADJACENT]" },
+      { name: "War-Susano'o: Arm Grab", input: "Forward + Grab",           cost: 15, desc: "WAR-SUSANO'O (base) — a giant ribcage claw POPS OUT at the foe, grabs + slams/throws. Cheapest Susano'o move. [CANON]" },
+      { name: "War-Susano'o: Stance",   input: "Charge + Ultimate (toggle)", cost: 0, desc: "WAR-SUSANO'O gateway (adult has no eye-set): toggle the stance, then Special = Ribcage Guard (Up) / Torso Arrow (N) / Claw Smash (Fwd) / Blade Swing (Back), and Ultimate = the Soldier. [CANON]" },
+      { name: "War-Susano'o: SOLDIER",  input: "Ultimate (in the stance)", cost: 100, desc: "WAR-SUSANO'O Tier 3 — full GIANT transformation (really big). Susanoo HP instead of block; in Soldier: Special = Arrow Volley, Fwd+Special = Wing Dash, Ultimate = Indra's Arrow (ends it). [CANON]" }
     ],
     mobility: { name: "Dash", input: "Dash / double-tap", cost: 0, desc: "quick reposition" },
     ultimate: { name: "Rinnegan (directional)", input: "Ultimate (full meter) — neutral / Forward / Back", cost: 100, desc: "neutral = Chibaku Tensei (gravity-sphere crush, strongest) · Forward = Shinra Tensei (repulsion blast) · Back = Banshou Tenin (gravity reel-in). [Chibaku CANON · Shinra/Banshou CANON-ADJACENT]" },

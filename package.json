@@ -599,6 +599,7 @@
     "test:gwen-stage6": "node harness/gwen_stage6.mjs",
     "test:kakashi": "node harness/kakashi.test.mjs",
     "test:kakashi-war-live": "node harness/kakashi_war_live.mjs",
+    "test:kakashi-war-phase2": "node harness/kakashi_war_phase2_live.mjs",
     "test:kakashi-stage1": "node harness/kakashi_stage1.mjs",
     "test:kakashi-stage2": "node harness/kakashi_stage2.mjs",
     "test:kakashi-stage3": "node harness/kakashi_stage3.mjs",

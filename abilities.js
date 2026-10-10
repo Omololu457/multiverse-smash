@@ -10131,18 +10131,247 @@ export function executeKakashiWarSpecial(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
   if (dir === "B") return fireKakashiWarKawarimi(fighter, context)         // PHASE 1 — Kawarimi guard-escape
-  // F = Kamui (P2) · D = Tsuiga (P2) · U = Sennen Goroshi (P2)
+  if (dir === "F") return fireKakashiWarKamui(fighter, context)            // PHASE 2 — Kamui (needs Sharingan)
+  if (dir === "D") return fireKakashiWarTsuiga(fighter, context)           // PHASE 2 — Doton: Tsuiga (dog pin)
+  if (dir === "U") return fireKakashiWarSennen(fighter, context)           // PHASE 2 — Sennen Goroshi
   return false
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (KAMUI) — PHASE 2: Sharingan toggle (charge-TAP) · Kamui (Fwd+Special, long-range swirl) · Doton:
+// Tsuiga (Down+Special, dog-pin) · Sennen Goroshi (Up+Special, crouch-lunge) · Copy Ninja (Down+Ult) · Kamui
+// Raikiri (neutral Ult). Deterministic / LAN-safe (frame-based, no gameRng). combat.js UNTOUCHED. The Kamui /
+// Kamui-Raikiri cinematics refuse during KO / Brutality / Domain / Rick-Prime-rewind (fighter._warCineBlocked)
+// and while Kamui is locked out after Obito's Gift ends (fighter._kamuiLockout, set in Phase 4).
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── SHARINGAN (Obito's eye) — charge-TAP toggles it. Drains Chakra while active (frame-based); at 0 Chakra it
+//    shuts off and Kakashi is briefly FATIGUED (slower). ON → Raikiri TRACKS; gates Kamui + Sennen launch +
+//    Copy Ninja. Red eye-glint + afterimage are code-drawn (drawKakashiWarFx). ──
+const KAKASHI_WAR_SHARINGAN = { drain: 0.20, fatigueFrames: 110, fatigueSpeed: 0.6, minToLight: 8 }
+export function toggleKakashiWarSharingan(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  if ((fighter._sharinganFatigue || 0) > 0) return false                     // can't re-light while fatigued
+  if (fighter._sharinganActive) { fighter._sharinganActive = false; return true }
+  if ((fighter.energy || 0) < KAKASHI_WAR_SHARINGAN.minToLight) return false
+  fighter._sharinganActive = true
+  return true
+}
+
+// ── KAMUI (Fwd+Special; needs Sharingan) — a long-range spatial rip: cast → the Kamui swirl opens at the foe
+//    (grow → twist → collapse, sheet FX) → one hit + a brief WARP STUN. High cost. NO dismemberment. ──
+const KAKASHI_WAR_KAMUI = { cost: 44, cast: 18, swirl: 36, hitAt: 14, raw: 120, warpStun: 34, range: 560 }
+function fireKakashiWarKamui(fighter, context) {
+  const K = KAKASHI_WAR_KAMUI
+  if (!fighter._sharinganActive) return false                                 // needs the eye
+  if (fighter._kamuiSwirl) return false
+  if (fighter._warCineBlocked || fighter._kamuiLockout) return false          // KO/Brutality/Domain/rewind + post-Gift lockout
+  if (!spendEnergy(fighter, K.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "mangekyou_cast"; fighter._spriteCastTimer = K.cast
+  fighter.attackCooldown = getAttackDuration(K.cast + 8, fighter)
+  fighter.facing = opp ? (((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1) : (fighter.facing || 1)
+  schedulePendingSpawn(K.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    const rx = o ? (o.x + (o.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 320)
+    const ry = o ? (o.y + (o.h || 100) * 0.42) : (fighter.y + (fighter.h || 100) * 0.42)
+    fighter._kamuiSwirl = { t: K.swirl, max: K.swirl, x: rx, y: ry, hit: false }
+  })
+  try { shakeCamera(context, 5, 9) } catch (_) {}
+  return true
+}
+
+// ── DOTON: TSUIGA (Down+Special) — ground crack → the Ninken burst up and PIN the foe (rooted + damage ticks)
+//    → dismissal smoke. Sharingan ON = a slightly longer pin. (dogs/smoke are blitted in drawKakashiWarFx.) ──
+const KAKASHI_WAR_TSUIGA = { cost: 40, cast: 16, pin: 54, pinSharingan: 76, range: 420, tickEvery: 9, tickRaw: 10, dismiss: 22 }
+function fireKakashiWarTsuiga(fighter, context) {
+  const N = KAKASHI_WAR_TSUIGA
+  if (fighter._tsuigaPin || fighter._tsuigaDismiss) return false
+  if (!spendEnergy(fighter, N.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "tsuiga_cast"; fighter._spriteCastTimer = N.cast
+  fighter.attackCooldown = getAttackDuration(N.cast + 6, fighter)
+  const pinDur = fighter._sharinganActive ? N.pinSharingan : N.pin
+  schedulePendingSpawn(N.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    const fx = o ? (o.x + (o.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 150)
+    const fy = o ? (o.y + (o.h || 100)) : (fighter.y + (fighter.h || 100))
+    fighter._tsuigaPin = { t: pinDur, max: pinDur, x: fx, y: fy }
+    fighter._tsuigaFxX = fx; fighter._tsuigaFxY = fy
+    fighter._tsuigaPinOpp = (o && Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= N.range) ? o : null
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ── SENNEN GOROSHI (Up+Special) — a crouch-lunge poke; LIGHT damage; from BEHIND (cross-up) it LAUNCHES high.
+//    Played straight, it's the gag that works. Short committed lunge; contact resolved on the impact frame. ──
+const KAKASHI_WAR_SENNEN = { cost: 10, lunge: 10, impactAt: 8, reach: 52, dash: 12, raw: 24, hitstun: 16, kb: 7, launchRaw: 40, launchVy: -13 }
+function fireKakashiWarSennen(fighter, context) {
+  const S = KAKASHI_WAR_SENNEN
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, S.cost)) return false
+  const face = fighter.facing || 1
+  fighter.vx = face * S.dash
+  fighter._spriteCastMove = "sennen"; fighter._spriteCastTimer = S.lunge + 6
+  fighter.attackCooldown = getAttackDuration(S.lunge + 8, fighter)
+  schedulePendingSpawn(S.impactAt, () => {
+    const o = getTargetResolver(context)(fighter) || null
+    fighter.vx = 0
+    if (o && !o.eliminated && kwarAABBHit(fighter, o, S.reach)) {
+      // CROSS-UP: Kakashi is behind the foe (the foe's back is to him) → launch high.
+      const behind = (o.facing || 1) * ((fighter.x + (fighter.w || 60) / 2) - (o.x + (o.w || 60) / 2)) < 0
+      if (behind) {
+        o.hitstun = Math.max(o.hitstun || 0, 26); o.vy = S.launchVy; o.vx = (face) * 4; o.colorFlash = 14; o.knockdownState = false
+        applyScaledDamage(o, S.launchRaw, { source: "kakashi_war-sennen-launch" })
+        try { shakeCamera(context, 8, 10) } catch (_) {}
+      } else {
+        o.hitstun = Math.max(o.hitstun || 0, S.hitstun); o.vx = face * S.kb; o.colorFlash = 10
+        applyScaledDamage(o, S.raw, { source: "kakashi_war-sennen" })
+      }
+    }
+  })
+  return true
+}
+
+// ── COPY NINJA (Down+Ultimate; needs Sharingan + copy-ready) — if the foe fired a PROJECTILE special in the
+//    last ~3s, Kakashi casts with his OWN hand-seal frames and fires ONE mirrored copy. Reuses Rick Prime's
+//    Energy Siphon borrow-fire (copy-only; Rick's code is never modified). ──
+const KAKASHI_WAR_COPY = { cost: 100, window: 180, cast: 20 }
+function executeKakashiWarCopyNinja(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!fighter._sharinganActive) return false                                 // copy needs the Sharingan
+  if ((fighter._copyReady || 0) <= 0) return false                            // no recent foe projectile
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp || !_rickPrimeFindOppProjectile(opp)) return false                 // foe has no projectile → no-op
+  if (!spendEnergy(fighter, KAKASHI_WAR_COPY.cost)) return false
+  fighter.vx = 0; fighter.colorFlash = 12
+  fighter._spriteCastMove = "mangekyou_cast"; fighter._spriteCastTimer = KAKASHI_WAR_COPY.cast
+  fighter.attackCooldown = getAttackDuration(KAKASHI_WAR_COPY.cast + 8, fighter)
+  fighter._copyReady = 0                                                       // one copy per read
+  schedulePendingSpawn(KAKASHI_WAR_COPY.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    if (o) _rickPrimeBorrowFireProjectile(fighter, o, context)
+  })
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+
+// ── KAMUI RAIKIRI — NEUTRAL ULTIMATE (canon finisher vs Obito): full Raikiri charge → a Kamui swirl opens
+//    beside the foe → the strike comes THROUGH it. Eye-banner cut-in. Very high cost, guaranteed. ──
+const KAKASHI_WAR_KAMUI_RAIKIRI = { cost: 100, cinematic: 74, loopAt: 10, warpAt: 40, impactAt: 60, raw: 340, hitstun: 44, kb: 15, vy: -10, dashSpeed: 34, swirl: 40 }
+function executeKakashiWarKamuiRaikiriUlt(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (fighter._warCineBlocked || fighter._kamuiLockout) return false          // refuse during KO/Brutality/Domain/rewind + post-Gift lockout
+  if (!spendEnergy(fighter, KAKASHI_WAR_KAMUI_RAIKIRI.cost)) return false
+  const U = KAKASHI_WAR_KAMUI_RAIKIRI
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter._raikiriCharging = false; fighter._raikiriDashing = false
+  fighter.vx = 0; fighter.colorFlash = 14
+  fighter._spriteCastMove = "raikiri_charge"; fighter._spriteCastTimer = U.cinematic
+  fighter.attackCooldown = getAttackDuration(U.cinematic, fighter)
+  fighter._warUltCutin = 30                                                    // eye-banner cut-in (drawn in game.js)
+  try { focusCameraOnAction(context, fighter, opp, 1.35, 20); shakeCamera(context, 4, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 6); opp.vx = 0 }
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  schedulePendingSpawn(U.loopAt, () => { fighter._spriteCastMove = "raikiri_loop"; fighter._spriteCastTimer = U.warpAt - U.loopAt })
+  schedulePendingSpawn(U.warpAt, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    // the Kamui swirl opens BESIDE the foe; the strike travels through it
+    const sx = o ? (o.x + (o.w || 60) / 2 - (fighter.facing || 1) * 70) : (fighter.x + (fighter.facing || 1) * 250)
+    const sy = o ? (o.y + (o.h || 100) * 0.42) : (fighter.y + (fighter.h || 100) * 0.42)
+    fighter._kamuiSwirl = { t: U.swirl, max: U.swirl, x: sx, y: sy, hit: true }   // hit:true → visual only (damage handled by the ult)
+    fighter._spriteCastMove = "raikiri_strike"; fighter._spriteCastTimer = U.cinematic - U.warpAt
+    if (o) fighter.facing = ((o.x + (o.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, U.impactAt - U.warpAt + 6)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  schedulePendingSpawn(U.impactAt, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    fighter.vx = 0; fighter._spriteCastMove = "raikiri_strike"; fighter._spriteCastTimer = U.cinematic - U.impactAt
+    if (o && !o.eliminated) {
+      let dmg = U.raw
+      if (o.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); o.blockstun = Math.max(o.blockstun || 0, 26) }
+      else { o.hitstun = Math.max(o.hitstun || 0, U.hitstun); o.vx = (fighter.facing || 1) * U.kb; o.vy = U.vy; o.colorFlash = 16; o.knockdownState = true; o.knockdownTimer = Math.max(o.knockdownTimer || 0, 48) }
+      applyScaledDamage(o, dmg, { source: "kakashi_war-kamui-raikiri" })     // GUARANTEED (~204 EFF)
+    }
+    try { focusCameraOnAction(context, fighter, o, 1.5, 12); shakeCamera(context, 22, 18) } catch (_) {}
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  })
+  return true
+}
+
+// ULT DISPATCHER — neutral = Kamui Raikiri · Down = Copy Ninja · Up = Obito's Gift (Phase 4). _ultVariant is
+// stamped by game.js when Ultimate is pressed. Copy/Gift self-gate (no-op → ult not consumed) if unavailable.
+export function executeKakashiWarUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  const v = fighter._ultVariant || "kamuiRaikiri"
+  if (v === "copyNinja") return executeKakashiWarCopyNinja(fighter, context)
+  if (v === "obitoGift") return (typeof executeKakashiWarObitoGift === "function") ? executeKakashiWarObitoGift(fighter, context) : false   // PHASE 4
+  return executeKakashiWarKamuiRaikiriUlt(fighter, context)
+}
+
 // PER-FRAME driver (called for p1 & p2 every frame in game.js, post-updateCombat). PHASE 1: Raikiri charge
-// HOLD/RELEASE + dash travel + contact (ground + air), Kawarimi cooldown + log-FX timer.
+// HOLD/RELEASE + dash travel + contact (ground + air), Kawarimi cooldown + log-FX timer. PHASE 2: Sharingan
+// drain/fatigue, Kamui swirl, Tsuiga pin, copy-ready tracking.
 export function updateKakashiWar(fighter, context, heldSpecial = false, blockCinematics = false) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return
   const R = KAKASHI_WAR_RAIKIRI
+  fighter._warCineBlocked = !!(blockCinematics || fighter.domainFrozen)       // read by Kamui / Kamui-Raikiri
   // ── Kawarimi cooldown + log/smoke FX timer ──
   if ((fighter._kwCd || 0) > 0) fighter._kwCd--
   if (fighter._kwLog) { fighter._kwLog.t--; if (fighter._kwLog.t <= 0) fighter._kwLog = null }
+
+  // ── PHASE 2: SHARINGAN drain → shutoff + fatigue ──
+  if (fighter._sharinganActive) {
+    fighter.energy = Math.max(0, (fighter.energy || 0) - KAKASHI_WAR_SHARINGAN.drain)
+    if ((fighter.energy || 0) <= 0) { fighter._sharinganActive = false; fighter._sharinganFatigue = KAKASHI_WAR_SHARINGAN.fatigueFrames }
+  }
+  if ((fighter._sharinganFatigue || 0) > 0) {
+    fighter.speedMultiplier = KAKASHI_WAR_SHARINGAN.fatigueSpeed
+    fighter._sharinganFatigue--
+    if (fighter._sharinganFatigue <= 0) { fighter._sharinganFatigue = 0; fighter.speedMultiplier = 1 }
+  }
+  // ── COPY-READY: the foe fired a projectile recently → Copy Ninja is ready for ~3s ──
+  if ((fighter._copyReady || 0) > 0) fighter._copyReady--
+  {
+    const opp = getTargetResolver(context)(fighter) || null
+    if (opp && Array.isArray(activeProjectiles) && activeProjectiles.some(p => p && p.owner === opp && !p.visualOnly))
+      fighter._copyReady = KAKASHI_WAR_COPY.window
+  }
+  // ── KAMUI swirl: tick + apply ONE hit + warp stun at the twist (S.hit:true = ult visual-only) ──
+  if (fighter._kamuiSwirl) {
+    const S = fighter._kamuiSwirl, K = KAKASHI_WAR_KAMUI
+    S.t--
+    const elapsed = S.max - S.t
+    if (!S.hit && elapsed >= K.hitAt) {
+      S.hit = true
+      const opp = getTargetResolver(context)(fighter) || null
+      if (opp && !opp.eliminated && Math.abs((opp.x + (opp.w || 60) / 2) - S.x) <= 130 && Math.abs((opp.y + (opp.h || 100) * 0.42) - S.y) <= 150) {
+        let dmg = K.raw
+        if (opp.isBlocking) { dmg = Math.round(dmg * 0.4); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, K.warpStun); opp.vx = 0; opp.vy = 0; opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 14) }
+        applyScaledDamage(opp, dmg, { source: "kakashi_war-kamui" })
+        try { shakeCamera(context, 8, 10) } catch (_) {}
+      }
+    }
+    if (S.t <= 0) fighter._kamuiSwirl = null
+  }
+  // ── TSUIGA pin: root the foe + damage ticks → dismissal smoke ──
+  if (fighter._tsuigaPin) {
+    const N = KAKASHI_WAR_TSUIGA, pin = fighter._tsuigaPin
+    pin.t--
+    const opp = fighter._tsuigaPinOpp
+    if (opp && !opp.eliminated) {
+      opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = Math.min(opp.vy || 0, 0)
+      const elapsed = pin.max - pin.t
+      if (elapsed > 0 && elapsed % N.tickEvery === 0) applyScaledDamage(opp, N.tickRaw, { source: "kakashi_war-tsuiga" })
+    }
+    if (pin.t <= 0) { fighter._tsuigaPin = null; fighter._tsuigaPinOpp = null; fighter._tsuigaDismiss = N.dismiss }
+  } else if ((fighter._tsuigaDismiss || 0) > 0) { fighter._tsuigaDismiss-- }
 
   // ── STRONG-DOWN ground-dog flourish: a single Ninken pops up when the crouch/down slash (crouchLight) is
   //    active. Pure visual (no extra damage — the slash's own hit applies); blitted in drawKakashiWarFx. ──
@@ -28639,6 +28868,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
+      case "kakashi_war": cast = executeKakashiWarUltimate(fighter, context); break    // NEW additive (Kamui). neutral = Kamui Raikiri (eye-banner cut-in, swirl + guaranteed strike ~204 EFF) · Down = Copy Ninja (needs Sharingan + copy-ready) · Up = Obito's Gift (Phase 4).
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break

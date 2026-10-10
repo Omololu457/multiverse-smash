@@ -371,7 +371,7 @@ export const KITS = {
   kakashi_war: {
     type: "Technical Shinobi / Kamui Specialist", energy: "Chakra", difficulty: "Hard",
     summary: "War-arc \"Kamui\" Hatake Kakashi — a top-band technical shinobi built toward Obito's Gift and the Perfect Susanoo. His Attack-Combo kunai string, rising-kick launcher and Strong variants pressure up close (the Strong-Down slash pops a Ninken from the ground); the Raikiri (ground OR air) charge-thrust and the Kawarimi substitution guard-escape are his Phase-1 tools. The Sharingan, long-range Kamui, Kamui-Raikiri ult, Doton: Tsuiga, Copy Ninja, Sennen Goroshi (P2), Frog Henge + skins (P3), Obito's Gift (P4) and Perfect Susanoo (P5) arrive across later phases.",
-    passive: { name: "Sharingan (Kamui)", effect: "PHASE 2 — Charge-TAP toggles the Sharingan (code-drawn red eye). It drains Chakra while active and makes Raikiri TRACK the foe; at 0 Chakra it shuts off and Kakashi is briefly FATIGUED. (It also gates the long-range Kamui + Sennen launch.) In PHASE 1 the Raikiri always goes STRAIGHT." },
+    passive: { name: "Sharingan (Kamui)", effect: "Charge-TAP toggles the Sharingan (code-drawn red eye + afterimage aura). It drains Chakra while active and makes Raikiri TRACK the foe; at 0 Chakra it shuts off and Kakashi is briefly FATIGUED. It also GATES the long-range Kamui + Copy Ninja (Sennen launches on a cross-up regardless)." },
     basics: [
       { name: "Kunai Combo",   input: "Light",                   desc: "Attack-Combo opener — quick kunai slash string" },
       { name: "Strong Lunge",  input: "Heavy",                   desc: "committed forward lunging Strong combo" },

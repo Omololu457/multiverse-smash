@@ -275,7 +275,8 @@ import {
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
   toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
-  updateKakashiWar, startKakashiWarRaikiri   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
+  updateKakashiWar, startKakashiWarRaikiri,   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
+  toggleKakashiWarSharingan   // KAKASHI (KAMUI) Phase 2 — Sharingan charge-TAP toggle
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -6562,6 +6563,12 @@ function handleChargeRelease(fighter, key) {
     if (wasTap) toggleKakashiAnbuSharingan(fighter)
     return
   }
+  // KAKASHI (KAMUI) — SHARINGAN: a charge-TAP toggles the eye on/off (code-drawn red eye; drains Chakra while
+  // active, frame-based; at 0 Chakra it shuts off + brief fatigue — all in updateKakashiWar). HOLD builds Chakra.
+  if ((fighter.rosterKey || "").toLowerCase() === "kakashi_war") {
+    if (wasTap) toggleKakashiWarSharingan(fighter)
+    return
+  }
 
   // DARK VEGETA — DARK-AURA FORM: same "charge up and RELEASE at threshold" shape as SSJ Rose. Hold P to
   // build Ki (doEnergyCharge); ANY release at/above the threshold (enterVegetaDark gates on Ki ≥ 100)
@@ -7946,6 +7953,14 @@ function _updatePlayerCombatBody(fighter) {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "kamuiRift" : "raikiri"
     fighter._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen   // fresh gate (updateBattle's tick is skipped during cinematics)
+  }
+  // KAKASHI (KAMUI) — Ultimate is directional: NEUTRAL = Kamui Raikiri · Down = Copy Ninja (needs Sharingan +
+  // copy-ready) · Up = Obito's Gift (Phase 4). Copy/Gift self-gate in executeKakashiWarUltimate (no-op → ult not
+  // consumed when unavailable). Stamp a fresh cinematics gate (updateBattle's tick is skipped during cinematics).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "kakashi_war") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "obitoGift" : "kamuiRaikiri"
+    fighter._warCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
   }
   // SASUKE (ADULT + SENSEI) — the earlier Charge+Ultimate giant Susanoo (enterSasukeFormSusanoo) is UNBOUND
   // here: the War-Susano'o rework (sasuke_susano_*) replaces it. Teen's Ultimate-button Susanoo is untouched.
@@ -13131,9 +13146,48 @@ function drawKakashiAnbuTomoeField(c, fighter) {
 //    blits (kakashi_war_kawarimi_log / _dog uniform strips) + a procedural smoke puff. kakashi_war only.
 const _kwarFxImgs = {}
 function _kwarFxImg(src) { if (!_kwarFxImgs[src]) { const i = new Image(); i.src = src; _kwarFxImgs[src] = i } return _kwarFxImgs[src] }
-;["./kakashi_war_kawarimi_log_uniform.png", "./kakashi_war_dog_uniform.png"].forEach(_kwarFxImg)
+;["./kakashi_war_kawarimi_log_uniform.png", "./kakashi_war_dog_uniform.png",
+  "./kakashi_war_kamui_swirl_uniform.png", "./kakashi_war_tsuiga_pack_uniform.png"].forEach(_kwarFxImg)
+// centre-anchored uniform-strip blit (for the Kamui swirl, which is centred not feet-aligned).
+function _kwarBlitCentered(c, img, frames, fi, cx, cy, sc, alpha) {
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
+  c.save(); c.globalAlpha = alpha
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh)
+  c.restore()
+}
 function drawKakashiWarFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_war") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100, facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h / 2
+  // SHARINGAN — code-drawn red eye glint + a faint red afterimage aura while active (the sheet has no eye art).
+  if (fighter._sharinganActive) {
+    const ex = fighter.x + w * (0.5 + facing * 0.12), ey = fighter.y + h * 0.22
+    c.save()
+    c.globalAlpha = 0.16; c.fillStyle = "rgba(205,20,20,1)"; c.beginPath(); c.arc(cx, cy, w * 0.62, 0, Math.PI * 2); c.fill()   // aura
+    c.globalAlpha = 0.95; c.shadowBlur = 6; c.shadowColor = "rgba(230,20,20,0.95)"
+    c.fillStyle = "rgba(210,16,16,0.98)"; c.beginPath(); c.arc(ex, ey, 2.6, 0, Math.PI * 2); c.fill()                           // red iris
+    c.fillStyle = "rgba(20,0,0,0.95)"; c.beginPath(); c.arc(ex, ey, 1.0, 0, Math.PI * 2); c.fill()                              // pupil
+    c.restore()
+  }
+  // KAMUI swirl (grow → twist → collapse) — sheet FX blit, centred at the rip position.
+  if (fighter._kamuiSwirl) {
+    const S = fighter._kamuiSwirl, img = _kwarFxImg("./kakashi_war_kamui_swirl_uniform.png")
+    const fi = Math.min(8, Math.floor((S.max - S.t) / (S.max / 9)))
+    _kwarBlitCentered(c, img, 9, fi, S.x, S.y, 1.5, Math.min(0.95, S.t > 4 ? 0.95 : S.t / 4))
+  }
+  // TSUIGA — the Ninken dog-pack pins the foe (ground burst → rush), + a dismissal smoke puff.
+  if (fighter._tsuigaPin) {
+    const pin = fighter._tsuigaPin, elapsed = pin.max - pin.t
+    const img = _kwarFxImg("./kakashi_war_tsuiga_pack_uniform.png")
+    const fi = Math.min(3, Math.floor(elapsed / 6))
+    _gaaraBlitFx(c, img, 4, fi, pin.x, pin.y, 1.8, 0.95)
+  } else if ((fighter._tsuigaDismiss || 0) > 0) {
+    const d = fighter._tsuigaDismiss
+    c.save(); c.globalAlpha = 0.5 * (d / 22); c.fillStyle = "rgba(220,220,225,0.9)"
+    for (let k = 0; k < 5; k++) { const a = k * 1.3 + (22 - d) * 0.2; c.beginPath(); c.arc((fighter._tsuigaFxX || cx) + Math.cos(a) * (22 - d), (fighter._tsuigaFxY || (fighter.y + h)) - 8 + Math.sin(a) * 10, 8, 0, Math.PI * 2); c.fill() }
+    c.restore()
+  }
   // KAWARIMI — a wooden log + a fading smoke puff where Kakashi was (the substitution).
   if (fighter._kwLog) {
     const L = fighter._kwLog, prog = 1 - L.t / L.max
@@ -13185,6 +13239,33 @@ function drawKakashiAnbuRaikiriCutin(ctx, canvas) {
   else { ctx.fillStyle = "#1a2433"; ctx.fillRect(dx, dy, dw, dh); ctx.fillStyle = "#aee0ff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `bold ${Math.floor(dh * 0.18)}px serif`; ctx.fillText("RAIKIRI", dx + dw / 2, dy + dh / 2) }
   // blue scar-streak accent along the backing bar
   ctx.globalAlpha = env * 0.8; ctx.strokeStyle = "#8fd2ff"; ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(0, dy + dh + 6); ctx.lineTo(cw, dy + dh + 2); ctx.stroke()
+  ctx.restore()
+}
+// ── KAKASHI (KAMUI) — Kamui Raikiri ULTIMATE cut-in (SCREEN space). The Sharingan EYE BANNER slides in with a
+//    red flash while _warUltCutin ticks down (set by executeKakashiWarKamuiRaikiriUlt).
+let _kwarEyeImg = null
+function _kwarEye() { if (!_kwarEyeImg) { _kwarEyeImg = new Image(); _kwarEyeImg.src = "./kakashi_war_eye_banner.png" } return _kwarEyeImg }
+function drawKakashiWarCutin(ctx, canvas) {
+  const f = ((p1?._warUltCutin || 0) > 0) ? p1 : ((p2?._warUltCutin || 0) > 0) ? p2 : null
+  if (!f) return
+  const cw = canvas.width, ch = canvas.height
+  const t = f._warUltCutin; f._warUltCutin = t - 1
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  const flash = Math.max(0, (t - 22) / 8)
+  if (flash > 0) { ctx.fillStyle = `rgba(190,20,20,${0.42 * flash})`; ctx.fillRect(0, 0, cw, ch) }
+  const env = t >= 26 ? (30 - t) / 4 : t >= 8 ? 1 : t / 8
+  const panel = _kwarEye()
+  const ready = panel && panel.complete && panel.naturalWidth > 0
+  const dh = ch * 0.30
+  const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.4
+  const slide = (1 - env) * (dw + 60)
+  const dx = cw * 0.52 - slide, dy = ch * 0.34
+  ctx.globalAlpha = 0.55 * env; ctx.fillStyle = "#0a0406"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
+  ctx.globalAlpha = env
+  if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
+  else { ctx.fillStyle = "#1a0a0a"; ctx.fillRect(dx, dy, dw, dh); ctx.fillStyle = "#ff6a6a"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `bold ${Math.floor(dh * 0.3)}px serif`; ctx.fillText("KAMUI RAIKIRI", dx + dw / 2, dy + dh / 2) }
+  ctx.globalAlpha = env * 0.85; ctx.strokeStyle = "#8fd2ff"; ctx.lineWidth = 3           // blue lightning accent
   ctx.beginPath(); ctx.moveTo(0, dy + dh + 6); ctx.lineTo(cw, dy + dh + 2); ctx.stroke()
   ctx.restore()
 }
@@ -17475,6 +17556,7 @@ function drawBattle() {
   drawLightKiraCinematic(ctx, canvas)         // fullscreen "I Am Kira" scythe-ult overlay (crimson vignette → I'M KIRA cut-in panel → purple swing flash)
   drawGaaraSabakuTaisouCinematic(ctx, canvas) // Gaara Sabaku Taisou ult — 砂瀑大葬 kanji cut-in slide + sand vignette + collapse dust flash (world-space burial FX in drawGaaraFx)
   drawKakashiAnbuRaikiriCutin(ctx, canvas)    // Kakashi (ANBU) Full-Charge Raikiri ult — illustration cut-in slide + red flash (kakashi_anbu only, _kanbuUltCutin)
+  drawKakashiWarCutin(ctx, canvas)            // Kakashi (Kamui) Kamui Raikiri ult — Sharingan eye-banner cut-in slide + red flash (kakashi_war only, _warUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
   drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
   drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)

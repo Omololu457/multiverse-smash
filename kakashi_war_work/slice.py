@@ -145,6 +145,22 @@ def main():
     _eb = tight((235, 360, 484, 423)); Image.fromarray(IM).crop((_eb[0], _eb[1], _eb[2] + 1, _eb[3] + 1)).save(f"{OUT}/kakashi_war_eye_banner.png")
     print(f"OK kakashi_war_eye_banner.png: eye banner")
 
+    # ══ PHASE 2 ART ══
+    # Mangekyō / Kamui cast (hand seals → reach → thrust), used as the Kamui + Kamui-Raikiri cast pose.
+    by_band("kakashi_war_mangekyou_cast_uniform.png", 3420, 3512)                          # 6f cast
+    # KAMUI SWIRL FX (grow → twist → collapse). Centre-packed (feet=False) so the vortex stays centred.
+    by_rects("kakashi_war_kamui_swirl_uniform.png", [
+        (37, 3591, 60, 3614), (72, 3579, 119, 3626), (131, 3562, 202, 3633),
+        (214, 3547, 311, 3644), (331, 3545, 427, 3643), (441, 3554, 532, 3642),             # grow 6f
+        (36, 3680, 100, 3744), (114, 3690, 159, 3738), (173, 3699, 192, 3722),               # collapse 3f
+    ], feet=False)
+    # DOTON: TSUIGA — cast (crouch hand-seal reach) + the Ninken-pack eruption/rush FX.
+    by_band("kakashi_war_tsuiga_cast_uniform.png", 2610, 2698, x1=270)                      # 4f cast
+    by_rects("kakashi_war_tsuiga_pack_uniform.png", [                                       # dog-pack burst/rush 4f
+        (23, 2768, 102, 2800), (117, 2766, 196, 2800), (221, 2756, 298, 2800), (307, 2757, 385, 2800)])
+    # SENNEN GOROSHI — the crouch-lunge "thousand years of death" poke (5f).
+    by_band("kakashi_war_sennen_uniform.png", 3930, 4000)                                   # 5f poke
+
 
 if __name__ == "__main__":
     main()

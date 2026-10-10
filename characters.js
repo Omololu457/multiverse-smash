@@ -9290,7 +9290,12 @@ const kakashiWar = {
     raikiri_charge:     { frames: 5, width: 67, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_charge_uniform.png" },
     raikiri_strike:     { frames: 2, width: 105, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_strike_uniform.png" },
     raikiri_air_charge: { frames: 5, width: 67, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_air_charge_uniform.png" },
-    raikiri_air_strike: { frames: 3, width: 75, height: 91, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_air_strike_uniform.png" }
+    raikiri_air_strike: { frames: 3, width: 75, height: 91, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_air_strike_uniform.png" },
+    // ── PHASE 2 cast poses (_spriteCastMove → these keys). Kamui swirl + Tsuiga dogs are FX blits (game.js). ──
+    mangekyou_cast: { frames: 6, width: 71, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_mangekyou_cast_uniform.png" },  // Kamui + Copy Ninja + Kamui-Raikiri cast
+    raikiri_loop:   { frames: 5, width: 67, height: 67, speed: 3, anchorY: 0, loop: true,  sheet: "./kakashi_war_raikiri_charge_uniform.png" },                      // reuse the charge frames as the held loop
+    tsuiga_cast:    { frames: 4, width: 64, height: 78, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_tsuiga_cast_uniform.png" },      // Doton: Tsuiga hand-seal reach
+    sennen:         { frames: 5, width: 73, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_sennen_uniform.png" }            // Sennen Goroshi crouch-lunge poke
   }
 }
 

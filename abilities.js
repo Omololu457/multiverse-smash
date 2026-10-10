@@ -29835,34 +29835,60 @@ function fireLoyalistFlurry(fighter, context) {
 
 // ══ THE LOYALIST — ULTIMATE: SUSANOO TSUKUMO (green ribcage + spinning chest magatama + needle volley) ══
 // Range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind.
-const LOY_SUSANOO = { len: 150 }
+// ── ULTIMATE: SUSANOO — SHUNSHIN RANBU ("Body-Flicker Rampage") ──────────────────────────────────────
+// Shisui's Susanoo is UNIQUE among the Uchiha: instead of a lumbering giant that swings a sword (Sasuke /
+// Kakashi / Madara), his green Susanoo channels "Shisui of the Body Flicker" — it FLASH-STEPS around the foe,
+// leaving an afterimage Susanoo at each strike point (a green ribcage blooms at every angle), the chest
+// magatama spinning faster with each cut, then all the afterimages CONVERGE into a two-arm crushing slam with
+// a shockwave ring. Range-independent sure-hit beats (half on block). Deterministic / LAN-safe.
+const LOY_SUSANOO = { len: 156 }
 function executeShisuiTrinityUltimate(fighter, context) {
   if (fighter._shiCinematicsBlocked) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp0 = getTargetResolver(context)(fighter) || null
   fighter.vx = 0
-  fighter._shisuiSusanooFx = LOY_SUSANOO.len     // ribcage + magatama render timer (drawShisuiFx)
+  fighter._shisuiSusanooFx = LOY_SUSANOO.len                 // main Susanoo + magatama render timer (drawShisuiFx)
+  fighter._shisuiSusanooFlashes = []                         // afterimage-Susanoo markers the render reads
+  fighter._shisuiSusanooSlam = 0
   fighter._spriteCastMove = "shiSusanoo"; fighter._spriteCastTimer = LOY_SUSANOO.len
   fighter.attackCooldown = getAttackDuration(LOY_SUSANOO.len, fighter)
-  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 60)
-  const beats = [
-    { at: 30, dmg: 18 }, { at: 42, dmg: 18 }, { at: 54, dmg: 18 }, { at: 66, dmg: 18 },
-    { at: 86, dmg: 40, big: true }, { at: 110, dmg: 70, big: true }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, LOY_SUSANOO.len)   // i-frames through his own flicker barrage
+  fighter.colorFlash = 16
+  // five flash-step cuts (alternating angles around the foe) → final crush. (gapSide: which side he blinks to.)
+  const FLICK = [
+    { at: 26, dmg: 20, side: -1 }, { at: 42, dmg: 20, side: 1 }, { at: 58, dmg: 22, side: -1 },
+    { at: 74, dmg: 22, side: 1 }, { at: 92, dmg: 26, side: -1 }
   ]
-  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+  FLICK.forEach(b => schedulePendingSpawn(b.at, () => {
     const o = getTargetResolver(context)(fighter) || opp0
-    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
-    spawnProjectile(fighter, "shisuiNeedle", {
-      visualOnly: true, damage: 0, spawnY: fighter.y + 30, speed: 18, w: 30, h: 8, radius: 6, lifetime: 20,
-      color: "#6ef08a", aimAt: { x: o.x + (o.w || 60) / 2, y: o.y + 30 }, noHitstop: true
-    }, context)
+    if (!o || o.eliminated) return
+    const ocx = o.x + (o.w || 60) / 2
+    // Susanoo flash-steps beside the foe; Shisui rides it there (clamped on-screen); afterimage left behind.
+    fighter.x = shisuiBehindX(fighter, o, context, 40 + (b.side < 0 ? 0 : 1))   // reuses the on-screen-clamped reposition
+    if (b.side > 0) fighter.x = Math.min(fighter.x, ocx + 70)
+    fighter.facing = (ocx >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+    fighter.teleportFlash = 10
+    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: b.side, t: 34 })
+    if (fighter._shisuiSusanooFlashes.length > 5) fighter._shisuiSusanooFlashes.shift()
     const dir = (o.x >= fighter.x ? 1 : -1)
-    if (o.isBlocking) { o.blockstun = b.big ? 22 : 12; applyScaledDamage(o, Math.floor(b.dmg * 0.5), { source: "shisui-susanoo" }); return }
-    o.hitstun = b.big ? 36 : 18; o.vx = dir * (b.big ? 6 : 1); o.vy = b.big ? -7 : 0; o.colorFlash = b.big ? 14 : 9
-    if (b.big) o.hitstop = Math.max(o.hitstop || 0, 24)
+    if (o.isBlocking) { o.blockstun = 14; applyScaledDamage(o, Math.floor(b.dmg * 0.5), { source: "shisui-susanoo" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 16); o.vx = dir * 2; o.vy = -1; o.colorFlash = 10
     applyScaledDamage(o, b.dmg, { source: "shisui-susanoo" })
+    try { shakeCamera(context, 3, 5) } catch (_) {}
   }))
-  try { focusCameraOnAction(context, fighter, opp0, 1.1, 18); shakeCamera(context, 4, 12) } catch (_) {}
+  // FINAL CRUSH — the afterimages converge; two spectral arms slam down with a shockwave ring.
+  schedulePendingSpawn(118, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    fighter._shisuiSusanooSlam = 30
+    if (o) { fighter.x = shisuiBehindX(fighter, o, context, 70); fighter.facing = ((o.x + (o.w || 60) / 2) >= fighter.x) ? 1 : -1; fighter.teleportFlash = 14 }
+    fighter.colorFlash = 18
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) { try { shakeCamera(context, 8, 16) } catch (_) {} return }
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 30; applyScaledDamage(o, 45, { source: "shisui-susanoo" }) }
+    else { o.hitstun = Math.max(o.hitstun || 0, 44); o.vx = dir * 7; o.vy = 12; o.colorFlash = 18; o.hitstop = Math.max(o.hitstop || 0, 28); applyScaledDamage(o, 90, { source: "shisui-susanoo" }) }
+    try { focusCameraOnAction(context, fighter, o, 1.18, 22); shakeCamera(context, 12, 18) } catch (_) {}
+  })
+  try { focusCameraOnAction(context, fighter, opp0, 1.12, 20); shakeCamera(context, 5, 12) } catch (_) {}
   return true
 }
 

@@ -13045,15 +13045,46 @@ function drawShisuiFx(c, fighter) {
     c.beginPath(); c.arc(cx + facing * w * 0.5, fighter.y + h * 0.5, w * 0.7, facing === 1 ? -1.1 : (Math.PI - 0.0), facing === 1 ? 1.1 : (Math.PI + 1.1)); c.stroke()
     c.restore()
   }
-  // ULTIMATE — Susanoo Tsukumo: a green ribcage grows around Shisui + a spinning chest magatama.
+  // ULTIMATE — SUSANOO: SHUNSHIN RANBU — flash-step afterimage Susanoo + the main Susanoo + a spinning magatama.
   if ((fighter._shisuiSusanooFx || 0) > 0) {
+    const TOTAL = 156
     const st = fighter._shisuiSusanooFx--
-    const prog = Math.min(1, (150 - st) / 24)
-    const fi = Math.floor((150 - st) / 8) % 2
-    _gaaraBlitFx(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, fi, cx, feetY + 8, (h / 165) * (1.4 + prog * 0.9), 0.6)
-    const mx = cx, my = fighter.y + h * 0.42
-    c.save(); c.translate(mx, my); c.rotate(st * 0.2)
-    for (let k = 0; k < 3; k++) { const a = k * (Math.PI * 2 / 3); c.fillStyle = "rgba(220,30,30,0.95)"; c.beginPath(); c.arc(Math.cos(a) * 8, Math.sin(a) * 8, 3.4, 0, Math.PI * 2); c.fill() }
+    const img = _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png")
+    const fi = Math.floor((TOTAL - st) / 8) % 2
+    // AFTERIMAGE Susanoo — a translucent green ribcage blooms at every flash-step strike point, fading out.
+    const fl = fighter._shisuiSusanooFlashes
+    if (fl && fl.length) {
+      for (let i = fl.length - 1; i >= 0; i--) {
+        const g = fl[i]; g.t--
+        if (g.t <= 0) { fl.splice(i, 1); continue }
+        _gaaraBlitFx(c, img, 2, fi, g.x, g.y + 8, (h / 165) * 1.5, 0.3 * (g.t / 34))
+      }
+    }
+    // MAIN Susanoo — grows in around Shisui, strongest.
+    const prog = Math.min(1, (TOTAL - st) / 20)
+    _gaaraBlitFx(c, img, 2, fi, cx, feetY + 8, (h / 165) * (1.5 + prog * 0.8), 0.62)
+    // spinning chest magatama — three tomoe that whirl faster through the barrage.
+    c.save(); c.translate(cx, fighter.y + h * 0.4); c.rotate((TOTAL - st) * 0.26)
+    for (let k = 0; k < 3; k++) {
+      const a = k * (Math.PI * 2 / 3), tx = Math.cos(a) * 9, ty = Math.sin(a) * 9
+      c.fillStyle = "rgba(220,30,30,0.95)"; c.beginPath(); c.arc(tx, ty, 3.6, 0, Math.PI * 2); c.fill()
+      c.strokeStyle = "rgba(205,18,18,0.8)"; c.lineWidth = 2
+      c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx - Math.cos(a + 0.7) * 7, ty - Math.sin(a + 0.7) * 7); c.stroke()
+    }
+    c.restore()
+  }
+  // FINAL CRUSH — the afterimages converge: a green shockwave ring on the ground + two spectral arms slam down.
+  if ((fighter._shisuiSusanooSlam || 0) > 0) {
+    const sl = fighter._shisuiSusanooSlam--
+    const p = 1 - sl / 30, gx = cx, gy = feetY
+    c.save()
+    c.globalAlpha = Math.max(0, 0.7 * (1 - p)); c.strokeStyle = "rgba(110,240,138,0.9)"; c.lineWidth = 5
+    c.beginPath(); c.ellipse(gx, gy, 30 + p * w * 3.2, (30 + p * w * 3.2) * 0.3, 0, 0, Math.PI * 2); c.stroke()
+    if (p < 0.3) { c.globalAlpha = 0.5 * (1 - p / 0.3); c.fillStyle = "rgba(230,255,235,0.9)"; c.beginPath(); c.arc(gx, gy - h * 0.3, w * 1.2, 0, Math.PI * 2); c.fill() }
+    c.restore()
+    c.save(); c.globalAlpha = 0.75 * Math.max(0, 1 - p * 0.7); c.strokeStyle = "rgba(90,230,120,0.85)"; c.lineWidth = 10; c.lineCap = "round"
+    const drop = Math.min(1, p / 0.4) * h * 0.9
+    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(gx + s * w * 0.9, gy - h * 1.6 + drop * 0.3); c.lineTo(gx + s * w * 0.35, gy - h * 0.2 + drop * 0.5); c.stroke() }
     c.restore()
   }
   // BODY-FLICKER FLURRY — cyan afterimage streaks.

@@ -822,7 +822,7 @@ export const KITS = {
       { name: "PUPPETEER · Susanoo Stance", input: "Down + Special", cost: 30, desc: "then Special = Needle Volley / Fwd+Special = Susanoo Sword." },
       { name: "PUPPETEER · Flurry", input: "Up + Special", cost: 30, desc: "a shunshin multi-hit flurry." }
     ],
-    ultimate: { name: "Per-identity Ultimate", input: "Ultimate", cost: 100, desc: "LOYALIST = Susanoo Tsukumo (ribcage + magatama + needle volley) · BLADE = Shunshin: Thousand Cuts (multi-hit finisher) · PUPPETEER = Kotoamatsukami (genjutsu-world backdrop + 3 Mangekyō eyes → the foe's controls mirror & their Specials lock for ~2.5s)." },
+    ultimate: { name: "Per-identity Ultimate", input: "Ultimate", cost: 100, desc: "LOYALIST = Susanoo: Shunshin Ranbu (the green Susanoo flash-steps around the foe leaving afterimage Susanoo, then converges into a crushing slam) · BLADE = Shunshin: Thousand Cuts (multi-hit finisher) · PUPPETEER = Kotoamatsukami (genjutsu-world backdrop + 3 Mangekyō eyes → the foe's controls mirror & their Specials lock for ~2.5s)." },
     combos: [
       { name: "Signal → Swap", sequence: "Down+Heavy → Grab", desc: "call a partner behind the foe, then swap to it mid-pressure." },
       { name: "Loyalist: Grab → Flurry", sequence: "Back+Special → Up+Special", desc: "stagger, then flurry while they're frozen." },

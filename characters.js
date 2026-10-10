@@ -10427,7 +10427,7 @@ const shisuiTrinity = {
     kunaiRain:   { cost: 26, effect: "Down+Special: Kunai Rain — a volley of kunai rains down onto the foe's position. [CANON-ADJACENT]" },
     flurry:      { cost: 30, effect: "Up+Special: Body-Flicker Flurry — a shunshin multi-hit slash string with afterimages; closes the gap. [CANON-ADJACENT]" }
   },
-  ultimate: { name: "Susanoo Tsukumo", cost: 100, description: "LOYALIST: a spectral green Susanoo ribcage erupts around Shisui, the chest magatama-eye spins, and a volley of green chakra needles fires at the foe — range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON]" },
+  ultimate: { name: "Susanoo: Shunshin Ranbu", cost: 100, description: "LOYALIST: Shisui's GREEN Susanoo channels the Body Flicker — it FLASH-STEPS around the foe (an afterimage Susanoo ribcage blooms at every angle, the chest magatama whirling faster with each cut), then all the afterimages CONVERGE into a two-arm crushing slam with a green shockwave ring. Range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON — a speed-Susanoo unique to Shisui of the Body Flicker]" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,

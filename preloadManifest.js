@@ -133,6 +133,12 @@ export const FX_SHEETS_BY_CHAR = {
     "./madara_susanoo_form_idle_uniform.png",
     "./madara_wood_dragon_burst_uniform.png",
     "./madara_wood_dragon_proj_uniform.png",
+    // WAR UPGRADE Phase 1 — FX sliced from P (pepino78): Gōka Mekkyaku flame wave, Goryūka dragon-heads,
+    // Shinra Tensei repulsion swirls, and the partial-Susanoo ribcage-growth guard shell.
+    "./madara_goka_mekkyaku_uniform.png",
+    "./madara_goryuka_uniform.png",
+    "./madara_shinra_swirl_uniform.png",
+    "./madara_susanoo_ribcage_growth_uniform.png",
   ],
   // War-Susano'o Tier-1 pieces (border-flood-fill keyed from sasuke_war_susano_by_nes). Procedural Arm Grab +
   // Ribcage Guard — shared by both allowlisted fighters. tools/susano/gen_susano_tier1.py.

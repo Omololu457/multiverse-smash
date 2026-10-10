@@ -24667,8 +24667,103 @@ function executeItachiSpecial(fighter, context) {
 //   Down (D)   = Mokuton: Wood Spike          [Stage 3.x]
 //   + Susanoo Base Punch / Susanoo Attack     [Stage 3.x]
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MADARA — WAR UPGRADE Phase 1 (additive). Three not-yet-wired CANON techniques whose FX art was sliced
+// from the pepino78 sheet (P). They route through motion inputs (qcf / qcb / B,F) checked BEFORE the
+// single-direction Gunbai/Wood/Katon kit, so every PRE-EXISTING special still fires on a plain press.
+// Deterministic, LAN-safe (no gameRng). SOURCE MATCH = NO → cast poses reuse Madara's OWN body frames;
+// only P's FX art (flame / dragon-head / repulsion-swirl) is new.
+// ─────────────────────────────────────────────────────────────────────────────
+const MADARA_GOKA_COST    = 42    // Gōka Mekkyaku — sweeping sea-of-flame wall (pricier than the single Fireball 30)
+const MADARA_GORYUKA_COST = 38    // Goryūka — fast fire-dragon-head projectile
+const MADARA_SHINRA_COST  = 35    // Shinra Tensei — low-damage repulsion shove (Rinnegan)
+const MADARA_SHINRA_RANGE = 280   // Almighty-Push reach (center-to-center); formless force, range-checked
+const MADARA_SHINRA_DMG   = 46    // chip only — the payoff is the repulsion knockback, not the damage
+
+// Katon: Gōka Mekkyaku (CANON) — qcf. A wide, short-ranged rolling WALL of flame (not a long thin projectile):
+// big hitbox, strong damage, modest travel, then dissipates. 12-frame flame sheet from P.
+function fireMadaraGokaMekkyaku(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MADARA_GOKA_COST)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "madaraFireballCast"   // reuse his OWN Katon hand-seal→exhale body pose
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = getAttackDuration(32, fighter)
+  try { sound.playSfxFile?.(pickMadaraVoice("fireball"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  spawnProjectile(fighter, "madaraGokaMekkyaku", {
+    damage: 130, speed: 7, lifetime: 60, vx: face * 7, vy: 0,
+    hitstun: 26, knockbackX: 9, knockbackY: -3, w: 150, h: 112, color: "#ff7a1c", isSpecial: true,
+    sheet: "./madara_goka_mekkyaku_uniform.png", spriteFrames: 12, spriteW: 239, spriteH: 131, spriteSpeed: 3, spriteScale: 1.3,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 150,
+    spawnY: fighter.y + (fighter.h || 100) * 0.28
+  }, context)
+  return true
+}
+
+// Katon: Goryūka no Jutsu (CANON) — B,F. A fast fire-DRAGON-head projectile (small fireball → 3 dragon-head frames).
+function fireMadaraGoryuka(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MADARA_GORYUKA_COST)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "madaraFireballCast"
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  try { sound.playSfxFile?.(pickMadaraVoice("fireball"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  spawnProjectile(fighter, "madaraGoryuka", {
+    damage: 120, speed: 12, lifetime: 85, vx: face * 12, vy: 0,
+    hitstun: 24, knockbackX: 10, knockbackY: -3, w: 118, h: 72, color: "#ff8a2c", isSpecial: true,
+    sheet: "./madara_goryuka_uniform.png", spriteFrames: 5, spriteW: 157, spriteH: 78, spriteSpeed: 4, spriteScale: 1.2,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 118,
+    spawnY: fighter.y + (fighter.h || 100) * 0.3
+  }, context)
+  return true
+}
+
+// Rinnegan: Shinra Tensei (CANON) — qcb. Almighty Push: a formless RADIAL REPULSION. Low damage; the payoff is
+// the big shove. Range-checked DIRECT force (no travelling projectile) routed through the ONE scaled-damage
+// choke-point, with 3 white repulsion-swirl FX at the push front. Deterministic — no gameRng.
+function fireMadaraShinraTensei(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MADARA_SHINRA_COST)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "madaraGunbaiSummon"   // reuse his OWN arm-forward body pose (palm-thrust read)
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  fighter.vx = 0
+  try { sound.playSfxFile?.(pickMadaraVoice("tengaiShinsei"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  const target = getTargetResolver(context)(fighter)
+  if (target && !target.eliminated) {
+    const dx = (target.x + (target.w || 40) / 2) - (fighter.x + (fighter.w || 60) / 2)
+    if (Math.abs(dx) <= MADARA_SHINRA_RANGE) {
+      const dir = dx === 0 ? face : (dx > 0 ? 1 : -1)
+      applyScaledDamage(target, MADARA_SHINRA_DMG, { source: "special", attacker: fighter, move: "madaraShinraTensei" })
+      target.vx = dir * 20; target.vy = -7; target.colorFlash = 10
+      target.hitstun = Math.max(target.hitstun || 0, 26)
+    }
+  }
+  for (let i = 0; i < 3; i++) {
+    const sp = spawnProjectile(fighter, "madaraShinraSwirl", {
+      visualOnly: true, damage: 0, speed: 0, lifetime: 20, vx: 0, vy: 0, w: 120, h: 76,
+      sheet: "./madara_shinra_swirl_uniform.png", spriteFrames: 3, spriteW: 140, spriteH: 88, spriteSpeed: 3, spriteScale: 1.0 + i * 0.35
+    }, context)
+    if (sp) { sp.x = fighter.x + (face === 1 ? (fighter.w || 60) + 20 + i * 40 : -40 - i * 40); sp.y = fighter.y + (fighter.h || 100) * 0.3 }
+  }
+  shakeCamera(context, 6, 7)
+  return true
+}
+
 function executeMadaraSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
+
+  // ── WAR UPGRADE (additive) — motion specials, checked BEFORE the single-direction kit so a plain
+  // Forward/Back/Down press still fires the ORIGINAL Gunbai/Wood/Katon specials. Base form only; never
+  // during the Tengai cinematic or the Complete giant. Most-specific motions first (qcf/qcb/B,F).
+  const _warBase = !((fighter._madaraComplete || 0) > 0) && !((fighter._madaraSusanoo || 0) > 0)
+  if (_warBase && !isMadaraTengaiShinseiCinematicActive()) {
+    if (endsWithPattern(dirs, ["D", "F"])) return fireMadaraGokaMekkyaku(fighter, context)   // qcf — Katon: Gōka Mekkyaku (CANON)
+    if (endsWithPattern(dirs, ["D", "B"])) return fireMadaraShinraTensei(fighter, context)    // qcb — Shinra Tensei (CANON, Rinnegan)
+    if (endsWithPattern(dirs, ["B", "F"])) return fireMadaraGoryuka(fighter, context)         // B,F — Katon: Goryūka (CANON)
+  }
 
   // UP — Gunbai Summon: materialize the war-fan into a REFLECT stance (its own special, distinct from
   // the Fan-Swing). Canonical Uchiwa reflect — while the stance is up, an incoming PROJECTILE is turned

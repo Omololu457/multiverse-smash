@@ -107,6 +107,38 @@ export const KITS = {
     ]
   },
   // ── NARUTO ───────────────────────────────────────────────────
+  madara: {
+    type: "Uchiha Legend / Susanoo Zoner", energy: "Chakra", difficulty: "Hard",
+    summary: "The strongest Uchiha — a complete arsenal of Katon fire, Mokuton wood, the Gunbai war-fan, Rinnegan gravity, and a tiered Susanoo that climbs to the Complete four-armed avatar.",
+    passive: { name: "Susanoo Manifestation", effect: "Blocking manifests the Partial-Susanoo ribcage as a growing guard shell. Forward+Heavy extends the skeletal Susanoo arm as a command grab; Back+Heavy toggles the Tier-2 Susanoo armor (buffed sword normals). Largest Chakra pool on the roster to bank the tiered ultimate." },
+    basics: [
+      { name: "Gunbai Swipe",   input: "Light",                   desc: "quick war-fan poke" },
+      { name: "War-Fan Combo",  input: "Heavy",                   desc: "committed swipe→palm string, long reach" },
+      { name: "Rising Slash",   input: "Up-Attack",               desc: "launcher — starts air combos" },
+      { name: "Aerial Flurry",  input: "Air (jump + Light)",      desc: "aerial" },
+      { name: "Susanoo Grab (air)", input: "Air + Heavy",         desc: "Susanoo-hand air grab-thrust" },
+      { name: "Grab",           input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "Katon: Great Fireball", input: "Special",            cost: 30, desc: "a rolling flame projectile [CANON]" },
+      { name: "Gunbai Summon",         input: "Up + Special",       cost: 25, desc: "war-fan reflect stance — turns an incoming projectile back at its owner [CANON]" },
+      { name: "Gunbai Fan-Swing",      input: "Forward + Special",  cost: 30, desc: "committed overhead war-fan swing (melee, tall hitbox) [CANON]" },
+      { name: "Mokuton: Wood Dragon",  input: "Back + Special",     cost: 45, desc: "colossal wood dragon charges the foe — highest-damage special [CANON]" },
+      { name: "Mokuton: Wood Spike",   input: "Down + Special",     cost: 28, desc: "a tree erupts under the opponent (stationary ground hazard) [CANON]" },
+      { name: "Katon: Gōka Mekkyaku",  input: "Down, Forward + Special", cost: 42, desc: "a wide sweeping WALL of flame — big hitbox, strong damage, short travel [CANON]" },
+      { name: "Shinra Tensei",         input: "Down, Back + Special",    cost: 35, desc: "Rinnegan Almighty Push — a radial repulsion that shoves the foe away (low damage, huge knockback) [CANON]" },
+      { name: "Katon: Goryūka",        input: "Back, Forward + Special", cost: 38, desc: "a fast fire-DRAGON-head projectile [CANON]" }
+    ],
+    mobility: { name: "Shunshin Dash", input: "Dash / Double-tap", cost: 0, desc: "physical body-shift dash (not a teleport)" },
+    ultimate: { name: "Susanoo", input: "Ultimate (TAP / HOLD)", cost: 100, desc: "TAP = Perfect Susanoo / Tengai Shinsei — a meteor call-down cinematic. HOLD (needs ≥180 banked Chakra) = Complete Susanoo — the giant four-armed avatar with huge sword swings [CANON]" },
+    combos: [
+      // Madara is a rekka-grammar EXCEPTION (Fwd+Heavy command-normal, no light-chain) — bread-and-butter
+      // leads with the Susanoo command-grab, NOT a "Light, Light" string (see combo_standard_audit §F).
+      { name: "Susanoo Grab",   sequence: "Forward + Heavy",                desc: "the skeletal Susanoo-arm command grab (no strike chain)" },
+      { name: "Zone Shift",     sequence: "Heavy, Down, Back + Special",    desc: "stagger, then Shinra Tensei to reset spacing" },
+      { name: "Fire Punish",    sequence: "Up-Attack, Jump, Air, Down, Forward + Special", desc: "launch, then Gōka Mekkyaku on landing" }
+    ]
+  },
   jiraiya: {
     type: "Toad Sage / Summon Zoner", energy: "Chakra", difficulty: "Medium",
     summary: "A Legendary Sannin who controls space with fire, hair, and toad ninjutsu — then flips into Sage Mode for a buffed second kit and a giant-toad summon.",

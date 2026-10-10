@@ -803,6 +803,108 @@ function executeGokuRoseUltimate(fighter, context) {
   return true
 }
 
+// ── GOGETA (Mega Ultra Instinct / Hakaishin) ──────────────────────
+// Neutral = Ki Blast · Down = God Kamehameha (beam) · Fwd = Stardust Breaker (rushing palm) · Back = Hakai
+// (point-blank destruction sphere) · Up = Ultra Instinct aura (brief auto-dodge + surge).
+function isGogeta(f) { return (f?.rosterKey || "").toLowerCase() === "gogeta" }
+function executeGogetaSpecial(fighter, context) {
+  if (!isGogeta(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null, face = fighter.facing || 1, getOpp = getTargetResolver(context)
+  if (dir === "D") {   // GOD KAMEHAMEHA — colossal fusion beam
+    if (!spendEnergy(fighter, 36)) return false
+    fighter._spriteCastMove = "gogetaKameha"; fighter._spriteCastTimer = 42
+    fighter.attackCooldown = getAttackDuration(46, fighter); fighter.vx = 0
+    schedulePendingSpawn(15, () => {
+      spawnProjectile(fighter, "gogetaKameha", {
+        w: 300, h: 40, radius: 30, speed: 16, vx: face * 16, damage: 104, hitstun: 36,
+        knockbackX: face * 20, knockbackY: -8, lifetime: 50, piercing: true, color: "#3aa0ff",
+        spawnY: fighter.y + (fighter.h || 100) * 0.34
+      }, context)
+      try { shakeCamera(context, 8, 12) } catch (_) {}
+    })
+    return true
+  }
+  if (dir === "F") {   // STARDUST BREAKER — rushing palm-strike
+    if (!spendEnergy(fighter, 30)) return false
+    fighter._spriteCastMove = "light"; fighter._spriteCastTimer = 26
+    const atk = createAttackFromMove(fighter, "stardustBreaker", { damage: 88, startup: 8, active: 6, recovery: 18, hitstun: 30, knockbackX: face * 16, knockbackY: -10, rangeX: 108, rangeY: 58 })
+    setAttackState(fighter, atk, 30); fighter.vx = face * 10; fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)
+    try { shakeCamera(context, 7, 9) } catch (_) {}
+    return true
+  }
+  if (dir === "B") {   // HAKAI — point-blank God-of-Destruction erasure sphere
+    if (!spendEnergy(fighter, 44)) return false
+    fighter._spriteCastMove = "gogetaAura"; fighter._spriteCastTimer = 40
+    fighter.attackCooldown = getAttackDuration(44, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)
+    schedulePendingSpawn(12, () => {
+      const opp = getOpp(fighter)
+      if (opp && !opp.eliminated) {
+        const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+        if (Math.abs(tcx - cx) < 160) {
+          if (opp.isBlocking) { opp.blockstun = 22; applyScaledDamage(opp, 40, { source: "ability" }) }
+          else { opp.hitstun = 34; opp.vx = (tcx >= cx ? 1 : -1) * 14; opp.vy = -12; opp.colorFlash = 14; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 40); applyScaledDamage(opp, 96, { source: "ability" }) }
+        }
+      }
+      try { shakeCamera(context, 11, 14) } catch (_) {}
+    })
+    return true
+  }
+  if (dir === "U") {   // ULTRA INSTINCT — silver aura surge + brief i-frames
+    if (!spendEnergy(fighter, 30)) return false
+    fighter._spriteCastMove = "gogetaAura"; fighter._spriteCastTimer = 36
+    fighter.attackCooldown = getAttackDuration(34, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 40)
+    schedulePendingSpawn(8, () => {
+      const opp = getOpp(fighter)
+      if (opp && !opp.eliminated) {
+        const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+        if (Math.abs(tcx - cx) < 140 && !opp.isBlocking) { opp.hitstun = 24; opp.vx = (tcx >= cx ? 1 : -1) * 10; opp.vy = -8; opp.colorFlash = 10; applyScaledDamage(opp, 52, { source: "ability" }) }
+      }
+      try { shakeCamera(context, 8, 10) } catch (_) {}
+    })
+    return true
+  }
+  // NEUTRAL → Ki Blast (blue orb)
+  if (!spendEnergy(fighter, 12)) return false
+  fighter._spriteCastMove = "gogetaKi"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "gogetaKi", {
+      w: 30, h: 30, radius: 16, speed: 14, vx: face * 14, damage: 34, hitstun: 18,
+      knockbackX: face * 8, knockbackY: -2, lifetime: 70, color: "#5cc0ff",
+      spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+  })
+  return true
+}
+// ULTIMATE — BIG BANG KAMEHAMEHA: an unavoidable screen-clearing blue/orange nuke (auto-hit, half on block).
+function executeGogetaUltimate(fighter, context) {
+  if (!isGogeta(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter._spriteCastMove = "gogetaKameha"; fighter._spriteCastTimer = 70
+  fighter.attackCooldown = getAttackDuration(72, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 76); fighter.vx = 0
+  const face = fighter.facing || 1, getOpp = getTargetResolver(context)
+  schedulePendingSpawn(26, () => {
+    spawnProjectile(fighter, "gogetaKameha", {
+      w: 560, h: 76, radius: 46, speed: 18, vx: face * 18, damage: 0, visualOnly: true,
+      lifetime: 60, piercing: true, isUltimate: true, color: "#2f8fff",
+      spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+    try { shakeCamera(context, 18, 28) } catch (_) {}
+  })
+  schedulePendingSpawn(44, () => {
+    const opp = getOpp(fighter)
+    if (opp && !opp.eliminated) {
+      let dmg = 380
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 58); opp.vx = face * 24; opp.vy = -18; opp.colorFlash = 16; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 52) }
+      applyScaledDamage(opp, dmg, { source: "ability" })
+    }
+    try { shakeCamera(context, 22, 30) } catch (_) {}
+  })
+  return true
+}
+
 // ── TEEN GOHAN ────────────────────────────────────────────────────
 // STAGE 4 (2026-08-23): MELEE-ONLY. NO beam/charge/Ultimate art on either EB sheet (confirmed twice) → there is
 // NO ranged special, and none was invented (per prompt "flag rather than invent"). Owner kept ONE melee special
@@ -29502,6 +29604,7 @@ export function triggerSpecial(fighter, context = {}) {
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
     case "goku_rose": return executeGokuRoseSpecial(fighter, context)
+    case "gogeta":  return executeGogetaSpecial(fighter, context)
     case "gohan":   return executeGohanSpecial(fighter, context)   // Stage 4: LONE melee special "Meteor Smash" (no ranged — none on the sheet)
     case "naruto":  return executeNarutoSpecial(fighter, context)
     case "minato":  return executeMinatoSpecial(fighter, context)   // Stage 3: shadow-clone routes (Flying Raijin / Rasengan / Reaper land in S4-5)
@@ -29766,6 +29869,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "goku_rose": cast = executeGokuRoseUltimate(fighter, context); break   // Divine Retribution — auto-hit crimson Black Kamehameha nuke
+      case "gogeta":  cast = executeGogetaUltimate(fighter, context); break   // Big Bang Kamehameha — auto-hit screen-clearing nuke
 
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)

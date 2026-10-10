@@ -90,6 +90,14 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (goku_black_super_saiyan_rose_3_sprite_sheet_by_ultrasayiancoder101_deyslf3.png)",
     files:   ["goku_rose_*_uniform.png", "goku_black_super_saiyan_rose_3_sprite_sheet_by_ultrasayiancoder101_deyslf3.png"]
   },
+  // Gogeta (Mega Ultra Instinct / Hakaishin) (Dragon Ball) — NEW additive standalone fighter. Every frame
+  // sliced from the ONE ultrasayiancoder101 "Mega Ultra Instinct Hakaishin Gogeta" sprite sheet. Attribution MANDATORY.
+  gogeta: {
+    work:    "Gogeta (Mega Ultra Instinct / Hakaishin) — Ki blasts / God Kamehameha / Stardust Breaker / Hakai",
+    artists: ["ultrasayiancoder101 (DeviantArt)"],
+    source:  "fan sprite sheet (mega_ultra_instinct_hakishin_gogeta_sprite_preview_by_ultrasayiancoder101_deymbpd.png)",
+    files:   ["gogeta_*_uniform.png", "mega_ultra_instinct_hakishin_gogeta_sprite_preview_by_ultrasayiancoder101_deymbpd.png"]
+  },
   // Superman (Custom / DC Universe Customs) — a SEPARATE char from `superman` (Arcade), the 2nd of 4 Superman
   // roster entries. The source sheet carries a baked header credit: "Superman Sprites by Spellfire; Thanks
   // Nightmare, Sam and Mike Penner; ported by ProtoStar". Attribution is MANDATORY.

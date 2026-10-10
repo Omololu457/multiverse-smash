@@ -1467,6 +1467,9 @@ export const SKINS = {
   goku_rose: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale, animationData: null },
   ],
+  gogeta: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gogeta?.portrait, spriteScale: characters.gogeta?.spriteScale, animationData: null },
+  ],
   goku_black: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — dark grey-blue gi → garment, red sash → accent;

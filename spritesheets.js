@@ -239,6 +239,11 @@ export const SPRITE_MANIFEST = {
   goku_rose: {
     actions: { idle: "./goku_rose_idle_uniform.png" }
   },
+  // Gogeta (Ultra Instinct / Hakaishin) — NEW additive standalone (rosterKey gogeta). Decodes the base idle
+  // strip → flips him box→sprite; per-action rendering reads characters.js → gogetaUI.animationData.
+  gogeta: {
+    actions: { idle: "./gogeta_idle_uniform.png" }
+  },
 
 
   // Dark Vegeta (universe: dragon_ball) — STAGE 1. STANDALONE, independent of the blue `vegeta`.

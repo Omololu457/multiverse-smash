@@ -10513,8 +10513,53 @@ const shisuiTrinity = {
   }
 }
 
+// ── Gogeta (Mega Ultra Instinct / Hakaishin) — NEW additive standalone (Dragon Ball). Sliced from the ONE
+// ultrasayiancoder101 "Mega Ultra Instinct Hakaishin Gogeta" sheet (white bg, border-floodfill keyed).
+// Canonical fusion kit: Ki blasts, God/Big Bang Kamehameha, Stardust Breaker, Hakai, UI/Hakaishin aura.
+const gogetaUI = {
+  rosterKey: "gogeta", name: "Gogeta (Ultra Instinct)", universe: "dragon_ball", color: "#4aa3ff",
+  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
+  stats: { maxHealth: 1240, maxEnergy: 200, attack: 97, defense: 90, speed: 93, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 10 },
+  basic_attacks: { light: { damage: 14 }, heavy: { damage: 42 } },
+  specials: {
+    kiBlast:       { cost: 12, effect: "Neutral+Special: Ki Blast — a fast blue ki orb. [CANON]" },
+    godKamehameha: { cost: 36, effect: "Down+Special: God Kamehameha — a colossal blue-and-orange fusion Kamehameha beam. [CANON]" },
+    stardustBreaker:{ cost: 30, effect: "Fwd+Special: Stardust Breaker — a rushing palm-strike that detonates the foe's negative energy. [CANON]" },
+    hakai:         { cost: 44, effect: "Back+Special: Hakai — the God-of-Destruction erasure: a point-blank destruction sphere (Hakaishin). [CANON]" },
+    uiAura:        { cost: 30, effect: "Up+Special: Ultra Instinct — silver aura erupts, a short auto-dodge + speed/damage surge. [CANON]" }
+  },
+  ultimate: { name: "Big Bang Kamehameha", cost: 100, damage: 380,
+    description: "Fusion of the Big Bang Attack and the Kamehameha → an unavoidable screen-clearing blue/orange nuke (auto-hit; a held block chips it to half). [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true, spriteScale: 2.1, introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 6, width: 69, height: 60, speed: 8, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    walk:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    run:       { frames: 6, width: 69, height: 60, speed: 4, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    dash:      { frames: 6, width: 69, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    jump:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    fall:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    guard:     { frames: 1, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    hurt:      { frames: 2, width: 69, height: 60, speed: 5, anchorY: 0, sheet: "./gogeta_idle_uniform.png" },
+    knockdown: { frames: 1, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    getup:     { frames: 3, width: 69, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    light:     { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    heavy:     { frames: 6, width: 121, height: 93, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    up:        { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    air:       { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    down_air:  { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    intro:     { frames: 4, width: 107, height: 60, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" },
+    win:       { frames: 4, width: 107, height: 60, speed: 10, anchorY: 0, loop: true, sheet: "./gogeta_aura_uniform.png" },
+    gogetaKi:     { frames: 3, width: 69,  height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
+    gogetaKameha: { frames: 3, width: 69,  height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
+    gogetaAura:   { frames: 4, width: 107, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" }
+  }
+}
+
 export const characters = {
-  goku, goku_black: gokuBlack, goku_rose: gokuRose, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
+  goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, sasuke_adult: sasukeAdult, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,

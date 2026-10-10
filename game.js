@@ -8922,6 +8922,30 @@ function drawSasukeWarArm(c, fighter) {
     c.restore()
   }
 }
+// GROUND-SLAM CRATER — when the Arm Grab's throw drives the victim down, a dust/debris crater erupts on the
+// floor line (expanding ring + crack spokes + a rising dust puff), fading over ~30f. Drawn at the slam point.
+function drawSasukeWarCrater(c, fighter) {
+  const C = fighter._warCrater; if (!c || !C) return
+  const feetY = (C.gy != null) ? C.gy : 0
+  const sp = _worldToScreen(C.x, feetY); const k = C.t / C.max
+  const scale = ((fighter._lastDrawH || 110) / (fighter.h || 110)) || 1
+  const rx = (90 + k * 240) * scale, ry = rx * 0.32
+  c.save()
+  // dark impact gouge + dust ellipse (big + solid at the start)
+  c.globalAlpha = (1 - k) * 0.85; c.fillStyle = "rgba(70,55,95,1)"
+  c.beginPath(); c.ellipse(sp.x, sp.y, rx * 0.72, ry * 0.72, 0, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = (1 - k) * 0.6; c.fillStyle = "rgba(170,140,200,1)"
+  c.beginPath(); c.ellipse(sp.x, sp.y, rx, ry, 0, 0, Math.PI * 2); c.fill()
+  // shockwave ring + radial cracks (thick)
+  c.globalAlpha = (1 - k) * 0.95; c.strokeStyle = "#d8c0ff"; c.lineWidth = Math.max(2, 9 * (1 - k) * scale)
+  c.beginPath(); c.ellipse(sp.x, sp.y, rx, ry, 0, 0, Math.PI * 2); c.stroke()
+  c.lineWidth = Math.max(1, 4 * (1 - k) * scale)
+  for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; c.beginPath(); c.moveTo(sp.x, sp.y); c.lineTo(sp.x + Math.cos(a) * rx * 1.05, sp.y + Math.sin(a) * ry * 1.05); c.stroke() }
+  // rising debris flecks
+  c.globalAlpha = (1 - k) * 0.9; c.fillStyle = "#c2a6e4"
+  for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2 + 0.4; const dr = rx * (0.4 + 0.5 * k); const fs = 6 * scale; c.fillRect(sp.x + Math.cos(a) * dr, sp.y - k * 90 * scale + Math.sin(a) * ry, fs, fs) }
+  c.restore()
+}
 function drawSasukeWarGuard(c, fighter) {
   if (!c || !susanoAllowed(fighter) || (fighter._warGuard || 0) <= 0) return
   const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
@@ -14127,7 +14151,7 @@ function resolvePortalDropLanding(f) {
 function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
-  updateSasukeWarSusano(updated)   // War-Susano'o: tick the Arm-Grab render timer, Ribcage-Guard window + cooldowns (no-op off-allowlist)
+  updateSasukeWarSusano(updated, getAbilityContext())   // War-Susano'o: tick Arm-Grab/Guard/soldier + the slam crater (needs ctx for shake/slow-mo)
   applyGojoPassiveSystems(updated)
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
@@ -15559,6 +15583,7 @@ function renderHybridFighter(fighter) {
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
     drawSasukeWarGuard(c, fighter)          // War-Susano'o (sensei/adult) — Ribcage Guard shell (code-drawn, keyed rib bands)
     drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
+    drawSasukeWarCrater(c, fighter)         // War-Susano'o (sensei/adult) — ground-slam crater from the Arm Grab throw
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
@@ -21931,7 +21956,7 @@ gameLoop()
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)
     fireGuard: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._warGuardCd = 0; f.attackCooldown = 0; f.attacking = false; return fireSasukeRibcageGuard(f, getAbilityContext()) },   // test-only: fire Ribcage Guard directly (no input/jump)
-    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, soldier: !!f._warSoldier, soldierHP: Math.round(f._warSoldierHP || 0), soldierTimer: f._warSoldierTimer || 0, canvasFrac: f._canvasHeightFrac || 0, skin: f._skinAnim?.idle?.sheet || null, indra: !!f._warIndra, wing: !!f._warWing, stance: f._adultSusanoStance || 0, infinity: !!f.currentFormData?.autoDodge, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2/3 state
+    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, soldier: !!f._warSoldier, soldierHP: Math.round(f._warSoldierHP || 0), soldierTimer: f._warSoldierTimer || 0, canvasFrac: f._canvasHeightFrac || 0, skin: f._skinAnim?.idle?.sheet || null, indra: !!f._warIndra, wing: !!f._warWing, stance: f._adultSusanoStance || 0, infinity: !!f.currentFormData?.autoDodge, crater: !!f._warCrater, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2/3 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

@@ -5454,10 +5454,11 @@ export function fireSasukeWarArmGrab(fighter, context) {
     if (grabbed) { fighter._grabThrowDmg = WARSUSANO.ARM_GRAB_THROW }
     if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.target = grabbed ? tgt : null; fighter._warArm.resolved = true; fighter._warArm.crushT = grabbed ? 0 : null }
     if (grabbed) {
-      // CINEMATIC CATCH — a brief "caught!" HITSTOP freeze (both fighters hang for a beat) + a hard camera
-      // punch-in. The render adds a purple crush BURST at the grab point + a squeeze pulse on the claw.
+      // CINEMATIC CATCH — a brief "caught!" HITSTOP freeze (both fighters hang) → SLOW-MO through the hold +
+      // slam, a hard camera punch-in. The render adds a purple crush BURST + a squeeze pulse; the SLAM (throw
+      // release) drops a ground crater (see updateSasukeWarSusano).
       fighter.hitstop = Math.max(fighter.hitstop || 0, 8); tgt.hitstop = Math.max(tgt.hitstop || 0, 8)
-      try { focusCameraOnAction(context, fighter, tgt, 1.12, 20); shakeCamera(context, 13, 16) } catch (_) {}
+      try { focusCameraOnAction(context, fighter, tgt, 1.12, 20); shakeCamera(context, 13, 16); if (context) context.triggerSlowdown?.(40) } catch (_) {}
     }
   })
   try { focusCameraOnAction(context, fighter, target, 0.98, 8); shakeCamera(context, 5, 8) } catch (_) {}
@@ -5483,7 +5484,7 @@ export function fireSasukeRibcageGuard(fighter, context) {
 
 // Per-frame tick (game.js updateTransformationState): advance the arm render timer, run down the guard window
 // (restoring defenseMultiplier when it ends) and the cooldowns. No-op for non-allowlisted fighters.
-export function updateSasukeWarSusano(fighter) {
+export function updateSasukeWarSusano(fighter, context) {
   if (!susanoAllowed(fighter)) return
   if (fighter._warArm) {
     const A = fighter._warArm
@@ -5492,9 +5493,19 @@ export function updateSasukeWarSusano(fighter) {
     // the held body) instead of vanishing after a beat. While the grab is live (victim.grabTimer > 0) the arm
     // is frozen at full extension gripping them; after the throw it lingers ~0.4s, then releases.
     if (A.grabbed && A.target && (A.target.grabTimer || 0) > 0) { A._holding = true; A.t = Math.max(A.t, (A.startup || 16) + 2) }
-    else if (A._holding) { A._release = (A._release || 0) + 1; if (A._release > 24) fighter._warArm = null }
+    else if (A._holding) {
+      if (!A._slammed) {   // FIRST frame of release = the SLAM into the ground → crater + big shake + a slow-mo kick
+        A._slammed = true
+        const vx = A.target ? (A.target.x + (A.target.w || 60) / 2) : fighter.x
+        const vgy = (A.target && A.target.groundY != null) ? A.target.groundY : (fighter.groundY != null ? fighter.groundY : (fighter.y + (fighter.h || 100)))
+        fighter._warCrater = { x: vx, gy: vgy, t: 0, max: 30 }
+        try { shakeCamera(context, 14, 18); if (context) context.triggerSlowdown?.(16) } catch (_) {}
+      }
+      A._release = (A._release || 0) + 1; if (A._release > 24) fighter._warArm = null
+    }
     else { A.t++; if (A.t >= A.max) fighter._warArm = null }
   }
+  if (fighter._warCrater) { fighter._warCrater.t++; if (fighter._warCrater.t >= fighter._warCrater.max) fighter._warCrater = null }   // ground-slam crater (lingers after the arm despawns)
   if ((fighter._warGuardCd || 0) > 0) fighter._warGuardCd--
   if ((fighter._warGuard || 0) > 0) {
     fighter._warGuard--

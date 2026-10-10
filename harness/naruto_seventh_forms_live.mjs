@@ -15,8 +15,8 @@ const state=()=>page.evaluate(()=>window.__harness.state());
 const n7=()=>page.evaluate(()=>window.__harness.narutoSeventh());
 async function wf(n){const s=(await state()).frame;await page.waitForFunction(([a,b])=>window.__harness.state().frame>=a+b,[s,n],{timeout:20000,polling:16});}
 const shot=async(n)=>{await page.screenshot({path:path.join(OUT,n)});console.log("  wrote",n);};
-const K={light:"j",special:"l",charge:"p"};
-let FWD="d";
+const K={light:"j",special:"l",charge:"p",ult:"u"};
+let FWD="d",UP="w";
 const log=[];
 const redBeastPx=()=>page.evaluate(()=>{const c=document.querySelector("canvas");const d=c.getContext("2d").getImageData(0,150,c.width,410).data;let r=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<30)continue;const R=d[i],G=d[i+1],B=d[i+2];if(R>90&&R<200&&G<70&&B<80&&R-G>50)r++;}return r;});
 
@@ -31,36 +31,33 @@ async function hold(){await page.keyboard.down(K.charge);await wf(16);await page
 async function exitForm(){await page.keyboard.down(K.charge);await wf(3);await page.keyboard.up(K.charge);await wf(8);}
 async function toForm(pts){const form=pts>=80?"kcm":pts>=60?"fourtails":pts>=30?"red":"base"; await page.evaluate(()=>window.__harness.setN7Oiroke(false)); await prep(80); await page.evaluate(f=>window.__harness.setN7Form(f),form); await wf(6); }
 
-// ── 1. BOND 1 → RED CHAKRA SHROUD ──
-await toForm(30);
-let s=await n7(); console.log("  Bond1 hold-Charge → form:",s.n7form,"spdMul",s.spdMul);
-log.push(["bond1-red-shroud", s.n7form==="red" && s.spdMul>1.0]);
-await shot("52_red_shroud.png");
-await exitForm(); log.push(["red-tap-exits", (await n7()).n7form==="base"]);
+// ── 1. TRANSFORM → NINE-TAILS CHAKRA CLOAK (the ONLY persistent form): hold Charge + tap Ultimate (Bond 3) ──
+await page.evaluate(()=>{window.__harness.setN7Oiroke(false);window.__harness.setN7Form("base");window.__harness.setN7Bond(100);}); await prep(120);
+await page.keyboard.down(K.charge); await wf(16);
+await page.keyboard.down(K.ult); await wf(2); await page.keyboard.up(K.ult); await wf(14);
+await page.keyboard.up(K.charge); await wf(4);
+let s=await n7(); console.log("  hold-P + tap-U → form:",s.n7form,"skin",s.skin,"spdMul",s.spdMul);
+log.push(["cloak-enters", s.n7form==="kcm" && s.skin==="golden"]);
+log.push(["cloak-speed-buff", s.spdMul>1.0]);
+await shot("52_cloak.png");
+await exitForm(); log.push(["cloak-tap-exits", (await n7()).n7form==="base" && (await n7()).skin==="base"]);
 
-// ── 2. BOND 2 → FOUR-TAILS CLOAK (beast body) ──
-await toForm(60);
-s=await n7(); const beast=await redBeastPx();
-console.log("  Bond2 hold-Charge → form:",s.n7form,"skin",s.skin,"redBeastPx",beast);
-log.push(["bond2-fourtails", s.n7form==="fourtails" && s.skin==="golden"]);  // skin="golden" = _skinAnim set (beast anim)
-log.push(["fourtails-beast-body", beast>400]);
-await shot("53_fourtails_cloak.png");
-// beast claw (light) connects
-await page.evaluate(()=>window.__harness.healP2()); await prep(44); await page.evaluate(()=>window.__harness.setN7Bond(60)); if((await n7()).n7form==="base"){await hold();}
+// ── 2. FOUR-TAILS is a COMBO (Up+Special, Bond 2) — the red beast appears, damages, then REVERTS to base ──
+await page.evaluate(()=>window.__harness.setN7Form("base")); await prep(70); await page.evaluate(()=>{window.__harness.setN7Bond(60);window.__harness.healP2();});
 const bh0=(await n7()).oppHealth;
-await page.keyboard.down(K.light); await wf(4); await page.keyboard.up(K.light); await wf(16);
-log.push(["fourtails-claw-connects", (bh0-(await n7()).oppHealth)>0]);
-// specials disabled in beast form
-const beforeSp=await n7();
-await page.keyboard.down(FWD); await page.keyboard.down(K.special); await wf(4); await page.keyboard.up(K.special); await page.keyboard.up(FWD);
-const afterSp=await n7();
-log.push(["fourtails-specials-disabled", afterSp.cast===beforeSp.cast || afterSp.cast!=="n7Rsk"]);
-await exitForm(); log.push(["fourtails-tap-exits", (await n7()).n7form==="base" && (await n7()).skin==="base"]);
+const ftCast=(await n7()).cast;
+await page.keyboard.down(UP); await page.keyboard.down(K.special); await wf(4); await page.keyboard.up(K.special); await page.keyboard.up(UP);
+let beast=0; for(let i=0;i<40;i++){ await wf(1); beast=Math.max(beast, await redBeastPx()); if(i===20) await shot("53_fourtails_combo.png"); }   // peak beast frames across the combo
+console.log("  4-Tails combo: cast",(await n7()).cast,"peak redBeastPx",beast);
+log.push(["fourtails-is-combo", beast>300]);                              // red beast frames on screen DURING the combo
+await wf(110);
+log.push(["fourtails-damages", (bh0-(await n7()).oppHealth)>60]);
+log.push(["fourtails-reverts-base", (await n7()).n7form==="base"]);        // a one-shot combo, never a walk-around form
 
-// ── 3. BOND 3 → KCM (golden) ──
-await toForm(80);
-s=await n7(); console.log("  Bond3 hold-Charge → form:",s.n7form);
-log.push(["bond3-kcm", s.n7form==="kcm"]);
+// ── 3. CLOAK golden body (force-enter to confirm the golden locomotion form) ──
+await page.evaluate(()=>window.__harness.setN7Form("kcm")); await wf(6);
+s=await n7(); console.log("  cloak golden:",s.n7form,s.skin);
+log.push(["cloak-golden", s.n7form==="kcm" && s.skin==="golden"]);
 
 const pass=log.filter(x=>x[1]).length, tot=log.length;
 console.log(`\n  RESULT ${pass}/${tot}`); for(const [n,ok] of log) console.log(`   ${ok?"✅":"❌"} ${n}`);

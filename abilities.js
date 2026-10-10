@@ -4553,17 +4553,16 @@ export function revertN7FourTails(fighter) {
   fighter._skinAnim = fighter._baseSkinAnim || null                    // → skin / base body
   fighter.currentForm = "base"; fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
 }
-// DBZ-style LADDER: hold Charge STEPS UP one form at a time (base → Red → Four-Tails → KCM), each gated by
-// your Kurama Bond level. (Holding Charge also CHARGES the Bond meter — see applyNarutoSeventhSystem — so you
-// can charge up to unlock the next form, then hold again to transform into it.)
+// The ONE real transformation is the NINE-TAILS CHAKRA CLOAK (gold KCM) — the strongest form. Hold Charge +
+// tap Ultimate enters it once the Kurama Bond is high enough. The Four-Tails and Rikudou "forms" are NOT
+// persistent modes — they're one-shot COMBO moves (n7FourTails = Up+Special, n7Rikudou = Fwd+Ultimate), each
+// a transform→attack→revert sequence that uses its own full sheet combo. So there is no red/beast ladder.
 export function enterNarutoSeventhForm(fighter, context = {}) {
   if (!isN7Char(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
-  const cur = fighter._n7Form || "base", bond = fighter._n7Bond || 0
-  if (cur === "base")           { if (bond >= 1) return enterN7Red(fighter, context) }
-  else if (cur === "red")       { if (bond >= 2) { revertN7Red(fighter); return enterN7FourTails(fighter, context) } }
-  else if (cur === "fourtails") { if (bond >= 3) { revertN7FourTails(fighter); return enterNarutoSeventhKCM(fighter, context) } }
-  return false   // already at KCM (top), or Bond too low to step up
+  if ((fighter._n7Form || "base") !== "base") return false   // already in the cloak (the only form)
+  if ((fighter._n7Bond || 0) < 3) return false               // Nine-Tails Chakra Cloak needs Bond 3
+  return enterNarutoSeventhKCM(fighter, context)
 }
 export function revertNarutoSeventhForm(fighter) {
   if (!fighter) return

@@ -35,19 +35,18 @@ const b1=(await n7()).bondPts;
 console.log("  charge-up: bondPts",b0,"->",b1,"form",(await n7()).n7form);
 log.push(["charge-fills-bond", b1>b0+15]);
 
-// ── 2. STEP-UP LADDER (NEW INPUT): Bond 3, HOLD Charge (P) + TAP Ultimate 3× → Red → Four-Tails → KCM ──
-await page.evaluate(()=>window.__harness.setN7Bond(85)); await prep(120);
+// ── 2. TRANSFORM (NEW MODEL): the ONLY form is the Nine-Tails Chakra Cloak — HOLD Charge (P) + TAP Ultimate
+//      at Bond 3 enters it in ONE step (no red/four-tails ladder; those are combo moves now). ──
+await page.evaluate(()=>window.__harness.setN7Bond(100)); await prep(120);
 await page.evaluate(()=>window.__harness.fillEnergy());
 async function tapU(){await page.keyboard.down(K.ult);await wf(2);await page.keyboard.up(K.ult);await wf(14);}
+const fb0=(await n7()).n7form;
 await page.keyboard.down(K.charge); await wf(16);                    // start HOLDING Charge
 await tapU(); const f1=(await n7()).n7form;
-await page.evaluate(()=>window.__harness.fillEnergy()); await tapU(); const f2=(await n7()).n7form;
-await page.evaluate(()=>window.__harness.fillEnergy()); await tapU(); const f3=(await n7()).n7form;
 await page.keyboard.up(K.charge); await wf(4);
-console.log("  ladder steps (hold P + tap U):",f1,"→",f2,"→",f3);
-log.push(["step-up-red",       f1==="red"]);
-log.push(["step-up-fourtails", f2==="fourtails"]);
-log.push(["step-up-kcm",       f3==="kcm"]);
+console.log("  transform (hold P + tap U):",fb0,"→",f1);
+log.push(["base-before",       fb0==="base"]);
+log.push(["cloak-in-one-step", f1==="kcm"]);
 await shot("54_ladder_kcm.png");
 // tap exits from top
 await page.keyboard.down(K.charge); await wf(3); await page.keyboard.up(K.charge); await wf(8);

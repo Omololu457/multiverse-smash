@@ -15,8 +15,8 @@ const state=()=>page.evaluate(()=>window.__harness.state());
 const n7=()=>page.evaluate(()=>window.__harness.narutoSeventh());
 async function wf(n){const s=(await state()).frame;await page.waitForFunction(([a,b])=>window.__harness.state().frame>=a+b,[s,n],{timeout:20000,polling:16});}
 const shot=async(n)=>{await page.screenshot({path:path.join(OUT,n)});console.log("  wrote",n);};
-const K={light:"j",heavy:"k",charge:"p"};
-let FWD="d";
+const K={light:"j",heavy:"k",special:"l",charge:"p"};
+let FWD="d",UP="w";
 const log=[];
 await page.goto(`${base}/index.html?harness=1&p1=naruto_seventh&p2=sasuke`,{waitUntil:"load"});
 await page.waitForFunction(()=>!!window.__harness,null,{timeout:15000}); await page.mouse.click(640,360);
@@ -36,13 +36,15 @@ log.push(["kcm-form", (await n7()).n7form==="kcm"]);
 await page.keyboard.down(K.heavy); await wf(4); await shot("61_kcm_arm.png"); await page.keyboard.up(K.heavy); await wf(14);
 log.push(["kcm-still-golden-after-heavy", (await n7()).skin==="golden"]);
 
-// Four-Tails beast locomotion
-await form("fourtails"); await walk(18); await shot("62_ft_run.png");
-log.push(["ft-form", (await n7()).n7form==="fourtails"]);
-await page.evaluate(()=>window.__harness.healP2());
-await page.keyboard.down(K.light); await wf(4); await shot("63_ft_claw.png"); await page.keyboard.up(K.light); await wf(14);
-await page.keyboard.down(K.heavy); await wf(4); await shot("64_ft_arm.png"); await page.keyboard.up(K.heavy); await wf(14);
-log.push(["ft-still-beast-after-attacks", (await n7()).skin==="golden"]);  // skin="golden" sentinel = _skinAnim set
+// Four-Tails is a COMBO (Up+Special) — the full red-beast sequence plays, then reverts. Capture its frames.
+const redBeastPx=()=>page.evaluate(()=>{const c=document.querySelector("canvas");const d=c.getContext("2d").getImageData(0,150,c.width,410).data;let r=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<30)continue;const R=d[i],G=d[i+1],B=d[i+2];if(R>90&&R<200&&G<70&&B<80&&R-G>50)r++;}return r;});
+await settle(); await page.evaluate(()=>{window.__harness.setN7Form("base");window.__harness.setN7Bond(60);window.__harness.healP2();}); await wf(4);
+await page.keyboard.down(UP); await page.keyboard.down(K.special); await wf(4); await page.keyboard.up(K.special); await page.keyboard.up(UP);
+await wf(26); await shot("62_fourtails_combo.png"); const beast=await redBeastPx();
+console.log("  4-Tails combo cast",(await n7()).cast,"redBeastPx",beast);
+log.push(["fourtails-combo-plays-beast", (await n7()).cast==="n7FourTails" && beast>300]);
+await wf(120);
+log.push(["fourtails-combo-reverts", (await n7()).n7form==="base"]);
 
 const pass=log.filter(x=>x[1]).length, tot=log.length;
 console.log(`\n  RESULT ${pass}/${tot}`); for(const [n,ok] of log) console.log(`   ${ok?"✅":"❌"} ${n}`);

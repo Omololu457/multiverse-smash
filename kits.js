@@ -134,7 +134,7 @@ export const KITS = {
       { name: "Tengai Shinsei",         input: "Up + Special (in a ladder stage)", cost: 60, desc: "call down a meteor; at Perfect Susano'o a SECOND bigger meteor falls (canon double meteor) [CANON]" }
     ],
     mobility: { name: "Shunshin Dash", input: "Dash / Double-tap", cost: 0, desc: "physical body-shift dash (not a teleport)" },
-    ultimate: { name: "Susanoo", input: "Ultimate (TAP / HOLD)", cost: 100, desc: "TAP = Perfect Susanoo / Tengai Shinsei — a meteor call-down cinematic. HOLD (needs ≥180 banked Chakra) = Complete Susanoo — the giant four-armed avatar with huge sword swings [CANON]" },
+    ultimate: { name: "Susanoo", input: "Ultimate (TAP / HOLD / Up)", cost: 100, desc: "TAP = Perfect Susanoo / Tengai Shinsei — a meteor call-down cinematic. HOLD (≥180 Chakra) = Complete Susanoo — the giant four-armed avatar with huge sword swings. UP + Ultimate (at FULL Chakra) = SUSANO'O AVATAR — a timed boss mode with its own HP: Light/Heavy = two-hit sword, Special = Yasaka Magatama, Up+Special = Tengai meteor, ↓→+Special = Gōka Mekkyaku; ends on timeout or HP-break, dissolving back to base [CANON]" },
     combos: [
       // Madara is a rekka-grammar EXCEPTION (Fwd+Heavy command-normal, no light-chain) — bread-and-butter
       // leads with the Susanoo command-grab, NOT a "Light, Light" string (see combo_standard_audit §F).

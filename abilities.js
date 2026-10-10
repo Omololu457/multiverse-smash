@@ -21810,6 +21810,14 @@ export function updateMadaraCommandCombat(fighter, inputState, context, getPhase
   const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
 
+  // ── WAR UPGRADE Phase 3 — SUSANO'O AVATAR: Light/Heavy = the boss's two-hit sword swing.
+  if ((fighter._madaraAvatar || 0) > 0) {
+    if (!canStart || (fighter._madaraAvatarLose || 0) > 0) return false
+    if (heavyEdge) return fireMadaraAvatarSlash(fighter, "heavy")
+    if (lightEdge) return fireMadaraAvatarSlash(fighter, "light")
+    return false
+  }
+
   // ── WAR UPGRADE Phase 2 — SUSANO'O LADDER: while in a ladder stage, Light/Heavy = that stage's
   // blade/sword swing. (Climb fires on charge-RELEASE from game.js; HP bleed ticks per-frame there too.)
   if ((fighter._madaraLadder || 0) > 0) {
@@ -24691,9 +24699,9 @@ const MADARA_SHINRA_DMG   = 46    // chip only — the payoff is the repulsion k
 
 // Katon: Gōka Mekkyaku (CANON) — qcf. A wide, short-ranged rolling WALL of flame (not a long thin projectile):
 // big hitbox, strong damage, modest travel, then dissipates. 12-frame flame sheet from P.
-function fireMadaraGokaMekkyaku(fighter, context) {
+function fireMadaraGokaMekkyaku(fighter, context, free = false) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, MADARA_GOKA_COST)) return false
+  if (!free && !spendEnergy(fighter, MADARA_GOKA_COST)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove  = "madaraFireballCast"   // reuse his OWN Katon hand-seal→exhale body pose
   fighter._spriteCastTimer = 30
@@ -24869,9 +24877,9 @@ function fireMadaraLadderSlash(fighter, key) {
   return true
 }
 // YASAKA MAGATAMA (ladder Special, S1+) — hurls 5 spinning tomoe in a fan (canon x5).
-function fireMadaraYasakaMagatama(fighter, context) {
+function fireMadaraYasakaMagatama(fighter, context, free = false) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, 40)) return false
+  if (!free && !spendEnergy(fighter, 40)) return false
   const face = fighter.facing || 1
   fighter.attackCooldown = getAttackDuration(26, fighter)
   try { sound.playSfxFile?.(pickMadaraVoice("susanooPunch"), null); fighter._atkVoiceCd = 150 } catch (_) {}
@@ -24889,9 +24897,9 @@ function fireMadaraYasakaMagatama(fighter, context) {
 }
 // TENGAI SHINSEI (ladder Special, Up+Special, S1+) — call down a falling meteor (P rock). At Stage 3, A's
 // BIG fiery meteor falls as a SECOND meteor (canon double meteor). Projectile-based, deterministic.
-function fireMadaraLadderTengai(fighter, context) {
+function fireMadaraLadderTengai(fighter, context, free = false) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, 60)) return false
+  if (!free && !spendEnergy(fighter, 60)) return false
   const face = fighter.facing || 1
   fighter.attackCooldown = getAttackDuration(34, fighter)
   try { sound.playSfxFile?.(pickMadaraVoice("tengaiShinsei"), null); fighter._atkVoiceCd = 150 } catch (_) {}
@@ -24915,8 +24923,109 @@ function fireMadaraLadderTengai(fighter, context) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MADARA — WAR UPGRADE Phase 3: SUSANO'O AVATAR (A). Timed BOSS mode from Altair's sheet, entered by
+// Up+Ult at FULL chakra. A towering layered avatar with its OWN HP + kit: Light/Heavy = two-hit sword,
+// Special = Yasaka Magatama, Up+Special = its own Tengai meteor, qcf = Gōka Mekkyaku (fire). Ends on
+// TIMEOUT or Avatar-HP break → A's LOSE dither-dissolve (8f) → back to base. Additive: never displaces the
+// Ult tap (Tengai cinematic) / hold (Complete giant). Deterministic, LAN-safe (no gameRng).
+// ═══════════════════════════════════════════════════════════════════════════════
+const MADARA_AVATAR_COST     = 200   // full-chakra entry cost (of 220)
+const MADARA_AVATAR_DURATION = 660   // ~11s timed boss window
+const MADARA_AVATAR_HP        = 900  // Avatar HP (a break ends it early → dissolve)
+const MADARA_AVATAR_LOSE_FR   = 48   // LOSE dither-dissolve play length (frames)
+const _MAD_AV_IDLE = { frames: 1, width: 443, height: 440, speed: 40, anchorY: 0, loop: true, sheet: "./madara_avatar_idle_uniform.png" }
+const MADARA_AVATAR_ANIM = (() => {
+  const o = {}; for (const k of ["idle","walk","run","dash","jump","fall","guard","knockdown","up","air","grab","down_air"]) o[k] = _MAD_AV_IDLE
+  o.hurt  = { frames: 1, width: 443, height: 440, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_avatar_idle_uniform.png" }
+  o.light = { frames: 3, width: 554, height: 574, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_avatar_attack_uniform.png" }
+  o.heavy = { frames: 3, width: 554, height: 574, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_avatar_attack_uniform.png" }
+  return o
+})()
+const MADARA_AVATAR_LOSE_ANIM = (() => {
+  const d = { frames: 8, width: 428, height: 392, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_avatar_lose_uniform.png" }
+  const o = {}; for (const k of ["idle","walk","run","dash","jump","fall","guard","hurt","knockdown","up","air","grab","down_air","light","heavy"]) o[k] = d
+  return o
+})()
+export function enterMadaraAvatar(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  fighter._madaraAvatar     = MADARA_AVATAR_DURATION
+  fighter._madaraAvatarLose = 0
+  fighter._avatarHP         = MADARA_AVATAR_HP
+  fighter._avatarHPMax      = MADARA_AVATAR_HP
+  fighter._avatarHpWatch    = fighter.health
+  fighter._skinAnim         = MADARA_AVATAR_ANIM
+  fighter._canvasHeightFrac = 0.92               // towering boss (fills ~92% canvas height)
+  fighter._canvasHeightRefH = 440
+  fighter.damageMultiplier  = 2.0
+  fighter.attackMultiplier  = 2.0
+  fighter.defenseMultiplier = 1.7
+  fighter.canJump           = false              // planted giant
+  fighter.vx = 0; fighter.vy = 0                 // cancel any jump impulse from the Up input
+  fighter.currentForm       = "susanooAvatar"
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 18)
+  // if a ladder stage was active, the Avatar supersedes it (fold it in — never stack)
+  fighter._madaraLadder = 0; fighter._madLadderHP = 0
+  return true
+}
+// Up+Ult entry (spends full-chakra cost). Called from game.js's ult press path.
+export function enterMadaraAvatarUlt(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  if (isMadaraTengaiShinseiCinematicActive() || (fighter._madaraComplete || 0) > 0) return false
+  if ((fighter._madaraAvatar || 0) > 0 || (fighter._madaraAvatarLose || 0) > 0) return false
+  if ((fighter.energy || 0) < (fighter.maxEnergy || 220)) return false   // FULL chakra only
+  if (!spendEnergy(fighter, MADARA_AVATAR_COST)) return false
+  try { sound.playSfxFile?.(pickMadaraVoice("completeSusanoo"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return enterMadaraAvatar(fighter)
+}
+function startMadaraAvatarLose(fighter) {
+  fighter._madaraAvatar     = 0
+  fighter._madaraAvatarLose = MADARA_AVATAR_LOSE_FR
+  fighter._skinAnim         = MADARA_AVATAR_LOSE_ANIM
+  fighter.attacking = false; fighter.currentMove = null
+  fighter.attackCooldown    = getAttackDuration(MADARA_AVATAR_LOSE_FR, fighter)   // locked through the dissolve
+}
+export function revertMadaraAvatar(fighter) {
+  fighter._madaraAvatar = 0; fighter._madaraAvatarLose = 0; fighter._avatarHP = 0
+  fighter._skinAnim = null; fighter._canvasHeightFrac = null; fighter._canvasHeightRefH = null
+  fighter.damageMultiplier = 1; fighter.attackMultiplier = 1; fighter.defenseMultiplier = 1
+  fighter.canJump = true; fighter.currentForm = "base"
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+}
+// Per-frame avatar tick (from game.js form-tick): timeout countdown, HP bleed → break, dissolve → revert.
+export function tickMadaraAvatar(fighter) {
+  if (!fighter) return
+  if ((fighter._madaraAvatarLose || 0) > 0) { if (--fighter._madaraAvatarLose <= 0) revertMadaraAvatar(fighter); return }
+  if ((fighter._madaraAvatar || 0) <= 0) return
+  fighter._madaraAvatar--
+  const hp = fighter.health, prev = (fighter._avatarHpWatch != null) ? fighter._avatarHpWatch : hp
+  if (hp < prev) fighter._avatarHP = (fighter._avatarHP || 0) - (prev - hp)
+  fighter._avatarHpWatch = fighter.health
+  if (fighter.eliminated) { revertMadaraAvatar(fighter); return }
+  if (fighter._madaraAvatar <= 0 || (fighter._avatarHP || 0) <= 0) startMadaraAvatarLose(fighter)
+}
+const MADARA_AVATAR_ATK = {
+  light: { damage: 95,  startup: 8,  active: 6, recovery: 18, hitstun: 28, knockbackX: 14, knockbackY: -5, rangeX: 250, rangeY: 230, isSpecial: true },
+  heavy: { damage: 130, startup: 11, active: 6, recovery: 22, hitstun: 32, knockbackX: 18, knockbackY: -6, rangeX: 270, rangeY: 240, isSpecial: true },
+}
+function fireMadaraAvatarSlash(fighter, key) {
+  const md = MADARA_AVATAR_ATK[key]; if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove="light"/"heavy" → renders the avatar sword _skinAnim
+  return true
+}
+
 function executeMadaraSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
+
+  // ── WAR UPGRADE Phase 3 — SUSANO'O AVATAR specials (its own boss kit): Up+Special = Tengai meteor,
+  // qcf = Gōka Mekkyaku (A-fire read), else Yasaka Magatama. Takes priority over everything while the Avatar is up.
+  if ((fighter._madaraAvatar || 0) > 0) {
+    if (endsWithPattern(dirs, ["U"]))       return fireMadaraLadderTengai(fighter, context, true)    // FREE — the 200-chakra entry IS the cost
+    if (endsWithPattern(dirs, ["D", "F"]))  return fireMadaraGokaMekkyaku(fighter, context, true)
+    return fireMadaraYasakaMagatama(fighter, context, true)
+  }
 
   // ── WAR UPGRADE Phase 2 — SUSANO'O LADDER stage specials. While in a ladder stage the Special button
   // casts the stage's Susano'o techniques (Up+Special = Tengai Shinsei meteor / double at S3; else Yasaka

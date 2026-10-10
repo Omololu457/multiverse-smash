@@ -147,6 +147,10 @@ export const FX_SHEETS_BY_CHAR = {
     "./madara_yasaka_magatama_uniform.png",
     "./madara_tengai_meteor_uniform.png",
     "./madara_tengai_meteor_big_uniform.png",
+    // WAR UPGRADE Phase 3 — Susano'o AVATAR (A boss mode): idle bust, 2-hit sword, LOSE dither-dissolve.
+    "./madara_avatar_idle_uniform.png",
+    "./madara_avatar_attack_uniform.png",
+    "./madara_avatar_lose_uniform.png",
   ],
   // War-Susano'o Tier-1 pieces (border-flood-fill keyed from sasuke_war_susano_by_nes). Procedural Arm Grab +
   // Ribcage Guard — shared by both allowlisted fighters. tools/susano/gen_susano_tier1.py.

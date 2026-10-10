@@ -205,6 +205,8 @@ import {
   updateMadaraCommandCombat,     // Madara Fwd+Heavy → Susanoo Base Punch (command-normal, Stage 3 special #6)
   maybeMadaraLadderClimb,        // Madara WAR Phase 2 — Susano'o Ladder: climb one stage on charge-RELEASE at full chakra
   tickMadaraLadderHP,            // Madara WAR Phase 2 — per-frame Susano'o-HP bleed + break→drop (runs even while charging)
+  enterMadaraAvatarUlt,          // Madara WAR Phase 3 — Up+Ult at full chakra → Susano'o Avatar (A boss mode)
+  tickMadaraAvatar,              // Madara WAR Phase 3 — per-frame Avatar timeout / HP-break → LOSE dissolve → revert
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -7338,6 +7340,7 @@ function updateMiscTimers(fighter) {
   if (fighter._maxWebTimer > 0) fighter._maxWebTimer--               // Spider-Man Maximum Web cinematic countdown (drives drawSpidermanMaxWebCinematic web-net overlay)
   if (fighter._madaraComplete > 0) { fighter._madaraComplete--; if (fighter._madaraComplete <= 0) revertMadaraCompleteSusanoo(fighter) }   // Madara tier-4 Complete Susanoo giant duration → auto-revert
   tickMadaraLadderHP(fighter)   // Madara WAR Phase 2 — Susano'o Ladder HP bleed / break→drop / climb-FX tick (every frame, even while charging)
+  tickMadaraAvatar(fighter)     // Madara WAR Phase 3 — Susano'o Avatar timeout / HP-break → LOSE dissolve → revert (every frame)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -8038,6 +8041,14 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "sasuke_sensei"
       && betaHeldDirFromInput(inputState, fighter.facing) === "U") {
     cycleSasukeSenseiEyeSet(fighter); return
+  }
+  // MADARA — Up + Ultimate at FULL chakra → SUSANO'O AVATAR (A boss mode). Intercepted on PRESS (like Sasuke
+  // Sensei's Up+Ult) so a DELIBERATE Up is required (not a stray jump in the direction history). Clearing
+  // _ultHeld suppresses the release-driven tap/hold path so it can't also fire Tengai/Complete. A non-Up
+  // Ultimate falls through untouched to the release handler (tap=Tengai cinematic / hold=Complete giant).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "madara"
+      && betaHeldDirFromInput(inputState, fighter.facing) === "U") {
+    if (enterMadaraAvatarUlt(fighter, getAbilityContext())) { announce("ultActivate", { priority: true, minGap: 900 }); fighter._ultHeld = false; return }
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !((fighter._kotoMirror || 0) > 0) && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }   // Kotoamatsukami locks the victim's Ultimate

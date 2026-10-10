@@ -10587,12 +10587,12 @@ const shisuiPuppeteer = {
     light: { frames: 4, width: 62, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_light_uniform.png" },
     heavy: { frames: 5, width: 79, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_heavy_uniform.png" },
     up:    { frames: 5, width: 67, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_up_uniform.png" },
-    air:   { frames: 3, width: 66, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
-    down_air: { frames: 3, width: 66, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
+    air:   { frames: 3, width: 36, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
+    down_air: { frames: 3, width: 36, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
     crouchLight: { frames: 3, width: 73, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_crouchLight_uniform.png" },
     // all PUPPETEER jutsu share the hand-seal cast pose (the JUS Ultimate-Action cast frames)
-    puCast: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" },
-    shiBackstab: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" }
+    puCast: { frames: 4, width: 38, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" },
+    shiBackstab: { frames: 4, width: 38, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" }
   }
 }
 

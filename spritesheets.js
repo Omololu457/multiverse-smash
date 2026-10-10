@@ -447,6 +447,12 @@ export const SPRITE_MANIFEST = {
   kakashi_anbu: {
     actions: { idle: "./kakashi_anbu_idle_uniform.png" }
   },
+  // Kakashi (Kamui) — NEW additive (kakashi_war). Idle gate flips the sprite handler on; per-action rendering
+  // reads characters.js → kakashiWar.animationData (each action carries its own .sheet). Border-flood-fill-keyed
+  // uniform strip (kakashi_war_work/slice.py; navy felipedanielskibr sheet).
+  kakashi_war: {
+    actions: { idle: "./kakashi_war_idle_uniform.png" }
+  },
 
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action

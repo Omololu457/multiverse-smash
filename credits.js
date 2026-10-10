@@ -305,6 +305,17 @@ export const SOURCED_ART = {
     source:  "sprite rip from Naruto Shippuden: Ninja Council 4 (DS/DSi); in-sheet credit to Neimad / DS Ripping Forum",
     files:   ["kakashi_*.png"]
   },
+  // Kakashi (Kamui) — NEW additive fighter (kakashi_war). Body/kit art from a fan NZC-style sheet (ripper
+  // Kazushi, "give credits if used"; uploaded by felipedanielskibr), border-floodfill keyed/resliced in-repo
+  // by kakashi_war_work/slice.py. The Perfect Susanoo (Phase 5) is recoloured from Mikel8888's grayscale
+  // "Perfect Susanoo Kakashi" art, with thanks to RCT29 and xxJonnyxx (shuriken effect + face touches) as
+  // written on that sheet.
+  kakashi_war: {
+    work:    "Kakashi (Kamui) — body/kit + Perfect Susanoo",
+    artists: ["Kazushi (sprite rip)", "felipedanielskibr (uploader)", "Mikel8888 (Perfect Susanoo art)", "RCT29 (shuriken effect)", "xxJonnyxx (face touches)"],
+    source:  "fan sprite sheets (NOT official game rips). Body: NZC-style sheet, in-sheet credit to Kazushi ('give credits if used'), uploaded by felipedanielskibr. Susanoo: Mikel8888's 'Perfect Susanoo Kakashi', with thanks to RCT29 + xxJonnyxx.",
+    files:   ["kakashi_war_*.png"]
+  },
   // Gwen Tennyson (Ben 10). Fan-made JUS-style chibi sheet — in-sheet credit to the original authors is
   // MANDATORY (mirrors other fan-sheet chars). Resliced feet-aligned in-repo by tools/reslice_gwen.py.
   gwen: {

@@ -10021,6 +10021,182 @@ export function updateKakashiAnbu(fighter, context, heldSpecial = false, blockCi
   }
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (KAMUI) — rosterKey "kakashi_war". NEW additive fighter; base `kakashi` + `kakashi_anbu` are
+// UNTOUCHED. All logic namespaced here + in game.js FX. Deterministic / LAN-safe (frame-based, no gameRng).
+// combat.js UNTOUCHED.
+//   PHASE 1 (live): neutral Special = RAIKIRI (charge-hold, GROUND + AIR) · Back+Special = KAWARIMI
+//     (substitution guard-escape: log + smoke swap, reappear behind the attacker).
+//   RESERVED (later phases, return false for now): F=Kamui(P2) · D=Tsuiga(P2) · U=Sennen Goroshi(P2).
+//   Raikiri TRACKING is gated on `_sharinganActive` (Phase 2) — in Phase 1 it is always false → the dash
+//   goes STRAIGHT and can whiff (canon: the eye solves Chidori's tunnel vision).
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_WAR_RAIKIRI = {
+  cost: 30, windup: 6, chargeCap: 48,        // hold up to 48 frames past windup for max damage
+  minRaw: 72, maxRaw: 134,                    // ×0.60 → ~43-80 EFF (tap→full)
+  dashSpeed: 27, airDashSpeed: 24, airVy: 2,  // air version drifts slightly downward as it travels
+  dashFramesMax: 20, reach: 48, track: 0.17,
+  hitstun: 24, kb: 11, vy: -4,
+}
+// Start the charge (neutral Special; armed from game.js canStart for BOTH ground and air). HOLD/RELEASE +
+// dash are driven per-frame in updateKakashiWar (post-updateCombat → no freeze).
+export function startKakashiWarRaikiri(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  const R = KAKASHI_WAR_RAIKIRI
+  if (fighter._raikiriCharging || fighter._raikiriDashing) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, R.cost)) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  fighter._raikiriAir = !grounded
+  fighter.vx = 0
+  fighter._raikiriCharging = true
+  fighter._raikiriChargeFrames = 0
+  fighter._spriteCastMove = grounded ? "raikiri_charge" : "raikiri_air_charge"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown = getAttackDuration(R.windup, fighter)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)   // teleport-in beat
+  return true
+}
+function applyKakashiWarRaikiriHit(fighter, opp, context, raw) {
+  if (!opp || opp.eliminated) return
+  const R = KAKASHI_WAR_RAIKIRI
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.4); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun)
+    opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy
+    opp.colorFlash = 14
+  }
+  applyScaledDamage(opp, dmg, { source: "kakashi_war-raikiri" })
+  try { shakeCamera(context, 10, 10) } catch (_) {}
+}
+function fireKakashiWarRaikiriDash(fighter, context, chargeFrames) {
+  const R = KAKASHI_WAR_RAIKIRI
+  const opp = getTargetResolver(context)(fighter) || null
+  const frac = Math.min(1, Math.max(0, (chargeFrames || 0)) / R.chargeCap)
+  fighter._raikiriDashDmg = Math.round(R.minRaw + (R.maxRaw - R.minRaw) * frac)
+  fighter._raikiriDashTracking = !!fighter._sharinganActive         // Sharingan ON (P2) → homing dash; P1 = straight
+  fighter._raikiriDashing = true
+  fighter._raikiriDashFrames = 0
+  fighter._raikiriDashHit = false
+  if (opp && fighter._raikiriDashTracking) fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  const spd = fighter._raikiriAir ? R.airDashSpeed : R.dashSpeed
+  fighter.vx = (fighter.facing || 1) * spd
+  // No dedicated ground dash-pose sheet → reuse the extended-thrust strike pose for the travel.
+  fighter._spriteCastMove = fighter._raikiriAir ? "raikiri_air_strike" : "raikiri_strike"; fighter._spriteCastTimer = 40
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter.attackCooldown = getAttackDuration(R.dashFramesMax + 14, fighter)
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+}
+function kwarAABBHit(fighter, opp, reach) {
+  const fx = (fighter.x || 0) + ((fighter.facing || 1) > 0 ? 0 : -reach)
+  const fw = (fighter.w || 60) + reach
+  return fx < opp.x + (opp.w || 60) && fx + fw > opp.x &&
+         (fighter.y || 0) < opp.y + (opp.h || 100) && (fighter.y || 0) + (fighter.h || 100) > opp.y
+}
+
+// ── KAWARIMI (Substitution, Back+Special) — a guard-escape: swap with a log + smoke and reappear BEHIND the
+//    attacker, with brief i-frames. Chakra cost + cooldown. The log + smoke are code-drawn (drawKakashiWarFx).
+//    Allowed while blocking / in blockstun (the intended escape) OR as a quick evasive blink otherwise. ──
+const KAKASHI_WAR_KAWARIMI = { cost: 14, cd: 90, iframes: 16, logT: 22 }
+function fireKakashiWarKawarimi(fighter, context) {
+  const K = KAKASHI_WAR_KAWARIMI
+  if ((fighter._kwCd || 0) > 0) return false
+  if (!spendEnergy(fighter, K.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  const sw = context?.worldWidth || 3200
+  fighter._kwCd = K.cd
+  fighter._kwLog = { x: (fighter.x || 0) + (fighter.w || 60) / 2, y: (fighter.y || 0) + (fighter.h || 100) / 2, t: K.logT, max: K.logT }   // log + smoke at the vacated spot
+  if (opp) {
+    const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + 6) : (opp.x - (fighter.w || 60) - 6)
+    fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), behind))
+    fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  } else {
+    fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), (fighter.x || 0) - (fighter.facing || 1) * 120))
+  }
+  fighter.vx = 0
+  fighter.blockstun = 0; fighter.isBlocking = false; fighter.hitstun = 0   // break out of guard/stun
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, K.iframes)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 14)
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 12          // calm reappearance (no dedicated warp pose)
+  fighter.attackCooldown = getAttackDuration(10, fighter)
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+  return true
+}
+
+// DISPATCHER — directional Special. Neutral (ground OR air) = Raikiri, armed in game.js canStart
+// (startKakashiWarRaikiri), so the neutral path here is a no-op.
+export function executeKakashiWarSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  if (fighter._raikiriCharging || fighter._raikiriDashing) return false   // Raikiri owns the Special while active
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "B") return fireKakashiWarKawarimi(fighter, context)         // PHASE 1 — Kawarimi guard-escape
+  // F = Kamui (P2) · D = Tsuiga (P2) · U = Sennen Goroshi (P2)
+  return false
+}
+
+// PER-FRAME driver (called for p1 & p2 every frame in game.js, post-updateCombat). PHASE 1: Raikiri charge
+// HOLD/RELEASE + dash travel + contact (ground + air), Kawarimi cooldown + log-FX timer.
+export function updateKakashiWar(fighter, context, heldSpecial = false, blockCinematics = false) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return
+  const R = KAKASHI_WAR_RAIKIRI
+  // ── Kawarimi cooldown + log/smoke FX timer ──
+  if ((fighter._kwCd || 0) > 0) fighter._kwCd--
+  if (fighter._kwLog) { fighter._kwLog.t--; if (fighter._kwLog.t <= 0) fighter._kwLog = null }
+
+  // ── STRONG-DOWN ground-dog flourish: a single Ninken pops up when the crouch/down slash (crouchLight) is
+  //    active. Pure visual (no extra damage — the slash's own hit applies); blitted in drawKakashiWarFx. ──
+  const _inCrouchSlash = !!fighter.attacking && fighter._crouchAttackVariant === "crouchLight"
+  if (_inCrouchSlash && !fighter._warDogPrev) {
+    fighter._warDogT = 20; fighter._warDogMax = 20
+    fighter._warDogX = (fighter.x || 0) + (fighter.facing || 1) * 40; fighter._warDogFace = fighter.facing || 1
+    fighter._warDogY = (fighter.y || 0) + (fighter.h || 100)
+  }
+  fighter._warDogPrev = _inCrouchSlash
+  if ((fighter._warDogT || 0) > 0) fighter._warDogT--
+
+  // ── RAIKIRI charge HOLD / RELEASE (frame-based; deterministic). Interrupted by a hit → drop the charge. ──
+  if (fighter._raikiriCharging) {
+    if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._raikiriCharging = false }
+    else {
+      fighter._raikiriChargeFrames++
+      fighter.vx = 0
+      if (fighter._raikiriAir) fighter.vy = 0                              // hover while air-charging
+      fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, getAttackDuration(6, fighter))   // stay committed
+      fighter._spriteCastMove = fighter._raikiriAir ? "raikiri_air_charge" : "raikiri_charge"; fighter._spriteCastTimer = 30
+      if (!(heldSpecial && fighter._raikiriChargeFrames < R.chargeCap)) {  // released OR capped → DASH
+        fighter._raikiriCharging = false
+        fireKakashiWarRaikiriDash(fighter, context, fighter._raikiriChargeFrames)
+      }
+    }
+  }
+  // ── RAIKIRI dash travel + (Sharingan) homing + contact ──
+  if (fighter._raikiriDashing) {
+    if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._raikiriDashing = false; fighter.vx = 0; return }
+    fighter._raikiriDashFrames++
+    const opp = getTargetResolver(context)(fighter) || null
+    const spd = fighter._raikiriAir ? R.airDashSpeed : R.dashSpeed
+    if (fighter._raikiriDashTracking && opp && !opp.eliminated) {          // Sharingan ON → steer toward foe (limited)
+      const toFoe = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+      const desired = (toFoe >= 0 ? 1 : -1) * spd
+      fighter.vx += (desired - fighter.vx) * R.track
+      fighter.facing = toFoe >= 0 ? 1 : -1
+    } else {
+      fighter.vx = (fighter.facing || 1) * spd                             // straight dash — re-assert vs friction
+    }
+    if (fighter._raikiriAir) fighter.vy = R.airVy                          // mild downward drift in the air
+    if (!fighter._raikiriDashHit && opp && !opp.eliminated && kwarAABBHit(fighter, opp, R.reach)) {
+      fighter._raikiriDashHit = true
+      applyKakashiWarRaikiriHit(fighter, opp, context, fighter._raikiriDashDmg)
+      fighter._spriteCastMove = fighter._raikiriAir ? "raikiri_air_strike" : "raikiri_strike"; fighter._spriteCastTimer = 26
+      fighter.vx = 0; fighter._raikiriDashing = false
+    } else if (fighter._raikiriDashFrames >= R.dashFramesMax) {            // WHIFF → recover
+      fighter._spriteCastMove = fighter._raikiriAir ? "raikiri_air_strike" : "raikiri_strike"; fighter._spriteCastTimer = 22
+      fighter.vx = 0; fighter._raikiriDashing = false
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // VEGITO (Dragon Ball) — Stage 4 SPECIALS (fixed-slot large ki kit; 6 named specials + Kamehameha ULT).
 // Directional / air branch (mirrors executePiccoloSpecial):
@@ -28272,6 +28448,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "vegito":  return executeVegitoSpecial(fighter, context)   // neutral=Big Bang (big sphere) / Fwd=Galick Gun (purple piercing beam) / Back=Banshee Blast (gold rapid-fire volley) / Down=Spread Finger Beam (yellow fan) / U=Air Ki Blast (rising dart) / AIR=Perfect Shot (cyan dart pair)
     case "kakashi": return executeKakashiSpecial(fighter, context)  // Stage 4 "Weapon Throw" kunai (orange spinning-slash), 3 stance contexts: standing (ground) / crouch (Down) / air (airborne). Summons/Raikiri/Mangekyou land in later stages.
     case "kakashi_anbu": return executeKakashiAnbuSpecial(fighter, context)  // NEW additive. PHASE 1: F+Special = Body Flicker (teleport-dodge). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu)
+    case "kakashi_war": return executeKakashiWarSpecial(fighter, context)    // NEW additive (Kamui). PHASE 1: Back+Special = Kawarimi (guard-escape). Neutral Special = Raikiri (armed in game.js, ground+air). F/D/U + ULT = later phases.
     case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
     case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
     case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.

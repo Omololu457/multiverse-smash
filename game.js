@@ -274,7 +274,8 @@ import {
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
-  toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
+  toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
+  updateKakashiWar, startKakashiWarRaikiri   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -4053,6 +4054,7 @@ const INTRO_VOICE = {
   // Kakashi: "I'll be your opponent." / "Kakashi of the Sharingan." No taunt action → taunt rides offense-connect. JA.
   kakashi: { pool: KAKASHI_VOICE.intro, gateReveal: false },
   kakashi_anbu: { pool: KAKASHI_VOICE.intro, gateReveal: false },   // NEW additive ANBU variant reuses base Kakashi's intro pool (no new audio; combat.js untouched)
+  kakashi_war: { pool: KAKASHI_VOICE.intro, gateReveal: false },    // NEW additive Kamui variant reuses base Kakashi's intro pool (no new audio; combat.js untouched)
   // L (Ryuzaki): cryptic "monsters in this world" opener. No taunt action → taunt rides offense-connect. EN.
   l_ryuuzaki: { pool: L_RYUUZAKI_VOICE.intro, gateReveal: false },
   // Piccolo: "I have new, unbelievable power!" No taunt action → taunt rides offense-connect. EN.
@@ -6054,7 +6056,7 @@ function _checkMatchOver() {
         sound.playSfxFile?.(pickIronManVoice("win"), null)
       }
       // KAKASHI win voice — "That's the end. Next!" Fires only when the WINNER is Kakashi. JA.
-      if (winFighter?.rosterKey === "kakashi" || winFighter?.rosterKey === "kakashi_anbu") {   // ANBU variant reuses base Kakashi's win line (no new audio)
+      if (winFighter?.rosterKey === "kakashi" || winFighter?.rosterKey === "kakashi_anbu" || winFighter?.rosterKey === "kakashi_war") {   // ANBU + Kamui variants reuse base Kakashi's win line (no new audio)
         sound.playSfxFile?.(pickKakashiVoice("win"), null)
       }
       // PICCOLO win voice — "It's over. Special Beam Cannon!" Fires only when the WINNER is Piccolo. EN.
@@ -7842,6 +7844,13 @@ function _updatePlayerCombatBody(fighter) {
     if ((fighter.rosterKey || "").toLowerCase() === "kakashi_anbu" && !fighter._specialHeldDir &&
         (fighter.onGround ?? fighter.grounded ?? true) && !fighter._raikiriCharging && !fighter._raikiriDashing) {
       startKakashiAnbuRaikiri(fighter, getAbilityContext()); return
+    }
+    // KAKASHI (KAMUI) — a NEUTRAL Special is the RAIKIRI charge-hold (ground OR air): charge loop → dash →
+    // strike. Start the frame-based charge and consume the press; HOLD/RELEASE + dash run in updateKakashiWar.
+    // A DIRECTIONAL Special (Back = Kawarimi) falls through to triggerSpecial. Not while already charging/dashing.
+    if ((fighter.rosterKey || "").toLowerCase() === "kakashi_war" && !fighter._specialHeldDir &&
+        !fighter._raikiriCharging && !fighter._raikiriDashing) {
+      startKakashiWarRaikiri(fighter, getAbilityContext()); return
     }
     // SASUKE — RINNEGAN SPACE-TIME on CHARGE + Special (R1/R2/R5). Charge + Special = Amenotejikara Kunai
     // Swap · Charge + Fwd + Special = Portal Chidori · Charge + Back + Special = Portal Redirect. Rinnegan-
@@ -13117,6 +13126,38 @@ function drawKakashiAnbuTomoeField(c, fighter) {
   }
   c.restore()
 }
+// ── KAKASHI (KAMUI) — code-drawn FX (world space, drawn in renderHybridFighter). PHASE 1: the KAWARIMI
+//    substitution log + smoke at the vacated spot, and the single Strong-Down ground-dog. Both are sprite
+//    blits (kakashi_war_kawarimi_log / _dog uniform strips) + a procedural smoke puff. kakashi_war only.
+const _kwarFxImgs = {}
+function _kwarFxImg(src) { if (!_kwarFxImgs[src]) { const i = new Image(); i.src = src; _kwarFxImgs[src] = i } return _kwarFxImgs[src] }
+;["./kakashi_war_kawarimi_log_uniform.png", "./kakashi_war_dog_uniform.png"].forEach(_kwarFxImg)
+function drawKakashiWarFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_war") return
+  // KAWARIMI — a wooden log + a fading smoke puff where Kakashi was (the substitution).
+  if (fighter._kwLog) {
+    const L = fighter._kwLog, prog = 1 - L.t / L.max
+    const a = L.t / L.max
+    // smoke puff (expands + fades)
+    c.save(); c.globalAlpha = 0.55 * a
+    c.fillStyle = "rgba(220,220,225,0.9)"
+    for (let k = 0; k < 5; k++) {
+      const ang = k * (Math.PI * 2 / 5) + prog * 1.2
+      const rr = 8 + prog * 22
+      c.beginPath(); c.arc(L.x + Math.cos(ang) * rr, L.y + Math.sin(ang) * rr, 7 + prog * 6, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+    // the log drops in under the smoke
+    _gaaraBlitFx(c, _kwarFxImg("./kakashi_war_kawarimi_log_uniform.png"), 1, 0, L.x, L.y + 26, 1.4, Math.min(0.95, a + 0.3))
+  }
+  // STRONG-DOWN ground-dog — a single Ninken bursts up during the crouch/down slash (3-frame pop).
+  if ((fighter._warDogT || 0) > 0) {
+    const d = fighter._warDogT, mx = fighter._warDogMax || 20
+    const fi = Math.min(2, Math.floor((mx - d) / 5))
+    const img = _kwarFxImg("./kakashi_war_dog_uniform.png")
+    _gaaraBlitFx(c, img, 3, fi, fighter._warDogX || fighter.x, fighter._warDogY || (fighter.y + (fighter.h || 100)), 1.6, Math.min(0.95, d / 8))
+  }
+}
 // ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
 //    panel slides in with a red flash while _kanbuUltCutin ticks down (set by executeKakashiAnbuUltimate).
 let _kanbuIllusImg = null
@@ -15068,6 +15109,7 @@ function updateBattle() {
   { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
+  { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiWar(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiWar(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (KAMUI): Raikiri charge+dash (ground/air) + Kawarimi cooldown/FX timers (no-op otherwise)
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
@@ -15338,6 +15380,7 @@ function renderHybridFighter(fighter) {
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
+    drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")

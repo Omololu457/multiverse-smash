@@ -368,6 +368,34 @@ export const KITS = {
     ]
   },
 
+  kakashi_war: {
+    type: "Technical Shinobi / Kamui Specialist", energy: "Chakra", difficulty: "Hard",
+    summary: "War-arc \"Kamui\" Hatake Kakashi — a top-band technical shinobi built toward Obito's Gift and the Perfect Susanoo. His Attack-Combo kunai string, rising-kick launcher and Strong variants pressure up close (the Strong-Down slash pops a Ninken from the ground); the Raikiri (ground OR air) charge-thrust and the Kawarimi substitution guard-escape are his Phase-1 tools. The Sharingan, long-range Kamui, Kamui-Raikiri ult, Doton: Tsuiga, Copy Ninja, Sennen Goroshi (P2), Frog Henge + skins (P3), Obito's Gift (P4) and Perfect Susanoo (P5) arrive across later phases.",
+    passive: { name: "Sharingan (Kamui)", effect: "PHASE 2 — Charge-TAP toggles the Sharingan (code-drawn red eye). It drains Chakra while active and makes Raikiri TRACK the foe; at 0 Chakra it shuts off and Kakashi is briefly FATIGUED. (It also gates the long-range Kamui + Sennen launch.) In PHASE 1 the Raikiri always goes STRAIGHT." },
+    basics: [
+      { name: "Kunai Combo",   input: "Light",                   desc: "Attack-Combo opener — quick kunai slash string" },
+      { name: "Strong Lunge",  input: "Heavy",                   desc: "committed forward lunging Strong combo" },
+      { name: "Rising Kick",   input: "Up-Attack",               desc: "launcher — rising Strong kick, starts air combos" },
+      { name: "Air Combo",     input: "Air (jump + Light)",      desc: "aerial diving kunai slash" },
+      { name: "Air Strong",    input: "Air + Heavy",             desc: "the neutral Strong performed airborne" },
+      { name: "Down Slash",    input: "Crouch + Light",          desc: "low Strong slash — pops a single Ninken from the ground (visual)" }
+    ],
+    specials: [
+      { name: "Raikiri",       input: "Neutral + Special (charge-hold, GROUND or AIR)", cost: 30, desc: "Lightning Blade — HOLD Special to charge (more damage, capped) → release to DASH + thrust, on the ground or in the air. Sharingan ON (P2) tracks the foe; OFF goes straight and can whiff [CANON]" },
+      { name: "Kawarimi",      input: "Back + Special",          cost: 14, desc: "Substitution — a guard-escape: swap with a log + smoke and reappear BEHIND the attacker with brief i-frames. Cooldown [CANON]" },
+      { name: "Kamui",         input: "Forward + Special (needs Sharingan, P2)", cost: 44, desc: "long-range spatial rip — the Kamui swirl opens at the foe (grow → twist → collapse) for damage + a brief warp stun [CANON]" },
+      { name: "Doton: Tsuiga", input: "Down + Special (P2)",     cost: 40, desc: "ground crack → the Ninken burst up and PIN the foe (rooted + damage ticks) → smoke [CANON]" },
+      { name: "Sennen Goroshi",input: "Up + Special (P2)",       cost: 10, desc: "a crouch-lunge poke; light damage, and from behind (cross-up) it launches high [CANON]" },
+      { name: "Sharingan",     input: "Charge (tap, P2)",        cost: 0,  desc: "toggle the Sharingan — drains Chakra, makes Raikiri TRACK, gates Kamui + Sennen; at 0 Chakra it shuts off + brief fatigue [CANON]" }
+    ],
+    passiveNote: "PHASE 1 of 5 (body + normals + Raikiri ground/air + Kawarimi). The ultimate is DIRECTIONAL across later phases — neutral = KAMUI RAIKIRI (P2; a full Raikiri charge, a Kamui swirl opens beside the foe, the strike comes through it — eye-banner cut-in, guaranteed, very high cost). Up+Ult = OBITO'S GIFT (P4; a bond meter fills from Sharingan moves + damage taken — when full, a timed Double-Mangekyō mode grants Kamui Intangibility / Kamui Warp / Mini Kamui Shuriken, whose OWN ultimate (P5) is PERFECT SUSANOO). When the Gift ends the eyes return to Obito and Kamui / Kamui-Raikiri / Kamui-Shuriken are disabled for the REST OF THE ROUND + a brief exhaustion. Cinematics refuse during KO / Brutality / Domain / rewind.",
+    ultimate: { name: "Kamui Raikiri / Obito's Gift", input: "Ultimate (neutral / Up)", cost: 100, desc: "NEUTRAL (P2) = Kamui Raikiri — full charge-loop, a Kamui swirl opens beside the foe, the strike comes through it (eye-banner cut-in, guaranteed). UP (P4, meter full) = Obito's Gift — timed Double-Mangekyō mode, its own ultimate is Perfect Susanoo (P5) [CANON]" },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-kick launcher into aerial pressure" },
+      { name: "Air Raikiri",   sequence: "Jump, (hold) Special, release", desc: "charge the Lightning Blade in the air, release to dive-thrust" }
+    ]
+  },
+
   sasuke_sensei: {
     type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
     summary: "Boruto-era Sasuke at his peak — a dōjutsu master with THREE cycling eye-sets. RAITON (lightning blades + Kirin), MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) and RINNEGAN (gravity: repulsion, pull, absorb + Chibaku Tensei). Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques; the active set flashes above Sasuke.",

@@ -9203,6 +9203,98 @@ const kakashiAnbu = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// KAKASHI (KAMUI)  (rosterKey "kakashi_war", universe "naruto") — NEW additive fighter. The base `kakashi`
+// AND `kakashi_anbu` paths are UNTOUCHED (byte-identical). War-arc "Kamui" Kakashi — a top-band technical
+// shinobi built toward the Double-Mangekyō / Perfect Susanoo finisher. All logic is namespaced in
+// abilities.js (executeKakashiWarSpecial / updateKakashiWar / startKakashiWarRaikiri) + game.js FX; combat.js
+// is UNTOUCHED, so in-match hit/taunt grunts (hardcoded `=== "kakashi"` in combat.js) are intentionally NOT
+// aliased. Voice ALIASES the base-Kakashi intro/win pack (game.js INTRO_VOICE + win namecall; no new audio).
+// ENERGY label = "Chakra" (energyType "chakra"). NOT brutality-eligible.
+// SOURCE K = kakashi_nzc_sprites_original_colors__by_felipedanielskibr_d837fqp.png (navy 0,64,128 bg,
+//   border-floodfill keyed, FLIP_H=False — sheet already faces RIGHT) via kakashi_war_work/slice.py.
+// NORMAL-SLOT → sheet mapping (reported): light=Attack Combo · air=Attack Combo(Air) · down_air reuses air ·
+//   heavy=Strong(Forward) · up=Strong(Air rising launcher) · air_heavy=Strong(neutral) · crouchLight=Strong(Down,
+//   pops a single ground-dog FX). block/crouch reuse the Guard pose (no dedicated crouch row on the sheet);
+//   walk reuses Run (no walk row); fall = jump's apex cell.
+// PHASE 1 (this build) = body + normals + intro/win(Icha Icha)/taunt(Icha Icha reading) + Kawarimi (Back+Special
+//   guard-escape, log+smoke swap) + Raikiri (neutral Special charge-hold, GROUND + AIR) + plumbing. Later:
+//   Sharingan/Kamui/Kamui-Raikiri/Tsuiga/Copy-Ninja/Sennen-Goroshi (P2), Frog Henge + skins (P3), Obito's
+//   Gift (P4), Perfect Susanoo (P5). illustration kakashi_war_illus.png = select art + ult cut-in.
+const kakashiWar = {
+  rosterKey: "kakashi_war", name: "Kakashi (Kamui)", universe: "naruto",
+  portrait: "./kakashi_war_portrait.png",   // masked face bust from the sheet's story-portrait panel
+  archetypes: ["melee", "technical", "summons"],
+  primary: "melee", secondary: ["technical", "summons"],
+  // runWhenAdvancing = ninja-run while closing; wallJump = engine mechanic (reuses the jump pose — no
+  // dedicated wall-jump art). Raikiri (neutral Special, ground+air) is the signature; Kawarimi (Back+Special)
+  // is the guard-escape teleport. NO double-tap dashTeleport (teleport lives on explicit inputs).
+  movement: { runWhenAdvancing: true, wallJump: true },
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "technical", animeMovement: true },
+  // Top Naruto-universe band, technical. maxEnergy 220: a big Chakra bar for the P2+ Kamui / P4 Gift / P5
+  // Perfect Susanoo + Kamui-Raikiri ults.
+  stats: { maxHealth: 1200, maxEnergy: 220, attack: 90, defense: 84, speed: 95, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 12, dashCooldownMax: 40 },
+  // ── NORMALS (×0.60 via GLOBAL_DAMAGE_SCALE). Tuned top-band technical. ──
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },   // Attack Combo opener (kunai slashes)
+    heavy:    { damage: 92, startup: 9, active: 4, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: 1 },   // Strong (Forward) — committed lunging combo
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12 },  // Strong (Air) rising kick launcher
+    airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },  // Attack Combo (Air) diving slash
+    air_heavy:{ damage: 84, startup: 8, active: 4, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 2 },   // Strong (neutral) performed airborne (air+Heavy)
+    downAir:  { damage: 62, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },   // reuses air art (no dedicated down-aerial)
+    crouchLight:{ damage: 46, startup: 4, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: 0 } // Strong (Down) low slash — pops a single ground-dog (drawKakashiWarFx)
+  },
+  // HUD/movelist meta only — real logic in abilities.js. PHASE-1 live moves = Raikiri (neutral Special,
+  // ground+air) + Kawarimi (Back+Special). F/D/U + ULT land in later phases.
+  specials: {
+    raikiri:    { cost: 30, damage: 80, subtype: "melee",    effect: "Raikiri (neutral Special, ground OR air) — charge-hold the Lightning Blade (hold for more damage, capped) then release to dash + thrust. Sharingan ON (P2) tracks the foe; OFF goes straight and can whiff" },
+    kawarimi:   { cost: 14, damage: 0,  subtype: "mobility",  effect: "Kawarimi (Back+Special) — a substitution guard-escape: swap with a log + smoke and reappear BEHIND the attacker (brief i-frames). Chakra cost + cooldown" },
+    kamui:      { cost: 44, damage: 72, subtype: "projectile",effect: "Kamui (Fwd+Special; needs Sharingan, P2) — a long-range spatial rip: the Kamui swirl opens at the foe (grow→twist→collapse) for damage + a brief warp stun" },
+    tsuiga:     { cost: 40, damage: 94, subtype: "summon",    effect: "Doton: Tsuiga (Down+Special, P2) — ground crack → the Ninken burst up and PIN the foe (rooted + damage ticks) → smoke" },
+    sennen:     { cost: 10, damage: 24, subtype: "melee",     effect: "Sennen Goroshi (Up+Special, P2) — a crouch-lunge poke; light damage, and from behind (cross-up) it launches high" },
+    sharingan:  { cost: 0,  damage: 0,  subtype: "stance",    effect: "Sharingan (Charge-tap, P2) — toggles the red eye: drains Chakra while active, sharpens Raikiri tracking + gates Kamui / Sennen; at 0 Chakra it shuts off and Kakashi is briefly fatigued" }
+  },
+  ultimate: { name: "Kamui Raikiri / Obito's Gift", cost: 100, description: "Neutral ULT (P2) = Kamui Raikiri — a full Raikiri charge, a Kamui swirl opens beside the foe, and the strike comes through it (eye-banner cut-in, guaranteed). Up+Ult (P4) = Obito's Gift — a timed Double-Mangekyō mode (Kamui Intangibility / Warp / Mini Kamui Shuriken), whose own Ultimate (P5) is PERFECT SUSANOO; when the Gift ends the eyes return to Obito and Kamui is disabled for the round." },
+  hasSprites: true,
+  // idle content ~63px × 1.75 ≈ 110px on-screen ≈ roster mid-band. REQUIRES the skins.js `kakashi_war` default
+  // entry (else applySkin() pulls the spriteScale:1 fallback → half size) + the spritesheets.js idle gate.
+  spriteScale: 1.75,
+  introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 4, width: 61, height: 66, speed: 7, anchorY: 0, loop: true,  sheet: "./kakashi_war_idle_uniform.png" },
+    walk:      { frames: 6, width: 84, height: 68, speed: 5, anchorY: 0, loop: true,  sheet: "./kakashi_war_run_uniform.png" },   // no walk row → reuse run (slower)
+    run:       { frames: 6, width: 84, height: 68, speed: 4, anchorY: 0, loop: true,  sheet: "./kakashi_war_run_uniform.png" },
+    dash:      { frames: 3, width: 74, height: 66, speed: 3, anchorY: 0, loop: true,  sheet: "./kakashi_war_dash_uniform.png" },
+    // JUMP = 3-frame crouch→rise→apex; play once + hold apex. fall = last cell (sourceX 2×64=128).
+    jump:      { frames: 3, width: 64, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_jump_uniform.png" },
+    fall:      { frames: 1, width: 64, height: 79, speed: 6, anchorY: 0, sourceX: 128, loop: false, lockLastFrame: true, sheet: "./kakashi_war_jump_uniform.png" },
+    // No dedicated crouch row — the Guard pose doubles as crouch + block (lowered defensive stance).
+    crouch:    { frames: 1, width: 49, height: 81, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_guard_uniform.png" },
+    block:     { frames: 1, width: 49, height: 81, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_guard_uniform.png" },
+    hurt:      { frames: 2, width: 50, height: 86, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_hurt_uniform.png" },
+    knockdown: { frames: 4, width: 74, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_knockdown_uniform.png" },
+    getup:     { frames: 1, width: 74, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_getup_uniform.png" },
+    lose:      { frames: 4, width: 74, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_knockdown_uniform.png" },   // downed (reuse knockdown, hold last)
+    // ── NORMALS (loop:false + lockLastFrame holds the strike pose through recovery). ──
+    light:      { frames: 5, width: 81, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_light_uniform.png" },      // Attack Combo (ground)
+    heavy:      { frames: 8, width: 82, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_heavyfwd_uniform.png" },    // Strong (Forward) — the big ground heavy
+    up:         { frames: 4, width: 72, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_heavyair_uniform.png" },    // Strong (Air) rising launcher (Up+Attack)
+    air:        { frames: 4, width: 97, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_air_uniform.png" },         // Attack Combo (Air)
+    air_heavy:  { frames: 4, width: 78, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_heavy_uniform.png" },        // Strong (neutral) — air+Heavy
+    down_air:   { frames: 4, width: 97, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_air_uniform.png" },         // REUSE air
+    crouchLight:{ frames: 4, width: 64, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_heavydown_uniform.png" },   // Strong (Down) low slash (+ ground-dog FX)
+    // ── INTRO / WIN (Icha Icha) / TAUNT (Icha Icha reading). ──
+    intro:     { frames: 3, width: 35, height: 86, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_intro_uniform.png" },
+    win:       { frames: 4, width: 40, height: 88, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_win_uniform.png" },          // victory: pull out + read Icha Icha
+    taunt:     { frames: 2, width: 32, height: 88, speed: 10, anchorY: 0, loop: true,  sheet: "./kakashi_war_taunt_uniform.png" },                             // Icha Icha reading
+    // ── RAIKIRI cast poses (_spriteCastMove → these keys via sprite.js identity fallback). Ground + Air. ──
+    raikiri_charge:     { frames: 5, width: 67, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_charge_uniform.png" },
+    raikiri_strike:     { frames: 2, width: 105, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_strike_uniform.png" },
+    raikiri_air_charge: { frames: 5, width: 67, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_air_charge_uniform.png" },
+    raikiri_air_strike: { frames: 3, width: 75, height: 91, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_raikiri_air_strike_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // GWEN TENNYSON  (rosterKey "gwen", universe "ben_10") — mana/magic zoner. FIRST LANDSCAPE source
 // sheet in the project: jus_gwen_tennyson_spritesheet_by_magnesiumselzune (fan-made JUS chibi,
 // 2373×623, flat navy bg keyed by COLOR). Credit magnesiumselzune (+justin kaiser on ref art),
@@ -10356,6 +10448,7 @@ export const characters = {
   vegito,
   kakashi,
   kakashi_anbu: kakashiAnbu,   // NEW additive standalone (Kakashi / ANBU, teen-era) — fully namespaced; base `kakashi` untouched
+  kakashi_war: kakashiWar,     // NEW additive standalone (Kakashi / Kamui, War-arc) — fully namespaced; base `kakashi` + `kakashi_anbu` untouched
   gwen,
   vilgax,
   miles,

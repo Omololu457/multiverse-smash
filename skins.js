@@ -298,6 +298,12 @@ export const SKINS = {
     { id: "kanbuBloom",  name: "Sakura Bloom", unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "bloom"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "bloom"), recolorTag: "bloom" },   // pink hair / lavender suit / sky-blue armour / hot-pink accents
     { id: "kanbuHokage", name: "Golden",    unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "hokage"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "hokage"), recolorTag: "hokage" },  // cream suit / gold armour (Hokage tribute)
   ],
+  // Kakashi (Kamui) — NEW additive fighter (kakashi_war). PHASE 1 ships the Default skin only (REQUIRED or
+  // getSkins() clobbers spriteScale to the 1.0 fallback). The 4 Kakashi palette skins (+ matching frog
+  // palettes) land in PHASE 3.
+  kakashi_war: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi_war?.portrait, spriteScale: characters.kakashi_war?.spriteScale, animationData: null },
+  ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

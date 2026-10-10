@@ -21810,6 +21810,15 @@ export function updateMadaraCommandCombat(fighter, inputState, context, getPhase
   const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
 
+  // ── WAR UPGRADE Phase 2 — SUSANO'O LADDER: while in a ladder stage, Light/Heavy = that stage's
+  // blade/sword swing. (Climb fires on charge-RELEASE from game.js; HP bleed ticks per-frame there too.)
+  if ((fighter._madaraLadder || 0) > 0) {
+    if (!canStart) return false
+    if (heavyEdge) return fireMadaraLadderSlash(fighter, "heavy")
+    if (lightEdge) return fireMadaraLadderSlash(fighter, "light")
+    return false
+  }
+
   // COMPLETE SUSANOO GIANT (Stage 5 HOLD ult): light/heavy = big-reach giant sword swings.
   if ((fighter._madaraComplete || 0) > 0) {
     if (!canStart) return false
@@ -24752,8 +24761,170 @@ function fireMadaraShinraTensei(fighter, context) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MADARA — WAR UPGRADE Phase 2: SUSANO'O LADDER (P). Additive new progression — at FULL chakra, HOLDING
+// Charge climbs Base→Stage1(hooded torso)→Stage2(full body)→Stage3(armored samurai), each with its OWN
+// P frames + Susano'o HP. Normal Charge below full is untouched. Each climb flashes P's red-ring FX; taking
+// damage BLEEDS the current stage's Susano'o HP and at 0 it DROPS one stage. Stage specials: neutral
+// Special = Yasaka Magatama (S1+), Up+Special = Tengai Shinsei meteor (DOUBLE at S3 via A's big meteor);
+// Light/Heavy = that stage's blade/sword swing. Coexists with the Tier-2 armor toggle + Complete-giant /
+// Tengai ultimate (gated OFF while a ladder stage is up — never removed). Deterministic, LAN-safe.
+// SOURCE MATCH=NO → only P's Susano'o art is new; cast uses his own body.
+// ═══════════════════════════════════════════════════════════════════════════════
+const MADARA_LADDER_CLIMB_HOLD = 36     // frames of Charge-hold (at full chakra) to climb one stage
+const MADARA_LADDER_CLIMB_COST = 90     // chakra spent per climb (can't instant-re-climb; must recharge to full)
+function _madStageAnim(sheet, cw, ch, nf) {
+  const idle = { frames: 1, width: cw, height: ch, speed: 30, anchorY: 0, loop: true, sheet }
+  const atk = (sx, n, sp) => ({ frames: n, width: cw, height: ch, speed: sp, anchorY: 0, loop: false, lockLastFrame: true, sourceX: sx, sheet })
+  return {
+    idle, walk: idle, run: idle, dash: idle, jump: idle, fall: idle, guard: idle, hurt: idle,
+    knockdown: idle, up: idle, air: idle, grab: idle, down_air: idle,
+    light: atk(cw, Math.min(3, nf - 1), 4),                        // early swing frames
+    heavy: atk(cw * Math.max(1, nf - 2), Math.min(2, nf - 1), 5),  // later / finisher frames
+  }
+}
+const MADARA_LADDER = {
+  1: { hp: 340, canvasFrac: 0.52, refH: 201, label: "Susano'o (Ribcage)", dmgMul: 1.3,  anim: _madStageAnim("./madara_susanoo_s1_uniform.png", 345, 201, 6) },
+  2: { hp: 520, canvasFrac: 0.66, refH: 263, label: "Susano'o (Warrior)", dmgMul: 1.55, anim: _madStageAnim("./madara_susanoo_s2_uniform.png", 393, 263, 7) },
+  3: { hp: 760, canvasFrac: 0.80, refH: 335, label: "Perfect Susano'o",   dmgMul: 1.85, anim: _madStageAnim("./madara_susanoo_s3_uniform.png", 414, 335, 6) },
+}
+function _madApplyStage(fighter, stage) {
+  const cfg = MADARA_LADDER[stage]; if (!cfg) return
+  fighter._madaraLadder     = stage
+  fighter._skinAnim         = cfg.anim
+  fighter._canvasHeightFrac = cfg.canvasFrac
+  fighter._canvasHeightRefH = cfg.refH
+  fighter.damageMultiplier  = cfg.dmgMul
+  fighter.attackMultiplier  = cfg.dmgMul
+  fighter.defenseMultiplier = 1 + stage * 0.12
+  fighter._madLadderHP      = cfg.hp
+  fighter._madLadderHPMax   = cfg.hp
+  fighter._madLadderHpWatch = fighter.health
+}
+function climbMadaraLadder(fighter, context) {
+  const next = (fighter._madaraLadder || 0) + 1
+  if (next > 3) return false
+  if (!spendEnergy(fighter, MADARA_LADDER_CLIMB_COST)) return false
+  _madApplyStage(fighter, next)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+  fighter._madLadderFx  = 22
+  spawnProjectile(fighter, "madaraRedRing", {                       // P's Ultimate-Action red-ring climb FX
+    visualOnly: true, damage: 0, speed: 0, lifetime: 24, vx: 0, vy: 0, w: 140, h: 140,
+    sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: 2.2,
+    spawnX: fighter.x + (fighter.w || 60) / 2 - 70, spawnY: fighter.y + (fighter.h || 100) * 0.3
+  }, context)
+  try { sound.playSfxFile?.(pickMadaraVoice(next >= 3 ? "completeSusanoo" : "susanooArmor"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  try { shakeCamera(context, 7, 8) } catch (_) {}
+  return true
+}
+function dropMadaraLadderStage(fighter) {
+  const cur = fighter._madaraLadder || 0
+  if (cur <= 1) { revertMadaraLadder(fighter); return }
+  _madApplyStage(fighter, cur - 1)                                  // drop ONE stage (re-arms the lower stage's HP)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+}
+function revertMadaraLadder(fighter) {
+  if (!((fighter._madaraLadder || 0) > 0)) return
+  fighter._madaraLadder = 0
+  fighter._skinAnim = null; fighter._canvasHeightFrac = null; fighter._canvasHeightRefH = null
+  fighter.damageMultiplier = 1; fighter.attackMultiplier = 1; fighter.defenseMultiplier = 1
+  fighter._madLadderHP = 0
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+}
+// CLIMB trigger — fired from game.js on CHARGE-RELEASE (the input hook is charge-gated, so the climb can't
+// live in updateMadaraCommandCombat). At FULL chakra, releasing Charge climbs ONE Susano'o stage; below full
+// it's a no-op (normal charging is untouched). Gated purely on full chakra → deterministic, LAN-safe.
+export function maybeMadaraLadderClimb(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  const busy = isMadaraTengaiShinseiCinematicActive() || (fighter._madaraComplete || 0) > 0 ||
+               (fighter._madaraSusanoo || 0) > 0 || fighter.eliminated
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (busy || !grounded) return false
+  if ((fighter.energy || 0) < (fighter.maxEnergy || 220)) return false   // only at FULL chakra
+  if ((fighter._madaraLadder || 0) >= 3) return false
+  return climbMadaraLadder(fighter, context)
+}
+// Per-frame HP tick — runs UNCONDITIONALLY from game.js (even while charging): bleed the stage's Susano'o HP
+// as Madara takes damage, drop a stage on break, tick the climb FX. Deterministic — no gameRng.
+export function tickMadaraLadderHP(fighter) {
+  if (!fighter || (fighter._madaraLadder || 0) <= 0) return
+  const hp = fighter.health, prev = (fighter._madLadderHpWatch != null) ? fighter._madLadderHpWatch : hp
+  if (hp < prev) fighter._madLadderHP = (fighter._madLadderHP || 0) - (prev - hp)
+  fighter._madLadderHpWatch = fighter.health
+  if (fighter.eliminated) { revertMadaraLadder(fighter); return }
+  if ((fighter._madLadderHP || 0) <= 0) dropMadaraLadderStage(fighter)
+  if ((fighter._madLadderFx || 0) > 0) fighter._madLadderFx--
+}
+const MADARA_LADDER_SLASH = {
+  light: { damage: 70, startup: 7, active: 5, recovery: 16, hitstun: 24, knockbackX: 11, knockbackY: -4, rangeX: 180, rangeY: 150, isSpecial: true },
+  heavy: { damage: 98, startup: 10, active: 5, recovery: 20, hitstun: 28, knockbackX: 15, knockbackY: -5, rangeX: 210, rangeY: 170, isSpecial: true },
+}
+function fireMadaraLadderSlash(fighter, key) {
+  const md = MADARA_LADDER_SLASH[key]; if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const scale = 1 + (fighter._madaraLadder || 1) * 0.12
+  const m2 = { ...md, rangeX: Math.round(md.rangeX * scale), rangeY: Math.round(md.rangeY * scale) }
+  const attack = createAttackFromMove(fighter, key, m2, { minActiveStart: m2.startup, minActiveEnd: m2.startup + m2.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, m2.startup + m2.active + m2.recovery)   // currentMove="light"/"heavy" → renders the stage _skinAnim swing
+  return true
+}
+// YASAKA MAGATAMA (ladder Special, S1+) — hurls 5 spinning tomoe in a fan (canon x5).
+function fireMadaraYasakaMagatama(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 40)) return false
+  const face = fighter.facing || 1
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  try { sound.playSfxFile?.(pickMadaraVoice("susanooPunch"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  const spread = [-16, -8, 0, 8, 16]
+  for (let i = 0; i < 5; i++) {
+    spawnProjectile(fighter, "madaraYasakaMagatama", {
+      damage: 34, speed: 13, lifetime: 70, vx: face * 13, vy: spread[i] * 0.18,
+      hitstun: 18, knockbackX: 7, knockbackY: -2, w: 46, h: 54, color: "#2aa0d0", isSpecial: true,
+      sheet: "./madara_yasaka_magatama_uniform.png", spriteFrames: 1, spriteW: 78, spriteH: 98, spriteScale: 0.9,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 46,
+      spawnY: fighter.y + (fighter.h || 100) * 0.3 + spread[i] * 1.4
+    }, context)
+  }
+  return true
+}
+// TENGAI SHINSEI (ladder Special, Up+Special, S1+) — call down a falling meteor (P rock). At Stage 3, A's
+// BIG fiery meteor falls as a SECOND meteor (canon double meteor). Projectile-based, deterministic.
+function fireMadaraLadderTengai(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 60)) return false
+  const face = fighter.facing || 1
+  fighter.attackCooldown = getAttackDuration(34, fighter)
+  try { sound.playSfxFile?.(pickMadaraVoice("tengaiShinsei"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  const target = getTargetResolver(context)(fighter)
+  const tx = target ? target.x + (target.w || 60) / 2 : fighter.x + face * 300
+  spawnProjectile(fighter, "madaraTengaiMeteor", {                  // primary meteor (P rock) — falls onto the target
+    damage: 150, speed: 0, lifetime: 70, vx: 0, vy: 11,
+    hitstun: 34, knockbackX: 6, knockbackY: -8, w: 150, h: 150, color: "#8a7a4a", isSpecial: true,
+    sheet: "./madara_tengai_meteor_uniform.png", spriteFrames: 2, spriteW: 329, spriteH: 254, spriteSpeed: 8, spriteScale: 1.1,
+    spawnX: tx - 75, spawnY: fighter.y - 420
+  }, context)
+  if ((fighter._madaraLadder || 0) >= 3) {                          // DOUBLE METEOR at Stage 3 — A's big fiery meteor
+    spawnProjectile(fighter, "madaraTengaiMeteorBig", {
+      damage: 200, speed: 0, lifetime: 80, vx: 0, vy: 10,
+      hitstun: 40, knockbackX: 10, knockbackY: -9, w: 190, h: 190, color: "#ff5a2a", isSpecial: true,
+      sheet: "./madara_tengai_meteor_big_uniform.png", spriteFrames: 1, spriteW: 192, spriteH: 183, spriteScale: 1.25,
+      spawnX: tx - 95 + face * 70, spawnY: fighter.y - 560
+    }, context)
+    try { shakeCamera(context, 9, 10) } catch (_) {}
+  }
+  return true
+}
+
 function executeMadaraSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
+
+  // ── WAR UPGRADE Phase 2 — SUSANO'O LADDER stage specials. While in a ladder stage the Special button
+  // casts the stage's Susano'o techniques (Up+Special = Tengai Shinsei meteor / double at S3; else Yasaka
+  // Magatama). Takes priority over the base kit so the ladder form plays its OWN moves.
+  if ((fighter._madaraLadder || 0) > 0) {
+    if (endsWithPattern(dirs, ["U"])) return fireMadaraLadderTengai(fighter, context)
+    return fireMadaraYasakaMagatama(fighter, context)
+  }
 
   // ── WAR UPGRADE (additive) — motion specials, checked BEFORE the single-direction kit so a plain
   // Forward/Back/Down press still fires the ORIGINAL Gunbai/Wood/Katon specials. Base form only; never

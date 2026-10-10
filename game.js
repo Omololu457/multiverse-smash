@@ -202,6 +202,8 @@ import {
   fireOnokiJutsu,                // Onoki Jutsu Charge/Launch — fired from handleChargeRelease (P-HOLD→release Dust blast; P-TAP stays flight toggle)
   fireGreenLanternBeam,          // Green Lantern Energy Beam — fired from handleChargeRelease (P-HOLD→release hard-light bolt; P-TAP stays flight toggle)
   updateMadaraCommandCombat,     // Madara Fwd+Heavy → Susanoo Base Punch (command-normal, Stage 3 special #6)
+  maybeMadaraLadderClimb,        // Madara WAR Phase 2 — Susano'o Ladder: climb one stage on charge-RELEASE at full chakra
+  tickMadaraLadderHP,            // Madara WAR Phase 2 — per-frame Susano'o-HP bleed + break→drop (runs even while charging)
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -6557,6 +6559,11 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // MADARA — SUSANO'O LADDER (WAR Phase 2): hold Charge to FULL chakra, RELEASE to climb one Susano'o stage
+  // (Base→Ribcage→Warrior→Perfect). Below full it's a no-op → normal charging is untouched. Swallow the
+  // release only when a climb actually fired.
+  if (fighter.rosterKey === "madara" && wasHeld && maybeMadaraLadderClimb(fighter, getAbilityContext())) return
+
   // KAKASHI (ANBU) — SHARINGAN: a charge-TAP toggles the eye on/off (code-drawn red eye + afterimage; drains
   // Chakra while active, frame-based; at 0 Chakra it shuts off + brief fatigue — all in updateKakashiAnbu).
   // A HOLD just builds Chakra normally (no toggle).
@@ -7316,6 +7323,7 @@ function updateMiscTimers(fighter) {
   if (fighter._altSukunaDomainTimer > 0) fighter._altSukunaDomainTimer--   // Alt Sukuna Domain Expansion cinematic countdown (drives drawAltSukunaDomainCinematic Malevolent Shrine backdrop overlay)
   if (fighter._maxWebTimer > 0) fighter._maxWebTimer--               // Spider-Man Maximum Web cinematic countdown (drives drawSpidermanMaxWebCinematic web-net overlay)
   if (fighter._madaraComplete > 0) { fighter._madaraComplete--; if (fighter._madaraComplete <= 0) revertMadaraCompleteSusanoo(fighter) }   // Madara tier-4 Complete Susanoo giant duration → auto-revert
+  tickMadaraLadderHP(fighter)   // Madara WAR Phase 2 — Susano'o Ladder HP bleed / break→drop / climb-FX tick (every frame, even while charging)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--

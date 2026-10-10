@@ -215,6 +215,15 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png; Haickal23 + in-sheet credit box)",
     files:   ["shisui_blade_*.png", "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png"]
   },
+  // Shisui (Trinity) — THE PUPPETEER identity (its own roster key shisui_puppeteer). TheGodGeminis' JUS sheet;
+  // the in-sheet credit box names XxjohnnyxX/TheGodGeminis/Neimad/Bonzai/NES/Grim/RedFlash93/Stephens513.
+  // Border-flood-fill keyed → shisui_puppeteer_*_uniform.png. MANDATORY.
+  shisui_puppeteer: {
+    work:    "Shisui Uchiha (Trinity) — THE PUPPETEER",
+    artists: ["XxjohnnyxX", "TheGodGeminis", "Neimad", "Bonzai", "NES", "Grim", "RedFlash93", "Stephens513"],
+    source:  "fan sprite sheet (uchiha_shisui_jus_by_thegodgeminis_d843ju8.png; in-sheet credit box: XxjohnnyxX / TheGodGeminis / Neimad / Bonzai / NES / Grim / RedFlash93 / Stephens513)",
+    files:   ["shisui_puppeteer_*.png", "uchiha_shisui_jus_by_thegodgeminis_d843ju8.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

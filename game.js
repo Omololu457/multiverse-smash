@@ -7459,6 +7459,13 @@ function updateMovementInput(fighter) {
   if (!fighter) return
   const inputState = getFighterInput(fighter)
 
+  // SHISUI (Puppeteer) — KOTOAMATSUKAMI: while the genjutsu holds, the victim's LEFT/RIGHT are MIRRORED
+  // (the Specials/Ultimate lock is applied at the trigger sites). Frame-counter only → LAN-safe. Lifts cleanly.
+  if ((fighter._kotoMirror || 0) > 0) {
+    fighter._kotoMirror--
+    const l = inputState.left; inputState.left = inputState.right; inputState.right = l
+  }
+
   // LOW-HEALTH COSMETIC IDLE flag (opt-in): any fighter shipping an `idleLow` strip gets flagged
   // below LOW_HEALTH_IDLE_FRAC of max HP so sprite.js swaps its neutral idle to a wounded pose.
   // Set/cleared every frame here; purely visual — no stat, hitbox, or move change. No-op for every
@@ -7811,7 +7818,7 @@ function _updatePlayerCombatBody(fighter) {
   // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
   // toggle moved to P-TAP (handleChargeRelease), so Down+Special is free for the
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
-  if (canStart && inputState.special)  {
+  if (canStart && inputState.special && !((fighter._kotoMirror || 0) > 0))  {   // Kotoamatsukami locks the victim's Specials
     // BETA input simplification: stamp the single relative direction currently HELD so
     // abilities.getRelativeDirections' beta branch can pick the special the equivalent
     // motion roll would have produced. Beta-gated → normal play never sets/reads this.
@@ -7999,7 +8006,7 @@ function _updatePlayerCombatBody(fighter) {
     cycleSasukeSenseiEyeSet(fighter); return
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
-  if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }
+  if (canStart && !charging && inputState.ultimate && !((fighter._kotoMirror || 0) > 0) && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }   // Kotoamatsukami locks the victim's Ultimate
 
   // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
   // fire the Phase-1 placeholder light. Consumes the grounded light/heavy/up press when it
@@ -13023,6 +13030,30 @@ function drawShisuiFx(c, fighter) {
     c.restore()
   }
 }
+// SHISUI (Puppeteer) — KOTOAMATSUKAMI full-screen overlay: the red-sky/sea genjutsu-world backdrop washes in
+// and three huge Mangekyō eyes bloom, for the cast window. Screen-space (setTransform identity), fades in/out.
+function drawShisuiKotoOverlay(c, fighter) {
+  if (!c || !fighter || (fighter._kotoOverlay || 0) <= 0) return
+  const t = fighter._kotoOverlay--
+  const cv = c.canvas; if (!cv) return
+  const W = cv.width, H = cv.height
+  const prog = (90 - t) / 90                                 // 0→1 over the window
+  const fade = Math.min(1, Math.min(t, 90 - t) / 18)         // ease in + out
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0)
+  // backdrop (red sky/sea) stretched across the screen
+  const bg = _shisuiFxImg("./shisui_puppeteer_koto_backdrop_uniform.png")
+  if (bg.complete && bg.naturalWidth) { c.globalAlpha = 0.72 * fade; c.drawImage(bg, 0, 0, W, H) }
+  // three huge Mangekyō eyes, blooming in
+  const eyes = _shisuiFxImg("./shisui_puppeteer_koto_eyes_uniform.png")
+  if (eyes.complete && eyes.naturalWidth) {
+    const fw = eyes.naturalWidth / 3, fh = eyes.naturalHeight
+    const scale = (H * 0.42 / fh) * (0.6 + 0.4 * Math.min(1, prog * 2))
+    const dw = fw * scale, dh = fh * scale, cy = H * 0.42
+    c.globalAlpha = 0.9 * fade
+    for (let i = 0; i < 3; i++) { const cx = W * (0.25 + i * 0.25); c.drawImage(eyes, i * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh) }
+  }
+  c.restore()
+}
 // MADARA — WAR UPGRADE Phase 1: PARTIAL SUSANOO ribcage as the GUARD visual. The blue ribcage GROWS
 // (7-frame strip sliced from P) as the block settles, then holds the full ribcage while guarding.
 // Render-only (a cosmetic growth counter, never read by the sim → LAN-safe). madara only; added because
@@ -15767,6 +15798,7 @@ function renderHybridFighter(fighter) {
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
+    drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")

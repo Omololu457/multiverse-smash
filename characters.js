@@ -10627,6 +10627,69 @@ const shisuiBlade = {
   }
 }
 
+// SHISUI (TRINITY) — THE PUPPETEER identity (TheGodGeminis JUS sheet). HIDDEN (isPlayable:false): reached via
+// the Variant Swap (P4); boots directly as ?p1=shisui_puppeteer. Ranged, stance-cancel assassin. JUS frames are
+// SMALL → normalized to the same on-screen height (idle body 57px × 1.9 ≈ 108px). combat.js UNTOUCHED.
+const shisuiPuppeteer = {
+  rosterKey: "shisui_puppeteer", name: "Shisui (Puppeteer)", universe: "naruto", color: "#7a1f2b",
+  portrait: "./shisui_trinity_portrait.png",
+  isPlayable: false, hidden: true,
+  archetypes: ["zoner", "technical"],
+  primary: "ranged", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "controlled", animeMovement: true },
+  passive: { name: "Free Will Causes War", effect: "THE PUPPETEER — serene, unsettling. Ranged fire jutsu + a Susanoo stance that cancels into a needle volley or a sword slash. He secretly covets the others' Mangekyō for one multiversal Kotoamatsukami." },
+  stats: { maxHealth: 1000, maxEnergy: 130, attack: 88, defense: 80, speed: 92, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
+  movement: { crouchIdle: true },
+  basic_attacks: {
+    light:      { damage: 30, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 70, rangeY: 46 },
+    heavy:      { damage: 60, startup: 11, active: 5, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 96, rangeY: 52 },
+    upAttack:   { type: "launcher", damage: 54, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -29, selfVy: -5, airOK: false },
+    airAttack:  { damage: 48, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:    { damage: 52, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 62, rangeY: 60 },
+    crouchLight:{ damage: 28, startup: 4, active: 3, recovery: 9,  hitstun: 11, knockbackX: 2, knockbackY: 0 },
+    grab:       { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  specials: {
+    backstab:  { cost: 18, effect: "Fwd+Special: Shunshin Backstab — SHARED on all three identities (half on block). [CANON-ADJACENT]" },
+    gokakyu:   { cost: 28, effect: "Neutral+Special: Katon — Goukakyuu no Jutsu — a huge rolling fireball (code-animated fire sheet). [CANON]" },
+    hosenka:   { cost: 26, effect: "Back+Special: Katon — Housenka no Jutsu — a volley of phoenix-flame bullets (NOTE: reassigned from Fwd — Fwd is the shared Backstab). [CANON]" },
+    shuriken:  { cost: 16, effect: "Charge+Special: Shuriken Throw — a 3-shuriken spread (the JUS Fwd+Y set). [CANON-ADJACENT]" },
+    susanooStance: { cost: 30, effect: "Down+Special: Susanoo Stance — spectral green ribs/arms form; while in the stance, Special = Needle Volley (green chakra needles) and Fwd+Special = Susanoo Sword (torso slash → explosion ring). [CANON-ADJACENT]" },
+    flurry:    { cost: 30, effect: "Up+Special: Body-Flicker Flurry — a shunshin multi-hit slash string with blue/orange X-slash afterimages. [CANON-ADJACENT]" }
+  },
+  ultimate: { name: "Kotoamatsukami", cost: 100, description: "THE PUPPETEER: the ultimate genjutsu. A genjutsu-world backdrop (red sky & sea) washes the screen as three huge Mangekyō eyes bloom; for ~2.5s the opponent's LEFT/RIGHT are mirrored and their Specials & Ultimate are locked — then it lifts cleanly. Deterministic / LAN-safe. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  spriteScale: 1.9,   // JUS idle body 57px × 1.9 ≈ 108px on-screen (SAME target as the Loyalist/Blade)
+  animationData: {
+    idle:  { frames: 3, width: 27, height: 64, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },
+    walk:  { frames: 8, width: 55, height: 54, speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_run_uniform.png" },
+    run:   { frames: 8, width: 55, height: 54, speed: 4, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_run_uniform.png" },
+    dash:  { frames: 8, width: 55, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_run_uniform.png" },
+    jump:  { frames: 8, width: 75, height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_jump_uniform.png" },
+    fall:  { frames: 8, width: 75, height: 68, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_jump_uniform.png" },
+    hurt:  { frames: 4, width: 44, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 65, height: 39, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_knockdown_uniform.png" },
+    lose:  { frames: 4, width: 31, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_lose_uniform.png" },
+    getup: { frames: 1, width: 39, height: 42, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_getup_uniform.png" },
+    guard: { frames: 3, width: 41, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_guard_uniform.png" },
+    crouch:{ frames: 3, width: 27, height: 64, speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },
+    intro: { frames: 3, width: 27, height: 64, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },
+    win:   { frames: 2, width: 29, height: 63, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_win_uniform.png" },
+    charge:{ frames: 4, width: 42, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_cast_uniform.png" },
+    light: { frames: 4, width: 62, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_light_uniform.png" },
+    heavy: { frames: 5, width: 79, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_heavy_uniform.png" },
+    up:    { frames: 5, width: 67, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_up_uniform.png" },
+    air:   { frames: 3, width: 66, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
+    down_air: { frames: 3, width: 66, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_air_uniform.png" },
+    crouchLight: { frames: 3, width: 73, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_crouchLight_uniform.png" },
+    // all PUPPETEER jutsu share the hand-seal cast pose (the JUS Ultimate-Action cast frames)
+    puCast: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" },
+    shiBackstab: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -10705,7 +10768,8 @@ export const characters = {
   naruto_hokage: narutoHokage,       // additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
   naruto_seventh: narutoSeventh,     // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
   shisui_trinity: shisuiTrinity,     // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
-  shisui_blade: shisuiBlade          // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
+  shisui_blade: shisuiBlade,         // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
+  shisui_puppeteer: shisuiPuppeteer  // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
 }
 
 // The 7 characters shown in the starter roster select screen

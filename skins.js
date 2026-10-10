@@ -338,6 +338,11 @@ export const SKINS = {
   shisui_blade: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_blade?.portrait, spriteScale: characters.shisui_blade?.spriteScale, animationData: null },
   ],
+  // Shisui (Trinity) — THE PUPPETEER identity (P3). REQUIRED default entry so getSkins() carries its real
+  // spriteScale (1.9) instead of clobbering to 1 when the Puppeteer is swapped in / booted directly.
+  shisui_puppeteer: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_puppeteer?.portrait, spriteScale: characters.shisui_puppeteer?.spriteScale, animationData: null },
+  ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

@@ -232,6 +232,8 @@ const MOVE_TO_ACTION = {
   shiKunaiRain: "shiKunaiRain", shiFlurry: "shiFlurry", shiArmslam: "shiArmslam", shiSusanoo: "shiSusanoo",
   // Shisui (Trinity) — THE BLADE special cast poses (own blade sheets). (Kunai Barrage / Iaido / Rising Overhead / Afterimage Feint / Focus / Thousand Cuts.)
   blKunai: "blKunai", blIaido: "blIaido", blRising: "blRising", blFeint: "blFeint", blFocus: "blFocus", blThousand: "blThousand",
+  // Shisui (Trinity) — THE PUPPETEER: all jutsu share one hand-seal cast pose. (Gokakyu/Hosenka/Shuriken/Susanoo Stance+cancels/Flurry/Kotoamatsukami.)
+  puCast: "puCast",
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",

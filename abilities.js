@@ -29846,6 +29846,172 @@ function executeShisuiBladeUltimate(fighter, context) {
   return true
 }
 
+// ══ THE PUPPETEER (shisui_puppeteer) — PHASE 3. Ranged, stance-cancel assassin. Hidden identity. Dispatch on
+// _specialHeldDir; Charge+Special = Shuriken Throw; Down+Special = Susanoo Stance (then Special=Needle Volley /
+// Fwd+Special=Susanoo Sword). Ultimate = Kotoamatsukami. Deterministic / LAN-safe. combat.js UNTOUCHED. ════════
+function executeShisuiPuppeteerSpecial(fighter, context) {
+  if (shisuiBusy(fighter)) return false
+  const dir = fighter._specialHeldDir || null
+  // SUSANOO STANCE cancels (window open): Fwd = Sword, anything else = Needle Volley.
+  if ((fighter._puStance || 0) > 0) {
+    if (dir === "F") return firePuppeteerSusanooSword(fighter, context)
+    return firePuppeteerNeedleVolley(fighter, context)
+  }
+  if (fighter._specialHeldMods && fighter._specialHeldMods.charge) return firePuppeteerShuriken(fighter, context)  // Charge+Sp = Shuriken
+  if (dir === "F") return fireShisuiBackstab(fighter, context)       // Fwd  = SHARED Shunshin Backstab
+  if (dir === "B") return firePuppeteerHosenka(fighter, context)     // Back = Hosenka volley (moved off Fwd)
+  if (dir === "D") return firePuppeteerSusanooStance(fighter, context) // Down = Susanoo Stance
+  if (dir === "U") return firePuppeteerFlurry(fighter, context)      // Up   = Body-Flicker Flurry
+  return firePuppeteerGokakyu(fighter, context)                      // neutral = Gokakyu fireball
+}
+
+// Neutral+Special — GOUKAKYUU: a big rolling fireball. CANON.
+const PU_GOKAKYU = { cost: 28, dmg: 96, cast: 16 }
+function firePuppeteerGokakyu(fighter, context) {
+  const G = PU_GOKAKYU
+  if (!spendEnergy(fighter, G.cost)) return false
+  fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = G.cast
+  fighter.attackCooldown = getAttackDuration(G.cast + 6, fighter)
+  schedulePendingSpawn(G.cast - 4, () => {
+    spawnProjectile(fighter, "shisuiGokakyu", {
+      damage: G.dmg, speed: 8, w: 58, h: 58, radius: 30, hitstun: 22, knockbackX: 8, knockbackY: -2, lifetime: 100,
+      color: "#ff7a2d", sheet: "./shisui_puppeteer_gokakyu_fx_uniform.png", spriteFrames: 5, spriteSpeed: 4, spriteScale: 1.3,
+      impact: { sheet: "./shisui_puppeteer_gokakyu_fx_uniform.png", frames: 5, w: 144, h: 119, speed: 4, scale: 1.1, lifetime: 18 }
+    }, context)
+  })
+  return true
+}
+
+// Back+Special — HOUSENKA: a volley of 5 phoenix-flame bullets in a spread. CANON.
+const PU_HOSENKA = { cost: 26, dmg: 18, count: 5, cast: 14 }
+function firePuppeteerHosenka(fighter, context) {
+  const H = PU_HOSENKA
+  if (!spendEnergy(fighter, H.cost)) return false
+  const fac = fighter.facing || 1
+  fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = H.cast
+  fighter.attackCooldown = getAttackDuration(H.cast + 8, fighter)
+  for (let i = 0; i < H.count; i++) schedulePendingSpawn(H.cast - 6 + i * 3, () => {
+    spawnProjectile(fighter, "shisuiHosenka", {
+      damage: H.dmg, speed: 11, vx: fac * 11, vy: (i - (H.count - 1) / 2) * 2.2, w: 22, h: 22, radius: 12,
+      hitstun: 12, knockbackX: 3, knockbackY: -1, lifetime: 70, color: "#ff9a3d",
+      sheet: "./shisui_puppeteer_gokakyu_fx_uniform.png", spriteFrames: 5, spriteSpeed: 5, spriteScale: 0.5
+    }, context)
+  })
+  return true
+}
+
+// Charge+Special — SHURIKEN THROW: a 3-shuriken spread. CANON-ADJACENT.
+const PU_SHURIKEN = { cost: 16, dmg: 18, cast: 12 }
+function firePuppeteerShuriken(fighter, context) {
+  const S = PU_SHURIKEN
+  if (!spendEnergy(fighter, S.cost)) return false
+  const fac = fighter.facing || 1
+  fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = S.cast
+  fighter.attackCooldown = getAttackDuration(S.cast + 4, fighter)
+  ;[-3, 0, 3].forEach((vy, i) => schedulePendingSpawn(S.cast - 6 + i, () => {
+    spawnProjectile(fighter, "shisuiShuriken", {
+      damage: S.dmg, speed: 14, vx: fac * 14, vy, w: 16, h: 16, radius: 9,
+      hitstun: 10, knockbackX: 3, knockbackY: 0, lifetime: 70, color: "#b9bdc2"
+    }, context)
+  }))
+  return true
+}
+
+// Up+Special — BODY-FLICKER FLURRY (reuses the shared flurry FX). CANON-ADJACENT.
+const PU_FLURRY = { cost: 30, hits: [14, 14, 16, 22], cast: 24 }
+function firePuppeteerFlurry(fighter, context) {
+  const FL = PU_FLURRY
+  if (!spendEnergy(fighter, FL.cost)) return false
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = FL.cast
+  fighter.attackCooldown = getAttackDuration(FL.cast + 6, fighter); fighter._shisuiFlurryFx = FL.cast
+  if (opp0) { fighter.x = shisuiBehindX(fighter, opp0, context, 40); fighter.facing = (opp0.x >= fighter.x) ? 1 : -1; fighter.teleportFlash = 12 }
+  FL.hits.forEach((d, i) => schedulePendingSpawn(6 + i * 6, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1), last = (i === FL.hits.length - 1)
+    if (o.isBlocking) { o.blockstun = 12; applyScaledDamage(o, Math.floor(d * 0.25), { source: "shisui-pu-flurry" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, last ? 24 : 12); o.vx = dir * (last ? 6 : 1); o.vy = last ? -7 : 0; o.colorFlash = 8
+    applyScaledDamage(o, d, { source: "shisui-pu-flurry" })
+  }))
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+// Down+Special — SUSANOO STANCE: opens a cancel window (ribs/arms form). CANON-ADJACENT.
+const PU_STANCE = { cost: 30, window: 90 }
+function firePuppeteerSusanooStance(fighter, context) {
+  if (!spendEnergy(fighter, PU_STANCE.cost)) return false
+  fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  fighter._puStance = PU_STANCE.window; fighter._shisuiSusanooFx = PU_STANCE.window   // reuse trinity ribcage FX
+  schedulePendingSpawn(PU_STANCE.window, () => { fighter._puStance = 0 })
+  return true
+}
+// Stance cancel A — NEEDLE VOLLEY: green chakra needles streak at the foe. CANON-ADJACENT.
+function firePuppeteerNeedleVolley(fighter, context) {
+  fighter._puStance = 0
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 12
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  for (let i = 0; i < 6; i++) schedulePendingSpawn(2 + i * 2, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o) return
+    spawnProjectile(fighter, "shisuiNeedle", {
+      damage: 14, spawnY: fighter.y + 24, speed: 16, w: 28, h: 7, radius: 6, lifetime: 24, color: "#6ef08a",
+      aimAt: { x: o.x + (o.w || 60) / 2, y: o.y + 30 }, hitstun: 8, knockbackX: 2, knockbackY: 0
+    }, context)
+  })
+  return true
+}
+// Stance cancel B — SUSANOO SWORD: a torso slash → explosion ring (sure-hit, half on block). CANON-ADJACENT.
+function firePuppeteerSusanooSword(fighter, context) {
+  fighter._puStance = 0
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 20; fighter._shisuiBladeSlashFx = 16
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  schedulePendingSpawn(8, () => {
+    const o = getTargetResolver(context)(fighter) || opp0
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dx = Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+    if (dx > 170) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 20; applyScaledDamage(o, 44, { source: "shisui-pu-susanoo-sword" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 30); o.vx = dir * 7; o.vy = -6; o.colorFlash = 13; o.hitstop = Math.max(o.hitstop || 0, 22)
+    applyScaledDamage(o, 88, { source: "shisui-pu-susanoo-sword" })
+    try { shakeCamera(context, 5, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ══ THE PUPPETEER — ULTIMATE: KOTOAMATSUKAMI ════════════════════════════════════════════════════════
+// The genjutsu-world backdrop (red sky/sea) + three huge Mangekyō eyes wash the screen; for ~2.5s (150f) the
+// opponent's LEFT/RIGHT are MIRRORED and their Specials & Ultimate are LOCKED (game.js reads _kotoMirror), then
+// it lifts cleanly. Deterministic / LAN-safe (frame counters, no gameRng). Refuses during KO/Brutality/Domain/rewind.
+const PU_KOTO = { cast: 54, overlay: 90, mirror: 150, dmg: 40 }
+function executeShisuiPuppeteerUltimate(fighter, context) {
+  if (fighter._shiCinematicsBlocked) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const opp0 = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = PU_KOTO.cast
+  fighter.attackCooldown = getAttackDuration(PU_KOTO.cast, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, PU_KOTO.cast)
+  fighter._kotoOverlay = PU_KOTO.overlay          // screen-space backdrop + 3 eyes (drawShisuiKotoOverlay)
+  if (opp0) {
+    opp0._kotoMirror = PU_KOTO.mirror             // game.js: mirror L/R + lock specials for ~2.5s
+    schedulePendingSpawn(30, () => {              // a single chip as the genjutsu takes hold
+      const o = getTargetResolver(context)(fighter) || opp0
+      if (!o || o.eliminated) return
+      if (o.isBlocking) { applyScaledDamage(o, Math.floor(PU_KOTO.dmg * 0.5), { source: "shisui-kotoamatsukami" }); return }
+      o.hitstun = Math.max(o.hitstun || 0, 20); o.colorFlash = 14
+      applyScaledDamage(o, PU_KOTO.dmg, { source: "shisui-kotoamatsukami" })
+    })
+  }
+  try { focusCameraOnAction(context, fighter, opp0, 1.08, 24); shakeCamera(context, 4, 12) } catch (_) {}
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -29928,6 +30094,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "ghostface_exe": return executeGhostfaceExeSpecial(fighter, context)   // BILLY (base): Special = IDENTITY SWAP (Down+Sp → Sasuke / Up+Sp → Deathstroke). While swapped, rosterKey is sasuke/deathstroke → routes to THEIR special above.
     case "shisui_trinity": return executeShisuiTrinitySpecial(fighter, context)   // SHISUI — THE LOYALIST: Fwd=Backstab / N=Fireball / B=Genjutsu Grab / D=Kunai Rain / U=Flurry. Blade/Puppeteer identities (P2/P3) add their own cases.
     case "shisui_blade": return executeShisuiBladeSpecial(fighter, context)   // SHISUI — THE BLADE: Fwd=Backstab / N=Kunai Barrage / D=Iaido Draw / U=Rising Overhead / B=Afterimage Feint / Charge+Sp=Mangekyou Focus.
+    case "shisui_puppeteer": return executeShisuiPuppeteerSpecial(fighter, context)   // SHISUI — THE PUPPETEER: Fwd=Backstab / N=Gokakyu / B=Hosenka / D=Susanoo Stance(→Needle/Sword) / U=Flurry / Charge+Sp=Shuriken.
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
     case "ghostface_billy": return executeBillyGhostfaceSpecial(fighter, context)   // Billy variant (live): knife specials only — Fwd/neutral=Gutting Lunge / Down=Low Gut (reuses shared un-gated helpers; NO companion swap)
     case "jason":   return executeJasonSpecial(fighter, context)   // Relentless Slash — the ONE special: committed lunging machete power-slash (Bloodlust; reuses the heavy art)
@@ -30193,6 +30360,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
       case "shisui_trinity": cast = executeShisuiTrinityUltimate(fighter, context); break   // SHISUI — THE LOYALIST: Susanoo Tsukumo (ribcage + magatama + needle volley). Blade/Puppeteer ults (P2/P3) add their own cases.
       case "shisui_blade": cast = executeShisuiBladeUltimate(fighter, context); break   // SHISUI — THE BLADE: Shunshin: Thousand Cuts (committed multi-hit blade flurry).
+      case "shisui_puppeteer": cast = executeShisuiPuppeteerUltimate(fighter, context); break   // SHISUI — THE PUPPETEER: Kotoamatsukami (genjutsu-world backdrop + 3 eyes → mirror opp L/R + lock specials ~2.5s).
       case "gaara":   cast = executeGaaraUltimate(fighter, context);  break   // Sabaku Taisou (Giant Sand Burial) — kanji cut-in + sand ripples→hands→dome→collapse→Part-2 kneel burst; guaranteed ~197 EFF
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).

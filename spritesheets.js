@@ -478,6 +478,12 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./shisui_blade_idle_uniform.png" }
   },
 
+  // Shisui (Trinity) — THE PUPPETEER identity (TheGodGeminis JUS sheet, P3). Hidden but GATES spritesReady()
+  // when swapped in / booted directly, so its per-action shisui_puppeteer_*_uniform.png render.
+  shisui_puppeteer: {
+    actions: { idle: "./shisui_puppeteer_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

@@ -225,6 +225,9 @@ export const ZONER = [
                      //   mixups (light string, heavy=overhead, up launcher) + directional Specials (Backstab/Kunai
                      //   Barrage/Iaido/Rising Overhead/Afterimage Feint) + Mangekyou Focus + Thousand Cuts ult. No
                      //   Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke.
+  "shisui_puppeteer",// SHISUI — THE PUPPETEER identity (P3, hidden isPlayable:false): ranged/stance-cancel assassin
+                     //   (B-normals + directional Specials: Gokakyu/Hosenka/Shuriken/Susanoo Stance→Needle/Sword/Flurry)
+                     //   + Kotoamatsukami ult. No Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -288,6 +291,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                32,         // ... + shisui_trinity + shisui_blade (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          116,       // 71 rekka + 13 standard-string + 32 single-poke = 116 (shisui_blade added; NOTE: concurrent goku_rose + any other new fighter must add their OWN classification — not done here)
+  zoner:                33,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          117,       // 71 rekka + 13 standard-string + 33 single-poke = 117 (shisui_puppeteer added; NOTE: concurrent goku_rose/gogeta/madara_war etc. must add their OWN classification — not done here)
 }

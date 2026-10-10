@@ -4286,7 +4286,7 @@ function executeNarutoSeventhSpecial(fighter, context) {
   // ORANGE cast art) are disabled while golden so no frame crosses modes. RED shroud keeps the base kit.
   if (dir === "F") return kcm ? n7Wakusei(fighter, context) : n7Rasenshuriken(fighter, context, air)   // Fwd — KCM Wakusei / base Rasenshuriken
   if (dir === "B") return kcm ? false : n7DotonWall(fighter, context)        // Back — Doton Earth-Wall (BASE only)
-  if (dir === "D") return kcm ? false : (air ? n7ThrowWeapon(fighter, context, true) : n7Gamabunta(fighter, context))   // Down — ground = Kuchiyose: Gamabunta (now a SPECIAL), air = Throw Weapon (BASE only)
+  if (dir === "D") return kcm ? n7AvatarRush(fighter, context) : (air ? n7ThrowWeapon(fighter, context, true) : n7Gamabunta(fighter, context))   // Down — CLOAK: Kurama Avatar Rush / BASE ground: Gamabunta, BASE air: Throw Weapon
   if (dir === "U") return kcm ? false : n7FourTails(fighter, context)        // Up   — Four-Tails Rampage (BASE, Bond 2+)
   return kcm ? n7Rasenkyugan(fighter, context) : n7Rasengan(fighter, context, air)   // Neutral — KCM Rasenkyugan / base Rasengan (air = diving)
 }
@@ -4743,9 +4743,52 @@ function n7KuramaAvatar(fighter, context) {
   if ((fighter.energy || 0) < N7_AVATAR.cost) return false
   if (fighter._n7Avatar) return false                                    // already summoned
   spendEnergy(fighter, N7_AVATAR.cost)
-  fighter._n7Avatar = { timer: N7_AVATAR.dur, dur: N7_AVATAR.dur, t: 0 }
-  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
-  try { shakeCamera(context, 14, 24) } catch (_) {}
+  fighter._n7Avatar = { timer: N7_AVATAR.dur, dur: N7_AVATAR.dur, t: 0, flare: 12, _pc: fighter.comboCounter || 0 }
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 22)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 20)             // brief i-frames on the summon beat
+  // DRAMATIC summon eruption — a giant golden chakra burst behind Naruto as Kurama manifests.
+  spawnProjectile(fighter, "n7AvatarBurst", {
+    sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
+    spriteSpeed: 4, spriteScale: 5.0, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+    lifetime: 6 * 4 + 10, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  try { shakeCamera(context, 20, 30) } catch (_) {}
+  return true
+}
+
+// Chakra-Cloak Down+Special — KURAMA AVATAR RUSH: the animated gold Six-Paths Kurama avatar (the pre-animated
+// boltanim sheet, 13 frames) SURGES FORWARD as a sweeping multi-hit assault, then vanishes. [from the motion sheet]
+function n7AvatarRush(fighter, context) {
+  if (!isN7Char(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 48)) return false
+  _n7SetCast(fighter, "n7Bijuudama", 46)                              // Naruto's golden cast pose — the avatar is the spectacle
+  fighter.attackCooldown = getAttackDuration(52, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 34)
+  const face = fighter.facing || 1
+  const groundY = fighter.y + (fighter.h || 100)
+  const AV_H = (fighter.h || 100) * 2.6                               // towering sweep ~2.6× Naruto
+  schedulePendingSpawn(8, () => {                                     // the avatar manifests and rushes forward
+    spawnProjectile(fighter, "n7AvatarRush", {
+      sheet: "./naruto_seventh_kurama_avatar_uniform.png", spriteFrames: 13, spriteW: 495, spriteH: 416,
+      spriteSpeed: 3, spriteScale: AV_H / 416, spriteOnce: true, spriteBottomY: groundY,
+      visualOnly: true, speed: 12, vx: face * 12, vy: 0, lifetime: 13 * 3 + 8,
+      spawnX: fighter.x + (fighter.w || 60) / 2 + face * 40, spawnY: groundY - AV_H
+    }, context)
+    try { shakeCamera(context, 10, 14) } catch (_) {}
+  })
+  // SWEEPING damage front — 4 beats reaching progressively farther as the avatar surges (proximity-gated, half on block).
+  const beats = [[12, 150, 40], [20, 240, 44], [30, 330, 48], [40, 420, 70]]
+  beats.forEach(([d, reach, dmg], i) => schedulePendingSpawn(d, () => {
+    const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if ((tcx - cx) * face < -40 || Math.abs(tcx - cx) > reach) return   // must be in FRONT and within the sweep's reach
+    const last = i === beats.length - 1
+    if (opp.isBlocking) { opp.blockstun = 16; applyScaledDamage(opp, Math.floor(dmg * 0.5), { source: "ability" }); opp.vx = face * 5; return }
+    opp.hitstun = last ? 40 : 15; opp.vx = face * (last ? 16 : 5); opp.vy = last ? -14 : -2; opp.colorFlash = 12
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    try { shakeCamera(context, last ? 9 : 4, 8) } catch (_) {}
+  }))
   return true
 }
 
@@ -4942,6 +4985,9 @@ export function applyNarutoSeventhSystem(fighter) {
     const av = fighter._n7Avatar
     av.t = (av.t || 0) + 1
     av.timer = (av.timer || 0) - 1
+    av.flare = Math.max(0, (av.flare || 0) - 1)
+    if ((fighter.comboCounter || 0) > (av._pc || 0)) av.flare = 10    // ECHO: the avatar flares each time Naruto lands a hit
+    av._pc = fighter.comboCounter || 0
     dmgMul *= N7_AVATAR.dmg                                           // the avatar empowers every hit
     if (av.timer <= 0) fighter._n7Avatar = null
   }

@@ -8575,21 +8575,34 @@ function drawN7BondAura(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naruto_seventh") return
   const bond = Math.max(0, Math.min(4, fighter._n7Bond || 0))
   const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
-  // ── NINE-TAILS AVATAR summon — the giant gold Kurama looms BEHIND Naruto while active (drawn first = behind). ──
+  // ── NINE-TAILS AVATAR summon — a HUGE, SOLID gold Kurama looms BEHIND Naruto (drawn first = behind). ──
   if (fighter._n7Avatar && (fighter._n7Avatar.timer || 0) > 0) {
     const av = fighter._n7Avatar, img = _n7FxImg("./naruto_seventh_kurama_summon_uniform.png")
-    const prog = 1 - (av.timer / av.dur)                              // 0→1 over its life
-    const sIn  = Math.min(1, (av.t || 0) / 10)                        // quick scale-in (~0.17s)
-    const sOut = Math.min(1, (av.timer || 0) / 24)                    // fade-out near the end
+    const sIn   = Math.min(1, (av.t || 0) / 7)                        // snappy slam-in
+    const sOut  = Math.min(1, (av.timer || 0) / 22)                   // fade near the end
+    const flare = Math.max(0, (av.flare || 0)) / 10                   // 0..1 echo pulse on a landed hit
     const facing = fighter.facing || 1
-    const targetH = h * 3.1                                           // looming — ~3× Naruto's height
-    const sc = targetH / (img.naturalHeight || 361) * (0.55 + 0.45 * sIn)
-    const fi = Math.floor((av.t || 0) / 20) % 2                       // slow 2-frame idle
-    const bob = Math.sin((av.t || 0) * 0.07) * 7
-    const cx = x + w / 2 - facing * w * 0.35                          // set back behind Naruto
-    const feetY = (fighter.groundY != null ? fighter.groundY : y + h) + 6 + bob   // GROUND-anchored (stays put if Naruto jumps)
-    const alpha = (0.46 + 0.14 * Math.sin((av.t || 0) * 0.12)) * sOut * (0.5 + 0.5 * sIn)   // ghostly chakra presence, fades in/out
-    _n7BlitAvatar(c, img, 2, fi, cx, feetY, sc, alpha, facing)
+    const slam  = sIn < 1 ? (1.18 - 0.18 * sIn) : 1                   // overshoot then settle
+    const targetH = h * (3.5 + 0.3 * flare)                           // towering — grows on each echo
+    const sc = targetH / (img.naturalHeight || 361) * (0.45 + 0.55 * sIn) * slam
+    const fi = Math.floor((av.t || 0) / 16) % 2
+    const bob = Math.sin((av.t || 0) * 0.08) * 10
+    const cx = x + w / 2 - facing * w * 0.28                          // set back behind Naruto
+    const feetY = (fighter.groundY != null ? fighter.groundY : y + h) + 8 + bob   // GROUND-anchored
+    c.save()
+    c.shadowBlur = 30 + 40 * flare; c.shadowColor = "#ffbf2e"         // gold glow halo
+    const base = (0.86 + 0.14 * flare) * sOut * (0.3 + 0.7 * sIn)     // SOLID (not a faint ghost)
+    _n7BlitAvatar(c, img, 2, fi, cx, feetY, sc, Math.min(1, base), facing)
+    c.globalCompositeOperation = "lighter"                            // additive chakra rim-glow pass
+    _n7BlitAvatar(c, img, 2, fi, cx, feetY, sc, (0.22 + 0.4 * flare) * sOut, facing)
+    c.restore()
+    // GOLDEN chakra shroud hugging Naruto while the avatar empowers him (the "boost" made visible)
+    c.save(); c.globalCompositeOperation = "lighter"
+    const ap = 0.5 + 0.5 * Math.sin((av.t || 0) * 0.22)
+    c.globalAlpha = (0.16 + 0.1 * ap + 0.3 * flare) * sOut
+    c.shadowBlur = 22; c.shadowColor = "#ffd84a"; c.fillStyle = "#ffcf3a"
+    c.beginPath(); c.ellipse(x + w / 2, y + h * 0.5, w * 0.78, h * 0.64, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
   }
   // RED CHAKRA SHROUD form — a visible code-drawn chakra cloak: licking red flame tongues + a bright red
   // body-hugging glow (the "tinted body + shroud" the sheet has no body art for). Gated on the red form.

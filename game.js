@@ -8604,6 +8604,28 @@ function drawN7BondAura(c, fighter) {
     c.beginPath(); c.ellipse(x + w / 2, y + h * 0.5, w * 0.78, h * 0.64, 0, 0, Math.PI * 2); c.fill()
     c.restore()
   }
+  // ── CHAKRA-CLOAK ENTRANCE flourish — golden chakra PILLAR erupts + expanding ground rings + rising embers
+  //    for the first ~34 frames of KCM (driven by _n7KcmEnterFx, ticked in applyNarutoSeventhSystem). ──
+  if ((fighter._n7KcmEnterFx || 0) > 0) {
+    const e = fighter._n7KcmEnterFx, p = 1 - e / 34                   // 0→1 progress
+    const cx = x + w / 2, feet = (fighter.groundY != null ? fighter.groundY : y + h)
+    const ease = Math.sin(Math.min(1, p * 1.6) * Math.PI / 2)        // fast rise, settle
+    c.save(); c.globalCompositeOperation = "lighter"
+    // vertical golden chakra PILLAR shooting up
+    const pillarH = h * (1.6 + 2.2 * ease), pw = w * (1.15 - 0.55 * p)
+    const grd = c.createLinearGradient(cx, feet, cx, feet - pillarH)
+    grd.addColorStop(0, "rgba(255,170,30,0)"); grd.addColorStop(0.12, `rgba(255,214,88,${0.6 * (1 - p)})`)
+    grd.addColorStop(0.6, `rgba(255,190,50,${0.3 * (1 - p)})`); grd.addColorStop(1, "rgba(255,170,30,0)")
+    c.fillStyle = grd; c.shadowBlur = 24; c.shadowColor = "#ffcf3a"
+    c.fillRect(cx - pw / 2, feet - pillarH, pw, pillarH)
+    // expanding ground rings
+    c.strokeStyle = "#ffe07a"; c.lineWidth = 3; c.shadowBlur = 12
+    for (let k = 0; k < 3; k++) { const rp = (p + k * 0.33) % 1; const rr = w * 0.35 + rp * w * 2.6; c.globalAlpha = (1 - rp) * 0.55; c.beginPath(); c.ellipse(cx, feet - 4, rr, rr * 0.26, 0, 0, Math.PI * 2); c.stroke() }
+    // rising golden embers
+    c.shadowBlur = 8
+    for (let k = 0; k < 12; k++) { const a = k * 0.7 + 2.1; const rad = w * (0.45 + 0.5 * ((k * 7) % 5) / 5); const ex = cx + Math.cos(a) * rad; const ey = feet - ease * h * (1.4 + 0.5 * ((k * 3) % 4) / 4) - (k % 3) * 10; c.globalAlpha = (1 - p) * 0.8; c.fillStyle = k % 2 ? "#ffe788" : "#ffb63a"; c.beginPath(); c.arc(ex, ey, 3 - 1.8 * p, 0, Math.PI * 2); c.fill() }
+    c.restore()
+  }
   // RED CHAKRA SHROUD form — a visible code-drawn chakra cloak: licking red flame tongues + a bright red
   // body-hugging glow (the "tinted body + shroud" the sheet has no body art for). Gated on the red form.
   if ((fighter._n7Form || "base") === "red") {

@@ -4471,15 +4471,32 @@ export function enterNarutoSeventhKCM(fighter, context = {}) {
   fighter._n7KCMNoBlock = true                                          // pure offense: no guard in KCM
   fighter.isBlocking   = false
   fighter.currentForm  = "n7_kcm"
-  fighter.teleportFlash = 18
-  fighter.attackCooldown = 8
-  // golden transformation BURST FX (the sheet's own Win-row rings/lightning) over the now-golden body
+  fighter.teleportFlash = 26
+  fighter.attackCooldown = 16
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 24)          // can't be punished mid-transformation
+  fighter._n7KcmEnterFx = 34                                            // drives the code-drawn entrance flourish (drawN7BondAura)
+  const cx = fighter.x + (fighter.w || 60) / 2, groundY = fighter.y + (fighter.h || 100)
+  // ERUPTION burst over the body (bigger) ...
   spawnProjectile(fighter, "n7KcmBurst", {
     sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
-    spriteSpeed: 4, spriteScale: 2.2, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
-    lifetime: 6 * 4 + 8, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    spriteSpeed: 3, spriteScale: 3.4, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+    lifetime: 6 * 3 + 8, spawnX: cx, spawnY: fighter.y + (fighter.h || 100) * 0.40
   }, context)
-  try { shakeCamera(context, 7, 14) } catch (_) {}
+  // ... + a golden chakra SHOCKWAVE ring raking the ground (the sheet's Win-row-2 ring FX) ...
+  spawnProjectile(fighter, "n7KcmShock", {
+    sheet: "./naruto_seventh_shockwave_uniform.png", spriteFrames: 3, spriteW: 294, spriteH: 59,
+    spriteSpeed: 5, spriteScale: 2.6, spriteOnce: true, visualOnly: true, spriteBottomY: groundY + 6,
+    speed: 0, vx: 0, vy: 0, lifetime: 3 * 5 + 6, spawnX: cx, spawnY: groundY - 60
+  }, context)
+  // ... + a delayed second flash as the cloak settles.
+  schedulePendingSpawn(14, () => {
+    spawnProjectile(fighter, "n7KcmBurst2", {
+      sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
+      spriteSpeed: 4, spriteScale: 2.0, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 6 * 4 + 6, spawnX: cx, spawnY: fighter.y + (fighter.h || 100) * 0.44
+    }, context)
+  })
+  try { shakeCamera(context, 13, 22) } catch (_) {}
   return true
 }
 
@@ -4970,6 +4987,7 @@ export function applyNarutoSeventhSystem(fighter) {
   fighter._n7BondPts = pts
   fighter._n7Bond = n7BondLevel(pts)
 
+  if (fighter._n7KcmEnterFx > 0) fighter._n7KcmEnterFx--             // KCM entrance-flourish timer (drawN7BondAura draws it)
   // ── NINE-TAILS FORM tick: timed + chakra drain; auto-revert at timeout / 0 chakra (Red / Four-Tails / KCM). ──
   const form = fighter._n7Form || "base"
   if (form !== "base") {

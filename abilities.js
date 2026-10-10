@@ -4647,7 +4647,7 @@ function applyN7BijuudamaDamage(fighter, opp, baseDmg = N7_BIJUU_DMG) {
 }
 function n7Bijuudama(fighter, context) {
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
-  _n7SetCast(fighter, "n7Bijuudama", 60)
+  _n7SetCast(fighter, _n7Airborne(fighter) ? "n7AirBijuu" : "n7Bijuudama", 60)   // AIRBORNE cast = the sheet's gold air-throw pose
   fighter.attackCooldown = getAttackDuration(66, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 70)   // invuln through the whole cinematic
   const face = fighter.facing || 1
@@ -4664,9 +4664,9 @@ function n7Bijuudama(fighter, context) {
   })
   schedulePendingSpawn(14, () => {                     // two Kurama (nine-tails) heads flank — BIGGER (3.6×)
     spawnProjectile(fighter, "n7KuramaHead", {
-      sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
-      spriteSpeed: 10, spriteScale: 3.6, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
-      lifetime: 50, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 230
+      sheet: "./naruto_seventh_kurama_head_native_uniform.png", spriteFrames: 2, spriteW: 174, spriteH: 96,   // his OWN gold Six-Paths Kurama heads (from the sheet's Sp9 row)
+      spriteSpeed: 10, spriteScale: 4.2, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 50, isUltimate: true, spawnX: fighter.x + face * 10, spawnY: cy - 210
     }, context)
     try { shakeCamera(context, 10, 16) } catch (_) {}
   })
@@ -4701,11 +4701,11 @@ function n7KuramaSummon(fighter, context) {
   const face = fighter.facing || 1
   const groundY = fighter.y + (fighter.h || 100)
   const stageW = getWorldWidth(context) || 3200
-  const headOnscreen = Math.min(111 * 4.0, 444)                 // the GIANT fox head (tailed-beast looming; framed on-screen)
+  const headOnscreen = Math.min(96 * 4.6, 470)                  // the GIANT fox head (tailed-beast looming; framed on-screen)
   schedulePendingSpawn(12, () => {                              // Kurama rises — huge head, mouth toward the foe
     spawnProjectile(fighter, "n7KuramaGiant", {
-      sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
-      spriteSpeed: 12, spriteScale: headOnscreen / 111, spriteOnce: true, spriteBottomY: groundY,
+      sheet: "./naruto_seventh_kurama_head_native_uniform.png", spriteFrames: 2, spriteW: 174, spriteH: 96,   // his OWN gold Six-Paths Kurama head
+      spriteSpeed: 12, spriteScale: headOnscreen / 96, spriteOnce: true, spriteBottomY: groundY,
       visualOnly: true, speed: 0, vx: 0, vy: 0, lifetime: 84,
       spawnX: fighter.x - face * 50, spawnY: groundY - headOnscreen
     }, context)
@@ -4747,10 +4747,17 @@ function n7KuramaAvatar(fighter, context) {
   fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 22)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 20)             // brief i-frames on the summon beat
   // DRAMATIC summon eruption — a giant golden chakra burst behind Naruto as Kurama manifests.
+  const groundY = fighter.y + (fighter.h || 100)
   spawnProjectile(fighter, "n7AvatarBurst", {
     sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
     spriteSpeed: 4, spriteScale: 5.0, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
     lifetime: 6 * 4 + 10, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  // a golden chakra SHOCKWAVE ripples out across the ground (the sheet's unused Win-row-2 ring FX).
+  spawnProjectile(fighter, "n7Shockwave", {
+    sheet: "./naruto_seventh_shockwave_uniform.png", spriteFrames: 3, spriteW: 294, spriteH: 59,
+    spriteSpeed: 5, spriteScale: 2.8, spriteOnce: true, visualOnly: true, spriteBottomY: groundY + 8,
+    speed: 0, vx: 0, vy: 0, lifetime: 3 * 5 + 6, spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: groundY - 60
   }, context)
   try { shakeCamera(context, 20, 30) } catch (_) {}
   return true

@@ -10384,6 +10384,7 @@ const narutoSeventh = {
     n7Rasenkyugan: { frames: 14, width: 102, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rasenkyugan_uniform.png" },
     n7Wakusei:     { frames: 11, width: 142, height: 86, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_wakusei_uniform.png" },
     n7Bijuudama:   { frames: 3,  width: 37,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // golden gather (3 neutral poses; heads+sphere are the spectacle)
+    n7AirBijuu:    { frames: 3,  width: 64,  height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_airbijuu_uniform.png" },   // AIRBORNE Bijuudama cast — gold air-throw pose (sheet Sp9 row)
     // Rikudou (Sp6, black/gold) committed apex + Oiroke (Sp4 gag) opt-in. From H's OWN sections (never cross modes).
     n7Rikudou:     { frames: 27, width: 82, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rikudou_uniform.png" },
     n7Oiroke:      { frames: 8,  width: 46, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_oiroke_uniform.png" }

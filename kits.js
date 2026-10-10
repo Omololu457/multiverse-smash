@@ -797,23 +797,36 @@ export const KITS = {
     energy: "Chakra",
     difficulty: "Very High",
     summary: "Shisui Uchiha carries three selves at once. Every round opens as THE LOYALIST — a command-grab genjutsu specialist. (THE BLADE, an aggressive striker, and THE PUPPETEER, a ranged stance-cancel assassin, arrive with the Variant Swap.) HP and Chakra are shared across all three.",
-    passive: { name: "Three as One", effect: "The Mangekyou Signal flickers a partner identity in behind the foe for one signature strike (it whiffs if the foe is cornered — no room behind them); the Variant Swap makes that partner the active fighter for 1 bar of Chakra. [Trinity System — Phase 4]" },
+    passive: { name: "Three as One", effect: "TRINITY SYSTEM — MANGEKYOU SIGNAL (Down+Heavy): the active Shisui flashes his Mangekyō and a PARTNER identity body-flickers in behind the foe for one signature strike (whiffs if the foe is cornered — no room behind them). VARIANT SWAP (Grab, while the partner is on screen): spend 1 bar → that partner STAYS as the active fighter. HP + Chakra are SHARED; every round restarts as THE LOYALIST." },
     basics: [
-      { name: "Attack Combo", input: "Light", desc: "Loyalist's jonin blade string." },
-      { name: "Susanoo Arm Slam", input: "Heavy", desc: "a spectral green Susanoo arm slams down — a launcher." },
-      { name: "Air Combo", input: "Air + Light", desc: "aerial blade string." }
+      { name: "Shunshin Backstab", input: "Fwd + Special", desc: "SHARED on all three identities: flicker out, reappear behind the foe (half on block)." },
+      { name: "Mangekyou Signal", input: "Down + Heavy", desc: "call the next identity in behind the foe for one strike (whiffs when cornered)." },
+      { name: "Variant Swap", input: "Grab (during the Signal)", desc: "commit to the called partner — it becomes the active fighter (1 bar)." }
     ],
     specials: [
-      { name: "Shunshin Backstab", input: "Fwd + Special", cost: 18, desc: "SHARED on all three: flicker out, reappear behind the foe with a slash (half on block)." },
-      { name: "Fireball Jutsu", input: "Neutral + Special", cost: 24, desc: "LOYALIST: a Katon fireball projectile." },
-      { name: "Genjutsu Grab", input: "Back + Special", cost: 22, desc: "LOYALIST: a close-range command grab — white-flash circles stagger the foe (whiffs out of range)." },
-      { name: "Kunai Rain", input: "Down + Special", cost: 26, desc: "LOYALIST: a volley of kunai rains down on the foe." },
-      { name: "Body-Flicker Flurry", input: "Up + Special", cost: 30, desc: "LOYALIST: a shunshin multi-hit slash flurry with afterimages." }
+      // THE LOYALIST (default) — command-grab genjutsu specialist
+      { name: "LOYALIST · Fireball", input: "Neutral + Special", cost: 24, desc: "a Katon fireball projectile." },
+      { name: "LOYALIST · Genjutsu Grab", input: "Back + Special", cost: 22, desc: "close-range command grab → white-flash stagger." },
+      { name: "LOYALIST · Kunai Rain", input: "Down + Special", cost: 26, desc: "a volley of kunai rains down." },
+      { name: "LOYALIST · Body-Flicker Flurry", input: "Up + Special", cost: 30, desc: "a shunshin multi-hit slash flurry." },
+      // THE BLADE — aggressive striker (reached via Variant Swap)
+      { name: "BLADE · Kunai Barrage", input: "Neutral + Special", cost: 20, desc: "a 4-kunai fan." },
+      { name: "BLADE · Iaido Draw", input: "Down + Special", cost: 26, desc: "a crescent draw-slash (half on block)." },
+      { name: "BLADE · Rising Overhead", input: "Up + Special", cost: 28, desc: "an upward launcher (overhead)." },
+      { name: "BLADE · Afterimage Feint", input: "Back + Special", cost: 16, desc: "streak behind the foe with i-frames + a cut." },
+      { name: "BLADE · Mangekyou Focus", input: "Charge + Special", cost: 24, desc: "a ~4s speed buff." },
+      // THE PUPPETEER — ranged / stance-cancel assassin (reached via Variant Swap)
+      { name: "PUPPETEER · Gokakyu", input: "Neutral + Special", cost: 28, desc: "a huge rolling fireball." },
+      { name: "PUPPETEER · Hosenka", input: "Back + Special", cost: 26, desc: "5 phoenix-flame bullets." },
+      { name: "PUPPETEER · Shuriken", input: "Charge + Special", cost: 16, desc: "a 3-shuriken spread." },
+      { name: "PUPPETEER · Susanoo Stance", input: "Down + Special", cost: 30, desc: "then Special = Needle Volley / Fwd+Special = Susanoo Sword." },
+      { name: "PUPPETEER · Flurry", input: "Up + Special", cost: 30, desc: "a shunshin multi-hit flurry." }
     ],
-    ultimate: { name: "Susanoo Tsukumo", input: "Ultimate", cost: 100, desc: "LOYALIST: a green Susanoo ribcage erupts, the chest magatama spins, and a volley of chakra needles fires (sure-hit, half on block)." },
+    ultimate: { name: "Per-identity Ultimate", input: "Ultimate", cost: 100, desc: "LOYALIST = Susanoo Tsukumo (ribcage + magatama + needle volley) · BLADE = Shunshin: Thousand Cuts (multi-hit finisher) · PUPPETEER = Kotoamatsukami (genjutsu-world backdrop + 3 Mangekyō eyes → the foe's controls mirror & their Specials lock for ~2.5s)." },
     combos: [
-      { name: "Grab → Flurry", sequence: "Back+Special → Up+Special", desc: "stagger, then flurry while they're frozen." },
-      { name: "Backstab → Combo", sequence: "Fwd+Special → Light string", desc: "cross up behind, then open the blade string." }
+      { name: "Signal → Swap", sequence: "Down+Heavy → Grab", desc: "call a partner behind the foe, then swap to it mid-pressure." },
+      { name: "Loyalist: Grab → Flurry", sequence: "Back+Special → Up+Special", desc: "stagger, then flurry while they're frozen." },
+      { name: "Full cycle", sequence: "Signal→Swap ×3", desc: "Loyalist → Blade → Puppeteer → Loyalist (deterministic)." }
     ]
   }
 }

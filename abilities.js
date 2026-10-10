@@ -30183,6 +30183,147 @@ function executeShisuiPuppeteerUltimate(fighter, context) {
   return true
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// SHISUI (TRINITY) — PHASE 4: THE TRINITY SYSTEM (MK1 mechanics translated). ADDITIVE, combat.js UNTOUCHED.
+//  • MANGEKYOU SIGNAL (Down+Heavy, grounded): the active Shisui flashes his Mangekyō and a PARTNER identity
+//    body-flickers in BEHIND the opponent to land one signature strike, then flickers out (one-shot assist,
+//    copies the spawnGhostfaceAmbusher template). Partner = the NEXT identity in the cycle. CORNER RULE: if
+//    there's no room behind the foe, nothing comes and the active Shisui is left vulnerable.
+//  • VARIANT SWAP (Grab, while the partner is on screen): spend 1 bar → the partner STAYS as the active fighter
+//    (shisui-namespaced COPY of the omololu/ghostface field-swap). HP + Chakra are SHARED (never reset). Every
+//    round restarts as THE LOYALIST (resetRound re-creates the fighter from the selected key — automatic).
+// Deterministic / LAN-safe (no gameRng). Refuses during KO / Brutality / Domain / Rick-Prime-rewind.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+const SHISUI_SIGNAL_CYCLE = { shisui_trinity: "shisui_blade", shisui_blade: "shisui_puppeteer", shisui_puppeteer: "shisui_trinity" }
+const SHISUI_SIGNAL_WINDOW = 46   // frames the partner is on screen / the swap input is open
+const SHISUI_SWAP_COST = 40       // 1 bar of Chakra
+// per-partner signature strike sheet (its own identity art) + damage
+const SHISUI_SIGNAL_SHEET = {
+  shisui_trinity:  { sheet: "./shisui_trinity_light_uniform.png", frames: 3, w: 103, h: 79, scale: 1.4,  dmg: 62 },
+  shisui_blade:    { sheet: "./shisui_blade_iaido_uniform.png",   frames: 4, w: 81,  h: 88, scale: 1.35, dmg: 66 },
+  shisui_puppeteer:{ sheet: "./shisui_puppeteer_light_uniform.png",frames: 4, w: 62, h: 55, scale: 1.9,  dmg: 58 }
+}
+function shisuiNextIdentity(fighter) { return SHISUI_SIGNAL_CYCLE[(fighter.rosterKey || "").toLowerCase()] || "shisui_blade" }
+
+function spawnShisuiSignalPartner(fighter, opp, partnerKey) {
+  const cfg = SHISUI_SIGNAL_SHEET[partnerKey]; if (!cfg) return null
+  const comp = characters[partnerKey]
+  const dir = (opp.x >= fighter.x) ? 1 : -1
+  const summonData = {
+    id: "shiSignal", summonId: "shiSignal",
+    duration: SHISUI_SIGNAL_WINDOW, maxSimultaneous: 1, attackInterval: 4, spawnBeat: 1,
+    damage: cfg.dmg, hitstun: 22, knockbackX: 8, knockbackY: -4,
+    w: 54, h: 90, speed: 16, behavior: "rush", oneHit: true, puffOnDespawn: true, color: comp?.color || "#8a1c2b",
+    sheet: cfg.sheet, spriteFrames: cfg.frames, spriteW: cfg.w, spriteH: cfg.h, spriteSpeed: 4, spriteScale: cfg.scale,
+  }
+  const p = spawnAssistSummon(fighter, summonData, opp)
+  if (p) { p.x = (opp.x || 0) + dir * 96; p.y = (opp.y || 0); p.facing = -dir }   // beyond the foe → rushes inward
+  return p
+}
+
+// MANGEKYOU SIGNAL — Down+Heavy. Returns true if it fired (so game.js suppresses the normal heavy).
+export function triggerShisuiSignal(fighter, context = {}) {
+  if (!fighter || !SHISUI_SIGNAL_CYCLE[(fighter.rosterKey || "").toLowerCase()]) return false
+  if (fighter._shiSignal || shisuiBusy(fighter)) return false
+  if (fighter._shiCinematicsBlocked) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp) return false
+  const partnerKey = shisuiNextIdentity(fighter)
+  if (!characters[partnerKey]) return false
+  fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 22        // the Mangekyō flash
+  fighter._shisuiSignalFlash = 20                                          // drawShisuiFx red Mangekyō glint
+  // CORNER RULE: the partner appears BEYOND the foe — if there's no room there, nothing comes.
+  const dir = (opp.x >= fighter.x) ? 1 : -1
+  // CORNER = no room BEHIND the foe within the on-screen playfield (fighters are confined to the camera-visible
+  // band, which can be narrower than the stage). Use the visible bounds when available, else the stage bounds.
+  let leftE = context?.stageLeft ?? 0
+  let rightE = (context?.stageWidth ?? context?.worldWidth ?? 3200) - 60
+  const cam = context?.camera, cw = context?.canvasWidth || 1280
+  if (cam && cam.zoom) { const half = (cw / 2) / cam.zoom; leftE = Math.max(leftE, cam.x - half); rightE = Math.min(rightE, cam.x + half - 60) }
+  const behindX = (opp.x || 0) + dir * 96
+  if (behindX < leftE + 30 || behindX > rightE - 30) {
+    fighter.attackCooldown = getAttackDuration(30, fighter)                // whiff → vulnerable recovery, no partner
+    fighter._shisuiSignalWhiff = 16
+    return true
+  }
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  spawnShisuiSignalPartner(fighter, opp, partnerKey)
+  fighter._shiSignal = { partnerKey }
+  schedulePendingSpawn(SHISUI_SIGNAL_WINDOW, () => { fighter._shiSignal = null })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// shisui-namespaced identity field-overwrite (COPY of applyOmoluTransform's overwrite; sticky, no revert).
+// HP / energy / maxHealth / maxEnergy are NOT touched → shared across identities.
+function applyShisuiIdentity(fighter, key) {
+  const t = characters[key]; if (!t) return false
+  fighter.rosterKey        = key
+  fighter.name             = t.name || key
+  fighter.color            = t.color || fighter.color
+  fighter.basic_attacks    = t.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = t.animationData || fighter.animationData
+  fighter.spriteScale      = t.spriteScale ?? fighter.spriteScale   // differs per identity but body-px differ too → constant on-screen size
+  fighter.traits           = t.traits || fighter.traits
+  fighter.ultimate         = t.ultimate || fighter.ultimate
+  fighter.specials         = t.specials || fighter.specials
+  fighter.passive          = t.passive || fighter.passive
+  fighter.archetypes       = t.archetypes || fighter.archetypes
+  fighter.primary          = t.primary; fighter.secondary = t.secondary
+  fighter.transformations     = t.transformations || null
+  fighter.transformationOrder = t.transformationOrder || null
+  fighter.currentForm         = (t.transformationOrder && t.transformationOrder[0]) || null
+  // clear per-move transient so a stale window from the old identity never leaks onto the new one
+  fighter._puStance = 0; fighter._shisuiBladeFocus = 0; fighter._shisuiBladeFocusFx = 0; fighter.attacking = false; fighter.currentMove = null
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null
+  return true
+}
+
+// VARIANT SWAP — Grab while a partner is on screen. Returns true if it fired.
+export function triggerShisuiVariantSwap(fighter, context = {}) {
+  if (!fighter || !fighter._shiSignal) return false
+  if (fighter._shiCinematicsBlocked) return false
+  const targetKey = fighter._shiSignal.partnerKey
+  if (!characters[targetKey]) return false
+  if (!spendEnergy(fighter, SHISUI_SWAP_COST)) return false
+  applyShisuiIdentity(fighter, targetKey)
+  fighter._shiSignal = null
+  fighter.teleportFlash = 14; fighter.colorFlash = 14
+  fighter._shisuiSignalFlash = 18
+  fighter._shisuiSwapBanner = 72                                           // banter banner timer (drawn in game.js)
+  fighter._shisuiSwapBannerText = pickShisuiBanter(targetKey, "swap")
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+
+// ── PERSONALITIES (original text). Shown at intros, swaps and wins; a few needle each other on swaps. ──
+const SHISUI_BANTER = {
+  shisui_trinity: {   // THE LOYALIST — duty-bound, warm, searching for a world where the Uchiha survived
+    swap: ["Step back — let me carry this.", "For the clan that should have lived.", "Blade, Puppeteer — we are one will.", "I'll end this the kind way."],
+    intro:["I fight for a world where the Uchiha still stand."],
+    win:  ["Peace was always worth the cost.", "Forgive me. It had to be quiet."]
+  },
+  shisui_blade: {     // THE BLADE — cocky, impatient, keeps score of everyone he outpaced
+    swap: ["Finally. You two are too slow.", "Duty, duty — just hit them, Loyalist.", "Watch and learn, Puppeteer.", "Another name for my list."],
+    intro:["Tsk. Try to keep up with me."],
+    win:  ["Another name for the list.", "Was that supposed to be a challenge?"]
+  },
+  shisui_puppeteer: { // THE PUPPETEER — serene, unsettling; free will causes war; covets their pooled Mangekyō
+    swap: ["Let me show you a kinder illusion.", "Free will is such a fragile thing.", "One day your eyes will be mine — for everyone.", "Don't struggle. It only prolongs the war."],
+    intro:["Free will is such a fragile thing."],
+    win:  ["You were never choosing at all.", "Sleep. The war is over in here."]
+  }
+}
+function pickShisuiBanter(key, kind) {
+  const pool = (SHISUI_BANTER[(key || "").toLowerCase()] || {})[kind] || []
+  if (!pool.length) return ""
+  // deterministic pick (no gameRng): rotate by a per-fighter counter so repeats vary without RNG
+  return pool[0]
+}
+export function shisuiIntroBanter(key) { const p = (SHISUI_BANTER[(key || "").toLowerCase()] || {}).intro || []; return p[0] || "" }
+export function shisuiWinBanter(key)   { const p = (SHISUI_BANTER[(key || "").toLowerCase()] || {}).win   || []; return p[0] || "" }
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false

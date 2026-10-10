@@ -332,6 +332,9 @@ export const SKINS = {
   // variant (from N's in-sheet COLOR PALETTE) is added in a later phase.
   shisui_trinity: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_trinity?.portrait, spriteScale: characters.shisui_trinity?.spriteScale, animationData: null },
+    // THE LOYALIST's green-vest colourway (from N's in-sheet COLOR PALETTE). LOYALIST ONLY — the hidden Blade/
+    // Puppeteer identities keep their own art (no __green sheets for them). gen_shisui_green.py recolors the flak vest.
+    { id: "shisuiGreen", name: "Leaf Green (Alt)", unlockLevel: 0, portrait: recolorPortrait("shisui_trinity", "green"), spriteScale: characters.shisui_trinity?.spriteScale, animationData: recolorSkinAnim("shisui_trinity", "green"), recolorTag: "green" },
   ],
   // Shisui (Trinity) — THE BLADE identity (P2). REQUIRED default entry so getSkins() carries its real
   // spriteScale (1.35) instead of clobbering to 1 when the Blade is swapped in / booted directly.

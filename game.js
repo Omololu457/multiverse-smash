@@ -70,6 +70,7 @@ import { updatePlatforms, drawPlatforms, spawnPlatform, clearPlatforms, getPlatf
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet, SS_EYE_LABEL,
+  triggerShisuiSignal, triggerShisuiVariantSwap, shisuiIntroBanter, shisuiWinBanter,   // Shisui (Trinity) — the Trinity System (Mangekyou Signal / Variant Swap / banter)
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
   tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
@@ -3473,6 +3474,9 @@ function getAbilityContext() {
   return {
     p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
+    stageWidth: (typeof physics !== "undefined" && physics?.stageWidth) || getStageWorldWidth(),   // the ACTUAL fighter-movement bound (Shisui corner rule) — can be narrower than the camera's worldWidth
+    stageLeft: (typeof physics !== "undefined" && physics?.stageLeft) || 0,
+    canvasWidth: canvas?.width,       // Shisui corner rule — fighters are confined to the camera-visible band
     canvasHeight: canvas?.height,     // giant FX (Susanoo arm-height spawns) mirror sprite.js's canvas-relative sizing
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
@@ -3788,6 +3792,12 @@ function resetRound() {
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, _c2, "p2")
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
+  // Shisui (Trinity) — INTRO: the Loyalist arrives with a Mangekyō flash + a banter line above the head.
+  for (const f of [p1, p2]) {
+    if (f && (f.rosterKey || "").toLowerCase() === "shisui_trinity") {
+      f._shisuiSignalFlash = 22; f._shisuiSwapBanner = 150; f._shisuiSwapBannerText = shisuiIntroBanter(f.rosterKey)
+    }
+  }
   // Arcade final-boss buffs (Stage 20): applied ONLY when this p2 is the arcade boss opponent. Any
   // other appearance of the same character (normal vs, other fights) is a fair, normal fighter. MUST
   // run AFTER applySkin — applySkin resets spriteScale from the skin/char, which would clobber the
@@ -5727,6 +5737,10 @@ function _checkMatchOver() {
       const loseF = winner === "p1" ? p2 : p1
       if (winF?.animationData?.win)   winF._forceAction  = "win"
       if (loseF?.animationData?.lose) loseF._forceAction = "lose"
+      // Shisui (Trinity) — WIN BANTER in the ACTIVE identity's voice (the one standing at the KO).
+      if (winF && /^shisui_(trinity|blade|puppeteer)$/.test((winF.rosterKey || "").toLowerCase())) {
+        winF._shisuiSwapBanner = 240; winF._shisuiSwapBannerText = shisuiWinBanter(winF.rosterKey)
+      }
     }
     victoryState.stats = matchStats
     // recordRoundEnd is now called PER ROUND (checkRoundEnd) so perfectRounds reflects the
@@ -7896,6 +7910,18 @@ function _updatePlayerCombatBody(fighter) {
       }
     }
     triggerSpecial(fighter,  getAbilityContext()); return
+  }
+  // SHISUI (Trinity) — THE TRINITY SYSTEM. VARIANT SWAP = Grab while the Mangekyou-Signal partner is on screen
+  // (commit to the partner identity, 1 bar) — works DURING the signal recovery (not gated on canStart). MANGEKYOU
+  // SIGNAL = Down+Heavy (grounded): a partner body-flickers in behind the foe for one strike (needs canStart).
+  // Both refuse during KO/Brutality/Domain/rewind. Pre-empts the normal heavy/grab.
+  if (/^shisui_(trinity|blade|puppeteer)$/.test((fighter.rosterKey || "").toLowerCase())
+      && !brutalityState.active && !rewindState.active && !_kamuiDimActive() && !fighter.domainFrozen) {
+    fighter._shiCinematicsBlocked = false
+    if (fighter._shiSignal && inputState.grab) { if (triggerShisuiVariantSwap(fighter, getAbilityContext())) { inputState.grab = false; return } }
+    if (canStart && !charging && inputState.down && inputState.heavy && fighter.grounded && !fighter._shiSignal) {
+      if (triggerShisuiSignal(fighter, getAbilityContext())) { inputState.heavy = false; return }
+    }
   }
   // CHROLLO SKILL HUNTER — while the copied form is ACTIVE, re-pressing Ultimate is the MANUAL early-end
   // (give the stolen power back). _shActive survives the body-swap, so check it before the generic dispatch
@@ -13035,6 +13061,27 @@ function drawShisuiFx(c, fighter) {
     fighter._shisuiFlurryFx--
     c.save(); c.globalAlpha = 0.4; c.strokeStyle = "rgba(150,220,255,0.7)"; c.lineWidth = 2
     for (let s = 0; s < 3; s++) { const ox = -facing * (8 + s * 10); c.beginPath(); c.moveTo(cx + ox, fighter.y + 12); c.lineTo(cx + ox, fighter.y + h - 10); c.stroke() }
+    c.restore()
+  }
+  // TRINITY SYSTEM — Mangekyou SIGNAL/SWAP flash: a red Mangekyō glint + ring over the active Shisui.
+  if ((fighter._shisuiSignalFlash || 0) > 0) {
+    const ft = fighter._shisuiSignalFlash--
+    const ex = cx, ey = fighter.y + h * 0.2
+    c.save(); c.globalAlpha = Math.min(0.9, ft / 12)
+    c.strokeStyle = "rgba(220,30,30,0.85)"; c.lineWidth = 2
+    c.beginPath(); c.arc(ex, ey, 10 + (20 - ft) * 0.8, 0, Math.PI * 2); c.stroke()
+    c.save(); c.translate(ex, ey); c.rotate(ft * 0.3)
+    for (let k = 0; k < 3; k++) { const a = k * (Math.PI * 2 / 3); c.fillStyle = "rgba(205,18,18,0.95)"; c.beginPath(); c.arc(Math.cos(a) * 6, Math.sin(a) * 6, 2.6, 0, Math.PI * 2); c.fill() }
+    c.restore(); c.restore()
+  }
+  // TRINITY SYSTEM — Variant Swap BANTER banner (original text above the head).
+  if ((fighter._shisuiSwapBanner || 0) > 0 && fighter._shisuiSwapBannerText) {
+    const bt = fighter._shisuiSwapBanner--
+    c.save(); c.globalAlpha = Math.min(1, bt / 16)
+    c.font = "bold 11px monospace"; c.textAlign = "center"
+    const tx = cx, ty = fighter.y - 10
+    c.fillStyle = "rgba(0,0,0,0.6)"; c.fillText(fighter._shisuiSwapBannerText, tx + 1, ty + 1)
+    c.fillStyle = "rgba(255,230,120,0.95)"; c.fillText(fighter._shisuiSwapBannerText, tx, ty)
     c.restore()
   }
 }

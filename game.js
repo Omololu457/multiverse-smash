@@ -13072,6 +13072,44 @@ function drawKakashiAnbuFx(c, fighter) {
     c.restore()
   }
 }
+// ── KAKASHI (ANBU) "Alien X" skin — floating RED SHARINGAN TOMOE over the void-black body (code-drawn, no art).
+//    Deterministic seeded layout (like the Celestialsapien starfield), gentle rotate + twinkle. kakashi_anbu only,
+//    skinId endsWith "AlienX".
+function _kanbuSeedTomoe(fighter) {
+  const rnd = _mulberry32(0x7A17A3)                 // fixed seed → identical layout every load
+  const t = []
+  for (let i = 0; i < 11; i++) {
+    const ny = 0.08 + rnd() * 0.84
+    const half = ny < 0.26 ? 0.17 : (ny < 0.68 ? 0.27 : 0.16)   // head / torso / legs profile
+    t.push({ nx: 0.5 + (rnd() * 2 - 1) * half, ny, r: 2.6 + rnd() * 2.2, spin: 0.6 + rnd() * 1.4, ph: rnd() * 6.28, dir: rnd() < 0.5 ? 1 : -1 })
+  }
+  fighter._kanbuTomoeFX = t
+}
+function drawKakashiAnbuTomoeField(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
+  if (typeof fighter.skinId !== "string" || !fighter.skinId.endsWith("AlienX")) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  if (!fighter._kanbuTomoeFX) _kanbuSeedTomoe(fighter)
+  const t = (fighter._kanbuTomoeClock = (fighter._kanbuTomoeClock || 0) + 1)
+  c.save()
+  for (const tm of fighter._kanbuTomoeFX) {
+    const cx = x + tm.nx * w, cy = y + tm.ny * h
+    const tw = 0.6 + 0.4 * Math.sin(t * 0.05 * tm.spin + tm.ph)       // smooth twinkle
+    c.save(); c.translate(cx, cy); c.rotate(tm.dir * t * 0.03 * tm.spin)
+    c.globalAlpha = 0.85 * tw; c.shadowBlur = 4; c.shadowColor = "rgba(230,20,20,0.9)"
+    c.fillStyle = "rgba(205,16,16,0.95)"
+    for (let k = 0; k < 3; k++) {                                     // 3-comma tomoe
+      c.rotate(Math.PI * 2 / 3)
+      const r = tm.r
+      c.beginPath(); c.arc(0, -r * 0.7, r * 0.42, 0, Math.PI * 2); c.fill()   // comma head
+      c.beginPath(); c.moveTo(0, -r * 0.7); c.quadraticCurveTo(r * 0.5, -r * 0.1, 0, r * 0.1); c.lineWidth = r * 0.34; c.strokeStyle = "rgba(205,16,16,0.9)"; c.stroke()  // tail
+    }
+    c.globalAlpha = 0.9 * tw; c.fillStyle = "rgba(20,0,0,0.9)"; c.beginPath(); c.arc(0, 0, tm.r * 0.32, 0, Math.PI * 2); c.fill()   // pupil
+    c.restore()
+  }
+  c.restore()
+}
 // ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
 //    panel slides in with a red flash while _kanbuUltCutin ticks down (set by executeKakashiAnbuUltimate).
 let _kanbuIllusImg = null
@@ -15296,6 +15334,7 @@ function renderHybridFighter(fighter) {
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
+    drawKakashiAnbuTomoeField(c, fighter)   // Kakashi (ANBU) Alien X skin — floating RED SHARINGAN TOMOE over the void body (kakashi_anbu + skinId endsWith "AlienX")
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite

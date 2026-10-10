@@ -288,10 +288,15 @@ export const SKINS = {
   // Kakashi (Naruto universe) — STAGE 1. WITHOUT a default skin, applySkin() pulls the getSkins()
   // spriteScale:1 fallback and he renders at native ~65px (half size). This entry sources his real
   // spriteScale from the character. No alt skins yet (creative recolors are a later stage).
-  // Kakashi (ANBU) — NEW additive fighter. Default-only (owner decision). REQUIRED entry or getSkins()
-  // clobbers spriteScale to the 1.0 fallback (native/half size).
+  // Kakashi (ANBU) — NEW additive fighter. Default + 5 recolor skins (tools/kakashi_anbu/gen_recolor.py).
+  // REQUIRED entry or getSkins() clobbers spriteScale to the 1.0 fallback (native/half size).
   kakashi_anbu: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi_anbu?.portrait, spriteScale: characters.kakashi_anbu?.spriteScale, animationData: null },
+    { id: "kanbuBen10",  name: "Ben 10",    unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "ben10"),  spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "ben10"),  recolorTag: "ben10" },   // black suit / Omnitrix-green armour
+    { id: "kanbuAlbedo", name: "Albedo",    unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "albedo"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "albedo"), recolorTag: "albedo" },  // Negative-Ben: black suit / red armour, silver hair
+    { id: "kanbuAlienX", name: "Alien X",   unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "alienx"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "alienx"), recolorTag: "alienx" },  // void-black body + runtime RED SHARINGAN-TOMOE field (drawKakashiAnbuTomoeField)
+    { id: "kanbuBloom",  name: "Sakura Bloom", unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "bloom"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "bloom"), recolorTag: "bloom" },   // pink hair / lavender suit / sky-blue armour / hot-pink accents
+    { id: "kanbuHokage", name: "Golden",    unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "hokage"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "hokage"), recolorTag: "hokage" },  // cream suit / gold armour (Hokage tribute)
   ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },

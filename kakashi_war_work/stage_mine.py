@@ -5,10 +5,14 @@ import subprocess, sys, re
 
 MINE = re.compile(r"kakashi_war|KakashiWar|KAKASHI_WAR|_raikiri|_sharingan|_kamui|_tsuiga|_sennen|_frog|"
                   r"_kwLog|_kwCd|_warDog|_warUlt|_warCine|raikiri_|mangekyou_cast|kamui_swirl|frog_|Henge|"
-                  r"drawKakashiWar|_kwar|Kamui|Raikiri|Kawarimi|Tsuiga|Sennen|Sharingan|Frog", re.I)
-# TIGHT sasuke-specific tokens only (NOT bare "susano", which appears in my own "Perfect Susanoo" refs).
+                  r"drawKakashiWar|_kwar|Kamui|Raikiri|Kawarimi|Tsuiga|Sennen|Sharingan|Frog|"
+                  r"_perfectSusano|_KWAR_SUSANO|SusanoMelee|SusanoVolley|SusanoRaikiri|_susanoBigHit|"
+                  r"_susanoRcPrev|obitoBond|ObitoGift|_giftActive|_giftTimer|_giftIntang|kwarAddBond|_kamui", re.I)
+# TIGHT sasuke-specific tokens only, CASE-SENSITIVE (NOT re.I): the concurrent const is ALL-CAPS `WARSUSANO`,
+# while my own Susanoo functions are mixed-case `KakashiWarSusano` — a case-insensitive match would falsely
+# flag MINE as foreign and drop it. Also avoid bare "susano" (appears in my "Perfect Susanoo" refs).
 FOREIGN = re.compile(r"sasuke_susano|WARSUSANO|_warArm|_susanoImg|_drawSusano|fireSasukeWar|ssSusano|"
-                     r"Soldier transformation|sasuke_warsusano", re.I)
+                     r"drawSasukeWar|SasukeWarSusano|Soldier transformation|sasuke_warsusano")
 
 f = sys.argv[1]
 diff = subprocess.run(["git", "diff", "--", f], capture_output=True, text=True).stdout

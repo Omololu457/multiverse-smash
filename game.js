@@ -13260,7 +13260,16 @@ const _kwarFxImgs = {}
 function _kwarFxImg(src) { if (!_kwarFxImgs[src]) { const i = new Image(); i.src = src; _kwarFxImgs[src] = i } return _kwarFxImgs[src] }
 ;["./kakashi_war_kawarimi_log_uniform.png", "./kakashi_war_dog_uniform.png",
   "./kakashi_war_kamui_swirl_uniform.png", "./kakashi_war_tsuiga_pack_uniform.png",
-  "./kakashi_war_smoke_uniform.png"].forEach(_kwarFxImg)
+  "./kakashi_war_smoke_uniform.png",
+  "./kakashi_war_susano_stance.png", "./kakashi_war_susano_walk.png", "./kakashi_war_susano_punch.png",
+  "./kakashi_war_susano_sword.png", "./kakashi_war_susano_thrust.png", "./kakashi_war_susano_lunge.png",
+  "./kakashi_war_susano_shuriken.png"].forEach(_kwarFxImg)
+// PERFECT SUSANOO pose → [sheet, frameCount]. The giant avatar plays the pose for the current Susanoo action.
+const _KWAR_SUSANO_POSE = {
+  stance: ["./kakashi_war_susano_stance.png", 1], walk: ["./kakashi_war_susano_walk.png", 6],
+  punch:  ["./kakashi_war_susano_punch.png", 2],  sword: ["./kakashi_war_susano_sword.png", 5],
+  lunge:  ["./kakashi_war_susano_lunge.png", 1],  thrust: ["./kakashi_war_susano_thrust.png", 5],
+}
 // centre-anchored uniform-strip blit (for the Kamui swirl, which is centred not feet-aligned).
 function _kwarBlitCentered(c, img, frames, fi, cx, cy, sc, alpha) {
   if (!img.complete || img.naturalWidth === 0) return
@@ -13422,6 +13431,60 @@ function drawKakashiWarCutin(ctx, canvas) {
 function _shukakuSkin(fighter, src) {
   const tag = fighter?._recolorTag
   return (tag && !/sphere|burst/.test(src)) ? src.replace(/\.png$/i, `__${tag}.png`) : src
+}
+// ── KAKASHI (KAMUI) PERFECT SUSANOO — the GIANT light-blue avatar (recoloured P sheet) enveloping Kakashi.
+//    Feet-anchored on the drawn body, ~2.9× tall, facing-flipped, translucent (a chakra shell), with a soft
+//    glow. Plus the Susanoo HP bar above the head and the scaled light-blue Kamui-Raikiri bolt. kakashi_war only.
+const _KWAR_SUSANO_SCALE = 2.9
+function drawKakashiWarSusano(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_war" || !fighter._perfectSusano) return
+  const PS = fighter._perfectSusano
+  const bx = fighter._lastDrawX, by = fighter._lastDrawY, bw = fighter._lastDrawW, bh = fighter._lastDrawH
+  if (bx == null || bh == null) return
+  const dir = fighter.facing || 1
+  const feetX = bx + bw / 2, feetY = by + bh, targetH = bh * _KWAR_SUSANO_SCALE
+  const [sheet, nf] = _KWAR_SUSANO_POSE[PS.pose] || _KWAR_SUSANO_POSE.stance
+  const img = _kwarFxImg(sheet)
+  const t = globalFrameCount
+  const fi = (PS.pose === "stance") ? 0 : (PS.pose === "walk") ? (Math.floor(t / 6) % nf) : (Math.floor(t / 4) % nf)
+  if (img.complete && img.naturalWidth > 0) {
+    const fw = img.naturalWidth / nf, fh = img.naturalHeight, sc = targetH / fh
+    const dw = fw * sc, dh = fh * sc
+    let a = 0.82; if ((PS._shellFlash || 0) > 0) { a = Math.min(0.97, a + 0.14); PS._shellFlash-- }
+    if (PS.hp < PS.max * 0.25) a *= 0.72 + 0.14 * Math.sin(t * 0.3)   // flicker when the shell is nearly broken
+    c.save(); c.globalAlpha = a
+    c.shadowBlur = 26; c.shadowColor = "rgba(120,200,255,0.55)"
+    c.translate(feetX, feetY); c.scale(dir, 1)
+    c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh, dw, dh)
+    c.restore()
+  }
+  // SUSANOO KAMUI RAIKIRI — a thick jagged light-blue bolt from the Susanoo's hand toward the foe.
+  if (PS.raikiri) {
+    const hx = feetX + dir * targetH * 0.22, hy = feetY - targetH * 0.6
+    const reach = targetH * 0.9
+    c.save(); c.globalAlpha = 0.9; c.lineCap = "round"
+    for (let pass = 0; pass < 2; pass++) {
+      c.strokeStyle = pass === 0 ? "rgba(150,220,255,0.95)" : "rgba(255,255,255,0.9)"
+      c.lineWidth = pass === 0 ? 10 : 4; c.shadowBlur = 16; c.shadowColor = "rgba(120,200,255,0.9)"
+      c.beginPath(); c.moveTo(hx, hy)
+      let px = hx, py = hy
+      for (let i = 1; i <= 6; i++) { const f = i / 6; px = hx + dir * reach * f; py = hy + Math.sin(i * 1.7 + t * 0.5) * 18 * (1 - f); c.lineTo(px, py) }
+      c.stroke()
+    }
+    c.restore()
+  }
+  // SUSANOO HP bar (light-blue "shell integrity") above the head.
+  {
+    const frac = Math.max(0, Math.min(1, PS.hp / PS.max))
+    const bw2 = Math.max(60, bw * 2.0), bh2 = Math.max(5, bh * 0.05)
+    const bx2 = feetX - bw2 / 2, by2 = feetY - targetH - bh2 - 6
+    c.save()
+    c.fillStyle = "#06121f"; c.fillRect(bx2 - 1, by2 - 1, bw2 + 2, bh2 + 2)
+    c.fillStyle = "#031018"; c.fillRect(bx2, by2, bw2, bh2)
+    c.fillStyle = frac < 0.25 ? "#ff6a6a" : "#8fd8ff"; c.fillRect(bx2, by2, bw2 * frac, bh2)
+    c.strokeStyle = "rgba(143,216,255,0.7)"; c.lineWidth = 1; c.strokeRect(bx2 - 1, by2 - 1, bw2 + 2, bh2 + 2)
+    c.restore()
+  }
 }
 function drawGaaraShukaku(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
@@ -15551,6 +15614,7 @@ function renderHybridFighter(fighter) {
   fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
   const key = fighter.rosterKey
   const drawTo = (c) => {
+    drawKakashiWarSusano(c, fighter)   // Kakashi (Kamui) — the giant Perfect Susanoo avatar (recoloured light-blue), BEHIND the body (kakashi_war only)
     drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
@@ -22157,7 +22221,7 @@ gameLoop()
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
       // KAKASHI (KAMUI) Phase 4 — Obito's Gift test hooks (bond/gift state are snapshot-hidden). Read-only state +
       // a bond setter so the live test can reach a full meter deterministically without grinding many hits.
-      kakashiWarGift: (who = "p1", setBond = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (setBond != null) f._obitoBond = setBond; return { bond: f._obitoBond || 0, gift: !!f._giftActive, giftTimer: f._giftTimer || 0, lockout: !!f._kamuiLockout, intangible: f._giftIntangible || 0, phased: !!f._kamuiPhased, exhaust: f._kamuiExhaust || 0, sharingan: !!f._sharinganActive } },
+      kakashiWarGift: (who = "p1", setBond = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (setBond != null) f._obitoBond = setBond; const ps = f._perfectSusano; return { bond: f._obitoBond || 0, gift: !!f._giftActive, giftTimer: f._giftTimer || 0, lockout: !!f._kamuiLockout, intangible: f._giftIntangible || 0, phased: !!f._kamuiPhased, exhaust: f._kamuiExhaust || 0, sharingan: !!f._sharinganActive, susano: !!ps, susanoHp: ps ? Math.round(ps.hp) : 0, susanoMax: ps ? ps.max : 0, susanoT: ps ? ps.t : 0, susanoPose: ps ? ps.pose : null, susanoAction: ps ? ps.action : null, susanoRaikiri: ps ? !!ps.raikiri : false, susanoVolley: ps ? !!ps.volley : false } },
       putOppNear: (dist = 110) => { if (!p1 || !p2) return null; p2.x = p1.x + (p1.facing || 1) * dist; return Math.round(p2.x) },   // test-only: position the foe in range
       forceOppAttack: () => { if (!p2) return false; p2.attacking = true; p2.currentMove = "light"; return true },                   // test-only: mark the foe mid-attack (drives the Read counter)
       ult: (variant = "raikiri", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._ultVariant = variant; f._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!f.domainFrozen; f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; const eBefore = f.energy; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, variant: f._ultVariant, spent: eBefore - f.energy, kamuiRift: !!f._kamuiRift, copyReady: f._copyReady || 0 } },   // test-only: fire a directional ult (mirrors the real ult-press gate)

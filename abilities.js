@@ -10704,9 +10704,137 @@ function fireKakashiWarMiniShuriken(fighter, context) {
   try { shakeCamera(context, 3, 6) } catch (_) {}
   return true
 }
-// PERFECT SUSANOO — the Gift's own Ultimate (Phase 5). Stubbed here (no-op → ult not consumed) until P5.
-// Declared so executeKakashiWarUltimate's `typeof` check resolves; P5 replaces the body.
-function executeKakashiWarPerfectSusanoo(fighter, context) { return false }
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (KAMUI) — PHASE 5: PERFECT SUSANOO (the Gift's own Ultimate). A GIANT light-blue Susanoo avatar
+// (recoloured mikeel8888 P sheet) envelops Kakashi. Its HP ABSORBS incoming damage (redirected in
+// updateKakashiWar); ends on timeout / 0 Chakra / HP break (code fade). The kit (driven from rawControls so
+// combat.js stays UNTOUCHED, normals suppressed via attackCooldown): walk = R1 · Light = winged punches (R2) ·
+// Heavy = sword combos (R4) · Fwd+Special = flying lunge (R6) · neutral Special = KAMUI SHURIKEN VOLLEY (4
+// large shuriken one-by-one, warp on hit) · Ultimate = SUSANOO KAMUI RAIKIRI (scaled light-blue Raikiri FX).
+// Deterministic / LAN-safe. When it ends, the Gift ends too → Kamui lockout + exhaustion (shared path).
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_WAR_SUSANO = {
+  hp: 460, dur: 600, scale: 2.9,
+  punch:   { pose: "punch", dur: 22, activeAt: 14, reach: 135, raw: 62,  hitstun: 18, kb: 9,  vy: -2 },
+  sword:   { pose: "sword", dur: 34, activeAt: 20, reach: 185, raw: 112, hitstun: 24, kb: 13, vy: -5 },
+  lunge:   { pose: "lunge", dur: 28, activeAt: 12, reach: 170, raw: 94,  hitstun: 22, kb: 15, vy: -6, dash: 26 },
+  shur:    { count: 4, gap: 11, cast: 16, raw: 58, speed: 15, stun: 30 },
+  raikiri: { dur: 74, loopAt: 10, impactAt: 46, raw: 300, hitstun: 46, kb: 17, vy: -11 },
+}
+// ENTER the Susanoo, or — if it's already active — fire the SUSANOO KAMUI RAIKIRI (the Susanoo's Ultimate).
+function executeKakashiWarPerfectSusanoo(fighter, context) {
+  if (fighter._perfectSusano) return fireKakashiWarSusanoRaikiri(fighter, context)
+  if (!fighter._giftActive) return false                       // only reachable as the Gift's Ultimate
+  const S = KAKASHI_WAR_SUSANO
+  fighter._perfectSusano = { hp: S.hp, max: S.hp, t: S.dur, pose: "stance", poseT: 0, action: null, actionT: 0, volley: null, raikiri: null }
+  fighter._warUltCutin = 30; fighter.colorFlash = 16
+  fighter._suppressUltCooldown = true
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 22); shakeCamera(context, 12, 18) } catch (_) {}
+  return true
+}
+function _susanoBigHit(fighter, context, reach, raw, hitstun, kb, vy, source) {
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp || opp.eliminated) return
+  const fx = (fighter.x || 0) + ((fighter.facing || 1) > 0 ? 0 : -reach), fw = (fighter.w || 60) + reach
+  const hit = fx < opp.x + (opp.w || 60) && fx + fw > opp.x && (fighter.y || 0) - 120 < opp.y + (opp.h || 100) && (fighter.y || 0) + (fighter.h || 100) + 40 > opp.y
+  if (!hit) return
+  if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 26); applyScaledDamage(opp, Math.round(raw * 0.4), { source }) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, hitstun); opp.vx = (fighter.facing || 1) * kb; opp.vy = vy; opp.colorFlash = 14; applyScaledDamage(opp, raw, { source }) }
+  try { shakeCamera(context, 9, 10) } catch (_) {}
+}
+function startSusanoMelee(fighter, kind) {
+  const PS = fighter._perfectSusano, M = KAKASHI_WAR_SUSANO[kind]
+  PS.action = kind; PS.actionT = M.dur; PS.pose = M.pose; PS.poseT = M.dur
+  if (kind === "lunge") fighter.vx = (fighter.facing || 1) * M.dash
+}
+function fireKakashiWarSusanoVolley(fighter, context) {
+  const PS = fighter._perfectSusano, V = KAKASHI_WAR_SUSANO.shur
+  if (PS.volley) return
+  PS.volley = { left: V.count, t: 0 }; PS.pose = "punch"; PS.poseT = V.cast + V.count * V.gap
+}
+function fireKakashiWarSusanoRaikiri(fighter, context) {
+  const PS = fighter._perfectSusano, R = KAKASHI_WAR_SUSANO.raikiri
+  if (PS.raikiri) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  PS.raikiri = { t: R.dur, hit: false }; PS.pose = "thrust"; PS.poseT = R.dur
+  fighter._warUltCutin = 28; fighter.colorFlash = 16
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, R.impactAt - 4); opp.vx = 0 }
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18); shakeCamera(context, 10, 14) } catch (_) {}
+  return true
+}
+function exitKakashiWarSusano(fighter, context) {
+  fighter._perfectSusano = null
+  fighter._giftTimer = 0           // the Gift ends with the Susanoo → updateKakashiWar's gift-end applies lockout + exhaustion
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 16
+  fighter.colorFlash = 14
+  try { shakeCamera(context, 6, 10) } catch (_) {}
+}
+// Per-frame SUSANOO driver (called from updateKakashiWar while _perfectSusano is live). Normals are suppressed
+// (attackCooldown held) and the giant kit is driven here from rawControls; HP-absorb is in updateKakashiWar.
+function updateKakashiWarSusano(fighter, context, rc) {
+  const PS = fighter._perfectSusano, S = KAKASHI_WAR_SUSANO
+  PS.t--
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, getAttackDuration(4, fighter))   // suppress combat.js normals + dispatch
+  fighter.attacking = false
+  if ((PS.poseT || 0) > 0) PS.poseT--
+  // walk pose when moving + no action
+  if (!PS.action && !PS.volley && !PS.raikiri) { PS.pose = (Math.abs(fighter.vx || 0) > 0.5 && (fighter.onGround ?? fighter.grounded)) ? "walk" : "stance" }
+  // ── melee (Light = punch · Heavy = sword) + lunge (Fwd+Special) via rawControls edge-detect ──
+  const prev = fighter._susanoRcPrev || {}
+  const face = fighter.facing || 1
+  const fwdHeld = face > 0 ? rc.right : rc.left
+  const canAct = !PS.action && !PS.volley && !PS.raikiri
+  if (canAct) {
+    if (rc.light && !prev.light) startSusanoMelee(fighter, "punch")
+    else if (rc.heavy && !prev.heavy) startSusanoMelee(fighter, "sword")
+    else if (rc.special && !prev.special && fwdHeld) startSusanoMelee(fighter, "lunge")
+    else if (rc.special && !prev.special && !fwdHeld) fireKakashiWarSusanoVolley(fighter, context)
+    else if (rc.ultimate && !prev.ultimate) fireKakashiWarSusanoRaikiri(fighter, context)
+  }
+  fighter._susanoRcPrev = { light: rc.light, heavy: rc.heavy, special: rc.special, ultimate: rc.ultimate }
+  // active melee → apply the big hit at its active frame
+  if (PS.action) {
+    const M = S[PS.action]
+    if (PS.actionT === (M.dur - M.activeAt)) _susanoBigHit(fighter, context, M.reach, M.raw, M.hitstun, M.kb, M.vy, `kakashi_war-susano-${PS.action}`)
+    PS.actionT--
+    if (PS.actionT <= 0) { PS.action = null; if (face) fighter.vx = 0 }
+  }
+  // shuriken volley → throw one every `gap` frames (after the cast)
+  if (PS.volley) {
+    const V = S.shur
+    PS.volley.t++
+    if (PS.volley.t >= V.cast && PS.volley.left > 0 && (PS.volley.t - V.cast) % V.gap === 0) {
+      PS.volley.left--
+      spawnProjectile(fighter, "kakashi_war-susano-shuriken", {
+        w: 64, h: 64, speed: V.speed, damage: V.raw, hitstun: V.stun, knockbackX: 5, knockbackY: -2, lifetime: 100,
+        spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.1, color: "#9fe8ff",
+        sheet: "./kakashi_war_susano_shuriken.png", spriteFrames: 1, spriteScale: 1.6, spriteSpeed: 2,
+        impact: { sheet: "./kakashi_war_kamui_swirl_uniform.png", frames: 9, w: 120, h: 121, speed: 3, scale: 1.1, lifetime: 26 },
+      }, context)
+      try { shakeCamera(context, 3, 5) } catch (_) {}
+    }
+    if (PS.volley.left <= 0 && PS.volley.t > V.cast + V.count * V.gap) PS.volley = null
+  }
+  // Susanoo Kamui Raikiri — scaled light-blue Raikiri FX (drawn in game.js) + one big guaranteed strike.
+  if (PS.raikiri) {
+    const R = S.raikiri
+    PS.raikiri.t--
+    const elapsed = R.dur - PS.raikiri.t
+    if (!PS.raikiri.hit && elapsed >= R.impactAt) {
+      PS.raikiri.hit = true
+      const opp = getTargetResolver(context)(fighter) || null
+      if (opp && !opp.eliminated) {
+        if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 28); applyScaledDamage(opp, oneShotUltBlockedDmg(R.raw), { source: "kakashi_war-susano-raikiri" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 18; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 54); applyScaledDamage(opp, R.raw, { source: "kakashi_war-susano-raikiri" }) }
+      }
+      try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 24, 20) } catch (_) {}
+    }
+    if (PS.raikiri.t <= 0) PS.raikiri = null
+  }
+  // EXIT: timeout / 0 Chakra / HP break (the HP-absorb lives in updateKakashiWar).
+  if (PS.t <= 0 || (fighter.energy || 0) <= 0 || PS.hp <= 0) exitKakashiWarSusano(fighter, context)
+}
 
 
 
@@ -10781,8 +10909,15 @@ export function updateKakashiWar(fighter, context, heldSpecial = false, blockCin
       fighter._giftActive = false; fighter._giftTimer = 0; fighter._kamuiLockout = false; fighter._obitoBond = 0
       fighter._kamuiExhaust = 0; fighter._giftIntangible = 0
     }
-    // BOND from damage taken (health dropped since last frame).
-    if (delta < 0) kwarAddBond(fighter, Math.min(G.bondPerDamageCap, -delta * G.bondPerDamage))
+    // PERFECT SUSANOO HP ABSORB: while the Susanoo is up, redirect incoming damage to its HP (refund Kakashi).
+    if (fighter._perfectSusano && delta < 0) {
+      const absorbed = -delta
+      fighter.health = Math.min(fighter.maxHealth || fighter.health, (fighter.health || 0) + absorbed)   // refund Kakashi
+      fighter._perfectSusano.hp -= absorbed                                                              // the Susanoo takes it
+      fighter._perfectSusano._shellFlash = 8
+    }
+    // BOND from damage taken (health dropped since last frame; not while the Susanoo absorbs it).
+    else if (delta < 0) kwarAddBond(fighter, Math.min(G.bondPerDamageCap, -delta * G.bondPerDamage))
     fighter._kwarPrevHealth = fighter.health || 0
     // Gift cooldowns
     if ((fighter._giftIntangCd || 0) > 0) fighter._giftIntangCd--
@@ -10790,10 +10925,11 @@ export function updateKakashiWar(fighter, context, heldSpecial = false, blockCin
     // Kamui Intangibility window — sustain invulnTimer (combat's generic negate reads it).
     if ((fighter._giftIntangible || 0) > 0) { fighter._giftIntangible--; fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 3); fighter._kamuiPhased = true }
     else fighter._kamuiPhased = false
-    // Gift timer → END: eyes return to Obito → Kamui lockout for the round + brief exhaustion.
+    // Gift timer → END: eyes return to Obito → Kamui lockout for the round + brief exhaustion. The timer FREEZES
+    // while the Perfect Susanoo is live (the Susanoo governs; its exit sets _giftTimer=0 to trigger this end).
     if (fighter._giftActive) {
       fighter._sharinganActive = true                                         // both eyes stay online during the Gift
-      fighter._giftTimer--
+      if (!fighter._perfectSusano) fighter._giftTimer--
       if (fighter._giftTimer <= 0) {
         fighter._giftActive = false; fighter._kamuiLockout = true; fighter._sharinganActive = false
         fighter._kamuiExhaust = G.exhaustFrames
@@ -10803,6 +10939,12 @@ export function updateKakashiWar(fighter, context, heldSpecial = false, blockCin
       fighter.speedMultiplier = G.exhaustSlow; fighter._kamuiExhaust--
       if (fighter._kamuiExhaust <= 0) { fighter._kamuiExhaust = 0; fighter.speedMultiplier = 1 }
     }
+  }
+
+  // ── PHASE 5: PERFECT SUSANOO driver (overrides the rest while the giant is up) ──
+  if (fighter._perfectSusano) {
+    updateKakashiWarSusano(fighter, context, rawControls || {})
+    return
   }
 
   // ── Kawarimi cooldown + log/smoke FX timer ──

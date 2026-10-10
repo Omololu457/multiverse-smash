@@ -5536,7 +5536,7 @@ export function updateSasukeWarSusano(fighter, context) {
   if (fighter._warSoldier) {
     fighter.energy = Math.max(0, (fighter.energy || 0) - WARSOLDIER.DRAIN)
     const hp = fighter.health, prev = (fighter._warSoldierHpWatch != null) ? fighter._warSoldierHpWatch : hp
-    if (hp < prev) fighter._warSoldierHP -= (prev - hp) * 3
+    if (hp < prev) fighter._warSoldierHP -= (prev - hp) * WARSOLDIER.HP_BLEED
     fighter._warSoldierHpWatch = fighter.health
     if (fighter._warWing) { fighter._warWing.t++; if (fighter._warWing.t >= fighter._warWing.max) fighter._warWing = null }
     if (fighter._warIndra) { fighter._warIndra.t++; if (fighter._warIndra.t >= fighter._warIndra.max) fighter._warIndra = null }
@@ -5623,7 +5623,7 @@ const SOLDIER_ANIM = (() => {
     heavy: _soldierCell(4, 1, 6, false),                    // bow-aim twin-arrow shot
   }
 })()
-const WARSOLDIER = { COST: 100, DURATION: 1200, DRAIN: 0.14, HP: 320, DEF: 5.0, DMG: 1.6, INDRA_DMG: 320, VOLLEY_DMG: 40, WING_DMG: 72, INFINITY_KICOST: 7 }   // DURATION ~20s (lasts longer); INFINITY_KICOST = chakra per auto-dodge
+const WARSOLDIER = { COST: 100, DURATION: 1800, DRAIN: 0.05, HP: 700, HP_BLEED: 2.0, DEF: 5.0, DMG: 1.6, INDRA_DMG: 320, VOLLEY_DMG: 40, WING_DMG: 72, INFINITY_KICOST: 5 }   // ~30s window. (The real "too fast" bug was the input-buffer re-firing Indra on entry — fixed below.)
 
 export function sasukeInSoldier(fighter) { return !!(fighter && fighter._warSoldier) }
 
@@ -5648,6 +5648,11 @@ export function enterSasukeSoldier(fighter, context) {
   fighter._susanooActive = true
   fighter.canJump = true
   fighter._suppressUltCooldown = true
+  // Block the SAME Ultimate press from immediately re-firing as Indra's Arrow via the input buffer (that was
+  // ending the form in ~1s). Mirror teen's Lv2 gate: a short recovery (> the input-buffer window) + require a
+  // genuine second press (button RELEASED since entry).
+  fighter.attackCooldown = getAttackDuration(18, fighter)
+  fighter._ultReleasedSinceStage1 = false
   // INFINITY-style defense (Gojo-like): while in the Soldier, incoming hits are AUTO-DODGED (combat.js
   // shouldGojoAutoDodge reads currentFormData.autoDodge, generically). Each dodge costs chakra, so it's
   // self-limiting (and hastens the form's end if you're swarmed). currentFormData carries the Soldier's own
@@ -5713,6 +5718,7 @@ function fireSasukeSoldierSpecial(fighter, context) {
 
 export function fireSasukeIndrasArrow(fighter, context) {
   if (!fighter._warSoldier) return false
+  if ((fighter.attackCooldown || 0) > 0 || !fighter._ultReleasedSinceStage1) return false   // not the buffered entry-press; needs a genuine 2nd Ultimate
   const getOpp = getTargetResolver(context)
   fighter._warIndra = { t: 0, max: 50 }
   fighter.attackCooldown = getAttackDuration(50, fighter)

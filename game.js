@@ -6926,7 +6926,8 @@ const SPEED_TIER_THRESHOLD = 98
 const SPEED_TIER_TELEPORT_KEYS = new Set([
   "obito", "tobi", "pain",                                       // Stage-0 originals (Kamui / gravity feats)
   "naruto", "madara", "zaraki", "killua", "netero", "hisoka", "beerus",   // Stage-2 speed-blitz additions
-  "omololu"   // Obito-recolor self-insert — same Kamui-lineage blink feat as obito (falls through to its own dash pose)
+  "omololu",  // Obito-recolor self-insert — same Kamui-lineage blink feat as obito (falls through to its own dash pose)
+  "sasuke_sensei"   // Boruto-era Sasuke — Sharingan Shunshin, on par with teen Sasuke/Itachi/Madara who already teleport-dash (his base speed 94 sits just under the tier, so granted explicitly; blink plays his own dash sheet)
 ])
 function isSpeedTierTeleport(fighter) {
   const key = (fighter?.rosterKey || fighter?.id || "").toLowerCase()

@@ -100,6 +100,19 @@ function recolorSkins(rosterKey) {
   }))
 }
 
+// Alternate-BODY skin builder (DB fighters): spread the base character's animationData and override the
+// stance/locomotion actions with the alt-body sheet (the sheets have no full alt-body action set, so
+// attacks/specials keep the base look). Returns a FULL animationData object → safe for every action.
+function _altBodySkin(baseKey, sheet, frames, w, h) {
+  const base = characters[baseKey]?.animationData || {}
+  const loco = { frames, width: w, height: h, speed: 8, anchorY: 0, loop: true, sheet }
+  const still = { ...loco, speed: 6, loop: false, lockLastFrame: true }
+  return { ...base, idle: loco, walk: loco, run: { ...loco, speed: 5 }, dash: still, jump: still, fall: still,
+           guard: still, hurt: { ...loco, speed: 5, loop: false }, knockdown: still, getup: still, win: loco }
+}
+function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", sheet, frames, w, h) }
+function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
+
 export const SKINS = {
   // Gojo — base sprite transparency-repaired (2026-07-30), then rebuilt with 4 coordinated head-to-toe
   // colour skins (HAIR + main clothing/top + EYES all in one hue family; face/skin + white pants kept
@@ -1466,9 +1479,17 @@ export const SKINS = {
   // (the SSJ Rose body-swap is a transformation, not a skin — comes in a later stage).
   goku_rose: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale, animationData: null },
+    // ALTERNATE-BODY skins from the SAME sheet's own variant rows (idle/stance swapped to the alt body; the
+    // attack/special sheets stay base — the sheet has no full alt-body action set). Cosmetic, select-visible.
+    { id: "zamasu", name: "Zamasu", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale,
+      animationData: _roseSkin("./goku_rose_skin_zamasu_uniform.png", 4, 43, 52) },
+    { id: "gokuBlack", name: "Goku Black", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale,
+      animationData: _roseSkin("./goku_rose_skin_black_uniform.png", 5, 38, 51) },
   ],
   gogeta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gogeta?.portrait, spriteScale: characters.gogeta?.spriteScale, animationData: null },
+    { id: "ssBlue", name: "SSGSS (Blue)", unlockLevel: 0, portrait: characters.gogeta?.portrait, spriteScale: characters.gogeta?.spriteScale,
+      animationData: _gogetaSkin("./gogeta_blue_idle_uniform.png", 6, 60, 38) },
   ],
   goku_black: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },

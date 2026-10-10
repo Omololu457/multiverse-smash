@@ -779,14 +779,17 @@ function executeGokuRoseSpecial(fighter, context) {
 function executeGokuRoseUltimate(fighter, context) {
   if (!isGokuRose(fighter)) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
-  fighter._spriteCastMove = "roseKameha"; fighter._spriteCastTimer = 70
+  fighter._spriteCastMove = "roseDragon"; fighter._spriteCastTimer = 72
   fighter.attackCooldown = getAttackDuration(72, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 76); fighter.vx = 0
   const face = fighter.facing || 1, getOpp = getTargetResolver(context)
-  schedulePendingSpawn(26, () => {                              // the colossal beam (visual)
-    spawnProjectile(fighter, "roseKameha", {
-      w: 520, h: 70, radius: 44, speed: 18, vx: face * 18, damage: 0, visualOnly: true,
-      lifetime: 60, piercing: true, isUltimate: true, color: "#ff2f7a",
-      spawnY: fighter.y + (fighter.h || 100) * 0.34
+  schedulePendingSpawn(26, () => {                              // the DIVINE DRAGON erupts and surges forward (visual)
+    const DRAGON_H = (fighter.h || 100) * 2.4
+    spawnProjectile(fighter, "roseDragon", {
+      sheet: "./goku_rose_dragon_uniform.png", spriteFrames: 6, spriteW: 145, spriteH: 133,
+      spriteSpeed: 4, spriteScale: DRAGON_H / 133, spriteOnce: true,
+      w: 360, h: 120, radius: 70, speed: 17, vx: face * 17, damage: 0, visualOnly: true,
+      lifetime: 64, piercing: true, isUltimate: true,
+      spawnX: fighter.x + (fighter.w || 60) / 2 + face * 50, spawnY: fighter.y + (fighter.h || 100) * 0.1
     }, context)
     try { shakeCamera(context, 18, 28) } catch (_) {}
   })

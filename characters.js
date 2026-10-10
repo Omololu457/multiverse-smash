@@ -10439,7 +10439,8 @@ const gokuRose = {
     roseKameha: { frames: 5,  width: 141, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
     roseSword:  { frames: 9,  width: 73,  height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_sword_uniform.png" },
     roseScythe: { frames: 14, width: 135, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_scythe_uniform.png" },
-    roseAura:   { frames: 10, width: 71,  height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" }
+    roseAura:   { frames: 10, width: 71,  height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" },
+    roseDragon: { frames: 6,  width: 145, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_dragon_uniform.png" }   // the pink divine DRAGON — ultimate cast
   }
 }
 

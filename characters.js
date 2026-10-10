@@ -9113,6 +9113,95 @@ const kakashi = {
   }
 }
 
+// ═════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU)  (rosterKey "kakashi_anbu", universe "naruto") — teen-era ANBU Hatake Kakashi.
+// NEW ADDITIVE fighter, fully namespaced; the base `kakashi` and every other character are UNTOUCHED.
+// Source K = anbu_kakashi_sprite_sheet_by_dantewreckmen_999 (1054×2460, opaque green (0,128,0) + noise),
+// border-flood-fill keyed + FLIP_H (sheet faces LEFT → emit facing RIGHT) by tools/kakashi_anbu/slice.py.
+// Credit: uploader dantewreckmen_999 (filename); the large illustration source is UNVERIFIED (noted).
+// Fast / technical / lower-HP shinobi. ENERGY label = "Chakra" (energyType "chakra"). Voice ALIASES the
+// existing base-Kakashi pack via game.js INTRO_VOICE + win/namecall (NO new audio; combat.js UNTOUCHED, so
+// in-match hit/taunt grunts — hardcoded `=== "kakashi"` in combat.js — are intentionally NOT aliased).
+// PHASE 1 = body + normals + Body Flicker (F+Special) + intro pose + illustration select-art + plumbing.
+// Sharingan/Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) land later.
+// NOT brutality-eligible (teen). Illustration panel kakashi_anbu_illus.png = select art + cut-in.
+const kakashiAnbu = {
+  rosterKey: "kakashi_anbu", name: "Kakashi (ANBU)", universe: "naruto",
+  portrait: "./kakashi_anbu_portrait.png",   // face bust cropped from the sheet's illustration panel
+  archetypes: ["melee", "technical", "summons"],
+  primary: "melee", secondary: ["technical", "summons"],
+  // Body Flicker (shunshin) is the dedicated F+Special teleport dodge (abilities.js executeKakashiAnbuSpecial).
+  // runWhenAdvancing = ninja-run while closing; wallJump = engine mechanic (movement.wallJump) — no dedicated
+  // wall-jump RENDER pose on the sheet, so it reuses the jump pose (reported). NO double-tap dashTeleport
+  // (teleport lives on the explicit F+Special input to keep it distinct).
+  movement: { runWhenAdvancing: true, wallJump: true },
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "technical", animeMovement: true },
+  // maxEnergy 200: Raikiri (ULT / N+Special) + Ninken + the P4 Kamui Rift want a full Chakra bar.
+  stats: { maxHealth: 1050, maxEnergy: 200, attack: 86, defense: 76, speed: 96, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 12, dashCooldownMax: 40 },
+  // ── NORMALS (×0.60 via GLOBAL_DAMAGE_SCALE). Tuned fast/technical: slightly lower than base Kakashi. ──
+  basic_attacks: {
+    light:    { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },   // Y-combo opener (tanto slashes)
+    heavy:    { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },   // Y-combo finisher (orange blade arc)
+    upAttack: { type: "launcher", damage: 62, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11 },  // Y+Up rising kick
+    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },  // Y+Jump diving strike
+    downAir:  { damage: 68, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },   // reuses air art
+    crouchLight:{ damage: 38, startup: 4, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 }  // Y+Crouch low slash — auto-swapped by _setCrouchVariant
+  },
+  // HUD/movelist meta only — real logic in abilities.js executeKakashiAnbuSpecial. PHASE-1 live move =
+  // Body Flicker (F+Special). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu/Kamui).
+  specials: {
+    bodyFlicker: { cost: 12, damage: 0,  subtype: "mobility",  effect: "Body Flicker (Fwd+Special) — shunshin teleport-dodge: brief i-frames + a short forward blink (teleport art)" },
+    raikiri:     { cost: 30, damage: 78, subtype: "melee",     effect: "Raikiri (neutral Special) — charge-hold the Lightning Blade (hold for more damage, capped) then release to dash + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff" },
+    ninken:      { cost: 40, damage: 94, subtype: "summon",    effect: "Kuchiyose: Ninken — Tsuiga (Down+Special) — hand seals → the dog-pack bursts under the foe and PINS them (rooted + damage ticks) → Bull bite → dismissal smoke. Sharingan ON = longer pin" },
+    read:        { cost: 16, damage: 70, subtype: "counter",   effect: "Sharingan Read (Back+Special; needs Sharingan) — a short counter window; if the foe attacks inside it, Kakashi Body Flickers behind them and slashes. Cooldown" },
+    genjutsu:    { cost: 22, damage: 10, subtype: "stun",      effect: "Sharingan Genjutsu (Up+Special; needs Sharingan) — a close-range stare that briefly STUNS the foe (tomoe swirl). Cooldown" },
+    sharingan:   { cost: 0,  damage: 0,  subtype: "stance",    effect: "Sharingan (Charge-tap) — toggles the red eye: drains Chakra while active, sharpens Raikiri tracking + gates Read/Genjutsu; at 0 Chakra it shuts off and Kakashi is briefly fatigued" }
+  },
+  ultimate: { name: "Full-Charge Raikiri / Copy Ninja / Kamui Rift", cost: 100, description: "Directional ULT — neutral = Full-Charge Raikiri (~198 EFF guaranteed tracking thrust) · Down = Copy Ninja (mirror the foe's recent projectile; needs Sharingan + copy-ready) · Up = Kamui Rift (spatial-distortion DoT; unlocked by the Mangekyō awakening at ≤25% HP, then EXHAUSTION)." },
+  hasSprites: true,
+  // idle content ~63px × 1.75 ≈ 110px on-screen ≈ roster mid-band. REQUIRES the skins.js `kakashi_anbu`
+  // default entry (else applySkin() pulls the spriteScale:1 fallback → half size) + the spritesheets.js idle
+  // gate. Feet-aligned cells (feet at cell bottom, 2px pad) → one anchorY:0 plants feet everywhere.
+  spriteScale: 1.75,
+  introPool: ["intro"],   // pre-round entrance plays the Raikiri teleport-in + arrival frames (his own art)
+  animationData: {
+    idle:      { frames: 6, width: 45, height: 67, speed: 6, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_idle_uniform.png" },
+    walk:      { frames: 6, width: 36, height: 71, speed: 5, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_walk_uniform.png" },
+    run:       { frames: 6, width: 60, height: 63, speed: 4, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_run_uniform.png" },
+    dash:      { frames: 6, width: 60, height: 63, speed: 3, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_run_uniform.png" },   // no dash strip → reuse run (faster)
+    // JUMP = 3-frame crouch→rise→apex arc; play once + hold apex. fall = last cell (sourceX 2×49=98).
+    jump:      { frames: 3, width: 49, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_jump_uniform.png" },
+    fall:      { frames: 1, width: 49, height: 71, speed: 6, anchorY: 0, sourceX: 98, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_jump_uniform.png" },
+    crouch:    { frames: 2, width: 41, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_crouch_uniform.png" },
+    // HURT — 2-frame flinch (combat.js colorFlash tints the hit on top); plain hitstun routes here.
+    hurt:      { frames: 2, width: 55, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_hurt_uniform.png" },
+    // KNOCKDOWN (launched + 2 lying) → getup RISE (Goku-Black-style getup chain via sprite.js hasGetup).
+    knockdown: { frames: 3, width: 74, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_knockdown_uniform.png" },
+    getup:     { frames: 1, width: 38, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_getup_uniform.png" },
+    // ── NORMALS — Y-combo string (groups 4/5/4) + directional Y+ rows. loop:false+lockLastFrame holds the
+    //    strike pose through recovery. light=group1 opener, heavy=group3 finisher (middle group reserved).
+    light:      { frames: 4, width: 55, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_light_uniform.png" },
+    heavy:      { frames: 4, width: 58, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_heavy_uniform.png" },
+    up:         { frames: 5, width: 52, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_up_uniform.png" },        // Y+Up launcher
+    air:        { frames: 5, width: 55, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_air_uniform.png" },       // Y+Jump diving strike
+    down_air:   { frames: 5, width: 55, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_air_uniform.png" },       // REUSE air (no dedicated down-aerial art)
+    crouchLight:{ frames: 5, width: 61, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_crouchlight_uniform.png" }, // Y+Crouch low slash
+    // ── BODY FLICKER cast pose (_spriteCastMove "anbuFlicker" → identity fallback). teleport dissolve art. ──
+    anbuFlicker:{ frames: 2, width: 50, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_teleport_uniform.png" },
+    // ── INTRO (Raikiri teleport-in + arrival + stance) — played in place via introPool. ──
+    intro:     { frames: 3, width: 50, height: 68, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_intro_uniform.png" },
+    // ── PHASE 2 RAIKIRI cast poses (_spriteCastMove → these keys via sprite.js identity fallback). ──
+    raikiri_charge: { frames: 5,  width: 63, height: 70, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_charge_uniform.png" },  // windup (brightening lightning)
+    raikiri_loop:   { frames: 10, width: 93, height: 69, speed: 4, anchorY: 0, loop: true,  sheet: "./kakashi_anbu_raikiri_loop_uniform.png" },                        // REPEAT charge loop (held)
+    raikiri_dash:   { frames: 9,  width: 97, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_dash_uniform.png" },    // dashing lightning thrust
+    raikiri_strike: { frames: 9,  width: 85, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_raikiri_strike_uniform.png" },  // strike + recover
+    // ── PHASE 3 KUCHIYOSE: NINKEN cast pose (hand seals). Dogs/smoke/Bull/dismiss FX are code-blitted (drawKakashiAnbuFx). ──
+    ninken_cast:    { frames: 5,  width: 51, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_ninken_cast_uniform.png" },
+    // ── RESERVED (Phase 3): Sharingan Read counter-slash = Y+Run sliding slash. Sliced, not yet wired. ──
+    anbuReadSlash:{ frames: 6, width: 75, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_anbu_dashatk_uniform.png" }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────
 // GWEN TENNYSON  (rosterKey "gwen", universe "ben_10") — mana/magic zoner. FIRST LANDSCAPE source
 // sheet in the project: jus_gwen_tennyson_spritesheet_by_magnesiumselzune (fan-made JUS chibi,
@@ -10266,6 +10355,7 @@ export const characters = {
   dark_knight: darkKnight,
   vegito,
   kakashi,
+  kakashi_anbu: kakashiAnbu,   // NEW additive standalone (Kakashi / ANBU, teen-era) — fully namespaced; base `kakashi` untouched
   gwen,
   vilgax,
   miles,

@@ -9579,6 +9579,449 @@ export function executeKakashiSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// KAKASHI (ANBU) — rosterKey "kakashi_anbu". NEW additive fighter; the base `kakashi` path above is
+// UNTOUCHED. All logic is namespaced here + in game.js FX. deterministic / LAN-safe (no gameRng).
+//   PHASE 1 (live): F+Special = BODY FLICKER (shunshin teleport-dodge: brief i-frames + short forward blink).
+//   RESERVED (later phases, all return false for now): N=Raikiri(P2) · D=Ninken(P3) · B=Read(P3) · U=Genjutsu(P3).
+// ─────────────────────────────────────────────────────────────────────────────
+const KAKASHI_ANBU_FLICKER = { cost: 12, dist: 110, iframes: 14, dur: 16 }   // reported numbers
+function fireKakashiAnbuBodyFlicker(fighter, context) {
+  const F = KAKASHI_ANBU_FLICKER
+  if (!spendEnergy(fighter, F.cost)) return false
+  const sw = context?.worldWidth || 3200
+  const face = fighter.facing || 1
+  fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x + face * F.dist))   // short forward blink, clamped in-bounds
+  fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F.iframes)   // brief i-frames (hit detection skips on invulnTimer)
+  fighter._spriteCastMove = "anbuFlicker"; fighter._spriteCastTimer = F.dur   // teleport dissolve pose
+  fighter.attackCooldown = getAttackDuration(F.dur, fighter)
+  return true
+}
+export function executeKakashiAnbuSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  if (fighter._raikiriCharging || fighter._raikiriDashing) return false   // Raikiri owns the Special while active
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (grounded && dir === "F") return fireKakashiAnbuBodyFlicker(fighter, context)   // PHASE 1 — Body Flicker
+  if (grounded && dir === "D") return fireKakashiAnbuNinken(fighter, context)        // PHASE 3 — Kuchiyose: Ninken (Tsuiga)
+  if (grounded && dir === "B") return armKakashiAnbuRead(fighter, context)           // PHASE 3 — Sharingan Read (needs Sharingan)
+  if (grounded && dir === "U") return fireKakashiAnbuGenjutsu(fighter, context)      // PHASE 3 — Sharingan Genjutsu (needs Sharingan)
+  // NEUTRAL special = RAIKIRI — a CHARGE-HOLD move started in the canStart/special block (startKakashiAnbuRaikiri)
+  // and driven per-frame in updateKakashiAnbu, so this dispatch path is a no-op for neutral.
+  return false
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU) — PHASE 2: Sharingan toggle (charge-TAP) + Raikiri (charge-hold Special) + full-charge ult.
+// Deterministic / LAN-safe: charge is measured in FRAMES (not wall-clock), no gameRng. combat.js UNTOUCHED.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── SHARINGAN (Obito's eye) — charge-TAP toggles it. Drains Chakra while active (frame-based); at 0 Chakra
+//    it shuts off and Kakashi is briefly FATIGUED (slower). Sharingan ON sharpens Raikiri tracking (P2),
+//    and gates Read/Genjutsu (P3). Red eye-glint + afterimage tint are code-drawn (drawKakashiAnbuFx). ──
+const KAKASHI_ANBU_SHARINGAN = { drain: 0.22, fatigueFrames: 110, fatigueSpeed: 0.6, minToLight: 8 }
+export function toggleKakashiAnbuSharingan(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  if ((fighter._sharinganFatigue || 0) > 0) return false                    // can't re-light while fatigued
+  if (fighter._sharinganActive) { fighter._sharinganActive = false; return true }
+  if ((fighter.energy || 0) < KAKASHI_ANBU_SHARINGAN.minToLight) return false
+  fighter._sharinganActive = true
+  return true
+}
+
+// ── RAIKIRI (Lightning Blade) — NEUTRAL Special: teleport-in → charge (hold to stay in the REPEAT loop for
+//    more damage, capped) → release = dash → strike. Sharingan ON: the dash TRACKS the foe (limited turning);
+//    Sharingan OFF: it goes straight and can WHIFF (canon: the eye solves Chidori's tunnel vision). ──
+const KAKASHI_ANBU_RAIKIRI = {
+  cost: 30, windup: 6, chargeCap: 48,        // hold up to 48 frames past windup for max damage
+  minRaw: 70, maxRaw: 130,                    // ×0.60 → ~42-78 EFF (tap→full)
+  dashSpeed: 26, dashFramesMax: 20, reach: 46, track: 0.17,
+  hitstun: 24, kb: 11, vy: -4,
+}
+export function startKakashiAnbuRaikiri(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  const R = KAKASHI_ANBU_RAIKIRI
+  if (fighter._raikiriCharging || fighter._raikiriDashing) return false
+  if (!spendEnergy(fighter, R.cost)) return false
+  fighter.vx = 0
+  fighter._raikiriCharging = true
+  fighter._raikiriChargeFrames = 0
+  fighter._spriteCastMove = "raikiri_charge"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown = getAttackDuration(R.windup, fighter)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)   // teleport-in beat
+  return true
+}
+function applyKakashiAnbuRaikiriHit(fighter, opp, context, raw) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.4); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, KAKASHI_ANBU_RAIKIRI.hitstun)
+    opp.vx = (fighter.facing || 1) * KAKASHI_ANBU_RAIKIRI.kb; opp.vy = KAKASHI_ANBU_RAIKIRI.vy
+    opp.colorFlash = 14
+  }
+  applyScaledDamage(opp, dmg, { source: "kakashi_anbu-raikiri" })
+  try { shakeCamera(context, 10, 10) } catch (_) {}
+}
+function fireKakashiAnbuRaikiriDash(fighter, context, chargeFrames) {
+  const R = KAKASHI_ANBU_RAIKIRI
+  const opp = getTargetResolver(context)(fighter) || null
+  const frac = Math.min(1, Math.max(0, (chargeFrames || 0)) / R.chargeCap)
+  fighter._raikiriDashDmg = Math.round(R.minRaw + (R.maxRaw - R.minRaw) * frac)
+  fighter._raikiriDashTracking = !!fighter._sharinganActive                 // Sharingan ON → homing dash
+  fighter._raikiriDashing = true
+  fighter._raikiriDashFrames = 0
+  fighter._raikiriDashHit = false
+  if (opp && fighter._raikiriDashTracking) fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  fighter.vx = (fighter.facing || 1) * R.dashSpeed
+  fighter._spriteCastMove = "raikiri_dash"; fighter._spriteCastTimer = 40
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter.attackCooldown = getAttackDuration(R.dashFramesMax + 14, fighter)
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+}
+function kanbuAABBHit(fighter, opp, reach) {
+  const fx = (fighter.x || 0) + ((fighter.facing || 1) > 0 ? 0 : -reach)
+  const fw = (fighter.w || 60) + reach
+  return fx < opp.x + (opp.w || 60) && fx + fw > opp.x &&
+         (fighter.y || 0) < opp.y + (opp.h || 100) && (fighter.y || 0) + (fighter.h || 100) > opp.y
+}
+// ── FULL-CHARGE RAIKIRI — ULTIMATE (neutral U): illustration cut-in → full charge loop → GUARANTEED tracking
+//    dash → one big lightning thrust. Mirrors base Kakashi's Raikiri-ult shape (330 raw → ~198 EFF). ──
+const KAKASHI_ANBU_RAIKIRI_ULT = { cost: 100, cinematic: 72, loopAt: 10, dashAt: 48, impactAt: 62, raw: 330, hitstun: 42, kb: 14, vy: -9, dashSpeed: 32 }
+// ULT DISPATCHER (neutral = Full-Charge Raikiri · Down = Copy Ninja · Up = Kamui Rift). _ultVariant is stamped
+// by game.js when Ultimate is pressed. Copy/Kamui gate themselves (no-op → ult not consumed) if unavailable.
+export function executeKakashiAnbuUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return false
+  const v = fighter._ultVariant || "raikiri"
+  if (v === "copyNinja") return executeKakashiAnbuCopyNinja(fighter, context)   // PHASE 4
+  if (v === "kamuiRift") return executeKakashiAnbuKamuiRift(fighter, context)   // PHASE 4
+  return executeKakashiAnbuRaikiriUlt(fighter, context)
+}
+function executeKakashiAnbuRaikiriUlt(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, KAKASHI_ANBU_RAIKIRI_ULT.cost)) return false
+  const U = KAKASHI_ANBU_RAIKIRI_ULT
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter._raikiriCharging = false; fighter._raikiriDashing = false     // never stack with the special
+  fighter.vx = 0; fighter.colorFlash = 14
+  fighter._spriteCastMove = "raikiri_charge"; fighter._spriteCastTimer = U.cinematic
+  fighter.attackCooldown = getAttackDuration(U.cinematic, fighter)
+  fighter._kanbuUltCutin = 28                                            // illustration cut-in timer (drawn in game.js)
+  try { focusCameraOnAction(context, fighter, opp, 1.35, 20) } catch (_) {}
+  try { shakeCamera(context, 4, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 6); opp.vx = 0 }   // hold foe through the guaranteed thrust
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  schedulePendingSpawn(U.loopAt, () => { fighter._spriteCastMove = "raikiri_loop"; fighter._spriteCastTimer = U.dashAt - U.loopAt })
+  schedulePendingSpawn(U.dashAt, () => {
+    fighter._spriteCastMove = "raikiri_dash"; fighter._spriteCastTimer = U.cinematic - U.dashAt
+    if (opp) fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1   // GUARANTEED tracking
+    fighter.vx = (fighter.facing || 1) * U.dashSpeed
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 14)
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, U.impactAt - U.dashAt + 6)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  schedulePendingSpawn(U.impactAt, () => {
+    fighter.vx = 0; fighter._spriteCastMove = "raikiri_strike"; fighter._spriteCastTimer = U.cinematic - U.impactAt
+    if (opp && !opp.eliminated) {
+      let dmg = U.raw
+      if (opp.isBlocking) { dmg = oneShotUltBlockedDmg(dmg); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun); opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy; opp.colorFlash = 16; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48) }
+      applyScaledDamage(opp, dmg, { source: "kakashi_anbu-ultimate" })   // GUARANTEED, range-independent (~198 EFF)
+    }
+    try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 22, 18) } catch (_) {}
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  })
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU) — PHASE 3: Kuchiyose: Ninken (D+Special) · Sharingan Read (B+Special) · Sharingan Genjutsu
+// (U+Special). All deterministic / LAN-safe (frame-based, no gameRng). combat.js UNTOUCHED.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── KUCHIYOSE: NINKEN — TSUIGA (D+Special): hand seals → smoke → the dog-pack bursts under the foe and PINS
+//    them (rooted + damage ticks) → Bull bite → dismissal smoke. Sharingan ON = the pin lasts a little longer.
+const KAKASHI_ANBU_NINKEN = { cost: 40, cast: 18, pin: 54, pinSharingan: 78, range: 420, tickEvery: 9, tickRaw: 9, bullRaw: 40, dismiss: 24 }
+function fireKakashiAnbuNinken(fighter, context) {
+  const N = KAKASHI_ANBU_NINKEN
+  if (fighter._ninkenPin || fighter._ninkenDismiss) return false
+  if (!spendEnergy(fighter, N.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "ninken_cast"; fighter._spriteCastTimer = N.cast
+  fighter.attackCooldown = getAttackDuration(N.cast + 6, fighter)
+  const pinDur = fighter._sharinganActive ? N.pinSharingan : N.pin
+  schedulePendingSpawn(N.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    // dogs burst under the foe (or just ahead if none): seed the pin FX + rooted window.
+    const fx = o ? (o.x + (o.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 150)
+    const fy = o ? (o.y + (o.h || 100)) : (fighter.y + (fighter.h || 100))
+    fighter._ninkenPin = { t: pinDur, max: pinDur, x: fx, y: fy, bull: false }
+    fighter._ninkenFxX = fx; fighter._ninkenFxY = fy                         // persist for the dismissal-smoke FX
+    fighter._ninkenPinOpp = (o && Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= N.range) ? o : null
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ── SHARINGAN READ (B+Special; needs Sharingan): a short counter window. If the foe commits an attack inside
+//    it, Kakashi Body Flickers BEHIND them and slashes (Y+Run frames = anbuReadSlash). Cooldown after use. ──
+const KAKASHI_ANBU_READ = { cost: 16, window: 16, cd: 150, range: 170, slashRaw: 70, hitstun: 22, kb: 9, vy: -3 }
+function armKakashiAnbuRead(fighter, context) {
+  const R = KAKASHI_ANBU_READ
+  if (!fighter._sharinganActive) return false                 // needs the eye
+  if ((fighter._readCd || 0) > 0) return false
+  if (!spendEnergy(fighter, R.cost)) return false
+  fighter._readWindow = R.window
+  fighter._readCd = R.cd
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = R.window   // calm read stance
+  fighter.attackCooldown = getAttackDuration(R.window, fighter)
+  return true
+}
+function fireKakashiAnbuReadCounter(fighter, context, opp) {
+  const R = KAKASHI_ANBU_READ
+  fighter._readWindow = 0
+  // Body Flicker BEHIND the attacker
+  const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + 6) : (opp.x - (fighter.w || 60) - 6)
+  const sw = context?.worldWidth || 3200
+  fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), behind))
+  fighter.facing = ((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+  fighter.vx = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._spriteCastMove = "anbuReadSlash"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  if (!opp.eliminated) {
+    opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 14
+    opp.attacking = false; opp.currentMove = null                           // cut their attack short
+    applyScaledDamage(opp, R.slashRaw, { source: "kakashi_anbu-read" })
+  }
+  try { shakeCamera(context, 9, 10) } catch (_) {}
+}
+
+// ── SHARINGAN GENJUTSU (U+Special; needs Sharingan): a close-range stare that briefly STUNS the foe (code-
+//    drawn tomoe swirl on the opponent). Kakashi holds his stance pose. Cooldown. ──
+const KAKASHI_ANBU_GENJUTSU = { cost: 22, range: 180, stun: 56, cd: 150, chip: 10 }
+function fireKakashiAnbuGenjutsu(fighter, context) {
+  const G = KAKASHI_ANBU_GENJUTSU
+  if (!fighter._sharinganActive) return false
+  if ((fighter._genjutsuCd || 0) > 0) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  const inRange = opp && Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= G.range
+  if (!spendEnergy(fighter, G.cost)) return false
+  fighter._genjutsuCd = G.cd
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 24                 // his stance pose
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter.facing = opp ? (((opp.x + (opp.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1) : (fighter.facing || 1)
+  if (inRange && !opp.eliminated) {
+    opp.hitstun = Math.max(opp.hitstun || 0, G.stun); opp.vx = 0; opp.vy = 0
+    opp.attacking = false; opp.currentMove = null
+    opp._kanbuGenjutsuFx = G.stun                                               // tomoe swirl timer (drawn on the foe)
+    applyScaledDamage(opp, G.chip, { source: "kakashi_anbu-genjutsu" })
+  }
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (ANBU) — PHASE 4: Copy Ninja (Down+Ult) · Mangekyō Awakening (auto) → Kamui Rift (Up+Ult) + exhaustion.
+// Deterministic / LAN-safe (frame-based, no gameRng). combat.js UNTOUCHED. Cinematics refused during KO /
+// Brutality / Domain / Rick-Prime-rewind (fighter._kanbuCinematicsBlocked, set from game.js).
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_ANBU_COPY   = { cost: 100, window: 180, cast: 20 }                 // copy-ready for ~3s after the foe fires a projectile
+const KAKASHI_ANBU_KAMUI  = { cost: 100, riftFrames: 54, dot: 11, dotEvery: 6, exhaustSlow: 0.5, exhaustFrames: 120 }
+const KAKASHI_ANBU_MANGEKYOU = { hpGate: 0.25, flash: 32 }
+
+// COPY NINJA (Down+Ultimate; needs Sharingan + copy-ready): if the foe fired a PROJECTILE special in the last
+// ~3s, Kakashi casts with his OWN hand-seal frames and fires ONE mirrored copy. Reuses Rick Prime's Energy
+// Siphon borrow-fire (copy-only; Rick's code is never modified). No projectile / no eye / not ready → no-op.
+function executeKakashiAnbuCopyNinja(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!fighter._sharinganActive) return false                                   // copy needs the Sharingan
+  if ((fighter._copyReady || 0) <= 0) return false                              // the foe hasn't fired a projectile recently
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp || !_rickPrimeFindOppProjectile(opp)) return false                   // foe has no projectile → input does nothing
+  if (!spendEnergy(fighter, KAKASHI_ANBU_COPY.cost)) return false
+  fighter.vx = 0; fighter.colorFlash = 12
+  fighter._spriteCastMove = "ninken_cast"; fighter._spriteCastTimer = KAKASHI_ANBU_COPY.cast   // his own hand-seal frames
+  fighter.attackCooldown = getAttackDuration(KAKASHI_ANBU_COPY.cast + 8, fighter)
+  fighter._copyReady = 0                                                         // one copy per read
+  schedulePendingSpawn(KAKASHI_ANBU_COPY.cast, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    if (o) { _rickPrimeBorrowFireProjectile(fighter, o, context); fighter._copyCapture = { source: (o.rosterKey || "").toLowerCase() } }   // borrow fires the copy; its return (refund gate) is unreliable for non-pending spawns → set capture regardless
+  })
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+
+// KAMUI RIFT (Up+Ultimate; unlocked by the Mangekyō awakening): a long-range spatial distortion at the foe's
+// position (code-drawn swirl) that deals damage over a moment. After it: EXHAUSTION — Chakra drained to 0 and
+// Kakashi is slowed ~2s (canon: he collapses after Kamui). Refused during KO/Brutality/Domain/rewind.
+function executeKakashiAnbuKamuiRift(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!fighter._kamuiUnlocked) return false                                     // only after the Mangekyō awakening
+  if (fighter._kanbuCinematicsBlocked) return false                             // KO / Brutality / Domain / rewind
+  if (!spendEnergy(fighter, KAKASHI_ANBU_KAMUI.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown = getAttackDuration(KAKASHI_ANBU_KAMUI.riftFrames + 12, fighter)
+  fighter._kanbuUltCutin = 28                                                   // reuse the illustration cut-in (+ Mangekyō tint)
+  const rx = opp ? (opp.x + (opp.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 320)
+  const ry = opp ? (opp.y + (opp.h || 100) * 0.42) : (fighter.y + (fighter.h || 100) * 0.42)
+  fighter._kamuiRift = { t: KAKASHI_ANBU_KAMUI.riftFrames, max: KAKASHI_ANBU_KAMUI.riftFrames, x: rx, y: ry }
+  fighter._kamuiPendingExhaust = true                                           // exhaustion applied when the rift ends
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 16); shakeCamera(context, 8, 12) } catch (_) {}
+  return true
+}
+
+// Per-frame STATE tick (called from updateBattle AFTER updateCombat; no-op off-char). Runs unconditionally
+// so it never freezes physics/hitstun. heldSpecial = side-effect-free held Special key (readRawControls),
+// used to drive the Raikiri charge HOLD/RELEASE (started by startKakashiAnbuRaikiri in updatePlayerCombat).
+// Handles: Sharingan drain + fatigue, Raikiri charge loop → release, dash travel + homing + contact, FX timers,
+// Ninken pin (root + damage), Sharingan Read window + counter, and cooldowns.
+export function updateKakashiAnbu(fighter, context, heldSpecial = false, blockCinematics = false) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
+  const S = KAKASHI_ANBU_SHARINGAN, R = KAKASHI_ANBU_RAIKIRI
+  fighter._kanbuCinematicsBlocked = !!(blockCinematics || fighter.domainFrozen)   // read by Kamui Rift / awakening
+  // ── PHASE 3 cooldowns + FX timers ──
+  if ((fighter._readCd || 0) > 0) fighter._readCd--
+  if ((fighter._genjutsuCd || 0) > 0) fighter._genjutsuCd--
+
+  // ── PHASE 4: round reset — when the fighter is restored to (near) full HP at a new round, clear the
+  //    once-per-round awakening + Kamui unlock. ──
+  if ((fighter.health || 0) >= (fighter.maxHealth || 1000) * 0.95) {
+    fighter._kanbuMangekyou = false; fighter._kamuiUnlocked = false
+  }
+  // COPY-READY tracking: if the foe has a live projectile out, Copy Ninja is "ready" for ~3s afterward.
+  if ((fighter._copyReady || 0) > 0) fighter._copyReady--
+  {
+    const opp = getTargetResolver(context)(fighter) || null
+    if (opp && Array.isArray(activeProjectiles) && activeProjectiles.some(p => p && p.owner === opp && !p.visualOnly))
+      fighter._copyReady = KAKASHI_ANBU_COPY.window
+  }
+  // MANGEKYŌ AWAKENING (auto, once per round): HP ≤ 25% with the Sharingan ON → red-flash cut-in + code-drawn
+  // Mangekyō pattern; unlocks Up+Ult KAMUI RIFT until the round ends. Refused during KO/Brutality/Domain/rewind.
+  if (!fighter._kanbuMangekyou && fighter._sharinganActive && !fighter._kanbuCinematicsBlocked &&
+      !fighter.eliminated && (fighter.health || 0) > 0 &&
+      (fighter.health || 0) <= (fighter.maxHealth || 1000) * KAKASHI_ANBU_MANGEKYOU.hpGate) {
+    fighter._kanbuMangekyou = true; fighter._kamuiUnlocked = true
+    fighter._kanbuAwakenFlash = KAKASHI_ANBU_MANGEKYOU.flash; fighter._kanbuUltCutin = 28
+    try { shakeCamera(context, 6, 12) } catch (_) {}
+  }
+  if ((fighter._kanbuAwakenFlash || 0) > 0) fighter._kanbuAwakenFlash--
+  // KAMUI RIFT: spatial-distortion DoT over its window → then EXHAUSTION (Chakra to 0, slowed ~2s).
+  if (fighter._kamuiRift) {
+    const K = KAKASHI_ANBU_KAMUI, rift = fighter._kamuiRift
+    rift.t--
+    const opp = getTargetResolver(context)(fighter) || null
+    if (opp && !opp.eliminated) {
+      const dist = Math.abs((opp.x + (opp.w || 60) / 2) - rift.x)
+      if (dist <= 120) {                                              // the foe is caught in the rift
+        const elapsed = rift.max - rift.t
+        opp.vx *= 0.7; opp.vy *= 0.7
+        if (elapsed > 0 && elapsed % K.dotEvery === 0) { applyScaledDamage(opp, K.dot, { source: "kakashi_anbu-kamui" }); opp.colorFlash = 10 }
+      }
+    }
+    if (rift.t <= 0) {
+      fighter._kamuiRift = null
+      if (fighter._kamuiPendingExhaust) {                            // EXHAUSTION — canon collapse after Kamui
+        fighter._kamuiPendingExhaust = false
+        fighter.energy = 0; fighter._sharinganActive = false
+        fighter._kamuiExhaust = K.exhaustFrames
+      }
+    }
+  }
+  if ((fighter._kamuiExhaust || 0) > 0) {
+    fighter.speedMultiplier = KAKASHI_ANBU_KAMUI.exhaustSlow
+    fighter._kamuiExhaust--
+    if (fighter._kamuiExhaust <= 0 && (fighter._sharinganFatigue || 0) <= 0) { fighter._kamuiExhaust = 0; fighter.speedMultiplier = 1 }
+  }
+
+  // ── NINKEN pin: root the foe + damage ticks + Bull bite → dismissal smoke. ──
+  if (fighter._ninkenPin) {
+    const N = KAKASHI_ANBU_NINKEN, pin = fighter._ninkenPin
+    pin.t--
+    const opp = fighter._ninkenPinOpp
+    if (opp && !opp.eliminated) {                                   // ROOT: held in place, takes rapid damage
+      opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = Math.min(opp.vy || 0, 0)
+      const elapsed = pin.max - pin.t
+      if (elapsed > 0 && elapsed % N.tickEvery === 0) applyScaledDamage(opp, N.tickRaw, { source: "kakashi_anbu-ninken" })
+      if (!pin.bull && pin.t <= Math.floor(pin.max * 0.28)) {        // Bull bite near the end
+        pin.bull = true
+        applyScaledDamage(opp, N.bullRaw, { source: "kakashi_anbu-ninken-bull" })
+        opp.hitstun = Math.max(opp.hitstun || 0, 18); opp.colorFlash = 14
+        try { shakeCamera(context, 10, 10) } catch (_) {}
+      }
+    }
+    if (pin.t <= 0) { fighter._ninkenPin = null; fighter._ninkenPinOpp = null; fighter._ninkenDismiss = N.dismiss }  // → dismissal smoke
+  } else if ((fighter._ninkenDismiss || 0) > 0) { fighter._ninkenDismiss-- }
+
+  // ── SHARINGAN READ window: if the foe commits an attack in range during it, counter (Body Flicker + slash). ──
+  if ((fighter._readWindow || 0) > 0) {
+    fighter._readWindow--
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)     // brief armor so the read isn't punished
+    const opp = getTargetResolver(context)(fighter) || null
+    const RD = KAKASHI_ANBU_READ
+    if (opp && !opp.eliminated && opp.attacking &&
+        Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= RD.range) {
+      fireKakashiAnbuReadCounter(fighter, context, opp)
+    }
+  }
+
+  // SHARINGAN drain → shutoff + fatigue
+  if (fighter._sharinganActive) {
+    fighter.energy = Math.max(0, (fighter.energy || 0) - S.drain)
+    if ((fighter.energy || 0) <= 0) { fighter._sharinganActive = false; fighter._sharinganFatigue = S.fatigueFrames }
+  }
+  if ((fighter._sharinganFatigue || 0) > 0) {
+    fighter.speedMultiplier = S.fatigueSpeed
+    fighter._sharinganFatigue--
+    if (fighter._sharinganFatigue <= 0) { fighter._sharinganFatigue = 0; fighter.speedMultiplier = 1 }
+  }
+  // RAIKIRI charge HOLD / RELEASE (frame-based; deterministic). Interrupted by a hit → drop the charge.
+  if (fighter._raikiriCharging) {
+    if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._raikiriCharging = false }
+    else {
+      fighter._raikiriChargeFrames++
+      fighter.vx = 0
+      fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, getAttackDuration(6, fighter))   // stay committed (no new attack/special)
+      if (fighter._raikiriChargeFrames > R.windup) { fighter._spriteCastMove = "raikiri_loop"; fighter._spriteCastTimer = 30 }
+      else { fighter._spriteCastMove = "raikiri_charge"; fighter._spriteCastTimer = 30 }
+      if (!(heldSpecial && fighter._raikiriChargeFrames < R.chargeCap)) {      // released OR capped → DASH
+        fighter._raikiriCharging = false
+        fireKakashiAnbuRaikiriDash(fighter, context, fighter._raikiriChargeFrames)
+      }
+    }
+  }
+  // RAIKIRI dash travel + homing + contact
+  if (fighter._raikiriDashing) {
+    if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._raikiriDashing = false; fighter.vx = 0; return }
+    fighter._raikiriDashFrames++
+    const opp = getTargetResolver(context)(fighter) || null
+    if (fighter._raikiriDashTracking && opp && !opp.eliminated) {        // Sharingan ON → steer toward foe (limited)
+      const toFoe = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+      const desired = (toFoe >= 0 ? 1 : -1) * R.dashSpeed
+      fighter.vx += (desired - fighter.vx) * R.track
+      fighter.facing = toFoe >= 0 ? 1 : -1
+    } else {
+      fighter.vx = (fighter.facing || 1) * R.dashSpeed                   // straight dash — re-assert so ground friction can't stall it
+    }
+    if (!fighter._raikiriDashHit && opp && !opp.eliminated && kanbuAABBHit(fighter, opp, R.reach)) {
+      fighter._raikiriDashHit = true
+      applyKakashiAnbuRaikiriHit(fighter, opp, context, fighter._raikiriDashDmg)
+      fighter._spriteCastMove = "raikiri_strike"; fighter._spriteCastTimer = 26
+      fighter.vx = 0; fighter._raikiriDashing = false
+    } else if (fighter._raikiriDashFrames >= R.dashFramesMax) {          // WHIFF → recover
+      fighter._spriteCastMove = "raikiri_strike"; fighter._spriteCastTimer = 22
+      fighter.vx = 0; fighter._raikiriDashing = false
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // VEGITO (Dragon Ball) — Stage 4 SPECIALS (fixed-slot large ki kit; 6 named specials + Kamehameha ULT).
 // Directional / air branch (mirrors executePiccoloSpecial):
 //   neutral GROUND = Big Bang Attack   — big slow growing white/blue sphere (offense-scaled radius)
@@ -27828,6 +28271,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "ippo":    return executeIppoSpecial(fighter, context)     // MELEE-ONLY (boxer) — neutral=Gazelle Punch (leaping counter, launcher) / Fwd=spinning hook punch / Up=heavy uppercut (launcher) / Down=heavy body-blow / AIR=aerial hook. NO projectiles (not invented)
     case "vegito":  return executeVegitoSpecial(fighter, context)   // neutral=Big Bang (big sphere) / Fwd=Galick Gun (purple piercing beam) / Back=Banshee Blast (gold rapid-fire volley) / Down=Spread Finger Beam (yellow fan) / U=Air Ki Blast (rising dart) / AIR=Perfect Shot (cyan dart pair)
     case "kakashi": return executeKakashiSpecial(fighter, context)  // Stage 4 "Weapon Throw" kunai (orange spinning-slash), 3 stance contexts: standing (ground) / crouch (Down) / air (airborne). Summons/Raikiri/Mangekyou land in later stages.
+    case "kakashi_anbu": return executeKakashiAnbuSpecial(fighter, context)  // NEW additive. PHASE 1: F+Special = Body Flicker (teleport-dodge). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu)
     case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
     case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
     case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.
@@ -28017,6 +28461,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
+      case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break

@@ -339,6 +339,35 @@ export const KITS = {
     ]
   },
 
+  // Kakashi (ANBU) — NEW additive fighter. Move list GROWS per phase; Phase 1 = normals + Body Flicker.
+  // Sharingan toggle + Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) add rows later.
+  kakashi_anbu: {
+    type: "Technical Shinobi / Rushdown", energy: "Chakra", difficulty: "Hard",
+    summary: "Teen-era ANBU Hatake Kakashi — a fast, technical, lower-HP shinobi who fights with the tanto and Sharingan trickery. His Y-combo tanto string, rising kick launcher and diving aerials pressure up close; the Body Flicker (shunshin) teleport-dodge repositions with i-frames. The Sharingan toggle, Raikiri, Ninken summon, Sharingan Read counter, Genjutsu stun, Copy Ninja, and the Mangekyō→Kamui awakening arrive across later phases.",
+    passive: { name: "Sharingan (ANBU)", effect: "Charge-TAP toggles the Sharingan (code-drawn red eye + afterimage aura). It drains Chakra while active and makes Raikiri TRACK the foe; at 0 Chakra it shuts off and Kakashi is briefly FATIGUED (slower). (Sharingan also gates Read + Genjutsu in Phase 3.)" },
+    basics: [
+      { name: "Tanto Slash",    input: "Light",                   desc: "Y-combo opener — quick tanto slash string" },
+      { name: "Tanto Finisher", input: "Heavy",                   desc: "committed Y-combo finisher with an orange blade arc" },
+      { name: "Rising Kick",    input: "Up-Attack",               desc: "launcher — rising overhead kick, starts air combos" },
+      { name: "Diving Strike",  input: "Air (jump + Light)",      desc: "aerial diving tanto strike" },
+      { name: "Air Slam",       input: "Down-Air (jump + Heavy)", desc: "downward aerial strike (reuses the diving art)" },
+      { name: "Low Slash",      input: "Crouch + Light",          desc: "low sliding tanto poke" }
+    ],
+    specials: [
+      { name: "Sharingan",      input: "Charge (tap)",            cost: 0,  desc: "toggle the Sharingan — drains Chakra while active, makes Raikiri TRACK; at 0 Chakra it shuts off + brief fatigue [CANON]" },
+      { name: "Body Flicker",   input: "Forward + Special",       cost: 12, desc: "Shunshin no Jutsu — a short forward teleport-dodge with brief i-frames (teleport art) [CANON]" },
+      { name: "Raikiri",        input: "Neutral + Special (charge-hold)", cost: 30, desc: "Lightning Blade — teleport-in → HOLD Special to charge in the loop (more damage, capped) → release to DASH + thrust. Sharingan ON tracks the foe; OFF goes straight and can whiff [CANON]" },
+      { name: "Kuchiyose: Ninken (Tsuiga)", input: "Down + Special", cost: 40, desc: "hand seals → the dog-pack bursts under the foe and PINS them (rooted + damage ticks) → Bull bite → dismissal smoke. Sharingan ON = longer pin [CANON]" },
+      { name: "Sharingan Read",  input: "Back + Special (needs Sharingan)", cost: 16, desc: "a short COUNTER window — if the foe attacks inside it, Kakashi Body Flickers behind them and slashes (Y+Run frames). Cooldown [CANON]" },
+      { name: "Sharingan Genjutsu", input: "Up + Special (needs Sharingan)", cost: 22, desc: "a close-range stare that briefly STUNS the foe (code-drawn tomoe swirl). Cooldown [CANON-ADJACENT]" }
+    ],
+    passiveNote: "COMPLETE (all 4 phases). The Ultimate is DIRECTIONAL — neutral = Full-Charge Raikiri · Down = COPY NINJA (needs Sharingan + the foe fired a projectile in the last ~3s → mirror ONE copy; else no-op) · Up = KAMUI RIFT (only after the Mangekyō AWAKENING). MANGEKYŌ AWAKENING is automatic ONCE per round: at ≤25% HP with the Sharingan ON, a red-flash cut-in + Mangekyō pattern unlocks Kamui Rift until the round ends. KAMUI RIFT opens a spatial distortion at the foe (damage over a moment), then Kakashi is EXHAUSTED — Chakra to 0 + slowed ~2s. Back/Up Special still REQUIRE the Sharingan. Cinematics refuse during KO / Brutality / Domain / rewind.",
+    ultimate: { name: "Raikiri / Copy Ninja / Kamui Rift", input: "Ultimate (neutral / Down / Up)", cost: 100, desc: "NEUTRAL = Full-Charge Raikiri (illustration cut-in, full charge-loop → guaranteed tracking thrust, ~198 EFF, half on block). DOWN = Copy Ninja (mirror the foe's recent projectile once; needs Sharingan + copy-ready). UP = Kamui Rift (spatial distortion DoT at the foe; only after the Mangekyō awakening, then EXHAUSTION) [CANON / CANON-ADJACENT]" },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-kick launcher into aerial pressure" }
+    ]
+  },
+
   sasuke_sensei: {
     type: "Cycling-Dōjutsu Technician / Zoner", energy: "Chakra", difficulty: "Hard",
     summary: "Boruto-era Sasuke at his peak — a dōjutsu master with THREE cycling eye-sets. RAITON (lightning blades + Kirin), MANGEKYŌ (black flame, genjutsu + the Taka/Hebi summons) and RINNEGAN (gravity: repulsion, pull, absorb + Chibaku Tensei). Up + Ultimate rotates the active set — the same Special/Ultimate inputs fire that set's techniques; the active set flashes above Sasuke.",

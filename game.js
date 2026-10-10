@@ -273,7 +273,8 @@ import {
   fireCloneSubstitution,       // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
-  updateGaara, applyGaaraUltimateDefense   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
+  updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
+  toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -4051,6 +4052,7 @@ const INTRO_VOICE = {
   iron_man: { pool: IRON_MAN_VOICE.intro, gateReveal: false },
   // Kakashi: "I'll be your opponent." / "Kakashi of the Sharingan." No taunt action → taunt rides offense-connect. JA.
   kakashi: { pool: KAKASHI_VOICE.intro, gateReveal: false },
+  kakashi_anbu: { pool: KAKASHI_VOICE.intro, gateReveal: false },   // NEW additive ANBU variant reuses base Kakashi's intro pool (no new audio; combat.js untouched)
   // L (Ryuzaki): cryptic "monsters in this world" opener. No taunt action → taunt rides offense-connect. EN.
   l_ryuuzaki: { pool: L_RYUUZAKI_VOICE.intro, gateReveal: false },
   // Piccolo: "I have new, unbelievable power!" No taunt action → taunt rides offense-connect. EN.
@@ -6052,7 +6054,7 @@ function _checkMatchOver() {
         sound.playSfxFile?.(pickIronManVoice("win"), null)
       }
       // KAKASHI win voice — "That's the end. Next!" Fires only when the WINNER is Kakashi. JA.
-      if (winFighter?.rosterKey === "kakashi") {
+      if (winFighter?.rosterKey === "kakashi" || winFighter?.rosterKey === "kakashi_anbu") {   // ANBU variant reuses base Kakashi's win line (no new audio)
         sound.playSfxFile?.(pickKakashiVoice("win"), null)
       }
       // PICCOLO win voice — "It's over. Special Beam Cannon!" Fires only when the WINNER is Piccolo. EN.
@@ -6548,6 +6550,14 @@ function handleChargeRelease(fighter, key) {
   if (fighter.rosterKey === "goku_black") {
     if (fighter._ssjRoseActive) { if (wasTap) revertSSJRose(fighter) }
     else enterSSJRose(fighter, getAbilityContext())
+    return
+  }
+
+  // KAKASHI (ANBU) — SHARINGAN: a charge-TAP toggles the eye on/off (code-drawn red eye + afterimage; drains
+  // Chakra while active, frame-based; at 0 Chakra it shuts off + brief fatigue — all in updateKakashiAnbu).
+  // A HOLD just builds Chakra normally (no toggle).
+  if ((fighter.rosterKey || "").toLowerCase() === "kakashi_anbu") {
+    if (wasTap) toggleKakashiAnbuSharingan(fighter)
     return
   }
 
@@ -7825,6 +7835,14 @@ function _updatePlayerCombatBody(fighter) {
     // the press; a DIRECTIONAL/air Special falls through to triggerSpecial (Slash / Thrown Sword / Teleport / Tumble).
     if ((fighter.rosterKey || "").toLowerCase() === "vilgax" && !fighter._specialHeldDir &&
         (fighter.onGround ?? fighter.grounded ?? true)) { fighter._vilgaxBlastArmed = true; return }
+    // KAKASHI (ANBU) — a NEUTRAL GROUND Special is the RAIKIRI charge-hold (teleport-in → charge loop → dash).
+    // Start the frame-based charge and consume the press; the HOLD/RELEASE + dash are driven in updateKakashiAnbu
+    // (every frame, post-updateCombat → no freeze). A DIRECTIONAL Special falls through to triggerSpecial
+    // (Body Flicker = Fwd). Only grounded, and not while already charging/dashing.
+    if ((fighter.rosterKey || "").toLowerCase() === "kakashi_anbu" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true) && !fighter._raikiriCharging && !fighter._raikiriDashing) {
+      startKakashiAnbuRaikiri(fighter, getAbilityContext()); return
+    }
     // SASUKE — RINNEGAN SPACE-TIME on CHARGE + Special (R1/R2/R5). Charge + Special = Amenotejikara Kunai
     // Swap · Charge + Fwd + Special = Portal Chidori · Charge + Back + Special = Portal Redirect. Rinnegan-
     // gated (sensei). Un-Charged Special falls straight through to the normal eye-set dispatch → fully additive.
@@ -7911,6 +7929,14 @@ function _updatePlayerCombatBody(fighter) {
   // (executeGaaraUltimate reads _shukaku first). Stamp the held dir so the handler picks the branch.
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gaara") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "shukaku" : "sabakuTaisou"
+  }
+  // KAKASHI (ANBU) — Ultimate is directional: NEUTRAL = Full-Charge Raikiri · Down = Copy Ninja (mirror the
+  // foe's recent projectile; needs Sharingan + copy-ready) · Up = Kamui Rift (only after the Mangekyō awakening).
+  // Copy/Kamui self-gate in executeKakashiAnbuUltimate (no-op → ult not consumed when unavailable).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "kakashi_anbu") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "kamuiRift" : "raikiri"
+    fighter._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen   // fresh gate (updateBattle's tick is skipped during cinematics)
   }
   // SASUKE (ADULT + SENSEI) — the earlier Charge+Ultimate giant Susanoo (enterSasukeFormSusanoo) is UNBOUND
   // here: the War-Susano'o rework (sasuke_susano_*) replaces it. Teen's Ultimate-button Susanoo is untouched.
@@ -12938,6 +12964,189 @@ const SHUKAKU_POSE_SHEET = {
   mouthcast: ["./gaara_shukaku_mouthcast_uniform.png", 4],
   lose:   ["./gaara_shukaku_lose_uniform.png", 3],
 }
+// ── KAKASHI (ANBU) — code-drawn FX (the sheet has NO eye art). World-space, drawn in renderHybridFighter.
+//    Sharingan = red eye-glint + a faint red afterimage aura while active; a red crackle ring while the
+//    Raikiri charges/dashes. No gore. (Mangekyou/Kamui FX land in Phase 4.)
+const _kanbuFxImgs = {}
+function _kanbuFxImg(src) { if (!_kanbuFxImgs[src]) { const i = new Image(); i.src = src; _kanbuFxImgs[src] = i } return _kanbuFxImgs[src] }
+;["./kakashi_anbu_ninken_smoke_uniform.png", "./kakashi_anbu_ninken_pin_uniform.png",
+  "./kakashi_anbu_ninken_bull_uniform.png", "./kakashi_anbu_ninken_dismiss_uniform.png"].forEach(_kanbuFxImg)
+function drawKakashiAnbuFx(c, fighter) {
+  if (!c || !fighter) return
+  // SHARINGAN GENJUTSU tomoe swirl — drawn on ANY fighter under genjutsu (the VICTIM is the opponent, not
+  // kakashi_anbu), so this runs BEFORE the rosterKey gate. Code-drawn (3 red tomoe rotating + ring). No art.
+  if ((fighter._kanbuGenjutsuFx || 0) > 0) {
+    const gt = fighter._kanbuGenjutsuFx--
+    const gw = fighter.w ?? 60, gh = fighter.h ?? 100
+    const gcx = fighter.x + gw / 2, gcy = fighter.y + gh * 0.30
+    c.save(); c.translate(gcx, gcy); c.rotate(gt * 0.14)
+    c.strokeStyle = "rgba(220,40,40,0.5)"; c.lineWidth = 1.5
+    c.beginPath(); c.arc(0, 0, gw * 0.5, 0, Math.PI * 2); c.stroke()
+    for (let k = 0; k < 3; k++) {
+      const a = k * (Math.PI * 2 / 3)
+      const tx = Math.cos(a) * gw * 0.45, ty = Math.sin(a) * gw * 0.45
+      c.fillStyle = "rgba(205,18,18,0.88)"; c.beginPath(); c.arc(tx, ty, 3.2, 0, Math.PI * 2); c.fill()
+      c.strokeStyle = "rgba(205,18,18,0.72)"; c.lineWidth = 2.4
+      c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx - Math.cos(a + 0.7) * 6, ty - Math.sin(a + 0.7) * 6); c.stroke()
+    }
+    c.restore()
+  }
+  if ((fighter.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h / 2
+  // NINKEN — summon smoke → dog-pack PIN → Bull bite → dismissal smoke, blitted at the pin position.
+  if (fighter._ninkenPin) {
+    const pin = fighter._ninkenPin, elapsed = pin.max - pin.t
+    if (elapsed < 18) _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_smoke_uniform.png"), 3, Math.floor(elapsed / 6), pin.x, pin.y, 0.95, Math.min(0.95, (elapsed + 2) / 7))
+    else              _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_pin_uniform.png"),   2, Math.floor(elapsed / 8) % 2, pin.x, pin.y, 1.0, 0.95)
+    if (pin.bull) _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_bull_uniform.png"), 1, 0, pin.x + facing * 6, pin.y, 1.0, 0.92)
+  } else if ((fighter._ninkenDismiss || 0) > 0) {
+    const d = fighter._ninkenDismiss
+    _gaaraBlitFx(c, _kanbuFxImg("./kakashi_anbu_ninken_dismiss_uniform.png"), 6, Math.floor((24 - d) / 4), fighter._ninkenFxX || cx, fighter._ninkenFxY || (fighter.y + h), 0.9, Math.min(0.9, d / 8))
+  }
+  // SHARINGAN READ — a brief cyan slash arc when the counter window is open / just fired.
+  if ((fighter._readWindow || 0) > 0) {
+    c.save(); c.globalAlpha = 0.5; c.strokeStyle = "rgba(180,230,255,0.8)"; c.lineWidth = 2
+    c.beginPath(); c.arc(cx, cy, w * 0.6, -0.5, 0.5); c.stroke(); c.restore()
+  }
+  // SHARINGAN — faint red afterimage aura + a glinting red eye on the head.
+  if (fighter._sharinganActive) {
+    const t = (fighter._sharinganT = (fighter._sharinganT || 0) + 1)
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.18)
+    c.save()
+    // afterimage aura (soft red halo offset behind the body)
+    const aura = c.createRadialGradient(cx, cy, w * 0.1, cx, cy, w * 0.95)
+    aura.addColorStop(0, `rgba(200,30,30,${0.10 + 0.05 * pulse})`); aura.addColorStop(1, "rgba(200,30,30,0)")
+    c.fillStyle = aura; c.beginPath(); c.arc(cx, cy, w * 0.95, 0, Math.PI * 2); c.fill()
+    // red eye glint — Kakashi's left eye (face upper third, slightly toward the facing side)
+    const ex = cx + facing * w * 0.12, ey = fighter.y + h * 0.17
+    c.shadowBlur = 6; c.shadowColor = "rgba(230,20,20,0.9)"
+    c.fillStyle = `rgba(220,10,10,${0.7 + 0.3 * pulse})`
+    c.beginPath(); c.arc(ex, ey, 2.2, 0, Math.PI * 2); c.fill()
+    c.fillStyle = "rgba(255,180,180,0.9)"; c.beginPath(); c.arc(ex - facing * 0.6, ey - 0.6, 0.8, 0, Math.PI * 2); c.fill()
+    c.restore()
+  } else { fighter._sharinganT = 0 }
+  // RAIKIRI — a quick crackling blue-white ring in the lead hand while charging/dashing (over the sheet FX).
+  if (fighter._raikiriCharging || fighter._raikiriDashing) {
+    const t = (fighter._raikiriFxT = (fighter._raikiriFxT || 0) + 1)
+    const hx = cx + facing * w * 0.42, hy = fighter.y + h * 0.5
+    c.save(); c.strokeStyle = `rgba(150,210,255,${0.5 + 0.4 * Math.sin(t * 0.9)})`; c.lineWidth = 1.4
+    for (let k = 0; k < 5; k++) {
+      const a0 = (t * 0.5 + k * 1.3)
+      c.beginPath(); c.moveTo(hx, hy)
+      c.lineTo(hx + Math.cos(a0) * (6 + (k % 2) * 5), hy + Math.sin(a0) * (6 + (k % 2) * 5)); c.stroke()
+    }
+    c.restore()
+  }
+  // MANGEKYŌ pattern — once awakened, a slow-spinning 3-blade red pinwheel over the eye (code-drawn, no art).
+  if (fighter._kanbuMangekyou) {
+    const t = (fighter._mangekyouT = (fighter._mangekyouT || 0) + 1)
+    const ex = cx + facing * w * 0.12, ey = fighter.y + h * 0.17
+    c.save(); c.translate(ex, ey); c.rotate(t * 0.08)
+    c.fillStyle = "rgba(210,16,16,0.92)"
+    for (let k = 0; k < 3; k++) {
+      c.rotate(Math.PI * 2 / 3)
+      c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(2.4, 1.2, 0, 3.4); c.quadraticCurveTo(-1.2, 1.4, 0, 0); c.fill()
+    }
+    c.fillStyle = "rgba(255,230,230,0.9)"; c.beginPath(); c.arc(0, 0, 0.9, 0, Math.PI * 2); c.fill()
+    c.restore()
+    if ((fighter._kanbuAwakenFlash || 0) > 0) {   // awakening burst — expanding red ring around the body
+      const fr = 1 - (fighter._kanbuAwakenFlash / 32)
+      c.save(); c.globalAlpha = (1 - fr) * 0.8; c.strokeStyle = "rgba(230,30,30,0.9)"; c.lineWidth = 3
+      c.beginPath(); c.arc(cx, cy, w * (0.5 + fr * 1.2), 0, Math.PI * 2); c.stroke(); c.restore()
+    }
+  }
+  // KAMUI RIFT — code-drawn spatial-distortion swirl at the rift position (a drawn-in spiral + violet void).
+  if (fighter._kamuiRift) {
+    const rift = fighter._kamuiRift, rt = rift.max - rift.t
+    const env = Math.min(1, rt / 8) * Math.min(1, rift.t / 10)          // ease in/out
+    const rad = w * (0.5 + 0.5 * Math.min(1, rt / 10))
+    c.save(); c.translate(rift.x, rift.y); c.rotate(rt * 0.22); c.globalAlpha = env
+    const vg = c.createRadialGradient(0, 0, 2, 0, 0, rad)
+    vg.addColorStop(0, "rgba(20,0,30,0.92)"); vg.addColorStop(0.7, "rgba(120,60,200,0.55)"); vg.addColorStop(1, "rgba(120,60,200,0)")
+    c.fillStyle = vg; c.beginPath(); c.arc(0, 0, rad, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = "rgba(190,150,255,0.85)"; c.lineWidth = 1.6
+    for (let s = 0; s < 3; s++) {                                       // 3 inward spiral arms
+      c.beginPath()
+      for (let a = 0; a < Math.PI * 3; a += 0.3) {
+        const rr = rad * (1 - a / (Math.PI * 3)); const ang = a + s * (Math.PI * 2 / 3)
+        const px = Math.cos(ang) * rr, py = Math.sin(ang) * rr
+        if (a === 0) c.moveTo(px, py); else c.lineTo(px, py)
+      }
+      c.stroke()
+    }
+    c.restore()
+  }
+}
+// ── KAKASHI (ANBU) "Alien X" skin — floating RED SHARINGAN TOMOE over the void-black body (code-drawn, no art).
+//    Deterministic seeded layout (like the Celestialsapien starfield), gentle rotate + twinkle. kakashi_anbu only,
+//    skinId endsWith "AlienX".
+function _kanbuSeedTomoe(fighter) {
+  const rnd = _mulberry32(0x7A17A3)                 // fixed seed → identical layout every load
+  const t = []
+  for (let i = 0; i < 11; i++) {
+    const ny = 0.08 + rnd() * 0.84
+    const half = ny < 0.26 ? 0.17 : (ny < 0.68 ? 0.27 : 0.16)   // head / torso / legs profile
+    t.push({ nx: 0.5 + (rnd() * 2 - 1) * half, ny, r: 2.6 + rnd() * 2.2, spin: 0.6 + rnd() * 1.4, ph: rnd() * 6.28, dir: rnd() < 0.5 ? 1 : -1 })
+  }
+  fighter._kanbuTomoeFX = t
+}
+function drawKakashiAnbuTomoeField(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_anbu") return
+  if (typeof fighter.skinId !== "string" || !fighter.skinId.endsWith("AlienX")) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  if (!fighter._kanbuTomoeFX) _kanbuSeedTomoe(fighter)
+  const t = (fighter._kanbuTomoeClock = (fighter._kanbuTomoeClock || 0) + 1)
+  c.save()
+  for (const tm of fighter._kanbuTomoeFX) {
+    const cx = x + tm.nx * w, cy = y + tm.ny * h
+    const tw = 0.6 + 0.4 * Math.sin(t * 0.05 * tm.spin + tm.ph)       // smooth twinkle
+    c.save(); c.translate(cx, cy); c.rotate(tm.dir * t * 0.03 * tm.spin)
+    c.globalAlpha = 0.85 * tw; c.shadowBlur = 4; c.shadowColor = "rgba(230,20,20,0.9)"
+    c.fillStyle = "rgba(205,16,16,0.95)"
+    for (let k = 0; k < 3; k++) {                                     // 3-comma tomoe
+      c.rotate(Math.PI * 2 / 3)
+      const r = tm.r
+      c.beginPath(); c.arc(0, -r * 0.7, r * 0.42, 0, Math.PI * 2); c.fill()   // comma head
+      c.beginPath(); c.moveTo(0, -r * 0.7); c.quadraticCurveTo(r * 0.5, -r * 0.1, 0, r * 0.1); c.lineWidth = r * 0.34; c.strokeStyle = "rgba(205,16,16,0.9)"; c.stroke()  // tail
+    }
+    c.globalAlpha = 0.9 * tw; c.fillStyle = "rgba(20,0,0,0.9)"; c.beginPath(); c.arc(0, 0, tm.r * 0.32, 0, Math.PI * 2); c.fill()   // pupil
+    c.restore()
+  }
+  c.restore()
+}
+// ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
+//    panel slides in with a red flash while _kanbuUltCutin ticks down (set by executeKakashiAnbuUltimate).
+let _kanbuIllusImg = null
+function _kanbuIllus() { if (!_kanbuIllusImg) { _kanbuIllusImg = new Image(); _kanbuIllusImg.src = "./kakashi_anbu_illus.png" } return _kanbuIllusImg }
+function drawKakashiAnbuRaikiriCutin(ctx, canvas) {
+  const f = ((p1?._kanbuUltCutin || 0) > 0) ? p1 : ((p2?._kanbuUltCutin || 0) > 0) ? p2 : null
+  if (!f) return
+  const cw = canvas.width, ch = canvas.height
+  const t = f._kanbuUltCutin; f._kanbuUltCutin = t - 1
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  // red flash that fades over the first few frames
+  const flash = Math.max(0, (t - 20) / 8)
+  if (flash > 0) { ctx.fillStyle = `rgba(190,20,20,${0.4 * flash})`; ctx.fillRect(0, 0, cw, ch) }
+  // panel slides in from the right, holds, slides out
+  const env = t >= 24 ? (28 - t) / 4 : t >= 8 ? 1 : t / 8
+  const panel = _kanbuIllus()
+  const ready = panel && panel.complete && panel.naturalWidth > 0
+  const dh = ch * 0.42
+  const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.3
+  const slide = (1 - env) * (dw + 50)
+  const dx = cw * 0.60 + slide, dy = ch * 0.28
+  ctx.globalAlpha = 0.5 * env; ctx.fillStyle = "#0a0406"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
+  ctx.globalAlpha = env
+  if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
+  else { ctx.fillStyle = "#1a2433"; ctx.fillRect(dx, dy, dw, dh); ctx.fillStyle = "#aee0ff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `bold ${Math.floor(dh * 0.18)}px serif`; ctx.fillText("RAIKIRI", dx + dw / 2, dy + dh / 2) }
+  // blue scar-streak accent along the backing bar
+  ctx.globalAlpha = env * 0.8; ctx.strokeStyle = "#8fd2ff"; ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(0, dy + dh + 6); ctx.lineTo(cw, dy + dh + 2); ctx.stroke()
+  ctx.restore()
+}
 // Apply the active recolor-skin tag to a Shukaku sheet path so the summon matches Gaara's skin
 // (sphere/burst are kept neutral — no tagged variants generated). _recolorTag is set by applySkin.
 function _shukakuSkin(fighter, src) {
@@ -14858,6 +15067,7 @@ function updateBattle() {
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
   { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
+  { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
@@ -15127,9 +15337,11 @@ function renderHybridFighter(fighter) {
     drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
+    drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
+    drawKakashiAnbuTomoeField(c, fighter)   // Kakashi (ANBU) Alien X skin — floating RED SHARINGAN TOMOE over the void body (kakashi_anbu + skinId endsWith "AlienX")
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
@@ -17219,6 +17431,7 @@ function drawBattle() {
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawLightKiraCinematic(ctx, canvas)         // fullscreen "I Am Kira" scythe-ult overlay (crimson vignette → I'M KIRA cut-in panel → purple swing flash)
   drawGaaraSabakuTaisouCinematic(ctx, canvas) // Gaara Sabaku Taisou ult — 砂瀑大葬 kanji cut-in slide + sand vignette + collapse dust flash (world-space burial FX in drawGaaraFx)
+  drawKakashiAnbuRaikiriCutin(ctx, canvas)    // Kakashi (ANBU) Full-Charge Raikiri ult — illustration cut-in slide + red flash (kakashi_anbu only, _kanbuUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
   drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
   drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)
@@ -21662,6 +21875,18 @@ gameLoop()
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // KAKASHI (ANBU) Phase 2 — read Sharingan/Raikiri state (custom fields the p1() snapshot omits) + toggle hook.
+    kakashiAnbu: {
+      state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), copyReady: f._copyReady || 0, copyCapture: f._copyCapture?.source || null, mangekyou: !!f._kanbuMangekyou, kamuiUnlocked: !!f._kamuiUnlocked, awakenFlash: f._kanbuAwakenFlash || 0, kamuiRift: !!f._kamuiRift, kamuiExhaust: f._kamuiExhaust || 0, ultVariant: f._ultVariant || null, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
+      toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
+      putOppNear: (dist = 110) => { if (!p1 || !p2) return null; p2.x = p1.x + (p1.facing || 1) * dist; return Math.round(p2.x) },   // test-only: position the foe in range
+      forceOppAttack: () => { if (!p2) return false; p2.attacking = true; p2.currentMove = "light"; return true },                   // test-only: mark the foe mid-attack (drives the Read counter)
+      ult: (variant = "raikiri", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._ultVariant = variant; f._kanbuCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!f.domainFrozen; f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; const eBefore = f.energy; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, variant: f._ultVariant, spent: eBefore - f.energy, kamuiRift: !!f._kamuiRift, copyReady: f._copyReady || 0 } },   // test-only: fire a directional ult (mirrors the real ult-press gate)
+      armCopy: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._copyReady = 180; return f ? f._copyReady : 0 },        // test-only: simulate the foe's recent projectile
+      oppFireProjectile: (dir = "D") => { if (!p2) return false; p2._specialHeldDir = dir; p2.attackCooldown = 0; p2.attacking = false; p2.energy = p2.maxEnergy || 200; return !!triggerSpecial(p2, getAbilityContext()) },   // test-only: make the foe cast a real projectile special
+      setDomainFrozen: (v = true, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f.domainFrozen = !!v; return !!f?.domainFrozen },   // test-only: exercise the cinematic-refusal path
+      setRewind: (v = true) => { rewindState.active = !!v; return rewindState.active },   // test-only: cinematic-refusal path (rewindState doesn't auto-reset like domainFrozen)
+    },
     // Naoya test isolation — clear all Projection-Sorcery transient state on BOTH fighters (snare/freeze/route
     // + HUD flashes) so back-to-back cases don't leak a lingering snare/route between them. Test-only.
     naoyaClear: () => { for (const f of [p1, p2]) { if (!f) continue; f._naoyaSnare = 0; f._naoyaSnareMax = 0; f._naoyaSnareBroke = 0; f._naoyaSnareSafe = 0; f._naoyaFrozen = 0; f._ftState = null; f._rooted = false; f._ftFlash = null; f._spriteCastMove = null; f._spriteCastTimer = 0; f.hitstun = 0; f.attacking = false; f.currentAttack = null; f.currentMove = null; f.dashTimer = 0; f.isBlocking = false; f.vx = 0 } return true },

@@ -440,6 +440,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./gaara_idle_uniform.png" }
   },
 
+  // Kakashi (ANBU) (universe: naruto), teen-era ANBU shinobi — NEW additive fighter. Gates spritesReady()
+  // by decoding the idle strip (flips from procedural box to sprite handler). Per-action rendering reads
+  // characters.js → kakashiAnbu.animationData (each action carries its own .sheet). Idle = border-flood-fill-
+  // keyed + FLIP_H uniform strip (tools/kakashi_anbu/slice.py; opaque-green dantewreckmen sheet).
+  kakashi_anbu: {
+    actions: { idle: "./kakashi_anbu_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

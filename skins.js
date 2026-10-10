@@ -1495,14 +1495,14 @@ export const SKINS = {
     // ALTERNATE-BODY skins from the SAME sheet's own variant rows (idle/stance swapped to the alt body; the
     // attack/special sheets stay base — the sheet has no full alt-body action set). Cosmetic, select-visible.
     { id: "zamasu", name: "Zamasu", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale,
-      animationData: _roseSkin("./goku_rose_skin_zamasu_uniform.png", 4, 43, 52) },
+      animationData: _roseSkin("./goku_rose_skin_zamasu_uniform.png", 3, 38, 58) },
     { id: "gokuBlack", name: "Goku Black", unlockLevel: 0, portrait: characters.goku_rose?.portrait, spriteScale: characters.goku_rose?.spriteScale,
-      animationData: _roseSkin("./goku_rose_skin_black_uniform.png", 5, 38, 51) },
+      animationData: _roseSkin("./goku_rose_skin_black_uniform.png", 3, 40, 58) },
   ],
   gogeta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gogeta?.portrait, spriteScale: characters.gogeta?.spriteScale, animationData: null },
     { id: "ssBlue", name: "SSGSS (Blue)", unlockLevel: 0, portrait: characters.gogeta?.portrait, spriteScale: characters.gogeta?.spriteScale,
-      animationData: _gogetaSkin("./gogeta_blue_idle_uniform.png", 6, 60, 38) },
+      animationData: _gogetaSkin("./gogeta_blue_idle_uniform.png", 1, 27, 67) },
   ],
   goku_black: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },

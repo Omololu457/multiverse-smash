@@ -785,8 +785,8 @@ function executeGokuRoseUltimate(fighter, context) {
   schedulePendingSpawn(26, () => {                              // the DIVINE DRAGON erupts and surges forward (visual)
     const DRAGON_H = (fighter.h || 100) * 2.4
     spawnProjectile(fighter, "roseDragon", {
-      sheet: "./goku_rose_dragon_uniform.png", spriteFrames: 6, spriteW: 145, spriteH: 133,
-      spriteSpeed: 4, spriteScale: DRAGON_H / 133, spriteOnce: true,
+      sheet: "./goku_rose_dragon_uniform.png", spriteFrames: 1, spriteW: 210, spriteH: 148,
+      spriteSpeed: 4, spriteScale: DRAGON_H / 148, spriteOnce: true,
       w: 360, h: 120, radius: 70, speed: 17, vx: face * 17, damage: 0, visualOnly: true,
       lifetime: 64, piercing: true, isUltimate: true,
       spawnX: fighter.x + (fighter.w || 60) / 2 + face * 50, spawnY: fighter.y + (fighter.h || 100) * 0.1

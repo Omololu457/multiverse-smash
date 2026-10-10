@@ -10395,55 +10395,6 @@ const narutoSeventh = {
   }
 }
 
-// ── Goku Black (Super Saiyan Rosé 3) — NEW additive standalone (Dragon Ball). Every frame sliced from the ONE
-// ultrasayiancoder101 "Goku Black SSJ Rosé 3" sheet. Canonical Zamasu/Goku-Black kit: Ki blasts, Black
-// Kamehameha, Sword of Light, the Scythe (God Split Cut), SSJ-Rosé power-up aura. combat.js UNTOUCHED.
-const gokuRose = {
-  rosterKey: "goku_rose", name: "Goku Black (Rosé 3)", universe: "dragon_ball", color: "#e85f9e", portrait: "./goku_rose_portrait.png",
-  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
-  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
-  stats: { maxHealth: 1220, maxEnergy: 200, attack: 95, defense: 88, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10 },
-  basic_attacks: { light: { damage: 14 }, heavy: { damage: 40 } },
-  specials: {
-    kiBlast:        { cost: 12, effect: "Neutral+Special: Rosé Ki Blast — a fast pink ki orb. [CANON]" },
-    blackKamehameha:{ cost: 34, effect: "Down+Special: Black Kamehameha — a piercing crimson-pink ki beam. [CANON]" },
-    swordOfLight:   { cost: 28, effect: "Fwd+Special: Sword of Light — a materialized pink ki-blade slash. [CANON]" },
-    scythe:         { cost: 40, effect: "Back+Special: God Split Cut — summon the energy SCYTHE and reap in a wide arc (Zamasu's signature). [CANON]" },
-    roseAura:       { cost: 30, effect: "Up+Special: Super Saiyan Rosé — erupt the divine pink aura for a short damage/speed buff. [CANON]" }
-  },
-  ultimate: { name: "Divine Retribution", cost: 100, damage: 360,
-    description: "Charge the full divine power → an unavoidable crimson-pink Black Kamehameha nuke (auto-hit; a held block chips it to half). [CANON]" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  hasSprites: true, spriteScale: 2.0, introPool: ["intro"],
-  animationData: {
-    idle:      { frames: 8, width: 45, height: 57, speed: 8, anchorY: 0, loop: true,  sheet: "./goku_rose_idle_uniform.png" },
-    walk:      { frames: 6, width: 86, height: 56, speed: 6, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
-    run:       { frames: 6, width: 86, height: 56, speed: 4, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
-    dash:      { frames: 6, width: 86, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_walk_uniform.png" },
-    jump:      { frames: 6, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
-    fall:      { frames: 6, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
-    guard:     { frames: 1, width: 45, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_idle_uniform.png" },
-    hurt:      { frames: 2, width: 45, height: 57, speed: 5, anchorY: 0, sheet: "./goku_rose_idle_uniform.png" },
-    knockdown: { frames: 1, width: 59, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
-    getup:     { frames: 3, width: 59, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
-    light:     { frames: 8, width: 93, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
-    heavy:     { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
-    up:        { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
-    air:       { frames: 8, width: 93, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
-    down_air:  { frames: 6, width: 61, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
-    intro:     { frames: 10, width: 71, height: 79, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" },
-    win:       { frames: 10, width: 71, height: 79, speed: 10, anchorY: 0, loop: true, sheet: "./goku_rose_transform_uniform.png" },
-    // cast poses
-    roseKi:     { frames: 5,  width: 141, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
-    roseKameha: { frames: 5,  width: 141, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
-    roseSword:  { frames: 9,  width: 73,  height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_sword_uniform.png" },
-    roseScythe: { frames: 14, width: 135, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_scythe_uniform.png" },
-    roseAura:   { frames: 10, width: 71,  height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" },
-    roseDragon: { frames: 6,  width: 145, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_dragon_uniform.png" }   // the pink divine DRAGON — ultimate cast
-  }
-}
-
 // ══════════════════════════════════════════════════════════════════════════════════════════════════
 // SHISUI (TRINITY) — ONE roster slot, THREE swappable identities (MK1 Ghostface model). ADDITIVE.
 // shisui_trinity = THE LOYALIST (default, selectable). shisui_blade / shisui_puppeteer = hidden identity
@@ -10511,51 +10462,6 @@ const shisuiTrinity = {
     shiBackstab: { frames: 2, width: 74, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_flurry_uniform.png" },
     shiArmslam:  { frames: 1, width: 48, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_armslam_uniform.png" },
     shiSusanoo:  { frames: 1, width: 48, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_susanoo_uniform.png" }
-  }
-}
-
-// ── Gogeta (Mega Ultra Instinct / Hakaishin) — NEW additive standalone (Dragon Ball). Sliced from the ONE
-// ultrasayiancoder101 "Mega Ultra Instinct Hakaishin Gogeta" sheet (white bg, border-floodfill keyed).
-// Canonical fusion kit: Ki blasts, God/Big Bang Kamehameha, Stardust Breaker, Hakai, UI/Hakaishin aura.
-const gogetaUI = {
-  rosterKey: "gogeta", name: "Gogeta (Ultra Instinct)", universe: "dragon_ball", color: "#4aa3ff", portrait: "./gogeta_portrait.png",
-  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
-  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
-  stats: { maxHealth: 1240, maxEnergy: 200, attack: 97, defense: 90, speed: 93, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 10 },
-  basic_attacks: { light: { damage: 14 }, heavy: { damage: 42 } },
-  specials: {
-    kiBlast:       { cost: 12, effect: "Neutral+Special: Ki Blast — a fast blue ki orb. [CANON]" },
-    godKamehameha: { cost: 36, effect: "Down+Special: God Kamehameha — a colossal blue-and-orange fusion Kamehameha beam. [CANON]" },
-    stardustBreaker:{ cost: 30, effect: "Fwd+Special: Stardust Breaker — a rushing palm-strike that detonates the foe's negative energy. [CANON]" },
-    hakai:         { cost: 44, effect: "Back+Special: Hakai — the God-of-Destruction erasure: a point-blank destruction sphere (Hakaishin). [CANON]" },
-    uiAura:        { cost: 30, effect: "Up+Special: Ultra Instinct — silver aura erupts, a short auto-dodge + speed/damage surge. [CANON]" }
-  },
-  ultimate: { name: "Big Bang Kamehameha", cost: 100, damage: 380,
-    description: "Fusion of the Big Bang Attack and the Kamehameha → an unavoidable screen-clearing blue/orange nuke (auto-hit; a held block chips it to half). [CANON]" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  hasSprites: true, spriteScale: 2.1, introPool: ["intro"],
-  animationData: {
-    idle:      { frames: 6, width: 69, height: 60, speed: 8, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
-    walk:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
-    run:       { frames: 6, width: 69, height: 60, speed: 4, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
-    dash:      { frames: 6, width: 69, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    jump:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    fall:      { frames: 6, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    guard:     { frames: 1, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    hurt:      { frames: 2, width: 69, height: 60, speed: 5, anchorY: 0, sheet: "./gogeta_idle_uniform.png" },
-    knockdown: { frames: 1, width: 69, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    getup:     { frames: 3, width: 69, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
-    light:     { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
-    heavy:     { frames: 6, width: 121, height: 93, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
-    up:        { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
-    air:       { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
-    down_air:  { frames: 6, width: 121, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
-    intro:     { frames: 4, width: 107, height: 60, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" },
-    win:       { frames: 4, width: 107, height: 60, speed: 10, anchorY: 0, loop: true, sheet: "./gogeta_aura_uniform.png" },
-    gogetaKi:     { frames: 3, width: 69,  height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
-    gogetaKameha: { frames: 3, width: 69,  height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
-    gogetaAura:   { frames: 4, width: 107, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" }
   }
 }
 
@@ -10687,6 +10593,100 @@ const shisuiPuppeteer = {
     // all PUPPETEER jutsu share the hand-seal cast pose (the JUS Ultimate-Action cast frames)
     puCast: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" },
     shiBackstab: { frames: 4, width: 42, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_cast_uniform.png" }
+  }
+}
+
+// ── Goku Black (Super Saiyan Rosé 3) — NEW additive standalone (Dragon Ball). Every frame sliced from the ONE
+// ultrasayiancoder101 "Goku Black SSJ Rosé 3" sheet. Canonical Zamasu/Goku-Black kit: Ki blasts, Black
+// Kamehameha, Sword of Light, the Scythe (God Split Cut), SSJ-Rosé power-up aura. combat.js UNTOUCHED.
+const gokuRose = {
+  rosterKey: "goku_rose", name: "Goku Black (Rosé 3)", universe: "dragon_ball", color: "#e85f9e", portrait: "./goku_rose_portrait.png",
+  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
+  stats: { maxHealth: 1220, maxEnergy: 200, attack: 95, defense: 88, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10 },
+  basic_attacks: { light: { damage: 14 }, heavy: { damage: 40 } },
+  specials: {
+    kiBlast:        { cost: 12, effect: "Neutral+Special: Rosé Ki Blast — a fast pink ki orb. [CANON]" },
+    blackKamehameha:{ cost: 34, effect: "Down+Special: Black Kamehameha — a piercing crimson-pink ki beam. [CANON]" },
+    swordOfLight:   { cost: 28, effect: "Fwd+Special: Sword of Light — a materialized pink ki-blade slash. [CANON]" },
+    scythe:         { cost: 40, effect: "Back+Special: God Split Cut — summon the energy SCYTHE and reap in a wide arc (Zamasu's signature). [CANON]" },
+    roseAura:       { cost: 30, effect: "Up+Special: Super Saiyan Rosé — erupt the divine pink aura for a short damage/speed buff. [CANON]" }
+  },
+  ultimate: { name: "Divine Retribution", cost: 100, damage: 360,
+    description: "Charge the full divine power → an unavoidable crimson-pink Black Kamehameha nuke (auto-hit; a held block chips it to half). [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true, spriteScale: 2.0, introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 8, width: 43, height: 58, speed: 8, anchorY: 0, loop: true,  sheet: "./goku_rose_idle_uniform.png" },
+    walk:      { frames: 4, width: 63, height: 56, speed: 7, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
+    run:       { frames: 4, width: 63, height: 56, speed: 5, anchorY: 0, loop: true,  sheet: "./goku_rose_walk_uniform.png" },
+    dash:      { frames: 4, width: 63, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_walk_uniform.png" },
+    jump:      { frames: 3, width: 42, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    fall:      { frames: 3, width: 42, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    guard:     { frames: 1, width: 43, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_idle_uniform.png" },
+    hurt:      { frames: 2, width: 43, height: 58, speed: 5, anchorY: 0, sheet: "./goku_rose_idle_uniform.png" },
+    knockdown: { frames: 1, width: 42, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    getup:     { frames: 3, width: 42, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_jump_uniform.png" },
+    light:     { frames: 7, width: 151, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
+    heavy:     { frames: 7, width: 52, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    up:        { frames: 7, width: 52, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    air:       { frames: 7, width: 151, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_light_uniform.png" },
+    down_air:  { frames: 7, width: 52, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_heavy_uniform.png" },
+    intro:     { frames: 11, width: 77, height: 65, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_transform_uniform.png" },
+    win:       { frames: 11, width: 77, height: 65, speed: 10, anchorY: 0, loop: true, sheet: "./goku_rose_transform_uniform.png" },
+    // cast poses
+    roseKi:     { frames: 5,  width: 69,  height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kiblast_uniform.png" },
+    roseKameha: { frames: 5,  width: 63,  height: 58, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_kamehameha_uniform.png" },
+    roseSword:  { frames: 9,  width: 80,  height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_sword_uniform.png" },
+    roseScythe: { frames: 11, width: 174, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_scythe_uniform.png" },
+    roseAura:   { frames: 7,  width: 77,  height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_aura_uniform.png" },
+    roseDragon: { frames: 1,  width: 210, height: 148, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_rose_dragon_uniform.png" }   // the pink divine DRAGON — ultimate cast
+  }
+}
+
+// ── Gogeta (Mega Ultra Instinct / Hakaishin) — NEW additive standalone (Dragon Ball). Sliced from the ONE
+// ultrasayiancoder101 "Mega Ultra Instinct Hakaishin Gogeta" sheet (white bg, border-floodfill keyed).
+// Canonical fusion kit: Ki blasts, God/Big Bang Kamehameha, Stardust Breaker, Hakai, UI/Hakaishin aura.
+const gogetaUI = {
+  rosterKey: "gogeta", name: "Gogeta (Ultra Instinct)", universe: "dragon_ball", color: "#4aa3ff", portrait: "./gogeta_portrait.png",
+  archetypes: ["melee", "energy"], primary: "melee", secondary: ["energy"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
+  stats: { maxHealth: 1240, maxEnergy: 200, attack: 97, defense: 90, speed: 93, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 10 },
+  basic_attacks: { light: { damage: 14 }, heavy: { damage: 42 } },
+  specials: {
+    kiBlast:       { cost: 12, effect: "Neutral+Special: Ki Blast — a fast blue ki orb. [CANON]" },
+    godKamehameha: { cost: 36, effect: "Down+Special: God Kamehameha — a colossal blue-and-orange fusion Kamehameha beam. [CANON]" },
+    stardustBreaker:{ cost: 30, effect: "Fwd+Special: Stardust Breaker — a rushing palm-strike that detonates the foe's negative energy. [CANON]" },
+    hakai:         { cost: 44, effect: "Back+Special: Hakai — the God-of-Destruction erasure: a point-blank destruction sphere (Hakaishin). [CANON]" },
+    uiAura:        { cost: 30, effect: "Up+Special: Ultra Instinct — silver aura erupts, a short auto-dodge + speed/damage surge. [CANON]" }
+  },
+  ultimate: { name: "Big Bang Kamehameha", cost: 100, damage: 380,
+    description: "Fusion of the Big Bang Attack and the Kamehameha → an unavoidable screen-clearing blue/orange nuke (auto-hit; a held block chips it to half). [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true, spriteScale: 1.66, introPool: ["intro"],   // idle body 64px × 1.66 ≈ 118px on-screen — matches Rosé/canon (Gogeta ~175cm)
+  animationData: {
+    idle:      { frames: 8, width: 64, height: 69, speed: 8, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    walk:      { frames: 8, width: 64, height: 69, speed: 6, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    run:       { frames: 8, width: 64, height: 69, speed: 4, anchorY: 0, loop: true,  sheet: "./gogeta_idle_uniform.png" },
+    dash:      { frames: 1, width: 64, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    jump:      { frames: 1, width: 64, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    fall:      { frames: 1, width: 64, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    guard:     { frames: 1, width: 64, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    hurt:      { frames: 2, width: 64, height: 69, speed: 5, anchorY: 0, sheet: "./gogeta_idle_uniform.png" },
+    knockdown: { frames: 1, width: 64, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    getup:     { frames: 1, width: 64, height: 69, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_idle_uniform.png" },
+    light:     { frames: 5, width: 55, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    heavy:     { frames: 5, width: 55, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    up:        { frames: 5, width: 55, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    air:       { frames: 5, width: 55, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    down_air:  { frames: 5, width: 55, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_combat_uniform.png" },
+    intro:     { frames: 3, width: 42, height: 67, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" },
+    win:       { frames: 3, width: 42, height: 67, speed: 10, anchorY: 0, loop: true, sheet: "./gogeta_aura_uniform.png" },
+    gogetaKi:     { frames: 3, width: 55,  height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
+    gogetaKameha: { frames: 3, width: 55,  height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_kiblast_uniform.png" },
+    gogetaAura:   { frames: 3, width: 42, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gogeta_aura_uniform.png" }
   }
 }
 

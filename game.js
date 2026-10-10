@@ -8840,33 +8840,26 @@ function drawSasukeWarArm(c, fighter) {
   const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
   if (x == null || w == null) return
   const face = A.facing || fighter.facing || 1
-  const s2w = h / (fighter.h || 110)
-  const reachS = Math.min(A.reach * s2w, (canvas.width || 1280) * 0.55)   // cap to camera frame
-  const p = A.t <= A.startup ? A.t / A.startup : Math.max(0, 1 - (A.t - A.startup) / Math.max(1, A.max - A.startup))
-  const ease = p * p * (3 - 2 * p)
-  const sx = x + w * (face === 1 ? 0.58 : 0.42), sy = y + h * 0.42
-  const reachNow = reachS * ease
-  const armH = h * 0.26
-  const up = _susanoImg("./sasuke_susano_arm_upper.png"), cl = _susanoImg("./sasuke_susano_claw.png")
-  const upW = up.naturalWidth ? armH * (up.naturalWidth / up.naturalHeight) : armH * 0.7
-  const clW = cl.naturalWidth ? armH * 1.08 * (cl.naturalWidth / cl.naturalHeight) : armH * 1.6
-  const tipX = sx + face * reachNow
-  // partial ribcage forming on the body (behind the arm), fading in over the first few frames
-  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.5, h * 0.6, face, 0.75 * Math.min(1, A.t / 5))
-  const upCx = sx + face * upW * 0.4
-  const clawCx = tipX - face * clW * 0.42
-  // CHAKRA CORE — a translucent purple energy limb from shoulder→claw (code FX, like the dojutsu portals) so
-  // the arm always reads as one solid construct as it extends; the keyed skeletal segments ride on top.
-  c.save(); c.lineCap = "round"
-  c.strokeStyle = "rgba(150,96,226,0.42)"; c.lineWidth = armH * 0.72
-  c.beginPath(); c.moveTo(sx, sy); c.lineTo(clawCx, sy); c.stroke()
-  c.strokeStyle = "rgba(205,170,255,0.5)"; c.lineWidth = armH * 0.34
-  c.beginPath(); c.moveTo(sx, sy); c.lineTo(clawCx, sy); c.stroke()
-  c.restore()
-  // lattice FOREARM spans the whole gap, then the recognizable upper-arm + claw on top (back-to-front).
-  _drawSusanoArmPiece(c, "./sasuke_susano_arm_fore.png", sx, clawCx, sy, face, armH * 0.86, 0.95)
-  _drawSusanoSprite(c, "./sasuke_susano_arm_upper.png", upCx, sy, armH, face, 0.97)
-  _drawSusanoSprite(c, "./sasuke_susano_claw.png", clawCx, sy, armH * 1.1, face, 0.98)
+  // CINEMATIC: a giant ribcage CLAW pops out AT the opponent (not a traveling arm). If the grab connected it
+  // FOLLOWS the thrown body; else it clutches the stored pop point. A faint tendril connects it to Sasuke.
+  let tx, ty
+  const tgt = A.target
+  if (A.grabbed && tgt && tgt._lastDrawX != null) { tx = tgt._lastDrawX + (tgt._lastDrawW || 60) / 2; ty = tgt._lastDrawY + (tgt._lastDrawH || 100) * 0.35 }
+  else { const sp = _worldToScreen(A.popX, A.popY); tx = sp.x; ty = sp.y }
+  // pop-in: scale springs 0.3 → 1.25 over the first ~7 frames (POPS OUT of nowhere), then settles to ~1.0.
+  const pt = A.t
+  const pop = pt < 7 ? (0.3 + (pt / 7) * 0.95) : Math.max(0.95, 1.25 - (pt - 7) * 0.03)
+  const clawH = h * 1.05 * pop            // BIG claw (cinematic)
+  const sx = x + w * (face === 1 ? 0.6 : 0.4), sy = y + h * 0.4
+  // faint chakra tendril from Sasuke to the claw (a connection, not the focus)
+  c.save(); c.lineCap = "round"; c.globalAlpha = 0.28
+  c.strokeStyle = "rgba(170,120,240,0.55)"; c.lineWidth = h * 0.14
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(tx, ty); c.stroke(); c.restore()
+  // partial ribcage forming on Sasuke's body
+  _drawSusanoSprite(c, "./sasuke_susano_ribcage.png", x + w / 2, y + h * 0.5, h * 0.58, face, 0.7 * Math.min(1, A.t / 5))
+  // the ribcage CLAW clutching at the target — face the claw TOWARD the target (grab from behind if it's behind)
+  const clawFace = (tx >= sx) ? 1 : -1
+  _drawSusanoSprite(c, "./sasuke_susano_claw.png", tx, ty, clawH, clawFace, Math.min(1, A.t / 2))
 }
 function drawSasukeWarGuard(c, fighter) {
   if (!c || !susanoAllowed(fighter) || (fighter._warGuard || 0) <= 0) return
@@ -21828,7 +21821,7 @@ gameLoop()
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)
     fireGuard: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._warGuardCd = 0; f.attackCooldown = 0; f.attacking = false; return fireSasukeRibcageGuard(f, getAbilityContext()) },   // test-only: fire Ribcage Guard directly (no input/jump)
-    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2 state
+    warSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { key: f.rosterKey, allowed: susanoAllowed(f), eyeSet: f._eyeSet || "raiton", arm: !!f._warArm, armT: f._warArm?.t ?? -1, armGrabbed: !!f._warArm?.grabbed, guard: f._warGuard || 0, guardCd: f._warGuardCd || 0, defMult: f.defenseMultiplier || 1, torso: f._warTorso || 0, torsoFx: f._warTorsoFx?.action || null, soldier: !!f._warSoldier, soldierHP: Math.round(f._warSoldierHP || 0), soldierTimer: f._warSoldierTimer || 0, canvasFrac: f._canvasHeightFrac || 0, skin: f._skinAnim?.idle?.sheet || null, indra: !!f._warIndra, wing: !!f._warWing, move: f.currentMove || null, energy: Math.round(f.energy || 0), attackCd: Math.round(f.attackCooldown || 0) } },   // test-only: War-Susano'o Tier-1/2/3 state
     clearDojutsu: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f._dojMarkerArmed = false; f._dojMarker = null; f._rinStrain = 0; f._rinLock = 0; f._rinLockToast = 0; f._portalActive = 0; f._dojCounterCd = 0; f._dojRedirectCd = 0; f._dojPortals = null; f._dojFx = null; f.attackCooldown = 0; f.attacking = false; f.invulnTimer = 0; f.hitstun = 0; f.blockstun = 0; try { for (let i = (typeof activeProjectiles !== "undefined" ? activeProjectiles.length : 0) - 1; i >= 0; i--) if (activeProjectiles[i].owner === f) activeProjectiles.splice(i, 1) } catch (_) {}
       // restore clean positions/facings so swaps from a prior sub-test don't bleed into the next
       if (p1 && p2) { const gy1 = p1.groundY != null ? p1.groundY - (p1.h || 0) : p1.y, gy2 = p2.groundY != null ? p2.groundY - (p2.h || 0) : p2.y; p1.x = 1320; p1.y = gy1; p1.vx = 0; p1.vy = 0; p1.facing = 1; p2.x = 1820; p2.y = gy2; p2.vx = 0; p2.vy = 0; p2.facing = -1 }

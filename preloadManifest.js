@@ -148,6 +148,11 @@ export const FX_SHEETS_BY_CHAR = {
     "./sasuke_susano_bust_blade.png",
     "./sasuke_susano_bust_bow.png",
     "./sasuke_susano_arrow.png",
+    "./sasuke_susano_soldier.png",
+    "./sasuke_susano_soldier_bow.png",
+    "./sasuke_susano_winged.png",
+    "./sasuke_susano_flame.png",
+    "./sasuke_susano_flame_archer.png",
   ],
   sasuke_adult: [
     "./sasuke_susano_arm_upper.png",

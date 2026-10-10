@@ -5169,7 +5169,8 @@ function executeSasukeSenseiUltimate(fighter, context) {
   const set = fighter._eyeSet || "raiton"
   if (set === "mangekyou") return ssHebiUltimate(fighter, context)
   if (set === "rinnegan")  return ssChibakuUltimate(fighter, context)
-  if (set === "susanoo")   return false   // Susano'o-set Ultimate = Soldier transformation — reserved for Phase 3 (no-op, no meter)
+  if (fighter._warSoldier) return fireSasukeIndrasArrow(fighter, context)   // in Soldier: Ultimate = Indra's Arrow (finisher — ends the form)
+  if (set === "susanoo")   return enterSasukeSoldier(fighter, context)      // Susano'o-set Ultimate = Soldier transformation (Tier 3)
   return ssKirinUltimate(fighter, context)
 }
 
@@ -5358,15 +5359,21 @@ export function fireSasukeWarArmGrab(fighter, context) {
   if (!spendEnergy(fighter, WARSUSANO.ARM_GRAB_COST)) return false
   const getOpp = getTargetResolver(context)
   const target = getOpp(fighter)
-  // render state for the procedural arm (game.js): extends over STARTUP frames, holds, retracts.
-  fighter._warArm = { t: 0, max: WARSUSANO.ARM_GRAB_STARTUP + 14, startup: WARSUSANO.ARM_GRAB_STARTUP, reach: WARSUSANO.ARM_GRAB_REACH, facing: fighter.facing || 1, grabbed: false, resolved: false }
+  // CINEMATIC: a giant ribcage claw POPS OUT at the opponent (not a traveling boomerang), clutches, and the
+  // shared grab pipeline (resolveGrab → pop-up-and-drop) LIFTS + SLAMS/THROWS. The claw render pops in at the
+  // foe and then FOLLOWS the thrown body (drawSasukeWarArm). Grab resolves on the short pop beat.
+  const face = fighter.facing || 1
+  const popX = target ? (target.x + (target.w || 60) / 2) : (fighter.x + face * WARSUSANO.ARM_GRAB_REACH)
+  const popY = target ? (target.y + (target.h || 100) * 0.4) : (fighter.y + (fighter.h || 100) * 0.4)
+  fighter._warArm = { t: 0, max: 40, startup: WARSUSANO.ARM_GRAB_STARTUP, popX, popY, facing: face, grabbed: false, resolved: false, target: null }
   fighter.attackCooldown = getAttackDuration(WARSUSANO.ARM_GRAB_STARTUP + WARSUSANO.ARM_GRAB_WHIFF, fighter)
   schedulePendingSpawn(WARSUSANO.ARM_GRAB_STARTUP, () => {
     if (fighter.eliminated) return
     const tgt = getOpp(fighter)
     const grabbed = resolveGrab(fighter, tgt, context, WARSUSANO.ARM_GRAB_REACH)
-    if (grabbed) fighter._grabThrowDmg = WARSUSANO.ARM_GRAB_THROW
-    if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.resolved = true }
+    if (grabbed) { fighter._grabThrowDmg = WARSUSANO.ARM_GRAB_THROW }
+    if (fighter._warArm) { fighter._warArm.grabbed = !!grabbed; fighter._warArm.target = grabbed ? tgt : null; fighter._warArm.resolved = true }
+    try { if (grabbed) shakeCamera(context, 10, 12) } catch (_) {}   // the catch + slam impact
   })
   try { focusCameraOnAction(context, fighter, target, 0.98, 8); shakeCamera(context, 5, 8) } catch (_) {}
   return true
@@ -5402,6 +5409,17 @@ export function updateSasukeWarSusano(fighter) {
   // TIER 2 — torso window + the per-attack bust-FX timer
   if ((fighter._warTorso || 0) > 0) { fighter._warTorso--; if (fighter._warTorso <= 0) { fighter._warTorso = 0; fighter._warTorsoFx = null } }
   if (fighter._warTorsoFx) { fighter._warTorsoFx.t++; if (fighter._warTorsoFx.t >= fighter._warTorsoFx.max) fighter._warTorsoFx = null }
+  // TIER 3 — Soldier: chakra drain, Susanoo-HP absorb, and timeout / 0-chakra / HP-break exit.
+  if (fighter._warSoldier) {
+    fighter.energy = Math.max(0, (fighter.energy || 0) - WARSOLDIER.DRAIN)
+    const hp = fighter.health, prev = (fighter._warSoldierHpWatch != null) ? fighter._warSoldierHpWatch : hp
+    if (hp < prev) fighter._warSoldierHP -= (prev - hp) * 3
+    fighter._warSoldierHpWatch = fighter.health
+    if (fighter._warWing) { fighter._warWing.t++; if (fighter._warWing.t >= fighter._warWing.max) fighter._warWing = null }
+    if (fighter._warIndra) { fighter._warIndra.t++; if (fighter._warIndra.t >= fighter._warIndra.max) fighter._warIndra = null }
+    fighter._warSoldierTimer--
+    if (fighter._warSoldierTimer <= 0 || (fighter.energy || 0) <= 0 || (fighter._warSoldierHP || 0) <= 0 || fighter.eliminated) revertSasukeSoldier(fighter)
+  }
 }
 
 // Forward+Grab → Susanoo Arm Grab (base form, any eye-set). Allowlist-gated; mirrors updateSasukeCommandCombat.
@@ -5455,7 +5473,134 @@ function fireSasukeTorso(fighter, context, which) {
 // SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo").
 //   N = Torso Arrow · F = Claw Smash · B = Blade Swing (Tier 2) · U = Ribcage Guard (Tier 1) · D = free.
 // Arm Grab is Forward+Grab (base form, any eye-set — handled by updateSasukeWarSusanoCombat, not here).
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// TIER 3 — SUSANOO SOLDIER  (full giant transformation; the Susano'o-set ULTIMATE)
+// The "perfect" War-Susano'o: a FULL-BODY giant transform (body-swap via _skinAnim + the generic giant
+// scaling _canvasHeightFrac — the SAME system teen Sasuke's Susanoo uses). Sized REALLY BIG (just under
+// teen Sasuke's). Sasuke is hidden inside; the soldier is player-controlled. Timed + chakra-drained +
+// Susanoo-HP-gated. NO block — a Susanoo HP pool absorbs damage (Sasuke takes greatly reduced damage via a
+// high defenseMultiplier; the tick bleeds the pool, ending the form when it breaks). Re-press Ultimate =
+// INDRA'S ARROW (huge damage) which ALSO ends the form. Refused during cinematics/KO/etc. Deterministic.
+const SOLDIER_CELL = { w: 310, h: 316 }
+const SOLDIER_CANVAS_FRAC = 0.97   // REALLY BIG — ≈ teen Susanoo (which is 0.95–1.0) but kept just under it
+const SOLDIER_REF_H = 262           // true soldier content height (≈268) → renders at ~full canvas height
+function _soldierCell(start, frames, speed = 40, loop = true) {
+  return { frames, width: SOLDIER_CELL.w, height: SOLDIER_CELL.h, speed, loop, anchorY: 0, sourceX: start * SOLDIER_CELL.w, sheet: "./sasuke_susano_soldier.png" }
+}
+// 5 soldier frames: 0 stand · 1 spear stance · 2 jumping sword · 3 blade high-kick · 4 bow aim (twin arrows).
+const SOLDIER_ANIM = (() => {
+  const stand = _soldierCell(0, 1, 40)
+  return {
+    idle: stand, walk: _soldierCell(0, 2, 16), run: _soldierCell(0, 2, 12), jump: stand, fall: stand,
+    hurt: stand, up: _soldierCell(2, 1, 6, false), air: _soldierCell(2, 1, 6, false), down_air: _soldierCell(3, 1, 6, false),
+    grab: stand, dash: stand, guard: stand,                 // no real block — Susanoo HP absorbs instead
+    light: _soldierCell(1, 3, 5, false),                    // 3-hit combo (spear → jumping sword → blade kick)
+    heavy: _soldierCell(4, 1, 6, false),                    // bow-aim twin-arrow shot
+  }
+})()
+const WARSOLDIER = { COST: 100, DURATION: 900, DRAIN: 0.14, HP: 320, DEF: 5.0, DMG: 1.6, INDRA_DMG: 320, VOLLEY_DMG: 40, WING_DMG: 72 }
+
+export function sasukeInSoldier(fighter) { return !!(fighter && fighter._warSoldier) }
+
+export function enterSasukeSoldier(fighter, context) {
+  if (!susanoAllowed(fighter) || fighter._warSoldier) return false
+  if (fighter.eliminated || (fighter.health || 0) <= 0) return false
+  if ((fighter.hitstop || 0) > 0 || (fighter.hitstun || 0) > 0 || fighter._impactFlash) return false
+  if (fighter.domainFrozen || fighter.domainUntouchable || fighter._kamuiDimActive || fighter._pauseTimeActive || fighter._timeSlowFlag) return false
+  const cost = Math.min(WARSOLDIER.COST, Math.floor((fighter.maxEnergy || 200) * 0.5))
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._warSoldier = true
+  fighter._warSoldierTimer = WARSOLDIER.DURATION
+  fighter._warSoldierHP = WARSOLDIER.HP; fighter._warSoldierHPMax = WARSOLDIER.HP
+  fighter._warSoldierHpWatch = fighter.health
+  fighter._warSoldierDefPrev = (fighter.defenseMultiplier != null) ? fighter.defenseMultiplier : 1
+  fighter._warSoldierDmgPrev = (fighter.damageMultiplier != null) ? fighter.damageMultiplier : 1
+  fighter.defenseMultiplier = WARSOLDIER.DEF
+  fighter.damageMultiplier = WARSOLDIER.DMG; fighter.attackMultiplier = WARSOLDIER.DMG
+  fighter._skinAnim = SOLDIER_ANIM
+  fighter._canvasHeightFrac = SOLDIER_CANVAS_FRAC
+  fighter._canvasHeightRefH = SOLDIER_REF_H
+  fighter._susanooActive = true
+  fighter.canJump = true
+  fighter._suppressUltCooldown = true
+  fighter._warArm = null; fighter._warTorso = 0; fighter._warTorsoFx = null
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+  try { focusCameraOnAction(context, fighter, null, 0.9, 24); shakeCamera(context, 12, 16) } catch (_) {}
+  return true
+}
+
+export function revertSasukeSoldier(fighter) {
+  if (!fighter || !fighter._warSoldier) return
+  fighter._warSoldier = false
+  fighter._warSoldierTimer = 0; fighter._warSoldierHP = 0; fighter._warIndra = null; fighter._warWing = null
+  fighter.defenseMultiplier = (fighter._warSoldierDefPrev != null) ? fighter._warSoldierDefPrev : 1
+  fighter.damageMultiplier = (fighter._warSoldierDmgPrev != null) ? fighter._warSoldierDmgPrev : 1
+  fighter.attackMultiplier = fighter.damageMultiplier
+  fighter._skinAnim = null
+  fighter._canvasHeightFrac = null; fighter._canvasHeightRefH = null
+  fighter._susanooActive = false; fighter._arenaHalfLock = null
+  fighter.canJump = true
+  fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+}
+export function forceRevertSasukeSoldier(fighter) { revertSasukeSoldier(fighter) }
+
+function fireSasukeSoldierSpecial(fighter, context) {
+  if (!fighter._warSoldier) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const getOpp = getTargetResolver(context)
+  if (fighter._specialHeldDir === "F") {
+    fighter._warWing = { t: 0, max: 26 }
+    fighter.vx = (fighter.facing || 1) * 26
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    schedulePendingSpawn(6, () => {
+      const opp = getOpp(fighter)
+      if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0 && Math.abs(opp.x - fighter.x) < 220) {
+        if (opp.isBlocking) { opp.blockstun = 24; applyScaledDamage(opp, Math.floor(WARSOLDIER.WING_DMG * 0.25), { source: "ability" }) }
+        else { opp.hitstun = 34; opp.vx = (fighter.facing || 1) * 12; opp.vy = -8; applyScaledDamage(opp, WARSOLDIER.WING_DMG, { source: "ability" }) }
+      }
+    })
+    try { shakeCamera(context, 7, 10) } catch (_) {}
+    return true
+  }
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  ;[0, 8, 16].forEach((d) => schedulePendingSpawn(d, () => {
+    if (fighter.eliminated || !fighter._warSoldier) return
+    const opp = getOpp(fighter)
+    const aim = opp ? { x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 100) * 0.45 } : null
+    spawnProjectile(fighter, "susanoArrow", {
+      damage: WARSOLDIER.VOLLEY_DMG, speed: 17, lifetime: 70, hitstun: 20, knockbackX: 8, knockbackY: -2,
+      color: "#bfe8ff", w: 40, h: 16, spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.3, aimAt: aim,
+      sheet: "./sasuke_susano_arrow.png", spriteFrames: 1, spriteW: 160, spriteH: 116, spriteScale: 0.9
+    }, context)
+  }))
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+  return true
+}
+
+export function fireSasukeIndrasArrow(fighter, context) {
+  if (!fighter._warSoldier) return false
+  const getOpp = getTargetResolver(context)
+  fighter._warIndra = { t: 0, max: 50 }
+  fighter.attackCooldown = getAttackDuration(50, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 50)
+  schedulePendingSpawn(26, () => {
+    const opp = getOpp(fighter)
+    if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {
+      if (opp.isBlocking) { opp.blockstun = 30; applyScaledDamage(opp, Math.floor(WARSOLDIER.INDRA_DMG * 0.25), { source: "ability" }) }
+      else { opp.hitstun = 52; opp.vx = (opp.x >= fighter.x ? 1 : -1) * 16; opp.vy = -12; opp.colorFlash = 22; applyScaledDamage(opp, WARSOLDIER.INDRA_DMG, { source: "ability" }) }
+    }
+  })
+  schedulePendingSpawn(52, () => revertSasukeSoldier(fighter))
+  try { shakeCamera(context, 14, 26) } catch (_) {}
+  return true
+}
+
+// SUSANO'O eye-set special dispatch (sensei; reached when _eyeSet === "susanoo").
+//   In SOLDIER: Fwd+Special = Wing Dash, else Arrow Volley.  Otherwise:
+//   N = Torso Arrow · F = Claw Smash · B = Blade Swing (Tier 2) · U = Ribcage Guard (Tier 1) · D = free.
 function ssSusanoSpecial(fighter, context) {
+  if (fighter._warSoldier) return fireSasukeSoldierSpecial(fighter, context)   // Tier 3 soldier specials
   const dir = fighter._specialHeldDir || null
   if (dir === "U") return fireSasukeRibcageGuard(fighter, context)       // Tier 1
   if (dir === "F") return fireSasukeTorso(fighter, context, "claw")      // Tier 2 — Claw Smash

@@ -429,7 +429,9 @@ export const KITS = {
       { name: "War-Susano'o: Ribcage Guard", input: "Up + Special (Susano'o set)", cost: 20, desc: "TIER 1 — the rib-ring bands snap up as brief defensive armor; incoming damage is cut for a short window [CANON-ADJACENT]" },
       { name: "War-Susano'o: Torso Arrow", input: "Special (Susano'o set)", cost: 34, desc: "TIER 2 — the Susano'o bust materializes + draws its bow, firing a fast homing arrow [CANON]" },
       { name: "War-Susano'o: Claw Smash", input: "Forward + Special (Susano'o set)", cost: 32, desc: "TIER 2 — the bust rakes forward with its claw (fast mid-range melee) [CANON-ADJACENT]" },
-      { name: "War-Susano'o: Blade Swing", input: "Back + Special (Susano'o set)", cost: 38, desc: "TIER 2 — the bust swings its blade (heavy, longest-reach melee). The bust follows Sasuke while active [CANON-ADJACENT]" }
+      { name: "War-Susano'o: Blade Swing", input: "Back + Special (Susano'o set)", cost: 38, desc: "TIER 2 — the bust swings its blade (heavy, longest-reach melee). The bust follows Sasuke while active [CANON-ADJACENT]" },
+      { name: "War-Susano'o: SOLDIER", input: "Ultimate (Susano'o set)", cost: 100, desc: "TIER 3 — full GIANT transformation (really big, just under teen Sasuke's Susanoo). Player-controlled, Susanoo HP instead of block, timed + chakra-drained. In Soldier: Special = Arrow Volley / Forward+Special = Wing Dash [CANON]" },
+      { name: "War-Susano'o: Indra's Arrow", input: "Ultimate (while in Soldier)", cost: 0, desc: "TIER 3 finisher — a cyan-flame arrow for huge guaranteed damage; firing it ENDS the transformation [CANON]" }
     ],
     ultimate: { name: "Kirin / Kuchiyose: Hebi / Chibaku Tensei", input: "Ultimate (full meter — current set)", cost: 100, desc: "RAITON = Kirin (undodgeable lightning). MANGEKYŌ = Kuchiyose Hebi (serpent that strikes, poisons, then petrifies). RINNEGAN = Chibaku Tensei (gravity-sphere crush) [CANON-ADJACENT]" },
     combos: [

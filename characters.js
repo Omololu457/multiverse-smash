@@ -10316,29 +10316,33 @@ const narutoSeventh = {
     downAir:   { damage: 74, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
   },
-  // BASE kit (abilities.js executeNarutoSeventhSpecial). Directional Special + free-input Throw projectile.
-  // Labels: CANON / CANON-ADJACENT / ORIGINAL. U+Special (Four-Tails) + KCM kit arrive in later Bond phases.
+  // KIT (abilities.js executeNarutoSeventhSpecial / Ultimate). Labels: CANON / CANON-ADJACENT / ORIGINAL.
+  // KURAMA BOND (0-4) fills as Naruto FIGHTS (hits landed / damage taken) and by HOLDING Charge; it gates the
+  // transform + the Bond-4 moves. The 4-Tails and Rikudou "transformations" are one-shot COMBOS, not forms —
+  // the gold NINE-TAILS CHAKRA CLOAK is the only persistent form.
   specials: {
-    rasengan:      { cost: 30, effect: "Neutral+Special: Rasengan — a spiraling chakra-sphere palm thrust (air = diving Rasengan). Sphere is code-drawn FX. [CANON]" },
-    rasenshuriken: { cost: 40, effect: "Fwd+Special: Rasenshuriken — hurls a screaming wind-natured chakra shuriken (ground & air). Disc is code-drawn FX. [CANON]" },
+    rasengan:      { cost: 30, effect: "Neutral+Special: Rasengan — a spiraling chakra-sphere palm thrust (air = diving Rasengan). [CANON]" },
+    rasenshuriken: { cost: 40, effect: "Fwd+Special: Rasenshuriken — hurls a screaming wind-natured chakra shuriken (ground & air). [CANON]" },
     dotonWall:     { cost: 28, effect: "Back+Special: Doton — Earth-Style Wall — six rising rock pillars that block incoming projectiles while raised. [CANON-ADJACENT]" },
-    gamabunta:     { cost: 55, effect: "Down+Special (ground): Kuchiyose: Gamabunta — summon-seal burst → the Toad Boss's sure-hit dagger slash (half on block). Now a SPECIAL. [CANON]" },
+    gamabunta:     { cost: 55, effect: "Down+Special (ground): Kuchiyose: Gamabunta — summon-seal burst → the Toad Boss's sure-hit dagger slash (half on block). [CANON]" },
     throwWeapon:   { cost: 10, effect: "Down+Special (AIR): Throw Weapon — flings a kunai as a ranged air poke. [CANON]" },
-    strongDown:    { cost: 0,  effect: "Down+Heavy: Strong Down — a red-flame overhead spike. KURAMA BOND 1+ (Red Chakra) gives it +25% damage & +20% hitbox. [CANON-ADJACENT]" },
-    fourTails:     { cost: 0,  effect: "Up+Special — KURAMA BOND 2+: Four-Tails Rampage — a committed red-cloak beast combo (4 hits, high damage); the cloak BURNS ~12% of your own HP. Returns to Base. [CANON-ADJACENT]" },
-    formLadder:    { cost: 0,  effect: "HOLD CHARGE → enter the highest NINE-TAILS form your KURAMA BOND allows: BOND 1 = Red Chakra Shroud (red cloak + buff), BOND 2 = FOUR-TAILS cloak (beast body, claws = Light/Heavy), BOND 3 = KCM (golden, Light→Combo 2, no guard). Each is timed + drains chakra; Tap Charge to exit. [CANON]" },
-    kcm:           { cost: 60, effect: "BOND 3 form (hold Charge): KCM — golden Kurama Chakra Mode, +dmg/+speed, Light→Combo 2, NO guard (pure offense). [CANON]" },
-    rasenkyugan:   { cost: 40, effect: "KCM Neutral+Special: Rasenkyugan — a rapid multi chakra-arm barrage (reaches far) → launcher. [CANON]" },
-    wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" },
-    rikudou:       { cost: 80, effect: "KCM Fwd+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — code-drawn gold entry flash → committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" },
-    kuramaSummon:  { cost: 85, effect: "KCM Down+Ultimate: Summon the GIANT Nine-Tails (Kurama) — the colossal fox rears up and fires a GIGANTIC Tailed Beast Bomb from its mouth. [CANON]" }
+    strongDown:    { cost: 0,  effect: "Down+Heavy: Strong Down — a red-flame overhead spike. KURAMA BOND 1+ gives it +25% damage & +20% hitbox. [CANON-ADJACENT]" },
+    fourTails:     { cost: 0,  effect: "Up+Special — KURAMA BOND 2+: 4-TAILS COMBO — transform into the red Nine-Tails beast for a committed 4-hit rampage (claws + chakra-arm slam; the cloak BURNS ~12% of your own HP), then revert to Base. A one-shot COMBO, not a walk-around form. [CANON-ADJACENT]" },
+    formLadder:    { cost: 0,  effect: "HOLD Charge (P) + tap ULTIMATE — KURAMA BOND 3: transform into the NINE-TAILS CHAKRA CLOAK (the one persistent form). Dramatic chakra-pillar entrance. Tap Charge to exit; auto-reverts on timeout / empty chakra. [CANON]" },
+    kcm:           { cost: 60, effect: "NINE-TAILS CHAKRA CLOAK (the Bond-3 form): golden Kurama Chakra Mode — +damage / +speed, golden locomotion, NO guard (pure offense). [CANON]" },
+    rasenkyugan:   { cost: 40, effect: "CLOAK Neutral+Special: Rasenkyugan — an extended golden chakra-arm RASENGAN that grinds in → launcher. [CANON]" },
+    wakusei:       { cost: 50, effect: "CLOAK Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" },
+    avatarRush:    { cost: 48, effect: "CLOAK Down+Special: Kurama Avatar Rush — the animated gold Six-Paths Kurama avatar SURGES FORWARD in a sweeping 4-beat multi-hit assault (reach grows as it advances; half on block). [ORIGINAL]" },
+    rikudou:       { cost: 80, effect: "Fwd+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — a committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" },
+    kuramaSummon:  { cost: 85, effect: "Down+Ultimate: Summon the GIANT Nine-Tails (Kurama) — the colossal fox rears up and fires a GIGANTIC Tailed Beast Bomb (auto-hit). [CANON]" },
+    kuramaAvatar:  { cost: 45, effect: "Up+Ultimate — KURAMA BOND 4: NINE-TAILS AVATAR — summon the giant gold Six-Paths Kurama avatar to loom behind Naruto for ~6s, empowering every strike (×1.4) with an echo flare on each hit, then it fades. [ORIGINAL]" }
   },
-  // KURAMA BOND: a meter (0-4) that fills as Naruto FIGHTS (lands hits / takes damage) and decays when idle,
-  // shown in the Chakra label. BOND 1 = Red Chakra (aura + buffed Strong Up/Down) · BOND 2 = Four-Tails ·
-  // BOND 3 = KCM (hold Charge, Phase 3) · BOND 4 = Rikudou (KCM Down+Ult, Phase 4). Strong Up = the up-attack.
+  // KURAMA BOND: a meter (0-4), shown in the Chakra label. Fills from landing hits / taking damage / HOLDING
+  // Charge; decays when idle. Bond 1 = red-flame Strong Up/Down buff · Bond 2 = 4-Tails combo · Bond 3 = Chakra
+  // Cloak transform · Bond 4 = Rikudou / Kurama Avatar.
   ultimate: {
     name: "Bijuudama (Tailed Beast Bomb)", cost: 70, damage: 340,
-    description: "KCM ONLY (Gamabunta is now a Down+Special), directional. NEUTRAL: GIGANTIC Bijuudama — the two nine-tails (Kurama) heads flank and a colossal dark-chakra sphere erupts forward (camera shake + ultimate zoom). DOWN: Summon the GIANT Nine-Tails (Kurama) — the full fox rears up and fires a gigantic Tailed Beast Bomb from its mouth. FWD (Bond 4, once/round): RIKUDOU apex — a committed black/gold Six-Paths combo with a code-drawn entry flash that ends in Base and resets the Bond. [CANON]"
+    description: "Fires with chakra in ANY state and it's an AUTO-HIT — unavoidable & range-independent (a held block chips it to half, like Obito / Minato). Directional: NEUTRAL = GIGANTIC Bijuudama (Naruto's own gold Six-Paths Kurama heads flank + a colossal dark-chakra sphere; a dedicated air-throw cast pose if fired airborne). DOWN = Summon the GIANT Nine-Tails and fire a gigantic Tailed Beast Bomb. FWD (Bond 4, once/round) = RIKUDOU apex combo. UP (Bond 4) = NINE-TAILS AVATAR summon (see specials). [CANON / ORIGINAL]"
   },
   // Kurama-Bond ladder (Phases 2-4) lives in abilities.js (N7 state), NOT a transformations-based swap.
   transformationOrder: ["base"],

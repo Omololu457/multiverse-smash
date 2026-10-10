@@ -163,14 +163,14 @@ export const SOURCED_ART = {
     source:  "fan sprite sheets (adult_naruto_kcm_sprites_by_vahidras_di37okp.png — the golden KCM BODY, by Vaydra; naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — Gamabunta + seal/Kurama/Bijuudama FX only, by RBM-Kyuubi / PadaKun / Degue-1297 / Mikeel)",
     files:   ["naruto_hokage_*.png", "adult_naruto_kcm_sprites_by_vahidras_*.png"]
   },
-  // Naruto (Seventh Hokage) — NEW additive standalone fighter. EVERY frame sliced from the ONE PadaKun
-  // "Naruto Hokage JUS sprite sheet" (credited on DeviantArt to RBM-Kyuubi, with PadaKun / Degue-1297 /
-  // Mikeel on the sheet). No second source — base, KCM-golden, red-flame and Rikudou art all come from
-  // this single sheet's own sections. Attribution MANDATORY.
+  // Naruto (Seventh Hokage) — NEW additive standalone fighter. The base body, KCM-golden, 4-Tails, Rikudou
+  // and all FX are sliced from the ONE PadaKun "Naruto Hokage JUS sprite sheet". The NINE-TAILS AVATAR (Up+Ult
+  // summon + Kurama Avatar Rush special) adds TWO more fan sheets: the pre-animated gold Six-Paths avatar by
+  // boltanim, and the modular Kurama parts rig by sektor_san (reconstructed into the summon). Attribution MANDATORY.
   naruto_seventh: {
-    work:    "Naruto (Seventh Hokage)",
-    artists: ["RBM-Kyuubi", "PadaKun", "Degue-1297", "Mikeel"],
-    source:  "fan sprite sheet (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png; in-sheet credits \"RBM-Kyuubi / By: PadaKun / Degue-1297 / Mikeel\")",
+    work:    "Naruto (Seventh Hokage) — incl. the Nine-Tails Avatar summon & Kurama Avatar Rush",
+    artists: ["RBM-Kyuubi", "PadaKun", "Degue-1297", "Mikeel", "boltanim (Six-Paths Kurama avatar)", "sektor_san (modular Kurama/KCM parts rig)"],
+    source:  "fan sprite sheets (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — base/KCM/combos/FX, \"RBM-Kyuubi / By: PadaKun / Degue-1297 / Mikeel\"; naruto_kyubi_kurama_1_six_path_sprite_sheet_nzc__by_boltanim_dgcs8ay.png — animated Six-Paths Kurama avatar, by boltanim; kurama_kcm_effect_version_new_by_sektor_san_db952ek.png — modular Kurama parts, by sektor_san)",
     files:   ["naruto_seventh_*.png"]
   },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation

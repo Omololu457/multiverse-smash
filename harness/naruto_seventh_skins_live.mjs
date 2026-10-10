@@ -52,7 +52,7 @@ await shot("49_skin_green_kcm.png");
 log.push(["kcm-overrides-to-golden", ck.golden>200 && (await n7()).kcm===true]);
 
 // ── 4. REVERT KCM → restores the GREEN recolor (not default orange) ──
-await page.keyboard.down(K.charge); await wf(3); await page.keyboard.up(K.charge); await wf(10);
+await page.keyboard.down(K.charge); await page.keyboard.up(K.charge); await wf(12);
 const cr=await colors(); console.log("  after KCM revert colors:",JSON.stringify(cr),"kcm",(await n7()).kcm,"skin",(await n7()).skin);
 log.push(["revert-restores-recolor", cr.green>cr.orange && (await n7()).kcm===false]);
 

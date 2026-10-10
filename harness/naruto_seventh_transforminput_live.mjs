@@ -52,7 +52,7 @@ log.push(["plain-U-no-transform", u.n7form===fb]);
 // ── 3. TAP P (not hold) in a form still exits to base ──
 await settle();
 await page.evaluate(()=>window.__harness.setN7Form("kcm"));
-await page.keyboard.down(K.charge); await wf(3); await page.keyboard.up(K.charge); await wf(10);   // quick tap
+await page.keyboard.down(K.charge); await page.keyboard.up(K.charge); await wf(12);   // quick tap (minimal hold)
 log.push(["tap-P-exits-form", (await n7()).n7form==="base"]);
 
 const pass=log.filter(x=>x[1]).length, tot=log.length;

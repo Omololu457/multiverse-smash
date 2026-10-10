@@ -105,7 +105,7 @@ log.push(["kcm-base-specials-disabled", afterB.cast!=="n7Doton" && afterB.kcm===
 // ── 8. REVERT: tap Charge → back to base orange body ──
 await enterKCM();
 const kOn=await n7();
-await page.keyboard.down(K.charge); await wf(3); await page.keyboard.up(K.charge); await wf(8);   // quick TAP
+await page.keyboard.down(K.charge); await page.keyboard.up(K.charge); await wf(10);   // quick TAP (minimal hold — real-time tap detection)
 const kOff=await n7();
 console.log("  KCM tap-exit: kcm",kOn.kcm,"->",kOff.kcm,"skin",kOff.skin,"form",kOff.form);
 log.push(["kcm-reverts-to-base", kOff.kcm===false && kOff.skin==="base"]);

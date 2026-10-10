@@ -10560,7 +10560,7 @@ const shisuiPuppeteer = {
     gokakyu:   { cost: 28, effect: "Neutral+Special: Katon — Goukakyuu no Jutsu — a huge rolling fireball (code-animated fire sheet). [CANON]" },
     hosenka:   { cost: 26, effect: "Back+Special: Katon — Housenka no Jutsu — a volley of phoenix-flame bullets (NOTE: reassigned from Fwd — Fwd is the shared Backstab). [CANON]" },
     shuriken:  { cost: 16, effect: "Charge+Special: Shuriken Throw — a 3-shuriken spread (the JUS Fwd+Y set). [CANON-ADJACENT]" },
-    susanooStance: { cost: 30, effect: "Down+Special: Susanoo Stance — spectral green ribs/arms form; while in the stance, Special = Needle Volley (green chakra needles) and Fwd+Special = Susanoo Sword (torso slash → explosion ring). [CANON-ADJACENT]" },
+    susanooStance: { cost: 30, effect: "Down+Special: Susanoo Stance — his GREEN Susanoo ribcage manifests; while in the stance, Special = Needle Volley (two afterimage Susanoo bloom flanking the foe and crossfire green chakra needles) and Fwd+Special = Susanoo Sword (the Susanoo flash-steps behind the foe, leaving an afterimage, then a committed blade slash → green shockwave ring; sure-hit, half on block). [CANON-ADJACENT]" },
     flurry:    { cost: 30, effect: "Up+Special: Body-Flicker Flurry — a shunshin multi-hit slash string with blue/orange X-slash afterimages. [CANON-ADJACENT]" }
   },
   ultimate: { name: "Kotoamatsukami", cost: 100, description: "THE PUPPETEER: the ultimate genjutsu. A genjutsu-world backdrop (red sky & sea) washes the screen as three huge Mangekyō eyes bloom; for ~2.5s the opponent's LEFT/RIGHT are mirrored and their Specials & Ultimate are locked — then it lifts cleanly. Deterministic / LAN-safe. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON]" },

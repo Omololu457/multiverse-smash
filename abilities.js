@@ -30147,42 +30147,62 @@ function firePuppeteerSusanooStance(fighter, context) {
   if (!spendEnergy(fighter, PU_STANCE.cost)) return false
   fighter.vx = 0; fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(16, fighter)
-  fighter._puStance = PU_STANCE.window; fighter._shisuiSusanooFx = PU_STANCE.window   // reuse trinity ribcage FX
+  fighter._puStance = PU_STANCE.window
+  fighter._shisuiSusanooFx = PU_STANCE.window + 24      // the GREEN Susanoo ribcage manifests around him (shared ult render)
+  fighter._shisuiSusanooFlashes = fighter._shisuiSusanooFlashes || []
+  fighter.colorFlash = 12; fighter._shisuiSignalFlash = 14   // a Mangekyō flash on manifest
   schedulePendingSpawn(PU_STANCE.window, () => { fighter._puStance = 0 })
   return true
 }
-// Stance cancel A — NEEDLE VOLLEY: green chakra needles streak at the foe. CANON-ADJACENT.
+// Stance cancel A — NEEDLE VOLLEY: two afterimage Susanoo bloom flanking the foe and RAIN green chakra needles
+// from both sides (a crossfire), the main ribcage still manifested. CANON-ADJACENT.
 function firePuppeteerNeedleVolley(fighter, context) {
   fighter._puStance = 0
   const opp0 = getTargetResolver(context)(fighter) || null
-  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 12
-  fighter.attackCooldown = getAttackDuration(14, fighter)
-  for (let i = 0; i < 6; i++) schedulePendingSpawn(2 + i * 2, () => {
+  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  fighter._shisuiSusanooFx = Math.max(fighter._shisuiSusanooFx || 0, 44)
+  fighter._shisuiSusanooFlashes = fighter._shisuiSusanooFlashes || []
+  if (opp0) {   // bloom a flanking afterimage Susanoo on each side of the foe
+    const ocx = opp0.x + (opp0.w || 60) / 2, oy = opp0.y + (opp0.h || 100)
+    fighter._shisuiSusanooFlashes.push({ x: ocx - 120, y: oy, side: -1, t: 30 })
+    fighter._shisuiSusanooFlashes.push({ x: ocx + 120, y: oy, side: 1, t: 30 })
+  }
+  for (let i = 0; i < 8; i++) schedulePendingSpawn(2 + i * 2, () => {
     const o = getTargetResolver(context)(fighter) || opp0
     if (!o) return
+    const ocx = o.x + (o.w || 60) / 2, sx = (i % 2 === 0) ? ocx - 130 : ocx + 130   // crossfire from both flanking Susanoo
     spawnProjectile(fighter, "shisuiNeedle", {
-      damage: 14, spawnY: fighter.y + 24, speed: 16, w: 28, h: 7, radius: 6, lifetime: 24, color: "#6ef08a",
-      aimAt: { x: o.x + (o.w || 60) / 2, y: o.y + 30 }, hitstun: 8, knockbackX: 2, knockbackY: 0
+      damage: 12, spawnX: sx, spawnY: fighter.y + 24, speed: 17, w: 28, h: 7, radius: 6, lifetime: 22, color: "#6ef08a",
+      aimAt: { x: ocx, y: o.y + 30 }, hitstun: 8, knockbackX: 2, knockbackY: 0
     }, context)
   })
   return true
 }
-// Stance cancel B — SUSANOO SWORD: a torso slash → explosion ring (sure-hit, half on block). CANON-ADJACENT.
+// Stance cancel B — SUSANOO SWORD: the Susanoo FLASH-STEPS behind the foe (on-screen clamped), leaving a green
+// afterimage, then a committed blade slash → shockwave ring (sure-hit, half on block). CANON-ADJACENT.
 function firePuppeteerSusanooSword(fighter, context) {
   fighter._puStance = 0
   const opp0 = getTargetResolver(context)(fighter) || null
-  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 20; fighter._shisuiBladeSlashFx = 16
-  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._spriteCastMove = "puCast"; fighter._spriteCastTimer = 24; fighter._shisuiBladeSlashFx = 18
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._shisuiSusanooFx = Math.max(fighter._shisuiSusanooFx || 0, 46)
+  fighter._shisuiSusanooFlashes = fighter._shisuiSusanooFlashes || []
+  if (opp0) {   // leave an afterimage at the old spot, then blink the Susanoo behind the foe
+    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: 1, t: 28 })
+    fighter.x = shisuiBehindX(fighter, opp0, context, 50)
+    fighter.facing = ((opp0.x + (opp0.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
+    fighter.teleportFlash = 12
+  }
   schedulePendingSpawn(8, () => {
     const o = getTargetResolver(context)(fighter) || opp0
-    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
-    const dx = Math.abs((o.x + (o.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
-    if (dx > 170) return
+    fighter._shisuiSusanooSlam = 24      // green shockwave ring (shared ult render)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) { try { shakeCamera(context, 6, 10) } catch (_) {} return }
     const dir = (o.x >= fighter.x ? 1 : -1)
-    if (o.isBlocking) { o.blockstun = 20; applyScaledDamage(o, 44, { source: "shisui-pu-susanoo-sword" }); return }
-    o.hitstun = Math.max(o.hitstun || 0, 30); o.vx = dir * 7; o.vy = -6; o.colorFlash = 13; o.hitstop = Math.max(o.hitstop || 0, 22)
-    applyScaledDamage(o, 88, { source: "shisui-pu-susanoo-sword" })
-    try { shakeCamera(context, 5, 10) } catch (_) {}
+    if (o.isBlocking) { o.blockstun = 22; applyScaledDamage(o, 46, { source: "shisui-pu-susanoo-sword" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 32); o.vx = dir * 8; o.vy = -6; o.colorFlash = 14; o.hitstop = Math.max(o.hitstop || 0, 24)
+    applyScaledDamage(o, 92, { source: "shisui-pu-susanoo-sword" })
+    try { focusCameraOnAction(context, fighter, o, 1.12, 14); shakeCamera(context, 7, 12) } catch (_) {}
   })
   return true
 }

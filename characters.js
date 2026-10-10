@@ -10515,7 +10515,7 @@ const shisuiBlade = {
     crouch:{ frames: 2, width: 29, height: 84, speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },
     intro: { frames: 2, width: 29, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },
     win:   { frames: 2, width: 49, height: 82, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_blade_win_uniform.png" },
-    charge:{ frames: 1, width: 26, height: 67, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_focus_uniform.png" },
+    charge:{ frames: 2, width: 29, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_blade_idle_uniform.png" },   // charge = idle stance (same height as idle → no shrink/pop while charging)
     light: { frames: 4, width: 68, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_light_uniform.png" },
     heavy: { frames: 4, width: 70, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_heavy_uniform.png" },
     up:    { frames: 4, width: 76, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_blade_up_uniform.png" },
@@ -10583,7 +10583,7 @@ const shisuiPuppeteer = {
     crouch:{ frames: 3, width: 27, height: 64, speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },
     intro: { frames: 3, width: 27, height: 64, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },
     win:   { frames: 2, width: 29, height: 63, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_win_uniform.png" },
-    charge:{ frames: 4, width: 42, height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_cast_uniform.png" },
+    charge:{ frames: 3, width: 27, height: 64, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_puppeteer_idle_uniform.png" },   // charge = idle stance (same height as idle → no grow/pop while charging)
     light: { frames: 4, width: 62, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_light_uniform.png" },
     heavy: { frames: 5, width: 79, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_heavy_uniform.png" },
     up:    { frames: 5, width: 67, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_puppeteer_up_uniform.png" },

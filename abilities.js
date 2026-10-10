@@ -29700,9 +29700,15 @@ function shisuiIsShisui(f) { return !!f && SHISUI_KEYS.has(String(f.rosterKey ||
 function shisuiBusy(f) { return (f.attackCooldown || 0) > 0 || f.attacking || (f.hitstun || 0) > 0 || (f.blockstun || 0) > 0 }
 // behind-the-opponent world-x (clamped to stage), mirrors game.js teleportBehindTarget / kakashi_anbu Read.
 function shisuiBehindX(fighter, opp, context, gap) {
-  const sw = context?.worldWidth || 3200
-  const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + (gap || 6)) : (opp.x - (fighter.w || 60) - (gap || 6))
-  return Math.max(0, Math.min(sw - (fighter.w || 60), behind))
+  const fw = fighter.w || 60
+  // clamp to the ON-SCREEN playfield (fighters are confined to the camera-visible band, which is narrower than
+  // worldWidth) so a shunshin/backstab/flurry NEVER teleports Shisui off the visible screen ("through the screen").
+  let lo = context?.stageLeft ?? 0
+  let hi = (context?.stageWidth ?? context?.worldWidth ?? 3200)
+  const cam = context?.camera, cw = context?.canvasWidth || 1280
+  if (cam && cam.zoom) { const half = (cw / 2) / cam.zoom; lo = Math.max(lo, cam.x - half); hi = Math.min(hi, cam.x + half) }
+  const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + (gap || 6)) : (opp.x - fw - (gap || 6))
+  return Math.max(lo + 6, Math.min(hi - fw - 6, behind))
 }
 
 // ── SHARED: SHUNSHIN BACKSTAB (Fwd+Special on ALL three identities; MK1 "Backstage Pass") ─────────────

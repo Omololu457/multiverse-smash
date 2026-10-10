@@ -6741,16 +6741,15 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
-  // NARUTO (SEVENTH) — hold Charge enters the HIGHEST nine-tails FORM your Bond allows (Bond 1 Red Shroud /
-  // 2 Four-Tails cloak / 3 KCM), each timed + chakra-draining. A quick TAP while in a form exits early. In
-  // base, a quick TAP fires Oiroke IF the opt-in is on. applyNarutoSeventhSystem ticks the timer + auto-reverts.
+  // NARUTO (SEVENTH) — HOLDING Charge builds the Kurama Bond; the TRANSFORM happens via hold Charge + tap
+  // Ultimate (see the ult-input path) which steps UP the nine-tails ladder toward the Nine-Tails Chakra Cloak.
+  // Releasing Charge no longer transforms. A quick TAP while in a form exits early; a base TAP fires Oiroke
+  // (opt-in). applyNarutoSeventhSystem ticks the timer + auto-reverts.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
-    if ((fighter._n7Form || "base") !== "base") {
-      if (wasTap) revertNarutoSeventhForm(fighter)                                   // TAP in a form = exit to base
-      else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())         // HOLD = step UP to the next form
+    if (wasTap) {
+      if ((fighter._n7Form || "base") !== "base") revertNarutoSeventhForm(fighter)                  // TAP in a form = exit to base
+      else if (narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())                 // base TAP = Oiroke (opt-in)
     }
-    else if (wasTap && narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())   // base TAP = Oiroke (opt-in)
-    else if (wasHeld) enterNarutoSeventhForm(fighter, getAbilityContext())           // base HOLD = step to Red Shroud
     return
   }
 
@@ -7894,8 +7893,16 @@ function _updatePlayerCombatBody(fighter) {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "F" ? "fourTails" : _hd === "D" ? "rikudou" : "bijuudama"
   }
-  // NARUTO (SEVENTH) — in KCM the Ultimate is directional: NEUTRAL = bigger Bijuudama, DOWN = Rikudou
-  // (Bond 4, PHASE 4). In BASE form the Ultimate is always Gamabunta. Stamp the held dir for the branch.
+  // NARUTO (SEVENTH) — TRANSFORM INPUT: while HOLDING Charge (P), each TAP of Ultimate steps UP the nine-tails
+  // ladder (base → … → Nine-Tails Chakra Cloak, the strongest). The transform fires INSTEAD of the ultimate;
+  // releasing Charge no longer transforms (it only builds the Kurama Bond). Edge-detected → one tap = one step.
+  if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
+    const _n7UltEdge = !!inputState.ultimate && !fighter._n7UltPrev
+    fighter._n7UltPrev = !!inputState.ultimate
+    if (charging && _n7UltEdge) { enterNarutoSeventhForm(fighter, getAbilityContext()); return }   // hold P + tap U = change form
+  }
+  // NARUTO (SEVENTH) — ULTIMATE (not charging) is directional: NEUTRAL = gigantic Bijuudama (auto-hit), DOWN =
+  // summon Giant Kurama + TBB (auto-hit), FWD = Rikudou. Stamp the held dir so the handler picks the branch.
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_seventh") {
     { const _hd = betaHeldDirFromInput(inputState, fighter.facing); fighter._ultVariant = _hd === "D" ? "foxSummon" : _hd === "F" ? "rikudou" : "bijuudama" }   // Down = summon Giant Kurama + TBB, Fwd = Rikudou, neutral = gigantic Bijuudama
   }

@@ -4582,7 +4582,17 @@ function n7Rasenkyugan(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
   const face = fighter.facing || 1
   fighter.vx = face * 6
-  const beats = [[10, 34], [18, 34], [26, 38], [36, 56]]                 // rapid chakra-arm punches → launcher
+  // RASENGAN on the extended chakra arm — a big code-drawn spinning sphere at the arm's reach (signature
+  // move: chakra spun into a ball, NOT a grab). Visual-only; the hits land via the beats below.
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "n7RasenkyuganBall", {
+      drawKind: "rasengan", visualOnly: true, damage: 0, w: 84, h: 84, radius: 42,
+      speed: 0, vx: face * 2, vy: 0, lifetime: 42, isSpecial: true, color: "#bfe8ff",
+      spawnX: fighter.x + (fighter.w || 60) / 2 + face * 150,
+      spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  const beats = [[10, 34], [18, 34], [26, 38], [36, 56]]                 // the Rasengan grinds in → launcher
   beats.forEach(([d, dmg], i) => schedulePendingSpawn(d, () => {
     const last = i === beats.length - 1
     const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
@@ -4618,14 +4628,40 @@ function n7Wakusei(fighter, context) {
 // KCM ULTIMATE — BIGGER BIJUUDAMA. Two Kurama heads flank (2.8× native) → a HUGE dark-chakra sphere (2.8×
 // native, hitbox/radius matched, capped ~half stage width) erupts forward. Camera shake + the existing
 // ultimate zoom-crop (auto, via isUltimate hitstop). [CANON]
+// Guaranteed, range-independent Bijuudama hit (the "Kurama sure-hit" contract — like Obito/Minato ults).
+// Unavoidable: lands at the blast beat regardless of distance; a held block chips it to half.
+const N7_BIJUU_DMG = 340
+function applyN7BijuudamaDamage(fighter, opp, baseDmg = N7_BIJUU_DMG) {
+  if (!opp || opp.eliminated) return
+  let dmg = Math.round(baseDmg * (fighter?._ultDamageMult ?? 1))
+  if (opp.isBlocking) {
+    dmg = oneShotUltBlockedDmg(dmg)                              // half on block (shared one-shot-ult rule)
+    opp.blockstun = Math.max(opp.blockstun || 0, 28)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 58)
+    opp.vx = (fighter.facing || 1) * 24; opp.vy = -18
+    opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 52)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (auto-hit)
+}
 function n7Bijuudama(fighter, context) {
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 70)) return false
   _n7SetCast(fighter, "n7Bijuudama", 60)
   fighter.attackCooldown = getAttackDuration(66, fighter)
-  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 58)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 70)   // invuln through the whole cinematic
   const face = fighter.facing || 1
   const cy = fighter.y + (fighter.h || 100) * 0.26
   const SPHERE_NATIVE = 174
+  const getOpp = getTargetResolver(context)
+  schedulePendingSpawn(8, () => {                      // CAST FLASH — golden chakra gather burst (a bit of extra animation)
+    spawnProjectile(fighter, "n7BijuuGather", {
+      sheet: "./naruto_seventh_kcm_burst_uniform.png", spriteFrames: 6, spriteW: 81, spriteH: 84,
+      spriteSpeed: 3, spriteScale: 2.6, spriteOnce: true, visualOnly: true, speed: 0, vx: 0, vy: 0,
+      lifetime: 6 * 3 + 6, spawnX: fighter.x + face * 8, spawnY: cy - 8
+    }, context)
+    try { shakeCamera(context, 8, 12) } catch (_) {}
+  })
   schedulePendingSpawn(14, () => {                     // two Kurama (nine-tails) heads flank — BIGGER (3.6×)
     spawnProjectile(fighter, "n7KuramaHead", {
       sheet: "./naruto_hokage_kurama_head_uniform.png", spriteFrames: 2, spriteW: 175, spriteH: 111,
@@ -4634,19 +4670,22 @@ function n7Bijuudama(fighter, context) {
     }, context)
     try { shakeCamera(context, 10, 16) } catch (_) {}
   })
-  schedulePendingSpawn(44, () => {                     // the GIGANTIC sphere — hitbox/radius matched, capped ~60% stage
+  schedulePendingSpawn(44, () => {                     // the GIGANTIC sphere flies out (VISUAL — the hit is guaranteed below)
     const stageW = getWorldWidth(context) || 3200
     const onscreen = Math.min(SPHERE_NATIVE * 5.5, stageW * 0.6)
     const scale = onscreen / SPHERE_NATIVE
     spawnProjectile(fighter, "n7Bijuudama", {
       sheet: "./naruto_seventh_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 174, spriteH: 148, spriteScale: scale,
-      damage: 340, speed: 10, lifetime: 110, hitstun: 58,
-      knockbackX: face * 24, knockbackY: -18,
+      damage: 0, visualOnly: true, speed: 10, lifetime: 110,
       w: Math.round(onscreen * 0.9), h: Math.round(onscreen * 0.9),
       radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.72),
       isSpecial: true, isUltimate: true, vx: face * 10, spawnY: cy
     }, context)
     try { shakeCamera(context, 18, 32) } catch (_) {}
+  })
+  schedulePendingSpawn(62, () => {                     // BLAST CONNECT — guaranteed unavoidable hit (auto-hit)
+    applyN7BijuudamaDamage(fighter, getOpp(fighter))
+    try { shakeCamera(context, 22, 30) } catch (_) {}
   })
   return true
 }
@@ -4672,19 +4711,23 @@ function n7KuramaSummon(fighter, context) {
     }, context)
     try { shakeCamera(context, 12, 20) } catch (_) {}
   })
-  schedulePendingSpawn(48, () => {                              // the fox FIRES a gigantic Tailed Beast Bomb from its mouth
+  const getOpp = getTargetResolver(context)
+  schedulePendingSpawn(48, () => {                              // the fox FIRES a gigantic Tailed Beast Bomb from its mouth (VISUAL)
     const onscreen = Math.min(174 * 5.0, stageW * 0.55)
     const scale = onscreen / 174
     spawnProjectile(fighter, "n7Bijuudama", {
       sheet: "./naruto_seventh_bijuudama_sphere_uniform.png", spriteFrames: 1, spriteW: 174, spriteH: 148, spriteScale: scale,
-      damage: 370, speed: 11, lifetime: 112, hitstun: 60,
-      knockbackX: face * 26, knockbackY: -18,
+      damage: 0, visualOnly: true, speed: 11, lifetime: 112,
       w: Math.round(onscreen * 0.9), h: Math.round(onscreen * 0.9),
       radius: Math.round(onscreen * 0.45), explosionRadius: Math.round(onscreen * 0.72),
       isSpecial: true, isUltimate: true, vx: face * 11,
       spawnX: fighter.x + face * 70, spawnY: groundY - headOnscreen * 0.55
     }, context)
     try { shakeCamera(context, 18, 34) } catch (_) {}
+  })
+  schedulePendingSpawn(66, () => {                              // BLAST CONNECT — guaranteed unavoidable hit (auto-hit, bigger than neutral)
+    applyN7BijuudamaDamage(fighter, getOpp(fighter), 400)
+    try { shakeCamera(context, 22, 32) } catch (_) {}
   })
   return true
 }

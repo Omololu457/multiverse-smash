@@ -752,6 +752,33 @@ export const KITS = {
       { name: "Saber String → Launch", sequence: "Back+Light ×7 → Fwd+Special", desc: "full sword string into Super Upper juggle" },
       { name: "Gun Zone",       sequence: "Special (Gun), Special (Gun), Fwd+Heavy string", desc: "poke with bolts, then punish the approach with the kick chain" }
     ]
+  },
+
+  // Shisui (Trinity) — shows all THREE identities' kits (the Loyalist is the default; the Blade/Puppeteer
+  // kits are filled across P2/P3; the Trinity System — Mangekyou Signal / Variant Swap — lands in P4).
+  shisui_trinity: {
+    type: "Trinity — 3 swappable identities (Genjutsu / Blade / Puppeteer)",
+    energy: "Chakra",
+    difficulty: "Very High",
+    summary: "Shisui Uchiha carries three selves at once. Every round opens as THE LOYALIST — a command-grab genjutsu specialist. (THE BLADE, an aggressive striker, and THE PUPPETEER, a ranged stance-cancel assassin, arrive with the Variant Swap.) HP and Chakra are shared across all three.",
+    passive: { name: "Three as One", effect: "The Mangekyou Signal flickers a partner identity in behind the foe for one signature strike (it whiffs if the foe is cornered — no room behind them); the Variant Swap makes that partner the active fighter for 1 bar of Chakra. [Trinity System — Phase 4]" },
+    basics: [
+      { name: "Attack Combo", input: "Light", desc: "Loyalist's jonin blade string." },
+      { name: "Susanoo Arm Slam", input: "Heavy", desc: "a spectral green Susanoo arm slams down — a launcher." },
+      { name: "Air Combo", input: "Air + Light", desc: "aerial blade string." }
+    ],
+    specials: [
+      { name: "Shunshin Backstab", input: "Fwd + Special", cost: 18, desc: "SHARED on all three: flicker out, reappear behind the foe with a slash (half on block)." },
+      { name: "Fireball Jutsu", input: "Neutral + Special", cost: 24, desc: "LOYALIST: a Katon fireball projectile." },
+      { name: "Genjutsu Grab", input: "Back + Special", cost: 22, desc: "LOYALIST: a close-range command grab — white-flash circles stagger the foe (whiffs out of range)." },
+      { name: "Kunai Rain", input: "Down + Special", cost: 26, desc: "LOYALIST: a volley of kunai rains down on the foe." },
+      { name: "Body-Flicker Flurry", input: "Up + Special", cost: 30, desc: "LOYALIST: a shunshin multi-hit slash flurry with afterimages." }
+    ],
+    ultimate: { name: "Susanoo Tsukumo", input: "Ultimate", cost: 100, desc: "LOYALIST: a green Susanoo ribcage erupts, the chest magatama spins, and a volley of chakra needles fires (sure-hit, half on block)." },
+    combos: [
+      { name: "Grab → Flurry", sequence: "Back+Special → Up+Special", desc: "stagger, then flurry while they're frozen." },
+      { name: "Backstab → Combo", sequence: "Fwd+Special → Light string", desc: "cross up behind, then open the blade string." }
+    ]
   }
 }
 

@@ -217,6 +217,10 @@ export const ZONER = [
                      //   base normals (light=Attack Combo, heavy=Strong Fwd) + Raikiri (neutral Special, ground/air)
                      //   + Kawarimi (Back+Special) (Phase 1); Sharingan/Kamui/Tsuiga/Copy/Sennen (P2), Frog+skins (P3),
                      //   Obito's Gift (P4), Perfect Susanoo (P5). No Fwd+Heavy rekka driver → single-poke.
+  "shisui_trinity",  // NEW additive standalone (Shisui / Trinity, 3-identity MK1-Ghostface): THE LOYALIST base
+                     //   normals (light=Attack Combo, heavy=Susanoo Arm Slam launcher) + directional Specials
+                     //   (Backstab/Fireball/Genjutsu Grab/Kunai Rain/Flurry) + Susanoo Tsukumo ult (P1). No
+                     //   Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke. Blade/Puppeteer P2/P3.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -280,6 +284,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                30,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara + kakashi_anbu + kakashi_war (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          114,       // 71 rekka + 13 standard-string + 30 single-poke = 114 (kakashi_war added)
+  zoner:                31,         // 19 + jesus + jiraiya + sakura + naruto_hokage + sasuke_sensei + sasuke_adult + hinata + naruto_seventh + gaara + kakashi_anbu + kakashi_war + shisui_trinity (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          115,       // 71 rekka + 13 standard-string + 31 single-poke = 115 (shisui_trinity added)
 }

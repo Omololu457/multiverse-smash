@@ -7966,6 +7966,12 @@ function _updatePlayerCombatBody(fighter) {
     fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "obitoGift" : "kamuiRaikiri"
     fighter._warCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
   }
+  // SHISUI (TRINITY) — the active identity's Ultimate is a cinematic (Susanoo Tsukumo / Kotoamatsukami).
+  // Stamp a fresh cinematics gate so it refuses during KO / Brutality / Domain / Rick-Prime-rewind. The
+  // regex covers all three identity keys (rosterKey switches on the Variant Swap in a later phase).
+  if (canStart && !charging && inputState.ultimate && /^shisui_(trinity|blade|puppeteer)$/.test((fighter.rosterKey || "").toLowerCase())) {
+    fighter._shiCinematicsBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
+  }
   // SASUKE (ADULT) — War-Susano'o STANCE on CHARGE + Ultimate (adult has no eye-set; this is his gateway to
   // the War kit). Toggles the stance (Special → Tier-1/2 War moves; Ultimate → Soldier). Every normal/
   // directional Ultimate handler below is gated on !charging, so holding Charge frees the button for this.
@@ -12955,6 +12961,50 @@ function _gaaraBlitFx(c, img, frames, fi, cx, bottomY, sc, alpha) {
   c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, bottomY - dh, dw, dh)
   c.restore()
 }
+// ── SHISUI (TRINITY) FX — genjutsu rings on the VICTIM + guard ribcage + ult Susanoo (code-draw + sheet blits).
+const _shisuiFxImgs = {}
+function _shisuiFxImg(src) { if (!_shisuiFxImgs[src]) { const i = new Image(); i.src = src; _shisuiFxImgs[src] = i } return _shisuiFxImgs[src] }
+function drawShisuiFx(c, fighter) {
+  if (!c || !fighter) return
+  // GENJUTSU GRAB — white-flash rings expand on the VICTIM (opponent), so this runs BEFORE the identity gate.
+  if ((fighter._shisuiGenjutsuFx || 0) > 0) {
+    const gt = fighter._shisuiGenjutsuFx--
+    const gw = fighter.w ?? 60, gh = fighter.h ?? 100
+    const gcx = fighter.x + gw / 2, gcy = fighter.y + gh * 0.32
+    const prog = 1 - gt / 64
+    c.save(); c.globalAlpha = 0.55 * Math.max(0, 1 - prog)
+    for (let r = 0; r < 3; r++) {
+      c.strokeStyle = "rgba(235,240,255,0.9)"; c.lineWidth = 2.2
+      c.beginPath(); c.arc(gcx, gcy, gw * (0.35 + prog * 0.9) + r * 10, 0, Math.PI * 2); c.stroke()
+    }
+    c.restore()
+  }
+  if (!/^shisui_(trinity|blade|puppeteer)$/.test((fighter.rosterKey || "").toLowerCase())) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const cx = fighter.x + w / 2, feetY = fighter.y + h, facing = fighter.facing || 1
+  // GUARD — a faint green Susanoo ribcage shimmers in front while blocking.
+  if (fighter.isBlocking) {
+    _gaaraBlitFx(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, 0, cx + facing * w * 0.3, feetY + 6, (h / 165) * 1.15, 0.33)
+  }
+  // ULTIMATE — Susanoo Tsukumo: a green ribcage grows around Shisui + a spinning chest magatama.
+  if ((fighter._shisuiSusanooFx || 0) > 0) {
+    const st = fighter._shisuiSusanooFx--
+    const prog = Math.min(1, (150 - st) / 24)
+    const fi = Math.floor((150 - st) / 8) % 2
+    _gaaraBlitFx(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, fi, cx, feetY + 8, (h / 165) * (1.4 + prog * 0.9), 0.6)
+    const mx = cx, my = fighter.y + h * 0.42
+    c.save(); c.translate(mx, my); c.rotate(st * 0.2)
+    for (let k = 0; k < 3; k++) { const a = k * (Math.PI * 2 / 3); c.fillStyle = "rgba(220,30,30,0.95)"; c.beginPath(); c.arc(Math.cos(a) * 8, Math.sin(a) * 8, 3.4, 0, Math.PI * 2); c.fill() }
+    c.restore()
+  }
+  // BODY-FLICKER FLURRY — cyan afterimage streaks.
+  if ((fighter._shisuiFlurryFx || 0) > 0) {
+    fighter._shisuiFlurryFx--
+    c.save(); c.globalAlpha = 0.4; c.strokeStyle = "rgba(150,220,255,0.7)"; c.lineWidth = 2
+    for (let s = 0; s < 3; s++) { const ox = -facing * (8 + s * 10); c.beginPath(); c.moveTo(cx + ox, fighter.y + 12); c.lineTo(cx + ox, fighter.y + h - 10); c.stroke() }
+    c.restore()
+  }
+}
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -15675,6 +15725,7 @@ function renderHybridFighter(fighter) {
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
+    drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")

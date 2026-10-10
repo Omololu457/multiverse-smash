@@ -226,6 +226,10 @@ const MOVE_TO_ACTION = {
   up: "up",
   air: "air",
   down_air: "down_air",
+  // Shisui (Trinity) — THE LOYALIST special cast poses (_spriteCastMove). Identity maps so a cast recovery
+  // tail never resolves to the fallback box. (Backstab / Fireball / Genjutsu Grab / Kunai Rain / Flurry / Susanoo.)
+  shiBackstab: "shiBackstab", shiFireball: "shiFireball", shiGenjutsu: "shiGenjutsu",
+  shiKunaiRain: "shiKunaiRain", shiFlurry: "shiFlurry", shiArmslam: "shiArmslam", shiSusanoo: "shiSusanoo",
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",

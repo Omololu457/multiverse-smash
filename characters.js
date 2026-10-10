@@ -10443,6 +10443,76 @@ const gokuRose = {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// SHISUI (TRINITY) — ONE roster slot, THREE swappable identities (MK1 Ghostface model). ADDITIVE.
+// shisui_trinity = THE LOYALIST (default, selectable). shisui_blade / shisui_puppeteer = hidden identity
+// defs reached only by the Variant Swap (added in later phases). Each identity = its OWN fan sheet, its OWN
+// kit, normalized to the SAME on-screen height (idle body 78px × 1.4 ≈ 109px). All others byte-identical;
+// combat.js UNTOUCHED. PHASE 1 = THE LOYALIST full kit (Altair jonin sheet) + the shared Shunshin Backstab.
+const shisuiTrinity = {
+  rosterKey: "shisui_trinity", name: "Shisui (Trinity)", universe: "naruto", color: "#2f6b4f",
+  portrait: "./shisui_trinity_portrait.png",
+  archetypes: ["technical", "rushdown"],
+  primary: "technical", secondary: ["grappler"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "controlled", animeMovement: true },
+  passive: { name: "Three as One", effect: "Shisui carries three selves. The Mangekyou Signal flickers a partner identity in behind the foe for one strike; the Variant Swap makes that partner the active fighter. HP and Chakra are shared across all three." },
+  stats: { maxHealth: 1050, maxEnergy: 120, attack: 90, defense: 84, speed: 97, maxJumps: 2, jumpPower: 31, dashSpeed: 15, dashDuration: 9, dashCooldownMax: 40 },
+  movement: { crouchIdle: true },
+  basic_attacks: {
+    light:      { damage: 34, startup: 4, active: 3, recovery: 8,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 72, rangeY: 48 },
+    heavy:      { type: "launcher", damage: 72, startup: 11, active: 5, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -28, selfVy: -4, airOK: false, rangeX: 98, rangeY: 72 },
+    upAttack:   { type: "launcher", damage: 56, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -29, selfVy: -4, airOK: false },
+    airAttack:  { damage: 50, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:    { damage: 54, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 64, rangeY: 62 },
+    crouchLight:{ damage: 30, startup: 4, active: 3, recovery: 9,  hitstun: 11, knockbackX: 2, knockbackY: 0 },
+    grab:       { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  // THE LOYALIST specials (abilities.js executeShisuiTrinitySpecial, dispatch on _specialHeldDir). Labels CANON / CANON-ADJACENT / ORIGINAL.
+  specials: {
+    backstab:    { cost: 18, effect: "Fwd+Special: Shunshin Backstab — SHARED on all three identities: flicker out and reappear BEHIND the foe with a slash (half on block). [CANON-ADJACENT]" },
+    fireball:    { cost: 24, effect: "Neutral+Special: Katon Fireball — a spiraling fire projectile (code-animated fire sheet). [CANON]" },
+    genjutsuGrab:{ cost: 22, effect: "Back+Special: Genjutsu Grab — a close-range COMMAND GRAB; in range the foe is caught in the white-flash genjutsu circles and staggered (a true stun). Whiffs out of range. [ORIGINAL]" },
+    kunaiRain:   { cost: 26, effect: "Down+Special: Kunai Rain — a volley of kunai rains down onto the foe's position. [CANON-ADJACENT]" },
+    flurry:      { cost: 30, effect: "Up+Special: Body-Flicker Flurry — a shunshin multi-hit slash string with afterimages; closes the gap. [CANON-ADJACENT]" }
+  },
+  ultimate: { name: "Susanoo Tsukumo", cost: 100, description: "LOYALIST: a spectral green Susanoo ribcage erupts around Shisui, the chest magatama-eye spins, and a volley of green chakra needles fires at the foe — range-independent sure-hit beats, half on block. Refuses during KO / Brutality / Domain / Rick-Prime-rewind. [CANON]" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  spriteScale: 1.4,   // idle body 78px × 1.4 ≈ 109px on-screen (teen-ninja tier; the SAME target the Blade/Puppeteer normalize to)
+  animationData: {
+    idle:  { frames: 1, width: 32,  height: 82,  speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_trinity_idle_uniform.png" },
+    walk:  { frames: 6, width: 67,  height: 66,  speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_trinity_run_uniform.png" },
+    run:   { frames: 6, width: 67,  height: 66,  speed: 5, anchorY: 0, loop: true,  sheet: "./shisui_trinity_run_uniform.png" },
+    dash:  { frames: 2, width: 48,  height: 82,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_dash_uniform.png" },
+    jump:  { frames: 3, width: 51,  height: 83,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_jump_uniform.png" },
+    fall:  { frames: 3, width: 51,  height: 83,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_jump_uniform.png" },
+    hurt:  { frames: 2, width: 54,  height: 77,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 75, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_knockdown_uniform.png" },
+    lose:  { frames: 2, width: 75,  height: 50,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_knockdown_uniform.png" },
+    getup: { frames: 1, width: 81,  height: 29,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_getup_uniform.png" },
+    guard: { frames: 1, width: 67,  height: 86,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_guard_uniform.png" },
+    crouch:{ frames: 1, width: 32,  height: 82,  speed: 6, anchorY: 0, loop: true,  sheet: "./shisui_trinity_idle_uniform.png" },
+    intro: { frames: 1, width: 32,  height: 82,  speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_trinity_idle_uniform.png" },
+    win:   { frames: 1, width: 35,  height: 82,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_win_uniform.png" },
+    charge:{ frames: 1, width: 32,  height: 82,  speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_trinity_charge_uniform.png" },
+    light: { frames: 3, width: 103, height: 79,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_light_uniform.png" },
+    heavy: { frames: 1, width: 48,  height: 76,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_heavy_uniform.png" },
+    up:    { frames: 4, width: 80,  height: 83,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_up_uniform.png" },
+    air:   { frames: 3, width: 80,  height: 103, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_air_uniform.png" },
+    down_air: { frames: 3, width: 80, height: 103, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_air_uniform.png" },
+    crouchLight: { frames: 3, width: 103, height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_light_uniform.png" },
+    // special cast poses (_spriteCastMove → MOVE_TO_ACTION identity maps in sprite.js)
+    shiFireball: { frames: 3, width: 73, height: 74, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_fireball_uniform.png" },
+    shiGenjutsu: { frames: 1, width: 35, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_genjutsu_uniform.png" },
+    shiKunaiRain:{ frames: 1, width: 48, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_armslam_uniform.png" },
+    shiFlurry:   { frames: 2, width: 74, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_flurry_uniform.png" },
+    shiBackstab: { frames: 2, width: 74, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_flurry_uniform.png" },
+    shiArmslam:  { frames: 1, width: 48, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_armslam_uniform.png" },
+    shiSusanoo:  { frames: 1, width: 48, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_trinity_susanoo_uniform.png" }
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -10519,7 +10589,8 @@ export const characters = {
   spiderman_mci: mciSpiderman,       // NEW standalone build (Spider-Man / Marvel Cosmic Invasion) — minimal-real from hand-picked isolated poses
   ippo,
   naruto_hokage: narutoHokage,       // additive standalone (Naruto / Hokage + KCM) — fully namespaced; existing `naruto` untouched
-  naruto_seventh: narutoSeventh      // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
+  naruto_seventh: narutoSeventh,     // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
+  shisui_trinity: shisuiTrinity      // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
 }
 
 // The 7 characters shown in the starter roster select screen

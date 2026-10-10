@@ -459,6 +459,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./kakashi_war_idle_uniform.png" }
   },
 
+  // Shisui (Trinity) — MK1-Ghostface 3-identity fighter. GATES spritesReady() only (decodes idle → flips
+  // from procedural box to sprite); per-action rendering reads the `sheet` paths from characters.js →
+  // shisui_trinity.animationData (shisui_trinity_*_uniform.png, Altair jonin sheet, border-flood-fill keyed).
+  // The hidden identity defs (shisui_blade / shisui_puppeteer) get their own gate entries in later phases.
+  shisui_trinity: {
+    actions: { idle: "./shisui_trinity_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

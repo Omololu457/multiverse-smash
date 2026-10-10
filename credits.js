@@ -182,6 +182,23 @@ export const SOURCED_ART = {
     source:  "fan sprite sheets (naruto_hokage_jus_sprite_sheet_by_padakun_dc5gkda.png — base/KCM/combos/FX, \"RBM-Kyuubi / By: PadaKun / Degue-1297 / Mikeel\"; naruto_kyubi_kurama_1_six_path_sprite_sheet_nzc__by_boltanim_dgcs8ay.png — animated Six-Paths Kurama avatar, by boltanim; kurama_kcm_effect_version_new_by_sektor_san_db952ek.png — modular Kurama parts, by sektor_san)",
     files:   ["naruto_seventh_*.png"]
   },
+  // Shisui (Trinity) — a THREE-identity fighter built from THREE separate fan sprite sheets, one per identity
+  // (LOYALIST = Altair's jonin sheet; BLADE = Haickal23's sheet; PUPPETEER = TheGodGeminis' JUS sheet). Each
+  // sheet carries its own in-sheet credit box (spellings copied from the images). Attribution MANDATORY.
+  // Border-flood-fill keyed (navy 0,64,128) → shisui_trinity_* / shisui_blade_* / shisui_puppeteer_*_uniform.png.
+  shisui_trinity: {
+    work:    "Shisui Uchiha (Trinity) — THE LOYALIST / THE BLADE / THE PUPPETEER",
+    artists: [
+      "ALTAIR (AltairFrameMaker)", "Alexandre360", "Benhazard", "Zoso91", "Distantworld101", "Spectro Sosuke", "xxjhonnyxx", "RBMkyubi",
+      "Haickal23",
+      "XxjohnnyxX", "TheGodGeminis", "Neimad", "Bonzai", "NES", "Grim", "RedFlash93", "Stephens513"
+    ],
+    source:  "THREE fan sprite sheets — LOYALIST: shisui_uchiha_jonin_nzc_by_altair_by_altairframemaker_def0sq6.png (credits: ALTAIR + Alexandre360/Benhazard/Zoso91/Distantworld101/Spectro Sosuke/xxjhonnyxx/RBMkyubi; portrait is an anime screencap). BLADE: shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png (Haickal23 + in-sheet credit box). PUPPETEER: uchiha_shisui_jus_by_thegodgeminis_d843ju8.png (credits: XxjohnnyxX/TheGodGeminis/Neimad/Bonzai/NES/Grim/RedFlash93/Stephens513).",
+    files:   ["shisui_trinity_*.png", "shisui_blade_*.png", "shisui_puppeteer_*.png",
+              "shisui_uchiha_jonin_nzc_by_altair_by_altairframemaker_def0sq6.png",
+              "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png",
+              "uchiha_shisui_jus_by_thegodgeminis_d843ju8.png"]
+  },
   // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
   // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
   vegeta_dark: {

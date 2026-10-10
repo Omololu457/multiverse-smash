@@ -314,6 +314,12 @@ export const SKINS = {
     { id: "kwarViolet",   name: "Violet",         unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "violet"),   spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "violet"),   recolorTag: "violet" },   // violet-themed hair/outfit
     { id: "kwarEmerald",  name: "Emerald",        unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "emerald"),  spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "emerald"),  recolorTag: "emerald" },  // emerald-themed hair/outfit
   ],
+  // Shisui (Trinity) — REQUIRED default entry so getSkins() carries the real spriteScale (1.4) instead of
+  // clobbering it to 1 (the bug that shrank Omololu / Sasuke-Adult). The Loyalist's green-vest colour
+  // variant (from N's in-sheet COLOR PALETTE) is added in a later phase.
+  shisui_trinity: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_trinity?.portrait, spriteScale: characters.shisui_trinity?.spriteScale, animationData: null },
+  ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

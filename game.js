@@ -9010,12 +9010,8 @@ function drawSasukeWarTorso(c, fighter) {
   c.restore()
 }
 
-function drawSasukeDojutsuFx(c, fighter) {
-  if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
-  const P = fighter._dojPortals
-  if (P && (P.t || 0) > 0) {
 // ADULT stance indicator — a faint persistent ribcage shell + a small "SUSANO'O" tag so the player knows the
-// War-Susano'o stance is active (adult has no eye-set HUD). Render-only.
+// War-Susano'o stance is active (adult has no eye-set HUD). Render-only. [MUST be top-level — drawTo() calls it.]
 function drawSasukeAdultStance(c, fighter) {
   if (!c || (fighter._adultSusanoStance || 0) <= 0 || fighter._warSoldier) return
   const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
@@ -9025,6 +9021,10 @@ function drawSasukeAdultStance(c, fighter) {
   c.save(); c.globalAlpha = 0.85; c.fillStyle = "#c8a8ff"; c.font = "bold 11px sans-serif"; c.textAlign = "center"
   c.fillText("SUSANO'O", x + w / 2, y - 6); c.restore()
 }
+function drawSasukeDojutsuFx(c, fighter) {
+  if (!c || !fighter || !SASUKE_DOJUTSU_BIND[(fighter.rosterKey || "").toLowerCase()]) return
+  const P = fighter._dojPortals
+  if (P && (P.t || 0) > 0) {
     const k = (P.t || 0) / (P.max || 1)
     for (const node of [P.a, P.b]) {
       if (!node) continue

@@ -9295,7 +9295,10 @@ const kakashiWar = {
     mangekyou_cast: { frames: 6, width: 71, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_mangekyou_cast_uniform.png" },  // Kamui + Copy Ninja + Kamui-Raikiri cast
     raikiri_loop:   { frames: 5, width: 67, height: 67, speed: 3, anchorY: 0, loop: true,  sheet: "./kakashi_war_raikiri_charge_uniform.png" },                      // reuse the charge frames as the held loop
     tsuiga_cast:    { frames: 4, width: 64, height: 78, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_tsuiga_cast_uniform.png" },      // Doton: Tsuiga hand-seal reach
-    sennen:         { frames: 5, width: 73, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_sennen_uniform.png" }            // Sennen Goroshi crouch-lunge poke
+    sennen:         { frames: 5, width: 73, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_sennen_uniform.png" },           // Sennen Goroshi crouch-lunge poke
+    // ── PHASE 3 FROG HENGE (_spriteCastMove "frog" persistent mode / "frog_damage" on the exit-by-hit). ──
+    frog:        { frames: 4, width: 45, height: 65, speed: 8, anchorY: 0, loop: true,  sheet: "./kakashi_war_frog_uniform.png" },                                    // sit → crouch → leap → land (idle + hop loop)
+    frog_damage: { frames: 7, width: 68, height: 52, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kakashi_war_frog_damage_uniform.png" }          // squashed/knocked (played on the pop-out hit)
   }
 }
 

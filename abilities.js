@@ -10513,13 +10513,65 @@ export function executeKakashiWarUltimate(fighter, context) {
   return executeKakashiWarKamuiRaikiriUlt(fighter, context)
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// KAKASHI (KAMUI) — PHASE 3: FROG HENGE (Henge no Jutsu gag transform). Input = CROUCH + Charge-tap (standing
+// Charge-tap = Sharingan). Smoke → Frog Mode: a small, LOW hurtbox that ducks high attacks; can hop/jump but
+// CANNOT attack; any hit OR any attack-button press pops him back in smoke (frog damage frames on a hit). The
+// hurtbox is shrunk via fighter.h + a grounded-y adjust (combat.js UNTOUCHED — getHurtbox reads fighter.h).
+// Frog palettes match his 4 skins (the frog strips carry the same __tag recolor). Deterministic / LAN-safe.
+// ═════════════════════════════════════════════════════════════════════════════
+const KAKASHI_WAR_FROG = { h: 44, minDur: 14, smoke: 20, popLock: 10 }
+export function toggleKakashiWarFrog(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return false
+  if (fighter._frogMode) { exitKakashiWarFrog(fighter, context, false); return true }        // manual pop-out
+  if ((fighter._frogPopLock || 0) > 0) return false
+  if (fighter._raikiriCharging || fighter._raikiriDashing || fighter._kamuiSwirl || fighter._tsuigaPin) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0) return false
+  const F = KAKASHI_WAR_FROG
+  fighter._frogMode = true; fighter._frogDur = 0; fighter._frogSmoke = F.smoke
+  const feet = (fighter.y || 0) + (fighter.h || 100)                                          // shrink hurtbox, keep feet grounded
+  fighter._frogPrevH = fighter.h; fighter.h = F.h; fighter.y = feet - F.h
+  fighter.vx = 0
+  fighter._spriteCastMove = "frog"; fighter._spriteCastTimer = 9999
+  try { shakeCamera(context, 4, 6) } catch (_) {}
+  return true
+}
+function exitKakashiWarFrog(fighter, context, byHit) {
+  if (!fighter || !fighter._frogMode) return
+  fighter._frogMode = false; fighter._frogSmoke = KAKASHI_WAR_FROG.smoke
+  const feet = (fighter.y || 0) + (fighter.h || KAKASHI_WAR_FROG.h)                           // restore hurtbox, keep feet grounded
+  fighter.h = fighter._frogPrevH || 100; fighter.y = feet - fighter.h
+  fighter._frogPopLock = KAKASHI_WAR_FROG.popLock
+  if (byHit) { fighter._spriteCastMove = "frog_damage"; fighter._spriteCastTimer = 28 }
+  else { fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 10 }
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+}
+
 // PER-FRAME driver (called for p1 & p2 every frame in game.js, post-updateCombat). PHASE 1: Raikiri charge
 // HOLD/RELEASE + dash travel + contact (ground + air), Kawarimi cooldown + log-FX timer. PHASE 2: Sharingan
-// drain/fatigue, Kamui swirl, Tsuiga pin, copy-ready tracking.
-export function updateKakashiWar(fighter, context, heldSpecial = false, blockCinematics = false) {
+// drain/fatigue, Kamui swirl, Tsuiga pin, copy-ready tracking. PHASE 3: Frog Henge upkeep + exits.
+export function updateKakashiWar(fighter, context, heldSpecial = false, blockCinematics = false, rawControls = null) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi_war") return
   const R = KAKASHI_WAR_RAIKIRI
   fighter._warCineBlocked = !!(blockCinematics || fighter.domainFrozen)       // read by Kamui / Kamui-Raikiri
+  if ((fighter._frogSmoke || 0) > 0) fighter._frogSmoke--                     // henge smoke FX timer (enter + exit)
+  if ((fighter._frogPopLock || 0) > 0) fighter._frogPopLock--
+
+  // ── PHASE 3: FROG HENGE upkeep (overrides everything else while active) ──
+  if (fighter._frogMode) {
+    const F = KAKASHI_WAR_FROG
+    fighter._frogDur++
+    fighter._spriteCastMove = "frog"; fighter._spriteCastTimer = 9999        // hold the frog loop
+    fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, getAttackDuration(4, fighter))  // CANNOT attack
+    fighter.attacking = false; fighter.h = F.h                                // keep the small hurtbox
+    if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { exitKakashiWarFrog(fighter, context, true); return }  // hit → pop (damage frames)
+    if (fighter._frogDur >= F.minDur) {                                       // any attack-button press → pop out
+      const rc = rawControls || {}
+      if (rc.light || rc.heavy || rc.special || rc.ultimate || rc.grab) { exitKakashiWarFrog(fighter, context, false); return }
+    }
+    return                                                                    // skip Raikiri/Kamui/etc. while a frog
+  }
+
   // ── Kawarimi cooldown + log/smoke FX timer ──
   if ((fighter._kwCd || 0) > 0) fighter._kwCd--
   if (fighter._kwLog) { fighter._kwLog.t--; if (fighter._kwLog.t <= 0) fighter._kwLog = null }

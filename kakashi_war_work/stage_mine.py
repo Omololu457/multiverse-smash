@@ -3,10 +3,12 @@
 emit a patch applyable with `git apply --cached`. Usage: stage_mine.py <file>"""
 import subprocess, sys, re
 
-MINE = re.compile(r"kakashi_war|KakashiWar|KAKASHI_WAR|_raikiri|_sharingan|_kamui|_tsuiga|_sennen|"
-                  r"_kwLog|_kwCd|_warDog|_warUlt|_warCine|raikiri_|mangekyou_cast|kamui_swirl|"
-                  r"drawKakashiWar|_kwar|Kamui|Raikiri|Kawarimi|Tsuiga|Sennen|Sharingan", re.I)
-FOREIGN = re.compile(r"susano|WARSUSANO|_warArm|soldier|ribcage|_susanoImg|_drawSusano", re.I)
+MINE = re.compile(r"kakashi_war|KakashiWar|KAKASHI_WAR|_raikiri|_sharingan|_kamui|_tsuiga|_sennen|_frog|"
+                  r"_kwLog|_kwCd|_warDog|_warUlt|_warCine|raikiri_|mangekyou_cast|kamui_swirl|frog_|Henge|"
+                  r"drawKakashiWar|_kwar|Kamui|Raikiri|Kawarimi|Tsuiga|Sennen|Sharingan|Frog", re.I)
+# TIGHT sasuke-specific tokens only (NOT bare "susano", which appears in my own "Perfect Susanoo" refs).
+FOREIGN = re.compile(r"sasuke_susano|WARSUSANO|_warArm|_susanoImg|_drawSusano|fireSasukeWar|ssSusano|"
+                     r"Soldier transformation|sasuke_warsusano", re.I)
 
 f = sys.argv[1]
 diff = subprocess.run(["git", "diff", "--", f], capture_output=True, text=True).stdout

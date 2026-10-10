@@ -277,7 +277,7 @@ import {
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
   toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
   updateKakashiWar, startKakashiWarRaikiri,   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
-  toggleKakashiWarSharingan   // KAKASHI (KAMUI) Phase 2 — Sharingan charge-TAP toggle
+  toggleKakashiWarSharingan, toggleKakashiWarFrog   // KAKASHI (KAMUI) Phase 2 Sharingan charge-TAP toggle + Phase 3 Frog Henge (Crouch+Charge-tap)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -6564,10 +6564,12 @@ function handleChargeRelease(fighter, key) {
     if (wasTap) toggleKakashiAnbuSharingan(fighter)
     return
   }
-  // KAKASHI (KAMUI) — SHARINGAN: a charge-TAP toggles the eye on/off (code-drawn red eye; drains Chakra while
-  // active, frame-based; at 0 Chakra it shuts off + brief fatigue — all in updateKakashiWar). HOLD builds Chakra.
+  // KAKASHI (KAMUI) — SHARINGAN: a STANDING charge-TAP toggles the eye on/off (code-drawn red eye; drains Chakra
+  // while active; at 0 it shuts off + brief fatigue — all in updateKakashiWar). A CROUCHING charge-TAP is the
+  // FROG HENGE (free input, since Down+Ult = Copy Ninja): smoke → Frog Mode. HOLD builds Chakra. Also pops a
+  // live frog back out. (Frog upkeep/exits run in updateKakashiWar.)
   if ((fighter.rosterKey || "").toLowerCase() === "kakashi_war") {
-    if (wasTap) toggleKakashiWarSharingan(fighter)
+    if (wasTap) { if (fighter._crouching || fighter._frogMode) toggleKakashiWarFrog(fighter, getAbilityContext()); else toggleKakashiWarSharingan(fighter) }
     return
   }
 
@@ -13186,7 +13188,8 @@ function drawKakashiAnbuTomoeField(c, fighter) {
 const _kwarFxImgs = {}
 function _kwarFxImg(src) { if (!_kwarFxImgs[src]) { const i = new Image(); i.src = src; _kwarFxImgs[src] = i } return _kwarFxImgs[src] }
 ;["./kakashi_war_kawarimi_log_uniform.png", "./kakashi_war_dog_uniform.png",
-  "./kakashi_war_kamui_swirl_uniform.png", "./kakashi_war_tsuiga_pack_uniform.png"].forEach(_kwarFxImg)
+  "./kakashi_war_kamui_swirl_uniform.png", "./kakashi_war_tsuiga_pack_uniform.png",
+  "./kakashi_war_smoke_uniform.png"].forEach(_kwarFxImg)
 // centre-anchored uniform-strip blit (for the Kamui swirl, which is centred not feet-aligned).
 function _kwarBlitCentered(c, img, frames, fi, cx, cy, sc, alpha) {
   if (!img.complete || img.naturalWidth === 0) return
@@ -13199,6 +13202,12 @@ function drawKakashiWarFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "kakashi_war") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100, facing = fighter.facing || 1
   const cx = fighter.x + w / 2, cy = fighter.y + h / 2
+  // FROG HENGE smoke (enter + exit) — the smoke-puff sheet, centred on the body, over the transform.
+  if ((fighter._frogSmoke || 0) > 0) {
+    const sm = fighter._frogSmoke, mx = 20
+    const fi = Math.min(4, Math.floor((mx - sm) / 4))
+    _kwarBlitCentered(c, _kwarFxImg("./kakashi_war_smoke_uniform.png"), 5, fi, cx, fighter.y + h * 0.55, 1.1, Math.min(0.92, sm / 6))
+  }
   // SHARINGAN — code-drawn red eye glint + a faint red afterimage aura while active (the sheet has no eye art).
   if (fighter._sharinganActive) {
     const ex = fighter.x + w * (0.5 + facing * 0.12), ey = fighter.y + h * 0.22
@@ -15229,7 +15238,7 @@ function updateBattle() {
   { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
-  { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiWar(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiWar(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (KAMUI): Raikiri charge+dash (ground/air) + Kawarimi cooldown/FX timers (no-op otherwise)
+  { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); const _rc1 = readRawControls(p1), _rc2 = readRawControls(p2); updateKakashiWar(p1, _kctx, !!_rc1?.special, _kblock, _rc1); updateKakashiWar(p2, _kctx, !!_rc2?.special, _kblock, _rc2) }   // KAKASHI (KAMUI): Raikiri charge+dash + Kawarimi + Sharingan/Kamui/Tsuiga/copy-ready + Frog Henge upkeep (rawControls → frog pop-on-button) (no-op otherwise)
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).

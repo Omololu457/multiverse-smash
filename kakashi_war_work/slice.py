@@ -161,6 +161,17 @@ def main():
     # SENNEN GOROSHI — the crouch-lunge "thousand years of death" poke (5f).
     by_band("kakashi_war_sennen_uniform.png", 3930, 4000)                                   # 5f poke
 
+    # ══ PHASE 3 ART — FROG HENGE ══
+    # Frog Mode: stance + 3-frame hop (sit → crouch → leap → land). One looping strip (idle+hop).
+    by_rects("kakashi_war_frog_uniform.png", [
+        (85, 4089, 118, 4136), (261, 4100, 298, 4136), (309, 4073, 351, 4136), (360, 4095, 401, 4136)])
+    # Frog Mode (DAMAGE) — 7f squashed/knocked sequence (played on the exit-by-hit). y>4198 drops the label text.
+    by_band("kakashi_war_frog_damage_uniform.png", 4196, 4255)                              # 7f
+    # Henge SMOKE puff (grow → dissipate), centre-packed. 5 columns across the smoke band.
+    by_rects("kakashi_war_smoke_uniform.png", [
+        (40, 4312, 95, 4416), (104, 4312, 199, 4416), (206, 4312, 322, 4416),
+        (340, 4312, 430, 4416), (460, 4312, 545, 4416)], feet=False)
+
 
 if __name__ == "__main__":
     main()

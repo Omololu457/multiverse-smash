@@ -298,11 +298,15 @@ export const SKINS = {
     { id: "kanbuBloom",  name: "Sakura Bloom", unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "bloom"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "bloom"), recolorTag: "bloom" },   // pink hair / lavender suit / sky-blue armour / hot-pink accents
     { id: "kanbuHokage", name: "Golden",    unlockLevel: 0, portrait: recolorPortrait("kakashi_anbu", "hokage"), spriteScale: characters.kakashi_anbu?.spriteScale, animationData: recolorSkinAnim("kakashi_anbu", "hokage"), recolorTag: "hokage" },  // cream suit / gold armour (Hokage tribute)
   ],
-  // Kakashi (Kamui) — NEW additive fighter (kakashi_war). PHASE 1 ships the Default skin only (REQUIRED or
-  // getSkins() clobbers spriteScale to the 1.0 fallback). The 4 Kakashi palette skins (+ matching frog
-  // palettes) land in PHASE 3.
+  // Kakashi (Kamui) — NEW additive fighter (kakashi_war). The 4 palettes the source sheet ships as pixel-aligned
+  // swatches: Default (olive-green vest) + Red + Blue + Dark. The recolor is an EXACT per-pixel LUT transferred
+  // from those swatches (kakashi_war_work/gen_recolor.py) — vest recolours, silver hair + dark pants preserved.
+  // Frog Henge strips carry the matching frog palette (green body, recoloured vest) via the same __tag naming.
   kakashi_war: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi_war?.portrait, spriteScale: characters.kakashi_war?.spriteScale, animationData: null },
+    { id: "kwarRed",  name: "Red",  unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "red"),  spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "red"),  recolorTag: "red" },   // red flak vest (+ red-vest frog)
+    { id: "kwarBlue", name: "Blue", unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "blue"), spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "blue"), recolorTag: "blue" },  // blue flak vest (+ blue-vest frog)
+    { id: "kwarDark", name: "Dark", unlockLevel: 0, portrait: recolorPortrait("kakashi_war", "dark"), spriteScale: characters.kakashi_war?.spriteScale, animationData: recolorSkinAnim("kakashi_war", "dark"), recolorTag: "dark" },  // dark/charcoal flak vest (+ dark-vest frog)
   ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },

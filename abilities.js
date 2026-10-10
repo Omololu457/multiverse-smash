@@ -5535,7 +5535,7 @@ const SOLDIER_ANIM = (() => {
     heavy: _soldierCell(4, 1, 6, false),                    // bow-aim twin-arrow shot
   }
 })()
-const WARSOLDIER = { COST: 100, DURATION: 900, DRAIN: 0.14, HP: 320, DEF: 5.0, DMG: 1.6, INDRA_DMG: 320, VOLLEY_DMG: 40, WING_DMG: 72 }
+const WARSOLDIER = { COST: 100, DURATION: 1200, DRAIN: 0.14, HP: 320, DEF: 5.0, DMG: 1.6, INDRA_DMG: 320, VOLLEY_DMG: 40, WING_DMG: 72, INFINITY_KICOST: 7 }   // DURATION ~20s (lasts longer); INFINITY_KICOST = chakra per auto-dodge
 
 export function sasukeInSoldier(fighter) { return !!(fighter && fighter._warSoldier) }
 
@@ -5560,6 +5560,12 @@ export function enterSasukeSoldier(fighter, context) {
   fighter._susanooActive = true
   fighter.canJump = true
   fighter._suppressUltCooldown = true
+  // INFINITY-style defense (Gojo-like): while in the Soldier, incoming hits are AUTO-DODGED (combat.js
+  // shouldGojoAutoDodge reads currentFormData.autoDodge, generically). Each dodge costs chakra, so it's
+  // self-limiting (and hastens the form's end if you're swarmed). currentFormData carries the Soldier's own
+  // multipliers too, so the per-frame form sync is a no-op. Stashed + restored on revert.
+  fighter._warSoldierFormPrev = (fighter.currentFormData !== undefined) ? fighter.currentFormData : null
+  fighter.currentFormData = { autoDodge: true, autoDodgeKiCost: WARSOLDIER.INFINITY_KICOST, damageMultiplier: WARSOLDIER.DMG, attackMultiplier: WARSOLDIER.DMG, defenseMultiplier: WARSOLDIER.DEF }
   fighter._warArm = null; fighter._warTorso = 0; fighter._warTorsoFx = null
   fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
   try { focusCameraOnAction(context, fighter, null, 0.9, 24); shakeCamera(context, 12, 16) } catch (_) {}
@@ -5577,6 +5583,8 @@ export function revertSasukeSoldier(fighter) {
   fighter._canvasHeightFrac = null; fighter._canvasHeightRefH = null
   fighter._susanooActive = false; fighter._arenaHalfLock = null
   fighter.canJump = true
+  fighter.currentFormData = (fighter._warSoldierFormPrev !== undefined) ? fighter._warSoldierFormPrev : null   // restore the Infinity auto-dodge stash
+  fighter._warSoldierFormPrev = undefined
   fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
   fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
 }

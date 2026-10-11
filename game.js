@@ -328,6 +328,7 @@ import {
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
+  drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons, getMoveListViewport,
@@ -375,6 +376,7 @@ import * as challenges from "./challenges.js"               // skill-based chall
 import * as comboTrials from "./comboTrials.js"             // Combo Trials mission mode: scripted combo challenges (observer over Training)
 import * as tutorial from "./tutorial.js"                   // first-boot guided interactive tutorial (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
+import * as academy from "./academy.js"   // CHARACTER ACADEMY — lesson generation, device labels, SHOW-ME scripts, read-only detection, local progress (additive, isolated)
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
@@ -1340,6 +1342,8 @@ canvas.addEventListener("wheel", e => {
   }
   // CODEX consumes wheel to scroll the franchise-grouped fighter list.
   if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
+  if (gameState === GAME_STATES.ACADEMY) { e.preventDefault(); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); academyScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.gridH), academyScroll + e.deltaY)); return }
+  if (gameState === GAME_STATES.ACADEMY_CHAR) { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + e.deltaY)); return }
   // MOVE LIST — scroll the kit panel when the pointer is over it, else the (overflowing) fighter list.
   if (gameState === GAME_STATES.MOVE_LIST) {
     e.preventDefault()
@@ -1549,6 +1553,8 @@ const GAME_STATES = {
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable whole-library checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
+  ACADEMY:            "academy",             // CHARACTER ACADEMY — scrollable fighter grid (learn every move)
+  ACADEMY_CHAR:       "academyChar",         // CHARACTER ACADEMY — a single fighter's lesson list
   THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
   CONTROLS_HELP:      "controlsHelp",        // Track A: always-accessible device-aware button legend (from pause)
   COMBO_TRIALS:       "comboTrials"          // Combo Trials mission mode: pick a character + scripted combo challenge
@@ -6384,8 +6390,16 @@ function handlePauseInput(key) {
   // Enter/J dismisses the completion panel. Both end the tutorial (marked seen) and
   // return to the menu — so a beginner never gets stuck in the pause menu mid-lesson.
   if (tutorial.isActive() && (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK)) {
+    if (tutorial.isComplete() && key === "a") { finishTutorial(); openAcademy(GAME_STATES.MAIN_MENU); return }   // link to the Academy at the end of the first-boot tutorial
     if (key === "escape") { finishTutorial(); return }
     if (tutorial.isComplete() && (key === "enter" || key === "j")) { finishTutorial(); return }
+    return
+  }
+  // CHARACTER ACADEMY drill owns Esc during a lesson — exit back to the fighter's lesson page (never the pause menu).
+  // FREE PRACTICE / SHOW ME / TRY IT all return here; other keys pass through so TRY IT still reads the player's inputs.
+  if (academySession && (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK)) {
+    if (key === "escape") { exitAcademyDrill(); return }
+    if (academySession.mode === "showme" && (key === "r")) { startAcademyDrill(academySession.lesson, "showme"); return }   // replay the demo
     return
   }
   if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK) {
@@ -15473,6 +15487,7 @@ function updateBattle() {
 
   updateDebugInputToggles()
   updateTrainingMode()
+  academyTick()        // CHARACTER ACADEMY drill timing + READ-ONLY success detection (no-op unless academySession)
   updateCPUInput()
   updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
   updateGamepadEdges(p2)
@@ -15481,7 +15496,15 @@ function updateBattle() {
   // combat consumes them). PLAYBACK overwrites keys from the recorded masks; otherwise RECORD the raw
   // masks (delta-encoded). Then, every HASH_INTERVAL frames, checkpoint both fighters' state — the
   // recorder stores it, playback compares it (desync check → first divergent frame).
-  if (netMatch.isActive()) {
+  // CHARACTER ACADEMY — SHOW ME: drive the demo fighter from the scripted input sequence through the REAL input
+  // pipeline (identical to replay playback). Only ever runs inside an Academy drill (academySession); normal/LAN/
+  // replay matches never set it, so those paths below stay untouched.
+  if (academySession && academySession.mode === "showme" && gameState === GAME_STATES.BATTLE) {
+    const s = academySession
+    writeRawControls(p1, s.script[s.frame] || {})
+    writeRawControls(p2, {})                                   // mirror dummy stays neutral
+    s._sub += (s.demoSpeed || 1); if (s._sub >= 1) { s._sub -= 1; s.frame++ }
+  } else if (netMatch.isActive()) {
     // LAN LOCKSTEP (Stage 2, OPT-IN): mirror the replay-playback injection below. First SAMPLE this device's
     // live input (read side-effect-free, like the recorder does) and ship it to the peer for a future frame;
     // then drive BOTH fighters from the agreed DELAYED masks so both machines simulate the identical input
@@ -17898,6 +17921,7 @@ function drawBattleHud() {
   if (comboTrials.isArmed()) drawComboTrialHud(ctx, canvas, comboTrials.activeInfo(), { retryLabel: "F2" })
   // FIRST-BOOT TUTORIAL: draw the current-step objective + progress + skip hint.
   if (tutorial.isActive()) drawTutorialHud(ctx, canvas, tutorial.activeInfo())
+  if (academySession) { const info = academyDrillOverlayInfo(); if (info) drawAcademyDrillOverlay(ctx, canvas, info) }   // CHARACTER ACADEMY drill overlay (SHOW ME / TRY IT)
 }
 
 // FIRST-BOOT TUTORIAL HUD — a top-center objective card (current step + hint), a
@@ -17909,15 +17933,17 @@ function drawTutorialHud(ctx, canvas, info) {
   ctx.save()
   ctx.textAlign = "center"
   if (info.complete) {
-    const w = 520, h = 128, x = midX - w / 2, y = 150
+    const w = 520, h = 150, x = midX - w / 2, y = 150
     ctx.fillStyle = "rgba(8,17,31,0.92)"; ctx.fillRect(x, y, w, h)
     ctx.strokeStyle = "#8ef5a8"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h)
     ctx.fillStyle = "#8ef5a8"; ctx.font = "700 30px Arial"
-    ctx.fillText("TUTORIAL COMPLETE!", midX, y + 46)
+    ctx.fillText("TUTORIAL COMPLETE!", midX, y + 44)
     ctx.fillStyle = "#e2e8f0"; ctx.font = "18px Arial"
-    ctx.fillText("You've got the basics. Have fun!", midX, y + 80)
+    ctx.fillText("You've got the basics. Have fun!", midX, y + 76)
+    ctx.fillStyle = "#ffe08a"; ctx.font = "700 15px Arial"
+    ctx.fillText("Press  A  to learn a fighter in the ACADEMY", midX, y + 104)   // link at the end of the first-boot tutorial
     ctx.fillStyle = "#9fb4d6"; ctx.font = "15px Arial"
-    ctx.fillText("Press  Enter  to continue", midX, y + 108)
+    ctx.fillText("Press  Enter  to continue", midX, y + 130)
     ctx.restore(); return
   }
   const step = info.step; if (!step) { ctx.restore(); return }
@@ -18863,6 +18889,17 @@ let codexBackHover    = false
 let codexScroll       = 0
 let codexSelectedKey  = null
 let _codexGroupsCache = null
+// ── CHARACTER ACADEMY state (additive, isolated — never touched by normal matches) ──
+let academyProgress   = academy.loadAcademyProgress()
+let academyScroll     = 0
+let academySearch     = ""
+let academyUniverse   = "All"
+let academyHoverKey   = null
+let academyBackHover  = false
+let academyCharKey    = null          // the fighter whose lesson page is open
+let academyCharScroll = 0
+let academyLessonsCache = null        // { key, groups, flat } for academyCharKey
+let academySession    = null          // the live drill: { lesson, mode, script, frame, armed, baseline, misses, state, flash, demoSpeed, returnTo }
 // Build the franchise-grouped dossier data for the Codex from the live roster. Uses the same `universe`
 // field the character-select grouping uses, the written passive bio, and the first arcade-epilogue line
 // as flavor. Cached (roster is static per session).
@@ -18892,6 +18929,147 @@ function buildCodexGroups() {
   return groups
 }
 function _codexMaxScroll(cv) { const L = codexLayout(cv, buildCodexGroups(), 0); return Math.max(0, L.contentH - L.listH) }
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// CHARACTER ACADEMY — additive + isolated. A scrollable fighter grid → a per-fighter lesson page → a live
+// drill (SHOW ME replays a scripted input through the real pipeline; TRY IT detects the player's move READ-ONLY;
+// FREE PRACTICE opens a normal Training session that returns here). Never auto-launches; normal matches never
+// create an academySession, so they stay byte-identical. combat.js / kits / balance are untouched.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+function _academyAccent(key) { try { return _charThemeBaseColor(key) || characters[key]?.color || "#6aa8e0" } catch (_) { return characters[key]?.color || "#6aa8e0" } }
+function _academyUniverseLabel(u) { return u ? String(u).replace(/_/g, " ").replace(/\b\w/g, m => m.toUpperCase()) : "" }
+// Full playable roster (one card per fighter), shaped for the grid.
+function getAcademyRoster() {
+  const out = []
+  for (const key of Object.keys(characters)) {
+    const c = characters[key]
+    if (!c || c.isPlayable === false || c.hidden) continue
+    out.push({ key, name: c.name || key, universe: c.universe || "other", universeLabel: _academyUniverseLabel(c.universe), accent: _academyAccent(key) })
+  }
+  out.sort((a, b) => (a.universe + a.name).localeCompare(b.universe + b.name))
+  return out
+}
+function academyUniverses() {
+  const set = new Set(getAcademyRoster().map(c => c.universeLabel).filter(Boolean))
+  return ["All", ...Array.from(set).sort()]
+}
+function getAcademyFilteredRoster() {
+  const q = academySearch.trim().toLowerCase()
+  return getAcademyRoster().filter(c =>
+    (academyUniverse === "All" || c.universeLabel === academyUniverse) &&
+    (!q || c.name.toLowerCase().includes(q) || c.key.toLowerCase().includes(q)))
+}
+function _academyLessons() {
+  if (!academyLessonsCache || academyLessonsCache.key !== academyCharKey) {
+    const flat = academy.buildCharacterLessons(academyCharKey, characters[academyCharKey])
+    academyLessonsCache = { key: academyCharKey, flat, groups: academy.groupLessons(flat) }
+  }
+  return academyLessonsCache
+}
+function academyProgressFor(key) {
+  const flat = (key === academyCharKey && academyLessonsCache) ? academyLessonsCache.flat : academy.buildCharacterLessons(key, characters[key])
+  return { done: academy.lessonsDoneFor(academyProgress, key), total: flat.length }
+}
+function _academyDevice() {
+  try { if (getPadType && getPadType() !== "generic" && (navigator.getGamepads?.() || []).some(Boolean)) return "pad" } catch (_) {}
+  try { if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches && !("onmousemove" in window)) return "touch" } catch (_) {}
+  return "keyboard"
+}
+function academyDeviceLabel(lesson) {
+  let glyphs = null; try { glyphs = padGlyphs(getPadType()) } catch (_) {}
+  return academy.inputLabelForDevice(lesson.input, _academyDevice(), glyphs)
+}
+function openAcademy(from) {
+  academyBackHover = false; academyScroll = 0; academyHoverKey = null
+  screenReturnState = from || GAME_STATES.MAIN_MENU
+  gameState = GAME_STATES.ACADEMY
+}
+function openAcademyChar(key) {
+  academyCharKey = key; academyCharScroll = 0; academyLessonsCache = null; academyBackHover = false
+  gameState = GAME_STATES.ACADEMY_CHAR
+}
+// Read-only snapshot used by the TRY-IT detector (academy.detectLesson compares a baseline vs the latest).
+function _academyFormCount(f) {
+  let n = 0
+  for (const flag of ["_sharinganActive", "_emeraldSusano", "_shiFlickerActive", "_flashTimeActive", "_godspeedActive", "_ssjActive", "_ssjBlueActive", "_ssjRoseActive", "_karmaActive", "_kanbuMangekyou", "_mangekyouActive", "_giftActive", "_omoTfActive", "_adultFormActive"]) if (f && f[flag]) n++
+  return n
+}
+function academySnapshot(f) {
+  if (!f) return null
+  let projCount = 0; try { for (const p of activeProjectiles) if (p && p.owner === f) projCount++ } catch (_) {}
+  return {
+    x: f.x || 0, energy: f.energy || 0,
+    attackName: f.currentAttack?.name || null,
+    castMove: f._spriteCastMove || f.currentMove || null,
+    attacking: !!f.attacking,
+    airborne: !(f.onGround ?? f.grounded ?? true),
+    blocking: !!f.isBlocking,
+    grabbing: !!f._grabbing || !!f.isGrabbing,
+    projCount, formCount: _academyFormCount(f),
+    ult: f._ultVariant || null,
+  }
+}
+// Boot the Academy's own Training match (the fighter vs a mirror dummy) and arm the drill. Reuses the training
+// pipeline; sets academySession so the per-frame hooks drive SHOW ME / TRY IT. FREE PRACTICE leaves training live.
+function startAcademyDrill(lesson, mode) {
+  const key = academyCharKey; if (!key || !characters[key]) return
+  matchConfig.mode = "training"; matchConfig.aiDifficulty = "dummy"
+  matchConfig.p1CharKey = key; matchConfig.p1Char = characters[key]
+  matchConfig.p2CharKey = key; matchConfig.p2Char = characters[key]   // conservative: a mirror dummy
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  if (!matchConfig.selectedStage) matchConfig.selectedStage = stages[0]
+  startMatch()
+  trainingState.enabled = true; trainingState.infiniteResources = true; trainingState.dummyBehavior = "stand"
+  matchIntroTimer = 0; countdown = 0; gameState = GAME_STATES.BATTLE
+  academySession = { lesson, mode, script: academy.scriptForInput(lesson.input, lesson.cat), frame: 0, _sub: 0,
+    baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR }
+  if (mode === "showme") academySession.demoSpeed = 1
+}
+function exitAcademyDrill() {
+  academySession = null
+  trainingState.enabled = false; trainingState.infiniteResources = false; trainingState.dummyBehavior = "stand"
+  resetToStart()
+  gameState = GAME_STATES.ACADEMY_CHAR
+}
+function _academyStartSlowDemo(s) {   // after 4 misses, auto-play a ½-speed SHOW ME of the same move
+  s.mode = "showme"; s.script = academy.scriptForInput(s.lesson.input, s.lesson.cat); s.frame = 0; s._sub = 0; s.demoSpeed = 0.5; s.state = "arm"; s._slowDemo = true
+}
+// PER-FRAME drill logic (called in the combat update, next to tutorial.update). SHOW-ME input INJECTION happens
+// at the replay-playback write point; here we advance timing, run detection, and manage the result flash + hints.
+function academyTick() {
+  const s = academySession
+  if (!s || gameState !== GAME_STATES.BATTLE) return
+  if (s.mode === "free") return
+  if (s.mode === "showme") {
+    if (s.frame >= s.script.length + 30) {          // demo + tail pause → loop (or return after the slow demo)
+      if (s._slowDemo) { _academyStartSlowDemoEnd(s) } else { s.frame = 0; s._sub = 0 }
+    }
+    return
+  }
+  // TRY IT
+  if (s.state === "pass") { if ((s.flash = Math.max(0, s.flash - 1)) === 0 && s._passHold !== false) { s._passHold = false } return }
+  const snap = academySnapshot(p1); if (!snap) return
+  if (!s.baseline) { s.baseline = snap; return }
+  if (academy.detectLesson(s.lesson, s.baseline, snap)) {
+    s.state = "pass"; s.flash = 80; s.hint = null
+    academyProgress = academy.markLessonComplete(academyProgress, academyCharKey, s.lesson.id)
+    return
+  }
+  // miss tracking — a committed action that didn't satisfy the lesson (resolve after a short window)
+  const acted = (snap.attackName && snap.attackName !== s.baseline.attackName) || (snap.energy < s.baseline.energy - 3) ||
+                (snap.castMove && snap.castMove !== s.baseline.castMove)
+  if (acted && !s._resolve) s._resolve = 22
+  if (s._resolve) { s._resolve--; if (s._resolve === 0) { s.misses++; s.hint = academy.hintForLesson(s.lesson, s.misses); if (s.misses >= 4 && !s._slowDemo) _academyStartSlowDemo(s); s.baseline = academySnapshot(p1) } }
+}
+function _academyStartSlowDemoEnd(s) { s.mode = "tryit"; s.state = "arm"; s.baseline = null; s.misses = 0; s._slowDemo = false; s.demoSpeed = 1; s.frame = 0 }
+// Build the overlay info (prompt, device label, live inputs, result state) for drawAcademyDrillOverlay.
+function academyDrillOverlayInfo() {
+  const s = academySession; if (!s) return null
+  let inputs = ""
+  try { const d = getRelativeDirectionsFromHistory(p1) || []; const btn = []; const raw = readRawControls(p1) || {}; for (const [k, label] of [["light", "L"], ["heavy", "H"], ["upAttack", "U"], ["special", "S"], ["ultimate", "ULT"], ["grab", "G"], ["charge", "C"], ["block", "B"], ["jump", "↑"]]) if (raw[k]) btn.push(label); inputs = d.concat(btn).join(" ") } catch (_) {}
+  return { mode: s.mode, moveName: s.lesson.name, inputLabel: academyDeviceLabel(s.lesson), inputs,
+           state: s.state, flash: s.flash, hint: s.hint || null, demoSpeed: s.demoSpeed }
+}
 // Enter a Profile/Codex screen, remembering the return target (menu or pause).
 function openProfileScreen(from) { screenReturnState = from; profileBackHover = false; gameState = GAME_STATES.PROFILE }
 function openThemesScreen(from)  { screenReturnState = from; themesBackHover = false; themesHoverIndex = -1; gameState = GAME_STATES.THEMES }
@@ -19107,6 +19285,8 @@ function renderCurrentState() {
     case GAME_STATES.CREDITS:         drawCreditsState(); break
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
+    case GAME_STATES.ACADEMY:         drawAcademyGridScreen(ctx, canvas, { roster: getAcademyFilteredRoster(), filters: academyUniverses(), universe: academyUniverse, search: academySearch, searchFocus: true, scroll: academyScroll, hoverKey: academyHoverKey, backHover: academyBackHover, progressFor: academyProgressFor }); break
+    case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id) }); break }
     case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
     case GAME_STATES.COMBO_TRIALS:    drawComboTrialsScreen(ctx, canvas, _comboTrialsData()); break
     case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
@@ -19412,6 +19592,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); profileThemesHover = pointInRect(mouse.x, mouse.y, getProfileThemesButton(canvas)); return }   // themes button kept from bp
   if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
+  if (gameState === GAME_STATES.ACADEMY)          { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); const card = L.cards.find(r => r.y >= L.gridY - 6 && r.y <= L.gridY + L.gridH && pointInRect(mouse.x, mouse.y, r)); academyHoverKey = card ? card.key : null; return }
+  if (gameState === GAME_STATES.ACADEMY_CHAR)     { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); return }
   if (gameState === GAME_STATES.CONTROLS_HELP)    { controlsHelpBackHover = pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas)); return }
   if (gameState === GAME_STATES.COMBO_TRIALS)     {
     const rr = getComboTrialsRects(canvas, _comboTrialsData())
@@ -19466,6 +19648,7 @@ function handleMenuClicks() {
       else if (c.id === "story")    { startRiftTransition("#9a7bff"); startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }) }   // Story Mode opens with THE NEXUS FRACTURE cutscene (Prologue + Act 1), then lands on the chapter map
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
+      else if (c.id === "academy")  openAcademy(GAME_STATES.MAIN_MENU)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "themes")   openThemesScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
@@ -19496,6 +19679,26 @@ function handleMenuClicks() {
       const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
       const row = L.rows.find(r => r.type === "row" && r.y >= L.listY - 4 && r.y <= L.listY + L.listH && pointInRect(mouse.x, mouse.y, r))
       if (row) codexSelectedKey = row.key
+      break
+    }
+    case GAME_STATES.ACADEMY: {
+      if (pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
+      const roster = getAcademyFilteredRoster(), L = academyGridLayout(canvas, roster, academyScroll, academyUniverses())
+      const chip = L.filterRects.find(r => pointInRect(mouse.x, mouse.y, r))
+      if (chip) { academyUniverse = chip.id; academyScroll = 0; break }
+      const card = L.cards.find(r => r.y >= L.gridY - 6 && r.y <= L.gridY + L.gridH && pointInRect(mouse.x, mouse.y, r))
+      if (card) openAcademyChar(card.key)
+      break
+    }
+    case GAME_STATES.ACADEMY_CHAR: {
+      if (pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas))) { openAcademy(screenReturnState || GAME_STATES.MAIN_MENU); break }
+      const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
+      for (const r of L.rows) {
+        if (r.type !== "row" || r.y < L.listY - 6 || r.y > L.listY + L.listH) continue
+        if (r.showRect && pointInRect(mouse.x, mouse.y, r.showRect)) { startAcademyDrill(r.lesson, "showme"); break }
+        if (r.tryRect  && pointInRect(mouse.x, mouse.y, r.tryRect))  { startAcademyDrill(r.lesson, "tryit");  break }
+        if (r.freeRect && pointInRect(mouse.x, mouse.y, r.freeRect)) { startAcademyDrill(r.lesson, "free");   break }
+      }
       break
     }
     case GAME_STATES.CONTROLS_HELP:
@@ -20057,6 +20260,7 @@ function updateMenuGamepad(injected) {
 // hardcoded BACK buttons: arriving at an ancestor truncates the stack instead of pushing. Scoped to menu /
 // selection screens only — never in a match (BATTLE/PAUSED/etc. are excluded), so back can't escape a fight.
 const NAV_BACK_SCREENS = new Set([
+  GAME_STATES.ACADEMY, GAME_STATES.ACADEMY_CHAR,
   GAME_STATES.MAIN_MENU, GAME_STATES.GAMEPLAY_SELECT, GAME_STATES.TOWER_SELECT, GAME_STATES.ARCADE_SETUP,
   GAME_STATES.BRACKET_SETUP, GAME_STATES.FFA_SETUP, GAME_STATES.FFA_CHARSELECT, GAME_STATES.FFA_SLOTSELECT,
   GAME_STATES.FFA_TEAMSELECT, GAME_STATES.AI_DIFFICULTY, GAME_STATES.AI_VS_AI_SETUP, GAME_STATES.SELECT_UNIVERSE,
@@ -20595,6 +20799,18 @@ window.addEventListener("keydown", e => {
       if (row) { const top = row.y - L.listY + codexScroll; if (top < codexScroll) codexScroll = top; else if (top + row.h > codexScroll + L.listH) codexScroll = top + row.h - L.listH }
       codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll))
     }
+    return
+  }
+  if (gameState === GAME_STATES.ACADEMY) {
+    if (key === "escape") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return }
+    if (key === "backspace") { e.preventDefault(); academySearch = academySearch.slice(0, -1); academyScroll = 0; return }
+    if (key === "arrowdown" || key === "arrowup") { e.preventDefault(); academyScroll = Math.max(0, academyScroll + (key === "arrowdown" ? 60 : -60)); return }
+    if (key && key.length === 1 && /[a-z0-9 _.\-]/i.test(key)) { e.preventDefault(); if (academySearch.length < 24) academySearch += key; academyScroll = 0; return }
+    return
+  }
+  if (gameState === GAME_STATES.ACADEMY_CHAR) {
+    if (key === "escape" || key === "backspace") { e.preventDefault(); openAcademy(screenReturnState || GAME_STATES.MAIN_MENU); return }
+    if (key === "arrowdown" || key === "arrowup") { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + (key === "arrowdown" ? 60 : -60))); return }
     return
   }
 
@@ -22841,6 +23057,18 @@ gameLoop()
     // SHISUI (FALLEN) Phase 3 — Emerald Susanoo state reader (snapshot omits custom _fields).
     shisuiFallenSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const PS = f._emeraldSusano; return { active: !!PS, hp: PS ? Math.round(PS.hp) : 0, max: PS ? PS.max : 0, t: PS ? PS.t : 0, pose: PS ? PS.pose : null, action: PS ? PS.action : null, volley: PS ? !!PS.volley : false, finisher: PS ? !!PS.finisher : false, tier: PS ? (PS.tier || 1) : 0, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0) } },
     shisuiFallenSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleShisuiFallenSharingan(f); return { toggled: !!ok, active: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, energy: Math.round(f.energy || 0) } },   // test-only: toggle the Mangekyō
+    // ── CHARACTER ACADEMY test hooks (drive the grid / lesson page / drill; reused by test:academy-coverage) ──
+    academy: {
+      open:     () => { openAcademy(GAME_STATES.MAIN_MENU); return { state: gameState, roster: getAcademyFilteredRoster().length, universes: academyUniverses() } },
+      roster:   () => getAcademyRoster().map(c => c.key),
+      openChar: (key) => { academyCharKey = key || getAcademyRoster()[0]?.key; openAcademyChar(academyCharKey); const L = _academyLessons(); return { state: gameState, key: academyCharKey, lessons: L.flat.length, sections: L.groups.map(g => `${g.section}(${g.lessons.length})`) } },
+      lessons:  (key) => academy.buildCharacterLessons(key, characters[key]).map((l, i) => ({ i, id: l.id, section: l.section, name: l.name, cat: l.cat, input: l.input })),
+      drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey } },
+      drillState: () => academySession ? { mode: academySession.mode, frame: academySession.frame, state: academySession.state, misses: academySession.misses, hint: academySession.hint || null } : null,
+      snap:     () => p1 ? academySnapshot(p1) : null,
+      progress: () => ({ ...academyProgress }),
+      exit:     () => { exitAcademyDrill(); return { state: gameState } },
+    },
     shisuiFallenArm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const A = f._shiArm; return { active: !!A, grabbed: A ? !!A.grabbed : false, resolved: A ? !!A.resolved : false, throwDmg: f._grabThrowDmg || 0 } },   // Susanoo Arm Grab state
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {

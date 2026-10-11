@@ -1372,6 +1372,7 @@ export function getMainMenuRects(canvas) {
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },
+    { id: "academy",  label: "ACADEMY",   subLabel: "Learn every fighter — demos & hands-on drills" },
     { id: "profile",  label: "PROFILE",   subLabel: "Your Big-Five reading + UI appearance" },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
@@ -4972,6 +4973,190 @@ export function drawCodexScreen(ctx, canvas, opts = {}) {
 
   drawMkButton(ctx, getCodexBackButton(canvas), { label: "BACK", active: opts.backHover, id: "codexback", cut: 10 })
   drawFooterHint(ctx, canvas, "Click a fighter to read their dossier  ·  scroll the list for more")
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// CHARACTER ACADEMY — additive. A scrollable character GRID (search + universe filter + progress ring) and a
+// per-character LESSON page (grouped moves, each with SHOW ME / TRY IT / FREE PRACTICE). Canvas-drawn, mirrors
+// the CODEX idiom. game.js owns the state + the match drill; these functions are pure renderers + layout.
+// ═════════════════════════════════════════════════════════════════════════
+function _progressRing(ctx, cx, cy, r, frac, accent) {
+  ctx.save()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
+  if (frac > 0) {
+    ctx.strokeStyle = accent || "#7dd3fc"; ctx.shadowBlur = 8; ctx.shadowColor = accent || "#7dd3fc"
+    ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, frac)); ctx.stroke()
+  }
+  ctx.restore()
+}
+export function getAcademyBackButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "back", x: 40, y: h - 60, w: 190, h: 42 }
+}
+// GRID layout: returns the search box rect, universe filter chip rects, and the character card rects.
+export function academyGridLayout(canvas, roster = [], scroll = 0, filters = []) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const searchRect = { x: 40, y: 96, w: Math.min(360, w * 0.4), h: 34 }
+  const filterRects = []
+  let fx = searchRect.x + searchRect.w + 18
+  for (const f of filters) { const cw = Math.max(54, ctxMeasureApprox(f) + 24); filterRects.push({ id: f, x: fx, y: 98, w: cw, h: 30 }); fx += cw + 8 }
+  const gridX = 40, gridY = 150, gridW = w - 80, gridH = h - gridY - 74
+  const cardW = 168, cardH = 64, gap = 14
+  const cols = Math.max(1, Math.floor((gridW + gap) / (cardW + gap)))
+  const cards = []
+  roster.forEach((c, i) => {
+    const col = i % cols, row = Math.floor(i / cols)
+    cards.push({ key: c.key, char: c, x: gridX + col * (cardW + gap), y: gridY + row * (cardH + gap) - scroll, w: cardW, h: cardH })
+  })
+  const rowsN = Math.ceil(roster.length / cols)
+  const contentH = rowsN * (cardH + gap)
+  return { searchRect, filterRects, cards, gridX, gridY, gridW, gridH, contentH, cols }
+}
+function ctxMeasureApprox(s) { return String(s).length * 7 }   // cheap width estimate for chip sizing (no ctx yet)
+export function drawAcademyGridScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const roster = opts.roster || []
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#0a0718", bottom: "#140d24" })
+  drawMenuParticles(ctx, canvas)
+  drawHeader(ctx, canvas, "CHARACTER ACADEMY", "Pick a fighter — learn every move with a demo and a hands-on drill")
+  const L = academyGridLayout(canvas, roster, opts.scroll || 0, opts.filters || [])
+
+  // Search box
+  const sr = L.searchRect
+  _bevelPath(ctx, sr.x, sr.y, sr.w, sr.h, 8); ctx.fillStyle = "rgba(10,12,26,0.7)"; ctx.fill()
+  ctx.strokeStyle = opts.searchFocus ? "rgba(140,200,255,0.8)" : "rgba(140,200,255,0.3)"; ctx.lineWidth = 1.2; ctx.stroke()
+  const q = opts.search || ""
+  drawCenteredText(ctx, q ? q + (opts.searchFocus && (Math.floor(_mkFrame / 30) % 2) ? "|" : "") : "Search fighters…", sr.x + 12, sr.y + sr.h / 2, { font: q ? "600 15px Arial" : "italic 14px Arial", fill: q ? "#eaf2ff" : "rgba(170,190,220,0.5)", align: "left" })
+
+  // Universe filter chips
+  for (const chip of L.filterRects) {
+    const on = chip.id === (opts.universe || "All")
+    _bevelPath(ctx, chip.x, chip.y, chip.w, chip.h, 7); ctx.fillStyle = on ? "rgba(120,200,255,0.24)" : "rgba(20,24,40,0.55)"; ctx.fill()
+    ctx.strokeStyle = on ? "rgba(120,200,255,0.8)" : "rgba(120,140,180,0.3)"; ctx.lineWidth = 1; ctx.stroke()
+    drawCenteredText(ctx, chip.id, chip.x + chip.w / 2, chip.y + chip.h / 2, { font: on ? "800 12px Arial" : "600 12px Arial", fill: on ? "#ffffff" : "rgba(200,214,240,0.75)" })
+  }
+
+  // Card grid (clipped + scrolled)
+  ctx.save()
+  _bevelPath(ctx, L.gridX - 6, L.gridY - 6, L.gridW + 12, L.gridH + 12, 10); ctx.clip()
+  for (const card of L.cards) {
+    if (card.y + card.h < L.gridY - 10 || card.y > L.gridY + L.gridH + 10) continue
+    const sel = card.key === opts.hoverKey
+    const accent = card.char.accent || "#6aa8e0"
+    _bevelPath(ctx, card.x, card.y, card.w, card.h, 9)
+    ctx.fillStyle = sel ? _withAlpha(accent, 0.3) : "rgba(14,18,34,0.7)"; ctx.fill()
+    ctx.strokeStyle = _withAlpha(accent, sel ? 0.9 : 0.45); ctx.lineWidth = sel ? 1.6 : 1; ctx.stroke()
+    drawCenteredText(ctx, card.char.name, card.x + 14, card.y + 26, { font: "800 15px Arial", fill: "#f1f5f9", align: "left", maxWidth: card.w - 60 })
+    drawCenteredText(ctx, card.char.universeLabel || "", card.x + 14, card.y + 46, { font: "600 11px Arial", fill: _withAlpha(accent, 0.9), align: "left" })
+    // progress ring
+    const pr = opts.progressFor ? opts.progressFor(card.key) : { done: 0, total: 0 }
+    const frac = pr.total ? pr.done / pr.total : 0
+    _progressRing(ctx, card.x + card.w - 26, card.y + card.h / 2, 15, frac, accent)
+    drawCenteredText(ctx, `${pr.done}/${pr.total}`, card.x + card.w - 26, card.y + card.h / 2, { font: "700 9px Arial", fill: frac >= 1 ? "#9effc0" : "rgba(220,230,248,0.85)" })
+  }
+  ctx.restore()
+  if (!roster.length) drawCenteredText(ctx, "No fighters match your search.", w / 2, L.gridY + 60, { font: "700 16px Arial", fill: "rgba(200,214,240,0.6)" })
+  if (L.contentH > L.gridH) drawCenteredText(ctx, "scroll ↕", w / 2, L.gridY + L.gridH + 14, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
+
+  drawMkButton(ctx, getAcademyBackButton(canvas), { label: "BACK", active: opts.backHover, id: "acadback", cut: 10 })
+  drawFooterHint(ctx, canvas, "Click a fighter to open their lessons  ·  type to search  ·  Esc to exit")
+}
+
+// CHARACTER page layout: section headers + lesson rows; each lesson row carries SHOW / TRY / FREE button rects.
+export function academyCharLayout(canvas, groups = [], scroll = 0) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const listX = 40, listY = 150, listW = w - 80, listH = h - listY - 74
+  const rows = []
+  let cy = listY - scroll
+  const rowH = 52, btnW = 92, btnH = 30
+  for (const g of groups) {
+    rows.push({ type: "header", label: g.section, x: listX, y: cy, w: listW, h: 26 }); cy += 30
+    for (const l of g.lessons) {
+      const bx = listX + listW - (btnW * 3 + 24)
+      const row = { type: "row", lesson: l, x: listX, y: cy, w: listW, h: rowH,
+        showRect: l.cat === "passive" ? null : { id: "show", x: bx, y: cy + (rowH - btnH) / 2, w: btnW, h: btnH },
+        tryRect:  l.cat === "passive" ? null : { id: "try",  x: bx + btnW + 12, y: cy + (rowH - btnH) / 2, w: btnW, h: btnH },
+        freeRect: { id: "free", x: bx + (btnW + 12) * 2, y: cy + (rowH - btnH) / 2, w: btnW, h: btnH } }
+      rows.push(row); cy += rowH + 6
+    }
+    cy += 10
+  }
+  const contentH = (cy + scroll) - listY
+  return { rows, listX, listY, listW, listH, contentH }
+}
+export function drawAcademyCharScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const groups = opts.groups || []
+  const accent = opts.accent || "#6aa8e0"
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#0a0718", bottom: "#140d24" })
+  drawMenuParticles(ctx, canvas)
+  drawHeader(ctx, canvas, (opts.charName || "FIGHTER").toUpperCase(), opts.summary || "Pick a move — SHOW ME to watch it, TRY IT to do it")
+  const L = academyCharLayout(canvas, groups, opts.scroll || 0)
+  const device = opts.device || "keyboard"
+
+  ctx.save()
+  _bevelPath(ctx, L.listX - 6, L.listY - 6, L.listW + 12, L.listH + 12, 10); ctx.fillStyle = "rgba(8,10,22,0.55)"; ctx.fill(); ctx.clip()
+  for (const r of L.rows) {
+    if (r.y + r.h < L.listY - 10 || r.y > L.listY + L.listH + 10) continue
+    if (r.type === "header") {
+      drawCenteredText(ctx, r.label.toUpperCase(), r.x + 6, r.y + 15, { font: "800 13px Arial", fill: _withAlpha(accent, 0.95), align: "left" })
+      ctx.strokeStyle = _withAlpha(accent, 0.25); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x + 6, r.y + 24); ctx.lineTo(r.x + r.w - 6, r.y + 24); ctx.stroke()
+      continue
+    }
+    const l = r.lesson, done = opts.isDone ? opts.isDone(l.id) : false
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = done ? "rgba(40,90,60,0.35)" : "rgba(16,20,36,0.6)"; ctx.fill()
+    if (done) { ctx.strokeStyle = "rgba(120,255,170,0.5)"; ctx.lineWidth = 1; ctx.stroke(); drawCenteredText(ctx, "✓", r.x + 16, r.y + r.h / 2, { font: "800 18px Arial", fill: "#9effc0" }) }
+    drawCenteredText(ctx, l.name, r.x + 34, r.y + 18, { font: "800 15px Arial", fill: "#f1f5f9", align: "left", maxWidth: r.w * 0.44 })
+    drawCenteredText(ctx, opts.inputLabel ? opts.inputLabel(l) : l.input, r.x + 34, r.y + 37, { font: "700 12px Arial", fill: _withAlpha(accent, 0.95), align: "left" })
+    ctx.save(); ctx.font = "12px Arial"
+    const dl = _wrapText(ctx, l.desc || "", r.w * 0.44)[0] || ""
+    drawCenteredText(ctx, dl, r.x + 34 + r.w * 0.46, r.y + r.h / 2, { font: "12px Arial", fill: "rgba(200,214,240,0.72)", align: "left", maxWidth: r.w * 0.2 }); ctx.restore()
+    if (r.showRect) drawMkButton(ctx, r.showRect, { label: "SHOW ME", active: false, id: "s" + l.id, cut: 7, small: true })
+    if (r.tryRect)  drawMkButton(ctx, r.tryRect,  { label: "TRY IT",  active: false, id: "t" + l.id, cut: 7, small: true })
+    if (r.freeRect) drawMkButton(ctx, r.freeRect, { label: "PRACTICE", active: false, id: "f" + l.id, cut: 7, small: true })
+  }
+  ctx.restore()
+  if (L.contentH > L.listH) drawCenteredText(ctx, "scroll ↕", w / 2, L.listY + L.listH + 14, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
+  drawMkButton(ctx, getAcademyBackButton(canvas), { label: "BACK", active: opts.backHover, id: "acadcharback", cut: 10 })
+  drawFooterHint(ctx, canvas, `Device: ${device}  ·  SHOW ME = watch · TRY IT = do it · PRACTICE = free training  ·  Esc to go back`)
+}
+
+// DRILL overlay — drawn over the live Academy match (SHOW ME / TRY IT). info = { mode, moveName, inputLabel,
+// inputs (live pressed list), state ("arm"|"pass"|"fail"), flash, hint, demoSpeed }.
+export function drawAcademyDrillOverlay(ctx, canvas, info = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  // top banner
+  const bw = Math.min(680, w - 40), bx = (w - bw) / 2, by = 16
+  _bevelPath(ctx, bx, by, bw, 62, 12); ctx.fillStyle = "rgba(8,10,22,0.82)"; ctx.fill()
+  ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.lineWidth = 1.4; ctx.stroke()
+  const tag = info.mode === "showme" ? "SHOW ME" : "TRY IT"
+  drawCenteredText(ctx, tag, bx + 16, by + 20, { font: "800 13px Arial", fill: "#7dd3fc", align: "left" })
+  drawCenteredText(ctx, info.moveName || "", bx + 16, by + 42, { font: "900 20px Arial", fill: "#ffffff", align: "left", maxWidth: bw * 0.6 })
+  drawCenteredText(ctx, info.inputLabel || "", bx + bw - 16, by + 31, { font: "800 18px Arial", fill: "#ffe08a", align: "right" })
+  // live input strip
+  if (info.inputs) drawCenteredText(ctx, "Inputs: " + (info.inputs || "—"), w / 2, by + 78, { font: "700 13px Arial", fill: "rgba(180,220,255,0.9)" })
+  // SHOW ME speed note
+  if (info.mode === "showme" && info.demoSpeed && info.demoSpeed < 1) drawCenteredText(ctx, "½ speed", bx + bw / 2, by + 20, { font: "800 11px Arial", fill: "rgba(255,220,140,0.9)" })
+  // result flash
+  if (info.state === "pass") {
+    ctx.globalAlpha = Math.min(1, (info.flash || 0) / 20)
+    drawCenteredText(ctx, "NICE!", w / 2, h * 0.42, { font: "900 56px Arial", fill: "#9effc0", shadowBlur: 24, shadowColor: "#2fff88" })
+    drawCenteredText(ctx, "✓", w / 2, h * 0.42 - 70, { font: "900 44px Arial", fill: "#9effc0" })
+    ctx.globalAlpha = 1
+  }
+  if (info.hint) {
+    const hw = Math.min(620, w - 60), hx = (w - hw) / 2, hy = h - 96
+    _bevelPath(ctx, hx, hy, hw, 40, 9); ctx.fillStyle = "rgba(60,40,10,0.85)"; ctx.fill(); ctx.strokeStyle = "rgba(255,200,90,0.6)"; ctx.lineWidth = 1; ctx.stroke()
+    drawCenteredText(ctx, "💡 " + info.hint, w / 2, hy + 20, { font: "700 13px Arial", fill: "#ffe8b0" })
+  }
+  drawCenteredText(ctx, info.mode === "showme" ? "Esc: back   ·   watch the inputs" : "Esc: back   ·   do the move   ·   it retries automatically", w / 2, h - 30, { font: "600 12px Arial", fill: "rgba(200,214,240,0.7)" })
+  ctx.restore()
 }
 
 // ═════════════════════════════════════════════════════════════════════════

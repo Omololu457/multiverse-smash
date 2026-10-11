@@ -21823,7 +21823,14 @@ export function toggleShisuiFallenSharingan(fighter) {
 export function updateShisuiFallenFlicker(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shisui_fallen") return
   if ((fighter._sharinganFatigue || 0) > 0) fighter._sharinganFatigue--
-  if (fighter._emeraldSusano) { fighter._flickHpWatch = fighter.health; fighter._sharinganActive = false; return }   // giant Susanoo owns the HP-watch (its own absorb) + no flicker-dash as the avatar
+  if (fighter._emeraldSusano) { fighter._flickHpWatch = fighter.health; fighter._sharinganActive = false; revertShisuiFlickerTime(fighter); return }   // giant Susanoo owns the HP-watch (its own absorb) + no flicker-dash as the avatar
+  // FLICKER TIME upkeep — drain Chakra while active → auto-revert at 0; record the emerald speed-trail.
+  if (fighter._shiFlickerActive) {
+    fighter.energy = Math.max(0, (fighter.energy || 0) - SHISUI_FLICKER_TIME.drain)
+    const tr = fighter._shiFtTrail || (fighter._shiFtTrail = [])
+    tr.unshift({ x: fighter.x, y: fighter.y }); if (tr.length > 6) tr.pop()
+    if ((fighter.energy || 0) <= 0) revertShisuiFlickerTime(fighter)
+  }
   // MANGEKYŌ SHARINGAN upkeep — drain Chakra while lit; at 0 → shut off + brief fatigue.
   if (fighter._sharinganActive) {
     fighter.energy = Math.max(0, (fighter.energy || 0) - SHISUI_FALLEN_SHARINGAN.drain)
@@ -21852,7 +21859,7 @@ export function updateShisuiFallenFlicker(fighter) {
   // HIT ABSORB — if Shisui takes damage while an afterimage is live, the ghost EATS the hit (health restored,
   // stun cleared) and pops. "In multiple places at once." (CANON-ADJACENT)
   const hp = fighter.health, prev = fighter._flickHpWatch != null ? fighter._flickHpWatch : hp
-  if (hp - prev > 80) { fighter._kotoSpent = false; fighter._sharinganFatigue = 0 }   // ROUND RESET (big heal rising-edge) → the Mangekyō eye recharges Kotoamatsukami
+  if (hp - prev > 80) { fighter._kotoSpent = false; fighter._sharinganFatigue = 0; revertShisuiFlickerTime(fighter) }   // ROUND RESET (big heal rising-edge) → eye recharges + Flicker Time ends
   if (hp < prev && (fighter._flickGhosts || []).length > 0) {
     fighter.health = prev; fighter.hitstun = 0; fighter.hitstop = 0
     fighter._flickGhosts.shift(); fighter._flickAbsorbFx = 10
@@ -22051,6 +22058,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
   const variant = fighter._ultVariant || "thousandShadows"
   if (variant === "kotoamatsukami") return shisuiFallenKotoamatsukami(fighter, context)   // Phase 4 — Kotoamatsukami (spends the meter itself)
   if (variant === "emeraldSusanoo") return enterShisuiFallenSusano(fighter, context) // Phase 3 — Emerald Susanoo (spends the meter itself)
+  if (variant === "flickerTime") return enterShisuiFlickerTime(fighter, context)     // Flicker Time — a drain-buff (gates on near-max meter, doesn't spend it)
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp = getTargetResolver(context)(fighter)
   fighter.attackCooldown = getAttackDuration(62, fighter)
@@ -22133,6 +22141,37 @@ function shisuiFallenKotoamatsukami(fighter, context) {
   }
   try { focusCameraOnAction(context, fighter, opp, 1.08, 24); shakeCamera(context, 4, 12) } catch (_) {}
   return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SHISUI (FALLEN) — FLICKER TIME (Forward+Ultimate). His "Flash Time": the world drops to ~⅓ speed while he keeps
+// full speed (Shisui the Teleporter outruns time itself). Reuses the shared per-opponent time-slow engine via his
+// OWN flag (_shiFlickerActive, like Omololu's) → emerald speed-trail, no Flash aura. Near-max meter gate + a
+// per-frame drain → auto-revert (ticked in updateShisuiFallenFlicker). combat.js UNTOUCHED.
+const SHISUI_FLICKER_TIME = { threshold: 96, drain: 0.26, oppSlow: 0.36, atkSpeed: 1.22, dash: 26 }
+function enterShisuiFlickerTime(fighter, context) {
+  if (!isShisuiFallen(fighter)) return false
+  if (fighter._shiFlickerActive || fighter._emeraldSusano) return false
+  if ((fighter.energy || 0) < SHISUI_FLICKER_TIME.threshold) return false   // near-max Chakra (not spent — it drains)
+  const T = SHISUI_FLICKER_TIME
+  fighter._shiFlickerActive = true
+  fighter.currentForm = "flickerTime"
+  fighter._shiFtBaseDash = fighter.dashSpeed
+  fighter.attackSpeedMultiplier = T.atkSpeed                 // faster startup/recovery (getAttackDuration divides)
+  fighter.dashSpeed = T.dash
+  fighter._shiOppTimeScale = T.oppSlow                       // read by _oppTimeScaleOf → the foe runs at ~⅓ speed
+  fighter._shiFtTrail = []
+  shisuiFallenXform(fighter, "crimson"); fighter.colorFlash = 16
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.1, 20); shakeCamera(context, 6, 14) } catch (_) {}
+  return true
+}
+export function revertShisuiFlickerTime(fighter) {
+  if (!fighter || !fighter._shiFlickerActive) return
+  fighter._shiFlickerActive = false
+  fighter.currentForm = "base"
+  fighter.attackSpeedMultiplier = 1
+  if (fighter._shiFtBaseDash != null) { fighter.dashSpeed = fighter._shiFtBaseDash; fighter._shiFtBaseDash = null }
+  fighter._shiOppTimeScale = 0; fighter._shiFtTrail = []
 }
 
 // ═════════════════════════════════════════════════════════════════════════════

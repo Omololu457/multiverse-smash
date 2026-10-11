@@ -8037,7 +8037,7 @@ function _updatePlayerCombatBody(fighter) {
   // Ultimate is pressed so executeShisuiFallenUltimate picks the branch (the U/D variants no-op until their phase).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "shisui_fallen") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
-    fighter._ultVariant = _hd === "U" ? "kotoamatsukami" : _hd === "D" ? "emeraldSusanoo" : "thousandShadows"
+    fighter._ultVariant = _hd === "U" ? "kotoamatsukami" : _hd === "D" ? "emeraldSusanoo" : _hd === "F" ? "flickerTime" : "thousandShadows"
   }
   // SHISUI (TRINITY) — the active identity's Ultimate is a cinematic (Susanoo Tsukumo / Kotoamatsukami).
   // Stamp a fresh cinematics gate so it refuses during KO / Brutality / Domain / Rick-Prime-rewind. The
@@ -13304,6 +13304,22 @@ function drawShisuiFallenFlicker(c, fighter) {
     }
     c.restore()
   }
+  // FLICKER TIME — an emerald speed-trail of fading stance copies behind him while the world runs at ⅓ speed.
+  if (fighter._shiFlickerActive) {
+    const img = _susanoImg("./shisui_fallen_idle_uniform.png")
+    if (img.complete && img.naturalWidth) {
+      const fw = img.naturalWidth / 2, fh = img.naturalHeight, scale = fighter.spriteScale || 1.3
+      const dh = fh * scale, dw = fw * scale, w = fighter.w ?? 50, h = fighter.h ?? 100
+      const trail = fighter._shiFtTrail || []
+      for (let i = trail.length - 1; i >= 0; i--) {
+        const g = trail[i]
+        c.save(); c.globalAlpha = 0.07 + 0.07 * (trail.length - i)
+        c.shadowBlur = 12; c.shadowColor = "rgba(90,230,150,0.8)"
+        c.translate(g.x + w / 2, g.y + h - dh / 2); if ((fighter.facing || 1) < 0) c.scale(-1, 1)
+        c.drawImage(img, 0, 0, fw, fh, -dw / 2, -dh / 2, dw, dh); c.restore()
+      }
+    }
+  }
   // MANGEKYŌ SHARINGAN — a crimson aura + both eyes glow red Mangekyō while lit (the sheet has no eye art).
   if (fighter._sharinganActive && !fighter._emeraldSusano) {
     const w = fighter.w ?? 50, h = fighter.h ?? 100, facing = fighter.facing || 1
@@ -15273,6 +15289,7 @@ function _oppTimeScaleOf(user) {
   if (user._godspeedActive) return GODSPEED_OPP_TIMESCALE
   if (user._flashTimeActive) return user._ftOppTimeScale || 0.34
   if (user._omoFlashActive) return user._omoOppTimeScale || 0.35   // OMOLOLU "Flash Time" — reuses this exact slow-time engine (no aura)
+  if (user._shiFlickerActive) return user._shiOppTimeScale || 0.36 // SHISUI (FALLEN) "Flicker Time" — same slow-time engine, own emerald aura
   return 0
 }
 function _updateGodspeedTimeSlow() {
@@ -20935,6 +20952,8 @@ gameLoop()
     sharinganFatigue: f._sharinganFatigue || 0,                              // Shisui (Fallen) Sharingan fatigue lockout frames
     impactPhase:      f._impactFlash ? (f._impactFlash.phase || "red") : null, // active impact-flash phase ("black" = silhouette ink)
     xformRings:       f._shiXformRings || 0,                                  // Shisui (Fallen) transformation energy-ring burst timer
+    flickerTime:      !!f._shiFlickerActive,                                  // Shisui (Fallen) Flicker Time (world-slow speed buff) active
+    oppTimeScale:     f._shiOppTimeScale || 0,                               // the ⅓-ish time-scale Flicker Time imposes on the foe
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act

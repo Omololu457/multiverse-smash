@@ -18,6 +18,15 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  // Madara Uchiha — WAR UPGRADE sources (base body sprites = project-adapted; these THREE named fan sheets add
+  // the Susano'o / Katon / Mokuton / Rinnegan / Edo-Tensei content). Attribution MANDATORY — M's sheet note
+  // explicitly reads "give credits if used".
+  madara: {
+    work:    "Madara Uchiha — WAR upgrade (Susano'o ladder & Avatar, Katon/Mokuton/Gunbai/Rinnegan, Kurama / Gedo Mazo / Kajukai Korin)",
+    artists: ["pepino78 (P — Susano'o & FX sheet)", "Altair / AltairFrameMaker (A — Susano'o boss / Avatar + meteor)", "X-Sputnick (M — Edo Tensei summons)"],
+    source:  "P: uchiha_madara_jus_2_0_by_pepino78 (DeviantArt). A: susanoo_boss_sprite_sheet_by_altair (AltairFrameMaker). M: madara_edo_tensei_jus_sprite_sheet_by_x_sputnick (in-sheet note: \"give credits if used\"). Base-body sprites remain project-adapted.",
+    files:   ["uchiha_madara_jus_2_0_by_pepino78_dao2k4z.png", "susanoo_boss_sprite_sheet_by_altair_by_altairframemaker_de2755a.png", "madara_edo_tensei_jus_sprite_sheet_by_x_sputnick_dcnr250-fullview.png", "madara_susanoo_s*_uniform.png", "madara_avatar_*_uniform.png", "madara_kurama_uniform.png", "madara_gedo_mazo_uniform.png", "madara_kajukai_uniform.png", "madara_bijuudama_uniform.png"]
+  },
   // Sakura Haruno (Naruto) — the source sheet carries a baked header credit: "BY: RBM-Kyuubi". Attribution
   // is MANDATORY. Navy-keyed + per-action sliced by tools/reslice_sakura.py → sakura_*_uniform.png.
   sakura: {
@@ -546,7 +555,7 @@ export const SOURCED_ART = {
 export const PROJECT_ART_KEYS = [
   "goku", "goku_black", "vegeta", "cell",   // frieza + piccolo MOVED to SOURCED_ART (now real ripped sprite sheets, no longer procedural project-art)
   "sukuna", "omololu", "maki", "yuji", "jesus",   // jesus: JUS-style sheet sliced/repacked in-repo (tools/reslice_jesus.py + repack_jesus.py) → project-adapted art
-  "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "madara", "obito", "tobi",
+  "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "obito", "tobi",   // madara MOVED to SOURCED_ART (WAR upgrade: pepino78 / Altair / X-Sputnick)
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",
   "rick", "morty", "evilMorty", "rickPrime",
   "beerus", "ben10", "albedo", "omniman",

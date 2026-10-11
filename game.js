@@ -13164,22 +13164,38 @@ function drawShisuiKotoOverlay(c, fighter) {
 // (7-frame strip sliced from P) as the block settles, then holds the full ribcage while guarding.
 // Render-only (a cosmetic growth counter, never read by the sim → LAN-safe). madara only; added because
 // his base guard had no Susanoo visual. The Complete/armored forms have their own look → skipped there.
+// PARTIAL-SUSANO'O ribcage GUARD shell while blocking. Madara uses his 7-frame growth sheet; the three
+// Sasukes (teen / Sensei / Adult) use their Susano'o ribcage, scale-growing in. Bigger + clearly visible
+// (user polish). Render-only growth counter. Skipped while a dedicated giant / War-Susano'o form is up so
+// it never double-stacks with that form's own ribcage.
+const _RIBCAGE_GUARD_SHEET = {
+  madara: "./madara_susanoo_ribcage_growth_uniform.png",
+  sasuke: "./sasuke_susano_ribcage.png", sasuke_adult: "./sasuke_susano_ribcage.png", sasuke_sensei: "./sasuke_susano_ribcage.png",
+}
 function drawMadaraRibcageGuard(c, fighter) {
-  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara") return
-  if ((fighter._madaraComplete || 0) > 0 || (fighter._madaraSusanoo || 0) > 0 || !fighter.isBlocking) { fighter._madRibcageT = 0; return }
-  const img = _susanoImg("./madara_susanoo_ribcage_growth_uniform.png")
+  if (!c || !fighter) return
+  const rk = (fighter.rosterKey || "").toLowerCase()
+  const sheet = _RIBCAGE_GUARD_SHEET[rk]; if (!sheet) return
+  // Don't stack on a giant / War-Susano'o form (those draw their own ribcage / have their own look).
+  if ((fighter._madaraComplete || 0) > 0 || (fighter._madaraSusanoo || 0) > 0 || (fighter._madaraAvatar || 0) > 0 ||
+      (fighter._madaraLadder || 0) > 0 || (fighter._warGuard || 0) > 0 || fighter._warSoldier ||
+      (fighter._warTorso || 0) > 0 || (fighter._susanooStage || 0) > 0 || !fighter.isBlocking) { fighter._madRibcageT = 0; return }
+  const img = _susanoImg(sheet)
   if (!img.complete || !img.naturalWidth) return
-  const FR = 7, fw = img.naturalWidth / FR, fh = img.naturalHeight
-  const t = (fighter._madRibcageT = Math.min(FR * 4, (fighter._madRibcageT || 0) + 1))
-  const fi = Math.min(FR - 1, Math.floor(t / 4))     // 4 render-frames per growth frame → ~0.5s to full ribcage
+  const madara = rk === "madara"
+  const FR = madara ? 7 : 1, fw = img.naturalWidth / FR, fh = img.naturalHeight
+  const t = (fighter._madRibcageT = Math.min(FR * 4 + 10, (fighter._madRibcageT || 0) + 1))
+  const fi = Math.min(FR - 1, Math.floor(t / 4))
+  const grow = Math.min(1, t / 9)                    // scale-grow (single-frame Sasuke ribcage snaps up over ~9f)
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const face = fighter.facing || 1
-  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5
-  const dh = h * 0.78, dw = dh * (fw / fh)
-  const alpha = 0.42 + 0.12 * Math.sin(t * 0.25)     // faint pulsing Susanoo shell
-  c.save(); c.globalAlpha = Math.max(0, Math.min(0.72, alpha))
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.52
+  const dh = h * 0.96 * (madara ? 1 : grow), dw = dh * (fw / fh)    // BIGGER shell (was 0.78h)
+  const alpha = (0.6 + 0.2 * Math.sin(t * 0.22)) * (madara ? 1 : grow)   // MORE visible (was 0.42, cap 0.72)
+  c.save(); c.globalAlpha = Math.max(0, Math.min(0.85, alpha))
   c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
-  c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  if (madara) c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  else        c.drawImage(img, -dw / 2, -dh / 2, dw, dh)
   c.restore()
 }
 function drawGaaraFx(c, fighter) {

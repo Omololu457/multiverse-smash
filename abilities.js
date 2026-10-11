@@ -24814,15 +24814,24 @@ function climbMadaraLadder(fighter, context) {
   if (next > 3) return false
   if (!spendEnergy(fighter, MADARA_LADDER_CLIMB_COST)) return false
   _madApplyStage(fighter, next)
-  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
-  fighter._madLadderFx  = 22
-  spawnProjectile(fighter, "madaraRedRing", {                       // P's Ultimate-Action red-ring climb FX
-    visualOnly: true, damage: 0, speed: 0, lifetime: 24, vx: 0, vy: 0, w: 140, h: 140,
-    sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: 2.2,
-    spawnX: fighter.x + (fighter.w || 60) / 2 - 70, spawnY: fighter.y + (fighter.h || 100) * 0.3
-  }, context)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 20)
+  fighter._madLadderFx  = 26
+  fighter.vx = 0
+  // TRANSFORMATION FLASH — a red-ring burst that scales UP with the stage + a wider shock ring, so each climb
+  // reads as a real power-up sequence (not an instant swap). Deterministic.
+  const sc = 2.4 + next * 0.5
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.35
+  const ring = spawnProjectile(fighter, "madaraRedRing", {
+    visualOnly: true, damage: 0, speed: 0, lifetime: 28, vx: 0, vy: 0, w: 160, h: 160,
+    sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: sc, color: "#d23040"
+  }, context); if (ring) { ring.x = cx - 80; ring.y = cy - 10 }
+  const burst = spawnProjectile(fighter, "madaraClimbBurst", {
+    visualOnly: true, damage: 0, speed: 0, lifetime: 20, vx: 0, vy: 0, w: 240, h: 120,
+    sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 7, spriteScale: sc * 1.7, color: "#ff6a3a"
+  }, context); if (burst) { burst.x = cx - 120; burst.y = cy + 20 }
   try { sound.playSfxFile?.(pickMadaraVoice(next >= 3 ? "completeSusanoo" : "susanooArmor"), null); fighter._atkVoiceCd = 150 } catch (_) {}
-  try { shakeCamera(context, 7, 8) } catch (_) {}
+  try { shakeCamera(context, 9 + next * 3, 14) } catch (_) {}
+  try { focusCameraOnAction(context, fighter, fighter, 1.1 + next * 0.05, 16) } catch (_) {}   // brief zoom-in on the transformation
   return true
 }
 function dropMadaraLadderStage(fighter) {
@@ -24901,25 +24910,47 @@ function fireMadaraLadderTengai(fighter, context, free = false) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!free && !spendEnergy(fighter, 60)) return false
   const face = fighter.facing || 1
+  const dbl = (fighter._madaraLadder || 0) >= 3 || (fighter._madaraAvatar || 0) > 0   // double meteor @ Perfect Susano'o / Avatar
   fighter.attackCooldown = getAttackDuration(34, fighter)
   try { sound.playSfxFile?.(pickMadaraVoice("tengaiShinsei"), null); fighter._atkVoiceCd = 150 } catch (_) {}
   const target = getTargetResolver(context)(fighter)
   const tx = target ? target.x + (target.w || 60) / 2 : fighter.x + face * 300
-  spawnProjectile(fighter, "madaraTengaiMeteor", {                  // primary meteor (P rock) — falls onto the target
-    damage: 150, speed: 0, lifetime: 70, vx: 0, vy: 11,
-    hitstun: 34, knockbackX: 6, knockbackY: -8, w: 150, h: 150, color: "#8a7a4a", isSpecial: true,
-    sheet: "./madara_tengai_meteor_uniform.png", spriteFrames: 2, spriteW: 329, spriteH: 254, spriteSpeed: 8, spriteScale: 1.1,
-    spawnX: tx - 75, spawnY: fighter.y - 420
+  const ty = target ? target.y + (target.h || 100)   : fighter.y + (fighter.h || 100)   // the ground line under the target
+  // CAST — a Rinnegan-call rumble + a WARNING shadow that blooms at the impact point (the telegraph: you can
+  // feel the mass coming before it lands). Deterministic (sim-frame scheduling, no gameRng / wall-clock).
+  try { shakeCamera(context, 7, 10) } catch (_) {}
+  const warn = spawnProjectile(fighter, "madaraTengaiWarn", {
+    visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 46, w: 190, h: 64,
+    sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 9, spriteScale: 2.6, color: "#c01f2a"
   }, context)
-  if ((fighter._madaraLadder || 0) >= 3) {                          // DOUBLE METEOR at Stage 3 — A's big fiery meteor
+  if (warn) { warn.x = tx - 95; warn.y = ty - 34 }
+  spawnProjectile(fighter, "madaraTengaiMeteor", {                  // primary meteor (P rock) — BIG, falls from high for weight
+    damage: 150, speed: 0, lifetime: 84, vx: 0, vy: 13,
+    hitstun: 34, knockbackX: 6, knockbackY: -8, w: 170, h: 170, color: "#8a7a4a", isSpecial: true,
+    sheet: "./madara_tengai_meteor_uniform.png", spriteFrames: 2, spriteW: 329, spriteH: 254, spriteSpeed: 8, spriteScale: 1.55,
+    spawnX: tx - 85, spawnY: fighter.y - 520
+  }, context)
+  if (dbl) {                                                        // DOUBLE METEOR — A's big fiery meteor follows, offset + bigger
     spawnProjectile(fighter, "madaraTengaiMeteorBig", {
-      damage: 200, speed: 0, lifetime: 80, vx: 0, vy: 10,
-      hitstun: 40, knockbackX: 10, knockbackY: -9, w: 190, h: 190, color: "#ff5a2a", isSpecial: true,
-      sheet: "./madara_tengai_meteor_big_uniform.png", spriteFrames: 1, spriteW: 192, spriteH: 183, spriteScale: 1.25,
-      spawnX: tx - 95 + face * 70, spawnY: fighter.y - 560
+      damage: 200, speed: 0, lifetime: 94, vx: 0, vy: 12,
+      hitstun: 40, knockbackX: 10, knockbackY: -9, w: 210, h: 210, color: "#ff5a2a", isSpecial: true,
+      sheet: "./madara_tengai_meteor_big_uniform.png", spriteFrames: 1, spriteW: 192, spriteH: 183, spriteScale: 1.9,
+      spawnX: tx - 105 + face * 80, spawnY: fighter.y - 680
     }, context)
-    try { shakeCamera(context, 9, 10) } catch (_) {}
   }
+  // BUILDING RUMBLE as the mass bears down → a GROUND-SPLITTING impact beat (a huge camera slam + a shockwave
+  // ring bursting from the crater), then an aftershock. Mirrors Pain's Chibaku Tensei impact feel.
+  const IMPACT = 44
+  for (let k = 1; k <= 3; k++) schedulePendingSpawn(Math.floor(IMPACT * k / 4), () => { try { shakeCamera(context, 5 + k * 4, 9) } catch (_) {} })
+  schedulePendingSpawn(IMPACT, () => {
+    try { shakeCamera(context, dbl ? 46 : 34, dbl ? 40 : 32) } catch (_) {}     // the planetary-mass SLAM
+    const ring = spawnProjectile(fighter, "madaraMeteorShock", {
+      visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 24, w: 340, h: 130,
+      sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: dbl ? 6 : 4.6, color: "#ffb020"
+    }, context)
+    if (ring) { ring.x = tx - 170; ring.y = ty - 55 }
+  })
+  schedulePendingSpawn(IMPACT + 12, () => { try { shakeCamera(context, dbl ? 24 : 16, 18) } catch (_) {} })   // aftershock
   return true
 }
 
@@ -24976,7 +25007,23 @@ export function enterMadaraAvatarUlt(fighter, context) {
   if ((fighter.energy || 0) < (fighter.maxEnergy || 220)) return false   // FULL chakra only
   if (!spendEnergy(fighter, MADARA_AVATAR_COST)) return false
   try { sound.playSfxFile?.(pickMadaraVoice("completeSusanoo"), null); fighter._atkVoiceCd = 150 } catch (_) {}
-  return enterMadaraAvatar(fighter)
+  const ok = enterMadaraAvatar(fighter)
+  if (ok) {
+    // AVATAR AWAKENING — the biggest transformation beat: twin expanding energy rings (blue→orange) erupt from
+    // Madara as the colossus manifests, a heavy ground-slam shake, and a brief zoom-in. Deterministic.
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 28)
+    const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.3
+    for (let i = 0; i < 2; i++) {
+      const r = spawnProjectile(fighter, "madaraAvatarBurst", {
+        visualOnly: true, damage: 0, speed: 0, lifetime: 32, vx: 0, vy: 0, w: 320, h: 160,
+        sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: 5 + i * 2.6, color: i ? "#ff7a2a" : "#2aa0ff"
+      }, context)
+      if (r) { r.x = cx - (160 + i * 80); r.y = cy - 20 }
+    }
+    try { shakeCamera(context, 30, 26) } catch (_) {}
+    try { focusCameraOnAction(context, fighter, fighter, 1.2, 24) } catch (_) {}   // zoom in on the awakening
+  }
+  return ok
 }
 function startMadaraAvatarLose(fighter) {
   fighter._madaraAvatar     = 0

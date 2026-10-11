@@ -214,6 +214,7 @@ import {
   updateShisuiFallenFlicker,     // Shisui (Fallen) — Body-Flicker: charges regen + afterimage spawn/absorb (per-frame)
   updateShisuiFallenSusano,      // Shisui (Fallen) Phase 3 — Emerald Susanoo per-frame driver (rawControls kit + HP-absorb + exit)
   toggleShisuiFallenSharingan,   // Shisui (Fallen) Phase 5 — Mangekyō Sharingan charge-tap toggle
+  updateShisuiFallenGrabCombat,  // Shisui (Fallen) Phase 5 — Forward+Grab Susanoo Arm Grab hook
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -8467,6 +8468,11 @@ function _updatePlayerCombatBody(fighter) {
   if (susanoAllowed(fighter) && !charging &&
       updateSasukeWarSusanoCombat(fighter, inputState, getAbilityContext())) return
 
+  // SHISUI (FALLEN) — SUSANOO ARM GRAB on Forward+Grab (base form). Consumes the grab only when it fires;
+  // plain grab stays normal. Suppressed while his giant Susanoo is up (it has its own kit).
+  if ((fighter.rosterKey || "").toLowerCase() === "shisui_fallen" && !charging &&
+      updateShisuiFallenGrabCombat(fighter, inputState, getAbilityContext())) return
+
   // MINATO "Yellow Flash Rush": Fwd+Heavy opens minatoRush1, re-tap Heavy on hit → minatoRush2 →
   // minatoRushFin (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Floor Combo,
   // Back+Heavy = Melee Rush. Consumes the input only when it fires; neutral normals stay on the normal path.
@@ -9003,6 +9009,39 @@ function _drawSusanoArmPiece(c, src, ax, ay, bx, by, face, targetH, alpha) {
   if (face < 0) { c.translate(left + len, ay); c.scale(-1, 1); c.drawImage(img, 0, -targetH / 2, len, targetH) }
   else { c.drawImage(img, left, ay - targetH / 2, len, targetH) }
   c.restore()
+}
+// SHISUI (FALLEN) — SUSANOO ARM GRAB: a code-drawn emerald spectral limb reaches from Shisui's shoulder to the
+// foe (extends over startup), claws shut on the grab, then follows the thrown body, then retracts.
+function drawShisuiFallenArm(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen" || !fighter._shiArm) return
+  const A = fighter._shiArm
+  A.t++
+  const w = fighter.w ?? 50, h = fighter.h ?? 100
+  const sx = fighter.x + w * (0.5 + (fighter.facing || 1) * 0.2), sy = fighter.y + h * 0.38   // shoulder
+  let tx = A.popX, ty = A.popY
+  if (A.grabbed && A.target && !A.target.eliminated) { tx = A.target.x + (A.target.w || 60) / 2; ty = A.target.y + (A.target.h || 100) * 0.4 }
+  const reachP = Math.min(1, A.t / Math.max(1, A.startup))
+  const ex = sx + (tx - sx) * reachP, ey = sy + (ty - sy) * reachP
+  const t = globalFrameCount
+  c.save()
+  c.globalAlpha = 0.86
+  c.shadowBlur = 16; c.shadowColor = "rgba(90,230,150,0.8)"
+  // forearm (tapering emerald limb)
+  c.strokeStyle = "rgba(90,230,150,0.92)"; c.lineWidth = Math.max(9, h * 0.16); c.lineCap = "round"
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke()
+  c.strokeStyle = "rgba(180,255,210,0.85)"; c.lineWidth = Math.max(3, h * 0.05)
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke()   // bright core
+  // claw — three emerald talons closing on the grab
+  const cf = (tx >= sx) ? 1 : -1
+  const close = A.grabbed ? 0.4 : (1 - Math.abs(Math.sin(t * 0.3)) * 0.3)
+  c.fillStyle = "rgba(130,255,180,0.95)"; c.shadowBlur = 10
+  for (let k = -1; k <= 1; k++) {
+    const sp = (18 + k * 2) * close
+    c.beginPath(); c.moveTo(ex, ey); c.lineTo(ex + cf * (22 + k * 4), ey - 10 + k * 12 * (0.5 + close)); c.lineTo(ex + cf * 9, ey + k * 7); c.closePath(); c.fill()
+  }
+  c.restore()
+  const life = A.grabbed ? 56 : A.max
+  if (A.t > life) fighter._shiArm = null
 }
 function drawSasukeWarArm(c, fighter) {
   if (!c || !susanoAllowed(fighter)) return
@@ -16140,6 +16179,7 @@ function renderHybridFighter(fighter) {
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
     drawSasukeWarGuard(c, fighter)          // War-Susano'o (sensei/adult) — Ribcage Guard shell (code-drawn, keyed rib bands)
     drawSasukeWarArm(c, fighter)            // War-Susano'o (sensei/adult) — procedural Arm Grab (upper→claw extend, keyed segments)
+    drawShisuiFallenArm(c, fighter)         // Shisui (Fallen) — Susanoo Arm Grab, code-drawn emerald limb + claw (shisui_fallen only)
     drawSasukeWarCrater(c, fighter)         // War-Susano'o (sensei/adult) — ground-slam crater from the Arm Grab throw
     drawMadaraRibcageGuard(c, fighter)      // Madara — Partial-Susanoo ribcage GUARD visual (grows while blocking; madara only, render-only)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
@@ -22753,6 +22793,7 @@ gameLoop()
     // SHISUI (FALLEN) Phase 3 — Emerald Susanoo state reader (snapshot omits custom _fields).
     shisuiFallenSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const PS = f._emeraldSusano; return { active: !!PS, hp: PS ? Math.round(PS.hp) : 0, max: PS ? PS.max : 0, t: PS ? PS.t : 0, pose: PS ? PS.pose : null, action: PS ? PS.action : null, volley: PS ? !!PS.volley : false, finisher: PS ? !!PS.finisher : false, tier: PS ? (PS.tier || 1) : 0, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0) } },
     shisuiFallenSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleShisuiFallenSharingan(f); return { toggled: !!ok, active: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, energy: Math.round(f.energy || 0) } },   // test-only: toggle the Mangekyō
+    shisuiFallenArm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const A = f._shiArm; return { active: !!A, grabbed: A ? !!A.grabbed : false, resolved: A ? !!A.resolved : false, throwDmg: f._grabThrowDmg || 0 } },   // Susanoo Arm Grab state
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {
       fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },

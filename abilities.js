@@ -22114,6 +22114,51 @@ function shisuiFallenKotoamatsukami(fighter, context) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// SHISUI (FALLEN) — PHASE 5: SUSANOO ARM GRAB (Forward+Grab). A spectral emerald Susanoo arm pops out at the foe,
+// clutches, and the shared grab pipeline (resolveGrab → pop-up-and-drop) LIFTS + SLAMS. Render = drawShisuiFallenArm
+// (code-drawn emerald limb + claw, follows the thrown body). combat.js-FREE (resolveGrab is the shared pipeline).
+const SHISUI_FALLEN_GRAB = { cost: 16, startup: 10, reach: 230, throw: 100, whiff: 24 }
+export function updateShisuiFallenGrabCombat(fighter, inputState, context) {
+  if (!isShisuiFallen(fighter) || !inputState) return false
+  const grabHeld = !!inputState.grab
+  const edge = grabHeld && !fighter._shiGrabPrev
+  fighter._shiGrabPrev = grabHeld
+  if (!edge) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (!forward) return false                                   // only Forward+Grab (plain grab stays normal)
+  if (fighter._emeraldSusano) return false                     // the giant has its own kit
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const actionable = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0 && (fighter.hitstun || 0) <= 0
+  if (!grounded || !actionable) return false
+  return shisuiFallenArmGrab(fighter, context)
+}
+function shisuiFallenArmGrab(fighter, context) {
+  if (!spendEnergy(fighter, SHISUI_FALLEN_GRAB.cost)) return false
+  const G = SHISUI_FALLEN_GRAB
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+  const face = fighter.facing || 1
+  const popX = target ? (target.x + (target.w || 60) / 2) : (fighter.x + face * G.reach)
+  const popY = target ? (target.y + (target.h || 100) * 0.4) : (fighter.y + (fighter.h || 100) * 0.4)
+  fighter._shiArm = { t: 0, max: 40, startup: G.startup, popX, popY, facing: face, grabbed: false, resolved: false, target: null }
+  fighter._spriteCastMove = "mangekyou"; fighter._spriteCastTimer = G.startup + 6
+  fighter.attackCooldown = getAttackDuration(G.startup + G.whiff, fighter)
+  schedulePendingSpawn(G.startup, () => {
+    if (fighter.eliminated) return
+    const tgt = getOpp(fighter)
+    const grabbed = resolveGrab(fighter, tgt, context, G.reach)
+    if (grabbed) fighter._grabThrowDmg = shisuiFallenDmg(fighter, tgt, G.throw)
+    if (fighter._shiArm) { fighter._shiArm.grabbed = !!grabbed; fighter._shiArm.target = grabbed ? tgt : null; fighter._shiArm.resolved = true }
+    if (grabbed) {
+      fighter.hitstop = Math.max(fighter.hitstop || 0, 8); tgt.hitstop = Math.max(tgt.hitstop || 0, 8)
+      try { focusCameraOnAction(context, fighter, tgt, 1.1, 18); shakeCamera(context, 11, 14) } catch (_) {}
+    }
+  })
+  try { focusCameraOnAction(context, fighter, target, 0.98, 8); shakeCamera(context, 5, 8) } catch (_) {}
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // SHISUI (FALLEN) — PHASE 3: EMERALD SUSANOO (Down+Ultimate at full meter). A GIANT emerald Susanoo avatar
 // (recoloured Mikeel8888 P sheet — the same giant as Kakashi's Perfect Susanoo, re-palletted green) envelops
 // Shisui. Its HP ABSORBS incoming damage (redirected in updateShisuiFallenSusano → refund Shisui); ends on

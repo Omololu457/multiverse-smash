@@ -154,6 +154,9 @@ export const KITS = {
       { name: "Rising Crescent", input: "Up-Attack",            desc: "launcher — starts air combos" },
       { name: "Air Slash",    input: "Air (jump + Light)",      desc: "aerial" },
       { name: "Flicker Step", input: "Dash / double-tap (F/B/U)", desc: "an INSTANT teleport that leaves a hit-absorbing afterimage (1 charge; 3 total, regenerating)" },
+      { name: "Mangekyō Sharingan", input: "Charge-tap", desc: "toggle the red Mangekyō: +8% damage, 2× flicker-charge regen, longer dōjutsu; drains Chakra while lit, brief fatigue at 0" },
+      { name: "Susanoo Arm Grab", input: "Forward+Grab", desc: "a spectral emerald Susanoo arm snatches the foe and slams them (command grab; plain Grab stays a normal throw)" },
+      { name: "Ribcage Guard", input: "(passive while blocking)", desc: "an emerald Susanoo ribcage shell grows in front while guarding" },
       { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
     ],
     specials: [

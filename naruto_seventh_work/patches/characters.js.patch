@@ -1,0 +1,26 @@
+diff --git a/characters.js b/characters.js
+index ef7f1e7c..1d7a13c6 100644
+--- a/characters.js
++++ b/characters.js
+@@ -10132 +10135,2 @@ const narutoSeventh = {
+-    throwWeapon:   { cost: 10, effect: "Down+Special (also the free projectile): Throw Weapon — flings a kunai as a ranged poke (ground & air). [CANON]" },
++    gamabunta:     { cost: 55, effect: "Down+Special (ground): Kuchiyose: Gamabunta — summon-seal burst → the Toad Boss's sure-hit dagger slash (half on block). Now a SPECIAL. [CANON]" },
++    throwWeapon:   { cost: 10, effect: "Down+Special (AIR): Throw Weapon — flings a kunai as a ranged air poke. [CANON]" },
+@@ -10137 +10141,2 @@ const narutoSeventh = {
+-    wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" }
++    wakusei:       { cost: 50, effect: "KCM Fwd+Special: Wakusei Rasengan (Planetary Rasengan) — a huge slow Rasengan rolls forward. [CANON]" },
++    rikudou:       { cost: 80, effect: "KCM Down+Ultimate — KURAMA BOND 4, once per round: Rikudou (Six Paths) apex — code-drawn gold entry flash → committed black/gold combo (rod slashes → giant golden fist). Ends in Base & resets the Bond. [CANON-ADJACENT]" }
+@@ -10143,2 +10148,2 @@ const narutoSeventh = {
+-    name: "Kuchiyose: Gamabunta", cost: 70, damage: 192,
+-    description: "BASE: Summoning-seal burst → the Toad Boss Gamabunta rises and delivers a sure-hit dagger slash (half on block). KCM: the ultimate becomes a BIGGER Bijuudama — two Kurama heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom). [CANON]"
++    name: "Bijuudama (Tailed Beast Bomb)", cost: 70, damage: 300,
++    description: "KCM ONLY (Gamabunta is now a Down+Special). Neutral: BIGGER Bijuudama — the two nine-tails (Kurama) heads flank and a huge dark-chakra sphere erupts forward (camera shake + ultimate zoom), like the Adult-KCM Naruto. Down+Ult (Bond 4, once/round): RIKUDOU apex — a committed black/gold Six-Paths combo with a code-drawn entry flash that ends in Base and resets the Bond. [CANON]"
+@@ -10161 +10166 @@ const narutoSeventh = {
+-    hurt:      { frames: 3, width: 66, height: 63, speed: 5, anchorY: 0, sheet: "./naruto_seventh_hurt_uniform.png" },   // sheet has 7; play first 3 stagger frames
++    hurt:      { frames: 7, width: 66, height: 63, speed: 5, anchorY: 0, sheet: "./naruto_seventh_hurt_uniform.png" },   // full 7-frame hit-reaction (hitstun gates how far it plays)
+@@ -10189 +10194,4 @@ const narutoSeventh = {
+-    n7Bijuudama:   { frames: 1,  width: 31,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" }   // golden gather stance (heads+sphere are the spectacle)
++    n7Bijuudama:   { frames: 1,  width: 31,  height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_kcm_idle_uniform.png" },   // golden gather stance (heads+sphere are the spectacle)
++    // Rikudou (Sp6, black/gold) committed apex + Oiroke (Sp4 gag) opt-in. From H's OWN sections (never cross modes).
++    n7Rikudou:     { frames: 27, width: 82, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_rikudou_uniform.png" },
++    n7Oiroke:      { frames: 8,  width: 46, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_seventh_oiroke_uniform.png" }

@@ -1,0 +1,32 @@
+[
+ {
+  "name": "hermit_transform",
+  "frames": 14,
+  "width": 67,
+  "height": 80
+ },
+ {
+  "name": "hermit_idle",
+  "frames": 5,
+  "width": 52,
+  "height": 74
+ },
+ {
+  "name": "hermit_walk",
+  "frames": 9,
+  "width": 52,
+  "height": 75
+ },
+ {
+  "name": "hermit_run",
+  "frames": 6,
+  "width": 64,
+  "height": 66
+ },
+ {
+  "name": "hermit_light",
+  "frames": 8,
+  "width": 72,
+  "height": 89
+ }
+]

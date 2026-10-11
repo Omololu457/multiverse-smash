@@ -1,0 +1,48 @@
+=== credits.js SOURCED_ART entry (add before closing brace of SOURCED_ART) ===
+
+  // Shisui (Trinity) — a THREE-identity fighter built from THREE separate fan sprite sheets, one per identity.
+  // THE LOYALIST = Altair's jonin sheet; THE BLADE = Haickal23's sheet; THE PUPPETEER = TheGodGeminis' JUS sheet.
+  // Each sheet carries its own in-sheet credit box (spellings copied from the images). Attribution MANDATORY.
+  // Border-flood-fill keyed (navy 0,64,128) → shisui_trinity_*/shisui_blade_*/shisui_puppeteer_*_uniform.png.
+  shisui_trinity: {
+    work:    "Shisui Uchiha (Trinity) — THE LOYALIST / THE BLADE / THE PUPPETEER",
+    artists: [
+      "ALTAIR (AltairFrameMaker)", "Alexandre360", "Benhazard", "Zoso91", "Distantworld101", "Spectro Sosuke", "xxjhonnyxx", "RBMkyubi",  // N — The Loyalist
+      "Haickal23",                                                                                                                          // H — The Blade
+      "XxjohnnyxX", "TheGodGeminis", "Neimad", "Bonzai", "NES", "Grim", "RedFlash93", "Stephens513"                                         // J — The Puppeteer
+    ],
+    source:  "THREE fan sprite sheets — LOYALIST: shisui_uchiha_jonin_nzc_by_altair_by_altairframemaker_def0sq6.png (in-sheet credits: ALTAIR + Alexandre360/Benhazard/Zoso91/Distantworld101/Spectro Sosuke/xxjhonnyxx/RBMkyubi; portrait is an anime screencap). BLADE: shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png (Haickal23 + in-sheet credit box). PUPPETEER: uchiha_shisui_jus_by_thegodgeminis_d843ju8.png (in-sheet credits: XxjohnnyxX/TheGodGeminis/Neimad/Bonzai/NES/Grim/RedFlash93/Stephens513).",
+    files:   ["shisui_trinity_*_uniform.png", "shisui_blade_*_uniform.png", "shisui_puppeteer_*_uniform.png",
+              "shisui_uchiha_jonin_nzc_by_altair_by_altairframemaker_def0sq6.png",
+              "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png",
+              "uchiha_shisui_jus_by_thegodgeminis_d843ju8.png"]
+  },
+
+=== kits.js KITS entry (add before closing brace of KITS) ===
+// NOTE: shows all THREE identities' kits (Move List requirement). Loyalist is the default; Blade/Puppeteer
+// are reached by the Variant Swap. Full specials per identity filled across P1-P3; swap system P4.
+
+  shisui_trinity: {
+    type: "Trinity — 3 swappable identities (Genjutsu / Blade / Puppeteer)",
+    energy: "Chakra",
+    difficulty: "Very High",
+    summary: "Shisui Uchiha carries three selves at once. Every round opens as THE LOYALIST, a command-grab genjutsu specialist; a Mangekyou Signal body-flickers a second self in behind the foe, and a Variant Swap makes that self the new fighter. THE BLADE is an aggressive striker (overhead/low mixups); THE PUPPETEER is a ranged, stance-cancel assassin. HP and Chakra are shared across all three.",
+    passive: { name: "Three as One", effect: "Mangekyou Signal (Down+Heavy) flickers a partner identity in behind the opponent for one signature strike — unless the foe is cornered, where there is no room and the signal whiffs (you are left vulnerable). Variant Swap (swap input, 1 bar) keeps the partner as the active fighter." },
+    basics: [
+      { name: "Attack Combo", input: "Light", desc: "Loyalist's jonin blade string." },
+      { name: "Susanoo Arm Slam", input: "Heavy", desc: "a spectral green Susanoo arm slams down — a launcher." },
+      { name: "Air Combo", input: "Air + Light", desc: "aerial blade string." }
+    ],
+    specials: [
+      { name: "Shunshin Backstab", input: "Fwd + Special", cost: 18, desc: "SHARED on all three: flicker out, reappear behind the foe with a slash." },
+      { name: "Fireball Jutsu", input: "Neutral + Special", cost: 24, desc: "LOYALIST: a Katon fireball projectile." },
+      { name: "Genjutsu Grab", input: "Back + Special", cost: 22, desc: "LOYALIST: a close-range command grab — white-flash circles stagger the foe." },
+      { name: "Kunai Rain", input: "Down + Special", cost: 26, desc: "LOYALIST: a volley of kunai rains down on the foe." },
+      { name: "Body-Flicker Flurry", input: "Up + Special", cost: 30, desc: "LOYALIST: a shunshin multi-hit slash flurry with afterimages." }
+    ],
+    ultimate: { name: "Susanoo Tsukumo", input: "Ultimate", cost: 100, desc: "LOYALIST: a green Susanoo ribcage erupts, the chest magatama spins, and a volley of chakra needles fires (sure-hit, half on block)." },
+    combos: [
+      { name: "Signal → Swap", sequence: "Down+Heavy → Swap", desc: "call a partner behind the foe, then swap to it mid-pressure." },
+      { name: "Grab → Flurry", sequence: "Back+Special → Up+Special", desc: "stagger then flurry." }
+    ]
+  },

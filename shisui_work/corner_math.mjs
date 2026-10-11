@@ -1,0 +1,21 @@
+import { chromium } from "playwright";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path";
+import { fileURLToPath } from "node:url";
+const ROOT=path.dirname(fileURLToPath(import.meta.url)).replace(/\/shisui_work$/,"");
+const MIME={".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".png":"image/png",".json":"application/json",".css":"text/css",".m4a":"audio/mp4",".mp3":"audio/mpeg",".jpg":"image/jpeg",".heic":"image/heic",".svg":"image/svg+xml",".woff2":"font/woff2"};
+const server=await new Promise(r=>{const s=http.createServer((rq,rs)=>{const u=decodeURIComponent(rq.url.split("?")[0]);const f=path.join(ROOT,u==="/"?"/index.html":u);if(!f.startsWith(ROOT)){rs.writeHead(403).end();return;}fs.readFile(f,(e,d)=>{if(e){rs.writeHead(404).end();return;}rs.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"});rs.end(d);});});s.listen(0,"127.0.0.1",()=>r(s));});
+const base=`http://127.0.0.1:${server.address().port}`;
+const br=await chromium.launch({headless:true,args:["--autoplay-policy=no-user-gesture-required"]});
+const pg=await br.newPage({viewport:{width:1280,height:720}});
+const st=()=>pg.evaluate(()=>window.__harness.state());
+async function wf(n){const s=(await st()).frame;await pg.waitForFunction(([a,b])=>window.__harness.state().frame>=a+b,[s,n],{timeout:8000,polling:16}).catch(()=>{});}
+await pg.goto(`${base}/index.html?harness=1&p1=shisui_trinity&p2=naruto`,{waitUntil:"load"});
+await pg.waitForFunction(()=>window.__harness&&window.__harness.state);
+await pg.evaluate(()=>{window.__harness.start?.();window.__harness.skipToBattle?.();window.__harness.setInputType?.(2,"keyboard");});
+await wf(4);
+await pg.evaluate(()=>window.__harness.setP2X?.(-99999)); await wf(1);
+const d=await pg.evaluate(()=>{const cam=window.__harness.camera?.();const p1=window.__harness.p1(),p2=window.__harness.p2();const cw=document.querySelector("canvas")?.width;
+  const dir=(p2.x>=p1.x)?1:-1; const behindX=p2.x+dir*96; const half=(cw/2)/cam.zoom; const leftE=cam.x-half; const rightE=cam.x+half-60;
+  return {camX:Math.round(cam.x),zoom:+cam.zoom.toFixed(3),cw,foeX:Math.round(p2.x),p1x:Math.round(p1.x),dir,behindX:Math.round(behindX),leftE:Math.round(leftE),rightE:Math.round(rightE),corner:(behindX<leftE+30||behindX>rightE-30)};});
+console.log("CORNER MATH:",JSON.stringify(d));
+await br.close(); server.close();

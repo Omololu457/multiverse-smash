@@ -1,0 +1,6 @@
+diff --git a/sprite.js b/sprite.js
+index ee7cc584..7c0365bc 100644
+--- a/sprite.js
++++ b/sprite.js
+@@ -242,0 +244 @@ const MOVE_TO_ACTION = {
++  n7Rikudou: "n7Rikudou", n7Oiroke: "n7Oiroke",   // Rikudou apex + Oiroke (Phase 4)

@@ -1,0 +1,187 @@
+MULTIVERSE SMASH — MUSIC LIBRARY (SONG LIST)
+================================================
+Total: 179 songs (103 original + 76 appended 2026-09-25 from "new music/")
+Source: musicPersonality.js SONG_CATALOG (via getSongFiles()); files served from repo root.
+
+── ORIGINAL 103 ──
+  1. 20 Min
+  2. 9AM in Calabasas - Playboi Carti
+  3. All I Need (Sped Up)
+  4. Almeda
+  5. Amaarae - SAD GIRLZ LUV MONEY Remix ft Kali Uchis (Lyric Video)
+  6. At The Club
+  7. BACKR00MS FT TRAVIS SCOTT SEXISDEATH INDIANA420BITCH
+  8. Baby Keem - lost souls (Brent Faiyaz Only) Best Version
+  9. Big Boogie - My Lil Sht (with 187 Cash) (Official Audio)
+ 10. Blue Dream
+ 11. Boo'd Up
+ 12. Brent Faiyaz - All Mine (Slowed Down To Perfection)
+ 13. Brent Faiyaz - ROLE MODEL [Official Audio]
+ 14. Brent Faiyaz - Wish You Well (Full Version)
+ 15. Bryson Tiller - Don't (Explicit Version)
+ 16. Camila Cabello - Havana (Audio) ft. Young Thug
+ 17. Chris Brown - No Guidance (Audio) ft. Drake
+ 18. Chris Brown - Under The Influence (Audio)
+ 19. Chérie  23  (Sloweddd)
+ 20. Cochise - Hatchback (Official Video)
+ 21. Cochise - Knicks (Official Video)
+ 22. Crystal Waters - Gypsy Woman [sped up]
+ 23. DaBaby x Stunna 4 Vegas - No Dribble
+ 24. Doja Cat - Gorgeous (Lyrics)
+ 25. Drake & Playboi Carti - Pain 1993 V1 (AI REMASTER)
+ 26. Drake - IDGAF (Audio) ft. Yeat
+ 27. Ella Mai - Trip (Audio)
+ 28. Freek-A-Leek Remix (feat. Twista and Jermaine Dupri)
+ 29. Future - Life Is Good (Official Music Video) ft. Drake
+ 30. Future - Mask Off (Official Music Video)
+ 31. Future - Solo (Official Audio)
+ 32. Gang Over Luv
+ 33. Gangsta Love
+ 34. Glokk40Spaz - Remember Me (Jhene Aiko Stranger Remix) (1)
+ 35. Glokk40Spaz - Remember Me (Jhene Aiko Stranger Remix)
+ 36. Glokk40Spaz - Turbo
+ 37. Glokk40spaz - Backdoor (Official Audio)
+ 38. Heartburn x No Role Modelz (slowed & reverb)
+ 39. It Seems Like You're Ready - R. Kelly (sped up  pitched)
+ 40. Jace! - Goose Creek (OFFICIAL VIDEO) [Shot By_ @Jmoney1041 Edit By_ @jacepowers ]
+ 41. Jhené Aiko - Sativa ft. Swae Lee (Official Audio)
+ 42. Jhené Aiko - stranger (Audio)
+ 43. Katy Perry - Harleys In Hawaii (Lyrics) You and I, Ridin' Harleys in Hawaii-i-i
+ 44. King Von - Crazy Story (Official Music Video)
+ 45. King Von - Crazy Story, Pt. 3 (Official Video)
+ 46. King Von - Gleesh Place (Official Video)
+ 47. King Von - Took Her To The O (Official Video)
+ 48. Kirk Franklin - I Smile (Official Video)
+ 49. LUCKI - 2021 Vibes (Official Video)
+ 50. LUCKI - Leave Her (Official Audio)
+ 51. Lil Uzi Vert - New Patek [Official Audio]
+ 52. Lil Yachty - Oprah's Bank Account (Lyrics) ft. DaBaby & Drake
+ 53. Luv Punnani (1)
+ 54. Luv Punnani
+ 55. Luxurious
+ 56. Metro Boomin, Don Toliver, Future - Too Many Nights (Official Video)
+ 57. Midas The Jagaban - Party With A Jagaban (Lyrics)
+ 58. My Body
+ 59. NBA YoungBoy - BossManeDlow (TOP MIX)
+ 60. NBA YoungBoy - Vette Motors
+ 61. NBA Youngboy - 4 Sons of a King (Official Audio)
+ 62. NBA Youngboy - Fish Scale
+ 63. NLE Choppa  - Mmm Hmm (Official Music Video)
+ 64. Nardo Wick - Who Want Smoke__ ft. Lil Durk, 21 Savage & G Herbo (Official Music Video) (1)
+ 65. Nardo Wick - Who Want Smoke__ ft. Lil Durk, 21 Savage & G Herbo (Official Music Video)
+ 66. Nine Vicious - Trevon O'Ryan Echols
+ 67. No Savage - Dedication ( Official Video ) Dir. @Waxbando
+ 68. One Dance (feat. WizKid & Kyla) - Drake (Official Audio)
+ 69. One More Chance  Stay with Me (Remix) (2007 Remaster)
+ 70. PAIN 1993 [OG]  SLOWED & REVERB
+ 71. PELIGROSA
+ 72. PinkPantheress - I must apologise (Extended)
+ 73. Playboi Carti - Sky [Official Video]
+ 74. Rema - dumebi (sped up)
+ 75. SZA - Broken Clocks (Official Audio)
+ 76. SZA - Shirt (Audio)
+ 77. Sheck Wes - WESPN (Official Audio)
+ 78. Shiloh Dynasty - So low
+ 79. Stay Schemin
+ 80. Stereo Love (Remastered Version)
+ 81. Steve Lacy - N Side (Official Audio)
+ 82. Summer Walker - Girls Need Love (Audio)
+ 83. Taeko Ōnuki (大貫妙子) - Tokai (都会) [Lyrics EngRomKan]
+ 84. Tek It
+ 85. Vicetone - Nevada (ft. Cozi Zuehlsdorff)
+ 86. Wine & Dine
+ 87. Wisdom - Kickback (Official Music Video)
+ 88. Young Thug & Gunna - Ski [Official Video]  Young Stoner Life
+ 89. Young Thug - I'm Scared ft. 21 Savage & Doeboy (Official Audio)
+ 90. Young Thug - Surf ft. Gunna [Official Video]
+ 91. YoungBoy Never Broke Again - 1.5 [Official Audio]
+ 92. YoungBoy Never Broke Again - Nevada [Official Audio]
+ 93. Zero IQ Freestyle
+ 94. baby you're worth it
+ 95. don't need a lot (slowed)
+ 96. j. cole  no role modelz ﾉ slowed  reverb ﾉ
+ 97. megan thee stallion  big ole freak [slowed  pitched] [daycore]
+ 98. no idea x body party (sped up)
+ 99. pain 1993 og carti verse
+100. playboi carti - backr00ms but its in the actual backrooms
+101. stereo love but its slowed to perfection
+102. 情绪回收站 (治愈纯音乐版)
+103. 眠れぬ都会 (Sleepless City)
+
+── APPENDED 2026-09-25 (+76) ──
+104. Blowing Emotions
+105. BoofPaxkMooky - Last Man Standing (Lyrics)
+106. Brent Faiyaz - Butterflies. (Lyrics)
+107. CKay - Love Nwantiti (TikTok Remix) (Lyrics) I am so obsessed I want to chop your nkwobi
+108. DaBaby - BOP On Broadway (Hip Hop Musical)
+109. DaBaby - JUMP ft. YoungBoy Never Broke Again
+110. DaBaby - Suge
+111. Drake - From Time (Feat. Jhene Aiko)
+112. Famous Dex - Japan [Official Audio]
+113. Foolish
+114. Future & Young Thug - No Cap [Official Audio]
+115. Gbona
+116. Gunna - Baby Birkin [Official Audio]
+117. Jeezy ft BankrollFresh - All There
+118. Jhené Aiko - B.S. ft. H.E.R. (Official Audio)
+119. Jhené Aiko - my mine (Audio)
+120. Jhené Aiko - Stay Ready (What A Life) (Lyrics) ft. Kendrick Lamar
+121. Kevin Gates feat. Sexyy Red & B.G. - Yonce Freestyle
+122. Lil Tony - “ Nan “ (Official Music Video) Shot By Public Goat
+123. Lil Tony - Answer My Prayers (Official Music Video)
+124. Lil Tony Official - Who’s The Flyest (Visualizer)
+125. Lucki - Geeked (Audio)
+126. LUCKI - Heavy On My Heart (Official Video)
+127. LUCKI - New Drank (Dir. LONEWOLF)
+128. Married to the Game
+129. NBA YoungBoy - House Arrest Tingz (Lyrics)
+130. NBA YoungBoy - I Hate YoungBoy (Lyrics)
+131. NLE Choppa - Final Warning (Official Video)
+132. ORANGE SODA
+133. Oxlade - KU LO SA A COLORS SHOW
+134. PISSY PAMPER - Playboi Cardi (with Young Nudy)
+135. Playboi Carti - @ MEH [Official Video]
+136. Playboi Carti - BACKD00R [feat. Kendrick Lamar & Jhene Aiko] (Official Audio)
+137. Playboi Carti - Cancun (Official Video)
+138. Playboi Carti - EVIL J0RDAN (Official Music Video)
+139. Playboi Carti - ILoveUIHateU (Official Audio)
+140. Playboi Carti - Magnolia (Audio)
+141. Playboi Carti - Place (Official Audio)
+142. Playboi Carti - Tattoo
+143. Playboi Carti - TUNDRA H00DBYAIR (Official Music Video)
+144. Playboi Carti - wokeuplikethis (Audio) ft. Lil Uzi Vert
+145. Playboi Carti ft. Kanye West - Go2DaMoon (Official Audio)
+146. PnB Rock - Middle Child feat. XXXTENTACION [Official Audio]
+147. Rochelle Jordan - Lowkey
+148. Shot Callin
+149. Sing To Me
+150. Smoking Marley
+151. sped up nightcore - Watch This (Lil Uzi Vert) [ARIZONATEARS Pluggnb Remix]
+152. stranger
+153. Subliminals - pz'
+154. Tay K - The Race [Official Audio] (1)
+155. Tay K - The Race [Official Audio]
+156. Tay-K - Gotta Blast [Official Audio]
+157. Tay-K - Lemonade [Official Audio] (1)
+158. Tay-K - Lemonade [Official Audio]
+159. Tay-K - Mega Man [Official Audio]
+160. Tay-K - Murder She Wrote [Official Audio}
+161. TI- 24's (DIRTY) [HQ]
+162. Trevon O'Ryan Echols
+163. Wande Coal, DJ Tunez - Iskaba [Official Audio]
+164. What You Is
+165. Yemi Alade - Johnny (Official Audio)
+166. Yessirskiii
+167. Yike Train
+168. YoungBoy Never Broke Again - Big Truck [Official Music Video]
+169. YoungBoy Never Broke Again - By Myself [Official Audio]
+170. YoungBoy Never Broke Again - DIESEL OVER - [Official Music Video]
+171. YoungBoy Never Broke Again - FWYT [Official Audio]
+172. Youngboy Never Broke Again - Green Dot (Lyrics)
+173. YoungBoy Never Broke Again - Guitar Hero (Lyrics) New Song
+174. YoungBoy Never Broke Again - Make No Sense [Official Audio]
+175. YoungBoy Never Broke Again - Mr. Gaulden [Official Audio]
+176. YoungBoy Never Broke Again - Out Nothing [Official Audio]
+177. YoungBoy Never Broke Again - Show Me Your Love (Official Audio) (1)
+178. YoungBoy Never Broke Again - Show Me Your Love (Official Audio)
+179. YoungBoy Never Broke Again - TOP TINGZ [Official Music Video]

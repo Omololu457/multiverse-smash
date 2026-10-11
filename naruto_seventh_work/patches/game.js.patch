@@ -1,0 +1,15 @@
+diff --git a/game.js b/game.js
+index 79f01602..45b80e8d 100644
+--- a/game.js
++++ b/game.js
+@@ -162,0 +163 @@ import {
++  n7Oiroke, narutoSeventhOirokeEnabled, setNarutoSeventhOiroke,   // Naruto (Seventh) — Oiroke opt-in (default OFF) distraction + toggle
+@@ -6740 +6741,2 @@ function handleChargeRelease(fighter, key) {
+-  // a quick TAP while in KCM exits early. applyNarutoSeventhSystem ticks the timer + auto-reverts.
++  // a quick TAP while in KCM exits early. In base, a quick TAP fires Oiroke IF the opt-in is on (else the
++  // hold path enters KCM). applyNarutoSeventhSystem ticks the timer + auto-reverts.
+@@ -6742,0 +6745 @@ function handleChargeRelease(fighter, key) {
++    else if (wasTap && narutoSeventhOirokeEnabled()) n7Oiroke(fighter, getAbilityContext())   // base TAP = Oiroke (opt-in)
+@@ -21083,0 +21151,2 @@ gameLoop()
++    setN7Oiroke: (on = true) => { try { setNarutoSeventhOiroke(!!on) } catch (_) {} return { oiroke: narutoSeventhOirokeEnabled() } },   // test-only: toggle the Oiroke opt-in
++    setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate

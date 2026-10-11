@@ -1,0 +1,7 @@
+[
+ {"name":"hermit_transform","sheet":"T","y0":4095,"y1":4182,"x0":12,"x1":935,"take":[0,14]},
+ {"name":"hermit_idle","sheet":"T","y0":4240,"y1":4324,"x0":14,"x1":355},
+ {"name":"hermit_walk","sheet":"T","y0":4240,"y1":4324,"x0":355,"x1":1020},
+ {"name":"hermit_run","sheet":"T","y0":4367,"y1":4462,"x0":14,"x1":592},
+ {"name":"hermit_light","sheet":"T","y0":4727,"y1":4824,"x0":12,"x1":560}
+]

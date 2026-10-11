@@ -4,6 +4,37 @@ Newest first. "★" = landed on main. Dates are when the work was done.
 ========================================================================
 
 ========================================================================
+MADARA UCHIHA — "WAR" UPGRADE  (2026-10-10)  ★ all on main
+========================================================================
+  Additive upgrade of the EXISTING madara fighter from 3 fan sheets — P
+  (pepino78, PRIMARY), A (Altair Susano'o boss), M (x-sputnick Edo Tensei).
+  SOURCE MATCH = NO → kept his own body, used only the sheets' Susano'o /
+  FX / summon art. combat.js + characters.js + base masters UNTOUCHED.
+  Commits: P1 9ed79852 · P2 353cba4e · P3 16c05faf · polish ef9b295c ·
+  P4 538efbe6 · credits 9a5ce0a0.
+  - P1: partial-Susano'o ribcage GUARD shell (block) + Katon Gōka Mekkyaku
+    (qcf) / Rinnegan Shinra Tensei (qcb) / Katon Goryūka (B,F) + full Move List.
+  - P2: SUSANO'O LADDER — full-chakra charge-RELEASE climbs Base→Ribcage→
+    Warrior→Perfect (per-stage Susano'o HP, break drops a stage); stage sword +
+    Yasaka Magatama + Tengai meteor (DOUBLE at Perfect, A's 2nd meteor).
+  - P3: SUSANO'O AVATAR (Up+Ult at full chakra) — timed A-sheet boss with its
+    own HP + 2-hit sword / Magatama / Tengai / Gōka; ends → A's LOSE dissolve.
+  - P4: EDO TENSEI SUMMONS — Down+Ult KURAMA (Special = Tailed Beast Bomb;
+    control-breaks after 4 clean hits/timeout) · Back+Ult GEDO MAZO statue
+    crash · Fwd+Ult KAJUKAI KORIN flower field → foe drowsy/slow.
+  - Polish: meteor WEIGHT (telegraph + building rumble + ground-slam shake +
+    shockwave), transformation beats (climb/Avatar = rings + shake + zoom),
+    bigger/clearer ribcage shell (also applied to all 3 Sasukes while blocking).
+
+  ★★ SAVED SPEC — IMPACT-FRAME "BLACK SILHOUETTE" (user-confirmed, "that was
+     perfect"):  on an impact beat, the Susano'o (and Madara's forms) should
+     flash to a SOLID BLACK silhouette, then snap BACK to its regular colour —
+     a quick black→colour hit-flash, NOT a lingering tint. This is the desired
+     impact-frame look for Madara. (Engine hook: the existing impact-frame
+     system — sprite.js reads fighter._impactFlash, the black→red→white cycle,
+     game.js ~1164; for Madara, lock it to the clean black→return beat.) TODO:
+     wire Madara's Susano'o/heavy-hit/ult-connect impacts to this black flash.
+========================================================================
 JIRAIYA — LIGHT CLONE KIT (Feint + Pincer) — 2026-10-08
   (branch jiraiya-clones, off jiraiya; NOT merged. Its ancestry already includes
    the naruto-clone-choreography merge via main.)

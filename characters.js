@@ -10624,19 +10624,19 @@ const shisuiFallen = {
   spriteScale: 1.3,   // idle body 84px × 1.3 ≈ 109px on-screen (teen-ninja tier, same target as the Blade)
   animationData: {
     idle:  { frames: 2, width: 29,  height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_fallen_idle_uniform.png" },
-    walk:  { frames: 6, width: 70,  height: 101, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
-    run:   { frames: 6, width: 70,  height: 101, speed: 5, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
-    dash:  { frames: 6, width: 70,  height: 101, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_run_uniform.png" },
+    walk:  { frames: 6, width: 64,  height: 69, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
+    run:   { frames: 6, width: 64,  height: 69, speed: 5, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
+    dash:  { frames: 6, width: 64,  height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_run_uniform.png" },
     jump:  { frames: 4, width: 61,  height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_jump_uniform.png" },
     fall:  { frames: 1, width: 61,  height: 82, speed: 6, anchorY: 0, sourceX: 183, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_jump_uniform.png" },
-    guard: { frames: 2, width: 50,  height: 102, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_guard_uniform.png" },
-    hurt:  { frames: 1, width: 59,  height: 95, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_hurt_uniform.png" },
-    knockdown: { frames: 4, width: 81, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_knockdown_uniform.png" },
+    guard: { frames: 2, width: 50,  height: 83, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_guard_uniform.png" },
+    hurt:  { frames: 1, width: 59,  height: 81, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_hurt_uniform.png" },
+    knockdown: { frames: 5, width: 85, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_knockdown_uniform.png" },
     light:    { frames: 9, width: 67,  height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_light_uniform.png" },
     heavy:    { frames: 7, width: 124, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_heavy_uniform.png" },
-    up:       { frames: 4, width: 70,  height: 87, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_up_uniform.png" },
-    air:      { frames: 3, width: 28,  height: 33, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_air_uniform.png" },
-    kunaiCast:{ frames: 3, width: 54,  height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_kunai_uniform.png" },
+    up:       { frames: 4, width: 70,  height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_up_uniform.png" },
+    air:      { frames: 2, width: 76,  height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_air_uniform.png" },
+    kunaiCast:{ frames: 3, width: 54,  height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_kunai_uniform.png" },
     intro:    { frames: 5, width: 41,  height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_intro_uniform.png" }
   },
   introPool: ["intro"]

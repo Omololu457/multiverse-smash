@@ -30047,11 +30047,18 @@ function shisuiBehindX(fighter, opp, context, gap) {
 }
 
 // ── SHARED: SHUNSHIN BACKSTAB (Fwd+Special on ALL three identities; MK1 "Backstage Pass") ─────────────
-const SHISUI_BACKSTAB = { cost: 18, dmg: 70, stun: 22, cast: 16 }
+const SHISUI_BACKSTAB = { cost: 18, dmg: 70, stun: 22, cast: 16, range: 300 }
 function fireShisuiBackstab(fighter, context) {
   if (shisuiBusy(fighter)) return false
   const opp = getTargetResolver(context)(fighter) || null
   if (!opp) return false
+  // TOO FAR → DON'T blink. Backstab is a point-blank mix-up: blinking BEHIND a distant foe hurls
+  // Shisui clear across the visible screen, which reads as "warping off the edge" — and it fires
+  // whenever you press Special while advancing on a foe that isn't point-blank. Beyond close range,
+  // bail (return false, no cost) so the Special dispatch falls through to the identity's projectile:
+  // pressing Special while approaching a distant foe THROWS instead of teleporting.
+  const cx = f => (f.x + (f.w || 60) / 2)
+  if (Math.abs(cx(opp) - cx(fighter)) > SHISUI_BACKSTAB.range) return false
   if (!spendEnergy(fighter, SHISUI_BACKSTAB.cost)) return false
   const B = SHISUI_BACKSTAB
   fighter.teleportFlash = 14; fighter.vx = 0
@@ -30075,7 +30082,7 @@ function fireShisuiBackstab(fighter, context) {
 function executeShisuiTrinitySpecial(fighter, context) {
   if (shisuiBusy(fighter)) return false
   const dir = fighter._specialHeldDir || null
-  if (dir === "F") return fireShisuiBackstab(fighter, context)       // Fwd  = SHARED Shunshin Backstab
+  if (dir === "F") { if (fireShisuiBackstab(fighter, context)) return true; return fireLoyalistFireball(fighter, context) }  // Fwd = Backstab up close, else THROW (no warp-to-edge)
   if (dir === "B") return fireLoyalistGenjutsuGrab(fighter, context) // Back = Genjutsu Grab (command grab)
   if (dir === "D") return fireLoyalistKunaiRain(fighter, context)    // Down = Kunai Rain
   if (dir === "U") return fireLoyalistFlurry(fighter, context)       // Up   = Body-Flicker Flurry
@@ -30240,7 +30247,7 @@ function executeShisuiBladeSpecial(fighter, context) {
   if (shisuiBusy(fighter)) return false
   if (fighter._specialHeldMods && fighter._specialHeldMods.charge) return fireBladeMangekyouFocus(fighter, context)  // Charge+Sp = Mangekyou Focus
   const dir = fighter._specialHeldDir || null
-  if (dir === "F") return fireShisuiBackstab(fighter, context)    // Fwd  = SHARED Shunshin Backstab
+  if (dir === "F") { if (fireShisuiBackstab(fighter, context)) return true; return fireBladeKunaiBarrage(fighter, context) }  // Fwd = Backstab up close, else THROW (no warp-to-edge)
   if (dir === "D") return fireBladeIaido(fighter, context)        // Down = Iaido Draw
   if (dir === "U") return fireBladeRising(fighter, context)       // Up   = Rising Overhead Slash
   if (dir === "B") return fireBladeFeint(fighter, context)        // Back = Afterimage Feint
@@ -30402,7 +30409,7 @@ function executeShisuiPuppeteerSpecial(fighter, context) {
     return firePuppeteerNeedleVolley(fighter, context)
   }
   if (fighter._specialHeldMods && fighter._specialHeldMods.charge) return firePuppeteerShuriken(fighter, context)  // Charge+Sp = Shuriken
-  if (dir === "F") return fireShisuiBackstab(fighter, context)       // Fwd  = SHARED Shunshin Backstab
+  if (dir === "F") { if (fireShisuiBackstab(fighter, context)) return true; return firePuppeteerGokakyu(fighter, context) }  // Fwd = Backstab up close, else THROW (no warp-to-edge)
   if (dir === "B") return firePuppeteerHosenka(fighter, context)     // Back = Hosenka volley (moved off Fwd)
   if (dir === "D") return firePuppeteerSusanooStance(fighter, context) // Down = Susanoo Stance
   if (dir === "U") return firePuppeteerFlurry(fighter, context)      // Up   = Body-Flicker Flurry

@@ -25,7 +25,7 @@ const p2 = () => page.evaluate(() => { const f = window.__harness.p2() || {}; re
 const projCount = () => page.evaluate(() => (window.__harness.projectiles?.() || []).length);
 let FAILS = 0; const ok = (c, m) => { console.log(`  ${c ? "✅" : "❌"} ${m}`); if (!c) FAILS++; };
 async function boot(url) { await page.goto(url, { waitUntil: "load" }); await page.waitForFunction(() => window.__harness && window.__harness.state, null, { timeout: 15000 }); }
-async function toBattle() { await page.evaluate(() => window.__harness.start?.()); await page.evaluate(() => window.__harness.skipToBattle?.()); await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" || s.gameState === "playing" || s.countdown <= 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.refill?.("p1"); }); await waitFrames(4); }
+async function toBattle() { await page.evaluate(() => window.__harness.start?.()); await page.evaluate(() => window.__harness.skipToBattle?.()); await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" || s.gameState === "playing" || s.countdown <= 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.refill?.("p1"); window.__harness.setInputType?.(2, "keyboard"); }); await waitFrames(4); }
 async function heal() { await page.evaluate(() => { window.__harness.refill?.("p1"); window.__harness.fillEnergy?.(); window.__harness.setEnergy?.(999); window.__harness.healP2?.(); }); await waitFrames(2); }
 
 // ── 1) REAL SELECT SCREEN (naruto roster incl. shisui_trinity) ──
@@ -71,10 +71,13 @@ const mA = await move("08_air", ["w"], 10, 16, ["j"]); ok(/shisui_trinity_air/.t
 
 // ── 4) SPECIALS (directional: hold dir, press l) ──
 async function special(label, dirKeys, { ultimate = false } = {}) {
-  await heal(); const e0 = (await p1()).energy; const h2before = (await p2()).health;
+  await heal();
+  for (let i = 0; i < 40 && !(await p1()).grounded; i++) await waitFrames(2);   // land after any prior air move so the special fires grounded
+  const e0 = (await p1()).energy; const h2before = (await p2()).health;
+  // Press direction + button in the SAME batch so an up/`w` special doesn't jump-cancel.
   for (const k of dirKeys) await page.keyboard.down(k);
-  await waitFrames(2); await page.keyboard.down(ultimate ? "u" : "l");
-  await waitFrames(4); await page.keyboard.up(ultimate ? "u" : "l");
+  await page.keyboard.down(ultimate ? "u" : "l");
+  await waitFrames(5); await page.keyboard.up(ultimate ? "u" : "l");
   await waitFrames(6); const mid = await p1(); const pc = await projCount(); await shot(label);
   await waitFrames(14); for (const k of dirKeys) await page.keyboard.up(k); await waitFrames(14);
   const h2after = (await p2()).health; const p2h = await p2();

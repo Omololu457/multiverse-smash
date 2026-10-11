@@ -13328,14 +13328,22 @@ const _SHI_SUSANO_POSE = {
   punch:  ["./shisui_fallen_susano_punch.png", 2],  sword: ["./shisui_fallen_susano_sword.png", 5],
   lunge:  ["./shisui_fallen_susano_lunge.png", 1],  thrust: ["./shisui_fallen_susano_thrust.png", 5],
 }
+// TIER 2 — the Complete Avatar (Altair boss). Bigger scale + its own stance/walk/sword; other poses fall back to T1.
+const _SHI_SUSANO2_POSE = {
+  stance: ["./shisui_fallen_susano2_stance.png", 1], walk: ["./shisui_fallen_susano2_walk.png", 2],
+  sword:  ["./shisui_fallen_susano2_sword.png", 3],  punch: ["./shisui_fallen_susano2_sword.png", 3],
+  lunge:  ["./shisui_fallen_susano2_sword.png", 3],  thrust: ["./shisui_fallen_susano2_sword.png", 3],
+}
 function drawShisuiFallenSusano(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen" || !fighter._emeraldSusano) return
   const PS = fighter._emeraldSusano
   const bx = fighter._lastDrawX, by = fighter._lastDrawY, bw = fighter._lastDrawW, bh = fighter._lastDrawH
   if (bx == null || bh == null) return
   const dir = fighter.facing || 1
-  const feetX = bx + bw / 2, feetY = by + bh, targetH = bh * _SHI_SUSANO_SCALE
-  const [sheet, nf] = _SHI_SUSANO_POSE[PS.pose] || _SHI_SUSANO_POSE.stance
+  const tier2 = (PS.tier || 1) >= 2
+  const poseMap = tier2 ? _SHI_SUSANO2_POSE : _SHI_SUSANO_POSE
+  const feetX = bx + bw / 2, feetY = by + bh, targetH = bh * (_SHI_SUSANO_SCALE * (tier2 ? 1.28 : 1))
+  const [sheet, nf] = poseMap[PS.pose] || poseMap.stance || _SHI_SUSANO_POSE.stance
   const img = _susanoImg(sheet)
   const t = globalFrameCount
   const fi = (PS.pose === "stance") ? 0 : (PS.pose === "walk") ? (Math.floor(t / 6) % nf) : (Math.floor(t / 4) % nf)
@@ -13343,9 +13351,10 @@ function drawShisuiFallenSusano(c, fighter) {
     const fw = img.naturalWidth / nf, fh = img.naturalHeight, sc = targetH / fh
     const dw = fw * sc, dh = fh * sc
     let a = 0.82; if ((PS._shellFlash || 0) > 0) { a = Math.min(0.97, a + 0.14); PS._shellFlash-- }
+    if ((fighter._susanoClimbFx || 0) > 0) { a = Math.min(1, a + 0.12 * (fighter._susanoClimbFx / 24)); fighter._susanoClimbFx-- }   // Tier-2 climb flash
     if (PS.hp < PS.max * 0.25) a *= 0.72 + 0.14 * Math.sin(t * 0.3)   // flicker when the shell is nearly broken
     c.save(); c.globalAlpha = a
-    c.shadowBlur = 26; c.shadowColor = "rgba(90,230,150,0.55)"
+    c.shadowBlur = tier2 ? 34 : 26; c.shadowColor = tier2 ? "rgba(120,255,170,0.7)" : "rgba(90,230,150,0.55)"
     c.translate(feetX, feetY); c.scale(dir, 1)
     c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh, dw, dh)
     c.restore()

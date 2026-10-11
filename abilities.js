@@ -29977,7 +29977,7 @@ function executeShisuiTrinityUltimate(fighter, context) {
     if (b.side > 0) fighter.x = Math.min(fighter.x, ocx + 70)
     fighter.facing = (ocx >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
     fighter.teleportFlash = 10
-    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: b.side, t: 34 })
+    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: b.side, face: fighter.facing, t: 34 })
     if (fighter._shisuiSusanooFlashes.length > 5) fighter._shisuiSusanooFlashes.shift()
     const dir = (o.x >= fighter.x ? 1 : -1)
     if (o.isBlocking) { o.blockstun = 14; applyScaledDamage(o, Math.floor(b.dmg * 0.5), { source: "shisui-susanoo" }); return }
@@ -30274,8 +30274,8 @@ function firePuppeteerNeedleVolley(fighter, context) {
   fighter._shisuiSusanooFlashes = fighter._shisuiSusanooFlashes || []
   if (opp0) {   // bloom a flanking afterimage Susanoo on each side of the foe
     const ocx = opp0.x + (opp0.w || 60) / 2, oy = opp0.y + (opp0.h || 100)
-    fighter._shisuiSusanooFlashes.push({ x: ocx - 120, y: oy, side: -1, t: 30 })
-    fighter._shisuiSusanooFlashes.push({ x: ocx + 120, y: oy, side: 1, t: 30 })
+    fighter._shisuiSusanooFlashes.push({ x: ocx - 120, y: oy, side: -1, face: 1, t: 30 })
+    fighter._shisuiSusanooFlashes.push({ x: ocx + 120, y: oy, side: 1, face: -1, t: 30 })
   }
   for (let i = 0; i < 8; i++) schedulePendingSpawn(2 + i * 2, () => {
     const o = getTargetResolver(context)(fighter) || opp0
@@ -30298,7 +30298,7 @@ function firePuppeteerSusanooSword(fighter, context) {
   fighter._shisuiSusanooFx = Math.max(fighter._shisuiSusanooFx || 0, 46)
   fighter._shisuiSusanooFlashes = fighter._shisuiSusanooFlashes || []
   if (opp0) {   // leave an afterimage at the old spot, then blink the Susanoo behind the foe
-    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: 1, t: 28 })
+    fighter._shisuiSusanooFlashes.push({ x: fighter.x + (fighter.w || 60) / 2, y: fighter.y + (fighter.h || 100), side: 1, face: fighter.facing, t: 28 })
     fighter.x = shisuiBehindX(fighter, opp0, context, 50)
     fighter.facing = ((opp0.x + (opp0.w || 60) / 2) >= (fighter.x + (fighter.w || 60) / 2)) ? 1 : -1
     fighter.teleportFlash = 12

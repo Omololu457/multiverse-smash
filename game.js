@@ -13016,6 +13016,15 @@ function _gaaraBlitFx(c, img, frames, fi, cx, bottomY, sc, alpha) {
 // ── SHISUI (TRINITY) FX — genjutsu rings on the VICTIM + guard ribcage + ult Susanoo (code-draw + sheet blits).
 const _shisuiFxImgs = {}
 function _shisuiFxImg(src) { if (!_shisuiFxImgs[src]) { const i = new Image(); i.src = src; _shisuiFxImgs[src] = i } return _shisuiFxImgs[src] }
+// flip-aware FX blit (the Susanoo torso sheet faces RIGHT; flip<0 mirrors it so it always faces the foe).
+function _shisuiBlitFlip(c, img, frames, fi, cx, bottomY, sc, alpha, flip) {
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
+  c.save(); c.globalAlpha = alpha
+  if (flip < 0) { c.translate(cx, 0); c.scale(-1, 1); c.translate(-cx, 0) }   // mirror about cx
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, bottomY - dh, dw, dh)
+  c.restore()
+}
 function drawShisuiFx(c, fighter) {
   if (!c || !fighter) return
   // GENJUTSU GRAB — white-flash rings expand on the VICTIM (opponent), so this runs BEFORE the identity gate.
@@ -13037,7 +13046,7 @@ function drawShisuiFx(c, fighter) {
   const _shiKey = (fighter.rosterKey || "").toLowerCase()
   // GUARD (LOYALIST only) — a faint green Susanoo ribcage shimmers in front while blocking.
   if (fighter.isBlocking && _shiKey === "shisui_trinity") {
-    _gaaraBlitFx(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, 0, cx + facing * w * 0.3, feetY + 6, (h / 165) * 1.15, 0.33)
+    _shisuiBlitFlip(c, _shisuiFxImg("./shisui_trinity_susanoo_torso_fx_uniform.png"), 2, 0, cx + facing * w * 0.3, feetY + 6, (h / 165) * 1.15, 0.33, facing)
   }
   // THE BLADE — Mangekyou Focus speed-buff aura: a red eye-glint + cyan speed streaks while focused.
   if ((fighter._shisuiBladeFocusFx || 0) > 0) {
@@ -13068,12 +13077,12 @@ function drawShisuiFx(c, fighter) {
       for (let i = fl.length - 1; i >= 0; i--) {
         const g = fl[i]; g.t--
         if (g.t <= 0) { fl.splice(i, 1); continue }
-        _gaaraBlitFx(c, img, 2, fi, g.x, g.y + 8, (h / 165) * 1.5, 0.3 * (g.t / 34))
+        _shisuiBlitFlip(c, img, 2, fi, g.x, g.y + 8, (h / 165) * 1.5, 0.3 * (g.t / 34), g.face || facing)
       }
     }
-    // MAIN Susanoo — grows in around Shisui, strongest.
+    // MAIN Susanoo — grows in around Shisui, strongest; always faces the foe.
     const prog = Math.min(1, (TOTAL - st) / 20)
-    _gaaraBlitFx(c, img, 2, fi, cx, feetY + 8, (h / 165) * (1.5 + prog * 0.8), 0.62)
+    _shisuiBlitFlip(c, img, 2, fi, cx, feetY + 8, (h / 165) * (1.5 + prog * 0.8), 0.62, facing)
     // spinning chest magatama — three tomoe that whirl faster through the barrage.
     c.save(); c.translate(cx, fighter.y + h * 0.4); c.rotate((TOTAL - st) * 0.26)
     for (let k = 0; k < 3; k++) {

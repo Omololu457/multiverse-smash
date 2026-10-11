@@ -8023,6 +8023,13 @@ function _updatePlayerCombatBody(fighter) {
     fighter._ultVariant = _hd === "D" ? "copyNinja" : _hd === "U" ? "obitoGift" : "kamuiRaikiri"
     fighter._warCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
   }
+  // SHISUI (FALLEN) — Ultimate is directional: NEUTRAL = Shunshin: Thousand Shadows (5 flicker-strikes + final
+  // thrust) · Up = Kotoamatsukami (Phase 4) · Down = Emerald Susanoo (Phase 3). Stamp the held direction the frame
+  // Ultimate is pressed so executeShisuiFallenUltimate picks the branch (the U/D variants no-op until their phase).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "shisui_fallen") {
+    const _hd = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._ultVariant = _hd === "U" ? "kotoamatsukami" : _hd === "D" ? "emeraldSusanoo" : "thousandShadows"
+  }
   // SHISUI (TRINITY) — the active identity's Ultimate is a cinematic (Susanoo Tsukumo / Kotoamatsukami).
   // Stamp a fresh cinematics gate so it refuses during KO / Brutality / Domain / Rick-Prime-rewind. The
   // regex covers all three identity keys (rosterKey switches on the Variant Swap in a later phase).
@@ -20755,6 +20762,8 @@ gameLoop()
     teleportFlash:    f.teleportFlash || 0,      // teleport-behind landing flash
     flickCharges:     f._flickerCharges == null ? null : f._flickerCharges,   // Shisui (Fallen) Body-Flicker charges remaining
     flickGhosts:      (f._flickGhosts || []).length,                          // Shisui (Fallen) live afterimages (each absorbs one hit)
+    ultVariant:       f._ultVariant || null,                                  // last-stamped directional-ultimate variant (diagnostics)
+    ultCd:            Math.round(f.ultimateCooldown || 0),                    // ultimate cooldown frames remaining (diagnostics)
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act
@@ -22636,6 +22645,9 @@ gameLoop()
     // Deterministic ULTIMATE trigger (mirrors p1SpecialDir) — clears the gates + fires triggerUltimate,
     // bypassing input-timing flakiness in long full-kit suites. opts.hold passes the tap/hold flag (Madara).
     p1Ultimate: (opts = {}) => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; const cast = triggerUltimate(p1, getAbilityContext(), opts); return { cast: !!cast, move: p1.currentMove || null, castMove: p1._spriteCastMove || null } },
+    // SHISUI (FALLEN) directional-ult test: stamp the LIVE fighter's _ultVariant (the snapshot is a copy, so a
+    // test can't set it) then fire — verifies neutral=Thousand Shadows fires + Up/Down variants no-op (Phase 3-4).
+    shisuiFallenUlt: (variant = "thousandShadows") => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; p1.energy = p1.maxEnergy; p1._ultVariant = variant; const cast = triggerUltimate(p1, getAbilityContext()); return { cast: !!cast, energy: Math.round(p1.energy), variant: p1._ultVariant || null } },
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {
       fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },

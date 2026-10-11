@@ -3696,6 +3696,29 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill()
         ctx.fillStyle = "rgba(90,70,160,0.5)"
         ctx.beginPath(); ctx.arc(-R * 0.3, -R * 0.3, R * 0.3, 0, Math.PI * 2); ctx.fill()
+      } else if (p.drawKind === "shisuiFallenClone") {
+        // SHISUI (FALLEN) — SHADOW-CLONE PURSUIT: a translucent crimson flicker-silhouette rushing the foe,
+        // trailing a couple of fading afterimages. Code-drawn (no art), gated on this kind only.
+        const face = (p.vx || 0) >= 0 ? 1 : -1
+        const hh = Math.max(40, (p.h || 90) * 0.5)        // half body height
+        const bw = Math.max(10, (p.w || 54) * 0.30)       // body half-width
+        const base = p.color || "#8a1f2d"
+        ctx.translate(x, y); ctx.scale(face, 1)
+        ctx.shadowBlur = 14; ctx.shadowColor = "rgba(180,30,50,0.7)"
+        for (let s = 2; s >= 0; s--) {                    // 2 trailing afterimages + the solid clone
+          const off = s * hh * 0.42
+          ctx.globalAlpha = s === 0 ? 0.88 : 0.26 - s * 0.06
+          ctx.fillStyle = base
+          // torso (rounded bar)
+          ctx.beginPath(); ctx.ellipse(-off, hh * 0.18, bw, hh * 0.62, 0, 0, Math.PI * 2); ctx.fill()
+          // head
+          ctx.beginPath(); ctx.arc(-off, -hh * 0.6, bw * 0.82, 0, Math.PI * 2); ctx.fill()
+          // lead arm (a flicker-strike reach)
+          ctx.beginPath(); ctx.ellipse(-off + bw * 1.1, -hh * 0.05, bw * 1.1, bw * 0.4, -0.3, 0, Math.PI * 2); ctx.fill()
+        }
+        ctx.globalAlpha = 1; ctx.shadowBlur = 0
+        ctx.fillStyle = "rgba(255,70,90,0.9)"             // red Mangekyō glint
+        ctx.beginPath(); ctx.arc(bw * 0.3, -hh * 0.62, Math.max(1.4, bw * 0.16), 0, Math.PI * 2); ctx.fill()
       }
       ctx.restore()
       return

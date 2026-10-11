@@ -21841,6 +21841,197 @@ export function updateShisuiFallenFlicker(fighter) {
   if ((fighter._flickAbsorbFx || 0) > 0) fighter._flickAbsorbFx--
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SHISUI (FALLEN) — PHASE 2: directional specials + "Shunshin: Thousand Shadows" ultimate.
+// All deterministic (schedulePendingSpawn, no RNG), combat.js UNTOUCHED — damage via the shared
+// applyScaledDamage, i-frames via invulnTimer, projectiles via spawnProjectile, blinks by setting x
+// (the passive updateShisuiFallenFlicker renders the afterimages / handles absorb).
+//   neutral = Kunai Barrage · Fwd = Body-Flicker Strike · Back = Afterimage Feint
+//   Up = Sharingan Glare (genjutsu stun) · Down = Shadow-Clone Pursuit
+// CLAN HUNTER: +10% damage dealt to any Uchiha opponent (the passive).
+const SHISUI_FALLEN_UCHIHA = new Set([
+  "sasuke", "sasuke_adult", "sasuke_sensei", "itachi", "madara", "obito", "tobi",
+  "shisui_blade", "shisui_trinity", "shisui_puppeteer", "shisui_fallen"
+])
+function isShisuiFallen(f) { return (f?.rosterKey || "").toLowerCase() === "shisui_fallen" }
+function shisuiFallenOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+// Clan-Hunter: scale a raw damage number up 10% when the target is an Uchiha, folding the offense mult in too.
+function shisuiFallenDmg(fighter, opp, raw) {
+  const clan = (opp && SHISUI_FALLEN_UCHIHA.has((opp.rosterKey || "").toLowerCase())) ? 1.10 : 1
+  return Math.round(raw * shisuiFallenOffense(fighter) * clan)
+}
+// Push an afterimage at `atX` WITHOUT spending a passive charge (deliberate move-blink). Suppress the
+// passive's auto-detect for this frame window so one blink doesn't also burn a charge.
+function shisuiFallenPushGhost(fighter, atX) {
+  if (!fighter._flickGhosts) fighter._flickGhosts = []
+  fighter._flickGhosts.push({ x: atX, y: fighter.y, facing: fighter.facing || 1, t: SHISUI_GHOST_LIFE })
+  while (fighter._flickGhosts.length > SHISUI_FLICKER_MAX + 3) fighter._flickGhosts.shift()
+  fighter._flickBlinkCd = 12
+}
+// Blink the fighter adjacent to `opp` on the near side, facing them; leave an afterimage at the departure point.
+function shisuiFallenBlinkTo(fighter, opp, gap = 54) {
+  if (!opp) return
+  const departX = fighter.x
+  const myW = fighter.w || 60, oppCx = opp.x + (opp.w || 60) / 2
+  const side = (oppCx >= fighter.x + myW / 2) ? 1 : -1
+  fighter.facing = side
+  fighter.x = oppCx - side * (gap + myW / 2)
+  fighter.vx = 0
+  if (Math.abs(fighter.x - departX) >= 70) shisuiFallenPushGhost(fighter, departX)
+}
+
+export function executeShisuiFallenSpecial(fighter, context) {
+  if (!isShisuiFallen(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || fighter.hitstun > 0 || fighter.blockstun > 0) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return shisuiFallenFlickerStrike(fighter, context)
+  if (dir === "B") return shisuiFallenAfterimageFeint(fighter, context)
+  if (dir === "U") return shisuiFallenSharinganGlare(fighter, context)
+  if (dir === "D") return shisuiFallenShadowClonePursuit(fighter, context)
+  return shisuiFallenKunaiBarrage(fighter, context)   // neutral
+}
+
+// NEUTRAL — Kunai Barrage: a fast 3-kunai volley (procedural "kunai" drawKind). Zoning poke.
+function shisuiFallenKunaiBarrage(fighter, context) {
+  if (!spendEnergy(fighter, 16)) return false
+  const face = fighter.facing || 1
+  fighter.vx = 0
+  fighter._spriteCastMove = "kunaiCast"; fighter._spriteCastTimer = 26
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  const off = shisuiFallenOffense(fighter)
+  const vys = [-2, 0, 2]
+  for (let i = 0; i < 3; i++) {
+    schedulePendingSpawn(5 + i * 4, () => {
+      spawnProjectile(fighter, "shisuiFallenKunai", {
+        w: 24, h: 24, radius: 12, speed: 17, damage: Math.round(24 * off), hitstun: 12,
+        knockbackX: face * 6, knockbackY: vys[i], lifetime: 74, isSpecial: true,
+        color: "#c0c6cc", drawKind: "kunai", vx: face * 17, vy: vys[i],
+        spawnY: fighter.y + (fighter.h || 100) * 0.38,
+      }, context)
+    })
+  }
+  return true
+}
+
+// FWD — Body-Flicker Strike: blink adjacent to the foe (leaving an afterimage) and slash. His signature.
+function shisuiFallenFlickerStrike(fighter, context) {
+  if (!spendEnergy(fighter, 22)) return false
+  const opp = getTargetResolver(context)(fighter)
+  shisuiFallenBlinkTo(fighter, opp, 50)
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14
+  const attack = createAttackFromMove(fighter, "shisuiFlickerStrike", {
+    damage: shisuiFallenDmg(fighter, opp, 50), startup: 4, active: 5, recovery: 16,
+    hitstun: 24, knockbackX: 9, knockbackY: -4, rangeX: 92, rangeY: 60,
+  })
+  setAttackState(fighter, attack, 22)
+  fighter.vx = (fighter.facing || 1) * 4
+  try { focusCameraOnAction(context, fighter, opp, 0.98, 10); shakeCamera(context, 5, 7) } catch (_) {}
+  return true
+}
+
+// BACK — Afterimage Feint: leave a decoy afterimage, hop back with brief i-frames (defensive mix-up).
+function shisuiFallenAfterimageFeint(fighter, context) {
+  if (!spendEnergy(fighter, 14)) return false
+  const face = fighter.facing || 1
+  shisuiFallenPushGhost(fighter, fighter.x)               // decoy at the current spot
+  fighter.vx = -face * 10                                 // slip backward
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 16)
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 12
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  fighter._flickAbsorbFx = 10
+  return true
+}
+
+// UP — Sharingan Glare: a short-range genjutsu gaze that STUNS a nearby facing opponent (no HP loss).
+function shisuiFallenSharinganGlare(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "mangekyou"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._flickGlareFx = 24                              // red-tomoe gaze FX (drawShisuiFallenFlicker)
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated || (opp.invulnTimer || 0) > 0) return
+    const cx = fighter.x + (fighter.w || 60) / 2, tcx = opp.x + (opp.w || 60) / 2
+    if (Math.abs(tcx - cx) > 240) return                 // must be close
+    const facingTarget = ((tcx - cx) * (fighter.facing || 1)) >= 0
+    if (!facingTarget) return                            // must be looking at them
+    opp.stun = Math.max(opp.stun || 0, 52)
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.attackCooldown = Math.max(opp.attackCooldown || 0, 52)
+    opp.colorFlash = 10
+    opp._shisuiGenjutsuFx = 30                            // victim shimmer (rendered if present)
+  })
+  return true
+}
+
+// DOWN — Shadow-Clone Pursuit: launch a flicker-clone that rushes the foe and strikes (procedural afterimage).
+function shisuiFallenShadowClonePursuit(fighter, context) {
+  if (!spendEnergy(fighter, 26)) return false
+  const face = fighter.facing || 1
+  fighter.vx = 0
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const opp = getTargetResolver(context)(fighter)
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "shisuiFallenClone", {
+      w: 54, h: 92, radius: 30, speed: 14, damage: shisuiFallenDmg(fighter, opp, 44), hitstun: 22,
+      knockbackX: face * 10, knockbackY: -3, lifetime: 70, isSpecial: true,
+      color: "#8a1f2d", drawKind: "shisuiFallenClone", vx: face * 14,
+      spawnY: fighter.y + (fighter.h || 100) * 0.10,
+    }, context)
+    try { shakeCamera(context, 3, 6) } catch (_) {}
+  })
+  return true
+}
+
+// ULTIMATE — Shunshin: Thousand Shadows. Flicker between 5 points around the foe striking from each
+// (afterimage left at every departure), then a final committed thrust. Guaranteed cinematic (~196 EFF).
+// Up+Ult = Kotoamatsukami (Phase 4) and Down+Ult = Emerald Susanoo (Phase 3) are NOT wired yet → no-op.
+export function executeShisuiFallenUltimate(fighter, context) {
+  if (!isShisuiFallen(fighter)) return false
+  const variant = fighter._ultVariant || "thousandShadows"
+  if (variant === "kotoamatsukami" || variant === "emeraldSusanoo") return false   // directional ults land in Phases 3-4 (no-op → meter not spent)
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.attackCooldown = getAttackDuration(62, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 62)   // flicker-through cinematic i-frames
+  fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 62
+  fighter._flickGlareFx = 18
+  // 5 flicker-strikes around the foe (alternating sides), then the final thrust.
+  const beats = [10, 18, 26, 34, 42]
+  beats.forEach((delay, i) => {
+    schedulePendingSpawn(delay, () => {
+      const o = getTargetResolver(context)(fighter)
+      if (!o || o.eliminated) return
+      // blink to an alternating side each strike (left/right of the foe)
+      const myW = fighter.w || 60, oCx = o.x + (o.w || 60) / 2
+      const side = (i % 2 === 0) ? 1 : -1
+      const departX = fighter.x
+      fighter.facing = -side
+      fighter.x = oCx + side * (50 + myW / 2)
+      if (Math.abs(fighter.x - departX) >= 70) shisuiFallenPushGhost(fighter, departX)
+      if ((o.invulnTimer || 0) > 0) return
+      const kdir = (fighter.facing || 1)
+      o.hitstun = Math.max(o.hitstun || 0, 20); o.vx = kdir * 5; o.vy = -3; o.colorFlash = 8
+      applyScaledDamage(o, shisuiFallenDmg(fighter, o, 34), { source: "shisui_fallen-thousand-shadows" })
+      try { shakeCamera(context, 4, 5) } catch (_) {}
+    })
+  })
+  schedulePendingSpawn(52, () => {                         // FINAL THRUST — commit in front, big hit
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated) return
+    shisuiFallenBlinkTo(fighter, o, 46)
+    fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 16
+    if ((o.invulnTimer || 0) > 0) return
+    const kdir = (fighter.facing || 1)
+    o.hitstun = Math.max(o.hitstun || 0, 34); o.vx = kdir * 16; o.vy = -8; o.colorFlash = 14
+    applyScaledDamage(o, shisuiFallenDmg(fighter, o, 68), { source: "shisui_fallen-thousand-shadows-final" })
+    try { focusCameraOnAction(context, fighter, o, 0.95, 12); shakeCamera(context, 8, 12) } catch (_) {}
+  })
+  return true
+}
+
 export function updateMadaraCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara" || !inputState) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false
@@ -30867,6 +31058,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "kakashi": return executeKakashiSpecial(fighter, context)  // Stage 4 "Weapon Throw" kunai (orange spinning-slash), 3 stance contexts: standing (ground) / crouch (Down) / air (airborne). Summons/Raikiri/Mangekyou land in later stages.
     case "kakashi_anbu": return executeKakashiAnbuSpecial(fighter, context)  // NEW additive. PHASE 1: F+Special = Body Flicker (teleport-dodge). N/U/D/B + ULT = later phases (Sharingan/Raikiri/Ninken/Read/Genjutsu)
     case "kakashi_war": return executeKakashiWarSpecial(fighter, context)    // NEW additive (Kamui). PHASE 1: Back+Special = Kawarimi (guard-escape). Neutral Special = Raikiri (armed in game.js, ground+air). F/D/U + ULT = later phases.
+    case "shisui_fallen": return executeShisuiFallenSpecial(fighter, context)   // NEW additive (Fallen). Phase 2: N=Kunai Barrage / F=Body-Flicker Strike / B=Afterimage Feint / U=Sharingan Glare / D=Shadow-Clone Pursuit
     case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
     case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
     case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.
@@ -31061,6 +31253,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
       case "kakashi_war": cast = executeKakashiWarUltimate(fighter, context); break    // NEW additive (Kamui). neutral = Kamui Raikiri (eye-banner cut-in, swirl + guaranteed strike ~204 EFF) · Down = Copy Ninja (needs Sharingan + copy-ready) · Up = Obito's Gift (Phase 4).
+      case "shisui_fallen": cast = executeShisuiFallenUltimate(fighter, context); break    // NEW additive (Fallen). neutral = Shunshin: Thousand Shadows (5 flicker-strikes + final thrust ~196 EFF). Up = Kotoamatsukami (Phase 4) · Down = Emerald Susanoo (Phase 3) — no-op until then.
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break

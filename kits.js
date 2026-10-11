@@ -157,10 +157,14 @@ export const KITS = {
       { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
     ],
     specials: [
-      { name: "(Specials)",   input: "Directional + Special",   cost: 0, desc: "Kunai Barrage / Body-Flicker Strike / Afterimage Feint / Sharingan Glare / Shadow-Clone Pursuit — wired in Phase 2" }
+      { name: "Kunai Barrage",        input: "Special",         cost: 16, desc: "a fast 3-kunai volley — his zoning poke" },
+      { name: "Body-Flicker Strike",  input: "Forward+Special",  cost: 22, desc: "blink adjacent to the foe (leaving an afterimage) and slash — his signature flicker-strike" },
+      { name: "Afterimage Feint",     input: "Back+Special",     cost: 14, desc: "leave a decoy afterimage and slip backward with brief i-frames (defensive mix-up)" },
+      { name: "Sharingan Glare",      input: "Up+Special",       cost: 24, desc: "a short-range genjutsu gaze that STUNS a nearby facing opponent (no HP loss)" },
+      { name: "Shadow-Clone Pursuit", input: "Down+Special",     cost: 26, desc: "launch a flicker-clone that rushes the foe and strikes" }
     ],
     mobility: { name: "Flicker Step", input: "Dash / double-tap", cost: 0, desc: "instant teleport (Body-Flicker) with a hit-absorbing afterimage" },
-    ultimate: { name: "Shunshin: Thousand Shadows", input: "Ultimate (full meter)", cost: 100, desc: "flicker between 5 points around the foe, striking from each with a lingering afterimage, then a final thrust (Phase 2). Up+Ult = Kotoamatsukami (Phase 4); Down+Ult = Emerald Susanoo (Phase 3)" },
+    ultimate: { name: "Shunshin: Thousand Shadows", input: "Ultimate (full meter)", cost: 100, desc: "flicker between 5 points around the foe, striking from each with a lingering afterimage, then a final committed thrust (CLAN HUNTER-boosted vs Uchiha). Up+Ult = Kotoamatsukami (Phase 4); Down+Ult = Emerald Susanoo (Phase 3)" },
     combos: [
       { name: "Flicker Pressure", sequence: "Light, Dash, Light", desc: "poke, flicker-cancel behind, re-poke" },
       { name: "Launch & Hunt",    sequence: "Up-Attack, Jump, Air", desc: "launch into aerial pressure" }

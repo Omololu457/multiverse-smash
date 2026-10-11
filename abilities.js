@@ -24799,7 +24799,10 @@ function _madStageAnim(sheet, cw, ch, nf) {
 }
 const MADARA_LADDER = {
   1: { hp: 340, canvasFrac: 0.52, refH: 201, label: "Susano'o (Ribcage)", dmgMul: 1.3,  anim: _madStageAnim("./madara_susanoo_s1_uniform.png", 345, 201, 6) },
-  2: { hp: 520, canvasFrac: 0.66, refH: 263, label: "Susano'o (Warrior)", dmgMul: 1.55, anim: _madStageAnim("./madara_susanoo_s2_uniform.png", 393, 263, 7) },
+  2: { hp: 520, canvasFrac: 0.66, refH: 263, label: "Susano'o (Warrior)", dmgMul: 1.55,
+       // Stage-2 HEAVY swaps to the "OR" alternate FINISHER frames (the big overhead → thrust ender).
+       anim: { ..._madStageAnim("./madara_susanoo_s2_uniform.png", 393, 263, 7),
+               heavy: { frames: 3, width: 548, height: 259, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_susanoo_s2_finish_uniform.png" } } },
   3: { hp: 760, canvasFrac: 0.80, refH: 335, label: "Perfect Susano'o",   dmgMul: 1.85, anim: _madStageAnim("./madara_susanoo_s3_uniform.png", 414, 335, 6) },
 }
 function _madApplyStage(fighter, stage) {
@@ -24924,6 +24927,7 @@ function fireMadaraLadderTengai(fighter, context, free = false) {
   const ty = target ? target.y + (target.h || 100)   : fighter.y + (fighter.h || 100)   // the ground line under the target
   // CAST — a Rinnegan-call rumble + a WARNING shadow that blooms at the impact point (the telegraph: you can
   // feel the mass coming before it lands). Deterministic (sim-frame scheduling, no gameRng / wall-clock).
+  fighter._madaraTengaiSky = 70   // darken the sky (Rinnegan tint) through the fall + impact (game.js overlay)
   try { shakeCamera(context, 7, 10) } catch (_) {}
   const warn = spawnProjectile(fighter, "madaraTengaiWarn", {
     visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 46, w: 190, h: 64,
@@ -25091,8 +25095,22 @@ function _madaraSummonSmoke(fighter, context, x) {
 export function enterMadaraKurama(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
   if (isMadaraTengaiShinseiCinematicActive() || (fighter._madaraComplete || 0) > 0 || (fighter._madaraAvatar || 0) > 0) return false
-  if ((fighter._madaraKurama || 0) > 0) return false
+  if ((fighter._madaraKurama || 0) > 0) {
+    // RE-INPUT while Kurama is out → the SUSANO'O-ARMOR transformation (orange → blue), once: buffs damage +
+    // the Tailed Beast Bomb. Refreshes the summon window.
+    if (!fighter._kuramaArmored) {
+      fighter._kuramaArmored = true
+      fighter._madaraKurama  = MADARA_KURAMA_DURATION
+      fighter.damageMultiplier = Math.max(fighter.damageMultiplier || 1, 1.25)
+      _madaraSummonSmoke(fighter, context, fighter.x + (fighter.w || 60) * 0.5)
+      try { sound.playSfxFile?.(pickMadaraVoice("completeSusanoo"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+      try { shakeCamera(context, 14, 16) } catch (_) {}
+      return true
+    }
+    return false
+  }
   if (!spendEnergy(fighter, MADARA_KURAMA_COST)) return false
+  fighter._kuramaArmored = false
   fighter._madaraKurama = MADARA_KURAMA_DURATION
   fighter._kuramaHits   = 0
   fighter._kuramaPrevHs = fighter.hitstun || 0
@@ -25131,6 +25149,7 @@ function fireMadaraBijuudama(fighter, context) {
 function breakMadaraKurama(fighter, context) {
   if ((fighter._madaraKurama || 0) <= 0) return
   fighter._madaraKurama = 0
+  if (fighter._kuramaArmored) { fighter._kuramaArmored = false; fighter.damageMultiplier = 1 }   // drop the armor buff
   _madaraSummonSmoke(fighter, context, fighter.x + (fighter.w || 60) * 0.5)
   try { sound.playSfxFile?.(pickMadaraVoice("susanooArmor"), null) } catch (_) {}
 }
@@ -25196,6 +25215,26 @@ export function fireMadaraKajukai(fighter, context) {
   }
   return true
 }
+// JUKAI KOTAN (Deep Forest Emergence) — ↓↓+Special: a marching wall of giant wood branches erupts from the
+// ground toward the foe (the escalated Mokuton beyond the single Wood Spike). M art. Deterministic.
+function fireMadaraJukai(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 46)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove = "madaraWoodDragonCast"; fighter._spriteCastTimer = 24   // reuse his own Mokuton hand-seal pose
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  try { sound.playSfxFile?.(pickMadaraVoice("woodDragon"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  for (let i = 0; i < 4; i++) {   // a row of erupting branches, each rising a few frames after the last
+    spawnProjectile(fighter, "madaraJukai", {
+      damage: 58, speed: 0, lifetime: 42, vx: 0, vy: 0, hitDelay: 4 + i * 5,
+      hitstun: 20, knockbackX: 5, knockbackY: -9, w: 110, h: 150, color: "#4caf50", isSpecial: true,
+      sheet: "./madara_jukai_uniform.png", spriteFrames: 6, spriteW: 141, spriteH: 87, spriteSpeed: 4, spriteScale: 1.7,
+      spawnX: fighter.x + face * (100 + i * 90), spawnY: fighter.y + (fighter.h || 100) * 0.5
+    }, context)
+  }
+  try { shakeCamera(context, 7, 10) } catch (_) {}
+  return true
+}
 
 function executeMadaraSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
@@ -25226,6 +25265,7 @@ function executeMadaraSpecial(fighter, context) {
   // during the Tengai cinematic or the Complete giant. Most-specific motions first (qcf/qcb/B,F).
   const _warBase = !((fighter._madaraComplete || 0) > 0) && !((fighter._madaraSusanoo || 0) > 0)
   if (_warBase && !isMadaraTengaiShinseiCinematicActive()) {
+    if (endsWithPattern(dirs, ["D", "D"])) return fireMadaraJukai(fighter, context)          // ↓↓ — Mokuton: Jukai Kotan (CANON)
     if (endsWithPattern(dirs, ["D", "F"])) return fireMadaraGokaMekkyaku(fighter, context)   // qcf — Katon: Gōka Mekkyaku (CANON)
     if (endsWithPattern(dirs, ["D", "B"])) return fireMadaraShinraTensei(fighter, context)    // qcb — Shinra Tensei (CANON, Rinnegan)
     if (endsWithPattern(dirs, ["B", "F"])) return fireMadaraGoryuka(fighter, context)         // B,F — Katon: Goryūka (CANON)

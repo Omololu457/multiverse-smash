@@ -157,6 +157,12 @@ export const FX_SHEETS_BY_CHAR = {
     "./madara_gedo_mazo_uniform.png",
     "./madara_kajukai_uniform.png",
     "./madara_summon_smoke_uniform.png",
+    // WAR polish batch 2 — Avatar ground-flames (A), armored (blue) Kurama + sword (M), Jukai Kotan (M), S2 OR-finisher (P).
+    "./madara_avatar_flames_uniform.png",
+    "./madara_kurama_armor_uniform.png",
+    "./madara_kurama_sword_uniform.png",
+    "./madara_jukai_uniform.png",
+    "./madara_susanoo_s2_finish_uniform.png",
   ],
   // War-Susano'o Tier-1 pieces (border-flood-fill keyed from sasuke_war_susano_by_nes). Procedural Arm Grab +
   // Ribcage Guard — shared by both allowlisted fighters. tools/susano/gen_susano_tier1.py.

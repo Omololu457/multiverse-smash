@@ -7346,6 +7346,7 @@ function updateMiscTimers(fighter) {
   tickMadaraLadderHP(fighter)   // Madara WAR Phase 2 — Susano'o Ladder HP bleed / break→drop / climb-FX tick (every frame, even while charging)
   tickMadaraAvatar(fighter)     // Madara WAR Phase 3 — Susano'o Avatar timeout / HP-break → LOSE dissolve → revert (every frame)
   tickMadaraKurama(fighter)     // Madara WAR Phase 4 — Kurama summon timeout + control-break (every frame)
+  if ((fighter._madaraTengaiSky || 0) > 0) fighter._madaraTengaiSky--   // Madara WAR polish — Tengai sky-darken countdown (drawn as a screen overlay)
   if ((fighter._madaraDrowsy || 0) > 0) {   // Madara WAR Phase 4 — Kajukai Korin DROWSINESS: hold a speed cut, restore on expiry
     fighter.speedMultiplier = (fighter._madaraDrowsyBaseSpd || 1) * 0.45
     if (--fighter._madaraDrowsy <= 0) fighter.speedMultiplier = fighter._madaraDrowsyBaseSpd || 1
@@ -13194,20 +13195,74 @@ const _RIBCAGE_GUARD_SHEET = {
 }
 // MADARA — WAR Phase 4: the KURAMA (Nine-Tails) summon looming behind Madara while the summon is active.
 // Animated run-cycle, rendered BELOW native size (quality gate: M is soft → never upscale). Faces the foe.
+// Madara WAR polish — non-cinematic Tengai Shinsei (ladder / Avatar meteors): darken the sky with a Rinnegan
+// violet tint while the mass falls, so the heavens read as opening. Screen-space; fades in then out.
+function drawMadaraTengaiSky(ctx, canvas) {
+  if (!ctx) return
+  const t = Math.max((p1?._madaraTengaiSky || 0), (p2?._madaraTengaiSky || 0))
+  if (t <= 0) return
+  const W = canvas.width, H = canvas.height
+  const a = Math.min(1, (70 - t) / 8) * Math.min(1, t / 14)   // fade in over ~8f, hold, fade out over last ~14f
+  ctx.save()
+  // flat Rinnegan dusk across the whole frame + a darker band up top (the sky splitting open)
+  ctx.fillStyle = _withAlpha("#1a0b33", 0.42 * a); ctx.fillRect(0, 0, W, H)
+  const g = ctx.createLinearGradient(0, 0, 0, H)
+  g.addColorStop(0, _withAlpha("#3a1266", 0.6 * a)); g.addColorStop(0.5, _withAlpha("#1a0b33", 0.25 * a)); g.addColorStop(1, _withAlpha("#1a0b33", 0))
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
+  ctx.restore()
+}
 function drawMadaraKurama(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara" || (fighter._madaraKurama || 0) <= 0) return
-  const img = _susanoImg("./madara_kurama_uniform.png")
+  // ARMORED (blue) Kurama once transformed (re-input Down+Ult) — swap the sheet + frame count.
+  const armored = !!fighter._kuramaArmored
+  const img = _susanoImg(armored ? "./madara_kurama_armor_uniform.png" : "./madara_kurama_uniform.png")
   if (!img.complete || !img.naturalWidth) return
-  const FR = 4, fw = img.naturalWidth / FR, fh = img.naturalHeight
+  const FR = armored ? 6 : 4, fw = img.naturalWidth / FR, fh = img.naturalHeight
   const fi = Math.floor((globalFrameCount / 8) % FR)
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const face = fighter.facing || 1
-  const dh = h * 2.6, dw = dh * (fw / fh)              // looming, but ≤ the ~505px native cell
-  const cx = fighter.x + w / 2 - face * w * 1.35, cy = fighter.y + h * 0.1   // sit clearly BEHIND + above Madara
-  const fade = Math.min(1, (fighter._madaraKurama || 0) / 18)   // fade out as the summon ends
+  const dh = h * (armored ? 2.7 : 2.6), dw = dh * (fw / fh)
+  const cx = fighter.x + w / 2 - face * w * 1.35, cy = fighter.y + h * 0.1   // clearly BEHIND + above Madara
+  const fade = Math.min(1, (fighter._madaraKurama || 0) / 18)
   c.save(); c.globalAlpha = 0.92 * fade
-  c.translate(cx, cy); if (face > 0) c.scale(-1, 1)   // the fox art faces left; flip to face the foe
+  c.translate(cx, cy); if (face > 0) c.scale(-1, 1)   // fox art faces left; flip to face the foe
   c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  c.restore()
+}
+// Avatar GROUND-FLAMES (A) — a ring of fire licks at the colossus's feet while the Avatar is active.
+function drawMadaraAvatarFlames(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara" || (fighter._madaraAvatar || 0) <= 0 || (fighter._madaraAvatarLose || 0) > 0) return
+  const img = _susanoImg("./madara_avatar_flames_uniform.png")
+  if (!img.complete || !img.naturalWidth) return
+  const FR = 4, fw = img.naturalWidth / FR, fh = img.naturalHeight
+  const fi = Math.floor((globalFrameCount / 5) % FR)
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const feetY = fighter.y + h, cx = fighter.x + w / 2
+  const dh = h * 0.95, dw = dh * (fw / fh)   // bigger, clearly licking at the colossus's feet
+  c.save(); c.globalAlpha = 0.92
+  for (const off of [-w * 1.5, -w * 0.5, w * 0.5, w * 1.5]) c.drawImage(img, fi * fw, 0, fw, fh, cx + off - dw / 2, feetY - dh * 0.8, dw, dh)
+  c.restore()
+}
+// Per-stage SUSANO'O AURA — a persistent coloured glow + rising embers while in a Ladder stage (not just on
+// the climb). Code-drawn, scales/brightens with the stage.
+function drawMadaraStageAura(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara") return
+  const st = fighter._madaraLadder || 0; if (st <= 0) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5
+  const col = ["#7fd0ff", "#9a7bff", "#b84cff"][st - 1] || "#9a7bff"
+  const t = globalFrameCount
+  const R = h * (0.7 + st * 0.12) * (1 + 0.03 * Math.sin(t * 0.14))
+  c.save()
+  const g = c.createRadialGradient(cx, cy, R * 0.3, cx, cy, R)
+  g.addColorStop(0, _withAlpha(col, 0.16 + st * 0.03)); g.addColorStop(1, _withAlpha(col, 0))
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.5; c.fillStyle = col
+  for (let k = 0; k < 4 + st; k++) {   // rising embers
+    const ph = ((t * 0.02 + k * 0.6) % 1)
+    const ex = cx + Math.sin(t * 0.05 + k * 1.7) * w * 0.7
+    c.globalAlpha = (1 - ph) * 0.5; c.beginPath(); c.arc(ex, cy + h * 0.5 - ph * h * 1.1, 1.5 + st * 0.5, 0, Math.PI * 2); c.fill()
+  }
   c.restore()
 }
 function drawMadaraRibcageGuard(c, fighter) {
@@ -15898,6 +15953,8 @@ function renderHybridFighter(fighter) {
     drawKakashiWarSusano(c, fighter)   // Kakashi (Kamui) — the giant Perfect Susanoo avatar (recoloured light-blue), BEHIND the body (kakashi_war only)
     drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
     drawMadaraKurama(c, fighter)       // Madara — the Kurama (Nine-Tails) summon looming BEHIND Madara (madara only, WAR Phase 4)
+    drawMadaraStageAura(c, fighter)    // Madara — persistent Susano'o-Ladder stage aura/embers, behind the body (madara only)
+    drawMadaraAvatarFlames(c, fighter) // Madara — Susano'o Avatar ground-flames at the feet, behind the body (madara only)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
     drawN7BondAura(c, fighter)         // Naruto (Seventh) Kurama-Bond red aura, behind the body (naruto_seventh only, Bond 1+)
@@ -18057,6 +18114,7 @@ function drawBattle() {
   drawKakashiAnbuRaikiriCutin(ctx, canvas)    // Kakashi (ANBU) Full-Charge Raikiri ult — illustration cut-in slide + red flash (kakashi_anbu only, _kanbuUltCutin)
   drawKakashiWarCutin(ctx, canvas)            // Kakashi (Kamui) Kamui Raikiri ult — Sharingan eye-banner cut-in slide + red flash (kakashi_war only, _warUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
+  drawMadaraTengaiSky(ctx, canvas)                 // Madara WAR polish — non-cinematic Tengai (ladder/avatar): darken the sky with a Rinnegan tint during the meteor call-down
   drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
   drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)
   drawMayuriBankaiCinematic(ctx, canvas)           // Bankai: Konjiki Ashisogi Jizō overlay (gold vignette → assembling golden construct → crush + gold impact flash)

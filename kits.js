@@ -128,6 +128,7 @@ export const KITS = {
       { name: "Katon: Gōka Mekkyaku",  input: "Down, Forward + Special", cost: 42, desc: "a wide sweeping WALL of flame — big hitbox, strong damage, short travel [CANON]" },
       { name: "Shinra Tensei",         input: "Down, Back + Special",    cost: 35, desc: "Rinnegan Almighty Push — a radial repulsion that shoves the foe away (low damage, huge knockback) [CANON]" },
       { name: "Katon: Goryūka",        input: "Back, Forward + Special", cost: 38, desc: "a fast fire-DRAGON-head projectile [CANON]" },
+      { name: "Mokuton: Jukai Kotan",   input: "Down, Down + Special",     cost: 46, desc: "a marching wall of giant wood branches erupts toward the foe [CANON]" },
       { name: "Climb Susano'o Ladder",  input: "Hold Charge (at FULL Chakra)", cost: 90, desc: "climb one Susano'o stage (Ribcage→Warrior→Perfect) — red-ring burst; each stage has its own Susano'o HP [CANON]" },
       { name: "Susano'o Blade",         input: "Light / Heavy (in a ladder stage)", cost: 0, desc: "the active Susano'o stage's sword/blade swing — huge reach, scales with the stage [CANON]" },
       { name: "Yasaka Magatama",        input: "Special (in a ladder stage)", cost: 40, desc: "hurl five spinning Susano'o tomoe in a fan [CANON]" },

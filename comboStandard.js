@@ -228,6 +228,9 @@ export const ZONER = [
   "shisui_puppeteer",// SHISUI — THE PUPPETEER identity (P3, hidden isPlayable:false): ranged/stance-cancel assassin
                      //   (B-normals + directional Specials: Gokakyu/Hosenka/Shuriken/Susanoo Stance→Needle/Sword/Flurry)
                      //   + Kotoamatsukami ult. No Light,Light,Heavy auto-combo / no Fwd+Heavy rekka driver → single-poke.
+  "shisui_fallen",   // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone rushdown. Individual pokes + Flicker
+                     //   Cancels (not a dial-a-combo); directional Specials / Thousand Shadows / Kotoamatsukami /
+                     //   Emerald Susanoo (later phases). No Light,Light,Heavy auto-combo / no Fwd+Heavy rekka → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────

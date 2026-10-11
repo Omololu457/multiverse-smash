@@ -346,6 +346,11 @@ export const SKINS = {
   shisui_puppeteer: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_puppeteer?.portrait, spriteScale: characters.shisui_puppeteer?.spriteScale, animationData: null },
   ],
+  // Shisui (Fallen) — Default (Fallen palette) only, per the build spec. REQUIRED entry so getSkins() carries
+  // his real spriteScale instead of clobbering to 1.
+  shisui_fallen: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_fallen?.portrait, spriteScale: characters.shisui_fallen?.spriteScale, animationData: null },
+  ],
   kakashi: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.

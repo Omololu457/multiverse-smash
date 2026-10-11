@@ -10596,6 +10596,52 @@ const shisuiPuppeteer = {
   }
 }
 
+// ── SHISUI (FALLEN) — "The Curse-Breaker": a NEW additive, SELECTABLE fighter (NOT a Trinity identity). An evil
+// multiversal Shisui who hunts the Uchiha. Uses the SAME Haickal23 H sheet as the Blade but in a FALLEN palette
+// (charcoal/crimson, red Mangekyou kept) via shisui_fallen_*_uniform.png (shisui_fallen_work/fallen_palette.py +
+// slice_body.py) — separate filenames, no collision with shisui_blade. Fastest Naruto-band / lowest HP; the dash
+// is a Body-Flicker teleport (3 charges + afterimages). combat.js UNTOUCHED. All other characters byte-identical.
+const shisuiFallen = {
+  rosterKey: "shisui_fallen", name: "Shisui (Fallen)", title: "The Curse-Breaker", universe: "naruto", color: "#8a1420",
+  portrait: "./shisui_fallen_portrait.png",
+  archetypes: ["rushdown", "technical"],
+  primary: "rushdown", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "very-high", scaling: "glass-cannon", animeMovement: true },
+  passive: { name: "Body Flicker", effect: "Shisui the Teleporter: his dash is an instant Flicker Step (Forward / Back / Up) that leaves an AFTERIMAGE at the departure point for ~0.5s which absorbs ONE hit. 3 flicker charges that regenerate; most normals can Flicker-Cancel (1 charge). CLAN HUNTER: +10% damage vs every Uchiha." },
+  // Fastest fighter in the Naruto band, lowest HP (glass cannon). maxEnergy 120 = Chakra (same band as the Trinity).
+  stats: { maxHealth: 960, maxEnergy: 120, attack: 92, defense: 80, speed: 100, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 8, dashCooldownMax: 34 },
+  movement: { crouchIdle: true },
+  basic_attacks: {
+    light:      { damage: 32, startup: 4, active: 3, recovery: 8,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 74, rangeY: 50 },
+    heavy:      { type: "launcher", damage: 70, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -28, selfVy: -4, airOK: false, rangeX: 108, rangeY: 76 },
+    upAttack:   { type: "launcher", damage: 54, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -29, selfVy: -4, airOK: false },
+    airAttack:  { damage: 48, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:    { damage: 52, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 64, rangeY: 60 },
+    crouchLight:{ damage: 28, startup: 4, active: 3, recovery: 9,  hitstun: 11, knockbackX: 2, knockbackY: 0 },
+    grab:       { damage: 24, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
+  },
+  hasSprites: true,
+  spriteScale: 1.3,   // idle body 84px × 1.3 ≈ 109px on-screen (teen-ninja tier, same target as the Blade)
+  animationData: {
+    idle:  { frames: 2, width: 29,  height: 84, speed: 8, anchorY: 0, loop: true,  sheet: "./shisui_fallen_idle_uniform.png" },
+    walk:  { frames: 6, width: 70,  height: 101, speed: 7, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
+    run:   { frames: 6, width: 70,  height: 101, speed: 5, anchorY: 0, loop: true,  sheet: "./shisui_fallen_run_uniform.png" },
+    dash:  { frames: 6, width: 70,  height: 101, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_run_uniform.png" },
+    jump:  { frames: 4, width: 61,  height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_jump_uniform.png" },
+    fall:  { frames: 1, width: 61,  height: 82, speed: 6, anchorY: 0, sourceX: 183, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_jump_uniform.png" },
+    guard: { frames: 2, width: 50,  height: 102, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_guard_uniform.png" },
+    hurt:  { frames: 1, width: 59,  height: 95, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_hurt_uniform.png" },
+    knockdown: { frames: 4, width: 81, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_knockdown_uniform.png" },
+    light:    { frames: 9, width: 67,  height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_light_uniform.png" },
+    heavy:    { frames: 7, width: 124, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_heavy_uniform.png" },
+    up:       { frames: 4, width: 70,  height: 87, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_up_uniform.png" },
+    air:      { frames: 3, width: 28,  height: 33, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_air_uniform.png" },
+    kunaiCast:{ frames: 3, width: 54,  height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_kunai_uniform.png" },
+    intro:    { frames: 5, width: 41,  height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_fallen_intro_uniform.png" }
+  },
+  introPool: ["intro"]
+}
+
 // ── Goku Black (Super Saiyan Rosé 3) — NEW additive standalone (Dragon Ball). Every frame sliced from the ONE
 // ultrasayiancoder101 "Goku Black SSJ Rosé 3" sheet. Canonical Zamasu/Goku-Black kit: Ki blasts, Black
 // Kamehameha, Sword of Light, the Scythe (God Split Cut), SSJ-Rosé power-up aura. combat.js UNTOUCHED.
@@ -10769,7 +10815,8 @@ export const characters = {
   naruto_seventh: narutoSeventh,     // NEW additive standalone (Naruto / Seventh Hokage) — built from the padakun H sheet; all others untouched
   shisui_trinity: shisuiTrinity,     // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
   shisui_blade: shisuiBlade,         // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
-  shisui_puppeteer: shisuiPuppeteer  // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
+  shisui_puppeteer: shisuiPuppeteer, // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
+  shisui_fallen: shisuiFallen        // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
 }
 
 // The 7 characters shown in the starter roster select screen

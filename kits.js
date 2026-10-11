@@ -144,6 +144,28 @@ export const KITS = {
       { name: "Fire Punish",    sequence: "Up-Attack, Jump, Air, Down, Forward + Special", desc: "launch, then Gōka Mekkyaku on landing" }
     ]
   },
+  shisui_fallen: {
+    type: "Body-Flicker Assassin / Uchiha-Hunter", energy: "Chakra", difficulty: "Hard",
+    summary: "An evil multiversal Shisui who hunts the Uchiha — the fastest, most fragile fighter in the Leaf, winning through flicker-step teleports, afterimages, and Mangekyō control.",
+    passive: { name: "Body Flicker", effect: "Shisui the Teleporter: his DASH is an instant Flicker Step (Forward / Back / Up) that leaves an AFTERIMAGE at the departure point for ~0.5s which ABSORBS one hit. 3 flicker charges regenerate over time; most normals can Flicker-Cancel. CLAN HUNTER: +10% damage vs every Uchiha." },
+    basics: [
+      { name: "Blade String", input: "Light",                   desc: "fast acrobatic blade string" },
+      { name: "Iaido Slash",  input: "Heavy",                   desc: "a big crescent iaido launcher" },
+      { name: "Rising Crescent", input: "Up-Attack",            desc: "launcher — starts air combos" },
+      { name: "Air Slash",    input: "Air (jump + Light)",      desc: "aerial" },
+      { name: "Flicker Step", input: "Dash / double-tap (F/B/U)", desc: "an INSTANT teleport that leaves a hit-absorbing afterimage (1 charge; 3 total, regenerating)" },
+      { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "(Specials)",   input: "Directional + Special",   cost: 0, desc: "Kunai Barrage / Body-Flicker Strike / Afterimage Feint / Sharingan Glare / Shadow-Clone Pursuit — wired in Phase 2" }
+    ],
+    mobility: { name: "Flicker Step", input: "Dash / double-tap", cost: 0, desc: "instant teleport (Body-Flicker) with a hit-absorbing afterimage" },
+    ultimate: { name: "Shunshin: Thousand Shadows", input: "Ultimate (full meter)", cost: 100, desc: "flicker between 5 points around the foe, striking from each with a lingering afterimage, then a final thrust (Phase 2). Up+Ult = Kotoamatsukami (Phase 4); Down+Ult = Emerald Susanoo (Phase 3)" },
+    combos: [
+      { name: "Flicker Pressure", sequence: "Light, Dash, Light", desc: "poke, flicker-cancel behind, re-poke" },
+      { name: "Launch & Hunt",    sequence: "Up-Attack, Jump, Air", desc: "launch into aerial pressure" }
+    ]
+  },
   jiraiya: {
     type: "Toad Sage / Summon Zoner", energy: "Chakra", difficulty: "Medium",
     summary: "A Legendary Sannin who controls space with fire, hair, and toad ninjutsu — then flips into Sage Mode for a buffed second kit and a giant-toad summon.",

@@ -484,6 +484,12 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./shisui_puppeteer_idle_uniform.png" }
   },
 
+  // Shisui (Fallen) — "The Curse-Breaker": NEW standalone fighter (Haickal23 sheet, Fallen palette). Gates
+  // spritesReady() by decoding the idle strip → his shisui_fallen_*_uniform.png render.
+  shisui_fallen: {
+    actions: { idle: "./shisui_fallen_idle_uniform.png" }
+  },
+
   // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
   // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the

@@ -211,6 +211,7 @@ import {
   fireMadaraGedoMazo,            // Madara WAR Phase 4 — Back+Ult → Gedo Mazo statue crash
   fireMadaraKajukai,             // Madara WAR Phase 4 — Fwd+Ult → Kajukai Korin drowsiness flower field
   tickMadaraKurama,              // Madara WAR Phase 4 — per-frame Kurama timeout + control-break tick
+  updateShisuiFallenFlicker,     // Shisui (Fallen) — Body-Flicker: charges regen + afterimage spawn/absorb (per-frame)
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -6954,7 +6955,8 @@ const SPEED_TIER_TELEPORT_KEYS = new Set([
   "obito", "tobi", "pain",                                       // Stage-0 originals (Kamui / gravity feats)
   "naruto", "madara", "zaraki", "killua", "netero", "hisoka", "beerus",   // Stage-2 speed-blitz additions
   "omololu",  // Obito-recolor self-insert — same Kamui-lineage blink feat as obito (falls through to its own dash pose)
-  "sasuke_sensei"   // Boruto-era Sasuke — Sharingan Shunshin, on par with teen Sasuke/Itachi/Madara who already teleport-dash (his base speed 94 sits just under the tier, so granted explicitly; blink plays his own dash sheet)
+  "sasuke_sensei",  // Boruto-era Sasuke — Sharingan Shunshin, on par with teen Sasuke/Itachi/Madara who already teleport-dash (his base speed 94 sits just under the tier, so granted explicitly; blink plays his own dash sheet)
+  "shisui_fallen"   // SHISUI (FALLEN) — "Shisui the Teleporter": his dash IS a Body-Flicker step (charges + afterimages layered in updateShisuiFallenFlicker)
 ])
 function isSpeedTierTeleport(fighter) {
   const key = (fighter?.rosterKey || fighter?.id || "").toLowerCase()
@@ -7346,6 +7348,7 @@ function updateMiscTimers(fighter) {
   tickMadaraLadderHP(fighter)   // Madara WAR Phase 2 — Susano'o Ladder HP bleed / break→drop / climb-FX tick (every frame, even while charging)
   tickMadaraAvatar(fighter)     // Madara WAR Phase 3 — Susano'o Avatar timeout / HP-break → LOSE dissolve → revert (every frame)
   tickMadaraKurama(fighter)     // Madara WAR Phase 4 — Kurama summon timeout + control-break (every frame)
+  updateShisuiFallenFlicker(fighter)   // Shisui (Fallen) — Body-Flicker charges/afterimages (every frame)
   if ((fighter._madaraTengaiSky || 0) > 0) fighter._madaraTengaiSky--   // Madara WAR polish — Tengai sky-darken countdown (drawn as a screen overlay)
   if ((fighter._madaraDrowsy || 0) > 0) {   // Madara WAR Phase 4 — Kajukai Korin DROWSINESS: hold a speed cut, restore on expiry
     fighter.speedMultiplier = (fighter._madaraDrowsyBaseSpd || 1) * 0.45
@@ -13211,6 +13214,30 @@ function drawMadaraTengaiSky(ctx, canvas) {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
   ctx.restore()
 }
+// SHISUI (FALLEN) — Body-Flicker AFTERIMAGES: a faded cold-tinted copy of his stance lingers at each departure
+// point (the thing that absorbs a hit). A dark flicker-streak links it to his current position. Render-only.
+function drawShisuiFallenFlicker(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen") return
+  const ghosts = fighter._flickGhosts
+  if (!ghosts || !ghosts.length) return
+  const img = _susanoImg("./shisui_fallen_idle_uniform.png")
+  if (!img.complete || !img.naturalWidth) return
+  const fw = img.naturalWidth / 2, fh = img.naturalHeight
+  const w = fighter.w ?? 50, h = fighter.h ?? 100
+  const scale = fighter.spriteScale || 1.3
+  const dh = fh * scale, dw = fw * scale
+  for (const g of ghosts) {
+    const k = g.t / 32
+    // dark flicker-streak from the afterimage toward Shisui's current position
+    c.save(); c.globalAlpha = 0.30 * k; c.strokeStyle = "#0a0a12"; c.lineWidth = h * 0.5 * k; c.lineCap = "round"
+    c.beginPath(); c.moveTo(g.x + w / 2, g.y + h * 0.5); c.lineTo(fighter.x + w / 2, fighter.y + h * 0.5); c.stroke(); c.restore()
+    // the afterimage copy (faded, cold-tinted)
+    c.save(); c.globalAlpha = 0.5 * k
+    c.translate(g.x + w / 2, g.y + h - dh / 2); if ((g.facing || 1) < 0) c.scale(-1, 1)
+    c.drawImage(img, 0, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+    c.restore()
+  }
+}
 function drawMadaraKurama(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara" || (fighter._madaraKurama || 0) <= 0) return
   // ARMORED (blue) Kurama once transformed (re-input Down+Ult) — swap the sheet + frame count.
@@ -15953,6 +15980,7 @@ function renderHybridFighter(fighter) {
     drawKakashiWarSusano(c, fighter)   // Kakashi (Kamui) — the giant Perfect Susanoo avatar (recoloured light-blue), BEHIND the body (kakashi_war only)
     drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
     drawMadaraKurama(c, fighter)       // Madara — the Kurama (Nine-Tails) summon looming BEHIND Madara (madara only, WAR Phase 4)
+    drawShisuiFallenFlicker(c, fighter) // Shisui (Fallen) — Body-Flicker afterimages + streak, behind the body (shisui_fallen only)
     drawMadaraStageAura(c, fighter)    // Madara — persistent Susano'o-Ladder stage aura/embers, behind the body (madara only)
     drawMadaraAvatarFlames(c, fighter) // Madara — Susano'o Avatar ground-flames at the feet, behind the body (madara only)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
@@ -20725,6 +20753,8 @@ gameLoop()
     dashCooldown:     f.dashCooldown || 0,           // frames until the next dash is available
     dashTimer:        f.dashTimer || 0,              // active-dash frames remaining
     teleportFlash:    f.teleportFlash || 0,      // teleport-behind landing flash
+    flickCharges:     f._flickerCharges == null ? null : f._flickerCharges,   // Shisui (Fallen) Body-Flicker charges remaining
+    flickGhosts:      (f._flickGhosts || []).length,                          // Shisui (Fallen) live afterimages (each absorbs one hit)
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act

@@ -21799,6 +21799,48 @@ function fireMadaraGiantSlash(fighter, key) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "light"/"heavy" → renders the giant sword _skinAnim
   return true
 }
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHISUI (FALLEN) — BODY FLICKER system (CANON "Shisui the Teleporter"). His dash is a Flicker Step (granted via
+// SPEED_TIER_TELEPORT_KEYS in game.js); this layers the 3 regenerating CHARGES + the AFTERIMAGE left at every
+// departure point (~0.5s, ABSORBS ONE hit) + the flicker-cancel resource. Per-frame from game.js. combat.js-FREE
+// (position-watch detects the blink; health-watch does the absorb). Deterministic, LAN-safe (no gameRng).
+// ═══════════════════════════════════════════════════════════════════════════════
+const SHISUI_FLICKER_MAX   = 3
+const SHISUI_FLICKER_REGEN = 96    // frames to regenerate one charge (~1.6s)
+const SHISUI_GHOST_LIFE    = 32    // afterimage lifetime (~0.5s)
+export function updateShisuiFallenFlicker(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shisui_fallen") return
+  if (fighter._flickerCharges == null) {
+    fighter._flickerCharges = SHISUI_FLICKER_MAX; fighter._flickerRegen = 0
+    fighter._flickGhosts = []; fighter._flickPrevX = fighter.x; fighter._flickHpWatch = fighter.health
+  }
+  // CHARGE REGEN
+  if (fighter._flickerCharges < SHISUI_FLICKER_MAX) { if (++fighter._flickerRegen >= SHISUI_FLICKER_REGEN) { fighter._flickerCharges++; fighter._flickerRegen = 0 } }
+  else fighter._flickerRegen = 0
+  // BLINK DETECTION — an instant large X jump (the speed-tier teleport dash) → a Flicker Step leaves an afterimage.
+  const dx = fighter.x - (fighter._flickPrevX != null ? fighter._flickPrevX : fighter.x)
+  if (!fighter.eliminated && Math.abs(dx) >= 70 && (fighter._flickBlinkCd || 0) <= 0) {
+    fighter._flickBlinkCd = 10
+    if ((fighter._flickerCharges || 0) > 0) {
+      fighter._flickerCharges--
+      fighter._flickGhosts.push({ x: fighter._flickPrevX, y: fighter.y, facing: fighter.facing || 1, t: SHISUI_GHOST_LIFE })
+      if (fighter._flickGhosts.length > SHISUI_FLICKER_MAX) fighter._flickGhosts.shift()
+    }
+  }
+  if ((fighter._flickBlinkCd || 0) > 0) fighter._flickBlinkCd--
+  fighter._flickPrevX = fighter.x
+  // HIT ABSORB — if Shisui takes damage while an afterimage is live, the ghost EATS the hit (health restored,
+  // stun cleared) and pops. "In multiple places at once." (CANON-ADJACENT)
+  const hp = fighter.health, prev = fighter._flickHpWatch != null ? fighter._flickHpWatch : hp
+  if (hp < prev && (fighter._flickGhosts || []).length > 0) {
+    fighter.health = prev; fighter.hitstun = 0; fighter.hitstop = 0
+    fighter._flickGhosts.shift(); fighter._flickAbsorbFx = 10
+  }
+  fighter._flickHpWatch = fighter.health
+  if (fighter._flickGhosts) { for (const g of fighter._flickGhosts) g.t--; fighter._flickGhosts = fighter._flickGhosts.filter(g => g.t > 0) }
+  if ((fighter._flickAbsorbFx || 0) > 0) fighter._flickAbsorbFx--
+}
+
 export function updateMadaraCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara" || !inputState) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false

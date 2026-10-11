@@ -224,6 +224,15 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png; Haickal23 + in-sheet credit box)",
     files:   ["shisui_blade_*.png", "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png"]
   },
+  // Shisui (Fallen) — "The Curse-Breaker": NEW standalone fighter on the SAME Haickal23 NZC sheet as the Blade
+  // but in a FALLEN palette (shisui_fallen_*). Full in-sheet credit box copied. (Perfect Susanoo art by
+  // Mikel8888, thanks RCT29 + xxJonnyxx — added with the Emerald Susanoo in Phase 3.) MANDATORY.
+  shisui_fallen: {
+    work:    "Shisui (Fallen) — \"The Curse-Breaker\"",
+    artists: ["Haickal23", "OM HY", "Sennin 15", "Neimad", "Blowupelisha", "Juan - Jan", "Juanshoalmao", "El Loco Jr", "Maxiuchiha22", "RBM - Kyuubi", "AltairFrameMaker", "Alexandre360", "Mikeel8888", "xxJohnnyxxx"],
+    source:  "fan sprite sheet (shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png; by Haickal23, with the in-sheet credit box: OM HY / Sennin 15 / Neimad / Blowupelisha / Juan - Jan / Juanshoalmao / El Loco Jr / Maxiuchiha22 / RBM - Kyuubi / AltairFrameMaker / Alexandre360 / Mikeel8888 / xxJohnnyxxx). Recoloured to the Fallen palette in-repo.",
+    files:   ["shisui_fallen_*.png", "shisui_uchiha_nzc_sheet_by_haickal23_des5zc7.png"]
+  },
   // Shisui (Trinity) — THE PUPPETEER identity (its own roster key shisui_puppeteer). TheGodGeminis' JUS sheet;
   // the in-sheet credit box names XxjohnnyxX/TheGodGeminis/Neimad/Bonzai/NES/Grim/RedFlash93/Stephens513.
   // Border-flood-fill keyed → shisui_puppeteer_*_uniform.png. MANDATORY.

@@ -38,6 +38,14 @@ export function collectModules() {
 export function computeVersion(modules = collectModules()) {
   const h = crypto.createHash("sha256");
   for (const m of modules) h.update(m).update(fs.readFileSync(path.join(REPO, m.slice(2))));
+  // Fold a CHEAP fingerprint of image assets (filename + byte size — no reads) so SHEET edits also
+  // bust the version. Sprite sheets are loaded by bare path (sprite.js) and would otherwise cache in
+  // the browser forever; re-slicing/recolouring a sheet changes its byte size → new hash → sprite.js
+  // appends the new ?v= and the fresh sheet is fetched. ~170ms over the whole image set.
+  try {
+    const imgs = fs.readdirSync(REPO).filter(f => /\.(png|jpe?g|webp|gif)$/i.test(f)).sort();
+    for (const f of imgs) h.update(f).update(String(fs.statSync(path.join(REPO, f)).size));
+  } catch (_) {}
   return h.digest("hex").slice(0, 10);
 }
 
@@ -50,6 +58,7 @@ export function buildModuleBlock(entry = "./game.js") {
   const map = JSON.stringify({ imports }, null, 6);
   const html =
 `${MARK_START}
+    <script>window.__ASSET_V=${JSON.stringify(version)};</script>
     <script type="importmap">
     ${map}
     </script>

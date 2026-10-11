@@ -146,7 +146,12 @@ function _loadSheet(path) {
   if (_cache.has(path)) return _cache.get(path);
 
   const img = new Image();
-  img.src = path;
+  // CACHE-BUST sprite sheets like the JS modules are. PNGs are loaded by bare path, so a browser
+  // caches them indefinitely and never picks up a re-sliced/recoloured sheet without a manual hard
+  // refresh. tools/stamp_version.mjs stamps window.__ASSET_V (a content hash of modules + sheet
+  // sizes) into index.html; appending it means every build ships fresh sheet URLs automatically.
+  const v = (typeof globalThis !== "undefined" && globalThis.__ASSET_V) || "";
+  img.src = v ? (path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + v) : path;
   _cache.set(path, img);
   return img;
 }

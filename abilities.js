@@ -30043,7 +30043,13 @@ function shisuiBehindX(fighter, opp, context, gap) {
   const cam = context?.camera, cw = context?.canvasWidth || 1280
   if (cam && cam.zoom) { const half = (cw / 2) / cam.zoom; lo = Math.max(lo, cam.x - half); hi = Math.min(hi, cam.x + half) }
   const behind = (fighter.x < opp.x) ? (opp.x + (opp.w || 60) + (gap || 6)) : (opp.x - fw - (gap || 6))
-  return Math.max(lo + 6, Math.min(hi - fw - 6, behind))
+  let landX = Math.max(lo + 6, Math.min(hi - fw - 6, behind))
+  // CAP the blink distance. A far target otherwise hurls Shisui clear across the visible screen to
+  // the clamped edge — reading as "warping off the edge". Limit any space-time reposition (Backstab,
+  // Feint, Flurry, Thousand Cuts, the Susano'o flash-steps) to a short hop from his current spot.
+  const MAX_BLINK = 380
+  landX = Math.max(fighter.x - MAX_BLINK, Math.min(fighter.x + MAX_BLINK, landX))
+  return landX
 }
 
 // ── SHARED: SHUNSHIN BACKSTAB (Fwd+Special on ALL three identities; MK1 "Backstage Pass") ─────────────

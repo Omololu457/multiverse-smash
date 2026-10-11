@@ -164,7 +164,8 @@ export const KITS = {
       { name: "Shadow-Clone Pursuit", input: "Down+Special",     cost: 26, desc: "launch a flicker-clone that rushes the foe and strikes" }
     ],
     mobility: { name: "Flicker Step", input: "Dash / double-tap", cost: 0, desc: "instant teleport (Body-Flicker) with a hit-absorbing afterimage" },
-    ultimate: { name: "Shunshin: Thousand Shadows", input: "Ultimate (full meter)", cost: 100, desc: "flicker between 5 points around the foe, striking from each with a lingering afterimage, then a final committed thrust (CLAN HUNTER-boosted vs Uchiha). Up+Ult = Kotoamatsukami (Phase 4); Down+Ult = Emerald Susanoo (Phase 3)" },
+    ultimate: { name: "Shunshin: Thousand Shadows", input: "Ultimate (full meter)", cost: 100, desc: "flicker between 5 points around the foe, striking from each with a lingering afterimage, then a final committed thrust (CLAN HUNTER-boosted vs Uchiha). Up+Ult = Kotoamatsukami (Phase 4)" },
+    susanoo: { name: "Emerald Susanoo", input: "Down+Ultimate (full meter)", cost: 100, desc: "a GIANT emerald Susanoo avatar envelops Shisui (~9s); its shell HP ABSORBS incoming damage (redirected off Shisui). Giant kit: Light = winged punch · Heavy = sword slash · Forward+Special = flying lunge · Special = Yasaka Magatama volley · Ultimate = Totsuka Seal (one big guaranteed blade thrust). Ends on timeout or shell break." },
     combos: [
       { name: "Flicker Pressure", sequence: "Light, Dash, Light", desc: "poke, flicker-cancel behind, re-poke" },
       { name: "Launch & Hunt",    sequence: "Up-Attack, Jump, Air", desc: "launch into aerial pressure" }

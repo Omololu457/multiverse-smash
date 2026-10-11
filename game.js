@@ -212,6 +212,7 @@ import {
   fireMadaraKajukai,             // Madara WAR Phase 4 — Fwd+Ult → Kajukai Korin drowsiness flower field
   tickMadaraKurama,              // Madara WAR Phase 4 — per-frame Kurama timeout + control-break tick
   updateShisuiFallenFlicker,     // Shisui (Fallen) — Body-Flicker: charges regen + afterimage spawn/absorb (per-frame)
+  updateShisuiFallenSusano,      // Shisui (Fallen) Phase 3 — Emerald Susanoo per-frame driver (rawControls kit + HP-absorb + exit)
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -13245,6 +13246,63 @@ function drawShisuiFallenFlicker(c, fighter) {
     c.restore()
   }
 }
+// SHISUI (FALLEN) PHASE 3 — the giant EMERALD SUSANOO avatar, drawn BEHIND the body (feet-anchored on Shisui).
+const _SHI_SUSANO_SCALE = 2.9
+const _SHI_SUSANO_POSE = {
+  stance: ["./shisui_fallen_susano_stance.png", 1], walk: ["./shisui_fallen_susano_walk.png", 6],
+  punch:  ["./shisui_fallen_susano_punch.png", 2],  sword: ["./shisui_fallen_susano_sword.png", 5],
+  lunge:  ["./shisui_fallen_susano_lunge.png", 1],  thrust: ["./shisui_fallen_susano_thrust.png", 5],
+}
+function drawShisuiFallenSusano(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen" || !fighter._emeraldSusano) return
+  const PS = fighter._emeraldSusano
+  const bx = fighter._lastDrawX, by = fighter._lastDrawY, bw = fighter._lastDrawW, bh = fighter._lastDrawH
+  if (bx == null || bh == null) return
+  const dir = fighter.facing || 1
+  const feetX = bx + bw / 2, feetY = by + bh, targetH = bh * _SHI_SUSANO_SCALE
+  const [sheet, nf] = _SHI_SUSANO_POSE[PS.pose] || _SHI_SUSANO_POSE.stance
+  const img = _susanoImg(sheet)
+  const t = globalFrameCount
+  const fi = (PS.pose === "stance") ? 0 : (PS.pose === "walk") ? (Math.floor(t / 6) % nf) : (Math.floor(t / 4) % nf)
+  if (img.complete && img.naturalWidth > 0) {
+    const fw = img.naturalWidth / nf, fh = img.naturalHeight, sc = targetH / fh
+    const dw = fw * sc, dh = fh * sc
+    let a = 0.82; if ((PS._shellFlash || 0) > 0) { a = Math.min(0.97, a + 0.14); PS._shellFlash-- }
+    if (PS.hp < PS.max * 0.25) a *= 0.72 + 0.14 * Math.sin(t * 0.3)   // flicker when the shell is nearly broken
+    c.save(); c.globalAlpha = a
+    c.shadowBlur = 26; c.shadowColor = "rgba(90,230,150,0.55)"
+    c.translate(feetX, feetY); c.scale(dir, 1)
+    c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh, dw, dh)
+    c.restore()
+  }
+  // TOTSUKA SEAL — a thick jagged emerald blade-bolt from the Susanoo's hand toward the foe.
+  if (PS.finisher) {
+    const hx = feetX + dir * targetH * 0.22, hy = feetY - targetH * 0.6
+    const reach = targetH * 0.95
+    c.save(); c.globalAlpha = 0.9; c.lineCap = "round"
+    for (let pass = 0; pass < 2; pass++) {
+      c.strokeStyle = pass === 0 ? "rgba(130,255,180,0.95)" : "rgba(240,255,245,0.9)"
+      c.lineWidth = pass === 0 ? 11 : 4; c.shadowBlur = 16; c.shadowColor = "rgba(90,230,150,0.9)"
+      c.beginPath(); c.moveTo(hx, hy)
+      let px = hx, py = hy
+      for (let i = 1; i <= 6; i++) { const f = i / 6; px = hx + dir * reach * f; py = hy + Math.sin(i * 1.7 + t * 0.5) * 18 * (1 - f); c.lineTo(px, py) }
+      c.stroke()
+    }
+    c.restore()
+  }
+  // SUSANOO HP bar (emerald "shell integrity") above the head.
+  {
+    const frac = Math.max(0, Math.min(1, PS.hp / PS.max))
+    const bw2 = Math.max(60, bw * 2.0), bh2 = Math.max(5, bh * 0.05)
+    const bx2 = feetX - bw2 / 2, by2 = feetY - targetH - bh2 - 6
+    c.save()
+    c.fillStyle = "#06180f"; c.fillRect(bx2 - 1, by2 - 1, bw2 + 2, bh2 + 2)
+    c.fillStyle = "#03120a"; c.fillRect(bx2, by2, bw2, bh2)
+    c.fillStyle = frac < 0.25 ? "#ff6a6a" : "#8fffb8"; c.fillRect(bx2, by2, bw2 * frac, bh2)
+    c.strokeStyle = "rgba(143,255,184,0.7)"; c.lineWidth = 1; c.strokeRect(bx2 - 1, by2 - 1, bw2 + 2, bh2 + 2)
+    c.restore()
+  }
+}
 function drawMadaraKurama(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara" || (fighter._madaraKurama || 0) <= 0) return
   // ARMORED (blue) Kurama once transformed (re-input Down+Ult) — swap the sheet + frame count.
@@ -15772,6 +15830,7 @@ function updateBattle() {
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); const _rc1 = readRawControls(p1), _rc2 = readRawControls(p2); updateKakashiWar(p1, _kctx, !!_rc1?.special, _kblock, _rc1); updateKakashiWar(p2, _kctx, !!_rc2?.special, _kblock, _rc2) }   // KAKASHI (KAMUI): Raikiri charge+dash + Kawarimi + Sharingan/Kamui/Tsuiga/copy-ready + Frog Henge upkeep (rawControls → frog pop-on-button) (no-op otherwise)
+  { const _sctx = getAbilityContext(); updateShisuiFallenSusano(p1, _sctx, readRawControls(p1)); updateShisuiFallenSusano(p2, _sctx, readRawControls(p2)) }   // SHISUI (FALLEN) Phase 3: Emerald Susanoo giant kit (rawControls) + HP-absorb + timeout/break exit (no-op otherwise)
   updateCloneFormations(getStageWorldWidth())
   // fireHit: melee beats reuse the guaranteed-hit primitive; projectile beats spawn a traveling shot. The
   // owner's themed FX (sheet/color/dims) is already merged onto `hit` by the engine (Stage-0 parity).
@@ -15988,6 +16047,7 @@ function renderHybridFighter(fighter) {
     drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
     drawMadaraKurama(c, fighter)       // Madara — the Kurama (Nine-Tails) summon looming BEHIND Madara (madara only, WAR Phase 4)
     drawShisuiFallenFlicker(c, fighter) // Shisui (Fallen) — Body-Flicker afterimages + streak, behind the body (shisui_fallen only)
+    drawShisuiFallenSusano(c, fighter)  // Shisui (Fallen) Phase 3 — the giant EMERALD Susanoo avatar, BEHIND the body (shisui_fallen only)
     drawMadaraStageAura(c, fighter)    // Madara — persistent Susano'o-Ladder stage aura/embers, behind the body (madara only)
     drawMadaraAvatarFlames(c, fighter) // Madara — Susano'o Avatar ground-flames at the feet, behind the body (madara only)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
@@ -22648,6 +22708,8 @@ gameLoop()
     // SHISUI (FALLEN) directional-ult test: stamp the LIVE fighter's _ultVariant (the snapshot is a copy, so a
     // test can't set it) then fire — verifies neutral=Thousand Shadows fires + Up/Down variants no-op (Phase 3-4).
     shisuiFallenUlt: (variant = "thousandShadows") => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; p1.energy = p1.maxEnergy; p1._ultVariant = variant; const cast = triggerUltimate(p1, getAbilityContext()); return { cast: !!cast, energy: Math.round(p1.energy), variant: p1._ultVariant || null } },
+    // SHISUI (FALLEN) Phase 3 — Emerald Susanoo state reader (snapshot omits custom _fields).
+    shisuiFallenSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const PS = f._emeraldSusano; return { active: !!PS, hp: PS ? Math.round(PS.hp) : 0, max: PS ? PS.max : 0, t: PS ? PS.t : 0, pose: PS ? PS.pose : null, action: PS ? PS.action : null, volley: PS ? !!PS.volley : false, finisher: PS ? !!PS.finisher : false, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0) } },
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {
       fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },

@@ -21810,6 +21810,7 @@ const SHISUI_FLICKER_REGEN = 96    // frames to regenerate one charge (~1.6s)
 const SHISUI_GHOST_LIFE    = 32    // afterimage lifetime (~0.5s)
 export function updateShisuiFallenFlicker(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shisui_fallen") return
+  if (fighter._emeraldSusano) { fighter._flickHpWatch = fighter.health; return }   // giant Susanoo owns the HP-watch (its own absorb) + no flicker-dash as the avatar
   if (fighter._flickerCharges == null) {
     fighter._flickerCharges = SHISUI_FLICKER_MAX; fighter._flickerRegen = 0
     fighter._flickGhosts = []; fighter._flickPrevX = fighter.x; fighter._flickHpWatch = fighter.health
@@ -21991,7 +21992,8 @@ function shisuiFallenShadowClonePursuit(fighter, context) {
 export function executeShisuiFallenUltimate(fighter, context) {
   if (!isShisuiFallen(fighter)) return false
   const variant = fighter._ultVariant || "thousandShadows"
-  if (variant === "kotoamatsukami" || variant === "emeraldSusanoo") return false   // directional ults land in Phases 3-4 (no-op → meter not spent)
+  if (variant === "kotoamatsukami") return false                                    // Kotoamatsukami = Phase 4 (no-op → meter not spent)
+  if (variant === "emeraldSusanoo") return enterShisuiFallenSusano(fighter, context) // Phase 3 — Emerald Susanoo (spends the meter itself)
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp = getTargetResolver(context)(fighter)
   fighter.attackCooldown = getAttackDuration(62, fighter)
@@ -22030,6 +22032,151 @@ export function executeShisuiFallenUltimate(fighter, context) {
     try { focusCameraOnAction(context, fighter, o, 0.95, 12); shakeCamera(context, 8, 12) } catch (_) {}
   })
   return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SHISUI (FALLEN) — PHASE 3: EMERALD SUSANOO (Down+Ultimate at full meter). A GIANT emerald Susanoo avatar
+// (recoloured Mikeel8888 P sheet — the same giant as Kakashi's Perfect Susanoo, re-palletted green) envelops
+// Shisui. Its HP ABSORBS incoming damage (redirected in updateShisuiFallenSusano → refund Shisui); ends on
+// timeout / HP break (code fade). The kit is driven from rawControls so combat.js stays UNTOUCHED (normals
+// suppressed via attackCooldown): walk = move · Light = winged punch · Heavy = sword slash · Fwd+Special =
+// flying lunge · neutral Special = YASAKA MAGATAMA volley (3 emerald shuriken, one-by-one) · Ultimate = TOTSUKA
+// SEAL (one big guaranteed emerald blade thrust). Deterministic / LAN-safe.
+// ═════════════════════════════════════════════════════════════════════════════
+const SHISUI_FALLEN_SUSANO = {
+  hp: 480, dur: 560, scale: 2.9,
+  punch:    { pose: "punch", dur: 22, activeAt: 14, reach: 138, raw: 64,  hitstun: 18, kb: 9,  vy: -2 },
+  sword:    { pose: "sword", dur: 34, activeAt: 20, reach: 192, raw: 116, hitstun: 24, kb: 13, vy: -5 },
+  lunge:    { pose: "lunge", dur: 28, activeAt: 12, reach: 176, raw: 96,  hitstun: 22, kb: 15, vy: -6, dash: 26 },
+  mag:      { count: 3, gap: 12, cast: 16, raw: 60, speed: 15, stun: 30 },
+  finisher: { dur: 76, impactAt: 48, raw: 300, hitstun: 46, kb: 17, vy: -11 },
+}
+function isShisuiSusano(f) { return (f?.rosterKey || "").toLowerCase() === "shisui_fallen" && !!f?._emeraldSusano }
+// ENTER the Emerald Susanoo (Down+Ult). Spends the meter itself (so the ult economy stays honest).
+function enterShisuiFallenSusano(fighter, context) {
+  if (!isShisuiFallen(fighter)) return false
+  if (fighter._emeraldSusano) return false                     // already a giant — re-press is a no-op (finisher = Ult button via rawControls)
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const S = SHISUI_FALLEN_SUSANO
+  fighter._emeraldSusano = { hp: S.hp, max: S.hp, t: S.dur, pose: "stance", poseT: 0, action: null, actionT: 0, volley: null, finisher: null, _shellFlash: 0 }
+  fighter._susanoHpWatch = fighter.health
+  fighter._flickGhosts = []                                     // drop the flicker afterimages (he's the giant now)
+  fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 24
+  fighter.colorFlash = 16; fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 24); shakeCamera(context, 14, 20) } catch (_) {}
+  return true
+}
+function shisuiSusanoBigHit(fighter, context, reach, raw, hitstun, kb, vy, source) {
+  const opp = getTargetResolver(context)(fighter) || null
+  if (!opp || opp.eliminated) return
+  const fx = (fighter.x || 0) + ((fighter.facing || 1) > 0 ? 0 : -reach), fw = (fighter.w || 60) + reach
+  const hit = fx < opp.x + (opp.w || 60) && fx + fw > opp.x && (fighter.y || 0) - 120 < opp.y + (opp.h || 100) && (fighter.y || 0) + (fighter.h || 100) + 40 > opp.y
+  if (!hit) return
+  const dmg = shisuiFallenDmg(fighter, opp, raw)
+  if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 26); applyScaledDamage(opp, Math.round(dmg * 0.4), { source }) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, hitstun); opp.vx = (fighter.facing || 1) * kb; opp.vy = vy; opp.colorFlash = 14; applyScaledDamage(opp, dmg, { source }) }
+  try { shakeCamera(context, 9, 10) } catch (_) {}
+}
+function startShisuiSusanoMelee(fighter, kind) {
+  const PS = fighter._emeraldSusano, M = SHISUI_FALLEN_SUSANO[kind]
+  PS.action = kind; PS.actionT = M.dur; PS.pose = M.pose; PS.poseT = M.dur
+  if (kind === "lunge") fighter.vx = (fighter.facing || 1) * M.dash
+}
+function fireShisuiSusanoMagatama(fighter, context) {
+  const PS = fighter._emeraldSusano, V = SHISUI_FALLEN_SUSANO.mag
+  if (PS.volley) return
+  PS.volley = { left: V.count, t: 0 }; PS.pose = "punch"; PS.poseT = V.cast + V.count * V.gap
+}
+function fireShisuiSusanoFinisher(fighter, context) {
+  const PS = fighter._emeraldSusano, R = SHISUI_FALLEN_SUSANO.finisher
+  if (PS.finisher) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  PS.finisher = { t: R.dur, hit: false }; PS.pose = "thrust"; PS.poseT = R.dur
+  fighter.colorFlash = 16
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, R.impactAt - 4); opp.vx = 0 }
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18); shakeCamera(context, 10, 14) } catch (_) {}
+  return true
+}
+function exitShisuiFallenSusano(fighter, context) {
+  fighter._emeraldSusano = null
+  fighter._susanoRcPrev = null
+  fighter._spriteCastMove = "idle"; fighter._spriteCastTimer = 16
+  fighter.colorFlash = 14
+  try { shakeCamera(context, 6, 10) } catch (_) {}
+}
+// PER-FRAME driver (called for p1 & p2 every frame in game.js, post-updateCombat, with rawControls). Redirects
+// incoming damage to the Susanoo shell, drives the giant kit from rawControls, and exits on timeout / HP break.
+export function updateShisuiFallenSusano(fighter, context, rawControls = null) {
+  if (!isShisuiSusano(fighter)) return
+  const PS = fighter._emeraldSusano, S = SHISUI_FALLEN_SUSANO, rc = rawControls || {}
+  // ── HP ABSORB: redirect this frame's incoming damage to the Susanoo HP (refund Shisui) ──
+  const prevHp = (fighter._susanoHpWatch != null) ? fighter._susanoHpWatch : (fighter.health || 0)
+  const delta = (fighter.health || 0) - prevHp
+  if (delta < 0) {
+    const absorbed = -delta
+    fighter.health = Math.min(fighter.maxHealth || fighter.health, (fighter.health || 0) + absorbed)
+    PS.hp -= absorbed; PS._shellFlash = 8; fighter.hitstun = 0; fighter.knockdownState = false
+  }
+  fighter._susanoHpWatch = fighter.health
+  // ── driver ──
+  PS.t--
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, getAttackDuration(4, fighter))   // suppress combat.js normals
+  fighter.attacking = false
+  if ((PS.poseT || 0) > 0) PS.poseT--
+  if (!PS.action && !PS.volley && !PS.finisher) PS.pose = (Math.abs(fighter.vx || 0) > 0.5 && (fighter.onGround ?? fighter.grounded)) ? "walk" : "stance"
+  const prev = fighter._susanoRcPrev || {}
+  const face = fighter.facing || 1
+  const fwdHeld = face > 0 ? rc.right : rc.left
+  const canAct = !PS.action && !PS.volley && !PS.finisher
+  if (canAct) {
+    if (rc.light && !prev.light) startShisuiSusanoMelee(fighter, "punch")
+    else if (rc.heavy && !prev.heavy) startShisuiSusanoMelee(fighter, "sword")
+    else if (rc.special && !prev.special && fwdHeld) startShisuiSusanoMelee(fighter, "lunge")
+    else if (rc.special && !prev.special && !fwdHeld) fireShisuiSusanoMagatama(fighter, context)
+    else if (rc.ultimate && !prev.ultimate) fireShisuiSusanoFinisher(fighter, context)
+  }
+  fighter._susanoRcPrev = { light: rc.light, heavy: rc.heavy, special: rc.special, ultimate: rc.ultimate }
+  // active melee → apply the big hit at its active frame
+  if (PS.action) {
+    const M = S[PS.action]
+    if (PS.actionT === (M.dur - M.activeAt)) shisuiSusanoBigHit(fighter, context, M.reach, M.raw, M.hitstun, M.kb, M.vy, `shisui_fallen-susano-${PS.action}`)
+    PS.actionT--
+    if (PS.actionT <= 0) { PS.action = null; fighter.vx = 0 }
+  }
+  // YASAKA MAGATAMA volley → throw one every `gap` frames (after the cast)
+  if (PS.volley) {
+    const V = S.mag
+    PS.volley.t++
+    if (PS.volley.t >= V.cast && PS.volley.left > 0 && (PS.volley.t - V.cast) % V.gap === 0) {
+      PS.volley.left--
+      const opp = getTargetResolver(context)(fighter) || null
+      spawnProjectile(fighter, "shisui_fallen-susano-magatama", {
+        w: 60, h: 60, speed: V.speed, damage: shisuiFallenDmg(fighter, opp, V.raw), hitstun: V.stun, knockbackX: 5, knockbackY: -2, lifetime: 100,
+        spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.1, color: "#9effc0",
+        sheet: "./shisui_fallen_susano_magatama.png", spriteFrames: 1, spriteScale: 1.6, spriteSpeed: 2,
+      }, context)
+      try { shakeCamera(context, 3, 5) } catch (_) {}
+    }
+    if (PS.volley.left <= 0 && PS.volley.t > V.cast + V.count * V.gap) PS.volley = null
+  }
+  // TOTSUKA SEAL — one big guaranteed emerald blade thrust (FX drawn in game.js).
+  if (PS.finisher) {
+    const R = S.finisher
+    PS.finisher.t--
+    const elapsed = R.dur - PS.finisher.t
+    if (!PS.finisher.hit && elapsed >= R.impactAt) {
+      PS.finisher.hit = true
+      const opp = getTargetResolver(context)(fighter) || null
+      if (opp && !opp.eliminated) {
+        if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 28); applyScaledDamage(opp, oneShotUltBlockedDmg(shisuiFallenDmg(fighter, opp, R.raw)), { source: "shisui_fallen-susano-totsuka" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 18; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 54); applyScaledDamage(opp, shisuiFallenDmg(fighter, opp, R.raw), { source: "shisui_fallen-susano-totsuka" }) }
+      }
+      try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 24, 20) } catch (_) {}
+    }
+    if (PS.finisher.t <= 0) PS.finisher = null
+  }
+  // EXIT: timeout / HP break (entering already consumed the meter → no chakra-drain exit)
+  if (PS.t <= 0 || PS.hp <= 0) exitShisuiFallenSusano(fighter, context)
 }
 
 export function updateMadaraCommandCombat(fighter, inputState, context, getPhase) {

@@ -110,14 +110,15 @@ ok((f0.key || "").toLowerCase() === "shisui_fallen", `P1 is shisui_fallen (maxEn
   const up = await page.evaluate(() => window.__harness.shisuiFallenUlt("kotoamatsukami"));
   console.log(`  Up+Ult (Kotoamatsukami, P4): cast=${up.cast}, energy=${up.energy} (should be full=120, not spent)`);
   ok(!up.cast && up.energy >= 115, `Up+Ult no-ops, meter preserved for Phase 4 (energy=${up.energy})`);
-  await reset();
-  const dn = await page.evaluate(() => window.__harness.shisuiFallenUlt("emeraldSusanoo"));
-  console.log(`  Down+Ult (Emerald Susanoo, P3): cast=${dn.cast}, energy=${dn.energy} (should be full=120, not spent)`);
-  ok(!dn.cast && dn.energy >= 115, `Down+Ult no-ops, meter preserved for Phase 3 (energy=${dn.energy})`);
-  // And confirm the hook's neutral variant DOES fire (sanity on the dispatch).
+  // neutral variant DOES fire (sanity on the dispatch).
   await reset();
   const ne = await page.evaluate(() => window.__harness.shisuiFallenUlt("thousandShadows"));
   ok(ne.cast && ne.energy <= 25, `neutral Thousand Shadows fires + spends meter (energy=${ne.energy})`);
+  // Down+Ult now ENTERS the Emerald Susanoo (Phase 3 wired) — run last (leaves the giant active; harness ends).
+  await reset();
+  const dn = await page.evaluate(() => { const r = window.__harness.shisuiFallenUlt("emeraldSusanoo"); return { ...r, susano: window.__harness.shisuiFallenSusano("p1")?.active }; });
+  console.log(`  Down+Ult (Emerald Susanoo, P3 — now LIVE): cast=${dn.cast}, susano=${dn.susano}, energy=${dn.energy}`);
+  ok(dn.cast && dn.susano, `Down+Ult enters Emerald Susanoo (Phase 3 wired)`);
 }
 
 console.log(`\n  known/expected pageerrors (non-shisui): ${KNOWN}`);

@@ -377,6 +377,7 @@ import * as comboTrials from "./comboTrials.js"             // Combo Trials miss
 import * as tutorial from "./tutorial.js"                   // first-boot guided interactive tutorial (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import * as academy from "./academy.js"   // CHARACTER ACADEMY — lesson generation, device labels, SHOW-ME scripts, read-only detection, local progress (additive, isolated)
+import { academyTagsFor, scenarioFromTags } from "./academyTags.js"   // CHARACTER ACADEMY — per-move scenario tags → dummy behaviour + state setup (separate data file, no kit edits)
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
@@ -19013,17 +19014,64 @@ function academySnapshot(f) {
 // pipeline; sets academySession so the per-frame hooks drive SHOW ME / TRY IT. FREE PRACTICE leaves training live.
 function startAcademyDrill(lesson, mode) {
   const key = academyCharKey; if (!key || !characters[key]) return
+  // PHASE 2 — SCENARIO: infer the move's tags → a descriptor → apply it to THIS match only.
+  const tags = academyTagsFor(lesson, key)
+  const sc = scenarioFromTags(tags)
+  const oppKey = (sc.opponent && characters[sc.opponent]) ? sc.opponent : key   // opponent:<key> or a mirror dummy
   matchConfig.mode = "training"; matchConfig.aiDifficulty = "dummy"
   matchConfig.p1CharKey = key; matchConfig.p1Char = characters[key]
-  matchConfig.p2CharKey = key; matchConfig.p2Char = characters[key]   // conservative: a mirror dummy
+  matchConfig.p2CharKey = oppKey; matchConfig.p2Char = characters[oppKey]
   matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
   if (!matchConfig.selectedStage) matchConfig.selectedStage = stages[0]
   startMatch()
   trainingState.enabled = true; trainingState.infiniteResources = true; trainingState.dummyBehavior = "stand"
   matchIntroTimer = 0; countdown = 0; gameState = GAME_STATES.BATTLE
-  academySession = { lesson, mode, script: academy.scriptForInput(lesson.input, lesson.cat), frame: 0, _sub: 0,
-    baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR }
+  academySession = { lesson, mode, tags, script: academy.scriptForInput(lesson.input, lesson.cat), frame: 0, _sub: 0,
+    baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR,
+    _p2Fire: false, notes: sc.notes, _followup: sc.followup, opponent: oppKey }
+  _academyApplyScenario(sc)
   if (mode === "showme") academySession.demoSpeed = 1
+}
+// Apply a scenario descriptor to the Academy's live match (p1/p2 exist now). Touches ONLY this match instance.
+function _academyApplyScenario(sc) {
+  const ctx = getAbilityContext()
+  trainingState.dummyBehavior = sc.dummy || "stand"
+  if (academySession) academySession._p2Fire = !!sc.p2Fire
+  if (sc.fullChakra && p1) p1.energy = p1.maxEnergy
+  for (const m of (sc.setMeters || [])) _academySetMeter(p1, m.name, m.value)
+  if (sc.lowHp && p1) p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * 0.2))
+  const ww = (() => { try { return getStageWorldWidth() } catch (_) { return 1280 } })()
+  if (sc.p1Corner && p1) { p1.x = 40; if (p2) p2.x = Math.min(ww - (p2.w || 60) - 40, p1.x + 180) }
+  if (sc.p2Corner && p2) { p2.x = ww - (p2.w || 60) - 40; if (p1) p1.x = Math.max(40, p2.x - 180) }
+  if (sc.p1Mode && p1) _academyActivateMode(p1, sc.p1Mode, ctx)
+  if (sc.p2Mode && p2) _academyActivateMode(p2, sc.p2Mode, ctx)
+  if (sc.summon && p1) _academyActivateMode(p1, "__summon", ctx)
+}
+function _academySetMeter(f, name, value) {
+  if (!f) return
+  const v = value | 0
+  switch (name) {
+    case "bond":    f._obitoBond = v; break
+    case "flicker": f._flickerCharges = v; break
+    case "gauge":   f._shukakuGauge = v; f._oneTailGauge = v; break   // gaara one-tail gauge (best-effort field names)
+    case "susano":  f._susanooStage = v; break
+    default:        f.energy = f.maxEnergy   // unknown meter → at least give full chakra so the move is usable
+  }
+}
+// Best-effort form entry for a scenario. Fills meter + routes known modes through the real activation; otherwise
+// leaves a note (the overlay explains the required state). Precise multi-step entry is curated in Phase 4.
+function _academyActivateMode(f, mode, ctx) {
+  if (!f) return
+  f.energy = f.maxEnergy
+  const rk = (f.rosterKey || "").toLowerCase(), m = String(mode).toLowerCase()
+  try {
+    if (rk === "shisui_fallen" && /susano/.test(m))      { f._ultVariant = "emeraldSusanoo"; triggerUltimate(f, ctx) }
+    else if (rk === "shisui_fallen" && /sharingan/.test(m)) { toggleShisuiFallenSharingan(f) }
+    else if (rk === "shisui_fallen" && /flicker/.test(m))  { f._ultVariant = "flickerTime"; triggerUltimate(f, ctx) }
+    else if (rk === "itachi" && /susano/.test(m))        { f._ultVariant = ""; triggerUltimate(f, ctx) }   // Itachi Susanoo ult
+    else if (/susano/.test(m) && (f.energy = f.maxEnergy)) { triggerUltimate(f, ctx) }                      // generic: fire the ult (often the Susanoo/form)
+    else if (m === "__summon")                           { triggerUltimate(f, ctx) }                        // generic: a summon is usually an ult
+  } catch (_) {}
 }
 function exitAcademyDrill() {
   academySession = null
@@ -19039,6 +19087,9 @@ function _academyStartSlowDemo(s) {   // after 4 misses, auto-play a ½-speed SH
 function academyTick() {
   const s = academySession
   if (!s || gameState !== GAME_STATES.BATTLE) return
+  // incoming_projectile scenario — make the dummy fire its neutral special on a loop (so reflects/redirects
+  // have something to answer). Pure key writes into the Academy's own match (infinite resources on).
+  if (s._p2Fire && p2 && p2.controls) { try { writeRawControls(p2, { special: (globalFrameCount % 70) < 3 }) } catch (_) {} }
   if (s.mode === "free") return
   if (s.mode === "showme") {
     if (s.frame >= s.script.length + 30) {          // demo + tail pause → loop (or return after the slow demo)
@@ -19067,8 +19118,9 @@ function academyDrillOverlayInfo() {
   const s = academySession; if (!s) return null
   let inputs = ""
   try { const d = getRelativeDirectionsFromHistory(p1) || []; const btn = []; const raw = readRawControls(p1) || {}; for (const [k, label] of [["light", "L"], ["heavy", "H"], ["upAttack", "U"], ["special", "S"], ["ultimate", "ULT"], ["grab", "G"], ["charge", "C"], ["block", "B"], ["jump", "↑"]]) if (raw[k]) btn.push(label); inputs = d.concat(btn).join(" ") } catch (_) {}
+  const note = (s.notes && s.notes.length) ? ("Scenario: " + s.notes.join(" · ")) : null
   return { mode: s.mode, moveName: s.lesson.name, inputLabel: academyDeviceLabel(s.lesson), inputs,
-           state: s.state, flash: s.flash, hint: s.hint || null, demoSpeed: s.demoSpeed }
+           state: s.state, flash: s.flash, hint: s.hint || note, demoSpeed: s.demoSpeed }
 }
 // Enter a Profile/Codex screen, remembering the return target (menu or pause).
 function openProfileScreen(from) { screenReturnState = from; profileBackHover = false; gameState = GAME_STATES.PROFILE }
@@ -23063,7 +23115,8 @@ gameLoop()
       roster:   () => getAcademyRoster().map(c => c.key),
       openChar: (key) => { academyCharKey = key || getAcademyRoster()[0]?.key; openAcademyChar(academyCharKey); const L = _academyLessons(); return { state: gameState, key: academyCharKey, lessons: L.flat.length, sections: L.groups.map(g => `${g.section}(${g.lessons.length})`) } },
       lessons:  (key) => academy.buildCharacterLessons(key, characters[key]).map((l, i) => ({ i, id: l.id, section: l.section, name: l.name, cat: l.cat, input: l.input })),
-      drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey } },
+      tags:     (idx = 0, key) => { const k = key || academyCharKey; const flat = academy.buildCharacterLessons(k, characters[k]); const l = flat[idx]; return l ? { name: l.name, tags: academyTagsFor(l, k), scenario: scenarioFromTags(academyTagsFor(l, k)) } : null },
+      drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, tags: academySession?.tags || [], dummy: trainingState.dummyBehavior, p2Fire: !!academySession?._p2Fire, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey, p1Energy: Math.round(p1?.energy || 0), p1Hp: Math.round(p1?.health || 0) } },
       drillState: () => academySession ? { mode: academySession.mode, frame: academySession.frame, state: academySession.state, misses: academySession.misses, hint: academySession.hint || null } : null,
       snap:     () => p1 ? academySnapshot(p1) : null,
       progress: () => ({ ...academyProgress }),

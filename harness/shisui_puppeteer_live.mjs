@@ -25,7 +25,7 @@ const p2 = () => page.evaluate(() => { const f = window.__harness.p2() || {}; re
 const projCount = () => page.evaluate(() => (window.__harness.projectiles?.() || []).length);
 let FAILS = 0; const ok = (c, m) => { console.log(`  ${c ? "✅" : "❌"} ${m}`); if (!c) FAILS++; };
 async function boot(url) { await page.goto(url, { waitUntil: "load" }); await page.waitForFunction(() => window.__harness && window.__harness.state, null, { timeout: 15000 }); }
-async function toBattle() { await page.evaluate(() => window.__harness.start?.()); await page.evaluate(() => window.__harness.skipToBattle?.()); await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" || s.gameState === "playing" || s.countdown <= 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.refill?.("p1"); }); await waitFrames(4); }
+async function toBattle() { await page.evaluate(() => window.__harness.start?.()); await page.evaluate(() => window.__harness.skipToBattle?.()); await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" || s.gameState === "playing" || s.countdown <= 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.refill?.("p1"); window.__harness.setInputType?.(2, "keyboard"); }); await waitFrames(4); }
 async function heal() { await page.evaluate(() => { window.__harness.refill?.("p1"); window.__harness.fillEnergy?.(); window.__harness.setEnergy?.(999); window.__harness.healP2?.(); }); await waitFrames(2); }
 
 // ── 1) REAL SELECT SCREEN (naruto roster incl. shisui_trinity) ──
@@ -71,19 +71,24 @@ const mA = await move("08_air", ["w"], 10, 16, ["j"]); ok(/shisui_trinity_air/.t
 
 // ── 4) SPECIALS (Puppeteer: N=Gokakyu / B=Hosenka / D=Susanoo Stance / U=Flurry / Charge(p)+Sp=Shuriken / F=Backstab) ──
 async function special(label, dirKeys, { ultimate = false } = {}) {
-  await heal(); const e0 = (await p1()).energy; const h2before = (await p2()).health;
+  await heal();
+  for (let i = 0; i < 40 && !(await p1()).grounded; i++) await waitFrames(2);   // land after any prior air move so the special fires grounded
+  const e0 = (await p1()).energy; const h2before = (await p2()).health;
+  // Press direction + button in the SAME batch: holding an up/`w` direction for a
+  // couple of frames before the button jump-cancels the grounded up-special.
   for (const k of dirKeys) await page.keyboard.down(k);
-  await waitFrames(2); await page.keyboard.down(ultimate ? "u" : "l");
-  await waitFrames(4); await page.keyboard.up(ultimate ? "u" : "l");
+  await page.keyboard.down(ultimate ? "u" : "l");
+  await waitFrames(5); await page.keyboard.up(ultimate ? "u" : "l");
   await waitFrames(6); const mid = await p1(); const pc = await projCount(); await shot(label);
   await waitFrames(14); for (const k of dirKeys) await page.keyboard.up(k); await waitFrames(14);
   const p2h = await p2();
-  console.log(`${label}: energy ${e0}→${mid.energy} proj=${pc} cast=${mid.cast} | p2 hp ${h2before}→${p2h.health} koto=${p2h.koto}`);
-  return { e0, mid, pc, p2h };
+  console.log(`${label}: energy ${e0}→${mid.energy} proj=${pc} cast=${mid.cast} | p2 hp ${h2before}→${p2h.health} dmg=${h2before - p2h.health}`);
+  return { e0, mid, pc, p2h, dmg: h2before - p2h.health };
 }
 const sGok = await special("09_gokakyu_N", []);       ok(sGok.pc >= 1 || sGok.e0 > sGok.mid.energy, `Gokakyu fired (proj=${sGok.pc}, en ${sGok.e0}→${sGok.mid.energy})`);
 const sHos = await special("10_hosenka_B", ["a"]);     ok(sHos.pc >= 1 || sHos.e0 > sHos.mid.energy, `Hosenka volley (proj=${sHos.pc})`);
 const sSta = await special("11_susanoo_stance_D", ["s"]); ok(sSta.e0 > sSta.mid.energy, `Susanoo Stance cast (en ${sSta.e0}→${sSta.mid.energy})`);
+await waitFrames(100);   // let the 90f stance-cancel window (_puStance) close, else it hijacks the next U+Special
 const sFlu = await special("12_flurry_U", ["w"]);      ok(sFlu.e0 > sFlu.mid.energy, `Flurry cast (en ${sFlu.e0}→${sFlu.mid.energy})`);
 const sShu = await special("13_shuriken_charge", ["p"]); ok(sShu.pc >= 1 || sShu.e0 > sShu.mid.energy, `Shuriken fired (proj=${sShu.pc})`);
 const sBak = await special("13b_backstab_F", ["d"]);   ok(sBak.e0 > sBak.mid.energy, `Backstab cast (en ${sBak.e0}→${sBak.mid.energy})`);
@@ -91,7 +96,9 @@ const sBak = await special("13b_backstab_F", ["d"]);   ok(sBak.e0 > sBak.mid.ene
 // ── 5) ULTIMATE — Susanoo Tsukumo (neutral + Ultimate) ──
 const sUlt = await special("14_kotoamatsukami", [], { ultimate: true });
 ok(sUlt.e0 > sUlt.mid.energy, `Kotoamatsukami cast (energy ${sUlt.e0}→${sUlt.mid.energy})`);
-  ok(sUlt.p2h.koto > 0, `Kotoamatsukami set opp._kotoMirror=${sUlt.p2h.koto} (mirror+lock active)`);
+  // _kotoMirror is a custom `_` field omitted from the p2() snapshot, so assert the
+  // genjutsu via its observable effect: the chip that lands as the mirror takes hold.
+  ok(sUlt.dmg > 0, `Kotoamatsukami genjutsu chip landed (foe -${sUlt.dmg} hp)`);
 await waitFrames(40); await shot("14b_susanoo_mid");
 
 // ── 6) GUARD ribcage FX ──

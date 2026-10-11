@@ -207,6 +207,10 @@ import {
   tickMadaraLadderHP,            // Madara WAR Phase 2 — per-frame Susano'o-HP bleed + break→drop (runs even while charging)
   enterMadaraAvatarUlt,          // Madara WAR Phase 3 — Up+Ult at full chakra → Susano'o Avatar (A boss mode)
   tickMadaraAvatar,              // Madara WAR Phase 3 — per-frame Avatar timeout / HP-break → LOSE dissolve → revert
+  enterMadaraKurama,             // Madara WAR Phase 4 — Down+Ult → Kurama (Nine-Tails) summon
+  fireMadaraGedoMazo,            // Madara WAR Phase 4 — Back+Ult → Gedo Mazo statue crash
+  fireMadaraKajukai,             // Madara WAR Phase 4 — Fwd+Ult → Kajukai Korin drowsiness flower field
+  tickMadaraKurama,              // Madara WAR Phase 4 — per-frame Kurama timeout + control-break tick
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -7341,6 +7345,11 @@ function updateMiscTimers(fighter) {
   if (fighter._madaraComplete > 0) { fighter._madaraComplete--; if (fighter._madaraComplete <= 0) revertMadaraCompleteSusanoo(fighter) }   // Madara tier-4 Complete Susanoo giant duration → auto-revert
   tickMadaraLadderHP(fighter)   // Madara WAR Phase 2 — Susano'o Ladder HP bleed / break→drop / climb-FX tick (every frame, even while charging)
   tickMadaraAvatar(fighter)     // Madara WAR Phase 3 — Susano'o Avatar timeout / HP-break → LOSE dissolve → revert (every frame)
+  tickMadaraKurama(fighter)     // Madara WAR Phase 4 — Kurama summon timeout + control-break (every frame)
+  if ((fighter._madaraDrowsy || 0) > 0) {   // Madara WAR Phase 4 — Kajukai Korin DROWSINESS: hold a speed cut, restore on expiry
+    fighter.speedMultiplier = (fighter._madaraDrowsyBaseSpd || 1) * 0.45
+    if (--fighter._madaraDrowsy <= 0) fighter.speedMultiplier = fighter._madaraDrowsyBaseSpd || 1
+  }
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -8049,6 +8058,17 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "madara"
       && betaHeldDirFromInput(inputState, fighter.facing) === "U") {
     if (enterMadaraAvatarUlt(fighter, getAbilityContext())) { announce("ultActivate", { priority: true, minGap: 900 }); fighter._ultHeld = false; return }
+  }
+  // MADARA — EDO TENSEI SUMMONS (WAR Phase 4), directional ultimates (press-path, deliberate held direction):
+  // DOWN+Ult = Kurama (Nine-Tails) · BACK+Ult = Gedo Mazo (statue crash) · FORWARD+Ult = Kajukai Korin (drowsiness
+  // flower field). Clearing _ultHeld suppresses the release-driven tap/hold (Tengai / Complete) so it can't also fire.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "madara") {
+    const _md = betaHeldDirFromInput(inputState, fighter.facing)
+    let _fired = false
+    if      (_md === "D") _fired = enterMadaraKurama(fighter, getAbilityContext())
+    else if (_md === "B") _fired = fireMadaraGedoMazo(fighter, getAbilityContext())
+    else if (_md === "F") _fired = fireMadaraKajukai(fighter, getAbilityContext())
+    if (_fired) { announce("ultActivate", { priority: true, minGap: 900 }); fighter._ultHeld = false; return }
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !((fighter._kotoMirror || 0) > 0) && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { announce("ultActivate", { priority: true, minGap: 900 }); triggerUltimate(fighter, getAbilityContext()); return }   // Kotoamatsukami locks the victim's Ultimate
@@ -13172,6 +13192,24 @@ const _RIBCAGE_GUARD_SHEET = {
   madara: "./madara_susanoo_ribcage_growth_uniform.png",
   sasuke: "./sasuke_susano_ribcage.png", sasuke_adult: "./sasuke_susano_ribcage.png", sasuke_sensei: "./sasuke_susano_ribcage.png",
 }
+// MADARA — WAR Phase 4: the KURAMA (Nine-Tails) summon looming behind Madara while the summon is active.
+// Animated run-cycle, rendered BELOW native size (quality gate: M is soft → never upscale). Faces the foe.
+function drawMadaraKurama(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "madara" || (fighter._madaraKurama || 0) <= 0) return
+  const img = _susanoImg("./madara_kurama_uniform.png")
+  if (!img.complete || !img.naturalWidth) return
+  const FR = 4, fw = img.naturalWidth / FR, fh = img.naturalHeight
+  const fi = Math.floor((globalFrameCount / 8) % FR)
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const face = fighter.facing || 1
+  const dh = h * 2.5, dw = dh * (fw / fh)              // looming, but ≤ the ~505px native cell
+  const cx = fighter.x + w / 2 - face * w * 0.5, cy = fighter.y + h * 0.45
+  const fade = Math.min(1, (fighter._madaraKurama || 0) / 18)   // fade out as the summon ends
+  c.save(); c.globalAlpha = 0.92 * fade
+  c.translate(cx, cy); if (face > 0) c.scale(-1, 1)   // the fox art faces left; flip to face the foe
+  c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  c.restore()
+}
 function drawMadaraRibcageGuard(c, fighter) {
   if (!c || !fighter) return
   const rk = (fighter.rosterKey || "").toLowerCase()
@@ -15859,6 +15897,7 @@ function renderHybridFighter(fighter) {
   const drawTo = (c) => {
     drawKakashiWarSusano(c, fighter)   // Kakashi (Kamui) — the giant Perfect Susanoo avatar (recoloured light-blue), BEHIND the body (kakashi_war only)
     drawGaaraShukaku(c, fighter)       // Gaara — the One-Tail Shukaku summon (tail + giant body), BEHIND the body (gaara only)
+    drawMadaraKurama(c, fighter)       // Madara — the Kurama (Nine-Tails) summon looming BEHIND Madara (madara only, WAR Phase 4)
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawNHTierAura(c, fighter)         // Naruto (Adult KCM) 3-tier aura, behind the body (naruto_hokage only)
     drawN7BondAura(c, fighter)         // Naruto (Seventh) Kurama-Bond red aura, behind the body (naruto_seventh only, Bond 1+)

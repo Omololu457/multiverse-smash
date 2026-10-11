@@ -151,6 +151,12 @@ export const FX_SHEETS_BY_CHAR = {
     "./madara_avatar_idle_uniform.png",
     "./madara_avatar_attack_uniform.png",
     "./madara_avatar_lose_uniform.png",
+    // WAR UPGRADE Phase 4 — Edo Tensei summons (M): Kurama, Bijuudama, Gedo Mazo, Kajukai Korin, summon smoke.
+    "./madara_kurama_uniform.png",
+    "./madara_bijuudama_uniform.png",
+    "./madara_gedo_mazo_uniform.png",
+    "./madara_kajukai_uniform.png",
+    "./madara_summon_smoke_uniform.png",
   ],
   // War-Susano'o Tier-1 pieces (border-flood-fill keyed from sasuke_war_susano_by_nes). Procedural Arm Grab +
   // Ribcage Guard — shared by both allowlisted fighters. tools/susano/gen_susano_tier1.py.

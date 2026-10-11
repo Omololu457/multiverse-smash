@@ -25063,8 +25063,119 @@ function fireMadaraAvatarSlash(fighter, key) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MADARA — WAR UPGRADE Phase 4: EDO TENSEI SUMMONS (M, sputnick — SOFT sheet, rendered ≤100% native).
+// KURAMA (Sharingan-controlled Nine-Tails: summon → fires the Tailed Beast Bomb on command → CONTROL BREAKS
+// after enough clean hits / timeout), GEDO MAZO (Demonic Statue crashes down), KAJUKAI KORIN (drowsiness
+// flower field → brief slow). Directional ultimates (press-path, like the Avatar). Deterministic, LAN-safe;
+// combat.js untouched. SOURCE MATCH=NO → these are M summon art, not Madara's body.
+// ═══════════════════════════════════════════════════════════════════════════════
+const MADARA_KURAMA_DURATION   = 540   // ~9s summon window
+const MADARA_KURAMA_COST        = 150  // Nine-Tails summon cost
+const MADARA_KURAMA_BREAK_HITS  = 4    // clean hits taken while summoned → CONTROL BREAKS (Kurama roars + leaves)
+function _madaraSummonSmoke(fighter, context, x) {
+  const s = spawnProjectile(fighter, "madaraSummonSmoke", {
+    visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 30, w: 200, h: 120,
+    sheet: "./madara_summon_smoke_uniform.png", spriteFrames: 5, spriteW: 192, spriteH: 54, spriteSpeed: 5, spriteScale: 2.6, color: "#eeeeee"
+  }, context)
+  if (s) { s.x = x - 100; s.y = fighter.y + (fighter.h || 100) * 0.35 }
+}
+export function enterMadaraKurama(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  if (isMadaraTengaiShinseiCinematicActive() || (fighter._madaraComplete || 0) > 0 || (fighter._madaraAvatar || 0) > 0) return false
+  if ((fighter._madaraKurama || 0) > 0) return false
+  if (!spendEnergy(fighter, MADARA_KURAMA_COST)) return false
+  fighter._madaraKurama = MADARA_KURAMA_DURATION
+  fighter._kuramaHits   = 0
+  fighter._kuramaPrevHs = fighter.hitstun || 0
+  fighter._kuramaBijuCd = 0
+  _madaraSummonSmoke(fighter, context, fighter.x + (fighter.w || 60) * 0.5)
+  try { sound.playSfxFile?.(pickMadaraVoice("susanooArmor"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  try { shakeCamera(context, 12, 14) } catch (_) {}
+  return true
+}
+// Tailed Beast Bomb — fired on command (Special while Kurama is out). Huge dark-chakra sphere.
+function fireMadaraBijuudama(fighter, context) {
+  if ((fighter._kuramaBijuCd || 0) > 0) return false
+  const face = fighter.facing || 1
+  fighter._kuramaBijuCd = 70
+  try { sound.playSfxFile?.(pickMadaraVoice("completeSusanoo"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  spawnProjectile(fighter, "madaraBijuudama", {
+    damage: 190, speed: 11, lifetime: 92, vx: face * 11, vy: 0,
+    hitstun: 40, knockbackX: 16, knockbackY: -6, w: 130, h: 130, color: "#7a1fb0", isSpecial: true,
+    sheet: "./madara_bijuudama_uniform.png", spriteFrames: 8, spriteW: 62, spriteH: 181, spriteSpeed: 3, spriteScale: 1.3,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) + 30 : fighter.x - 160, spawnY: fighter.y + (fighter.h || 100) * 0.1
+  }, context)
+  try { shakeCamera(context, 14, 12) } catch (_) {}
+  return true
+}
+function breakMadaraKurama(fighter, context) {
+  if ((fighter._madaraKurama || 0) <= 0) return
+  fighter._madaraKurama = 0
+  _madaraSummonSmoke(fighter, context, fighter.x + (fighter.w || 60) * 0.5)
+  try { sound.playSfxFile?.(pickMadaraVoice("susanooArmor"), null) } catch (_) {}
+}
+// Per-frame Kurama tick (from game.js form-tick): timeout + CONTROL BREAK on clean-hit count. Deterministic.
+export function tickMadaraKurama(fighter) {
+  if (!fighter || (fighter._madaraKurama || 0) <= 0) return
+  fighter._madaraKurama--
+  if ((fighter._kuramaBijuCd || 0) > 0) fighter._kuramaBijuCd--
+  const hs = fighter.hitstun || 0, prev = fighter._kuramaPrevHs || 0
+  if (prev <= 0 && hs > 0) fighter._kuramaHits = (fighter._kuramaHits || 0) + 1   // rising edge of hitstun = one clean hit
+  fighter._kuramaPrevHs = hs
+  if (fighter.eliminated || fighter._madaraKurama <= 0 || (fighter._kuramaHits || 0) >= MADARA_KURAMA_BREAK_HITS) breakMadaraKurama(fighter, null)
+}
+// GEDO MAZO (Demonic Statue of the Outer Path) — summon smoke, then the statue CRASHES down from above with a
+// ground shockwave. One-shot heavy hit.
+export function fireMadaraGedoMazo(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  if (isMadaraTengaiShinseiCinematicActive() || (fighter._madaraComplete || 0) > 0) return false
+  if (!spendEnergy(fighter, 120)) return false
+  const face = fighter.facing || 1
+  const target = getTargetResolver(context)(fighter)
+  const tx = target ? target.x + (target.w || 60) / 2 : fighter.x + face * 180
+  _madaraSummonSmoke(fighter, context, tx)
+  try { sound.playSfxFile?.(pickMadaraVoice("woodDragon"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  spawnProjectile(fighter, "madaraGedoMazo", {
+    damage: 170, speed: 0, lifetime: 72, vx: 0, vy: 14,
+    hitstun: 40, knockbackX: 4, knockbackY: -10, w: 150, h: 200, color: "#6b6256", isSpecial: true,
+    sheet: "./madara_gedo_mazo_uniform.png", spriteFrames: 1, spriteW: 147, spriteH: 172, spriteScale: 1.7,
+    spawnX: tx - 80, spawnY: fighter.y - 440
+  }, context)
+  try { shakeCamera(context, 8, 10) } catch (_) {}
+  schedulePendingSpawn(36, () => { try { shakeCamera(context, 30, 26) } catch (_) {} })   // the statue's ground-crash shock
+  return true
+}
+// KAJUKAI KORIN (Flowering Forest) — a flower field blooms under the foe; the pollen induces DROWSINESS → a
+// brief SLOW (speed cut ticked by game.js, restored on expiry). Deterministic.
+export function fireMadaraKajukai(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "madara") return false
+  if (!spendEnergy(fighter, 90)) return false
+  const target = getTargetResolver(context)(fighter)
+  const tx = target ? target.x + (target.w || 60) / 2 : fighter.x
+  const ty = target ? target.y + (target.h || 100) : fighter.y + (fighter.h || 100)
+  try { sound.playSfxFile?.(pickMadaraVoice("woodSpike"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  for (let i = 0; i < 3; i++) {
+    const f = spawnProjectile(fighter, "madaraKajukai", {
+      visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 84, w: 180, h: 120,
+      sheet: "./madara_kajukai_uniform.png", spriteFrames: 6, spriteW: 178, spriteH: 121, spriteSpeed: 7, spriteScale: 1.3, color: "#4caf50"
+    }, context)
+    if (f) { f.x = tx - 90 + (i - 1) * 120; f.y = ty - 110 }
+  }
+  if (target && !target.eliminated && !((target._madaraDrowsy || 0) > 0)) {
+    target._madaraDrowsyBaseSpd = target.speedMultiplier || 1
+    target._madaraDrowsy = 150   // ~2.5s drowsy slow
+  }
+  return true
+}
+
 function executeMadaraSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
+
+  // ── WAR UPGRADE Phase 4 — while KURAMA is summoned, Special = the Tailed Beast Bomb (Bijuudama) on command.
+  if ((fighter._madaraKurama || 0) > 0 && !((fighter._madaraAvatar || 0) > 0) && !((fighter._madaraLadder || 0) > 0)) {
+    if (fireMadaraBijuudama(fighter, context)) return true
+  }
 
   // ── WAR UPGRADE Phase 3 — SUSANO'O AVATAR specials (its own boss kit): Up+Special = Tengai meteor,
   // qcf = Gōka Mekkyaku (A-fire read), else Yasaka Magatama. Takes priority over everything while the Avatar is up.

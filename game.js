@@ -13202,8 +13202,8 @@ function drawMadaraKurama(c, fighter) {
   const fi = Math.floor((globalFrameCount / 8) % FR)
   const w = fighter.w ?? 60, h = fighter.h ?? 100
   const face = fighter.facing || 1
-  const dh = h * 2.5, dw = dh * (fw / fh)              // looming, but ≤ the ~505px native cell
-  const cx = fighter.x + w / 2 - face * w * 0.5, cy = fighter.y + h * 0.45
+  const dh = h * 2.6, dw = dh * (fw / fh)              // looming, but ≤ the ~505px native cell
+  const cx = fighter.x + w / 2 - face * w * 1.35, cy = fighter.y + h * 0.1   // sit clearly BEHIND + above Madara
   const fade = Math.min(1, (fighter._madaraKurama || 0) / 18)   // fade out as the summon ends
   c.save(); c.globalAlpha = 0.92 * fade
   c.translate(cx, cy); if (face > 0) c.scale(-1, 1)   // the fox art faces left; flip to face the foe

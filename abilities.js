@@ -24756,6 +24756,7 @@ function fireMadaraShinraTensei(fighter, context) {
       applyScaledDamage(target, MADARA_SHINRA_DMG, { source: "special", attacker: fighter, move: "madaraShinraTensei" })
       target.vx = dir * 20; target.vy = -7; target.colorFlash = 10
       target.hitstun = Math.max(target.hitstun || 0, 26)
+      _madaraBlackFlash(target); _madaraImpactFreeze(target, 5)   // black-silhouette impact flash + crunch
     }
   }
   for (let i = 0; i < 3; i++) {
@@ -24779,6 +24780,11 @@ function fireMadaraShinraTensei(fighter, context) {
 // Tengai ultimate (gated OFF while a ladder stage is up — never removed). Deterministic, LAN-safe.
 // SOURCE MATCH=NO → only P's Susano'o art is new; cast uses his own body.
 // ═══════════════════════════════════════════════════════════════════════════════
+// WAR POLISH — a clean BLACK-SILHOUETTE impact flash (inks the sprite near-black for a few frames, then
+// snaps back to its regular colour — the confirmed "impact-frame" look) + a crunchy HIT-STOP freeze. Both
+// are plain render/feel fields (sprite.js reads _impactFlash; combat reads .hitstop). combat.js-free, LAN-safe.
+function _madaraBlackFlash(f, dur = 7) { if (f) f._impactFlash = { timer: dur, maxTimer: dur, level: 3, phase: "black" } }
+function _madaraImpactFreeze(f, n = 6) { if (f) f.hitstop = Math.max(f.hitstop || 0, n) }
 const MADARA_LADDER_CLIMB_HOLD = 36     // frames of Charge-hold (at full chakra) to climb one stage
 const MADARA_LADDER_CLIMB_COST = 90     // chakra spent per climb (can't instant-re-climb; must recharge to full)
 function _madStageAnim(sheet, cw, ch, nf) {
@@ -24866,7 +24872,7 @@ export function maybeMadaraLadderClimb(fighter, context) {
 export function tickMadaraLadderHP(fighter) {
   if (!fighter || (fighter._madaraLadder || 0) <= 0) return
   const hp = fighter.health, prev = (fighter._madLadderHpWatch != null) ? fighter._madLadderHpWatch : hp
-  if (hp < prev) fighter._madLadderHP = (fighter._madLadderHP || 0) - (prev - hp)
+  if (hp < prev) { fighter._madLadderHP = (fighter._madLadderHP || 0) - (prev - hp); _madaraBlackFlash(fighter, 6) }   // Susano'o inks BLACK when struck, then back
   fighter._madLadderHpWatch = fighter.health
   if (fighter.eliminated) { revertMadaraLadder(fighter); return }
   if ((fighter._madLadderHP || 0) <= 0) dropMadaraLadderStage(fighter)
@@ -24944,6 +24950,8 @@ function fireMadaraLadderTengai(fighter, context, free = false) {
   for (let k = 1; k <= 3; k++) schedulePendingSpawn(Math.floor(IMPACT * k / 4), () => { try { shakeCamera(context, 5 + k * 4, 9) } catch (_) {} })
   schedulePendingSpawn(IMPACT, () => {
     try { shakeCamera(context, dbl ? 46 : 34, dbl ? 40 : 32) } catch (_) {}     // the planetary-mass SLAM
+    const tgt = getTargetResolver(context)(fighter)
+    _madaraBlackFlash(tgt, 9); _madaraImpactFreeze(tgt, dbl ? 10 : 8)           // black-silhouette flash + heavy hit-stop at the crater
     const ring = spawnProjectile(fighter, "madaraMeteorShock", {
       visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 24, w: 340, h: 130,
       sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 5, spriteScale: dbl ? 6 : 4.6, color: "#ffb020"
@@ -25046,7 +25054,7 @@ export function tickMadaraAvatar(fighter) {
   if ((fighter._madaraAvatar || 0) <= 0) return
   fighter._madaraAvatar--
   const hp = fighter.health, prev = (fighter._avatarHpWatch != null) ? fighter._avatarHpWatch : hp
-  if (hp < prev) fighter._avatarHP = (fighter._avatarHP || 0) - (prev - hp)
+  if (hp < prev) { fighter._avatarHP = (fighter._avatarHP || 0) - (prev - hp); _madaraBlackFlash(fighter, 7) }   // Avatar inks BLACK when struck, then back
   fighter._avatarHpWatch = fighter.health
   if (fighter.eliminated) { revertMadaraAvatar(fighter); return }
   if (fighter._madaraAvatar <= 0 || (fighter._avatarHP || 0) <= 0) startMadaraAvatarLose(fighter)
@@ -25098,15 +25106,26 @@ export function enterMadaraKurama(fighter, context) {
 function fireMadaraBijuudama(fighter, context) {
   if ((fighter._kuramaBijuCd || 0) > 0) return false
   const face = fighter.facing || 1
-  fighter._kuramaBijuCd = 70
+  fighter._kuramaBijuCd = 94   // charge (24f) + recovery
   try { sound.playSfxFile?.(pickMadaraVoice("completeSusanoo"), null); fighter._atkVoiceCd = 150 } catch (_) {}
-  spawnProjectile(fighter, "madaraBijuudama", {
-    damage: 190, speed: 11, lifetime: 92, vx: face * 11, vy: 0,
-    hitstun: 40, knockbackX: 16, knockbackY: -6, w: 130, h: 130, color: "#7a1fb0", isSpecial: true,
-    sheet: "./madara_bijuudama_uniform.png", spriteFrames: 8, spriteW: 62, spriteH: 181, spriteSpeed: 3, spriteScale: 1.3,
-    spawnX: face === 1 ? fighter.x + (fighter.w || 60) + 30 : fighter.x - 160, spawnY: fighter.y + (fighter.h || 100) * 0.1
+  // CHARGE — a dark-chakra sphere visibly COMPRESSES at Kurama's mouth (sphere-growth frames) with a rising
+  // rumble, THEN launches. Deterministic (sim-frame schedule).
+  const mouthX = face === 1 ? fighter.x + (fighter.w || 60) + 40 : fighter.x - 110
+  const charge = spawnProjectile(fighter, "madaraBijuCharge", {
+    visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 26, w: 120, h: 120,
+    sheet: "./madara_bijuudama_uniform.png", spriteFrames: 8, spriteW: 62, spriteH: 181, spriteSpeed: 3, spriteScale: 1.5, color: "#7a1fb0"
   }, context)
-  try { shakeCamera(context, 14, 12) } catch (_) {}
+  if (charge) { charge.x = mouthX - 50; charge.y = fighter.y + (fighter.h || 100) * 0.02 }
+  try { shakeCamera(context, 5, 24) } catch (_) {}
+  schedulePendingSpawn(24, () => {                       // LAUNCH the bomb after the charge
+    spawnProjectile(fighter, "madaraBijuudama", {
+      damage: 190, speed: 12, lifetime: 92, vx: face * 12, vy: 0,
+      hitstun: 40, knockbackX: 16, knockbackY: -6, w: 130, h: 130, color: "#7a1fb0", isSpecial: true,
+      sheet: "./madara_bijuudama_uniform.png", spriteFrames: 8, spriteW: 62, spriteH: 181, spriteSpeed: 3, spriteScale: 1.4,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) + 30 : fighter.x - 160, spawnY: fighter.y + (fighter.h || 100) * 0.1
+    }, context)
+    try { shakeCamera(context, 17, 14) } catch (_) {}
+  })
   return true
 }
 function breakMadaraKurama(fighter, context) {
@@ -25121,7 +25140,7 @@ export function tickMadaraKurama(fighter) {
   fighter._madaraKurama--
   if ((fighter._kuramaBijuCd || 0) > 0) fighter._kuramaBijuCd--
   const hs = fighter.hitstun || 0, prev = fighter._kuramaPrevHs || 0
-  if (prev <= 0 && hs > 0) fighter._kuramaHits = (fighter._kuramaHits || 0) + 1   // rising edge of hitstun = one clean hit
+  if (prev <= 0 && hs > 0) { fighter._kuramaHits = (fighter._kuramaHits || 0) + 1; _madaraBlackFlash(fighter, 6) }   // clean hit → count + ink black
   fighter._kuramaPrevHs = hs
   if (fighter.eliminated || fighter._madaraKurama <= 0 || (fighter._kuramaHits || 0) >= MADARA_KURAMA_BREAK_HITS) breakMadaraKurama(fighter, null)
 }
@@ -25143,7 +25162,16 @@ export function fireMadaraGedoMazo(fighter, context) {
     spawnX: tx - 80, spawnY: fighter.y - 440
   }, context)
   try { shakeCamera(context, 8, 10) } catch (_) {}
-  schedulePendingSpawn(36, () => { try { shakeCamera(context, 30, 26) } catch (_) {} })   // the statue's ground-crash shock
+  schedulePendingSpawn(36, () => {                                                         // the statue's ground-crash
+    try { shakeCamera(context, 30, 26) } catch (_) {}
+    const tgt = getTargetResolver(context)(fighter)
+    _madaraBlackFlash(tgt, 9); _madaraImpactFreeze(tgt, 8)                                  // black-silhouette flash + hit-stop
+    const crater = spawnProjectile(fighter, "madaraGedoCrater", {                          // dust-ring crater that lingers
+      visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 40, w: 300, h: 110,
+      sheet: "./madara_susanoo_redring_uniform.png", spriteFrames: 4, spriteW: 70, spriteH: 67, spriteSpeed: 7, spriteScale: 5, color: "#8a8172"
+    }, context)
+    if (crater) { crater.x = tx - 150; crater.y = (fighter.y + (fighter.h || 100)) - 44 }
+  })
   return true
 }
 // KAJUKAI KORIN (Flowering Forest) — a flower field blooms under the foe; the pollen induces DROWSINESS → a

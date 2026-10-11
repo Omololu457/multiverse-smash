@@ -46,7 +46,7 @@ async function scenario(stage, tag) {
   ok(e0 - e1 >= 140, `Down+Ult summons Kurama (spent ${Math.round(e0 - e1)} chakra)`);
   await shot(`${tag}_01_kurama`);
   await page.evaluate(() => window.__harness.clearProjectiles?.()); await waitFrames(2);
-  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(3);
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(28);   // wait out the charge-up → the bomb launches
   const biju = (await projNames()).some(n => /Bijuudama/i.test(n));
   ok(biju, `Special fires the Tailed Beast Bomb (Bijuudama) while Kurama is out`);
 

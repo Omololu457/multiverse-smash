@@ -72,6 +72,7 @@ export function buildCharacterLessons(rosterKey, character) {
 }
 function _basicCat(b) {
   const t = ((b.name || "") + " " + (b.input || "")).toLowerCase()
+  if (/dash|flicker step|double-?tap|teleport|shunshin/.test(t)) return "mobility"
   if (/grab|throw/.test(t)) return "grab"
   if (/air/.test(t)) return "air"
   if (/up[- ]?attack|launcher|rising/.test(t)) return "upAttack"
@@ -146,12 +147,13 @@ export function scriptForInput(input, cat) {
   _hold({}, 8, out)   // settle to neutral
   // basics
   if (cat === "move")  { _hold({ right: true }, 14, out); _hold({}, 4, out); _hold({ left: true }, 14, out); _hold({}, 6, out); return out }
-  if (cat === "jump")  { _hold({ up: true }, 3, out); _hold({}, 26, out); return out }
+  if (cat === "jump")  { _hold({ jump: true, up: true }, 3, out); _hold({}, 30, out); return out }
   if (cat === "block") { _hold({ block: true }, 34, out); _hold({}, 4, out); return out }
-  if (cat === "air")   { _hold({ up: true }, 3, out); _hold({}, 10, out); _hold({ light: true }, 5, out); _hold({}, 8, out); return out }
+  if (cat === "air")   { _hold({ jump: true, up: true }, 3, out); _hold({}, 14, out); _hold({ light: true }, 5, out); _hold({}, 10, out); return out }
+  if (cat === "grab")  { const dir = _dirField(s); if (dir) { _hold({ [dir]: true }, 3, out); _hold({ [dir]: true, grab: true }, 5, out); } else _hold({ grab: true }, 5, out); _hold({}, 10, out); return out }
 
-  // charge-tap toggles (Sharingan etc.)
-  if (/charge-?tap/.test(s)) { _hold({ charge: true }, 4, out); _hold({}, 24, out); return out }
+  // charge-tap toggles (Sharingan etc.) — a QUICK tap (press+release), not a hold
+  if (/charge-?tap/.test(s)) { const crouch = /crouch/.test(s); _hold({ charge: true, down: crouch }, 2, out); _hold({ down: crouch }, 1, out); _hold({}, 26, out); return out }
   // dash / double-tap
   if (/dash|double-?tap/.test(s)) { _hold({ right: true }, 2, out); _hold({}, 3, out); _hold({ right: true }, 6, out); _hold({}, 10, out); return out }
 
@@ -175,12 +177,16 @@ const _NORMAL_KEY = { light: "light", heavy: "heavy", upAttack: "up", air: "air"
 export function detectLesson(lesson, base, now) {
   if (!base || !now) return false
   const cat = lesson.cat
-  if (cat === "move")  return Math.abs((now.x || 0) - (base.x || 0)) >= 36
+  const movedFar = Math.abs((now.x || 0) - (base.x || 0)) >= 36
+  const inp = (lesson.input || "").toLowerCase()
+  // a dash / flicker / teleport step (even if mis-categorized as a normal) → detect by the big reposition
+  if (/dash|double-?tap|flicker|teleport|shunshin|body ?flicker/.test(inp + " " + lesson.name.toLowerCase())) return movedFar || now.castMove !== base.castMove
+  if (cat === "move")  return movedFar
   if (cat === "jump")  return now.airborne === true || (now.jumps || 0) > (base.jumps || 0)
   if (cat === "block") return now.blocking === true
   // normals: the universal move key (reliable)
   if (_NORMAL_KEY[cat]) return now.attackName === _NORMAL_KEY[cat] || (cat === "air" && now.attackName === "air")
-  if (cat === "grab")  return !!now.grabbing || now.castMove === "grab" || (now.attackName === "grab")
+  if (cat === "grab")  return !!now.grabbing || (now.castMove && /grab|throw|snatch|choke/.test(now.castMove)) || now.attackName === "grab" || (now.attacking && now.castMove !== base.castMove)
   if (cat === "passive") return (now.formCount || 0) > (base.formCount || 0) || (now.energy < base.energy - 2) || (now.castMove && now.castMove !== base.castMove)
   // specials / mobility / ultimates / modes: a composite "the move fired" signal
   const spentMeter = (now.energy || 0) < (base.energy || 0) - 2
@@ -189,6 +195,33 @@ export function detectLesson(lesson, base, now) {
   const newForm    = (now.formCount || 0) > (base.formCount || 0)
   const newUlt     = now.ult && now.ult !== base.ult
   return spentMeter || newCast || newProj || newForm || newUlt
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// COVERAGE classifiers (Phase 3) — is a lesson a fireable move, and how is its success detected read-only?
+// Also: does a move's prose imply a scenario tag it's missing? Pure functions over a lesson (+ its tags).
+// ──────────────────────────────────────────────────────────────────────────────
+export function lessonDetectability(lesson) {
+  const c = lesson.cat
+  if (c === "passive") return { fireable: false, detect: "n/a (passive)" }
+  if (c === "move" || c === "jump" || c === "block") return { fireable: true, detect: "state" }
+  if (c === "light" || c === "heavy" || c === "upAttack" || c === "air") return { fireable: true, detect: "move-key" }
+  if (c === "grab") return { fireable: true, detect: "grab-state" }
+  // specials / mobility / ultimates / modes → composite (energy drop · cast pose · projectile · form flag)
+  const t = (lesson.desc || "").toLowerCase()
+  const hasSignal = /projectile|fire(s|d)?\b|throw|beam|blast|bolt|shuriken|kunai|slash|strike|rush|lunge|summon|transform|mode|aura|buff|teleport|blink|\bgrab\b|stun|heal|susano|rasen|chidori|kamehameha|volley|barrage|flame|lightning|punch|kick|sword|wave|dash|charge|clone|portal/.test(t)
+  return { fireable: true, detect: hasSignal ? "composite" : "composite-weak" }
+}
+export function lessonMissingTag(lesson, tags) {
+  const t = `${lesson.name} ${lesson.desc}`.toLowerCase()
+  const wants = []
+  if (/\b(counter|kawarimi|substitut|reflect|parry|read)\b/.test(t) && !tags.some(x => x.startsWith("incoming"))) wants.push("incoming_melee/projectile")
+  if (/anti-?air|air ?grab/.test(t) && !tags.includes("target_airborne")) wants.push("target_airborne")
+  if (/corner/.test(t) && !tags.some(x => x.includes("corner"))) wants.push("corner")
+  if (/(while|inside|during|only in)\s+(?:the\s+)?(susano|form|mode|sharingan|mangek|kcm|avatar|bankai|rose|karma|flicker time)/.test(t) && !tags.some(x => x.startsWith("mode_active"))) wants.push("mode_active")
+  if (/\b(summon|clone|kuchiyose|ninken|bijuudama)\b/.test(t) && !tags.includes("summon_active")) wants.push("summon_active")
+  if (/\b(follows?|after|links? (from|into)|on hit|re-?tap)\b/.test(t) && !tags.includes("combo_followup")) wants.push("combo_followup")
+  return wants
 }
 
 // A hint escalates after 3 misses: timing / direction / slow demo.

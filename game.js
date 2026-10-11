@@ -19030,11 +19030,14 @@ function startAcademyDrill(lesson, mode) {
     baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR,
     _p2Fire: false, notes: sc.notes, _followup: sc.followup, opponent: oppKey }
   _academyApplyScenario(sc)
+  academySession._startSnap = academySnapshot(p1); academySession._fired = false   // Phase 3 coverage: latch if the move fires
   if (mode === "showme") academySession.demoSpeed = 1
 }
 // Apply a scenario descriptor to the Academy's live match (p1/p2 exist now). Touches ONLY this match instance.
 function _academyApplyScenario(sc) {
   const ctx = getAbilityContext()
+  // default CLOSE spacing so grabs / melee / flicker-strikes connect in the demo (corner scenarios override below)
+  if (p1 && p2 && !sc.p1Corner && !sc.p2Corner) { const mid = (p1.x + p2.x) / 2; p1.x = mid - 55; p2.x = mid + 55 }
   trainingState.dummyBehavior = sc.dummy || "stand"
   if (academySession) academySession._p2Fire = !!sc.p2Fire
   if (sc.fullChakra && p1) p1.energy = p1.maxEnergy
@@ -19090,6 +19093,7 @@ function academyTick() {
   // incoming_projectile scenario — make the dummy fire its neutral special on a loop (so reflects/redirects
   // have something to answer). Pure key writes into the Academy's own match (infinite resources on).
   if (s._p2Fire && p2 && p2.controls) { try { writeRawControls(p2, { special: (globalFrameCount % 70) < 3 }) } catch (_) {} }
+  if (!s._fired && s._startSnap) { try { if (academy.detectLesson(s.lesson, s._startSnap, academySnapshot(p1))) s._fired = true } catch (_) {} }   // coverage: did the move ever fire?
   if (s.mode === "free") return
   if (s.mode === "showme") {
     if (s.frame >= s.script.length + 30) {          // demo + tail pause → loop (or return after the slow demo)
@@ -19121,6 +19125,25 @@ function academyDrillOverlayInfo() {
   const note = (s.notes && s.notes.length) ? ("Scenario: " + s.notes.join(" · ")) : null
   return { mode: s.mode, moveName: s.lesson.name, inputLabel: academyDeviceLabel(s.lesson), inputs,
            state: s.state, flash: s.flash, hint: s.hint || note, demoSpeed: s.demoSpeed }
+}
+// PHASE 3 — per-fighter COVERAGE: lessons generated, fireable count, undetectable (passive) list, weak-detect
+// moves, and moves whose prose implies a scenario tag they're missing. Pure analysis over every roster fighter.
+function academyCoverageReport() {
+  const rows = []
+  for (const c of getAcademyRoster()) {
+    const flat = academy.buildCharacterLessons(c.key, characters[c.key])
+    const passive = [], weak = [], missing = []
+    let fireable = 0
+    for (const l of flat) {
+      const det = academy.lessonDetectability(l)
+      if (det.fireable) fireable++; else passive.push(l.name)
+      if (det.detect === "composite-weak") weak.push(l.name)
+      const miss = academy.lessonMissingTag(l, academyTagsFor(l, c.key))
+      if (miss.length) missing.push({ name: l.name, want: miss })
+    }
+    rows.push({ key: c.key, name: c.name, universe: c.universeLabel, lessons: flat.length, fireable, passive, weak, missing })
+  }
+  return rows
 }
 // Enter a Profile/Codex screen, remembering the return target (menu or pause).
 function openProfileScreen(from) { screenReturnState = from; profileBackHover = false; gameState = GAME_STATES.PROFILE }
@@ -23118,6 +23141,8 @@ gameLoop()
       tags:     (idx = 0, key) => { const k = key || academyCharKey; const flat = academy.buildCharacterLessons(k, characters[k]); const l = flat[idx]; return l ? { name: l.name, tags: academyTagsFor(l, k), scenario: scenarioFromTags(academyTagsFor(l, k)) } : null },
       drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, tags: academySession?.tags || [], dummy: trainingState.dummyBehavior, p2Fire: !!academySession?._p2Fire, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey, p1Energy: Math.round(p1?.energy || 0), p1Hp: Math.round(p1?.health || 0) } },
       drillState: () => academySession ? { mode: academySession.mode, frame: academySession.frame, state: academySession.state, misses: academySession.misses, hint: academySession.hint || null } : null,
+      fired:    () => academySession ? !!academySession._fired : null,            // Phase 3: did the SHOW ME move actually fire?
+      coverage: () => academyCoverageReport(),                                    // Phase 3: full per-fighter coverage analysis
       snap:     () => p1 ? academySnapshot(p1) : null,
       progress: () => ({ ...academyProgress }),
       exit:     () => { exitAcademyDrill(); return { state: gameState } },

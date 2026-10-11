@@ -29906,12 +29906,18 @@ function fireLoyalistKunaiRain(fighter, context) {
   fighter._spriteCastMove = "shiKunaiRain"; fighter._spriteCastTimer = K.cast
   fighter.attackCooldown = getAttackDuration(K.cast + 8, fighter)
   const baseTX = opp ? (opp.x + (opp.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 220)
+  // Rain from above the foe's head and DESPAWN at the floor — the engine's generic
+  // projectile update has no ground collision, so bound the fall by lifetime instead
+  // of letting the kunai punch through the stage floor and off the bottom of the screen.
+  const groundY = (context && context.groundY != null) ? context.groundY : (fighter.y + (fighter.h || 100))
+  const KVY = 12, KFALL = 300, KSPAWNY = groundY - KFALL
+  const KLIFE = Math.floor(KFALL / KVY)   // frames to reach the floor, then gone
   for (let i = 0; i < K.count; i++) {
     schedulePendingSpawn(K.cast - 4 + i * 5, () => {
       const tx = baseTX + (i - (K.count - 1) / 2) * 34
       spawnProjectile(fighter, "shisuiKunai", {
-        damage: K.dmg, spawnX: tx, spawnY: fighter.y - 220, vx: 0, vy: 12, w: 12, h: 28, radius: 10,
-        hitstun: 14, knockbackX: 2, knockbackY: 2, lifetime: 60, color: "#cfd3d6"
+        damage: K.dmg, spawnX: tx, spawnY: KSPAWNY, vx: 0, vy: KVY, w: 12, h: 28, radius: 10,
+        hitstun: 14, knockbackX: 2, knockbackY: 2, lifetime: KLIFE, color: "#cfd3d6"
       }, context)
     })
   }

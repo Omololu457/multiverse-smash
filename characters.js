@@ -10608,6 +10608,12 @@ const shisuiFallen = {
   primary: "rushdown", secondary: ["technical"],
   traits: { hasEnergy: true, energyType: "chakra", mobility: "very-high", scaling: "glass-cannon", animeMovement: true },
   passive: { name: "Body Flicker", effect: "Shisui the Teleporter: his dash is an instant Flicker Step (Forward / Back / Up) that leaves an AFTERIMAGE at the departure point for ~0.5s which absorbs ONE hit. 3 flicker charges that regenerate; most normals can Flicker-Cancel (1 charge). CLAN HUNTER: +10% damage vs every Uchiha." },
+  // PERSONALITY / MATCHUP — the Curse-Breaker: a cold, soft-spoken multiversal Shisui who hunts the Uchiha he
+  // once died to protect. His rival banter leans into that hunt (and his arcade rival is, fittingly, an Uchiha).
+  arcadeRivalLines: {
+    pre: ["Shisui (Fallen): In every world, the Uchiha burn it down. In this one, I burn them first.", "Rival: Shisui… you of all people. What happened to you?"],
+    win: "Nothing happened. I simply stopped lying to myself. The curse ends with the clan — and I am the one who breaks it."
+  },
   // Fastest fighter in the Naruto band, lowest HP (glass cannon). maxEnergy 120 = Chakra (same band as the Trinity).
   stats: { maxHealth: 960, maxEnergy: 120, attack: 92, defense: 80, speed: 100, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 8, dashCooldownMax: 34 },
   movement: { crouchIdle: true },

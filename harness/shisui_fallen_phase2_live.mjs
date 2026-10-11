@@ -107,9 +107,9 @@ ok((f0.key || "").toLowerCase() === "shisui_fallen", `P1 is shisui_fallen (maxEn
 // Up+Ult (Kotoamatsukami, P4) + Down+Ult (Emerald Susanoo, P3) must NO-OP (meter NOT spent) so later phases can
 // bind them. shisuiFallenUlt stamps the LIVE fighter's _ultVariant (full energy) then fires triggerUltimate.
 { await reset();
-  const up = await page.evaluate(() => window.__harness.shisuiFallenUlt("kotoamatsukami"));
-  console.log(`  Up+Ult (Kotoamatsukami, P4): cast=${up.cast}, energy=${up.energy} (should be full=120, not spent)`);
-  ok(!up.cast && up.energy >= 115, `Up+Ult no-ops, meter preserved for Phase 4 (energy=${up.energy})`);
+  const up = await page.evaluate(() => { const r = window.__harness.shisuiFallenUlt("kotoamatsukami"); return { ...r, koto: window.__harness.p2()?.kotoMirror || window.__harness.p1()?.kotoOverlay || 0 }; });
+  console.log(`  Up+Ult (Kotoamatsukami, P4 — now LIVE): cast=${up.cast}, koto=${up.koto}, energy=${up.energy}`);
+  ok(up.cast && up.energy <= 25, `Up+Ult fires Kotoamatsukami (Phase 4 wired)`);
   // neutral variant DOES fire (sanity on the dispatch).
   await reset();
   const ne = await page.evaluate(() => window.__harness.shisuiFallenUlt("thousandShadows"));

@@ -13181,6 +13181,8 @@ function drawShisuiKotoOverlay(c, fighter) {
   // backdrop (red sky/sea) stretched across the screen
   const bg = _shisuiFxImg("./shisui_puppeteer_koto_backdrop_uniform.png")
   if (bg.complete && bg.naturalWidth) { c.globalAlpha = 0.72 * fade; c.drawImage(bg, 0, 0, W, H) }
+  // SHISUI (FALLEN) flavour — a crimson genjutsu-world wash over the backdrop (the Curse-Breaker's domain).
+  if (fighter._kotoFallen) { c.globalAlpha = 0.34 * fade; c.fillStyle = "#6e0b14"; c.fillRect(0, 0, W, H) }
   // three huge Mangekyō eyes, blooming in
   const eyes = _shisuiFxImg("./shisui_puppeteer_koto_eyes_uniform.png")
   if (eyes.complete && eyes.naturalWidth) {
@@ -13189,6 +13191,17 @@ function drawShisuiKotoOverlay(c, fighter) {
     const dw = fw * scale, dh = fh * scale, cy = H * 0.42
     c.globalAlpha = 0.9 * fade
     for (let i = 0; i < 3; i++) { const cx = W * (0.25 + i * 0.25); c.drawImage(eyes, i * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh) }
+    // EASTER EGG — "The Curse-Breaker": a 4th crimson eye blooms centre-screen when Kotoamatsukami lands on an Uchiha.
+    if ((fighter._kotoCurseBreak || 0) > 0) {
+      const cb = fighter._kotoCurseBreak--
+      const bloom = Math.min(1, (48 - cb) / 10)
+      const sc2 = scale * (1.3 + 0.3 * bloom), dw2 = fw * sc2, dh2 = fh * sc2
+      c.save(); c.globalAlpha = 0.95 * fade
+      c.shadowBlur = 30; c.shadowColor = "rgba(220,20,40,0.95)"
+      c.globalCompositeOperation = "lighter"
+      c.drawImage(eyes, 0, 0, fw, fh, W * 0.5 - dw2 / 2, cy - dh2 / 2, dw2, dh2)
+      c.restore()
+    }
   }
   c.restore()
 }
@@ -20824,6 +20837,9 @@ gameLoop()
     flickGhosts:      (f._flickGhosts || []).length,                          // Shisui (Fallen) live afterimages (each absorbs one hit)
     ultVariant:       f._ultVariant || null,                                  // last-stamped directional-ultimate variant (diagnostics)
     ultCd:            Math.round(f.ultimateCooldown || 0),                    // ultimate cooldown frames remaining (diagnostics)
+    kotoMirror:       f._kotoMirror || 0,                                     // Kotoamatsukami victim timer (L/R mirrored + specials/ult locked)
+    kotoOverlay:      f._kotoOverlay || 0,                                    // Kotoamatsukami caster genjutsu-world overlay timer
+    kotoCurseBreak:   f._kotoCurseBreak || 0,                                 // Shisui (Fallen) easter-egg: crimson curse-break eye (vs an Uchiha)
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act

@@ -21992,7 +21992,7 @@ function shisuiFallenShadowClonePursuit(fighter, context) {
 export function executeShisuiFallenUltimate(fighter, context) {
   if (!isShisuiFallen(fighter)) return false
   const variant = fighter._ultVariant || "thousandShadows"
-  if (variant === "kotoamatsukami") return false                                    // Kotoamatsukami = Phase 4 (no-op → meter not spent)
+  if (variant === "kotoamatsukami") return shisuiFallenKotoamatsukami(fighter, context)   // Phase 4 — Kotoamatsukami (spends the meter itself)
   if (variant === "emeraldSusanoo") return enterShisuiFallenSusano(fighter, context) // Phase 3 — Emerald Susanoo (spends the meter itself)
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp = getTargetResolver(context)(fighter)
@@ -22031,6 +22031,41 @@ export function executeShisuiFallenUltimate(fighter, context) {
     applyScaledDamage(o, shisuiFallenDmg(fighter, o, 68), { source: "shisui_fallen-thousand-shadows-final" })
     try { focusCameraOnAction(context, fighter, o, 0.95, 12); shakeCamera(context, 8, 12) } catch (_) {}
   })
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SHISUI (FALLEN) — PHASE 4: KOTOAMATSUKAMI (Up+Ultimate). His signature Mangekyō mind-control. A crimson-washed
+// genjutsu-world backdrop + Mangekyō eyes bloom; the victim's LEFT/RIGHT are MIRRORED and their Specials &
+// Ultimate are LOCKED (game.js reads _kotoMirror generically), plus a guaranteed Clan-Hunter chip as it takes
+// hold. EASTER EGG — "The Curse-Breaker": cast on a fellow UCHIHA and the control runs much longer + a crimson
+// curse-break eye blooms (he was built to hunt the Uchiha). Deterministic / LAN-safe. Reuses the shared
+// drawShisuiKotoOverlay (sets _kotoOverlay) — the same genjutsu-world, tinted crimson via _kotoFallen.
+const SHISUI_FALLEN_KOTO = { cast: 54, overlay: 96, mirror: 165, mirrorUchiha: 252, dmg: 44 }
+function shisuiFallenKotoamatsukami(fighter, context) {
+  if (!isShisuiFallen(fighter)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const K = SHISUI_FALLEN_KOTO
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "mangekyou"; fighter._spriteCastTimer = K.cast
+  fighter.attackCooldown = getAttackDuration(K.cast, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, K.cast)   // cast-time i-frames (the genjutsu is instant + silent)
+  fighter._kotoOverlay = K.overlay                                   // screen-space genjutsu-world (drawShisuiKotoOverlay)
+  fighter._kotoFallen = K.overlay                                    // crimson-tint the overlay (Fallen flavour)
+  if (opp) {
+    const isUchiha = SHISUI_FALLEN_UCHIHA.has((opp.rosterKey || "").toLowerCase())   // EASTER EGG — the Curse-Breaker dominates a fellow Uchiha
+    opp._kotoMirror = isUchiha ? K.mirrorUchiha : K.mirror           // mirror L/R + lock specials/ult
+    if (isUchiha) fighter._kotoCurseBreak = 48                       // extra crimson "curse-break" eye + flash
+    schedulePendingSpawn(30, () => {                                 // a single chip as the genjutsu takes hold
+      const o = getTargetResolver(context)(fighter) || opp
+      if (!o || o.eliminated) return
+      if (o.isBlocking) { applyScaledDamage(o, Math.floor(shisuiFallenDmg(fighter, o, K.dmg) * 0.5), { source: "shisui_fallen-kotoamatsukami" }); return }
+      o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 14
+      applyScaledDamage(o, shisuiFallenDmg(fighter, o, K.dmg), { source: "shisui_fallen-kotoamatsukami" })
+    })
+  }
+  try { focusCameraOnAction(context, fighter, opp, 1.08, 24); shakeCamera(context, 4, 12) } catch (_) {}
   return true
 }
 

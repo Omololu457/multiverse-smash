@@ -13286,6 +13286,24 @@ function drawMadaraTengaiSky(ctx, canvas) {
 // point (the thing that absorbs a hit). A dark flicker-streak links it to his current position. Render-only.
 function drawShisuiFallenFlicker(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen") return
+  // TRANSFORMATION BEAT — scaling energy rings burst outward on a Susanoo enter/climb or Kotoamatsukami cast.
+  if ((fighter._shiXformRings || 0) > 0) {
+    const w = fighter.w ?? 50, h = fighter.h ?? 100
+    const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5
+    const n = fighter._shiXformRings--, prog = (30 - n) / 30
+    const crimson = fighter._shiXformColor === "crimson"
+    const rgb = crimson ? "210,24,40" : "90,230,150"
+    c.save(); c.lineCap = "round"
+    for (let k = 0; k < 3; k++) {
+      const rp = Math.max(0, Math.min(1, prog * 1.2 - k * 0.22))
+      if (rp <= 0 || rp >= 1) continue
+      const rad = h * (0.3 + rp * 1.5)
+      c.globalAlpha = (1 - rp) * 0.6; c.strokeStyle = `rgba(${rgb},1)`; c.lineWidth = Math.max(2, h * 0.09 * (1 - rp))
+      c.shadowBlur = 14; c.shadowColor = `rgba(${rgb},0.8)`
+      c.beginPath(); c.ellipse(cx, cy, rad, rad * 0.5, 0, 0, Math.PI * 2); c.stroke()   // flat horizontal energy ring
+    }
+    c.restore()
+  }
   // MANGEKYŌ SHARINGAN — a crimson aura + both eyes glow red Mangekyō while lit (the sheet has no eye art).
   if (fighter._sharinganActive && !fighter._emeraldSusano) {
     const w = fighter.w ?? 50, h = fighter.h ?? 100, facing = fighter.facing || 1
@@ -20915,6 +20933,8 @@ gameLoop()
     kotoSpent:        !!f._kotoSpent,                                         // Shisui (Fallen) — Kotoamatsukami eye spent this round (10yr recharge drawback)
     sharingan:        !!f._sharinganActive,                                   // Shisui (Fallen) / Kakashi — Mangekyō Sharingan lit
     sharinganFatigue: f._sharinganFatigue || 0,                              // Shisui (Fallen) Sharingan fatigue lockout frames
+    impactPhase:      f._impactFlash ? (f._impactFlash.phase || "red") : null, // active impact-flash phase ("black" = silhouette ink)
+    xformRings:       f._shiXformRings || 0,                                  // Shisui (Fallen) transformation energy-ring burst timer
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act

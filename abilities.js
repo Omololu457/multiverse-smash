@@ -21883,6 +21883,23 @@ function shisuiFallenDmg(fighter, opp, raw) {
   const eye = fighter && fighter._sharinganActive ? SHISUI_FALLEN_SHARINGAN.dmgMul : 1
   return Math.round(raw * shisuiFallenOffense(fighter) * clan * eye)
 }
+// MADARA-STYLE POLISH — the black-silhouette IMPACT FLASH (sprite.js inks the sprite near-black for a few frames)
+// + a brief HIT-STOP, on his big connects. target = the one struck; self = Shisui (gets a lighter freeze on a
+// BIG hit for weight). Render-only flag + the shared hitstop field; combat.js-FREE.
+function shisuiFallenImpact(target, self, big = false) {
+  if (target) {
+    target._impactFlash = { timer: big ? 7 : 5, maxTimer: big ? 7 : 5, level: 3, phase: "black" }
+    target.hitstop = Math.max(target.hitstop || 0, big ? 9 : 5)
+  }
+  if (self && big) self.hitstop = Math.max(self.hitstop || 0, 6)
+}
+// TRANSFORMATION BEAT — ink Shisui near-black for a few frames + kick off a scaling energy-ring burst
+// (drawn in drawShisuiFallenFlicker). color = "emerald" (Susanoo) / "crimson" (Kotoamatsukami).
+function shisuiFallenXform(fighter, color = "emerald") {
+  if (!fighter) return
+  fighter._impactFlash = { timer: 8, maxTimer: 8, level: 3, phase: "black" }
+  fighter._shiXformRings = 30; fighter._shiXformColor = color
+}
 // Push an afterimage at `atX` WITHOUT spending a passive charge (deliberate move-blink). Suppress the
 // passive's auto-detect for this frame window so one blink doesn't also burn a charge.
 function shisuiFallenPushGhost(fighter, atX) {
@@ -21963,6 +21980,7 @@ function shisuiFallenFlickerStrike(fighter, context) {
     const away = (o.x >= fighter.x ? 1 : -1)                    // push them AWAY from Shisui's landing side
     if (o.isBlocking) { o.blockstun = Math.max(o.blockstun || 0, 18); applyScaledDamage(o, Math.floor(shisuiFallenDmg(fighter, o, 52) * 0.3), { source: "shisui_fallen-flicker-strike" }); return }
     o.hitstun = Math.max(o.hitstun || 0, 24); o.vx = away * 8; o.vy = -4; o.colorFlash = 12
+    shisuiFallenImpact(o, fighter, false)
     applyScaledDamage(o, shisuiFallenDmg(fighter, o, 52), { source: "shisui_fallen-flicker-strike" })
   })
   try { focusCameraOnAction(context, fighter, opp, 0.98, 10); shakeCamera(context, 5, 7) } catch (_) {}
@@ -22055,6 +22073,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
       if ((o.invulnTimer || 0) > 0) return
       const kdir = (fighter.facing || 1)
       o.hitstun = Math.max(o.hitstun || 0, 20); o.vx = kdir * 5; o.vy = -3; o.colorFlash = 8
+      shisuiFallenImpact(o, null, false)
       applyScaledDamage(o, shisuiFallenDmg(fighter, o, 34), { source: "shisui_fallen-thousand-shadows" })
       try { shakeCamera(context, 4, 5) } catch (_) {}
     })
@@ -22067,6 +22086,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
     if ((o.invulnTimer || 0) > 0) return
     const kdir = (fighter.facing || 1)
     o.hitstun = Math.max(o.hitstun || 0, 34); o.vx = kdir * 16; o.vy = -8; o.colorFlash = 14
+    shisuiFallenImpact(o, fighter, true)
     applyScaledDamage(o, shisuiFallenDmg(fighter, o, 68), { source: "shisui_fallen-thousand-shadows-final" })
     try { focusCameraOnAction(context, fighter, o, 0.95, 12); shakeCamera(context, 8, 12) } catch (_) {}
   })
@@ -22097,6 +22117,7 @@ function shisuiFallenKotoamatsukami(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, K.cast)   // cast-time i-frames (the genjutsu is instant + silent)
   fighter._kotoOverlay = K.overlay                                   // screen-space genjutsu-world (drawShisuiKotoOverlay)
   fighter._kotoFallen = K.overlay                                    // crimson-tint the overlay (Fallen flavour)
+  shisuiFallenXform(fighter, "crimson")                              // transformation beat — ink + crimson rings
   if (opp) {
     const isUchiha = SHISUI_FALLEN_UCHIHA.has((opp.rosterKey || "").toLowerCase())   // EASTER EGG — the Curse-Breaker dominates a fellow Uchiha
     opp._kotoMirror = isUchiha ? K.mirrorUchiha : K.mirror           // mirror L/R + lock specials/ult
@@ -22106,6 +22127,7 @@ function shisuiFallenKotoamatsukami(fighter, context) {
       if (!o || o.eliminated) return
       if (o.isBlocking) { applyScaledDamage(o, Math.floor(shisuiFallenDmg(fighter, o, K.dmg) * 0.5), { source: "shisui_fallen-kotoamatsukami" }); return }
       o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 14
+      shisuiFallenImpact(o, null, true)
       applyScaledDamage(o, shisuiFallenDmg(fighter, o, K.dmg), { source: "shisui_fallen-kotoamatsukami" })
     })
   }
@@ -22150,7 +22172,7 @@ function shisuiFallenArmGrab(fighter, context) {
     if (grabbed) fighter._grabThrowDmg = shisuiFallenDmg(fighter, tgt, G.throw)
     if (fighter._shiArm) { fighter._shiArm.grabbed = !!grabbed; fighter._shiArm.target = grabbed ? tgt : null; fighter._shiArm.resolved = true }
     if (grabbed) {
-      fighter.hitstop = Math.max(fighter.hitstop || 0, 8); tgt.hitstop = Math.max(tgt.hitstop || 0, 8)
+      shisuiFallenImpact(tgt, fighter, true)
       try { focusCameraOnAction(context, fighter, tgt, 1.1, 18); shakeCamera(context, 11, 14) } catch (_) {}
     }
   })
@@ -22191,6 +22213,7 @@ function enterShisuiFallenSusano(fighter, context) {
     PS.tier = 2; PS.max = S2.hp; PS.hp = Math.min(S2.hp, PS.hp + S2.hpBonus)   // the avatar reforms stronger
     PS.t = Math.max(PS.t, S2.dur); PS._shellFlash = 16; PS.action = null; PS.pose = "stance"; PS.poseT = 20
     fighter.colorFlash = 18; fighter.vx = 0; fighter._susanoClimbFx = 24
+    shisuiFallenXform(fighter, "emerald")
     try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.2, 26); shakeCamera(context, 20, 26) } catch (_) {}
     return true
   }
@@ -22201,6 +22224,7 @@ function enterShisuiFallenSusano(fighter, context) {
   fighter._flickGhosts = []                                     // drop the flicker afterimages (he's the giant now)
   fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 24
   fighter.colorFlash = 16; fighter.vx = 0
+  shisuiFallenXform(fighter, "emerald")
   try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 24); shakeCamera(context, 14, 20) } catch (_) {}
   return true
 }
@@ -22212,7 +22236,7 @@ function shisuiSusanoBigHit(fighter, context, reach, raw, hitstun, kb, vy, sourc
   if (!hit) return
   const dmg = Math.round(shisuiFallenDmg(fighter, opp, raw) * shisuiSusanoTierMul(fighter))
   if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 26); applyScaledDamage(opp, Math.round(dmg * 0.4), { source }) }
-  else { opp.hitstun = Math.max(opp.hitstun || 0, hitstun); opp.vx = (fighter.facing || 1) * kb; opp.vy = vy; opp.colorFlash = 14; applyScaledDamage(opp, dmg, { source }) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, hitstun); opp.vx = (fighter.facing || 1) * kb; opp.vy = vy; opp.colorFlash = 14; shisuiFallenImpact(opp, fighter, true); applyScaledDamage(opp, dmg, { source }) }
   try { shakeCamera(context, 9, 10) } catch (_) {}
 }
 function startShisuiSusanoMelee(fighter, kind) {
@@ -22308,7 +22332,7 @@ export function updateShisuiFallenSusano(fighter, context, rawControls = null) {
       if (opp && !opp.eliminated) {
         const totsuka = Math.round(shisuiFallenDmg(fighter, opp, R.raw) * shisuiSusanoTierMul(fighter))
         if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 28); applyScaledDamage(opp, oneShotUltBlockedDmg(totsuka), { source: "shisui_fallen-susano-totsuka" }) }
-        else { opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 18; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 54); applyScaledDamage(opp, totsuka, { source: "shisui_fallen-susano-totsuka" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, R.hitstun); opp.vx = (fighter.facing || 1) * R.kb; opp.vy = R.vy; opp.colorFlash = 18; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 54); shisuiFallenImpact(opp, fighter, true); applyScaledDamage(opp, totsuka, { source: "shisui_fallen-susano-totsuka" }) }
       }
       try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 24, 20) } catch (_) {}
     }

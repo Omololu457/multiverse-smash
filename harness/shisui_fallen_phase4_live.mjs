@@ -79,6 +79,33 @@ console.log("\n══ SHISUI (FALLEN) — PHASE 4: KOTOAMATSUKAMI ══");
 await run("naruto", false);     // non-Uchiha → standard control
 await run("itachi", true);      // UCHIHA → easter egg: longer control + curse-break eye
 
+// CANON DRAWBACK — the eye needs ~10 years to recharge → Kotoamatsukami is once-per-round.
+{ console.log(`\n── Once-per-round recharge (10-year drawback) ──`);
+  await boot(`${base}/index.html?harness=1&p1=shisui_fallen&p2=naruto`);
+  await toBattle("Hidden Leaf Village");
+  const r1 = await koto(); await waitFrames(3);
+  const spent = (await p1()).kotoSpent;
+  console.log(`  1st cast: cast=${r1.cast}, kotoSpent=${spent}`);
+  ok(r1.cast && spent, `first Kotoamatsukami fires + marks the eye spent`);
+  // a 2nd cast THIS round must no-op (eye dormant), meter NOT re-spent.
+  const r2 = await page.evaluate(() => { const r = window.__harness.shisuiFallenUlt("kotoamatsukami"); return { cast: r.cast, energy: r.energy }; });
+  console.log(`  2nd cast (same round): cast=${r2.cast}, energy=${r2.energy}`);
+  ok(!r2.cast && r2.energy >= 115, `a 2nd Kotoamatsukami the same round NO-OPS (eye recharging; meter kept)`);
+  // but the neutral ult still works (only Kotoamatsukami is on the long cooldown).
+  const r3 = await page.evaluate(() => window.__harness.shisuiFallenUlt("thousandShadows"));
+  ok(r3.cast, `the neutral ult (Thousand Shadows) is unaffected by the eye cooldown`);
+  // round reset = a big HEAL rising-edge (fighter was damaged during the round, then restored to full next round).
+  await page.waitForFunction(() => (window.__harness.p1().flickGhosts || 0) === 0, null, { timeout: 4000, polling: 16 }).catch(() => {});  // let afterimages expire so the damage isn't absorbed
+  await page.evaluate(() => window.__harness.damageP1(400)); await waitFrames(3);   // take damage this round
+  const dHp = (await p1()).health;
+  await page.evaluate(() => { const h = window.__harness; h.setP1Energy(h.p1().maxEnergy); h.healP1 && h.healP1(); });   // next round: restore to full (big rise)
+  await waitFrames(3);
+  console.log(`  round heal: damaged to ${Math.round(dHp)} → restored to full`);
+  const r4 = await page.evaluate(() => { const r = window.__harness.shisuiFallenUlt("kotoamatsukami"); return r.cast; });
+  console.log(`  after round heal: Kotoamatsukami re-castable = ${r4}`);
+  ok(r4, `a round heal recharges the eye (Kotoamatsukami usable again)`);
+}
+
 console.log(`\n  known/expected pageerrors (non-shisui): ${KNOWN}`);
 ok(PERR === 0, `zero NEW page errors (PERR=${PERR})`);
 console.log(`\n${FAILS === 0 ? "✅ PASS" : "❌ " + FAILS + " FAIL"} — shisui_fallen Phase 4`);

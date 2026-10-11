@@ -21808,15 +21808,34 @@ function fireMadaraGiantSlash(fighter, key) {
 const SHISUI_FLICKER_MAX   = 3
 const SHISUI_FLICKER_REGEN = 96    // frames to regenerate one charge (~1.6s)
 const SHISUI_GHOST_LIFE    = 32    // afterimage lifetime (~0.5s)
+// MANGEKYŌ SHARINGAN — a Charge-TAP toggle (hooked in game.js). While lit: red Mangekyō eyes, +8% damage, 2×
+// flicker-charge regen, and his dōjutsu (Sharingan Glare / Kotoamatsukami) run longer. Drains Chakra; at 0 it
+// shuts off with a brief fatigue (can't re-light). combat.js-FREE.
+const SHISUI_FALLEN_SHARINGAN = { minToLight: 20, drain: 0.12, fatigue: 90, dmgMul: 1.08 }
+export function toggleShisuiFallenSharingan(fighter) {
+  if (!isShisuiFallen(fighter)) return false
+  if (fighter._emeraldSusano || (fighter._sharinganFatigue || 0) > 0) return false   // the giant has its own eyes; no re-light while fatigued
+  if (fighter._sharinganActive) { fighter._sharinganActive = false; return true }
+  if ((fighter.energy || 0) < SHISUI_FALLEN_SHARINGAN.minToLight) return false
+  fighter._sharinganActive = true
+  return true
+}
 export function updateShisuiFallenFlicker(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shisui_fallen") return
-  if (fighter._emeraldSusano) { fighter._flickHpWatch = fighter.health; return }   // giant Susanoo owns the HP-watch (its own absorb) + no flicker-dash as the avatar
+  if ((fighter._sharinganFatigue || 0) > 0) fighter._sharinganFatigue--
+  if (fighter._emeraldSusano) { fighter._flickHpWatch = fighter.health; fighter._sharinganActive = false; return }   // giant Susanoo owns the HP-watch (its own absorb) + no flicker-dash as the avatar
+  // MANGEKYŌ SHARINGAN upkeep — drain Chakra while lit; at 0 → shut off + brief fatigue.
+  if (fighter._sharinganActive) {
+    fighter.energy = Math.max(0, (fighter.energy || 0) - SHISUI_FALLEN_SHARINGAN.drain)
+    if ((fighter.energy || 0) <= 0) { fighter._sharinganActive = false; fighter._sharinganFatigue = SHISUI_FALLEN_SHARINGAN.fatigue }
+  }
   if (fighter._flickerCharges == null) {
     fighter._flickerCharges = SHISUI_FLICKER_MAX; fighter._flickerRegen = 0
     fighter._flickGhosts = []; fighter._flickPrevX = fighter.x; fighter._flickHpWatch = fighter.health
   }
-  // CHARGE REGEN
-  if (fighter._flickerCharges < SHISUI_FLICKER_MAX) { if (++fighter._flickerRegen >= SHISUI_FLICKER_REGEN) { fighter._flickerCharges++; fighter._flickerRegen = 0 } }
+  // CHARGE REGEN (2× faster while the Mangekyō is lit)
+  const regenNeed = fighter._sharinganActive ? Math.ceil(SHISUI_FLICKER_REGEN / 2) : SHISUI_FLICKER_REGEN
+  if (fighter._flickerCharges < SHISUI_FLICKER_MAX) { if (++fighter._flickerRegen >= regenNeed) { fighter._flickerCharges++; fighter._flickerRegen = 0 } }
   else fighter._flickerRegen = 0
   // BLINK DETECTION — an instant large X jump (the speed-tier teleport dash) → a Flicker Step leaves an afterimage.
   const dx = fighter.x - (fighter._flickPrevX != null ? fighter._flickPrevX : fighter.x)
@@ -21833,6 +21852,7 @@ export function updateShisuiFallenFlicker(fighter) {
   // HIT ABSORB — if Shisui takes damage while an afterimage is live, the ghost EATS the hit (health restored,
   // stun cleared) and pops. "In multiple places at once." (CANON-ADJACENT)
   const hp = fighter.health, prev = fighter._flickHpWatch != null ? fighter._flickHpWatch : hp
+  if (hp - prev > 80) { fighter._kotoSpent = false; fighter._sharinganFatigue = 0 }   // ROUND RESET (big heal rising-edge) → the Mangekyō eye recharges Kotoamatsukami
   if (hp < prev && (fighter._flickGhosts || []).length > 0) {
     fighter.health = prev; fighter.hitstun = 0; fighter.hitstop = 0
     fighter._flickGhosts.shift(); fighter._flickAbsorbFx = 10
@@ -21857,9 +21877,11 @@ const SHISUI_FALLEN_UCHIHA = new Set([
 function isShisuiFallen(f) { return (f?.rosterKey || "").toLowerCase() === "shisui_fallen" }
 function shisuiFallenOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
 // Clan-Hunter: scale a raw damage number up 10% when the target is an Uchiha, folding the offense mult in too.
+// Mangekyō Sharingan lit → a further +8% (SHISUI_FALLEN_SHARINGAN.dmgMul).
 function shisuiFallenDmg(fighter, opp, raw) {
   const clan = (opp && SHISUI_FALLEN_UCHIHA.has((opp.rosterKey || "").toLowerCase())) ? 1.10 : 1
-  return Math.round(raw * shisuiFallenOffense(fighter) * clan)
+  const eye = fighter && fighter._sharinganActive ? SHISUI_FALLEN_SHARINGAN.dmgMul : 1
+  return Math.round(raw * shisuiFallenOffense(fighter) * clan * eye)
 }
 // Push an afterimage at `atX` WITHOUT spending a passive charge (deliberate move-blink). Suppress the
 // passive's auto-detect for this frame window so one blink doesn't also burn a charge.
@@ -21914,18 +21936,35 @@ function shisuiFallenKunaiBarrage(fighter, context) {
   return true
 }
 
-// FWD — Body-Flicker Strike: blink adjacent to the foe (leaving an afterimage) and slash. His signature.
+// FWD — Body-Flicker Strike: a DASH-THROUGH cross-up (like the other Shisuis' Backstab). Shisui flickers THROUGH
+// the foe to the FAR side, cutting them on the way past (knocked back toward where he came from), leaving an
+// afterimage at the departure point and ending point-blank behind them, facing back. His signature mix-up.
 function shisuiFallenFlickerStrike(fighter, context) {
   if (!spendEnergy(fighter, 22)) return false
   const opp = getTargetResolver(context)(fighter)
-  shisuiFallenBlinkTo(fighter, opp, 50)
-  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14
-  const attack = createAttackFromMove(fighter, "shisuiFlickerStrike", {
-    damage: shisuiFallenDmg(fighter, opp, 50), startup: 4, active: 5, recovery: 16,
-    hitstun: 24, knockbackX: 9, knockbackY: -4, rangeX: 92, rangeY: 60,
+  const departX = fighter.x
+  if (opp) {
+    const myW = fighter.w || 60, oppCx = opp.x + (opp.w || 60) / 2
+    const fromLeft = (fighter.x + myW / 2) <= oppCx            // which side he starts on
+    const gap = 46
+    fighter.x = fromLeft ? (oppCx + gap) : (oppCx - gap - myW)  // land on the OPPOSITE side, point-blank
+    fighter.y = opp.y
+    fighter.facing = fromLeft ? -1 : 1                          // face BACK toward the foe
+    fighter.vx = 0
+    if (Math.abs(fighter.x - departX) >= 70) shisuiFallenPushGhost(fighter, departX)   // afterimage at the start point
+  }
+  fighter.teleportFlash = 14
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  // cut them ON THE WAY PAST — a guaranteed point-blank hit knocking them back the way he came.
+  schedulePendingSpawn(4, () => {
+    const o = getTargetResolver(context)(fighter) || opp
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const away = (o.x >= fighter.x ? 1 : -1)                    // push them AWAY from Shisui's landing side
+    if (o.isBlocking) { o.blockstun = Math.max(o.blockstun || 0, 18); applyScaledDamage(o, Math.floor(shisuiFallenDmg(fighter, o, 52) * 0.3), { source: "shisui_fallen-flicker-strike" }); return }
+    o.hitstun = Math.max(o.hitstun || 0, 24); o.vx = away * 8; o.vy = -4; o.colorFlash = 12
+    applyScaledDamage(o, shisuiFallenDmg(fighter, o, 52), { source: "shisui_fallen-flicker-strike" })
   })
-  setAttackState(fighter, attack, 22)
-  fighter.vx = (fighter.facing || 1) * 4
   try { focusCameraOnAction(context, fighter, opp, 0.98, 10); shakeCamera(context, 5, 7) } catch (_) {}
   return true
 }
@@ -22044,7 +22083,12 @@ export function executeShisuiFallenUltimate(fighter, context) {
 const SHISUI_FALLEN_KOTO = { cast: 54, overlay: 96, mirror: 165, mirrorUchiha: 252, dmg: 44 }
 function shisuiFallenKotoamatsukami(fighter, context) {
   if (!isShisuiFallen(fighter)) return false
+  // CANON DRAWBACK — each Mangekyō eye needs ~10 years to recharge Kotoamatsukami. One cast per ROUND; after that
+  // the eye is dormant until the next round (round reset in updateShisuiFallenFlicker). The neutral/Down ults are
+  // unaffected. Bail BEFORE spending the meter so a dormant-eye press is a clean no-op (not a wasted bar).
+  if (fighter._kotoSpent) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter._kotoSpent = true                                          // the eye is spent for the round
   const K = SHISUI_FALLEN_KOTO
   const opp = getTargetResolver(context)(fighter) || null
   fighter.vx = 0

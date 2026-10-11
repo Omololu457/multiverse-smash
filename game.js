@@ -213,6 +213,7 @@ import {
   tickMadaraKurama,              // Madara WAR Phase 4 — per-frame Kurama timeout + control-break tick
   updateShisuiFallenFlicker,     // Shisui (Fallen) — Body-Flicker: charges regen + afterimage spawn/absorb (per-frame)
   updateShisuiFallenSusano,      // Shisui (Fallen) Phase 3 — Emerald Susanoo per-frame driver (rawControls kit + HP-absorb + exit)
+  toggleShisuiFallenSharingan,   // Shisui (Fallen) Phase 5 — Mangekyō Sharingan charge-tap toggle
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
@@ -6599,6 +6600,12 @@ function handleChargeRelease(fighter, key) {
   // live frog back out. (Frog upkeep/exits run in updateKakashiWar.)
   if ((fighter.rosterKey || "").toLowerCase() === "kakashi_war") {
     if (wasTap) { if (fighter._crouching || fighter._frogMode) toggleKakashiWarFrog(fighter, getAbilityContext()); else toggleKakashiWarSharingan(fighter) }
+    return
+  }
+  // SHISUI (FALLEN) — MANGEKYŌ SHARINGAN: a charge-TAP toggles the red Mangekyō on/off (+8% dmg, 2× flicker
+  // regen, longer dōjutsu; drains Chakra, brief fatigue at 0 — all in updateShisuiFallenFlicker). HOLD builds Chakra.
+  if ((fighter.rosterKey || "").toLowerCase() === "shisui_fallen") {
+    if (wasTap) toggleShisuiFallenSharingan(fighter)
     return
   }
 
@@ -13216,6 +13223,7 @@ function drawShisuiKotoOverlay(c, fighter) {
 const _RIBCAGE_GUARD_SHEET = {
   madara: "./madara_susanoo_ribcage_growth_uniform.png",
   sasuke: "./sasuke_susano_ribcage.png", sasuke_adult: "./sasuke_susano_ribcage.png", sasuke_sensei: "./sasuke_susano_ribcage.png",
+  shisui_fallen: "./shisui_fallen_ribcage.png",   // Phase 5 — emerald Susanoo ribcage shell while guarding
 }
 // MADARA — WAR Phase 4: the KURAMA (Nine-Tails) summon looming behind Madara while the summon is active.
 // Animated run-cycle, rendered BELOW native size (quality gate: M is soft → never upscale). Faces the foe.
@@ -13239,6 +13247,21 @@ function drawMadaraTengaiSky(ctx, canvas) {
 // point (the thing that absorbs a hit). A dark flicker-streak links it to his current position. Render-only.
 function drawShisuiFallenFlicker(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_fallen") return
+  // MANGEKYŌ SHARINGAN — a crimson aura + both eyes glow red Mangekyō while lit (the sheet has no eye art).
+  if (fighter._sharinganActive && !fighter._emeraldSusano) {
+    const w = fighter.w ?? 50, h = fighter.h ?? 100, facing = fighter.facing || 1
+    const cx = fighter.x + w / 2, cy = fighter.y + h / 2, t = globalFrameCount
+    c.save()
+    c.globalAlpha = 0.13 + 0.05 * Math.sin(t * 0.2); c.fillStyle = "rgba(190,16,28,1)"
+    c.beginPath(); c.arc(cx, cy, w * 0.64, 0, Math.PI * 2); c.fill()   // crimson aura
+    c.globalAlpha = 0.96; c.shadowBlur = 7; c.shadowColor = "rgba(230,20,30,0.95)"
+    for (const dx of [-0.1, 0.12]) {
+      const ex = fighter.x + w * (0.5 + facing * dx), ey = fighter.y + h * 0.2
+      c.fillStyle = "rgba(220,18,24,0.98)"; c.beginPath(); c.arc(ex, ey, 2.6, 0, Math.PI * 2); c.fill()   // red iris
+      c.fillStyle = "rgba(15,0,0,0.95)"; c.beginPath(); c.arc(ex, ey, 1.0, 0, Math.PI * 2); c.fill()      // pupil
+    }
+    c.restore()
+  }
   const ghosts = fighter._flickGhosts
   if (!ghosts || !ghosts.length) return
   const img = _susanoImg("./shisui_fallen_idle_uniform.png")
@@ -13377,7 +13400,7 @@ function drawMadaraRibcageGuard(c, fighter) {
   // Don't stack on a giant / War-Susano'o form (those draw their own ribcage / have their own look).
   if ((fighter._madaraComplete || 0) > 0 || (fighter._madaraSusanoo || 0) > 0 || (fighter._madaraAvatar || 0) > 0 ||
       (fighter._madaraLadder || 0) > 0 || (fighter._warGuard || 0) > 0 || fighter._warSoldier ||
-      (fighter._warTorso || 0) > 0 || (fighter._susanooStage || 0) > 0 || !fighter.isBlocking) { fighter._madRibcageT = 0; return }
+      (fighter._warTorso || 0) > 0 || (fighter._susanooStage || 0) > 0 || fighter._emeraldSusano || !fighter.isBlocking) { fighter._madRibcageT = 0; return }
   const img = _susanoImg(sheet)
   if (!img.complete || !img.naturalWidth) return
   const madara = rk === "madara"
@@ -20840,6 +20863,9 @@ gameLoop()
     kotoMirror:       f._kotoMirror || 0,                                     // Kotoamatsukami victim timer (L/R mirrored + specials/ult locked)
     kotoOverlay:      f._kotoOverlay || 0,                                    // Kotoamatsukami caster genjutsu-world overlay timer
     kotoCurseBreak:   f._kotoCurseBreak || 0,                                 // Shisui (Fallen) easter-egg: crimson curse-break eye (vs an Uchiha)
+    kotoSpent:        !!f._kotoSpent,                                         // Shisui (Fallen) — Kotoamatsukami eye spent this round (10yr recharge drawback)
+    sharingan:        !!f._sharinganActive,                                   // Shisui (Fallen) / Kakashi — Mangekyō Sharingan lit
+    sharinganFatigue: f._sharinganFatigue || 0,                              // Shisui (Fallen) Sharingan fatigue lockout frames
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     domainFrozen:     !!f.domainFrozen,        // trapped+frozen inside a domain (Gojo/Hashirama seal) — can't act
@@ -22725,7 +22751,8 @@ gameLoop()
     // test can't set it) then fire — verifies neutral=Thousand Shadows fires + Up/Down variants no-op (Phase 3-4).
     shisuiFallenUlt: (variant = "thousandShadows") => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; p1.energy = p1.maxEnergy; p1._ultVariant = variant; const cast = triggerUltimate(p1, getAbilityContext()); return { cast: !!cast, energy: Math.round(p1.energy), variant: p1._ultVariant || null } },
     // SHISUI (FALLEN) Phase 3 — Emerald Susanoo state reader (snapshot omits custom _fields).
-    shisuiFallenSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const PS = f._emeraldSusano; return { active: !!PS, hp: PS ? Math.round(PS.hp) : 0, max: PS ? PS.max : 0, t: PS ? PS.t : 0, pose: PS ? PS.pose : null, action: PS ? PS.action : null, volley: PS ? !!PS.volley : false, finisher: PS ? !!PS.finisher : false, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0) } },
+    shisuiFallenSusano: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const PS = f._emeraldSusano; return { active: !!PS, hp: PS ? Math.round(PS.hp) : 0, max: PS ? PS.max : 0, t: PS ? PS.t : 0, pose: PS ? PS.pose : null, action: PS ? PS.action : null, volley: PS ? !!PS.volley : false, finisher: PS ? !!PS.finisher : false, tier: PS ? (PS.tier || 1) : 0, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0) } },
+    shisuiFallenSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleShisuiFallenSharingan(f); return { toggled: !!ok, active: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, energy: Math.round(f.energy || 0) } },   // test-only: toggle the Mangekyō
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).
     gaaraShukaku: {
       fillGauge: () => { if (p1) p1._oneTailGauge = 100; return p1?._oneTailGauge || 0 },

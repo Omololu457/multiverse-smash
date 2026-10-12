@@ -23719,3 +23719,146 @@ gameLoop()
     fireIntroVoice: side => { const f = side === "p2" ? p2 : p1; if (f) { f._introVoiceDone = false; try { maybeFireIntroVoice(f) } catch (_) {} } }
   }
 })()
+  updateMeruem, startMeruemAuraCharge,   // MERUEM (Phase 2) — per-frame tick (Aura-Bullet charge-hold release, Gungi Stance counter/absorb, Photon Field read, Synthesis fill, FX) + Aura-Bullet charge START (neutral-Special arm)
+    // MERUEM — a NEUTRAL Special is the AURA BULLET charge-hold (tap = light round / HOLD = charged round).
+    // Start the frame-based charge and consume the press; the HOLD/RELEASE fire runs in updateMeruem. A
+    // DIRECTIONAL Special (F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field) falls
+    // through to triggerSpecial. Not while already charging.
+    if ((fighter.rosterKey || "").toLowerCase() === "meruem" && !fighter._specialHeldDir && !fighter._meruemAuraCharging) {
+      startMeruemAuraCharge(fighter); return
+    }
+  // MERUEM — Ultimate is directional: NEUTRAL = Ant King's Onslaught (Phase 2) · DOWN = Royal Feast (Phase 4,
+  // needs full Aura Synthesis — no-ops until then). Stamp the held dir + a fresh cinematics gate (updateBattle's
+  // tick is skipped during cinematics) so the ultimate refuses during KO / Brutality / Domain / Rick rewind.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "meruem") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "royalFeast" : "onslaught"
+    fighter._meruemCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
+  }
+// ── MERUEM — code-drawn aura FX (world-space, per-fighter; meruem only). Gungi-Stance aura flash, Photon
+// Field photon scatter + read label, READ counter/absorb pop, tail-rush streak, Aura-Bullet charge glow,
+// and the Aura Synthesis gauge above the head. All procedural/deterministic (no gameRng). No sprite art.
+const _meruemFxImgs = {}
+function _meruemFxImg(src) { if (!_meruemFxImgs[src]) { const i = new Image(); i.src = src; _meruemFxImgs[src] = i } return _meruemFxImgs[src] }
+function drawMeruemFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "meruem") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100, facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5, headY = fighter.y - h * 0.12
+  const t = (fighter._meruemFxClock = (fighter._meruemFxClock || 0) + 1)
+
+  // PHOTON FIELD — scattered drifting purple photon motes across the stage + a faint violet field tint.
+  if ((fighter._photonFieldActive || 0) > 0) {
+    const cw = c.canvas?.width || 1280, ch = c.canvas?.height || 720
+    const life = fighter._photonFieldActive, fade = Math.min(1, life / 30) * Math.min(1, (240 - life) / 20 + 0.3)
+    c.save()
+    c.fillStyle = "rgba(120,50,190,0.05)"; c.fillRect(0, 0, cw, ch)   // faint field wash
+    for (let i = 0; i < 26; i++) {
+      // deterministic drift (sin/cos of index + clock) — no RNG
+      const px = ((i * 97 + t * (0.6 + (i % 5) * 0.12)) % cw)
+      const py = (ch * 0.2) + (Math.sin(i * 1.7 + t * 0.02) * 0.5 + 0.5) * ch * 0.6
+      const r = 2 + (i % 3)
+      const a = (0.35 + 0.35 * Math.sin(t * 0.08 + i)) * fade
+      c.globalAlpha = Math.max(0, a); c.fillStyle = "#c98cff"; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"
+      c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+    // READ LABEL — the foe's next special name, read the instant they input it.
+    if (fighter._meruemReadName) {
+      c.save(); c.globalAlpha = Math.min(1, (fighter._meruemReadNameT || 0) / 20 + 0.4)
+      c.font = "bold 15px monospace"; c.textAlign = "center"
+      c.fillStyle = "#1a0a24"; c.fillRect(cx - 86, headY - 44, 172, 20)
+      c.strokeStyle = "#c98cff"; c.lineWidth = 1; c.strokeRect(cx - 86, headY - 44, 172, 20)
+      c.fillStyle = "#e6c6ff"; c.fillText("READ ▸ " + String(fighter._meruemReadName).slice(0, 16), cx, headY - 29)
+      c.restore()
+    }
+  }
+
+  // GUNGI MIND STANCE — a pulsing violet aura ring while the read window is open.
+  if ((fighter._meruemStanceFx || 0) > 0) {
+    const s = fighter._meruemStanceFx
+    c.save(); c.globalAlpha = Math.min(0.8, s / 14)
+    c.strokeStyle = "#c98cff"; c.lineWidth = 3; c.shadowBlur = 14; c.shadowColor = "#9b2fd6"
+    const rr = w * (0.7 + 0.25 * Math.sin(t * 0.5))
+    c.beginPath(); c.ellipse(cx, cy, rr, rr * 1.2, 0, 0, Math.PI * 2); c.stroke()
+    c.restore()
+  }
+
+  // TAIL-RUSH streak — a purple after-trail behind Meruem during the tail rush.
+  if ((fighter._meruemTailFx || 0) > 0) {
+    const s = fighter._meruemTailFx
+    c.save(); c.globalAlpha = Math.min(0.6, s / 16)
+    const grad = c.createLinearGradient(cx - facing * w, cy, cx, cy)
+    grad.addColorStop(0, "rgba(155,47,214,0)"); grad.addColorStop(1, "rgba(201,140,255,0.8)")
+    c.fillStyle = grad; c.fillRect(cx - facing * w, cy - h * 0.18, facing * w, h * 0.36)
+    c.restore()
+  }
+
+  // AURA-BULLET charge glow — a growing purple orb at the lead hand while charging.
+  if ((fighter._meruemAuraCharging || 0) > 0) {
+    const cf = Math.min(1, (fighter._meruemAuraChargeFrames || 0) / 58)
+    const hx = fighter.x + w * (0.5 + facing * 0.4), hy = fighter.y + h * 0.5
+    c.save(); c.globalAlpha = 0.5 + 0.4 * cf; c.shadowBlur = 16; c.shadowColor = "#9b2fd6"
+    c.fillStyle = cf >= 0.34 ? "#e6c6ff" : "#b24cf0"
+    c.beginPath(); c.arc(hx, hy, 4 + cf * 12, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+
+  // READ pop — "READ" text after a Gungi counter / absorb.
+  if ((fighter._meruemReadFx || 0) > 0) {
+    const s = fighter._meruemReadFx
+    c.save(); c.globalAlpha = Math.min(1, s / 18); c.font = "bold 20px monospace"; c.textAlign = "center"
+    c.fillStyle = "#e6c6ff"; c.shadowBlur = 10; c.shadowColor = "#9b2fd6"
+    c.fillText("READ", cx, headY - 48 - (30 - s))
+    c.restore()
+  }
+
+  // AURA SYNTHESIS gauge — thin violet bar above the head (fills → Royal Feast, Phase 4).
+  const synth = fighter._meruemSynth || 0
+  if (synth > 0) {
+    const full = synth >= 100, bw = Math.max(44, w * 1.1), bh = 5
+    const bx = cx - bw / 2, by = headY - 16
+    c.save()
+    c.fillStyle = "#1a0a24"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+    c.fillStyle = full ? (Math.floor(t / 6) % 2 ? "#e6c6ff" : "#b24cf0") : "#8a3fc0"
+    c.fillRect(bx, by, bw * Math.min(1, synth / 100), bh)
+    if (full) { c.strokeStyle = "#e6c6ff"; c.lineWidth = 1; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"; c.strokeRect(bx - 1, by - 1, bw + 2, bh + 2) }
+    c.restore()
+  }
+}
+  { const _mctx = getAbilityContext(); const _mblk = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateMeruem(p1, _mctx, !!readRawControls(p1)?.special, _mblk || !!p1.domainFrozen); updateMeruem(p2, _mctx, !!readRawControls(p2)?.special, _mblk || !!p2.domainFrozen) }   // MERUEM: Aura-Bullet charge-hold release + Gungi Stance counter/absorb + Photon Field read + Synthesis fill + FX timers (no-op otherwise)
+    drawMeruemFx(c, fighter)                // Meruem — Gungi-Stance aura ring + Photon Field motes/read + tail-rush streak + charge glow + READ pop + Aura Synthesis gauge (code-drawn, no art; meruem only)
+// ── MERUEM — ANT KING'S ONSLAUGHT / Royal Feast menace-panel cut-in (SCREEN space). The purple menace panel
+// SLIDES in from the left during _meruemCutinFx (56→0), over a violet vignette. The textured panel image is
+// used when decoded; a code-drawn violet card is the fallback so the cut-in never silently vanishes.
+function drawMeruemUltCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._meruemCutinFx || 0) > 0)
+  if (!caster) return
+  const uT = caster._meruemCutinFx || 0   // counts DOWN 56→0
+  const cw = canvas.width, ch = canvas.height
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  // violet vignette build→release
+  const vgEnv = uT > 44 ? (56 - uT) / 12 : Math.max(0, uT / 44)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, ch * 0.10, cw / 2, ch * 0.52, ch * 0.95)
+  vg.addColorStop(0, `rgba(30,10,44,${0.06 * vgEnv})`); vg.addColorStop(1, `rgba(20,6,34,${0.6 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // panel slide in uT 56→46, HOLD 46→14, slide out 14→0
+  const pEnv = uT >= 46 ? (56 - uT) / 10 : uT >= 14 ? 1 : uT / 14
+  if (pEnv > 0) {
+    const src = (caster._ultVariant === "royalFeast") ? "./meruem_menace_green.png" : "./meruem_menace_purple.png"
+    const panel = _meruemFxImg(src)
+    const ready = panel && panel.complete && panel.naturalWidth > 0
+    const dh = ch * 0.44
+    const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.3
+    const slide = (1 - pEnv) * (dw + 40)
+    const dx = cw * 0.07 - slide, dy = ch * 0.28
+    ctx.globalAlpha = 0.5 * pEnv; ctx.fillStyle = "#120421"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
+    ctx.globalAlpha = pEnv
+    if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
+    else { ctx.fillStyle = "#2a0d44"; ctx.fillRect(dx, dy, dw, dh); ctx.strokeStyle = "#c98cff"; ctx.lineWidth = 3; ctx.strokeRect(dx, dy, dw, dh) }
+    // title
+    ctx.globalAlpha = pEnv; ctx.font = "bold 22px monospace"; ctx.textAlign = "left"; ctx.fillStyle = "#e6c6ff"
+    ctx.shadowBlur = 8; ctx.shadowColor = "#9b2fd6"
+    ctx.fillText(caster._ultVariant === "royalFeast" ? "ROYAL FEAST" : "ANT KING'S ONSLAUGHT", dx + dw + 18, dy + dh * 0.5)
+  }
+  ctx.restore()
+}
+  drawMeruemUltCinematic(ctx, canvas)         // Meruem Ant King's Onslaught / Royal Feast — menace-panel cut-in slide + violet vignette (meruem only, _meruemCutinFx)

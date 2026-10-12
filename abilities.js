@@ -31312,6 +31312,241 @@ function pickShisuiBanter(key, kind) {
 export function shisuiIntroBanter(key) { const p = (SHISUI_BANTER[(key || "").toLowerCase()] || {}).intro || []; return p[0] || "" }
 export function shisuiWinBanter(key)   { const p = (SHISUI_BANTER[(key || "").toLowerCase()] || {}).win   || []; return p[0] || "" }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// MERUEM — "The King Who Learned" (Chimera Ant King, HxH). PHASE 2 SPECIALS + ULTIMATE. combat.js
+// UNTOUCHED — melee via createAttackFromMove/setAttackState, aura rounds via spawnProjectile; the
+// counter/absorb/photon/read systems run in updateMeruem (per-frame, post-updateCombat). Deterministic,
+// LAN-safe (no gameRng). Energy label "Aura".
+//   N  = AURA BULLET  (charge-hold in game.js → tap = light round / HOLD = charged round)   [ORIGINAL]
+//   F  = KING'S LUNGE (6-Koma X low-dash → strike, lunges forward)                           [CANON-ADJACENT]
+//   D  = TAIL AURA RUSH (low aura-wreathed tail rush, advances)                              [ORIGINAL]
+//   B  = GUNGI MIND STANCE (brief read: a foe attack in range → TAIL LANCE counter; a foe
+//        projectile → ABSORBED into the Aura Synthesis gauge; i-frames through the window)   [CANON]
+//   U  = PHOTON FIELD (code-drawn aura photons ~4s; reads the foe's NEXT special NAME)        [CANON-ADJACENT]
+//   ULT (neutral) = ANT KING'S ONSLAUGHT (menace cut-in → lunge → aura-flash barrage → tail finisher)
+//   (Down+Ult = ROYAL FEAST — Phase 4; no-ops here so the button isn't wasted.)
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+const isMeruem = f => (f?.rosterKey || "").toLowerCase() === "meruem"
+
+const MERUEM_AURA_MD     = { damage: 70,  w: 30, h: 30, speed: 13, lifetime: 95,  hitstun: 16, knockbackX: 6,  knockbackY: -2 }
+const MERUEM_AURA_CHG_MD = { damage: 118, w: 48, h: 48, speed: 11, lifetime: 120, hitstun: 22, knockbackX: 10, knockbackY: -3 }
+const MERUEM_AURA_CHARGE_MIN = 20     // frames held → the charged variant
+const MERUEM_AURA_CHARGE_MAX = 58     // charge auto-fires (cap)
+const MERUEM_SYNTH_MAX = 100          // AURA SYNTHESIS gauge (fills from hits landed + absorbed projectiles → Royal Feast, Phase 4)
+
+function meruemAddSynth(f, amt) { if (!isMeruem(f)) return; f._meruemSynth = Math.min(MERUEM_SYNTH_MAX, (f._meruemSynth || 0) + Math.max(0, amt)) }
+
+// N — AURA BULLET (fired by updateMeruem on charge release; tap = light, hold = charged).
+function fireMeruemAuraBullet(fighter, context, charged) {
+  const cost = charged ? 30 : (fighter.specials?.auraBullet?.cost ?? 18)
+  if (!spendEnergy(fighter, cost)) { fighter._spriteCastMove = null; return false }
+  const md = charged ? MERUEM_AURA_CHG_MD : MERUEM_AURA_MD
+  fighter._spriteCastMove = "meruemAuraCast"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(charged ? 24 : 16, fighter)
+  spawnProjectile(fighter, charged ? "meruem-aura-charged" : "meruem-aura", {
+    w: md.w, h: md.h, radius: md.w / 2, speed: md.speed, lifetime: md.lifetime,
+    damage: md.damage, hitstun: md.hitstun, knockbackX: md.knockbackX, knockbackY: md.knockbackY,
+    sheet: "./meruem_aura_proj_uniform.png", spriteFrames: 4, spriteScale: charged ? 2.0 : 1.3,
+    color: "#b24cf0", isSpecial: true, hitFlag: "_meruemProjHit"
+  }, context)
+  try { shakeCamera(context, charged ? 4 : 2, 6) } catch (_) {}
+  return true
+}
+
+// F — KING'S LUNGE (6-Koma X): low ant-dash → flip → strike, lunging forward through the hit.
+function meruemKingsLunge(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, fighter.specials?.kingsLunge?.cost ?? 26)) return false
+  const md = { damage: 96, startup: 6, active: 6, recovery: 18, hitstun: 22, knockbackX: 10, knockbackY: -4, rangeX: 112, rangeY: 50, isSpecial: true, category: "heavy" }
+  const atk = createAttackFromMove(fighter, "meruemKingsLunge", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 17   // dash-strike
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// D — TAIL AURA RUSH: a low aura-wreathed tail rush that advances.
+function meruemTailAuraRush(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, fighter.specials?.tailAuraRush?.cost ?? 24)) return false
+  const md = { damage: 84, startup: 7, active: 6, recovery: 17, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 118, rangeY: 42, isSpecial: true }
+  const atk = createAttackFromMove(fighter, "meruemTailRush", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 12
+  fighter._meruemTailFx = 16
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+// B — GUNGI MIND STANCE: a short read. Opens a window with i-frames; a foe attack in range → tail-lance
+// counter; a foe projectile near Meruem → ABSORBED into the Aura Synthesis gauge. (Tick in updateMeruem.)
+const MERUEM_STANCE_WINDOW = 22
+const MERUEM_STANCE_CD = 150
+function meruemGungiStance(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._meruemStanceCd || 0) > 0) return false
+  if (!spendEnergy(fighter, fighter.specials?.gungiStance?.cost ?? 16)) return false
+  fighter._gungiStance = MERUEM_STANCE_WINDOW
+  fighter._meruemStanceCd = MERUEM_STANCE_CD
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, MERUEM_STANCE_WINDOW)
+  fighter._spriteCastMove = "guard"; fighter._spriteCastTimer = MERUEM_STANCE_WINDOW   // Defense pose + aura flash (drawMeruemFx)
+  fighter._meruemStanceFx = MERUEM_STANCE_WINDOW
+  fighter.attackCooldown = getAttackDuration(MERUEM_STANCE_WINDOW, fighter)
+  return true
+}
+
+// Gungi counter answer — the tail lance (Y+Forward). Fired by updateMeruem when the stance reads a hit.
+function meruemTailLanceCounter(fighter, context) {
+  const md = { damage: 92, startup: 3, active: 5, recovery: 14, hitstun: 24, knockbackX: 11, knockbackY: -5, rangeX: 124, rangeY: 46, isSpecial: true, category: "heavy" }
+  const atk = createAttackFromMove(fighter, "meruemTailLance", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter._meruemReadFx = 30
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+}
+
+// U — PHOTON FIELD: scatter code-drawn aura photons for ~4s; while active the foe's NEXT special NAME is
+// read on-screen the instant they input it (a read, not a block).
+const MERUEM_PHOTON_DUR = 240   // ~4s
+function meruemPhotonField(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, fighter.specials?.photonField?.cost ?? 34)) return false
+  fighter._photonFieldActive = MERUEM_PHOTON_DUR
+  fighter._spriteCastMove = "meruemPhotonCharge"; fighter._spriteCastTimer = 40
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter._meruemReadName = null
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+
+// Charge-hold entry (game.js intercepts a NEUTRAL Special → start the charge; release in updateMeruem).
+export function startMeruemAuraCharge(fighter) {
+  if (!isMeruem(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (fighter._meruemAuraCharging) return false
+  if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  fighter._meruemAuraCharging = 1
+  fighter._meruemAuraChargeFrames = 0
+  fighter._spriteCastMove = "meruemAuraCast"; fighter._spriteCastTimer = MERUEM_AURA_CHARGE_MAX + 20
+  return true
+}
+
+function executeMeruemSpecial(fighter, context) {
+  if (!isMeruem(fighter)) return false
+  if (fighter._meruemAuraCharging) return false   // neutral charge-hold is running (game.js armed it) → don't re-fire on the held-special fall-through
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return meruemKingsLunge(fighter, context)
+  if (dir === "D") return meruemTailAuraRush(fighter, context)
+  if (dir === "B") return meruemGungiStance(fighter, context)
+  if (dir === "U") return meruemPhotonField(fighter, context)
+  // neutral (reached only when game.js charge-intercept is bypassed, e.g. the harness p1Spec(null)) → tap bullet
+  return fireMeruemAuraBullet(fighter, context, false)
+}
+
+// ── ANT KING'S ONSLAUGHT (neutral Ultimate) — inline freeze-cinematic economy (live fighter, i-frames,
+//    scheduled guaranteed beats; mirrors Gaara Sabaku Taisou). Menace-panel cut-in → 6-Koma lunge rush →
+//    aura-flash barrage → tail-sweep finisher. combat.js UNTOUCHED (applyScaledDamage beats).
+const MERUEM_ULT_LEN = 180
+function executeMeruemUltimate(fighter, context) {
+  if (!isMeruem(fighter)) return false
+  if ((fighter._ultVariant || "") === "royalFeast") return false   // Down+Ult = Royal Feast (Phase 4) — not yet; don't consume
+  if (fighter._meruemCineBlocked) return false                     // refuse during KO / Brutality / Domain / Rick rewind
+  if (context && context.cinematicSafe === false) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  const opp0 = getTargetResolver(context)(fighter)
+  fighter.facing = opp0 ? (opp0.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
+  fighter._meruemUltTimer = MERUEM_ULT_LEN; fighter._meruemUltMax = MERUEM_ULT_LEN
+  fighter._meruemCutinFx = 56                                      // menace-panel cut-in slide (drawMeruemUltCinematic)
+  fighter.attackCooldown = getAttackDuration(MERUEM_ULT_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, MERUEM_ULT_LEN)
+  fighter._spriteCastMove = "meruemKingsLunge"; fighter._spriteCastTimer = 56
+  schedulePendingSpawn(56,  () => { fighter.vx = (fighter.facing || 1) * 16; fighter._spriteCastMove = "meruemAuraFlash"; fighter._spriteCastTimer = 64 })
+  schedulePendingSpawn(132, () => { fighter.vx = 0; fighter._spriteCastMove = "meruemTailSweep"; fighter._spriteCastTimer = 46 })
+  const beats = [
+    { at: 60, dmg: 18 }, { at: 72, dmg: 18 }, { at: 84, dmg: 18 },    // lunge rush (3)
+    { at: 100, dmg: 22 }, { at: 112, dmg: 22 }, { at: 124, dmg: 22 }, // aura-flash barrage (3)
+    { at: 152, dmg: 92, big: true }                                   // tail finisher
+  ]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = b.big ? 24 : 12; applyScaledDamage(o, Math.floor(b.dmg * 0.25), { source: "ability" }); return }
+    o.hitstun = b.big ? 38 : 18; o.vx = dir * (b.big ? 7 : 1); o.vy = b.big ? -9 : 0; o.colorFlash = b.big ? 16 : 10
+    if (b.big) o.hitstop = Math.max(o.hitstop || 0, 26)
+    applyScaledDamage(o, b.dmg, { source: "ability" })
+  }))
+  try { focusCameraOnAction(context, fighter, opp0, 1.1, 20); shakeCamera(context, 5, 14) } catch (_) {}
+  return true
+}
+
+// PER-FRAME driver (game.js updateBattle, post-updateCombat). Charge-hold release + Photon Field + Gungi
+// Mind Stance counter/absorb + Synthesis fill + FX timers. No-op for every non-Meruem fighter.
+export function updateMeruem(fighter, context, heldSpecial = false, blockCinematics = false) {
+  if (!isMeruem(fighter)) return
+  // FX timer ticks
+  for (const k of ["_meruemTailFx", "_meruemStanceFx", "_meruemReadFx", "_meruemCutinFx", "_meruemProjGlow"]) if (fighter[k] > 0) fighter[k]--
+  if (fighter._meruemStanceCd > 0) fighter._meruemStanceCd--
+  if (fighter._meruemUltTimer > 0) fighter._meruemUltTimer--
+
+  // AURA SYNTHESIS fill — landing an aura round adds to the gauge (hitFlag set in combat's projectile hit).
+  if (fighter._meruemProjHit) { meruemAddSynth(fighter, 8); fighter._meruemProjHit = false }
+
+  // AURA BULLET charge-hold → release / cap.
+  if (fighter._meruemAuraCharging) {
+    fighter._meruemAuraChargeFrames++
+    if (fighter._meruemAuraChargeFrames >= MERUEM_AURA_CHARGE_MIN) fighter._meruemProjGlow = 4
+    if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) { fighter._meruemAuraCharging = 0; fighter._spriteCastMove = null }
+    else {
+      const capped = fighter._meruemAuraChargeFrames >= MERUEM_AURA_CHARGE_MAX
+      if ((!heldSpecial || capped) && (fighter.attackCooldown || 0) <= 0 && !fighter.attacking) {
+        const charged = fighter._meruemAuraChargeFrames >= MERUEM_AURA_CHARGE_MIN
+        fighter._meruemAuraCharging = 0
+        fireMeruemAuraBullet(fighter, context, charged)
+      }
+    }
+  }
+
+  // GUNGI MIND STANCE window — counter a close foe attack / absorb a foe projectile.
+  if (fighter._gungiStance > 0) {
+    fighter._gungiStance--
+    const opp = getTargetResolver(context)(fighter)
+    // ABSORB — swallow the first foe-owned projectile near Meruem into the Synthesis gauge.
+    const cx = fighter.x + (fighter.w || 0) / 2
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (p && p.owner !== fighter && Math.abs((p.x ?? cx) - cx) < 150) {
+        activeProjectiles.splice(i, 1)
+        meruemAddSynth(fighter, 14)
+        fighter._gungiStance = 0; fighter._meruemReadFx = 30; fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)
+        break
+      }
+    }
+    // COUNTER — a foe attacking in close range during the read → the tail lance answers (i-frames cover the whiff).
+    if (fighter._gungiStance > 0 && opp && opp.attacking && !opp.eliminated) {
+      const dx = Math.abs((opp.x + (opp.w || 0) / 2) - cx)
+      if (dx < 150) { fighter._gungiStance = 0; meruemAddSynth(fighter, 6); meruemTailLanceCounter(fighter, context) }
+    }
+  }
+
+  // PHOTON FIELD — read the foe's NEXT special the instant they input it.
+  if (fighter._photonFieldActive > 0) {
+    fighter._photonFieldActive--
+    const opp = getTargetResolver(context)(fighter)
+    const casting = !!(opp && (opp.currentAttack?.isSpecial || (opp._spriteCastMove && opp._spriteCastMove !== "guard")))
+    if (casting && !fighter._meruemOppWasCasting) {
+      fighter._meruemReadName = String(opp.currentMove || opp._spriteCastMove || "SPECIAL")
+      fighter._meruemReadNameT = 90
+    }
+    fighter._meruemOppWasCasting = casting
+    if (fighter._photonFieldActive <= 0) { fighter._meruemReadName = null }
+  } else if (fighter._meruemOppWasCasting) {
+    fighter._meruemOppWasCasting = false
+  }
+  if (fighter._meruemReadNameT > 0 && --fighter._meruemReadNameT <= 0) fighter._meruemReadName = null
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -31599,6 +31834,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
+      case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
       case "kakashi_war": cast = executeKakashiWarUltimate(fighter, context); break    // NEW additive (Kamui). neutral = Kamui Raikiri (eye-banner cut-in, swirl + guaranteed strike ~204 EFF) · Down = Copy Ninja (needs Sharingan + copy-ready) · Up = Obito's Gift (Phase 4).
@@ -32741,3 +32977,4 @@ export function activateUltimate(fighter) {
 // module-scope (spendEnergy/spawnProjectile/schedulePendingSpawn/activeProjectiles) or combat.js imports
 // (applyScaledDamage). Without this call API stays null and every dōjutsu move throws → it MUST run on load.
 initSasukeDojutsu({ spendEnergy, spawnProjectile, schedulePendingSpawn, activeProjectiles, applyScaledDamage })
+    case "meruem":  return executeMeruemSpecial(fighter, context)   // N=Aura Bullet (charge-hold, armed in game.js) / F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field. Ant King's Onslaught ULT. Royal Feast=Phase 4

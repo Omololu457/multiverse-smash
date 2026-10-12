@@ -27,6 +27,14 @@ export const FX_SHEETS_BY_CHAR = {
   chrollo: [
     "./chrollo_nenbeast_uniform.png",
   ],
+  // Meruem — the Aura Bullet projectile sprite + the two menace-panel cut-in images (Ant King's Onslaught /
+  // Royal Feast). Cast poses (aura/lunge/tail/flash/photon) live in characters.animationData (preloadFighter
+  // covers those). The anime cut-in is a Phase-4 overlay (added then).
+  meruem: [
+    "./meruem_aura_proj_uniform.png",
+    "./meruem_menace_purple.png",
+    "./meruem_menace_green.png",
+  ],
   gojo: [
     "./gojo_blue_orb_fx.png",
     "./gojo_hollow_purple_orb_fx.png",

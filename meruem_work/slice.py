@@ -153,5 +153,32 @@ def main():
     raw("meruem_cutin_anime.png", (18, 1710, 159, 1801))                      # Royal Feast anime screencap
 
 
+def phase2():
+    # ══ PHASE 2 — SPECIALS ART ══
+    # AURA BULLET — cast pose (row1 body 3f: windup → mid → thrust) + projectile FX + impact burst.
+    by_band("meruem_aura_cast_uniform.png", 355, 400, x0=440, x1=645, idx=[0, 1, 2])            # throw cast 3f
+    by_rects("meruem_aura_proj_uniform.png",                                                     # traveling aura round (center-packed)
+             [(685, 380, 707, 399), (717, 382, 735, 399), (751, 364, 774, 399), (787, 374, 816, 399)], feet=False)
+    # KING'S LUNGE — 6-Koma X (low ant-dash → lunge → flip → strike). x<700 drops the spurious example-box edge.
+    by_band("meruem_kings_lunge_uniform.png", 1688, 1735, x0=180, x1=700)                        # 7f
+    # TAIL AURA RUSH — others row3 (low aura-wreathed tail rush) 5f.
+    by_band("meruem_tail_rush_uniform.png", 535, 590, x0=440, x1=860)                            # 5f
+    # AURA FLASH — others row4 (purple aura-flash body) 7f. Used in the ultimate barrage.
+    by_band("meruem_aura_flash_uniform.png", 628, 690, x0=440, x1=900)                           # 7f
+    # PHOTON FIELD — Alt aura-charge loop (bracket under frames 6-8 = loop). 7f.
+    by_band("meruem_photon_charge_uniform.png", 1505, 1565, x0=160, x1=610)                      # 7f
+    # ULTIMATE AURA-SPIKES — the 4 growing purple aura-spike FX (Ult flare / Ant King's Onslaught). center-packed.
+    by_band("meruem_ult_spikes_uniform.png", 1388, 1452, x0=168, x1=620, feet=False, min_sz=200) # growing aura spikes
+    # TAIL LANCE — Y+Forward (the Gungi Mind Stance counter answer) 4f.
+    by_band("meruem_tail_lance_uniform.png", 925, 980, x1=270)                                   # 4f
+    # TAIL SWEEP — Y+Down (the Ant King's Onslaught tail finisher) 6f.
+    by_band("meruem_tail_sweep_uniform.png", 1120, 1180, x1=345)                                 # 6f
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--phase2" in sys.argv:
+        phase2()
+    else:
+        main()
+        phase2()

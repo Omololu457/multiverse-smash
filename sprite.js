@@ -1506,3 +1506,6 @@ function _rrect(ctx, x, y, w, h, r = 10) {
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
+  // Meruem — Phase 2 special cast poses (_spriteCastMove). Identity maps so a cast recovery tail never
+  meruemAuraCast: "meruemAuraCast", meruemKingsLunge: "meruemKingsLunge", meruemTailRush: "meruemTailRush",
+  meruemAuraFlash: "meruemAuraFlash", meruemPhotonCharge: "meruemPhotonCharge", meruemTailLance: "meruemTailLance", meruemTailSweep: "meruemTailSweep",

@@ -7106,7 +7106,15 @@ const meruem = {
     heavy:    { frames: 4, width: 62, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_heavy_uniform.png" },     // Y — heavy tail swipe
     up:       { frames: 4, width: 56, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_up_uniform.png" },        // Y+Up — rising tail-upper LAUNCHER
     air:      { frames: 4, width: 67, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_air_uniform.png" },       // Jump+B — aerial claw
-    down_air: { frames: 6, width: 68, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_downair_uniform.png" }    // Jump+Y — spinning-tail dive
+    down_air: { frames: 6, width: 68, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_downair_uniform.png" },   // Jump+Y — spinning-tail dive
+    // ── PHASE 2 — SPECIAL CAST POSES (_spriteCastMove identity keys → sprite.js MOVE_TO_ACTION) ──
+    meruemAuraCast:     { frames: 3, width: 58, height: 40, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_aura_cast_uniform.png" },     // Aura Bullet throw cast (+ charge loop)
+    meruemKingsLunge:   { frames: 7, width: 73, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_kings_lunge_uniform.png" },   // King's Lunge (6-Koma X)
+    meruemTailRush:     { frames: 5, width: 98, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_tail_rush_uniform.png" },     // Tail Aura Rush
+    meruemAuraFlash:    { frames: 7, width: 68, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_aura_flash_uniform.png" },    // aura-flash barrage (ult)
+    meruemPhotonCharge: { frames: 7, width: 48, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_photon_charge_uniform.png" },// Photon Field aura-charge
+    meruemTailLance:    { frames: 4, width: 56, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_tail_lance_uniform.png" },    // Gungi Stance counter (Y+Forward)
+    meruemTailSweep:    { frames: 6, width: 59, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_tail_sweep_uniform.png" }      // ult tail finisher (Y+Down)
   }
 }
 

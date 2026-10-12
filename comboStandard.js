@@ -231,6 +231,10 @@ export const ZONER = [
   "shisui_fallen",   // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone rushdown. Individual pokes + Flicker
                      //   Cancels (not a dial-a-combo); directional Specials / Thousand Shadows / Kotoamatsukami /
                      //   Emerald Susanoo (later phases). No Light,Light,Heavy auto-combo / no Fwd+Heavy rekka → single-poke.
+  "shizuku",         // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8): defensive
+                     //   ABSORBER — base normals (light=B jab string, heavy=Y strike, up=Y+Up launcher) + the
+                     //   Blinky belly rule (P1); five directional Blinky Specials + Belly system (P2); Bloodletting /
+                     //   Spring Cleaning ultimates (P3). No Fwd+Heavy rekka driver and not in STANDARD_STRING_CHARS → single-poke.
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -294,6 +298,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                33,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          117,       // 71 rekka + 13 standard-string + 33 single-poke = 117 (shisui_puppeteer added; NOTE: concurrent goku_rose/gogeta/madara_war etc. must add their OWN classification — not done here)
+  zoner:                34,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          118,       // 71 rekka + 13 standard-string + 34 single-poke = 118 (shizuku added; NOTE: concurrent goku_rose/gogeta/madara_war etc. must add their OWN classification — not done here)
 }

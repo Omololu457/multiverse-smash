@@ -67,6 +67,16 @@ export const SOURCED_ART = {
     source:  "fan JUS-style sprite sheet (meruem_jus_sprite_complete_by_santiag02_de045ih.png; in-sheet credit block \"by: Santiag02 / credits to: gameinvader / james1971\"). Includes one embedded anime screencap used solely as a cut-in overlay.",
     files:   ["meruem_*_uniform.png", "meruem_menace_purple.png", "meruem_menace_green.png", "meruem_cutin_anime.png", "meruem_jus_sprite_complete_by_santiag02_de045ih.png"]
   },
+  // Shizuku Murasaki (Hunter x Hunter) — the source sheet carries a baked header "BY: AMANDIOHYPE" plus a
+  // "CREDITS TO: PRODIJIU" box (verified at full resolution). Attribution MANDATORY. Border-flood-fill keyed
+  // + per-action sliced (shizuku_work/slice.py) → shizuku_*_uniform.png. The 4-koma anime screencaps are used
+  // solely as ultimate cut-in overlays.
+  shizuku: {
+    work:    "Shizuku Murasaki (Phantom Troupe #8, \"The Cleaner\") — JUS-style sprite sheet",
+    artists: ["AmandioHype", "Prodijiu"],
+    source:  "fan JUS-style sprite sheet (shizuku_murasaki_jus_sprites_by_amandiohype_ddz62rv.png; in-sheet credit block \"BY: AMANDIOHYPE / CREDITS TO: PRODIJIU\"). Includes embedded anime screencaps used solely as cut-in overlays.",
+    files:   ["shizuku_*_uniform.png", "shizuku_portrait.png", "shizuku_cutin_a.png", "shizuku_cutin_b.png", "shizuku_cutin_c.png", "shizuku_cutin_d.png", "shizuku_murasaki_jus_sprites_by_amandiohype_ddz62rv.png"]
+  },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
   // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.

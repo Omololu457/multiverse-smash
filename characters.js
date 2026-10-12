@@ -10830,6 +10830,70 @@ const gogetaUI = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SHIZUKU MURASAKI — "The Cleaner" (Phantom Troupe #8, Hunter x Hunter). NEW additive
+// standalone. Conjures BLINKY, a vacuum that can swallow any NON-LIVING thing — she
+// clears the battlefield, disarms foes and spits what she swallowed back. Defensive
+// absorber: mid HP, high defense, slightly below-average speed. All art sliced from the
+// AmandioHype JUS sheet (credit AmandioHype / Prodijiu). Every other character untouched.
+// Energy label "Aura" (the HxH term for Nen life-energy) via energyConfig.label override.
+//   PHASE 1 = body / movement / normals / guard / win-lose / mugshot / cut-ins / conjure puff.
+//   PHASE 2 = Blinky specials + Belly system. PHASE 3 = ultimates / lines / skins.
+const shizuku = {
+  rosterKey: "shizuku", name: "Shizuku Murasaki", title: "The Cleaner",
+  universe: "hunter_x_hunter", color: "#7c8495",
+  portrait: "./shizuku_portrait.png",   // mugshot cropped from the master sheet (x0-175 y20-312)
+  isPlayable: true,
+  archetypes: ["technician", "grappler", "absorb"],
+  primary: "technical", secondary: ["grappler", "absorb"],
+  // DEFENSIVE ABSORBER. Mid HP, HIGH defense, slightly below-average speed — reads as a
+  // patient control fighter who eats projectiles and reels foes in, not a spiky rushdown.
+  traits: { hasEnergy: true, energyType: "nen", mobility: "low", scaling: "defensive", animeMovement: true },
+  energyConfig: { label: "Aura" },   // HUD energy-bar label (HxH "aura"); display-only, overrides the nen→"Nen" default
+  passive: {
+    name: "Blinky's Belly",
+    effect: "Shizuku conjures BLINKY, a vacuum that swallows any non-living thing but can't devour living beings. Blocking a PROJECTILE with the Blinky guard eats it (no chip) and stores it in Blinky's belly (max 3); each stored item is forgetfully lost after ~8s, and losing a round empties the belly. (Belly guard-eat / pips / Belly Spit arrive in Phase 2.)"
+  },
+  stats: { maxHealth: 1120, maxEnergy: 170, attack: 82, defense: 92, speed: 83, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
+  // STAGE 1 normals — defensive/patient (modest per-hit, slightly slower commits than a rushdown).
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air.
+  basic_attacks: {
+    light:    { damage: 32, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 64, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 52, startup: 7, active: 4, recovery: 10, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
+    airAttack:{ damage: 44, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 56, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  hasSprites: true,
+  // spriteScale 2.05 → idle content ~45px × 2.05 × 1.18 ≈ 109px on-screen (roster band ~108–116).
+  // Feet-planted uniform cells (slicer pad=1 bottom) → anchorY: 0. Tuned via measureSprite in render check.
+  spriteScale: 2.05,
+  animationData: {
+    idle:  { frames: 3, width: 24, height: 47, speed: 8, anchorY: 0, sheet: "./shizuku_idle_uniform.png" },
+    walk:  { frames: 8, width: 38, height: 47, speed: 6, anchorY: 0, sheet: "./shizuku_walk_uniform.png" },
+    run:   { frames: 8, width: 38, height: 47, speed: 4, anchorY: 0, sheet: "./shizuku_walk_uniform.png" },   // reuse MOVE row, faster
+    dash:  { frames: 2, width: 38, height: 47, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_dash_uniform.png" },
+    jump:  { frames: 4, width: 31, height: 52, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_jump_uniform.png" },
+    fall:  { frames: 1, width: 31, height: 52, speed: 5, anchorY: 0, sourceX: 93, loop: false, lockLastFrame: true, sheet: "./shizuku_jump_uniform.png" },   // hold jump's last (descend) cell
+    guard: { frames: 2, width: 46, height: 56, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_guard_uniform.png" },   // Blinky shield pose
+    hurt:  { frames: 3, width: 34, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_hurt_uniform.png" },
+    knockdown: { frames: 5, width: 56, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_knockdown_uniform.png" },   // launch → lying
+    getup:     { frames: 2, width: 26, height: 42, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_getup_uniform.png" },        // rise
+    // ── STAGE 1 NORMALS (5 slots). Play once, hold last frame. ──
+    light:    { frames: 5, width: 46, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_light_uniform.png" },   // B — quick jab string
+    heavy:    { frames: 6, width: 49, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_heavy_uniform.png" },   // Y — committed strike
+    up:       { frames: 5, width: 32, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_up_uniform.png" },      // Y+Up — rising launcher
+    air:      { frames: 4, width: 52, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_air_uniform.png" },     // B+Jump — neutral aerial
+    down_air: { frames: 6, width: 46, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_down_air_uniform.png" },// Y+Jump — aerial downward
+    win:   { frames: 4, width: 31, height: 51, speed: 8, anchorY: 0, loop: true, sheet: "./shizuku_win_uniform.png" },
+    lose:  { frames: 2, width: 41, height: 36, speed: 10, anchorY: 0, loop: true, sheet: "./shizuku_lose_uniform.png" }
+  },
+  // No dedicated intro strip in the batch → idle-hold intro (she settles in STANCE during the
+  // intro phase). Canon intro = the Ultimate-Action conjure pose + white conjure puff (deferred FX).
+  introPool: ["idle"]
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -10911,7 +10975,8 @@ export const characters = {
   shisui_trinity: shisuiTrinity,     // NEW additive — MK1-Ghostface 3-identity fighter (Loyalist form, P1); Blade/Puppeteer identities added in later phases
   shisui_blade: shisuiBlade,         // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
   shisui_puppeteer: shisuiPuppeteer, // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
-  shisui_fallen: shisuiFallen        // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
+  shisui_fallen: shisuiFallen,       // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
+  shizuku                            // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
 }
 
 // The 7 characters shown in the starter roster select screen

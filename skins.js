@@ -903,6 +903,11 @@ export const SKINS = {
     // Default only (brief). The default entry is REQUIRED — without it getSkins() forces spriteScale:1.
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.meruem?.portrait, spriteScale: characters.meruem?.spriteScale, animationData: null },
   ],
+  shizuku: [
+    // Default (Anime) only in Phase 1 — REQUIRED (without it getSkins() forces spriteScale:1 → half-size).
+    // Anime-Old + Manga recolor skins (from the sheet's palette box) land in Phase 3.
+    { id: "default", name: "Anime", unlockLevel: 0, portrait: characters.shizuku?.portrait, spriteScale: characters.shizuku?.spriteScale, animationData: null },
+  ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
     { id: "lavender", name: "Lavender", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },

@@ -899,6 +899,14 @@ export const SPRITE_MANIFEST = {
   // action carries its own .sheet). idle is the RE-SLICED/DESPECKLED uniform strip (reslice_kurapika_build.py).
   kurapika: {
     actions: { idle: "./kurapika_idle_uniform.png" }
+  },
+
+  // Shizuku Murasaki (universe: hunter_x_hunter), Phantom Troupe #8 "The Cleaner" — NEW additive fighter.
+  // Idle gate flips the sprite handler on; per-action rendering reads characters.js → shizuku.animationData
+  // (each action carries its own .sheet). Border-flood-fill-keyed uniform strips (shizuku_work/slice.py;
+  // opaque-green AmandioHype JUS sheet — green shoes + light-blue Blinky preserved via interior protect).
+  shizuku: {
+    actions: { idle: "./shizuku_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

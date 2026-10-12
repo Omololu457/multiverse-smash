@@ -437,6 +437,33 @@ export const KITS = {
     ]
   },
 
+  // Shizuku Murasaki ("The Cleaner", Phantom Troupe #8) — NEW additive fighter. Move list GROWS per phase;
+  // Phase 1 = normals + the Blinky-belly rule. The five Blinky Specials + Belly system wire in Phase 2;
+  // Bloodletting / Spring Cleaning ultimates in Phase 3. Energy label "Aura". Canon labels on every move.
+  shizuku: {
+    type: "Defensive Absorber / Conjurer", energy: "Aura", difficulty: "Medium",
+    summary: "Shizuku of the Phantom Troupe conjures BLINKY, a vacuum that swallows any NON-LIVING thing (regardless of size) but can never devour living beings — she uses it to clear the battlefield, disarm foes and pull weapons from their hands. A patient, defensive absorber: mid HP, high defense, slightly below-average speed. BLINKY'S BELLY [ORIGINAL storage / CANON-ADJACENT eating]: blocking a PROJECTILE with the Blinky guard EATS it (no chip) and stores it (max 3, oldest dropped first); shown as 3 belly pips by her HUD. FORGETFUL [CANON]: each stored item is lost after ~8s (\"...I forgot.\"), and losing a round empties the belly. Only projectiles are eaten — summons and fighters are living and are never swallowed. (Belly system + the five Blinky Specials arrive in Phase 2; Bloodletting / Spring Cleaning ultimates in Phase 3.)",
+    passive: { name: "Blinky's Belly / Forgetful", effect: "Guarding a PROJECTILE with the Blinky shield eats it instead of taking chip and stores it in Blinky's belly (max 3, oldest first; 3 HUD pips). Each item is forgetfully lost after ~8s and the belly empties on a round loss. Living things (summons, the opponent) are never eaten. [ORIGINAL storage + CANON-ADJACENT eating / CANON forgetful trait] — wires in Phase 2." },
+    basics: [
+      { name: "Jab String",   input: "Light",                   desc: "quick close jab string (B family)" },
+      { name: "Heavy Strike", input: "Heavy",                   desc: "committed strike with knockback (Y family)" },
+      { name: "Rising Hit",   input: "Up-Attack",               desc: "launcher — rising upward swing, starts air combos (Y+Up)" },
+      { name: "Aerial Jab",   input: "Air (jump + Light)",      desc: "neutral aerial strike (Jump+B)" },
+      { name: "Air Smash",    input: "Down-Air (jump + Heavy)", desc: "downward aerial strike (Jump+Y)" }
+    ],
+    specials: [
+      { name: "Phantom Jab Rush", input: "Special",           cost: 18, desc: "cheap, fast Nen-fist lunge rush — no Blinky (2-Koma) [CANON-ADJACENT] (Phase 2)" },
+      { name: "Blinky Pull",      input: "Forward + Special",  cost: 28, desc: "suction cone — eats projectiles in the cone into the belly, pulls the OPPONENT to point-blank then bounces them off the nozzle (\"can't eat living things\") → free combo starter (4-Koma A) [CANON] (Phase 2)" },
+      { name: "Blinky Smash",     input: "Back + Special",     cost: 24, desc: "heavy blunt Blinky swing + impact puffs (4-Koma B) [CANON-ADJACENT] (Phase 2)" },
+      { name: "Belly Spit",       input: "Down + Special",     cost: 12, desc: "fires the OLDEST stored projectile back as her own — the original projectile's visuals & damage; empty belly = a short puff feint [ORIGINAL] (Phase 2)" },
+      { name: "Disarm",           input: "Up + Special",       cost: 22, desc: "close-range suction; on contact LOCKS the opponent's projectile specials for ~3s (\"DISARMED\") (4-Koma A) [CANON] (Phase 2)" }
+    ],
+    ultimate: { name: "Bloodletting / Spring Cleaning", input: "Ultimate (neutral / Down)", cost: 100, desc: "NEUTRAL = Bloodletting (cut-in → Blinky combo → stylized blood-draw; heals Shizuku 40% of damage dealt, cap 12% max HP) [CANON-ADJACENT]. DOWN = Spring Cleaning (hose barrage sweep → removes every opponent PROJECTILE on screen (first 3 into the belly) + opponent-owned placed stage objects via the engine's generic lists) [CANON]. (Phase 3.)" },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "rising-hit launcher into aerial pressure" }
+    ]
+  },
+
   // Kakashi (ANBU) — NEW additive fighter. Move list GROWS per phase; Phase 1 = normals + Body Flicker.
   // Sharingan toggle + Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) add rows later.
   kakashi_anbu: {

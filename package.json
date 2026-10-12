@@ -45,7 +45,6 @@
     "test:story-live": "node harness/story_live.test.mjs",
     "test:unlocks": "node harness/unlocks.test.mjs",
     "test:oneshot-ult-block": "node harness/oneshot_ult_block.test.mjs",
-
     "test:unlock-toast-name": "node harness/unlock_toast_name.test.mjs",
     "test:atlas": "node tools/atlas_pack.mjs",
     "test:atlas-perf": "node harness/atlas_perf.test.mjs",
@@ -66,6 +65,7 @@
     "test:cancel-window": "node harness/cancel_window.test.mjs",
     "test:combo-decay": "node harness/combo_decay.test.mjs",
     "test:combo-standard": "node harness/combo_standard_audit.mjs",
+    "test:shizuku-p1": "node harness/shizuku_phase1_live.mjs",
     "academy-coverage-report": "node harness/academy_coverage_report.mjs",
     "test:academy-coverage": "node harness/academy_coverage.mjs",
     "test:academy-p1": "node harness/academy_phase1_live.mjs",
@@ -926,7 +926,6 @@
     "test:omololu-kamui-cost": "node harness/omololu_kamui_cost.test.mjs",
     "test:announcer-diagnose": "node harness/announcer_diagnose.mjs",
     "test:announcer-hover": "node harness/announcer_hover.test.mjs",
-    "test:rickprime-rewind": "node harness/rickprime_rewind.test.mjs",
     "test:announcer-voice": "node harness/announcer_voice.test.mjs",
     "test:clone-realinput": "node harness/clone_realinput.test.mjs",
     "test:clone-qaudit": "node harness/clone_audit.mjs",

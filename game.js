@@ -7951,7 +7951,7 @@ function _updatePlayerCombatBody(fighter) {
     // Start the frame-based charge and consume the press; the HOLD/RELEASE fire runs in updateMeruem. A
     // DIRECTIONAL Special (F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field) falls
     // through to triggerSpecial. Not while already charging.
-    if ((fighter.rosterKey || "").toLowerCase() === "meruem" && !fighter._specialHeldDir && !fighter._meruemAuraCharging) {
+    if ((fighter.rosterKey || "").toLowerCase() === "meruem" && !fighter._specialHeldDir && !fighter._meruemAuraCharging && !fighter._meruemWinged) {
       startMeruemAuraCharge(fighter); return
     }
     // SASUKE — RINNEGAN SPACE-TIME on CHARGE + Special (R1/R2/R5). Charge + Special = Amenotejikara Kunai
@@ -14159,6 +14159,50 @@ function drawMeruemFx(c, fighter) {
     c.fillStyle = "rgba(0,0,0,0.65)"; c.fillText(fighter._meruemBannerText, tx + 1, ty + 1)
     c.fillStyle = "rgba(230,198,255,0.97)"; c.fillText(fighter._meruemBannerText, tx, ty)
     c.restore()
+  }
+
+  // ── PHASE 4 — WINGED ASCENSION aura (violet wing-glow while the form is active) + Rage Blast FX ──
+  if (fighter._meruemWinged) {
+    c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = 0.18 + 0.06 * Math.sin(t * 0.1)
+    const g = c.createRadialGradient(cx, cy, 2, cx, cy, h * 0.85)
+    g.addColorStop(0, "#c98cff"); g.addColorStop(1, "rgba(120,50,190,0)")
+    c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy, w * 0.9, h * 0.85, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
+    // WINGED timer bar above the head
+    const frac = Math.max(0, Math.min(1, (fighter._meruemWingedTimer || 0) / 600))
+    const bw = Math.max(44, w * 1.1), bx = cx - bw / 2, by = headY - 22
+    c.save(); c.fillStyle = "#1a0a24"; c.fillRect(bx - 1, by - 1, bw + 2, 5)
+    c.fillStyle = "#c98cff"; c.fillRect(bx, by, bw * frac, 3); c.restore()
+  }
+  // RAGE BLAST — charge dots (growing) near the hand, then a stage-long beam tiled head/mid/tail.
+  if ((fighter._meruemRageCharge || 0) > 0) {
+    const img = _meruemFxImg("./meruem_rage_charge_uniform.png")
+    const fi = Math.min(2, Math.floor((34 - fighter._meruemRageCharge) / 11))
+    const hx = fighter.x + w * (0.5 + facing * 0.45), hy = fighter.y + h * 0.45
+    if (img.complete && img.naturalWidth > 0) { const fw = img.naturalWidth / 3, fh = img.naturalHeight, s = 2.2; c.save(); c.drawImage(img, fi * fw, 0, fw, fh, hx - fw * s / 2, hy - fh * s / 2, fw * s, fh * s); c.restore() }
+  }
+  if ((fighter._meruemBeamActive || 0) > 0) {
+    const head = _meruemFxImg("./meruem_rage_beam_head_uniform.png"), mid = _meruemFxImg("./meruem_rage_beam_mid_uniform.png"), tail = _meruemFxImg("./meruem_rage_beam_tail_uniform.png")
+    if (head.complete && mid.complete && tail.complete && head.naturalWidth > 0) {
+      const cw = c.canvas?.width || 1280
+      const by0 = fighter.y + h * 0.42, s = 1.8
+      const hh = head.naturalHeight * s
+      const beamY = by0 - hh / 2
+      const ox = fighter.x + w * (0.5 + facing * 0.5)   // emanation point
+      // grow the beam length over the first ~14 frames
+      const grow = Math.min(1, (118 - 34 - (fighter._meruemBeamActive)) / 14 + 0.25)
+      const reach = (facing > 0 ? (cw - ox) : ox) * Math.min(1, Math.max(0.2, grow))
+      c.save(); c.imageSmoothingEnabled = false
+      if (facing < 0) { c.translate(ox, 0); c.scale(-1, 1); c.translate(-ox, 0) }
+      const sx = ox
+      const hw = head.naturalWidth * s, mw = mid.naturalWidth * s, tw = tail.naturalWidth * s
+      c.drawImage(head, sx, beamY, hw, hh)
+      let x = sx + hw
+      const end = sx + reach - tw
+      while (x < end) { c.drawImage(mid, x, beamY, mw, mid.naturalHeight * s); x += mw - 1 }
+      c.drawImage(tail, Math.max(x, sx + hw), beamY, tw, tail.naturalHeight * s)
+      c.restore()
+    }
   }
 }
 // ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
@@ -23523,7 +23567,9 @@ gameLoop()
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
     // MERUEM Phase 3 — read passive state (custom fields the p1() snapshot omits) + a test-only NAMED-hit
     // injector (sets the exact signals updateMeruem reads: opponent currentMove + HP drop + colorFlash + hitstun).
-    meruemState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { evo: f._meruemEvo || 0, finalHours: !!f._meruemFinalHours, adapt: f._meruemAdapt ? { ...f._meruemAdapt } : {}, learned: f._meruemLearned ? Object.keys(f._meruemLearned) : [], synth: Math.round(f._meruemSynth || 0), dmgMult: +(f.damageMultiplier || 1).toFixed(3), speed: +(f.speed || 0).toFixed(2), baseSpeed: +(f.baseSpeed || 0).toFixed(2), banner: f._meruemBannerText || null, comboDmg: Math.round(f._meruemComboDmg || 0), hp: Math.round(f.health || 0), elim: !!f.eliminated } },
+    meruemState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { evo: f._meruemEvo || 0, finalHours: !!f._meruemFinalHours, adapt: f._meruemAdapt ? { ...f._meruemAdapt } : {}, learned: f._meruemLearned ? Object.keys(f._meruemLearned) : [], synth: Math.round(f._meruemSynth || 0), dmgMult: +(f.damageMultiplier || 1).toFixed(3), speed: +(f.speed || 0).toFixed(2), baseSpeed: +(f.baseSpeed || 0).toFixed(2), banner: f._meruemBannerText || null, comboDmg: Math.round(f._meruemComboDmg || 0), hp: Math.round(f.health || 0), elim: !!f.eliminated, winged: !!f._meruemWinged, wingedTimer: f._meruemWingedTimer || 0, rageFiring: f._meruemRageFiring || 0, beam: f._meruemBeamActive || 0, sheet: f.spriteSheet || (f.animationData?.idle?.sheet) || null } },
+    meruemSetSynth: (v = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._meruemSynth = v; return f ? Math.round(f._meruemSynth || 0) : null },
+    meruemRoyalFeast: (synth = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._meruemSynth = synth; f.energy = f.maxEnergy || 200; f.ultimateCooldown = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f._ultVariant = "royalFeast"; f._meruemCineBlocked = false; const cast = triggerUltimate(f, getAbilityContext()); return { cast: !!cast, winged: !!f._meruemWinged, hp: Math.round(f.health || 0), synth: Math.round(f._meruemSynth || 0) } },
     meruemHit: (move = "light", dmg = 40, who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f || !o) return null; o.currentMove = move; o.currentAttack = { name: move }; f.health = Math.max(1, (f.health || 0) - dmg); f.hitstun = Math.max(f.hitstun || 0, 12); f.colorFlash = 8; return { hp: Math.round(f.health), oppHp: Math.round(o.health || 0) } },
     // KAKASHI (ANBU) Phase 2 — read Sharingan/Raikiri state (custom fields the p1() snapshot omits) + toggle hook.
     kakashiAnbu: {

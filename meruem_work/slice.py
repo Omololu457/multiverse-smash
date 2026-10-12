@@ -175,10 +175,27 @@ def phase2():
     by_band("meruem_tail_sweep_uniform.png", 1120, 1180, x1=345)                                 # 6f
 
 
+def phase4():
+    # ══ PHASE 4 — ROYAL FEAST / WINGED ASCENSION / RAGE BLAST ART ══
+    # WINGED frames (6-Koma X+Up, 10f). Split: idle/hover+glide (frames 0-3) + dive strike (frames 6-9).
+    by_band("meruem_winged_idle_uniform.png", 1760, 1842, x0=170, x1=410)                       # hover/glide 4f
+    by_band("meruem_winged_dive_uniform.png", 1760, 1842, x0=535, x1=878)                        # winged dive strike 4f
+    # RAGE BLAST — charge dots (grow) + 2 bursts (center-packed FX).
+    by_band("meruem_rage_charge_uniform.png", 1885, 1922, x0=190, x1=292, feet=False, min_sz=40) # charge dots
+    by_band("meruem_rage_burst_uniform.png",  1865, 1942, x0=294, x1=486, feet=False)            # 2 bursts
+    # RAGE BLAST — beam set A (head-cap at origin / mid tube / tail tip), tiled across the stage. Keyed singles.
+    by_rects("meruem_rage_beam_head_uniform.png", [(515, 1876, 578, 1933)], feet=False)          # emanation cap (near Meruem)
+    by_rects("meruem_rage_beam_mid_uniform.png",  [(587, 1881, 645, 1928)], feet=False)          # repeating tube
+    by_rects("meruem_rage_beam_tail_uniform.png", [(652, 1875, 719, 1934)], feet=False)          # leading rounded tip
+
+
 if __name__ == "__main__":
     import sys
     if "--phase2" in sys.argv:
         phase2()
+    elif "--phase4" in sys.argv:
+        phase4()
     else:
         main()
         phase2()
+        phase4()

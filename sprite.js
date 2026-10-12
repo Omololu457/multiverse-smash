@@ -253,6 +253,7 @@ const MOVE_TO_ACTION = {
   // Tail Lance counter / Tail Sweep finisher.)
   meruemAuraCast: "meruemAuraCast", meruemKingsLunge: "meruemKingsLunge", meruemTailRush: "meruemTailRush",
   meruemAuraFlash: "meruemAuraFlash", meruemPhotonCharge: "meruemPhotonCharge", meruemTailLance: "meruemTailLance", meruemTailSweep: "meruemTailSweep",
+  meruemWingedDive: "meruemWingedDive",   // Phase 4 — Winged Ascension dive strike (form swaps animationData to the winged set at runtime)
   // Naruto (Adult KCM) — special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
   // Chakra Arm Strike / Gamabunta+TBB gather pose.)

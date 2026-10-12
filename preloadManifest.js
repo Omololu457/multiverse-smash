@@ -34,6 +34,14 @@ export const FX_SHEETS_BY_CHAR = {
     "./meruem_aura_proj_uniform.png",
     "./meruem_menace_purple.png",
     "./meruem_menace_green.png",
+    // Phase 4 — Winged Ascension frames + Rage Blast FX (charge dots / beam head-mid-tail tiles).
+    "./meruem_winged_idle_uniform.png",
+    "./meruem_winged_dive_uniform.png",
+    "./meruem_rage_charge_uniform.png",
+    "./meruem_rage_burst_uniform.png",
+    "./meruem_rage_beam_head_uniform.png",
+    "./meruem_rage_beam_mid_uniform.png",
+    "./meruem_rage_beam_tail_uniform.png",
   ],
   gojo: [
     "./gojo_blue_orb_fx.png",

@@ -31914,6 +31914,10 @@ const MERUEM_LINES = {
     "So the Rose has bloomed in me. Then the King spends his last hours as a King.",
     "I feel it ending — good. I will finish standing.",
   ],
+  royalFeast: [
+    "Youpi. Pouf. I will carry you both — now rise with me.",
+    "I have consumed. I have grown. Witness the King with wings.",
+  ],
   win: [
     "Komugi... the King kept his word. One more game is waiting.",
     "I learned. In the end, that is all a King is for.",
@@ -32020,6 +32024,7 @@ function meruemPhotonField(fighter, context) {
 // Charge-hold entry (game.js intercepts a NEUTRAL Special → start the charge; release in updateMeruem).
 export function startMeruemAuraCharge(fighter) {
   if (!isMeruem(fighter)) return false
+  if (fighter._meruemWinged) return false   // no Aura Bullet in the winged form (only dive + Rage Blast)
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (fighter._meruemAuraCharging) return false
   if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
@@ -32034,6 +32039,10 @@ function executeMeruemSpecial(fighter, context) {
   if (fighter._meruemAuraCharging) return false   // neutral charge-hold is running (game.js armed it) → don't re-fire on the held-special fall-through
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
+  if (fighter._meruemWinged) {   // WINGED ASCENSION — ONLY the Fwd+Special winged dive exists (no base specials).
+    if (dir === "F") return meruemWingedDive(fighter, context)
+    return false
+  }
   if (dir === "F") return meruemKingsLunge(fighter, context)
   if (dir === "D") return meruemTailAuraRush(fighter, context)
   if (dir === "B") return meruemGungiStance(fighter, context)
@@ -32042,13 +32051,106 @@ function executeMeruemSpecial(fighter, context) {
   return fireMeruemAuraBullet(fighter, context, false)
 }
 
+// ══ PHASE 4 — AURA SYNTHESIS payoff: ROYAL FEAST → WINGED ASCENSION → RAGE BLAST ══════════════════════
+// CANON: absorbing Youpi & Pouf gave Meruem wings + the Rage Blast. Down+Ult at FULL Aura Synthesis heals
+// 15% + enters a timed (~10s) WINGED flight form that uses ONLY the winged frames: hover + a Fwd+Special
+// winged dive + a Neutral-Ultimate RAGE BLAST (charge dots → bursts → a stage-long beam tiled head/mid/tail;
+// firing it ENDS the form). combat.js UNTOUCHED (applyScaledDamage beats, form state on the fighter).
+const MERUEM_WINGED_DUR = 600   // ~10s @60fps
+const MERUEM_RAGE_LEN   = 118
+
+function meruemWingedAnim() {
+  const idle = { frames: 4, width: 49, height: 72, speed: 7, anchorY: 0, loop: true,  sheet: "./meruem_winged_idle_uniform.png" }
+  const dive = { frames: 4, width: 72, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_winged_dive_uniform.png" }
+  // EVERY action maps to a winged frame — no base frames are borrowed in this form.
+  return {
+    idle, walk: { ...idle, speed: 6 }, run: { ...idle, speed: 5 }, jump: idle, fall: idle,
+    hurt: idle, knockdown: idle, getup: idle, guard: idle, intro: idle, win: idle, lose: idle, charge: idle,
+    light: dive, heavy: dive, up: dive, air: dive, down_air: dive, meruemWingedDive: dive,
+  }
+}
+
+function enterMeruemRoyalFeast(fighter, context) {
+  fighter._meruemSynth = 0                                                   // consume the gauge
+  fighter.health = Math.min(fighter.maxHealth || 1, (fighter.health || 0) + (fighter.maxHealth || 1) * 0.15)   // heal 15%
+  fighter._meruemCutinFx = 56; fighter._meruemCutinKind = "royalFeast"       // green menace cut-in "ROYAL FEAST"
+  fighter._meruemFinalFlash = 48                                             // Ultimate-Action flare
+  fighter._meruemBannerText = meruemPickLine(fighter, "royalFeast"); fighter._meruemBanner = 160
+  // enter WINGED ASCENSION (stash base art, swap to winged-only animationData)
+  fighter._meruemWinged = true; fighter._meruemWingedTimer = MERUEM_WINGED_DUR
+  fighter._meruemWingStash = { anim: fighter.animationData }
+  fighter.animationData = meruemWingedAnim()
+  fighter._spriteCastMove = null; fighter._meruemAuraCharging = 0
+  fighter.attackCooldown = getAttackDuration(44, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 44)
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 24); shakeCamera(context, 7, 18) } catch (_) {}
+  return true
+}
+
+export function revertMeruemWinged(fighter, reason = "timeout") {
+  if (!fighter || !fighter._meruemWinged) return false
+  fighter._meruemWinged = false; fighter._meruemWingedTimer = 0
+  if (fighter._meruemWingStash) { fighter.animationData = fighter._meruemWingStash.anim; fighter._meruemWingStash = null }
+  fighter._spriteCastMove = null; fighter._meruemRageFiring = 0; fighter._meruemBeamActive = 0; fighter._meruemRageCharge = 0
+  fighter._meruemWingRevert = reason
+  return true
+}
+
+// Fwd+Special (winged) — a diving flight strike.
+function meruemWingedDive(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const md = { damage: 108, startup: 5, active: 6, recovery: 16, hitstun: 22, knockbackX: 10, knockbackY: 6, rangeX: 112, rangeY: 72, isSpecial: true, category: "heavy" }
+  const atk = createAttackFromMove(fighter, "meruemWingedDive", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+  const opp = getTargetResolver(context)(fighter)
+  fighter.facing = opp ? (opp.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
+  fighter.vx = (fighter.facing || 1) * 18; fighter.vy = 7   // dive forward-down
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// Neutral Ultimate (winged) — RAGE BLAST: charge dots → bursts → a stage-long beam. Huge damage; ENDS the form.
+function fireMeruemRageBlast(fighter, context) {
+  if ((fighter._meruemRageFiring || 0) > 0) return false
+  fighter._meruemRageFiring = MERUEM_RAGE_LEN
+  fighter._meruemRageCharge = 34
+  fighter._meruemBeamActive = 0
+  fighter.attackCooldown = getAttackDuration(MERUEM_RAGE_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, MERUEM_RAGE_LEN)
+  fighter.vx = 0
+  const opp0 = getTargetResolver(context)(fighter)
+  fighter.facing = opp0 ? (opp0.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
+  schedulePendingSpawn(34, () => { fighter._meruemBeamActive = MERUEM_RAGE_LEN - 34 })   // beam fires after the charge
+  const beats = [{ at: 40, dmg: 44, big: true }, { at: 54, dmg: 42 }, { at: 68, dmg: 42 }, { at: 82, dmg: 42 }, { at: 98, dmg: 72, big: true }]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+    const o = getTargetResolver(context)(fighter)
+    if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return
+    const dir = (o.x >= fighter.x ? 1 : -1)
+    if (o.isBlocking) { o.blockstun = 22; applyScaledDamage(o, Math.floor(b.dmg * 0.25), { source: "ability" }); return }
+    o.hitstun = b.big ? 40 : 24; o.vx = dir * (b.big ? 8 : 3); o.colorFlash = 14
+    if (b.big) o.hitstop = Math.max(o.hitstop || 0, 24)
+    applyScaledDamage(o, b.dmg, { source: "ability" })
+  }))
+  schedulePendingSpawn(MERUEM_RAGE_LEN, () => revertMeruemWinged(fighter, "rage"))   // firing ENDS the form
+  try { focusCameraOnAction(context, fighter, opp0, 1.15, 26); shakeCamera(context, 9, 22) } catch (_) {}
+  return true
+}
+
 // ── ANT KING'S ONSLAUGHT (neutral Ultimate) — inline freeze-cinematic economy (live fighter, i-frames,
 //    scheduled guaranteed beats; mirrors Gaara Sabaku Taisou). Menace-panel cut-in → 6-Koma lunge rush →
 //    aura-flash barrage → tail-sweep finisher. combat.js UNTOUCHED (applyScaledDamage beats).
 const MERUEM_ULT_LEN = 180
 function executeMeruemUltimate(fighter, context) {
   if (!isMeruem(fighter)) return false
-  if ((fighter._ultVariant || "") === "royalFeast") return false   // Down+Ult = Royal Feast (Phase 4) — not yet; don't consume
+  // WINGED ASCENSION — the neutral Ultimate is RAGE BLAST (ends the form).
+  if (fighter._meruemWinged) return fireMeruemRageBlast(fighter, context)
+  // ROYAL FEAST — Down+Ult, ONLY at FULL Aura Synthesis. Otherwise no-op (don't consume the ult).
+  if ((fighter._ultVariant || "") === "royalFeast") {
+    if ((fighter._meruemSynth || 0) < MERUEM_SYNTH_MAX) return false
+    if (fighter._meruemCineBlocked || (context && context.cinematicSafe === false)) return false
+    if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+    return enterMeruemRoyalFeast(fighter, context)
+  }
   if (fighter._meruemCineBlocked) return false                     // refuse during KO / Brutality / Domain / Rick rewind
   if (context && context.cinematicSafe === false) return false
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
@@ -32203,6 +32305,19 @@ export function updateMeruem(fighter, context, heldSpecial = false, blockCinemat
     fighter.health = Math.max(1, (fighter.health || 0) - MERUEM_FINAL_POISON)
   }
   if (fighter._meruemFinalFlash > 0) fighter._meruemFinalFlash--
+
+  // ── WINGED ASCENSION (Phase 4) — timed flight form: hover (slow glide), timeout/KO revert. ──
+  if (fighter._meruemWinged) {
+    if ((fighter.health || 0) <= 0) revertMeruemWinged(fighter, "ko")
+    else {
+      if ((fighter._meruemWingedTimer || 0) > 0) fighter._meruemWingedTimer--
+      if ((fighter._meruemWingedTimer || 0) <= 0 && !(fighter._meruemRageFiring > 0)) revertMeruemWinged(fighter, "timeout")
+      else if ((fighter.vy || 0) > 2.2) fighter.vy = 2.2   // winged glide: cap the fall → floaty hover/flight
+    }
+  }
+  if ((fighter._meruemRageFiring || 0) > 0) fighter._meruemRageFiring--
+  if ((fighter._meruemRageCharge || 0) > 0) fighter._meruemRageCharge--
+  if ((fighter._meruemBeamActive || 0) > 0) fighter._meruemBeamActive--
 
   fighter._meruemHpLast = fighter.health || 0
 }

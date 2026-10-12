@@ -78,6 +78,7 @@ try {
 
   // ── ACTIVATION + MOVEMENT LOCKOUT ──
   section("Adult Form activation + movement lockout");
+  await reboot();   // clear any lingering Jajanken-chant state before triggering the ultimate
   const act = await enterAdultForm();
   check("activation cinematic played", act.during.active === true || act.during.frame > 0, `cine=${JSON.stringify(act.during)}`);
   check("Adult Form is active", act.form.active === true, `active=${act.form.active} form=${act.form.currentForm}`);

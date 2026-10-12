@@ -409,6 +409,35 @@ export const KITS = {
     ]
   },
 
+  // Gon Freecss (hunter_x_hunter) — AmandioHype re-skin + deeper Jajanken kit. Move list GROWS per phase:
+  // Phase 2 = Jajanken CHANT + Rod/Ren/Fury/Ground Breaker. Phase 3 adds the directional ULTIMATES
+  // (Full-Chant / Gon & Killua / The Vow + "THE PRICE" no-Nen lockout). combat.js untouched.
+  gon: {
+    type: "Balanced Nen Brawler", energy: "Nen", difficulty: "Medium",
+    summary: "Gon Freecss — the bright, stubborn Rookie Hunter. A durable all-rounder whose identity is the JAJANKEN CHANT: hold Special to chant up to 3 stages (the charge rings; \"JAN…/KEN…\"), then RELEASE a direction to pick the hand — Forward = ROCK (Enhancer fist, his strongest, guard-crushing), Up = SCISSORS (transmuted Nen blade, rising anti-air), Neutral/Back = PAPER (Emission aura-ball projectile). Getting HIT cancels the chant (its canon weakness). \"CALLED IT!\" rewards reading the foe (+20% + a manga cut-in): Rock vs a blocker, Scissors vs an airborne foe, Paper vs a distant foe. Rounded out by the Fishing Rod Snag (meter steal), Ren (damage buff), Fury Dash (armor) and Ground Breaker (crater).",
+    passive: { name: "Jajanken", effect: "HOLD Special to chant (3 stages, hit cancels it); RELEASE + direction picks the hand (Fwd=Rock / Up=Scissors / Neutral-Back=Paper). Damage scales with the stage; a hand that COUNTERS the opponent's state triggers \"CALLED IT!\" (+20% + cut-in)." },
+    basics: [
+      { name: "Jab",          input: "Light",                   desc: "quick forward punch (impact rings)" },
+      { name: "Strong Strike",input: "Heavy",                   desc: "committed forward strike" },
+      { name: "Somersault Kick",input: "Up-Attack",             desc: "launcher — rising gold-Nen somersault, an anti-air" },
+      { name: "Air Punch",    input: "Air (jump + Light)",      desc: "neutral aerial" },
+      { name: "Rock Throw Dive",input: "Down-Air (jump + Heavy)",desc: "aerial rock-throw dive" }
+    ],
+    specials: [
+      { name: "Jajanken — ROCK",     input: "HOLD Special → release Forward",      cost: "40/50/60", desc: "Enhancer fist — his biggest, guard-crushing hit. Damage climbs per chant stage [CANON]" },
+      { name: "Jajanken — SCISSORS", input: "HOLD Special → release Up",           cost: 30, desc: "transmuted Nen blade — a rising multi-hit anti-air launcher (~70% of Rock) [CANON]" },
+      { name: "Jajanken — PAPER",    input: "HOLD Special → release Neutral/Back", cost: "24/30/36", desc: "Emission aura-ball — a long-range Nen projectile (~70% of Rock) [CANON]" },
+      { name: "Fishing Rod Snag",    input: "Down + Light",      cost: 16, desc: "hooks the foe, reels them in and STEALS ~10% of their meter (a special taunt vs Hisoka) [CANON-ADJACENT]" },
+      { name: "Ren",                 input: "Down + Heavy",      cost: 24, desc: "Nen aura pillar → a 5-second damage buff (cooldown) [CANON]" },
+      { name: "Fury Dash",           input: "Back + Heavy",      cost: 22, desc: "red anger-aura armored lunge — shrugs one projectile/hit [CANON-ADJACENT]" },
+      { name: "Ground Breaker",      input: "Forward + Light",   cost: 34, desc: "a leaping Rock that slams into a crater + rock debris [CANON-ADJACENT]" }
+    ],
+    ultimate: { name: "Adult Form — Final Blow", input: "Ultimate (near-max Nen)", cost: 100, desc: "transforms into giant Adult Gon (movement-locked, stronger) → ONE all-or-nothing sudden-death strike: a clean hit INSTANTLY wins the match, a whiff/block INSTANTLY loses it. (Phase 3 reworks the ultimates to directional: Full-Chant / Gon & Killua / The Vow + \"THE PRICE\" no-Nen lockout.) [CANON]" },
+    combos: [
+      { name: "Rush", sequence: "Forward + Heavy, Heavy (on hit)", desc: "rush1 flurry → rush2 launching finisher (cancel-on-hit)" }
+    ]
+  },
+
   // Meruem — "The King Who Learned" — NEW additive fighter (hunter_x_hunter). Move list GROWS per phase;
   // Phase 1 = normals (tail kit) + win/lose/intro + plumbing. Specials (P2), Gungi Mind/Never Pushed/Final
   // Hours (P3), Aura Synthesis/Royal Feast/Winged Ascension/Rage Blast (P4) add rows later. combat.js untouched.

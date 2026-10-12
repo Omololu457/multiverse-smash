@@ -74,13 +74,17 @@ try {
   async function waitActionable() {
     await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
   }
-  async function fireSpecial(label, holdDir, expected, shotName) {
+  // Jajanken CHANT (Phase 2): hold Special FIRST (up+special suppresses jump), then the release direction,
+  // then release Special → the direction picks the hand (Fwd=Rock / Up=Scissors / Neutral=Paper).
+  async function fireSpecial(label, releaseDir, expected, shotName) {
     await waitActionable();
     await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.fillEnergy?.(); });
     await waitFrames(4);
-    if (holdDir) { await page.keyboard.down(holdDir); await waitFrames(2); }
-    await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
-    if (holdDir) await page.keyboard.up(holdDir);
+    await page.keyboard.down("l"); await waitFrames(1);
+    if (releaseDir) { await page.keyboard.down(releaseDir); await waitFrames(4); }
+    else await waitFrames(4);
+    await page.keyboard.up("l");
+    if (releaseDir) await page.keyboard.up(releaseDir);
     let seen = null;
     for (let i = 0; i < 8; i++) { const a = String((await rinfo())?.action || "").toLowerCase(); if (a === expected) { seen = a; break; } await waitFrames(2); }
     check(`${label} plays its own animation (action=${expected})`, seen === expected, `saw=${seen || (await rinfo())?.action}`);
@@ -100,9 +104,9 @@ try {
     check(`${label} plays its own animation (action=${expected})`, seen === expected, `saw=${seen || (await rinfo())?.action}`);
     await waitFrames(20);
   }
-  await fireSpecial("Jajanken ROCK (neutral+Special)", null, "rock", "gon_jajanken_rock.png");
-  await fireSpecial("Jajanken SCISSORS (Forward+Special)", "d", "scissors", "gon_jajanken_scissors.png");
-  await fireSpecial("Jajanken PAPER (Down+Special)", "s", "paper", "gon_jajanken_paper.png");
+  await fireSpecial("Jajanken ROCK (chant Fwd-release)", "d", "rock", "gon_jajanken_rock.png");
+  await fireSpecial("Jajanken SCISSORS (chant Up-release)", "w", "scissors", "gon_jajanken_scissors.png");
+  await fireSpecial("Jajanken PAPER (chant Neutral-release)", null, "paper", "gon_jajanken_paper.png");
   await fireRekka("Rush rekka opener (Forward+Heavy)", "rush1");
 } catch (e) {
   console.error("  ❌ harness error:", e.message);

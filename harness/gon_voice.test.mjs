@@ -69,23 +69,27 @@ try {
 
   // ── (2) LIVE: JAJANKEN casts + EXCLUSIVITY (017 must NOT appear on any variant) ──
   section("live: Jajanken casts (Rock/Scissors/Paper) + 017 exclusivity");
-  // ROCK = neutral+Special
+  // ROCK = chant, release Forward (hold Special first, then direction, release Special)
+  await ready(); await clearSfx();
+  await page.keyboard.down("l"); await waitFrames(1); await page.keyboard.down("d"); await waitFrames(4); await page.keyboard.up("l"); await page.keyboard.up("d"); await waitFrames(6);
+  { const log = await sfxLog(); check("ROCK cast fires a rock-pool line", hasGon(log, /_(janken_rock_1|rock_wont_lose|rock_starts_here|everything_into_fist|rock_alt|first_is_rock)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("ROCK does NOT fire gonnen_017", !has017(log), ""); }
+  // SCISSORS = chant, release Up
+  await ready(); await clearSfx();
+  await page.keyboard.down("l"); await waitFrames(1); await page.keyboard.down("w"); await waitFrames(4); await page.keyboard.up("l"); await page.keyboard.up("w"); await waitFrames(6);
+  { const log = await sfxLog(); check("SCISSORS cast fires a scissors-pool line", hasGon(log, /_(chain_ren|jajanken_rapid_practice)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("SCISSORS does NOT fire gonnen_017", !has017(log), ""); }
+  // PAPER = chant, release Neutral
   await ready(); await clearSfx();
   await page.keyboard.down("l"); await waitFrames(4); await page.keyboard.up("l"); await waitFrames(6);
-  { const log = await sfxLog(); check("ROCK cast fires a rock-pool line", hasGon(log, /_(janken_rock_1|rock_wont_lose|rock_starts_here|everything_into_fist|rock_alt|first_is_rock)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("ROCK does NOT fire gonnen_017", !has017(log), ""); }
-  // SCISSORS = Fwd+Special
-  await ready(); await clearSfx();
-  await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(6); await page.keyboard.up("d");
-  { const log = await sfxLog(); check("SCISSORS cast fires a scissors-pool line", hasGon(log, /_(chain_ren|jajanken_rapid_practice)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("SCISSORS does NOT fire gonnen_017", !has017(log), ""); }
-  // PAPER = Down+Special
-  await ready(); await clearSfx();
-  await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(6); await page.keyboard.up("s");
   { const log = await sfxLog(); check("PAPER cast fires a paper-pool line", hasGon(log, /_ken_block_completely/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("PAPER does NOT fire gonnen_017", !has017(log), ""); }
 
   // ── (2) LIVE: Rush rekka opener ──
   section("live: Rush rekka opener (Forward+Heavy)");   // combo-string standardization: rekka is Forward+Heavy (was Down+Heavy)
-  await ready(); await clearSfx();
-  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(3); await page.keyboard.up("k"); await page.keyboard.up("d"); await waitFrames(6);
+  // Fresh boot → clean, interference-free state (prior sections leave the p2=gon dummy mid-action which
+  // can stuff the opener before it casts). The rekka voice fires on the rush1 CAST.
+  await page.evaluate(() => window.__harness.boot()); await waitFrames(6); await waitGrounded();
+  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.fillEnergy?.(); const a = window.__harness.p1(); window.__harness.setP2X(a.x + 120); });
+  await waitFrames(3); await clearSfx();
+  await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.down("k"); await waitFrames(3); await page.keyboard.up("k"); await page.keyboard.up("d"); await waitFrames(8);
   { const log = await sfxLog(); check("Rush opener fires a rekka-pool line", hasGon(log, /_(sword_ken|come_sword_technique)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("Rush does NOT fire gonnen_017", !has017(log), ""); }
 
   // ── (2) LIVE: combatBark (attacker) + hitReact (defender) via a mirror heavy connect ──

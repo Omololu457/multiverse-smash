@@ -41,6 +41,8 @@ async function waitFrames(n) { const s = (await stateF()).frame; await page.wait
 async function waitGrounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 async function record() { const a = await p1(); if (a.action) seenActions.set(a.action, a.spriteSheet || null); return a; }
 async function tapKey(key) { await page.keyboard.down(key); await waitFrames(2); await page.keyboard.up(key); await waitFrames(1); }
+// Phase-2 Jajanken CHANT: hold Special first (up+special suppresses jump), then the direction; release → fire.
+async function chant(dirKey, hold = 6) { await page.keyboard.down("l"); await waitFrames(1); if (dirKey) await page.keyboard.down(dirKey); await waitFrames(hold); await page.keyboard.up("l"); if (dirKey) await page.keyboard.up(dirKey); await waitFrames(3); }
 async function prep(gap, refillEnergy = true) {
   await waitGrounded();
   await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && !p.currentMove && (p.attackCooldown || 0) === 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
@@ -112,17 +114,18 @@ try {
   check("rush chains 1→2 (cancel-on-hit)", seq.join("→") === "rush1→rush2", `seq=${seq.join("→")}`);
   await waitFrames(20); await waitGrounded();
 
-  // ── STAGE 3: Jajanken — 3 direction-branched specials ──
-  section("Jajanken (Rock / Scissors / Paper)");
-  await prep(58); { const d = await dmgFrom(async () => { await page.keyboard.down("l"); await waitFrames(4); await record(); await page.keyboard.up("l"); }, 34);
-    check("ROCK (neutral+Special) connects", d > 0, `−${d.toFixed(0)}`); }
-  await waitGrounded(); await prep(50); { const d = await dmgFrom(async () => { await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.down("l"); await waitFrames(3); await record(); await page.keyboard.up("l"); await waitFrames(14); await page.keyboard.up("d"); }, 30);
-    check("SCISSORS (Fwd+Special) connects", d > 0, `−${d.toFixed(0)}`); }
-  await waitGrounded(); await prep(54); { const d = await dmgFrom(async () => { await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.down("l"); await waitFrames(3); await record(); await page.keyboard.up("l"); await page.keyboard.up("s"); }, 28);
-    check("PAPER (Down+Special) connects", d > 0, `−${d.toFixed(0)}`); }
+  // ── STAGE 3: Jajanken CHANT (Phase 2) — hold Special, release direction picks the hand ──
+  section("Jajanken CHANT (Fwd=Rock / Up=Scissors / Neutral=Paper)");
+  await prep(58); { const d = await dmgFrom(async () => { await chant("d", 6); await record(); }, 30);
+    check("ROCK (chant Fwd-release) connects", d > 0, `−${d.toFixed(0)}`); }
+  await waitGrounded(); await prep(50); { const d = await dmgFrom(async () => { await chant("w", 6); await record(); }, 30);
+    check("SCISSORS (chant Up-release) connects", d > 0, `−${d.toFixed(0)}`); }
+  await waitGrounded(); await prep(70); await page.evaluate(() => window.__harness.clearProjectiles?.());
+  { const d = await dmgFrom(async () => { await chant(null, 6); await record(); await waitFrames(18); }, 10);
+    check("PAPER (chant Neutral-release) projectile connects", d > 0, `−${d.toFixed(0)}`); }
   await waitGrounded();
 
-  // sudden-death must be GATED to Adult Form: a normal Special is still Jajanken, not the finisher.
+  // sudden-death must be GATED to Adult Form: a normal Special is the Jajanken chant, not the finisher.
   await prep(200);
   await tapKey("l"); await waitFrames(3);
   const outside = await adult();
@@ -133,6 +136,7 @@ try {
 
   // ── STAGE 4: Adult Form — activation, lockout, drain, sudden-death ──
   section("Adult Form — activation + movement lockout");
+  await reboot();   // clear any lingering chant/Jajanken state from Stage 3 before the ultimate
   const act = await enterAdultForm();
   check("activation cinematic played", act.during.active === true || act.during.frame > 0, `cine=${JSON.stringify(act.during)}`);
   check("Adult Form is active", act.form.active === true && act.form.currentForm === "adult", `active=${act.form.active} form=${act.form.currentForm}`);

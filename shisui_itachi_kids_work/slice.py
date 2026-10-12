@@ -108,6 +108,14 @@ def by_rects(out, rects, feet=True):
     return pack([tight(r) for r in rects], out, feet=feet)
 
 
+def by_equal(out, y0, y1, x0, x1, n, feet=True):
+    """Split [x0,x1) into n EQUAL-width cells and tight-pack each — for sequences whose poses overlap
+    horizontally (no empty gutters to column-split on), e.g. the Flicker Rush strike strip."""
+    w = (x1 - x0) / n
+    rects = [(int(round(x0 + i * w)), y0, int(round(x0 + (i + 1) * w)) - 1, y1) for i in range(n)]
+    return pack([tight(r) for r in rects], out, feet=feet)
+
+
 def portrait(out, rect, target_h=288, key_navy=True):
     x0, y0, x1, y1 = rect
     crop = _rgb[y0:y1, x0:x1].astype(np.int32)
@@ -174,5 +182,59 @@ def main():
     raw(f"{P}_select.png", (415, 4, 734, 432), key_navy=True)
 
 
+def _scrub_red(y0, y1, x0, x1):
+    """Return a COPY of IM with the Special-2 box's RED 'blood-drop' marks AND its PURE-WHITE border
+    keyed out (child character — no blood; the border is layout chrome). Red = high R, low G/B. Border =
+    pure white (RGB>240); the character's light-GREY headband/hands (~180-210) are preserved."""
+    im = IM.copy()
+    reg = im[y0:y1, x0:x1].astype(np.int32)
+    r, g, b = reg[..., 0], reg[..., 1], reg[..., 2]
+    red = (r > 110) & (g < 95) & (b < 95)
+    white = (r > 240) & (g > 240) & (b > 240)
+    sub = im[y0:y1, x0:x1]
+    sub[..., 3][red | white] = 0
+    im[y0:y1, x0:x1] = sub
+    return im
+
+
+def phase2():
+    # ══ PHASE 2 — SPECIALS ART (Kunai Throw / Flicker Rush / Genjutsu / Itachi Assist / Blind-Spot) ══
+    global IM
+    _orig = IM
+    # KUNAI projectile — one ring-handle kunai (points RIGHT; engine flips per facing). Center-packed.
+    by_rects(f"{P}_kunai_uniform.png", [(228, 1946, 269, 1963)], feet=False)
+    # KUNAI THROW cast — Shisui grip → wind-up → throw → follow-through (Special-3 row2, 4f)
+    by_band(f"{P}_kunaicast_uniform.png", 1930, 1998, x1=226, merge=False)
+    # GENJUTSU cast — Shisui arms-crossed → white-flash build (Special-1, 2f). "SPECIAL 1" label above
+    # (y0=1292 excludes) and the "SPECIAL 2" cyan label bleeds into the feet row (y~1378-1395) → scrub it.
+    # The white genjutsu FLASH itself is CODE-DRAWN on the real opponent — the sheet's placeholder VICTIM
+    # inside the 3 white circles is NEVER sliced.
+    _g = _orig.copy()
+    _reg = _g[1375:1396, 0:125].astype(np.int32)
+    _cyan = (_reg[..., 2] > 150) & (_reg[..., 1] > 120) & (_reg[..., 0] < 120)
+    _sub = _g[1375:1396, 0:125]; _sub[..., 3][_cyan] = 0; _g[1375:1396, 0:125] = _sub
+    IM = _g
+    by_band(f"{P}_genjutsu_uniform.png", 1292, 1388, x1=125, merge=True)
+    IM = _orig
+    # FLICKER RUSH — boxed 7f flicker-strike sequence (Special-2). RED blood marks scrubbed; white box
+    # BORDER scrubbed (pure-white); poses overlap so split into 7 EQUAL cells (x27-415, y1489-1541).
+    IM = _scrub_red(1484, 1545, 0, 430)
+    by_equal(f"{P}_flicker_uniform.png", 1489, 1541, 27, 415, 7)
+    IM = _orig
+    # ── ITACHI ASSIST frames ──
+    # Itachi standing (flicker-in pose) — his intro frame.
+    by_rects(f"{P}_itachi_idle_uniform.png", [(18, 118, 58, 206)])
+    # Itachi kunai-throw — wind-up → throw → follow-through (Air-combo row2, 4f).
+    by_band(f"{P}_itachi_throw_uniform.png", 1158, 1232, x1=205, merge=False)
+    # Itachi BLIND-SPOT — upside-down overhead kunai throw (Special-3 row3, 4f; x>=110 drops Shisui+streak).
+    by_band(f"{P}_itachi_blindspot_uniform.png", 2004, 2128, x0=110, x1=300, merge=False)
+    # FLICKER STREAK FX — a single after-image smear (Special-3 row3 streak) for flicker in/out.
+    by_rects(f"{P}_streak_uniform.png", [(82, 2010, 110, 2095)], feet=False)
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--phase2" in sys.argv:
+        phase2()
+    else:
+        main()

@@ -10943,6 +10943,161 @@ function szSpringCleaning(fighter, context) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SHISUI & ITACHI (KIDS) — Phase 2 specials (rosterKey shisui_itachi_kids). Kid Shisui is the body;
+// Kid Itachi is a cooldown ASSIST + can DEFLECT an in-flight Shisui kunai into the blind spot.
+//   N/B + Special = Kunai Throw (re-press while a kunai flies → Blind-Spot Shuriken deflect)
+//   F   + Special = Flicker Rush (gap-close body-flicker strike)
+//   U   + Special = Genjutsu Flash (short-range FREEZE; white flash is CODE-DRAWN, no placeholder victim)
+//   D   + Special = Itachi Assist (Itachi flickers in, throws a kunai, flickers out; cooldown)
+// TRAINING BOND fills when an assist OR deflect kunai LANDS (hitFlag "_sikBondHit" → updateShisuiItachiKids).
+// Deterministic / LAN-safe (no gameRng). Itachi body + streaks + genjutsu flash render in drawShisuiItachiKidsFx.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const SIK_CD = { flicker: 46, genjutsu: 88, assist: 150, deflect: 30 }
+function sikIs(f) { return !!f && String(f.rosterKey || "").toLowerCase() === "shisui_itachi_kids" }
+function sikMyKunai(f) { return activeProjectiles.find(p => p && p.owner === f && p.name === "sikKunai" && !p._sikDeflected && !p.visualOnly && !p._sikAssistKunai) }
+
+function sikKunaiThrow(fighter, context) {
+  // BLIND-SPOT re-press: a Shisui kunai already in flight → Itachi deflects it from overhead/behind.
+  const flying = sikMyKunai(fighter)
+  if (flying && (fighter._sikDeflectCd || 0) <= 0) return sikBlindSpot(fighter, context, flying)
+  if (!spendEnergy(fighter, 14)) return false
+  const facing = fighter.facing || 1
+  fighter.vx = 0
+  fighter._spriteCastMove = "sikKunaiCast"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  spawnProjectile(fighter, "sikKunai", {
+    speed: 13, damage: 58, hitstun: 16, knockbackX: 5, knockbackY: -2, w: 30, h: 14, lifetime: 95,
+    spawnX: fighter.x + (facing === 1 ? (fighter.w || 60) + 2 : -32), spawnY: fighter.y + (fighter.h || 100) * 0.42,
+    sheet: "./shisui_itachi_kids_kunai_uniform.png", spriteFrames: 1, spriteW: 36, spriteH: 17, spriteScale: 1.15,
+    isSpecial: true, color: "#c7ccd6"
+  }, context)
+  return true
+}
+
+function sikBlindSpot(fighter, context, kunai) {
+  // Itachi flips in UPSIDE-DOWN overhead and bats Shisui's kunai into the opponent's blind spot (above +
+  // behind). The engine's projectile block is not facing-aware, so this is a normal blockable hit that
+  // merely APPROACHES from the blind spot (reported). Max ONE deflect per kunai (_sikDeflected latch).
+  const opp = getTargetResolver(context)(fighter)
+  fighter._sikDeflectCd = SIK_CD.deflect
+  kunai._sikDeflected = true
+  kunai.damage = Math.round((kunai.damage || 58) * 1.25)
+  kunai.isSpecial = true
+  kunai.hitFlag = "_sikBondHit"           // bond fills when the deflected kunai lands
+  if (opp) {
+    const behindDir = -(opp.facing || 1)   // the side the opponent's BACK faces = the blind spot
+    const bx = opp.x + (opp.w || 60) * 0.5, by = opp.y + (opp.h || 100) * 0.1
+    kunai.x = bx + behindDir * 92; kunai.y = by - 120   // place above + BEHIND the opponent
+    kunai.vx = -behindDir * 7; kunai.vy = 9             // dive down-and-inward onto their blind spot
+    kunai.lifetime = Math.max(kunai.lifetime || 0, 44)
+    fighter._sikBlind = { timer: 26, x: bx + behindDir * 40, y: by - 150, facing: -behindDir, frame: 0 }
+  }
+  fighter._spriteCastMove = "sikKunaiCast"; fighter._spriteCastTimer = 12
+  return true
+}
+
+function sikFlickerRush(fighter, context) {
+  if ((fighter._sikFlickerCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const opp = getTargetResolver(context)(fighter)
+  const facing = fighter.facing || 1
+  fighter._sikFlickerCd = SIK_CD.flicker
+  fighter._spriteCastMove = "sikFlicker"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  fighter._sikStreak = { timer: 16, x0: fighter.x + (fighter.w || 60) / 2, x1: null, y: fighter.y + (fighter.h || 100) * 0.4 }
+  if (opp) {
+    const dx = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+    if (Math.abs(dx) <= 230 && Math.sign(dx) === facing) {
+      fighter.x = opp.x - facing * ((fighter.w || 60) - 6)   // flicker THROUGH to the far side
+      fighter._sikStreak.x1 = fighter.x + (fighter.w || 60) / 2
+      if (!opp.isBlocking) {
+        applyScaledDamage(opp, 66, { source: "ability" })
+        opp.hitstun = 20; opp.vx = facing * 8; opp.vy = -3; opp.colorFlash = 6
+      } else {
+        opp.blockstun = 14; applyScaledDamage(opp, 10, { source: "block-chip" })
+      }
+    }
+  }
+  return true
+}
+
+function sikGenjutsuFlash(fighter, context) {
+  if ((fighter._sikGenjutsuCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 18)) return false
+  const opp = getTargetResolver(context)(fighter)
+  const facing = fighter.facing || 1
+  fighter._sikGenjutsuCd = SIK_CD.genjutsu
+  fighter.vx = 0
+  fighter._spriteCastMove = "sikGenjutsu"; fighter._spriteCastTimer = 20
+  fighter.attackCooldown = getAttackDuration(18, fighter)
+  if (opp) {
+    const dx = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+    if (Math.abs(dx) <= 150 && Math.sign(dx) === facing) {
+      fighter._sikFlashFx = { timer: 22, x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 100) * 0.45 }
+      if (!opp.isBlocking) { opp.hitstun = 80; opp.vx = 0; opp.vy = 0; opp.colorFlash = 20 }   // genjutsu FREEZE
+      else { opp.blockstun = 24; applyScaledDamage(opp, 6, { source: "block-chip" }) }
+    }
+  }
+  return true
+}
+
+function sikItachiAssist(fighter, context) {
+  if ((fighter._sikAssistCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 26)) return false
+  const facing = fighter.facing || 1
+  fighter._sikAssistCd = SIK_CD.assist
+  fighter._spriteCastMove = "sikKunaiCast"; fighter._spriteCastTimer = 14
+  // Itachi flickers in just BEHIND Shisui, throws a kunai at the opponent at the throw beat, flickers out.
+  fighter._sikAssist = { timer: 46, phase: "in", x: fighter.x - facing * 46, y: fighter.y, facing, threw: false, frame: 0 }
+  return true
+}
+
+function executeShisuiItachiKidsSpecial(fighter, context) {
+  if (!sikIs(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return sikFlickerRush(fighter, context)
+  if (dir === "U") return sikGenjutsuFlash(fighter, context)
+  if (dir === "D") return sikItachiAssist(fighter, context)
+  return sikKunaiThrow(fighter, context)   // N / B
+}
+
+// PER-FRAME driver: cooldowns, FX timers, the Itachi-assist state machine, and bond credit on a landed
+// assist/deflect kunai (hitFlag "_sikBondHit"). No-op for every non-kid fighter.
+export function updateShisuiItachiKids(fighter, context) {
+  if (!sikIs(fighter)) return
+  for (const k of ["_sikFlickerCd", "_sikGenjutsuCd", "_sikAssistCd", "_sikDeflectCd"]) {
+    if ((fighter[k] || 0) > 0) fighter[k]--
+  }
+  if (fighter._sikStreak && (--fighter._sikStreak.timer) <= 0) fighter._sikStreak = null
+  if (fighter._sikFlashFx && (--fighter._sikFlashFx.timer) <= 0) fighter._sikFlashFx = null
+  if (fighter._sikBlind) { fighter._sikBlind.frame++; if ((--fighter._sikBlind.timer) <= 0) fighter._sikBlind = null }
+  if ((fighter._sikBondPop || 0) > 0) fighter._sikBondPop--
+  const a = fighter._sikAssist
+  if (a) {
+    a.timer--; a.frame++
+    if (!a.threw && a.timer <= 30) {
+      a.threw = true; a.phase = "throw"
+      const proj = spawnProjectile(fighter, "sikKunai", {
+        speed: 13, damage: 52, hitstun: 15, knockbackX: 5, knockbackY: -2, w: 30, h: 14, lifetime: 90,
+        spawnX: a.x + a.facing * 20, spawnY: a.y + (fighter.h || 100) * 0.4, vx: a.facing * 13,
+        sheet: "./shisui_itachi_kids_kunai_uniform.png", spriteFrames: 1, spriteW: 36, spriteH: 17, spriteScale: 1.15,
+        isSpecial: true, color: "#c7ccd6", hitFlag: "_sikBondHit"
+      }, context)
+      if (proj) proj._sikAssistKunai = true
+    }
+    if (a.timer <= 12) a.phase = "out"
+    if (a.timer <= 0) fighter._sikAssist = null
+  }
+  // BOND credit: a landed assist/deflect kunai set _sikBondHit on this fighter (hitFlag). Consume → fill.
+  if (fighter._sikBondHit) {
+    fighter._sikBondHit = false
+    fighter._sikBond = Math.min((fighter._sikBond || 0) + 1, 5)   // meter display + Twin Flicker ult = Phase 3
+    fighter._sikBondPop = 26
+  }
+}
+
 // DISPATCHER — directional Special. Neutral (ground OR air) = Raikiri, armed in game.js canStart
 // (startKakashiWarRaikiri), so the neutral path here is a no-op.
 export function executeKakashiWarSpecial(fighter, context) {
@@ -32496,6 +32651,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)
     case "rick":    return executeRickSpecial(fighter, context)
     case "shizuku": return executeShizukuSpecial(fighter, context)   // Blinky (Phase 2): N=Phantom Jab Rush / F=Blinky Pull (suction+reel) / B=Blinky Smash / D=Belly Spit (refire stored projectile) / U=Disarm (lock foe projectile specials). Bloodletting/Spring Cleaning ULTs = Phase 3
+    case "shisui_itachi_kids": return executeShisuiItachiKidsSpecial(fighter, context)   // Kids (Phase 2): N/B=Kunai Throw (re-press in-flight → Blind-Spot deflect) / F=Flicker Rush / U=Genjutsu Flash (freeze) / D=Itachi Assist. Twin Flicker ULT = Phase 3
     case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "gaara":   return executeGaaraSpecial(fighter, context)   // Phase 1: D=Sand Bullet (projectile). N/F/B/U sand specials = Phase 2; Sabaku Taisou ULT = Phase 3; Shukaku = Phase 4
     case "meruem":  return executeMeruemSpecial(fighter, context)   // N=Aura Bullet (charge-hold, armed in game.js) / F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field. Ant King's Onslaught ULT. Royal Feast=Phase 4

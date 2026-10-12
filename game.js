@@ -292,6 +292,7 @@ import {
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
   updateShizuku,   // SHIZUKU (Phase 2) — per-frame tick: Blinky belly guard-eat + forget timers, pull-bounce, Disarm vacuum/lockout, FX (no-op otherwise)
+  updateShisuiItachiKids,   // SHISUI & ITACHI (KIDS) (Phase 2) — per-frame tick: cooldowns, Itachi-assist state machine, bond credit on landed assist/deflect kunai (no-op otherwise)
   updateMeruem, startMeruemAuraCharge,   // MERUEM (Phase 2) — per-frame tick (Aura-Bullet charge-hold release, Gungi Stance counter/absorb, Photon Field read, Synthesis fill, FX) + Aura-Bullet charge START (neutral-Special arm)
   meruemIntroBanter, meruemWinBanter,   // MERUEM (Phase 3) — intro (opponent-aware matchup) + win banter lines (text only, no audio)
   toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
@@ -13632,6 +13633,62 @@ function drawShizukuFx(c, fighter) {
     c.strokeText("...I forgot.", cx, ty); c.fillText("...I forgot.", cx, ty); c.restore()
   }
 }
+// ── SHISUI & ITACHI (KIDS) — world-space FX: the Itachi ASSIST body + the upside-down BLIND-SPOT overhead
+// (both real sheet blits), the flicker-rush after-image STREAK, and the code-drawn GENJUTSU white flash on
+// the opponent. Driven by state set in abilities.js (_sikAssist / _sikBlind / _sikStreak / _sikFlashFx).
+const _sikFxImgs = {}
+function _sikFxImg(src) { if (!_sikFxImgs[src]) { const i = new Image(); i.src = src; _sikFxImgs[src] = i } return _sikFxImgs[src] }
+;["./shisui_itachi_kids_itachi_idle_uniform.png", "./shisui_itachi_kids_itachi_throw_uniform.png", "./shisui_itachi_kids_itachi_blindspot_uniform.png", "./shisui_itachi_kids_streak_uniform.png"].forEach(_sikFxImg)
+function _sikBlitFeet(c, img, frames, fi, cx, feetY, face, sc, alpha, flipV) {
+  if (!img || !img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
+  c.save(); c.globalAlpha = alpha
+  c.translate(cx, feetY); c.scale(face < 0 ? -1 : 1, flipV ? -1 : 1)
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi | 0)) * fw, 0, fw, fh, -dw / 2, flipV ? 0 : -dh, dw, dh)
+  c.restore()
+}
+function drawShisuiItachiKidsFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "shisui_itachi_kids") return
+  const h = fighter.h ?? 100, sc = (fighter.spriteScale || 1.15) * 1.18
+  // Flicker-rush after-image streak between the start and end points.
+  const s = fighter._sikStreak
+  if (s) {
+    const img = _sikFxImg("./shisui_itachi_kids_streak_uniform.png"), t = s.timer / 16
+    if (img && img.complete && img.naturalWidth) {
+      c.save(); c.globalAlpha = 0.5 * t
+      for (const sx of [s.x0, s.x1].filter(v => v != null)) {
+        const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc
+        c.drawImage(img, sx - dw / 2, s.y - dh / 2, dw, dh)
+      }
+      c.restore()
+    }
+  }
+  // Itachi ASSIST body (flickers in → throws → flickers out).
+  const a = fighter._sikAssist
+  if (a) {
+    const throwing = a.phase === "throw" || a.phase === "out"
+    const img = throwing ? _sikFxImg("./shisui_itachi_kids_itachi_throw_uniform.png") : _sikFxImg("./shisui_itachi_kids_itachi_idle_uniform.png")
+    const frames = throwing ? 4 : 1, fi = throwing ? Math.min(3, Math.floor((46 - a.timer) / 4)) : 0
+    const alpha = (a.phase === "in" || a.phase === "out") ? 0.62 : 1
+    _sikBlitFeet(c, img, frames, fi, a.x + (fighter.w ?? 60) / 2, a.y + h, a.facing, sc, alpha, false)
+  }
+  // BLIND-SPOT upside-down Itachi overhead.
+  const b = fighter._sikBlind
+  if (b) {
+    const img = _sikFxImg("./shisui_itachi_kids_itachi_blindspot_uniform.png")
+    _sikBlitFeet(c, img, 4, Math.min(3, Math.floor(b.frame / 6)), b.x, b.y, b.facing, sc, 0.92, true)
+  }
+  // GENJUTSU white flash on the opponent (code-drawn radial; the sheet's placeholder victim is never used).
+  const g = fighter._sikFlashFx
+  if (g) {
+    const t = g.timer / 22
+    c.save(); c.globalAlpha = 0.7 * t; c.fillStyle = "#ffffff"
+    c.beginPath(); c.arc(g.x, g.y, 58 * (1.25 - t * 0.5), 0, Math.PI * 2); c.fill()
+    c.globalAlpha = 0.5 * t; c.fillStyle = "#bfe0ff"
+    c.beginPath(); c.arc(g.x, g.y, 34 * (1.25 - t * 0.5), 0, Math.PI * 2); c.fill(); c.restore()
+  }
+}
+
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -16412,7 +16469,7 @@ function updateBattle() {
   //    sequence; their FX timers never decremented. Fixed to run every frame for Hinata + Gaara.)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
-  { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx); updateShizuku(p1, _gctx); updateShizuku(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver // SHIZUKU: Blinky belly guard-eat + forget + pull-bounce + Disarm vacuum/lockout + FX (both no-op otherwise)
+  { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx); updateShizuku(p1, _gctx); updateShizuku(p2, _gctx); updateShisuiItachiKids(p1, _gctx); updateShisuiItachiKids(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver // SHIZUKU: Blinky belly guard-eat + forget + pull-bounce + Disarm vacuum/lockout + FX // KIDS: cooldowns + Itachi-assist machine + bond credit (all no-op otherwise)
   { const _mctx = getAbilityContext(); const _mblk = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateMeruem(p1, _mctx, !!readRawControls(p1)?.special, _mblk || !!p1.domainFrozen); updateMeruem(p2, _mctx, !!readRawControls(p2)?.special, _mblk || !!p2.domainFrozen) }   // MERUEM: Aura-Bullet charge-hold release + Gungi Stance counter/absorb + Photon Field read + Synthesis fill + FX timers (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
@@ -16701,6 +16758,7 @@ function renderHybridFighter(fighter) {
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
+    drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
     drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
@@ -23648,6 +23706,7 @@ gameLoop()
     // MERUEM Phase 3 — read passive state (custom fields the p1() snapshot omits) + a test-only NAMED-hit
     // injector (sets the exact signals updateMeruem reads: opponent currentMove + HP drop + colorFlash + hitstun).
     meruemState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { evo: f._meruemEvo || 0, finalHours: !!f._meruemFinalHours, adapt: f._meruemAdapt ? { ...f._meruemAdapt } : {}, learned: f._meruemLearned ? Object.keys(f._meruemLearned) : [], synth: Math.round(f._meruemSynth || 0), dmgMult: +(f.damageMultiplier || 1).toFixed(3), speed: +(f.speed || 0).toFixed(2), baseSpeed: +(f.baseSpeed || 0).toFixed(2), banner: f._meruemBannerText || null, comboDmg: Math.round(f._meruemComboDmg || 0), hp: Math.round(f.health || 0), elim: !!f.eliminated, winged: !!f._meruemWinged, wingedTimer: f._meruemWingedTimer || 0, rageFiring: f._meruemRageFiring || 0, beam: f._meruemBeamActive || 0, sheet: f.spriteSheet || (f.animationData?.idle?.sheet) || null } },
+    sikState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f || (f.rosterKey || "").toLowerCase() !== "shisui_itachi_kids") return null; return { bond: f._sikBond || 0, bondPop: f._sikBondPop || 0, assist: f._sikAssist ? { phase: f._sikAssist.phase, timer: f._sikAssist.timer, threw: !!f._sikAssist.threw } : null, blind: f._sikBlind ? { timer: f._sikBlind.timer } : null, flash: f._sikFlashFx ? { timer: f._sikFlashFx.timer } : null, streak: !!f._sikStreak, cd: { flicker: f._sikFlickerCd || 0, genjutsu: f._sikGenjutsuCd || 0, assist: f._sikAssistCd || 0, deflect: f._sikDeflectCd || 0 }, myKunai: activeProjectiles.filter(p => p.owner === f && p.name === "sikKunai").map(p => ({ x: Math.round(p.x), vx: Math.round(p.vx), vy: Math.round(p.vy), deflected: !!p._sikDeflected, assist: !!p._sikAssistKunai })) } },
     meruemSetSynth: (v = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._meruemSynth = v; return f ? Math.round(f._meruemSynth || 0) : null },
     meruemRoyalFeast: (synth = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._meruemSynth = synth; f.energy = f.maxEnergy || 200; f.ultimateCooldown = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f._ultVariant = "royalFeast"; f._meruemCineBlocked = false; const cast = triggerUltimate(f, getAbilityContext()); return { cast: !!cast, winged: !!f._meruemWinged, hp: Math.round(f.health || 0), synth: Math.round(f._meruemSynth || 0) } },
     meruemHit: (move = "light", dmg = 40, who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f || !o) return null; o.currentMove = move; o.currentAttack = { name: move }; f.health = Math.max(1, (f.health || 0) - dmg); f.hitstun = Math.max(f.hitstun || 0, 12); f.colorFlash = 8; return { hp: Math.round(f.health), oppHp: Math.round(o.health || 0) } },

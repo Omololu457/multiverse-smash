@@ -43,6 +43,16 @@ export const FX_SHEETS_BY_CHAR = {
     "./meruem_rage_beam_mid_uniform.png",
     "./meruem_rage_beam_tail_uniform.png",
   ],
+  // Shisui & Itachi (Kids) — Phase 2: the kunai projectile sprite (abilities.js spawnProjectile) + the Itachi
+  // assist / blind-spot / flicker-streak sheets blitted in game.js drawShisuiItachiKidsFx. (Cast poses live in
+  // characters.animationData → preloadFighter covers those.)
+  shisui_itachi_kids: [
+    "./shisui_itachi_kids_kunai_uniform.png",
+    "./shisui_itachi_kids_itachi_idle_uniform.png",
+    "./shisui_itachi_kids_itachi_throw_uniform.png",
+    "./shisui_itachi_kids_itachi_blindspot_uniform.png",
+    "./shisui_itachi_kids_streak_uniform.png",
+  ],
   gojo: [
     "./gojo_blue_orb_fx.png",
     "./gojo_hollow_purple_orb_fx.png",

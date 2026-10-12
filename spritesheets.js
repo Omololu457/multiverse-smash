@@ -915,7 +915,7 @@ export const SPRITE_MANIFEST = {
   // olive-green AmandioHype "new outfit" JUS sheet — interior cyan/white lightning preserved).
   zoldyck: {
     actions: { idle: "./zoldyck_idle_uniform.png" }
-  }
+  },
 
   // Shisui & Itachi (Kids) (universe: naruto) "The Two Prodigies" — NEW additive fighter. Kid Shisui is the
   // playable body, Kid Itachi an assist. Idle gate flips the sprite handler on (spritesReady); per-action

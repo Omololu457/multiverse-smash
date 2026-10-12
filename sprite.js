@@ -243,6 +243,9 @@ const MOVE_TO_ACTION = {
   // resolves to the fallback box. (Phantom Jab Rush / Blinky Pull+Disarm suction / Blinky Smash / Belly Spit.)
   shizukuPhantom: "shizukuPhantom", shizukuPull: "shizukuPull", shizukuSmash: "shizukuSmash", shizukuSpit: "shizukuSpit",
   shizukuBloodletting: "shizukuBloodletting", shizukuSpringClean: "shizukuSpringClean",   // Phase 3 ult cast poses
+  // Shisui & Itachi (Kids) — special cast poses (_spriteCastMove). Identity maps so a cast recovery tail
+  // never resolves to the fallback box. (Kunai Throw / Flicker Rush / Genjutsu Flash.)
+  sikKunaiCast: "sikKunaiCast", sikFlicker: "sikFlicker", sikGenjutsu: "sikGenjutsu",
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",

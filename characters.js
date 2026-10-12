@@ -11069,7 +11069,19 @@ const shisuiItachiKids = {
     down_air: { frames: 1, width: 42, height: 45, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_downair_uniform.png" }, // Y+Jump — head-down dive
     intro: { frames: 1, width: 71, height: 69, speed: 8, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_intro_uniform.png" },   // both boys (Itachi + Shisui)
     win:   { frames: 1, width: 33, height: 69, speed: 8, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_win_uniform.png" },
-    lose:  { frames: 1, width: 71, height: 30, speed: 10, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_lose_uniform.png" }   // no dedicated lose art → last knockdown (lying) frame
+    lose:  { frames: 1, width: 71, height: 30, speed: 10, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_lose_uniform.png" },   // no dedicated lose art → last knockdown (lying) frame
+    // ── PHASE 2 SPECIAL CAST POSES (_spriteCastMove, identity-mapped in sprite.js MOVE_TO_ACTION) ──
+    sikKunaiCast: { frames: 4, width: 51, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_kunaicast_uniform.png" },  // N/B — Kunai Throw (also the Itachi-assist/deflect call pose)
+    sikFlicker:   { frames: 7, width: 58, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_flicker_uniform.png" },    // F — Flicker Rush strike string
+    sikGenjutsu:  { frames: 2, width: 54, height: 93, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_genjutsu_uniform.png" }     // U — Genjutsu Flash cast
+  },
+  // PHASE 2 specials (directional + Special). Itachi is an assist only. The Training Bond meter fills when an
+  // assist or blind-spot deflect LANDS; it powers the Phase-3 Twin Flicker ultimate.
+  specials: {
+    kunaiThrow:    { input: "Special (N/B)",        cost: 14, effect: "Shisui throws a kunai. Re-press with a kunai still in flight → BLIND-SPOT SHURIKEN: Itachi flips in overhead and bats it into the opponent's blind spot (above/behind). Max one deflect per kunai." },
+    flickerRush:   { input: "Forward + Special",    cost: 20, effect: "Body-Flicker gap-closer — Shisui streaks THROUGH the opponent with a strike string." },
+    genjutsuFlash: { input: "Up + Special",         cost: 18, effect: "Short-range Sharingan flash — a white burst that FREEZES the opponent briefly (chip on block)." },
+    itachiAssist:  { input: "Down + Special",       cost: 26, effect: "Kid Itachi flickers in, throws a kunai at the opponent, and flickers out. Cooldown. A landing assist fills the Training Bond." }
   },
   // INTRO — both boys stand together (Kid Itachi + Kid Shisui) before the fight.
   introPool: ["intro"],

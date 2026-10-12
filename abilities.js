@@ -16565,7 +16565,8 @@ function fireGonGroundBreaker(fighter, context) {
   fighter._gonGroundBreak = md.startup + md.active                        // crater FX window (game.js)
   // ground shock at the slam frame — a short low debris burst (reuses the energy-orb projectile render).
   schedulePendingSpawn(md.startup, () => { shakeCamera(context, 12, 16); spawnProjectile(fighter, "gonCrater", {
-    damage: 60, w: 40, h: 24, radius: 20, speed: 7, lifetime: 26, hitstun: 20, knockbackX: 8, knockbackY: -6, color: "#c9a06a", isSpecial: true
+    damage: 60, w: 70, h: 44, radius: 28, speed: 7, lifetime: 30, hitstun: 20, knockbackX: 8, knockbackY: -6, color: "#c9a06a",
+    sheet: "./gon_gb_crater_uniform.png", spriteFrames: 5, spriteW: 132, spriteH: 100, spriteSpeed: 3, spriteScale: 0.62, isSpecial: true
   }, context) })
   try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}
   return true
@@ -24937,8 +24938,9 @@ function fireGonPaper(fighter, context, opts = {}) {
   fighter.attackCooldown   = total
   fighter.vx = (fighter.facing || 1) * (opts.air ? 0 : -1)   // tiny recoil on the grounded palm-push
   schedulePendingSpawn(opts.air ? 2 : 8, () => spawnProjectile(fighter, "gonPaper", {
-    damage: dmg, w: 28, h: 28, radius: 15, speed: 12, lifetime: 96,
-    hitstun: 20, knockbackX: 16, knockbackY: -4, color: "#9be7a0", isSpecial: true
+    damage: dmg, w: 44, h: 38, radius: 20, speed: 12, lifetime: 96,
+    hitstun: 20, knockbackX: 16, knockbackY: -4, color: "#ffb347",
+    sheet: "./gon_paperball_uniform.png", spriteFrames: 2, spriteW: 33, spriteH: 28, spriteSpeed: 4, spriteScale: 1.7, isSpecial: true
   }, context))
   shakeCamera(context, 3, 6)
   try { sound.playSfxFile?.(pickGonVoice("paper"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken PAPER cast (audio-only)
@@ -25147,7 +25149,8 @@ function fireGonAdultRock(fighter, context) {
   fighter._gonAdultRockEndT  = md.startup + md.active + md.recovery + 8
   fighter.vx = (fighter.facing || 1) * 6
   schedulePendingSpawn(md.startup, () => spawnProjectile(fighter, "gonAdultRock", {
-    damage: 200, w: 56, h: 40, radius: 28, speed: 9, lifetime: 42, hitstun: 32, knockbackX: 18, knockbackY: -8, color: "#d9a066", isSpecial: true
+    damage: 200, w: 72, h: 56, radius: 34, speed: 9, lifetime: 44, hitstun: 32, knockbackX: 18, knockbackY: -8, color: "#d9a066",
+    sheet: "./gon_koma4a_fx_uniform.png", spriteFrames: 3, spriteW: 116, spriteH: 100, spriteSpeed: 3, spriteScale: 0.72, isSpecial: true
   }, context))
   shakeCamera(context, 14, 18)
   try { sound.playSfxFile?.(GON_FINAL_BLOW_SFX, null); fighter._atkVoiceCd = 150 } catch (_) {}
@@ -25165,7 +25168,8 @@ function fireGonFullChant(fighter, context) {
   fighter.attackCooldown   = total
   fighter._gonFullChantCutin = 72                          // manga chant cut-in + "JAJANKEN!!" pop (game.js)
   schedulePendingSpawn(30, () => { shakeCamera(context, 16, 22); spawnProjectile(fighter, "gonFullChant", {
-    damage: 300, w: 92, h: 92, radius: 46, speed: 9, lifetime: 80, hitstun: 44, knockbackX: 26, knockbackY: -12, color: "#ffd700", isSpecial: true
+    damage: 300, w: 100, h: 100, radius: 50, speed: 9, lifetime: 80, hitstun: 44, knockbackX: 26, knockbackY: -12, color: "#ffd700",
+    sheet: "./gon_paperball_uniform.png", spriteFrames: 2, spriteW: 33, spriteH: 28, spriteSpeed: 4, spriteScale: 3.8, isSpecial: true
   }, context) })
   try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}
   return true

@@ -4040,6 +4040,8 @@ const INTRO_VOICE = {
   itachi: { pool: ITACHI_VOICE.intro, gateReveal: false },
   // Killua's single intro cry ("Let's begin!"). Fires at his first intro-play frame (no reveal gate).
   killua: { pool: KILLUA_VOICE.intro, gateReveal: false },
+  // Killua (Godspeed) (additive `zoldyck`) REUSES base Killua's intro pool (no new audio).
+  zoldyck: { pool: KILLUA_VOICE.intro, gateReveal: false },
   // Tobirama picks ONE of his will-of-fire / hokage power-declarations at random per match. Fires at
   // his first intro-play frame (no reveal gate).
   tobirama: { pool: TOBIRAMA_VOICE.intro, gateReveal: false },

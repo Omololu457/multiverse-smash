@@ -907,6 +907,14 @@ export const SPRITE_MANIFEST = {
   // opaque-green AmandioHype JUS sheet — green shoes + light-blue Blinky preserved via interior protect).
   shizuku: {
     actions: { idle: "./shizuku_idle_uniform.png" }
+  },
+
+  // Killua (Godspeed) (rosterKey: zoldyck, universe: hunter_x_hunter) — NEW additive fighter.
+  // Idle gate flips the sprite handler on; per-action rendering reads characters.js → zoldyck.animationData
+  // (each action carries its own .sheet). Border-flood-fill-keyed uniform strips (zoldyck_work/slice.py;
+  // olive-green AmandioHype "new outfit" JUS sheet — interior cyan/white lightning preserved).
+  zoldyck: {
+    actions: { idle: "./zoldyck_idle_uniform.png" }
   }
 
   // Shisui & Itachi (Kids) (universe: naruto) "The Two Prodigies" — NEW additive fighter. Kid Shisui is the

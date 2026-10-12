@@ -915,6 +915,11 @@ export const SKINS = {
     { id: "animeold", name: "Anime Old", unlockLevel: 0, portrait: recolorPortrait("shizuku", "animeold"), spriteScale: characters.shizuku?.spriteScale, animationData: recolorSkinAnim("shizuku", "animeold") },
     { id: "manga",    name: "Manga",     unlockLevel: 0, portrait: recolorPortrait("shizuku", "manga"),    spriteScale: characters.shizuku?.spriteScale, animationData: recolorSkinAnim("shizuku", "manga") },
   ],
+  // Killua (Godspeed) — Phase 1 ships the default (Anime) skin only; Anime Old + Manga recolors arrive
+  // in Phase 3 via the palette box + recolor LUT. Default entry is REQUIRED (else getSkins() forces spriteScale:1).
+  zoldyck: [
+    { id: "default", name: "Anime", unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: null },
+  ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
     { id: "lavender", name: "Lavender", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },

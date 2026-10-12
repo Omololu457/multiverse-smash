@@ -10936,6 +10936,83 @@ const shizuku = {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
+// KILLUA (GODSPEED) — rosterKey `zoldyck` · "Killua (Godspeed)" · universe hunter_x_hunter
+// NEW ADDITIVE standalone fighter built from the AmandioHype "new outfit" Killua JUS sheet
+// (killua_zoldyck_sprites_jus_new_outfit__by_amandiohype_dduudqn.png, 1520×3760, olive-green
+// (55,86,40)+noise bg). Border-flood-fill keyed (interior cyan/white lightning protected), every
+// row RE-SLICED to feet-aligned uniform cells (zoldyck_work/slice.py → zoldyck_*_uniform.png).
+// rosterKey deliberately `zoldyck` (not `killua_*`) so it never collides with the existing `killua`
+// fighter's files or its exact-match `=== "killua"` guards — base `killua` stays byte-identical.
+// ARCHETYPE: FRAGILE ELECTRIC RUSHDOWN / ASSASSIN. Top-of-roster speed, low HP/def. Identity =
+// the VOLTS resource (energyConfig label "Volts"; electric moves spend it, it does NOT self-regen,
+// recharge by holding Charge) + Godspeed. Phase 1 = re-skin body/normals + plumbing + mugshot/
+// cut-ins/credits (Volts no-regen, specials, Godspeed arrive in Phases 2–3).
+// spriteScale 2.10 → idle content ~44px × 2.10 × 1.18 ≈ 109px on-screen (HxH kid band, matches
+// shizuku ~109). Feet-planted uniform cells → anchorY: 0. Tuned via measureSprite in render check.
+const zoldyck = {
+  rosterKey: "zoldyck", name: "Killua (Godspeed)", title: "The Lightning",
+  universe: "hunter_x_hunter", color: "#7dd3fc",
+  portrait: "./zoldyck_portrait.png",   // mugshot cropped from the master sheet (x5-240 y30-313)
+  isPlayable: true,
+  archetypes: ["speed", "assassin"],
+  primary: "speed", secondary: ["assassin", "rushdown"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "very_high", scaling: "burst", animeMovement: true },
+  energyConfig: { label: "Volts" },   // HUD energy-bar label — the Volts meter (electric resource)
+  passive: {
+    name: "Volts",
+    effect: "Killua's electricity is a spent resource. The energy bar reads VOLTS: electric moves cost Volts and Volts do NOT regenerate on their own. Recharge by HOLDING Charge (Ultimate-Action spark pose) — he refills steadily but is vulnerable while charging. (Volts spend/recharge, the electric specials and Godspeed arrive in Phases 2–3.)"
+  },
+  stats: { maxHealth: 1010, maxEnergy: 100, attack: 86, defense: 76, speed: 97, maxJumps: 2, jumpPower: 31, dashSpeed: 20, dashDuration: 11, dashCooldownMax: 36 },
+  // STAGE 1 normals — mirrors the base Killua's fast glass-cannon feel (quick flurry, committed heavy,
+  // launcher up, side-kick aerial, dive down-air). data keys map to sprite keys: upAttack→up,
+  // airAttack→air, downAir→down_air.
+  basic_attacks: {
+    light:    { damage: 38, startup: 3, active: 3, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 10, launchVy: -30, selfVy: -6, airOK: false },
+    airAttack:{ damage: 50, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 22, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  hasSprites: true,
+  spriteScale: 2.10,
+  animationData: {
+    idle:  { frames: 4, width: 36, height: 44, speed: 8, anchorY: 0, loop: true, sheet: "./zoldyck_idle_uniform.png" },
+    walk:  { frames: 8, width: 50, height: 43, speed: 6, anchorY: 0, loop: true, sheet: "./zoldyck_walk_uniform.png" },
+    run:   { frames: 8, width: 50, height: 43, speed: 4, anchorY: 0, loop: true, sheet: "./zoldyck_walk_uniform.png" },   // reuse MOVE row, faster
+    dash:  { frames: 2, width: 54, height: 29, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_dash_uniform.png" },
+    jump:  { frames: 6, width: 39, height: 42, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_jump_uniform.png" },
+    fall:  { frames: 1, width: 39, height: 42, speed: 5, anchorY: 0, sourceX: 195, loop: false, lockLastFrame: true, sheet: "./zoldyck_jump_uniform.png" },   // hold jump's last (descend) cell
+    guard: { frames: 2, width: 32, height: 44, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_guard_uniform.png" },
+    hurt:  { frames: 5, width: 52, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_hurt_uniform.png" },
+    knockdown: { frames: 7, width: 56, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_knockdown_uniform.png" },
+    getup:     { frames: 5, width: 52, height: 47, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_hurt_uniform.png" },   // no dedicated getup frames → reuse hurt (staggers upright)
+    hang:      { frames: 2, width: 36, height: 46, speed: 8, anchorY: 0, loop: true, sheet: "./zoldyck_hang_uniform.png" },
+    // Charge / recharge pose (Ultimate-Action frames) — played while HOLDING Charge to refill Volts.
+    charge:    { frames: 2, width: 29, height: 48, speed: 6, anchorY: 0, loop: true, sheet: "./zoldyck_charge_uniform.png" },
+    // ── STAGE 1 NORMALS (5 slots). Play once, hold last frame. ──
+    light:    { frames: 4, width: 45, height: 47, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_light_uniform.png" },     // B — punch flurry
+    heavy:    { frames: 4, width: 35, height: 42, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_heavy_uniform.png" },     // Y — roundhouse
+    up:       { frames: 2, width: 45, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_up_uniform.png" },        // Y+Up — rising launcher
+    air:      { frames: 5, width: 47, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_air_uniform.png" },       // B+Jump — neutral aerial
+    down_air: { frames: 7, width: 83, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_downair_uniform.png" },   // Y+Jump — aerial dive
+    win:   { frames: 2, width: 41, height: 46, speed: 8, anchorY: 0, loop: true, sheet: "./zoldyck_win_uniform.png" },
+    lose:  { frames: 6, width: 29, height: 48, speed: 10, anchorY: 0, loop: true, sheet: "./zoldyck_lose_uniform.png" },
+    // ── Re-skinned COMMAND/SPECIAL cast poses (sheets ready; moves wired in Phases 2–3 via
+    //    _spriteCastMove + sprite.js MOVE_TO_ACTION). Registered now so they preload with the body. ──
+    zoldyckYoyo:    { frames: 9, width: 146, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_yoyothrow_uniform.png" },   // Y+Forward long yo-yo throw
+    zoldyckOrbit:   { frames: 9, width: 45, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_yoyoorbit_uniform.png" },     // B+Up yo-yo orbit (anti-air)
+    zoldyckClaw:    { frames: 8, width: 79, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_claw_uniform.png" },          // Y+Down assassin claw
+    zoldyckPalm:    { frames: 3, width: 37, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_palm_uniform.png" },          // B+Down Lightning Palm
+    zoldyckCommand: { frames: 7, width: 47, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_command_uniform.png" }        // B+Forward barrage/command
+  },
+  // No dedicated intro strip → idle-hold intro (he settles in STANCE during the intro phase).
+  introPool: ["idle"],
+  // Ultimate wiring arrives in Phase 2 (neutral-U Thunderbolt Barrage) / Phase 3 (Down+U Godspeed).
+  ultimate: { name: "Thunderbolt Barrage", cost: 100, description: "NEUTRAL = Thunderbolt Barrage — a long charge into a full lightning blast (big Volts cost). DOWN = Godspeed — full-body electricity with two Charge-toggled modes (arrives Phase 3)." }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
 // SHISUI & ITACHI (KIDS) — rosterKey `shisui_itachi_kids` · "The Two Prodigies"
 // Kid Shisui is the PLAYABLE body; Kid Itachi is an ASSIST ONLY (arrives Phase 2). Fast, fragile
 // children — lowest HP band, highest speed, lighter per-hit than the adults. Source sheet = "Kid Shisui
@@ -11082,7 +11159,8 @@ export const characters = {
   shisui_blade: shisuiBlade,         // SHISUI — THE BLADE identity (P2). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
   shisui_puppeteer: shisuiPuppeteer, // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
   shisui_fallen: shisuiFallen,       // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
-  shizuku                            // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
+  shizuku,                           // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
+  zoldyck                            // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
 }
 
 // The 7 characters shown in the starter roster select screen

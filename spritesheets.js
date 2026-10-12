@@ -909,6 +909,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./shizuku_idle_uniform.png" }
   }
 
+  // Shisui & Itachi (Kids) (universe: naruto) "The Two Prodigies" — NEW additive fighter. Kid Shisui is the
+  // playable body, Kid Itachi an assist. Idle gate flips the sprite handler on (spritesReady); per-action
+  // rendering reads characters.js → shisui_itachi_kids.animationData (each action carries its own .sheet).
+  // Border-flood-fill-keyed uniform strips (shisui_itachi_kids_work/slice.py; opaque-navy ALTAIR NZC sheet).
+  shisui_itachi_kids: {
+    actions: { idle: "./shisui_itachi_kids_idle_uniform.png" }
+  },
+
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js
   // sukuna: {
   //   prefix: "sukuna",

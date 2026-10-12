@@ -10935,10 +10935,75 @@ const shizuku = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// SHISUI & ITACHI (KIDS) — rosterKey `shisui_itachi_kids` · "The Two Prodigies"
+// Kid Shisui is the PLAYABLE body; Kid Itachi is an ASSIST ONLY (arrives Phase 2). Fast, fragile
+// children — lowest HP band, highest speed, lighter per-hit than the adults. Source sheet = "Kid Shisui
+// & Kid Itachi NZC by ALTAIR" (734×2303 navy, border-floodfill keyed → shisui_itachi_kids_*_uniform.png).
+// CHILD CHARACTER: HARD-EXCLUDED from brutality/gore (see game.js BRUTALITY_ELIGIBLE comment). No blood FX.
+// spriteScale 1.15 → idle content ~67px × 1.15 × 1.18 ≈ 91px on-screen (kids read SHORTER than the
+// ~108–116px adult band). Feet-planted uniform cells (slicer pad=1 bottom) → anchorY: 0.
+const shisuiItachiKids = {
+  rosterKey: "shisui_itachi_kids", name: "Shisui & Itachi (Kids)", title: "The Two Prodigies",
+  universe: "naruto", color: "#33406e",
+  portrait: "./shisui_itachi_kids_portrait.png",
+  isPlayable: true,
+  archetypes: ["rushdown", "technical", "assist"],
+  primary: "rushdown", secondary: ["technical"],
+  // GLASS-CANNON CHILD RUSHDOWN. Lowest HP, top-end speed, below-average attack — a flicker-fast kid who
+  // out-paces foes and calls his best friend for help, not a heavy hitter.
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "speed", animeMovement: true },
+  energyConfig: { label: "Chakra" },   // HUD energy-bar label (shinobi chakra); display-only
+  passive: {
+    name: "Kid Body Flicker",
+    effect: "Shisui of the Body Flicker in miniature — his dash is a short shunshin with a streak after-image, and he carries 2 regenerating flicker charges. (The Flicker Rush / Genjutsu Flash / Itachi Assist / Blind-Spot Shuriken specials arrive in Phase 2.)"
+  },
+  // Fast, fragile children: lowest HP band (940), highest speed (98), lighter per-hit than the adults.
+  stats: { maxHealth: 940, maxEnergy: 180, attack: 78, defense: 80, speed: 98, maxJumps: 2, jumpPower: 31, dashSpeed: 16, dashDuration: 9, dashCooldownMax: 34 },
+  // STAGE 1 normals — quick, low-commitment kid strikes (modest per-hit). data keys map to sprite keys:
+  // upAttack→up, airAttack→air, downAir→down_air.
+  basic_attacks: {
+    light:    { damage: 28, startup: 4, active: 3, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 54, startup: 8, active: 4, recovery: 16, hitstun: 17, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 44, startup: 7, active: 4, recovery: 11, hitstun: 18, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -28, selfVy: -7, airOK: false },
+    airAttack:{ damage: 40, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 50, startup: 7, active: 4, recovery: 12, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 20, startup: 6, active: 3, recovery: 13, hitstun: 17, throwForceX: 5, throwForceY: -3 }
+  },
+  hasSprites: true,
+  spriteScale: 1.15,
+  animationData: {
+    idle:  { frames: 1, width: 33, height: 69, speed: 8, anchorY: 0, sheet: "./shisui_itachi_kids_idle_uniform.png" },
+    walk:  { frames: 6, width: 61, height: 48, speed: 6, anchorY: 0, sheet: "./shisui_itachi_kids_walk_uniform.png" },
+    run:   { frames: 6, width: 61, height: 48, speed: 4, anchorY: 0, sheet: "./shisui_itachi_kids_walk_uniform.png" },   // reuse walk row, faster
+    dash:  { frames: 3, width: 48, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_dash_uniform.png" },   // Body-Flicker streak
+    jump:  { frames: 3, width: 47, height: 63, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_jump_uniform.png" },
+    fall:  { frames: 1, width: 47, height: 63, speed: 5, anchorY: 0, sourceX: 94, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_jump_uniform.png" },   // hold jump's last (descend) cell
+    charge:{ frames: 1, width: 47, height: 69, speed: 8, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_charge_uniform.png" },   // Chakra-gather pose (hold P)
+    guard: { frames: 1, width: 50, height: 55, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_guard_uniform.png" },
+    hurt:  { frames: 2, width: 54, height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 71, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_knockdown_uniform.png" },   // tumble → lying
+    getup:     { frames: 1, width: 43, height: 49, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_getup_uniform.png" },        // rise/ready
+    // ── STAGE 1 NORMALS. Play once, hold last frame. ──
+    light:    { frames: 5, width: 86, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_light_uniform.png" },   // B — quick combo string
+    heavy:    { frames: 5, width: 70, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_heavy_uniform.png" },   // Y — committed swings
+    up:       { frames: 8, width: 53, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_up_uniform.png" },      // Y+Up — rising flurry launcher
+    air:      { frames: 5, width: 70, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_air_uniform.png" },     // B+Jump — neutral aerial
+    down_air: { frames: 1, width: 42, height: 45, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shisui_itachi_kids_downair_uniform.png" }, // Y+Jump — head-down dive
+    intro: { frames: 1, width: 71, height: 69, speed: 8, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_intro_uniform.png" },   // both boys (Itachi + Shisui)
+    win:   { frames: 1, width: 33, height: 69, speed: 8, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_win_uniform.png" },
+    lose:  { frames: 1, width: 71, height: 30, speed: 10, anchorY: 0, loop: true, sheet: "./shisui_itachi_kids_lose_uniform.png" }   // no dedicated lose art → last knockdown (lying) frame
+  },
+  // INTRO — both boys stand together (Kid Itachi + Kid Shisui) before the fight.
+  introPool: ["intro"],
+  // Twin Flicker (Neutral Ultimate) is fully built in Phase 3; metadata here so the Move List can show it.
+  ultimate: { name: "Twin Flicker", cost: 100, description: "Needs a full Training Bond. Both boys flicker around the opponent, Shisui strikes from four after-images, and Itachi's blind-spot kunai rain in. (Built in Phase 3.)" }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
-  naruto, sasuke, sasuke_adult: sasukeAdult, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
+  naruto, sasuke, sasuke_adult: sasukeAdult, itachi, shisui_itachi_kids: shisuiItachiKids, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,

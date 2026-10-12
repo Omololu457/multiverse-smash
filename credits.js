@@ -87,6 +87,15 @@ export const SOURCED_ART = {
     source:  "fan JUS-style sprite sheet (shizuku_murasaki_jus_sprites_by_amandiohype_ddz62rv.png; in-sheet credit block \"BY: AMANDIOHYPE / CREDITS TO: PRODIJIU\"). Includes embedded anime screencaps used solely as cut-in overlays.",
     files:   ["shizuku_*_uniform.png", "shizuku_portrait.png", "shizuku_cutin_a.png", "shizuku_cutin_b.png", "shizuku_cutin_c.png", "shizuku_cutin_d.png", "shizuku_murasaki_jus_sprites_by_amandiohype_ddz62rv.png"]
   },
+  // Shisui & Itachi (Kids) (Naruto) — NZC-style sheet. In-sheet header "Kid Shisui & Kid Itachi NZC by ALTAIR";
+  // additional in-game credits per the build brief: azzi_ibrahim and RBM-kyubi. Kid Shisui is the playable body,
+  // Kid Itachi an assist. Per-action sliced (shisui_itachi_kids_work/slice.py) → shisui_itachi_kids_*_uniform.png.
+  shisui_itachi_kids: {
+    work:    "Shisui & Itachi (Kids) (\"The Two Prodigies\") — NZC-style sprite sheet",
+    artists: ["ALTAIR", "azzi_ibrahim", "RBM-kyubi"],
+    source:  "fan NZC-style sprite sheet (kid_shisui_and_kid_itachi_nzc_by_altair_by_altairframemaker_defojue.png; in-sheet header \"Kid Shisui & Kid Itachi NZC by ALTAIR\").",
+    files:   ["shisui_itachi_kids_*_uniform.png", "shisui_itachi_kids_portrait.png", "shisui_itachi_kids_select.png", "kid_shisui_and_kid_itachi_nzc_by_altair_by_altairframemaker_defojue.png"]
+  },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
   // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.

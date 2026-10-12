@@ -903,6 +903,11 @@ export const SKINS = {
     // Default only (brief). The default entry is REQUIRED — without it getSkins() forces spriteScale:1.
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.meruem?.portrait, spriteScale: characters.meruem?.spriteScale, animationData: null },
   ],
+  // Shisui & Itachi (Kids): default skin only (no recolor set). Default entry REQUIRED (else getSkins()
+  // forces spriteScale:1 → the kid sprites render at native ~67px).
+  shisui_itachi_kids: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shisui_itachi_kids?.portrait, spriteScale: characters.shisui_itachi_kids?.spriteScale, animationData: null },
+  ],
   shizuku: [
     // 3 anime palettes from the sheet's PALETTE BOX (Anime = default; Anime Old + Manga = recolor LUT via
     // shizuku_work/gen_recolor.py). Default entry is REQUIRED (else getSkins() forces spriteScale:1).

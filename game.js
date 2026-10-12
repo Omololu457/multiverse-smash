@@ -684,7 +684,8 @@ setColorblindHud?.(colorblindHud)   // sync ui.js to the persisted value at load
 // BRUTALITY ENGINE (real gore-style, per-MOVE finishers). Eligible = the tonally-appropriate prototype
 // roster: horror slashers + canonically-brutal killers. zaraki_shikai shares zaraki's table (same fighter).
 // HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
-// saiki, l_ryuuzaki, light (never add them here). Heroes/kid-franchises get a normal KO. Re-scope here.
+// saiki, l_ryuuzaki, light, shisui_itachi_kids (CHILDREN — never add them here). Heroes/kid-franchises get
+// a normal KO. Re-scope here.
 const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zaraki", "zaraki_shikai",
   "mayuri", "madara", "jason", "naoya", "hisoka", "ghostface", "baki",
   // Tier 2 (all adult / canonically-brutal / non-excluded): Slade's blades, Isshiki's rods, Orochimaru's

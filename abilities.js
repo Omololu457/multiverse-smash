@@ -10629,6 +10629,226 @@ function fireKakashiWarKawarimi(fighter, context) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// SHIZUKU MURASAKI — "The Cleaner" (Phantom Troupe #8, HxH). PHASE 2 — BLINKY SPECIALS + BELLY SYSTEM.
+// combat.js UNTOUCHED: melee via createAttackFromMove/setAttackState, projectiles via spawnProjectile,
+// the pull via the shared grab-reel (combat.updateGrab). Deterministic / LAN-safe (no gameRng, no
+// Math.random). All state is _sz*-namespaced. CANON: Blinky is a conjured vacuum that swallows any
+// NON-LIVING thing but can't devour the living — it clears projectiles, disarms foes, and pulls them in
+// (then bounces them off the nozzle because it can't eat a living opponent).
+const SZ_BELLY_MAX    = 3     // CANON-ADJACENT storage cap
+const SZ_BELLY_FORGET = 480   // ~8s @60fps — FORGETFUL (CANON): each stored item expires ("...I forgot.")
+const SZ_DISARM_DUR   = 180   // ~3s projectile lockout
+function szIsShizuku(f) { return !!f && (f.rosterKey || "").toLowerCase() === "shizuku" }
+function szBellyArr(f) { if (!Array.isArray(f._szBelly)) f._szBelly = []; return f._szBelly }
+
+// Snapshot a projectile's hit/visual data so Belly Spit can refire it with the ORIGINAL look + damage,
+// independent of the live object (which is spliced out of the world on eat).
+function szSnapshotProj(p) {
+  return {
+    name: p.name, w: p.w, h: p.h, radius: p.radius, damage: p.damage, hitstun: p.hitstun,
+    knockbackX: p.knockbackX, knockbackY: p.knockbackY, lifetime: p.lifetime, color: p.color,
+    drawKind: p.drawKind, sheet: p.sheet, spriteKey: p.spriteKey, spriteFrames: p.spriteFrames,
+    spriteW: p.spriteW, spriteH: p.spriteH, spriteSpeed: p.spriteSpeed, spriteScale: p.spriteScale,
+    speed: Math.max(6, Math.hypot(p.vx || 0, p.vy || 0) || 11), forget: SZ_BELLY_FORGET
+  }
+}
+// Store an eaten projectile in Blinky's belly (max 3, OLDEST dropped first).
+function szBellyStore(f, p) {
+  const belly = szBellyArr(f)
+  belly.push(szSnapshotProj(p))
+  while (belly.length > SZ_BELLY_MAX) belly.shift()
+  f._szEatFx = 16   // gulp pulse (code-drawn)
+}
+// The opponent's PROJECTILE-subtype special move names (best-effort; drives the generic disabledSpecials lock).
+function szOppProjectileSpecialNames(opp) {
+  const out = []
+  const sp = opp && opp.specials
+  if (sp && typeof sp === "object") {
+    for (const k of Object.keys(sp)) { const v = sp[k]; if (v && v.subtype === "projectile") out.push(k) }
+  }
+  return out
+}
+
+// ── DISPATCHER — directional Special (reads fighter._specialHeldDir, set by game.js pre-dispatch) ──
+function executeShizukuSpecial(fighter, context) {
+  if (!szIsShizuku(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return szBlinkyPull(fighter, context)    // Forward = Blinky Pull (suction + pull-in)
+  if (dir === "B") return szBlinkySmash(fighter, context)   // Back    = Blinky Smash (heavy blunt swing)
+  if (dir === "D") return szBellySpit(fighter, context)     // Down    = Belly Spit (refire stored projectile)
+  if (dir === "U") return szDisarm(fighter, context)        // Up      = Disarm (lock foe's projectile specials)
+  return szPhantomJab(fighter, context)                     // Neutral = Phantom Jab Rush (cheap, no Blinky)
+}
+
+// N+Special — PHANTOM JAB RUSH [CANON-ADJACENT]: cheap, fast lunging Nen-fist rush. No Blinky. (2-Koma)
+function szPhantomJab(fighter, context) {
+  if (!spendEnergy(fighter, 18)) return false
+  const md = { damage: 56, startup: 6, active: 6, recovery: 14, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 124, rangeY: 56, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "shizukuPhantom", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  fighter.vx = (fighter.facing || 1) * 9   // lunge forward into the rush
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = "shizukuPhantom"; fighter._spriteCastTimer = 26
+  return true
+}
+
+// F+Special — BLINKY PULL [CANON]: suction cone eats projectiles (into the belly) and VACUUMS the opponent
+// to point-blank, then bounces them off the nozzle ("can't eat living things") → a free combo starter. CD.
+function szBlinkyPull(fighter, context) {
+  if ((fighter._szPullCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 28)) return false
+  const opp = getTargetResolver(context)(fighter)
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5, face = fighter.facing || 1
+  // Eat every opponent projectile inside the forward suction cone (projectiles only — never the living).
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (!p || p.owner === fighter || p.visualOnly) continue
+    const dx = (p.x ?? 0) - cx, dy = (p.y ?? 0) - cy
+    if (face * dx < 0) continue
+    if (Math.hypot(dx, dy) > 280) continue
+    szBellyStore(fighter, p); activeProjectiles.splice(i, 1)
+  }
+  // Reel the opponent in (shared grab-reel; combat.updateGrab eases them to `gap` px in front).
+  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0 && !opp.isGrabbed &&
+      Math.abs((opp.x || 0) - (fighter.x || 0)) < 440) {
+    opp.isGrabbed = true; opp.grabTimer = 24
+    fighter._grabPull = { gap: 34, dmg: 0, hitstun: 14 }
+    fighter._szPulling = opp   // updateShizuku applies the nozzle BOUNCE when the reel releases
+  }
+  fighter._spriteCastMove = "shizukuPull"; fighter._spriteCastTimer = 32
+  fighter._szPullFx = 20
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  fighter._szPullCd = 96
+  return true
+}
+
+// B+Special — BLINKY SMASH [CANON-ADJACENT]: heavy blunt Blinky swing + impact puffs (launcher). (4-Koma B)
+function szBlinkySmash(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  const md = { damage: 98, startup: 12, active: 5, recovery: 20, hitstun: 26, knockbackX: 14, knockbackY: -7, rangeX: 112, rangeY: 72, isSpecial: true, launcher: true, category: "launcher" }
+  const attack = createAttackFromMove(fighter, "shizukuSmash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = "shizukuSmash"; fighter._spriteCastTimer = 34
+  fighter._szSmashFx = 24   // impact puffs (code-drawn burst at the swing arc)
+  return true
+}
+
+// D+Special — BELLY SPIT [ORIGINAL]: fire the OLDEST stored projectile back as Shizuku's own, reusing that
+// projectile's original visuals + damage. Empty belly = a short puff feint.
+function szBellySpit(fighter, context) {
+  const belly = szBellyArr(fighter)
+  if (!belly.length) {
+    fighter._spriteCastMove = "shizukuSpit"; fighter._spriteCastTimer = 16
+    fighter._szFeintFx = 16   // puff feint
+    fighter.attackCooldown = getAttackDuration(14, fighter)
+    return true
+  }
+  if (!spendEnergy(fighter, 12)) return false
+  const s = belly.shift()   // oldest first
+  const face = fighter.facing || 1
+  spawnProjectile(fighter, s.name ? ("spit_" + s.name) : "shizuku_belly_spit", {
+    spawnX: fighter.x + (face === 1 ? (fighter.w || 60) + 4 : -(s.w || 16) - 4),
+    spawnY: fighter.y + (fighter.h || 100) * 0.42,
+    vx: face * (s.speed || 11), vy: 0,
+    w: s.w, h: s.h, radius: s.radius, damage: s.damage, hitstun: s.hitstun,
+    knockbackX: Math.abs(s.knockbackX || 5), knockbackY: s.knockbackY ?? -2,
+    lifetime: s.lifetime || 110, color: s.color, drawKind: s.drawKind,
+    sheet: s.sheet, spriteKey: s.spriteKey, spriteFrames: s.spriteFrames,
+    spriteW: s.spriteW, spriteH: s.spriteH, spriteSpeed: s.spriteSpeed, spriteScale: s.spriteScale,
+    isSpecial: true
+  }, context)
+  fighter._spriteCastMove = "shizukuSpit"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(18, fighter)
+  return true
+}
+
+// U+Special — DISARM [CANON]: close-range Blinky suction; on contact LOCKS the opponent's projectile
+// specials for ~3s. Dual enforcement (combat.js untouched): (a) pushes the foe's projectile-subtype
+// special names onto the GENERIC disabledSpecials hook (handlers that consult isSpecialDisabled won't
+// fire them); (b) for every other fighter, Blinky vacuums any projectile they DO deploy during the window
+// (removed from activeProjectiles in updateShizuku) — "pulled the weapon from their hand". Melee/movement
+// specials are unaffected. Reuses the 4-Koma A suction pose.
+function szDisarm(fighter, context) {
+  if ((fighter._szDisarmCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 22)) return false
+  fighter._spriteCastMove = "shizukuPull"; fighter._spriteCastTimer = 26
+  fighter._szPullFx = 18
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._szDisarmCd = 130
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated && Math.abs((opp.x || 0) - (fighter.x || 0)) < 210) {
+    const names = szOppProjectileSpecialNames(opp)
+    opp.disabledSpecials = Array.isArray(opp.disabledSpecials) ? opp.disabledSpecials : []
+    opp._szDisarmNames = names
+    for (const n of names) if (!opp.disabledSpecials.includes(n)) opp.disabledSpecials.push(n)
+    opp._szDisarmed = SZ_DISARM_DUR
+    fighter._szDisarmPop = 48   // "DISARMED" text pop
+  }
+  return true
+}
+
+// PER-FRAME TICK — belly guard-eat + forget timers, pull-bounce, disarm vacuum/lockout, FX timers.
+// Runs in updateBattle alongside updateGaara/updateHinata (BEFORE projectile movement+collision), so a
+// guard-eaten projectile is removed before combat.js can apply chip. combat.js UNTOUCHED.
+export function updateShizuku(fighter, context) {
+  if (!szIsShizuku(fighter)) return
+  const belly = szBellyArr(fighter)
+
+  // BLINKY'S BELLY (guard-eat): while blocking, swallow ONE incoming opponent PROJECTILE per frame
+  // (no chip — it's gone before collision) and store it. Summons/fighters are living → never eaten.
+  if (fighter.isBlocking) {
+    const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5, face = fighter.facing || 1
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (!p || p.owner === fighter || p.visualOnly) continue
+      const dx = (p.x ?? 0) - cx, dy = (p.y ?? 0) - cy
+      if (face * dx < 0) continue            // only what's in front of the shield
+      if (Math.hypot(dx, dy) > 150) continue
+      szBellyStore(fighter, p); activeProjectiles.splice(i, 1)
+      break                                  // one gulp per frame
+    }
+  }
+
+  // FORGETFUL: age each stored item; drop the first that expires ("...I forgot.").
+  for (let i = 0; i < belly.length; i++) {
+    belly[i].forget = (belly[i].forget || 0) - 1
+    if (belly[i].forget <= 0) { belly.splice(i, 1); fighter._szForgetPop = 46; break }
+  }
+
+  // BLINKY PULL nozzle BOUNCE: when the reel releases, pop the opponent (can't eat the living).
+  const pulled = fighter._szPulling
+  if (pulled) {
+    if (!pulled.isGrabbed) {
+      const face = fighter.facing || 1
+      pulled.vx = -face * 3; pulled.vy = -5
+      pulled.hitstun = Math.max(pulled.hitstun || 0, 16)
+      fighter._szPulling = null
+    }
+  }
+
+  // DISARM upkeep — drive the opponent's lockout (shizuku's tick owns it; the foe isn't a shizuku).
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && (opp._szDisarmed || 0) > 0) {
+    opp._szDisarmed--
+    // Vacuum any projectile the disarmed foe gets out (generic enforcement for non-vow fighters).
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (p && p.owner === opp && !p.visualOnly) activeProjectiles.splice(i, 1)
+    }
+    if (opp._szDisarmed <= 0) {
+      const names = opp._szDisarmNames || []
+      if (Array.isArray(opp.disabledSpecials)) opp.disabledSpecials = opp.disabledSpecials.filter(m => !names.includes(m))
+      opp._szDisarmNames = null
+    }
+  }
+
+  // Cooldown / FX timers.
+  for (const k of ["_szPullCd", "_szDisarmCd", "_szEatFx", "_szPullFx", "_szSmashFx", "_szFeintFx", "_szForgetPop", "_szDisarmPop"]) {
+    if ((fighter[k] || 0) > 0) fighter[k]--
+  }
+}
+
 // DISPATCHER — directional Special. Neutral (ground OR air) = Raikiri, armed in game.js canStart
 // (startKakashiWarRaikiri), so the neutral path here is a no-op.
 export function executeKakashiWarSpecial(fighter, context) {
@@ -31801,6 +32021,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (fighter.attacking) return false
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
+    case "shizuku": return executeShizukuSpecial(fighter, context)   // Blinky (Phase 2): N=Phantom Jab Rush / F=Blinky Pull (suction+reel) / B=Blinky Smash / D=Belly Spit (refire stored projectile) / U=Disarm (lock foe projectile specials). Bloodletting/Spring Cleaning ULTs = Phase 3
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
   // ADDITIVE: Naruto-universe clone-choreography — pressing Ultimate while a clone formation is staged fires
   // the Ultimate-Swarm (the 6th move). Intercepted before the signature-ultimate switch, so the character's

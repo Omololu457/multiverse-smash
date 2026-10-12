@@ -10899,7 +10899,12 @@ const shizuku = {
     air:      { frames: 4, width: 52, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_air_uniform.png" },     // B+Jump — neutral aerial
     down_air: { frames: 6, width: 46, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_down_air_uniform.png" },// Y+Jump — aerial downward
     win:   { frames: 4, width: 31, height: 51, speed: 8, anchorY: 0, loop: true, sheet: "./shizuku_win_uniform.png" },
-    lose:  { frames: 2, width: 41, height: 36, speed: 10, anchorY: 0, loop: true, sheet: "./shizuku_lose_uniform.png" }
+    lose:  { frames: 2, width: 41, height: 36, speed: 10, anchorY: 0, loop: true, sheet: "./shizuku_lose_uniform.png" },
+    // ── PHASE 2 SPECIAL CAST POSES (_spriteCastMove, identity-mapped in sprite.js MOVE_TO_ACTION) ──
+    shizukuPhantom: { frames: 6, width: 70, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_phantom_uniform.png" },  // 2-Koma Phantom Jab Rush
+    shizukuPull:    { frames: 3, width: 44, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_pull_uniform.png" },     // 4-Koma A Blinky Pull / Disarm suction
+    shizukuSmash:   { frames: 4, width: 61, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_smash_uniform.png" },    // 4-Koma B Blinky Smash
+    shizukuSpit:    { frames: 3, width: 44, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_pull_uniform.png" }       // Belly Spit (reuses the Blinky-forward pose)
   },
   // No dedicated intro strip in the batch → idle-hold intro (she settles in STANCE during the
   // intro phase). Canon intro = the Ultimate-Action conjure pose + white conjure puff (deferred FX).

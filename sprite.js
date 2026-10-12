@@ -239,6 +239,9 @@ const MOVE_TO_ACTION = {
   blKunai: "blKunai", blIaido: "blIaido", blRising: "blRising", blFeint: "blFeint", blFocus: "blFocus", blThousand: "blThousand",
   // Shisui (Trinity) — THE PUPPETEER: all jutsu share one hand-seal cast pose. (Gokakyu/Hosenka/Shuriken/Susanoo Stance+cancels/Flurry/Kotoamatsukami.)
   puCast: "puCast",
+  // Shizuku — Blinky special cast poses (_spriteCastMove). Identity maps so a cast recovery tail never
+  // resolves to the fallback box. (Phantom Jab Rush / Blinky Pull+Disarm suction / Blinky Smash / Belly Spit.)
+  shizukuPhantom: "shizukuPhantom", shizukuPull: "shizukuPull", shizukuSmash: "shizukuSmash", shizukuSpit: "shizukuSpit",
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",

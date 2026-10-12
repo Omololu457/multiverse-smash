@@ -196,5 +196,19 @@ def main():
     raw("shizuku_cutin_d.png",(378, 90, 463, 157))     # koma 4 (blinky closeup)
 
 
+def phase2():
+    # ══ PHASE 2 — BLINKY SPECIALS (2-Koma / 4-Koma A / 4-Koma B) + FX puffs ══
+    # EXCLUDE the Gon "ex." victim boxes (x270-565 y2245-2470 etc.) by capping x1 well left of them.
+    by_band("shizuku_phantom_uniform.png", 2088, 2162, x1=420, expect=6)             # 2-Koma: Phantom Jab Rush (no Blinky)
+    by_band("shizuku_pull_uniform.png",    2283, 2350, x1=240, expect=3)             # 4-Koma A: Blinky Pull (suction, w/ Blinky)
+    by_band("shizuku_smash_uniform.png",   2522, 2604, x1=310, expect=4)             # 4-Koma B: Blinky Smash (blunt swing, w/ Blinky)
+    # FX puffs (inside enclosed green boxes → direct green key)
+    green_keyed_frames("shizuku_pull_fx_uniform.png",
+                       [(88, 2372, 148, 2475), (150, 2372, 200, 2475)], feet=False)  # suction puffs / swirl
+    green_keyed_frames("shizuku_smash_fx_uniform.png",
+                       [(27, 2688, 108, 2778), (110, 2688, 190, 2778)], feet=False)  # 2 impact puffs
+
+
 if __name__ == "__main__":
     main()
+    phase2()

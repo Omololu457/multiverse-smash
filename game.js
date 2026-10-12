@@ -290,6 +290,7 @@ import {
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
   toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
   updateKakashiWar, startKakashiWarRaikiri,   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
+  updateShizuku,   // SHIZUKU (Phase 2) — per-frame tick: Blinky belly guard-eat + forget timers, pull-bounce, Disarm vacuum/lockout, FX (no-op otherwise)
   toggleKakashiWarSharingan, toggleKakashiWarFrog   // KAKASHI (KAMUI) Phase 2 Sharingan charge-TAP toggle + Phase 3 Frog Henge (Crouch+Charge-tap)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
@@ -13540,6 +13541,51 @@ function drawGaaraFx(c, fighter) {
       c.lineTo(fx, crest)
     }
     c.lineTo(wallW * 0.5, 0); c.closePath(); c.fill()
+// ── SHIZUKU FX — code-drawn belly pips + text pops + absorb tint (per the build brief: code-drawn FX only
+// for text pops / HUD pips / tints) + the sheet-sliced suction/impact puffs (real art, not invented).
+const _shizukuFxImgs = {}
+function _shizukuFxImg(src) { if (!_shizukuFxImgs[src]) { const i = new Image(); i.src = src; _shizukuFxImgs[src] = i } return _shizukuFxImgs[src] }
+;["./shizuku_pull_fx_uniform.png", "./shizuku_smash_fx_uniform.png"].forEach(_shizukuFxImg)
+function _shizukuBlitFx(c, img, frames, fi, cx, cy, sc, alpha) {
+  if (!img || !img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
+  c.save(); c.globalAlpha = alpha
+  c.drawImage(img, Math.max(0, Math.min(frames - 1, fi)) * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh); c.restore()
+}
+function drawShizukuFx(c, fighter) {
+  if (!c || !fighter) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100, cx = fighter.x + w / 2, cy = fighter.y + h * 0.5, headY = fighter.y - 6, face = fighter.facing || 1
+  // DISARMED pop sits over the VICTIM (who may be any fighter) → draw before the identity gate.
+  if ((fighter._szDisarmed || 0) > 0) {
+    c.save(); c.globalAlpha = Math.min(1, fighter._szDisarmed / 30 + 0.35)
+    c.font = "bold 13px sans-serif"; c.textAlign = "center"
+    c.lineWidth = 3; c.strokeStyle = "#0a2a3a"; c.fillStyle = "#9fe0ff"
+    c.strokeText("DISARMED", cx, fighter.y - 16); c.fillText("DISARMED", cx, fighter.y - 16); c.restore()
+  }
+  if ((fighter.rosterKey || "").toLowerCase() !== "shizuku") return
+  const sc = (fighter.spriteScale || 2) * 0.7
+  // Suction swirl (Blinky Pull / Disarm) + Blinky Smash impact puffs — sheet-FX blits.
+  if ((fighter._szPullFx || 0) > 0) _shizukuBlitFx(c, _shizukuFxImg("./shizuku_pull_fx_uniform.png"), 2, Math.floor((20 - fighter._szPullFx) / 6) % 2, cx + face * (w * 0.7 + 22), cy, sc * 0.55, Math.min(0.85, fighter._szPullFx / 14))
+  if ((fighter._szSmashFx || 0) > 0) _shizukuBlitFx(c, _shizukuFxImg("./shizuku_smash_fx_uniform.png"), 2, Math.floor((24 - fighter._szSmashFx) / 7) % 2, cx + face * (w * 0.6), cy - h * 0.12, sc * 0.5, Math.min(0.9, fighter._szSmashFx / 16))
+  // Gulp tint flash on a belly eat.
+  if ((fighter._szEatFx || 0) > 0) { c.save(); c.globalAlpha = Math.min(0.4, fighter._szEatFx / 16 * 0.4); c.fillStyle = "#bfe9ff"; c.beginPath(); c.arc(cx + face * (w * 0.5), cy, 14, 0, Math.PI * 2); c.fill(); c.restore() }
+  // BELLY PIPS — 3 amber dots above her head (filled = stored count).
+  const n = Array.isArray(fighter._szBelly) ? fighter._szBelly.length : 0
+  c.save()
+  for (let i = 0; i < 3; i++) {
+    c.globalAlpha = i < n ? 1 : 0.22; c.fillStyle = i < n ? "#ffb347" : "#6b5a3a"
+    c.beginPath(); c.arc(cx - 12 + i * 12, headY - 8, 4, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = 0.9; c.strokeStyle = "#3a2d16"; c.lineWidth = 1; c.stroke()
+  }
+  c.restore()
+  // "...I forgot." pop when a stored item expires.
+  if ((fighter._szForgetPop || 0) > 0) {
+    c.save(); c.globalAlpha = Math.min(1, fighter._szForgetPop / 20)
+    c.font = "italic 11px sans-serif"; c.textAlign = "center"; c.lineWidth = 3; c.strokeStyle = "#222"; c.fillStyle = "#d8d8ff"
+    const ty = headY - 20 - (46 - fighter._szForgetPop) * 0.3
+    c.strokeText("...I forgot.", cx, ty); c.fillText("...I forgot.", cx, ty); c.restore()
+  }
+}
     c.shadowBlur = 0; c.fillStyle = "rgba(120,96,56,0.8)"
     for (let k = 0; k < 10; k++) {
       const gx = -wallW * 0.45 + (wallW * 0.9) * ((k + 0.5) / 10)
@@ -15970,7 +16016,7 @@ function updateBattle() {
   //    sequence; their FX timers never decremented. Fixed to run every frame for Hinata + Gaara.)
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
-  { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver (no-op otherwise)
+  { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx); updateShizuku(p1, _gctx); updateShizuku(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver // SHIZUKU: Blinky belly guard-eat + forget + pull-bounce + Disarm vacuum/lockout + FX (both no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); const _rc1 = readRawControls(p1), _rc2 = readRawControls(p2); updateKakashiWar(p1, _kctx, !!_rc1?.special, _kblock, _rc1); updateKakashiWar(p2, _kctx, !!_rc2?.special, _kblock, _rc2) }   // KAKASHI (KAMUI): Raikiri charge+dash + Kawarimi + Sharingan/Kamui/Tsuiga/copy-ready + Frog Henge upkeep (rawControls → frog pop-on-button) (no-op otherwise)
@@ -16457,6 +16503,7 @@ function _drawOnlinePlaceholder() {
   ctx.fillText("ONLINE", cw / 2, ch * 0.4)
   ctx.fillStyle = "#94a3b8"; ctx.font = "18px Arial"
   ctx.fillText("Placeholder — netcode is not implemented yet.", cw / 2, ch * 0.4 + 44)
+    drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
   ctx.fillText("(Dev-unlocked entry point for future matchmaking.)", cw / 2, ch * 0.4 + 72)
   ctx.fillStyle = "#A00"; ctx.fillRect(cw / 2 - 100, ch * 0.4 + 110, 200, 46)
   ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.fillText("BACK", cw / 2, ch * 0.4 + 138)
@@ -23129,6 +23176,8 @@ gameLoop()
     kakashiAnbu: {
       state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), copyReady: f._copyReady || 0, copyCapture: f._copyCapture?.source || null, mangekyou: !!f._kanbuMangekyou, kamuiUnlocked: !!f._kamuiUnlocked, awakenFlash: f._kanbuAwakenFlash || 0, kamuiRift: !!f._kamuiRift, kamuiExhaust: f._kamuiExhaust || 0, ultVariant: f._ultVariant || null, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
+    // SHIZUKU (Phase 2) test-only reader — belly/forget/disarm/pull state + projectile-ownership counts (snapshot whitelists _sz* fields out).
+    shizukuState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), belly: Array.isArray(f._szBelly) ? f._szBelly.length : 0, bellyOldestForget: (f._szBelly && f._szBelly[0]) ? f._szBelly[0].forget : null, eatFx: f._szEatFx || 0, pullCd: f._szPullCd || 0, disarmCd: f._szDisarmCd || 0, forgetPop: f._szForgetPop || 0, disarmPop: f._szDisarmPop || 0, oppDisarmed: o ? (o._szDisarmed || 0) : 0, oppGrabbed: o ? !!o.isGrabbed : false, projSelf: activeProjectiles.filter(p => p.owner === f).length, projOpp: o ? activeProjectiles.filter(p => p.owner === o).length : 0 } },
       // KAKASHI (KAMUI) Phase 4 — Obito's Gift test hooks (bond/gift state are snapshot-hidden). Read-only state +
       // a bond setter so the live test can reach a full meter deterministically without grinding many hits.
       kakashiWarGift: (who = "p1", setBond = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (setBond != null) f._obitoBond = setBond; const ps = f._perfectSusano; return { bond: f._obitoBond || 0, gift: !!f._giftActive, giftTimer: f._giftTimer || 0, lockout: !!f._kamuiLockout, intangible: f._giftIntangible || 0, phased: !!f._kamuiPhased, exhaust: f._kamuiExhaust || 0, sharingan: !!f._sharinganActive, susano: !!ps, susanoHp: ps ? Math.round(ps.hp) : 0, susanoMax: ps ? ps.max : 0, susanoT: ps ? ps.t : 0, susanoPose: ps ? ps.pose : null, susanoAction: ps ? ps.action : null, susanoRaikiri: ps ? !!ps.raikiri : false, susanoVolley: ps ? !!ps.volley : false } },

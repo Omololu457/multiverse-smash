@@ -56,6 +56,17 @@ export const SOURCED_ART = {
     source:  "Gaara: game sprite rip (DS/DSi \"Naruto Shippuden: Ninja Council 4\" / \"Naruto: Saikyo Ninja Daikesshu 5\"; in-sheet credit box \"By: Pakis Pride — Give Credit if Used\"). Shukaku: fan boss sprite sheet by Altair (AltairFrameMaker).",
     files:   ["gaara_*_uniform.png", "DS _ DSi - Naruto Shippuden_ Ninja Council 4 - Playable Characters - Gaara.png", "shukaku_boss_sprite_sheet_altair_by_altairframemaker_de211mq.png"]
   },
+  // Meruem (Hunter x Hunter) — the source JUS sprite sheet carries a baked in-sheet credit block reading
+  // "by: Santiag02 / credits to: gameinvader / james1971" (verified at full resolution; spellings copied
+  // exactly). The sheet also embeds ONE anime screencap (x18-160 y1710-1802) used ONLY as a Royal Feast
+  // cut-in. Attribution MANDATORY. Border-flood-fill keyed (opaque navy bg) + per-action sliced
+  // (meruem_work/slice.py) → meruem_*_uniform.png.
+  meruem: {
+    work:    "Meruem (Chimera Ant King) — JUS-style sprite sheet",
+    artists: ["Santiag02", "gameinvader", "james1971"],
+    source:  "fan JUS-style sprite sheet (meruem_jus_sprite_complete_by_santiag02_de045ih.png; in-sheet credit block \"by: Santiag02 / credits to: gameinvader / james1971\"). Includes one embedded anime screencap used solely as a cut-in overlay.",
+    files:   ["meruem_*_uniform.png", "meruem_menace_purple.png", "meruem_menace_green.png", "meruem_cutin_anime.png", "meruem_jus_sprite_complete_by_santiag02_de045ih.png"]
+  },
   // Sasuke (Sensei) (Naruto) — the source sheet carries a baked header "BY: RBM-Kyuubi" plus a credits box
   // reading "CREDITS: *JUUBI *ADRIANDAN *SHINRASHI" (verified at full resolution). Attribution MANDATORY.
   // Border-flood-fill keyed + per-action sliced (tools/sasuke_sensei/) → sasuke_sensei_*_uniform.png.

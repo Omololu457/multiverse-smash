@@ -450,6 +450,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./gaara_idle_uniform.png" }
   },
 
+  // Meruem (universe: hunter_x_hunter), the Chimera Ant King — NEW additive fighter. Idle gate flips the
+  // sprite handler on; per-action rendering reads characters.js → meruem.animationData (each action carries
+  // its own .sheet). Border-flood-fill-keyed uniform strip (meruem_work/slice.py; navy santiag02 JUS sheet).
+  meruem: {
+    actions: { idle: "./meruem_idle_uniform.png" }
+  },
+
   // Kakashi (ANBU) (universe: naruto), teen-era ANBU shinobi — NEW additive fighter. Gates spritesReady()
   // by decoding the idle strip (flips from procedural box to sprite handler). Per-action rendering reads
   // characters.js → kakashiAnbu.animationData (each action carries its own .sheet). Idle = border-flood-fill-

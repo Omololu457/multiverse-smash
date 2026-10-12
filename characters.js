@@ -7018,6 +7018,94 @@ const hinata = {
 //     Stance pose (sand-wall FX drawn procedurally) · down_air = REUSE Jump Attack (no dedicated down-air
 //     on the sheet) · taunt/grab = NONE on sheet (omitted). Teleport (sand-flicker, 2f) sliced but reserved
 //     for the Phase 2 Sand Shunshin. Sabaku Taisou / cut-in / Shukaku FX rows parked for Phases 3-4.
+// ─────────────────────────────────────────────────────────────────
+// MERUEM — "The King Who Learned" (rosterKey "meruem", universe "hunter_x_hunter"). The Chimera Ant King:
+// an Emitter/aura prodigy who mastered Gungi, adapted to every opponent, and — through Komugi — learned
+// restraint. Built additively from the santiag02 JUS sheet (meruem_jus_sprite_complete_by_santiag02) —
+// opaque navy (0,64,128) bg, BORDER-FLOOD-FILL keyed (dark purple aura edges survive) + per-action uniform
+// strips (meruem_work/slice.py) → meruem_*_uniform.png. Jesus/Sakura discipline: the sprite BODY is the
+// sheet; every special EFFECT is procedural/code-drawn (abilities.js, Phases 2-4) or baked into the sheet's
+// own aura frames. combat.js is UNTOUCHED. Credited to Santiag02, gameinvader, james1971 (credits.js).
+//   STATS: top-tier HP + attack, moderate-high speed. The GROWTH systems (Never Pushed Evolution stacks,
+//     Final Hours) push damage/speed higher mid-match. maxEnergy 200 = Aura (energyConfig label "Aura").
+//   ENERGY: energyConfig.label "Aura" (purple). No voice clips (silent by design — none added).
+//   PHASE 1 ships the BODY + NORMALS (tail kit) + win/lose/intro/portrait/cut-ins + plumbing only. Specials
+//     (Aura Bullet, King's Lunge, Tail Aura Rush, Gungi Mind Stance, Photon Field, Ant King's Onslaught)
+//     wire in Phase 2; passives (Gungi Mind adaptation, Never Pushed, Final Hours, lines) in Phase 3;
+//     Aura Synthesis gauge + Royal Feast + Winged Ascension + Rage Blast in Phase 4. combat.js untouched.
+//   NORMALS: light = B family (neutral) · heavy = Y family (neutral, tail swipe) · up = Y+Up (tail-upper
+//     launcher) · air = Jump+B · down_air = Jump+Y (spinning tail). RAW damage (engine scales ×0.60).
+//   GAPS (honest, flagged — NOT invented): crouch/crouchLight = NONE on sheet (omitted, no crouchIdle) ·
+//     grab = NONE (uses the engine default grab) · taunt = NONE · run = reuses Walk · fall = reuses Jump ·
+//     charge = reuses Idle (the dedicated Alt aura-charge strip lands in Phase 2 as Photon Field). SPARE
+//     Phase-1 sheet sliced but unmapped: meruem_glide_uniform.png (Alt. prone glide) — reserved for a later
+//     dash/dodge or winged hover; reported, not wired.
+const meruem = {
+  rosterKey: "meruem", name: "Meruem", universe: "hunter_x_hunter", color: "#9b2fd6",
+  title: "The King Who Learned",
+  portrait: "./meruem_portrait.png",   // face bust cropped from the sheet's portrait region (meruem_work/slice.py)
+  archetypes: ["rushdown", "technical"],
+  primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "aggressive", animeMovement: true },
+  energyConfig: { label: "Aura", color: "#9b2fd6", glowColor: "#d98cff", emptyColor: "rgba(255,255,255,0.08)" },
+  passive: { name: "Gungi Mind", effect: "The King who mastered Gungi against Netero reads every opponent. He counts hits from each of the foe's moves; at 3 of the same move that attack is dulled (−30%) and his Defense auto-parries it ONCE with a tail counter. He has never been pushed to his limit — a combo dealing ≥25% of his HP grants an Evolution stack (+5% speed & damage, max 3/match). Below 20% HP, Final Hours awakens (+15% damage, a slow poison that can never kill him)." },
+  // TOP-TIER band (peer to Madara/Netero): high HP + attack, moderate-high speed. The growth systems
+  // (Evolution stacks + Final Hours) raise damage/speed further mid-match. maxEnergy 200 = the Aura pool
+  // (Synthesis gauge, specials, Photon Field, Royal Feast / Rage Blast).
+  stats: { maxHealth: 1340, maxEnergy: 200, attack: 98, defense: 92, speed: 92, maxJumps: 2, jumpPower: 33, dashSpeed: 16, dashDuration: 11, dashCooldownMax: 42 },
+  movement: { crouchIdle: false, dashTeleport: false },
+  // Normals (combat.js _getMD reads basic_attacks; keys map to sprite keys light/heavy/up/air/down_air).
+  // RAW damage (engine scales ×0.60). Ant striker: quick claw string (light), heavy tail swipe (heavy),
+  // rising tail-upper LAUNCHER (up), aerial claw (air), spinning-tail dive (down_air).
+  basic_attacks: {
+    light:     { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 64, rangeY: 46 },
+    heavy:     { damage: 82, startup: 9, active: 5, recovery: 17, hitstun: 18, knockbackX: 8, knockbackY: 2,  rangeX: 108, rangeY: 50 },
+    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -31, selfVy: -5, airOK: false },
+    airAttack: { damage: 58, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 },
+    downAir:   { damage: 64, startup: 7, active: 4, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 12, rangeX: 68, rangeY: 66 }
+  },
+  // KIT METADATA (Move List display; detailed copy in kits.js). Phase 1 wires NO specials (body + normals
+  // only). Canon labels: Gungi Mind / Never Pushed / Aura Synthesis / Royal Feast / Rage Blast = CANON;
+  // Photon Field = CANON-ADJACENT (photon aura scan); Aura Bullet / Tail Aura Rush = ORIGINAL (the sheet's
+  // own "others attacks (no canon)" block); King's Lunge / Ant King's Onslaught = CANON-ADJACENT. Wiring +
+  // costs land across Phases 2-4.
+  specials: {
+    auraBullet:    { cost: 18, effect: "Special: Aura Bullet — Meruem fires a compressed purple aura round (HOLD to charge the heavier variant). ORIGINAL (sheet's non-canon emitter blast)." },
+    kingsLunge:    { cost: 26, effect: "Fwd + Special: King's Lunge — a low ant-dash → flip → strike rush (6-Koma X). CANON-ADJACENT." },
+    tailAuraRush:  { cost: 24, effect: "Down + Special: Tail Aura Rush — a low aura-wreathed tail rush. ORIGINAL (sheet's non-canon tail rush)." },
+    gungiStance:   { cost: 16, effect: "Back + Special: Gungi Mind Stance — a brief read; a landed hit is answered by the tail lance, an incoming projectile is absorbed into the Aura Synthesis gauge. CANON." },
+    photonField:   { cost: 34, effect: "Up + Special: Photon Field — scatters code-drawn aura photons across the stage (~4s); while active the foe's next special NAME is read on-screen the instant they input it. CANON-ADJACENT." }
+  },
+  ultimate: { name: "Ant King's Onslaught", cost: 100, description: "Menace-panel cut-in → a 6-Koma X rush → aura-flash barrage → tail finisher. DOWN + Ultimate at full Aura Synthesis instead triggers ROYAL FEAST (heal + Winged Ascension → Rage Blast)." },
+  hasSprites: true,
+  // Idle content ≈48px × 1.9 ≈ 108px on-screen — alongside Gaara (108) / Kakashi-War (113). REQUIRES the
+  // skins.js meruem default entry or getSkins() clobbers this to 1.
+  spriteScale: 1.9,
+  animationData: {
+    // ── MOVEMENT / STATE ──
+    idle:  { frames: 1, width: 40, height: 50, speed: 10, anchorY: 0, loop: true,  sheet: "./meruem_idle_uniform.png" },
+    walk:  { frames: 4, width: 65, height: 40, speed: 7,  anchorY: 0, loop: true,  sheet: "./meruem_walk_uniform.png" },
+    run:   { frames: 4, width: 65, height: 40, speed: 6,  anchorY: 0, loop: true,  sheet: "./meruem_walk_uniform.png" },   // no run frames → reuse Walk
+    dash:  { frames: 1, width: 47, height: 50, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_dash_uniform.png" },
+    jump:  { frames: 6, width: 48, height: 68, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_jump_uniform.png" },
+    fall:  { frames: 6, width: 48, height: 68, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_jump_uniform.png" },   // reuse Jump airborne pose
+    hurt:      { frames: 4, width: 52, height: 48, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_hurt_uniform.png" },
+    knockdown: { frames: 4, width: 79, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_knockdown_uniform.png" },
+    getup:     { frames: 3, width: 56, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_getup_uniform.png" },
+    guard:     { frames: 3, width: 48, height: 47, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_block_uniform.png" },
+    intro:     { frames: 2, width: 47, height: 49, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_intro_uniform.png" },
+    win:       { frames: 2, width: 88, height: 49, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_win_uniform.png" },   // tableau: Meruem kneels + Gungi board + Komugi (scenery)
+    lose:      { frames: 1, width: 39, height: 46, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_lose_uniform.png" },
+    charge:    { frames: 1, width: 40, height: 50, speed: 10, anchorY: 0, loop: true,  sheet: "./meruem_idle_uniform.png" },   // no charge frames in P1 → reuse Idle (Alt aura-charge lands Phase 2)
+    // ── NORMALS (tail kit; FX baked into the source frames) ──
+    light:    { frames: 5, width: 69, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_light_uniform.png" },     // B — claw string
+    heavy:    { frames: 4, width: 62, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_heavy_uniform.png" },     // Y — heavy tail swipe
+    up:       { frames: 4, width: 56, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_up_uniform.png" },        // Y+Up — rising tail-upper LAUNCHER
+    air:      { frames: 4, width: 67, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_air_uniform.png" },       // Jump+B — aerial claw
+    down_air: { frames: 6, width: 68, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./meruem_downair_uniform.png" }    // Jump+Y — spinning-tail dive
+  }
+}
+
 const gaara = {
   rosterKey: "gaara", name: "Gaara", universe: "naruto", color: "#c9a24b",
   portrait: "./gaara_portrait.png",   // bust cropped from the sheet's select-portrait region (tools/gaara)
@@ -10789,6 +10877,7 @@ export const characters = {
   sasuke_sensei,
   hinata,
   gaara,
+  meruem,
   boruto,
   light,
   l_ryuuzaki: lRyuuzaki,

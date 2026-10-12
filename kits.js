@@ -409,6 +409,34 @@ export const KITS = {
     ]
   },
 
+  // Meruem — "The King Who Learned" — NEW additive fighter (hunter_x_hunter). Move list GROWS per phase;
+  // Phase 1 = normals (tail kit) + win/lose/intro + plumbing. Specials (P2), Gungi Mind/Never Pushed/Final
+  // Hours (P3), Aura Synthesis/Royal Feast/Winged Ascension/Rage Blast (P4) add rows later. combat.js untouched.
+  meruem: {
+    type: "Adaptive Rushdown / Emitter", energy: "Aura", difficulty: "Hard",
+    summary: "Meruem, the Chimera Ant King — a top-tier adaptive bruiser who LEARNS the opponent mid-match. His claw string and tail swipes pressure up close while aura rounds zone at range; his specials rush (King's Lunge), zone (Aura Bullet, Tail Aura Rush), read (Gungi Mind Stance counter/absorb) and scan (Photon Field). The passive GUNGI MIND adapts to repeated moves (−30% + a one-time tail auto-parry), NEVER PUSHED grants Evolution stacks from big combos (+speed/+damage), and FINAL HOURS awakens below 20% HP. At full Aura Synthesis, DOWN+Ultimate is ROYAL FEAST — heal + a timed Winged Ascension ending in the Rage Blast beam. Specials wire in Phase 2; passives in Phase 3; the Synthesis/Feast systems in Phase 4.",
+    passive: { name: "Gungi Mind / Never Pushed / Final Hours", effect: "GUNGI MIND [CANON]: hits are counted per opponent move; at 3 of the same move it deals −30% to Meruem and his Defense auto-parries it ONCE with a tail counter (READ), then the count drops to 2. NEVER PUSHED [CANON]: a single combo dealing ≥25% of max HP grants an Evolution stack — +5% speed & +5% damage each, max 3/match, kept across rounds, aura brightens per stack. FINAL HOURS [ORIGINAL]: when HP first drops below 20%, a short flare → +15% damage + a slow poison drain that can NEVER take him below 1 HP." },
+    basics: [
+      { name: "Claw String",   input: "Light",                   desc: "quick close claw-jab string (B family)" },
+      { name: "Tail Swipe",    input: "Heavy",                   desc: "heavy sweeping tail swipe — long reach, big knockback (Y family)" },
+      { name: "Tail Upper",    input: "Up-Attack",               desc: "launcher — rising tail-upper, starts air combos (Y+Up)" },
+      { name: "Aerial Claw",   input: "Air (jump + Light)",      desc: "aerial claw strike (Jump+B)" },
+      { name: "Spinning Tail", input: "Down-Air (jump + Heavy)", desc: "downward spinning-tail dive (Jump+Y)" }
+    ],
+    specials: [
+      { name: "Aura Bullet",       input: "Special (HOLD to charge)", cost: 18, desc: "fires a compressed purple aura round; HOLD charges a heavier variant [ORIGINAL — sheet's non-canon emitter blast] (Phase 2)" },
+      { name: "King's Lunge",      input: "Forward + Special",        cost: 26, desc: "low ant-dash → flip → strike rush (6-Koma X) [CANON-ADJACENT] (Phase 2)" },
+      { name: "Tail Aura Rush",    input: "Down + Special",           cost: 24, desc: "a low aura-wreathed tail rush [ORIGINAL — sheet's non-canon tail rush] (Phase 2)" },
+      { name: "Gungi Mind Stance", input: "Back + Special",           cost: 16, desc: "a brief read — a landed hit is answered by the tail lance; an incoming projectile is ABSORBED into the Aura Synthesis gauge [CANON] (Phase 2)" },
+      { name: "Photon Field",      input: "Up + Special",             cost: 34, desc: "scatters code-drawn aura photons across the stage (~4s); while active the foe's NEXT special NAME is read on-screen the instant they input it [CANON-ADJACENT] (Phase 2)" }
+    ],
+    passiveNote: "AURA SYNTHESIS gauge [CANON] fills from hits landed + projectiles absorbed by Gungi Mind Stance. ROYAL FEAST — DOWN + ULTIMATE at full Synthesis [CANON]: menace cut-in → flare → heal 15% max HP → WINGED ASCENSION (~10s flight form): Fwd+Special = winged dive strike, and Neutral ULTIMATE = RAGE BLAST (charge dots → bursts → a stage-long beam; huge damage; firing it ENDS the form). Cinematics (Ant King's Onslaught, Royal Feast, Final Hours) refuse during KO / Brutality / Domain / rewind. (Phases 3-4.)",
+    ultimate: { name: "Ant King's Onslaught / Royal Feast", input: "Ultimate (neutral / Down at full Synthesis)", cost: 100, desc: "NEUTRAL = Ant King's Onslaught (menace-panel cut-in → 6-Koma X rush → aura-flash barrage → tail finisher) [CANON-ADJACENT]. DOWN at full Aura Synthesis = Royal Feast (heal + Winged Ascension → Rage Blast beam) [CANON]" },
+    combos: [
+      { name: "Launch Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "tail-upper launcher into aerial pressure" }
+    ]
+  },
+
   // Kakashi (ANBU) — NEW additive fighter. Move list GROWS per phase; Phase 1 = normals + Body Flicker.
   // Sharingan toggle + Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) add rows later.
   kakashi_anbu: {

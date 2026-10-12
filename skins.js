@@ -899,6 +899,10 @@ export const SKINS = {
   // variants as recolor skins (tools/gen_hinata_recolor.py: dark-jacket → Purple/Gray/Blue via the swatch
   // LUT + nearest-palette classifier; skin/hair/sandals preserved). All free, cosmetic. recolorSkinAnim
   // maps every animationData sheet X.png → X__<tag>.png.
+  meruem: [
+    // Default only (brief). The default entry is REQUIRED — without it getSkins() forces spriteScale:1.
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.meruem?.portrait, spriteScale: characters.meruem?.spriteScale, animationData: null },
+  ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
     { id: "lavender", name: "Lavender", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },

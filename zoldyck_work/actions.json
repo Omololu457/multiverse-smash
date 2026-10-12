@@ -1,0 +1,23 @@
+[
+  {"name": "idle",     "region": [5, 336, 500, 392]},
+  {"name": "walk",     "region": [5, 416, 508, 472]},
+  {"name": "dash",     "region": [509, 416, 630, 472], "force_frames": 2},
+  {"name": "jump",     "region": [5, 500, 498, 560]},
+  {"name": "guard",    "region": [499, 496, 590, 552]},
+  {"name": "hurt",     "region": [3, 594, 260, 648]},
+  {"name": "knockdown","region": [3, 676, 360, 730]},
+  {"name": "hang",     "region": [5, 782, 110, 834]},
+  {"name": "charge",   "region": [3, 912, 95, 986]},
+  {"name": "light",    "region": [5, 1006, 328, 1066]},
+  {"name": "command",  "region": [330, 1006, 622, 1066]},
+  {"name": "palm",     "region": [5, 1094, 113, 1156], "force_frames": 3},
+  {"name": "yoyoorbit","region": [585, 1092, 1020, 1180]},
+  {"name": "air",      "region": [5, 1182, 208, 1234]},
+  {"name": "heavy",    "region": [8, 1330, 204, 1406]},
+  {"name": "yoyothrow","region": [5, 1468, 586, 1522]},
+  {"name": "claw",     "region": [10, 1576, 420, 1632]},
+  {"name": "up",       "region": [8, 1736, 125, 1796]},
+  {"name": "downair",  "region": [5, 1842, 598, 1912]},
+  {"name": "win",      "region": [8, 1980, 215, 2040]},
+  {"name": "lose",     "region": [214, 1980, 392, 2040], "gap": 2}
+]

@@ -1,0 +1,128 @@
+{
+ "idle": {
+  "name": "idle",
+  "frames": 4,
+  "w": 36,
+  "h": 44
+ },
+ "walk": {
+  "name": "walk",
+  "frames": 8,
+  "w": 50,
+  "h": 43
+ },
+ "dash": {
+  "name": "dash",
+  "frames": 2,
+  "w": 54,
+  "h": 29
+ },
+ "jump": {
+  "name": "jump",
+  "frames": 6,
+  "w": 39,
+  "h": 42
+ },
+ "guard": {
+  "name": "guard",
+  "frames": 2,
+  "w": 32,
+  "h": 44
+ },
+ "hurt": {
+  "name": "hurt",
+  "frames": 5,
+  "w": 52,
+  "h": 47
+ },
+ "knockdown": {
+  "name": "knockdown",
+  "frames": 7,
+  "w": 56,
+  "h": 46
+ },
+ "hang": {
+  "name": "hang",
+  "frames": 2,
+  "w": 36,
+  "h": 46
+ },
+ "charge": {
+  "name": "charge",
+  "frames": 2,
+  "w": 29,
+  "h": 48
+ },
+ "light": {
+  "name": "light",
+  "frames": 4,
+  "w": 45,
+  "h": 47
+ },
+ "command": {
+  "name": "command",
+  "frames": 7,
+  "w": 47,
+  "h": 51
+ },
+ "palm": {
+  "name": "palm",
+  "frames": 3,
+  "w": 37,
+  "h": 52
+ },
+ "yoyoorbit": {
+  "name": "yoyoorbit",
+  "frames": 9,
+  "w": 45,
+  "h": 80
+ },
+ "air": {
+  "name": "air",
+  "frames": 5,
+  "w": 47,
+  "h": 45
+ },
+ "heavy": {
+  "name": "heavy",
+  "frames": 4,
+  "w": 35,
+  "h": 42
+ },
+ "yoyothrow": {
+  "name": "yoyothrow",
+  "frames": 9,
+  "w": 146,
+  "h": 48
+ },
+ "claw": {
+  "name": "claw",
+  "frames": 8,
+  "w": 79,
+  "h": 48
+ },
+ "up": {
+  "name": "up",
+  "frames": 2,
+  "w": 45,
+  "h": 54
+ },
+ "downair": {
+  "name": "downair",
+  "frames": 7,
+  "w": 83,
+  "h": 63
+ },
+ "win": {
+  "name": "win",
+  "frames": 2,
+  "w": 41,
+  "h": 46
+ },
+ "lose": {
+  "name": "lose",
+  "frames": 6,
+  "w": 29,
+  "h": 48
+ }
+}

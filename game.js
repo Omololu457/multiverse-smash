@@ -20237,12 +20237,31 @@ function _padMenuRects() {
     case GAME_STATES.SELECT_EDO_BACKUP:return getCharacterCardRects(canvas, getEdoBackupRoster())
     case GAME_STATES.SELECT_SKIN:      return getSkinSelectRects(canvas, getSkins(matchConfig[skinSelectSide + "CharKey"]).length)
     case GAME_STATES.SELECT_STAGE:     return getStageCardRects(canvas, stages)
+    case GAME_STATES.ACADEMY: {
+      const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses())
+      const cards = L.cards.map(c => ({ id: "card:" + c.key, x: c.x, y: c.y, w: c.w, h: c.h }))
+      return [...cards, ...L.filterRects, getAcademyBackButton(canvas)]
+    }
+    case GAME_STATES.ACADEMY_CHAR: {
+      const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
+      const btns = []
+      for (const r of L.rows) { if (r.type !== "row" || r.y < L.listY - 2 || r.y > L.listY + L.listH + 2) continue; if (r.showRect) btns.push(r.showRect); if (r.tryRect) btns.push(r.tryRect); if (r.freeRect) btns.push(r.freeRect) }
+      return [...btns, getAcademyBackButton(canvas)]
+    }
     default: return null
   }
 }
 
 // For scrollable card grids, keep the pad selection inside the viewport by scrolling the grid to follow it.
 function _padEnsureVisible(idx) {
+  // CHARACTER ACADEMY grids use their own scroll vars (not the standard grid system) — keep the pad selection in view.
+  if (gameState === GAME_STATES.ACADEMY || gameState === GAME_STATES.ACADEMY_CHAR) {
+    const rects = _padMenuRects(); const r = rects && rects[idx]; if (!r) return
+    const top = gameState === GAME_STATES.ACADEMY ? 150 : 150, bot = canvas.height - 74
+    if (r.y < top) { const d = top - r.y; if (gameState === GAME_STATES.ACADEMY) academyScroll = Math.max(0, academyScroll - d); else academyCharScroll = Math.max(0, academyCharScroll - d) }
+    else if (r.y + r.h > bot) { const d = (r.y + r.h) - bot; if (gameState === GAME_STATES.ACADEMY) academyScroll += d; else academyCharScroll += d }
+    return
+  }
   const g = activeScrollGrid(); if (!g) return
   const vp = getGridViewport(canvas, g.opts)
   const rects = _padMenuRects(); const r = rects && rects[idx]; if (!r) return

@@ -83,9 +83,9 @@ try {
   { const log = await sfxLog(); check("PAPER cast fires a paper-pool line", hasGon(log, /_ken_block_completely/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("PAPER does NOT fire gonnen_017", !has017(log), ""); }
 
   // ── (2) LIVE: Rush rekka opener ──
-  section("live: Rush rekka opener (Down+Heavy)");
+  section("live: Rush rekka opener (Forward+Heavy)");   // combo-string standardization: rekka is Forward+Heavy (was Down+Heavy)
   await ready(); await clearSfx();
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(3); await page.keyboard.up("k"); await page.keyboard.up("s"); await waitFrames(6);
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(3); await page.keyboard.up("k"); await page.keyboard.up("d"); await waitFrames(6);
   { const log = await sfxLog(); check("Rush opener fires a rekka-pool line", hasGon(log, /_(sword_ken|come_sword_technique)/), log.filter(f=>/^gonnen/.test(f)).join(",")); check("Rush does NOT fire gonnen_017", !has017(log), ""); }
 
   // ── (2) LIVE: combatBark (attacker) + hitReact (defender) via a mirror heavy connect ──

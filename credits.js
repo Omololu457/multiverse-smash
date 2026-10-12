@@ -18,6 +18,16 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  // Gon Freecss (Hunter x Hunter) — RE-SKINNED (2026-10-11) onto a fan JUS-style sheet credited in-sheet to
+  // an in-sheet block "Don't forgot to give credits to: AmandioHype / sonictheminecrafthog" (verified full-res).
+  // Attribution MANDATORY. Border-flood-fill keyed + per-action sliced (gon_work/slice.py) → gon_*_uniform.png.
+  // The 7 embedded manga screencaps are used solely as Jajanken chant cut-in overlays (gon_cutins.png).
+  gon: {
+    work:    "Gon Freecss (Hunter x Hunter) — AmandioHype JUS re-skin (deeper Jajanken + Adult-Form kit)",
+    artists: ["AmandioHype", "sonictheminecrafthog"],
+    source:  "fan JUS-style sprite sheet (gon_freecss_sprites_jus_white_outfit__by_amandiohype_dcbpr6f.png; in-sheet credit block \"AmandioHype / sonictheminecrafthog\"). Includes 7 embedded manga screencaps used solely as Jajanken chant cut-in overlays.",
+    files:   ["gon_*_uniform.png", "gon_portrait.png", "gon_cutins.png", "gon_freecss_sprites_jus_white_outfit__by_amandiohype_dcbpr6f.png"]
+  },
   // Madara Uchiha — WAR UPGRADE sources (base body sprites = project-adapted; these THREE named fan sheets add
   // the Susano'o / Katon / Mokuton / Rinnegan / Edo-Tensei content). Attribution MANDATORY — M's sheet note
   // explicitly reads "give credits if used".
@@ -590,7 +600,7 @@ export const PROJECT_ART_KEYS = [
   "rick", "morty", "evilMorty", "rickPrime",
   "beerus", "ben10", "albedo", "omniman",
   "omega_ranger", "samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger",
-  "netero", "saiki", "killua", "flash", "gon", "batman", "hisoka", "superman",
+  "netero", "saiki", "killua", "flash", "batman", "hisoka", "superman",   // gon MOVED to SOURCED_ART (AmandioHype re-skin)
   "chrollo", "ghostface", "miwa", "ichigo", "zaraki", "zaraki_shikai",
   // Toji Fushiguro (JJK) — JUS-style sheet titled only "Toji sprite jus sheet"; VERIFIED to carry NO
   // artist/ripper/watermark text anywhere on-sheet or in any (generic toji_*.png) filename. A real,

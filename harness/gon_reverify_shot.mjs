@@ -87,14 +87,14 @@ try {
     if (shotName) await shot(shotName);
     await waitFrames(20);
   }
-  // Rekka opener = Down HELD + Heavy pressed.
+  // Rekka opener = Forward HELD + Heavy pressed (combo-string standardization; was Down+Heavy).
   async function fireRekka(label, expected) {
     await waitActionable();
     await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.fillEnergy?.(); });
     await waitFrames(4);
-    await page.keyboard.down("s"); await waitFrames(2);
+    await page.keyboard.down("d"); await waitFrames(2);
     await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
-    await page.keyboard.up("s");
+    await page.keyboard.up("d");
     let seen = null;
     for (let i = 0; i < 8; i++) { const a = String((await rinfo())?.action || "").toLowerCase(); if (a === expected) { seen = a; break; } await waitFrames(2); }
     check(`${label} plays its own animation (action=${expected})`, seen === expected, `saw=${seen || (await rinfo())?.action}`);
@@ -103,7 +103,7 @@ try {
   await fireSpecial("Jajanken ROCK (neutral+Special)", null, "rock", "gon_jajanken_rock.png");
   await fireSpecial("Jajanken SCISSORS (Forward+Special)", "d", "scissors", "gon_jajanken_scissors.png");
   await fireSpecial("Jajanken PAPER (Down+Special)", "s", "paper", "gon_jajanken_paper.png");
-  await fireRekka("Rush rekka opener (Down+Heavy)", "rush1");
+  await fireRekka("Rush rekka opener (Forward+Heavy)", "rush1");
 } catch (e) {
   console.error("  ❌ harness error:", e.message);
   FAIL++;

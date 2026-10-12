@@ -4362,18 +4362,21 @@ const flash = {
 
 // ─────────────────────────────────────────────────────────────────
 // GON FREECSS  (rosterKey "gon", universe "hunter_x_hunter" — 3rd HxH char after
-// Netero & Killua). Source art = ~33 per-action PNGs (gon_*.png) + two master
-// reference sheets (gon_freecss_transparent.png = FX, gon_freecss_transparent_2.png =
-// LABELED body-pose rows). No standalone idle → the STANCE row was extracted from the
-// master sheet (gon_idle.png) and, with every movement strip, RE-SLICED to uniform
-// feet-aligned cells (tools/reslice_strip.mjs → *_uniform.png). See GON_ASSET_MAP.md.
+// Netero & Killua). ★ RE-SKINNED (2026-10-11) onto the AmandioHype JUS sheet
+// (gon_freecss_sprites_jus_white_outfit__by_amandiohype_dcbpr6f.png, 1524×4648, opaque
+// green bg + noise). Border-flood-fill keyed, then every row RE-SLICED to uniform
+// feet-aligned cells (gon_work/slice.py → gon_*_uniform.png). The sheet's richer kit
+// (fishing rod, 7 Koma manga-panel cut-ins, its own Killua frames, Adult-Gon black-
+// silhouette transform, Ren/Fury/Ground-Breaker Koma rows) powers the deeper Jajanken
+// build. Credits: AmandioHype + sonictheminecrafthog. See GON_ASSET_MAP.md / gon_work/.
 // Archetype: BALANCED ALL-ROUNDER (Netero-shape but less spiky — solid HP/def, mid
 // speed; identity = Jajanken + the Adult-Form ultimate, not a movement gimmick).
-// Stage 1 = registration + movement/state only; normals/Jajanken/Adult-Form land later.
+// Phase 1 = re-skin body/normals/rod + mugshot/cut-ins/credits/plumbing (kit logic kept);
+// Phase 2 = HOLD-chant Jajanken + Rod/Ren/Fury/Ground-Breaker; Phase 3 = Vow/Killua/Full-Chant.
 // ─────────────────────────────────────────────────────────────────
 const gon = {
   rosterKey: "gon", name: "Gon Freecss", universe: "hunter_x_hunter", color: "#4caf50",
-  portrait: "./gon_portrait.png",   // celebrate/arm-raised pose CROPPED from the master sheet (gon_freecss_transparent_2.png top-left).
+  portrait: "./gon_portrait.png",   // arm-raised mugshot CROPPED from the AmandioHype sheet (x0-220 y20-305), green-keyed transparent.
   archetypes: ["balanced"],
   primary: "balanced", secondary: [],
   // BALANCED ALL-ROUNDER. vs Netero (HP980/atk98/def82/spd94 = glass-cannon burst): Gon is
@@ -4392,49 +4395,50 @@ const gon = {
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
   },
   hasSprites: true,
-  // spriteScale 2.5 → idle content 45px × 2.5 ≈ 112px on-screen (roster band ~110–116; see
+  // spriteScale 2.12 → idle content 44px × 2.12 × 1.18 ≈ 110px on-screen (roster band ~110–116; see
   // [[sprite-size-normalization]]). REQUIRES the skins.js `gon` default skin (else applySkin()
   // pulls the getSkins() spriteScale:1 fallback → native ~half size) + the spritesheets.js gate.
-  spriteScale: 2.12,   // HEIGHT-REF: canon 154cm (age-12 base form) → target ~96px (was 2.5). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.12/2.5).
-  // anchorY = -(bottom transparent gap × 2.5); every resliced cell has botGap 1 → -2, feet planted.
+  spriteScale: 2.12,   // HEIGHT-REF: canon 154cm (age-12 base form). AmandioHype sheet re-skin (gon_work/slice.py).
+  // anchorY 0 — slicer bottom-aligns every uniform cell's content (botGap 0), so feet are planted.
   animationData: {
-    idle:  { frames: 4, width: 36, height: 47, speed: 8, anchorY: -2, sourceY: 0, sheet: "./gon_atlas.png" },
-    walk:  { frames: 8, width: 49, height: 46, speed: 6, anchorY: -2, sourceY: 47, sheet: "./gon_atlas.png" },   // MOVE row (run cycle), played slower for walk
-    run:   { frames: 8, width: 49, height: 46, speed: 4, anchorY: -2, sourceY: 47, sheet: "./gon_atlas.png" },
-    dash:  { frames: 2, width: 43, height: 43, speed: 3, anchorY: -2, sourceY: 93, sheet: "./gon_atlas.png" },
-    jump:  { frames: 7, width: 40, height: 47, speed: 5, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 136, sheet: "./gon_atlas.png" },
-    fall:  { frames: 1, width: 40, height: 47, speed: 5, anchorY: -2, sourceX: 240, loop: false, lockLastFrame: true, sourceY: 136, sheet: "./gon_atlas.png" },   // hold jump's last (apex/descend) cell
-    guard: { frames: 3, width: 37, height: 45, speed: 8, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 183, sheet: "./gon_atlas.png" },
-    hurt:  { frames: 4, width: 42, height: 45, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 228, sheet: "./gon_atlas.png" },
-    // ── STAGE 2 NORMALS (5 slots). Resliced uniform cells; play once, hold last frame. ──
-    light:    { frames: 3,  width: 50, height: 47, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 273, sheet: "./gon_atlas.png" },   // quick forward punch
-    heavy:    { frames: 7,  width: 50, height: 42, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 320, sheet: "./gon_atlas.png" },  // committed forward lunge/tackle
-    up:       { frames: 7,  width: 58, height: 58, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 362, sheet: "./gon_atlas.png" },   // rising kick launcher
-    air:      { frames: 8,  width: 35, height: 51, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 420, sheet: "./gon_atlas.png" },      // neutral aerial punch
-    down_air: { frames: 3,  width: 36, height: 46, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 471, sheet: "./gon_atlas.png" },        // downward dive
+    idle:  { frames: 4, width: 38, height: 44, speed: 8, anchorY: 0, sheet: "./gon_idle_uniform.png" },     // STANCE row (AmandioHype sheet)
+    walk:  { frames: 8, width: 51, height: 44, speed: 6, anchorY: 0, sheet: "./gon_walk_uniform.png" },     // MOVE row (run cycle), played slower for walk
+    run:   { frames: 8, width: 51, height: 44, speed: 4, anchorY: 0, sheet: "./gon_walk_uniform.png" },
+    dash:  { frames: 2, width: 45, height: 38, speed: 3, anchorY: 0, sheet: "./gon_dash_uniform.png" },
+    jump:  { frames: 7, width: 42, height: 45, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },
+    fall:  { frames: 1, width: 42, height: 45, speed: 5, anchorY: 0, sourceX: 252, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },   // hold jump's last (apex/descend) cell
+    guard: { frames: 3, width: 39, height: 43, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_guard_uniform.png" },
+    hurt:  { frames: 4, width: 44, height: 45, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_hurt_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots) re-skinned onto the AmandioHype sheet. Uniform feet-aligned
+    // cells (gon_work/slice.py); play once, hold last frame. MAPPING (see PHASE-1 ledger):
+    // light→B Attack · heavy→Y+Forward · up→B+Up somersault (anti-air, gold Nen arc) ·
+    // air→B+Jump · down_air→Y+Jump (aerial rock-throw dive). ──
+    light:    { frames: 3, width: 52, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_light_uniform.png" },    // B Attack — quick forward punch (impact rings)
+    heavy:    { frames: 7, width: 52, height: 40, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_heavy_uniform.png" },    // Y+Forward — committed forward strike (Y family)
+    up:       { frames: 7, width: 60, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_up_uniform.png" },       // B+Up — gold somersault kick (anti-air launcher)
+    air:      { frames: 3, width: 38, height: 42, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_air_uniform.png" },      // B+Jump — neutral aerial
+    down_air: { frames: 6, width: 54, height: 49, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_yjump_uniform.png" },    // Y+Jump — aerial rock-throw dive
     // ── STAGE 2 COMMAND-NORMAL CHAIN — "Rush" (Down+Heavy rekka, cancel-on-hit; Flash architecture).
-    // rush1 = rapid second-hit flurry → rush2 = big launching finisher. currentMove drives the sprite.
-    rush1: { frames: 4,  width: 55, height: 24, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 517, sheet: "./gon_atlas.png" },
-    rush2: { frames: 10, width: 82, height: 82, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 541, sheet: "./gon_atlas.png" },
-    // ── STAGE 3 JAJANKEN (3 separate specials on separate inputs). currentMove drives the sprite. ──
-    rock:     { frames: 10, width: 63, height: 47, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 623, sheet: "./gon_atlas.png" },      // charge-windup → devastating punch (built-in telegraph frames)
-    paper:    { frames: 5,  width: 43, height: 50, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 670, sheet: "./gon_atlas.png" },     // open-palm push
-    scissors: { frames: 12, width: 59, height: 48, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 720, sheet: "./gon_atlas.png" },  // rapid multi-hit jab string
-    // ── HOLD-TO-CHARGE — Nen-charging pose (hold P). Dedicated 2-frame Nen-aura buildup strip
-    // (gon_charge_default_charge_animation.png, 126×78 → 2 · 63×78; the two aura poses alternate
-    // while held). Rendered by sprite.js when isCharging (the universal hold-to-charge sets it for
-    // any maxEnergy>0 char). Without this key the charge state fell through to the idle pose — the
-    // art existed on disk but was never wired into animationData. botGap 3 → anchorY -(3×2.5)≈-7.
-    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -6, loop: true, sourceY: 768, sheet: "./gon_atlas.png" },
-    // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
-    // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
-    // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.
-    // Atlas bands repacked in-place to DROP blank speck-phantom cells (transform had 1 at cell 5;
-    // finalblow had 3 at cells 3,5,6) that made Gon flicker invisible mid-cinematic. Real poses only:
-    // transform 14→13f, finalblow 16→13f. Standalone gon_*_uniform.png also repacked (atlas source).
-    transform: { frames: 13, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 846, sheet: "./gon_atlas.png" },   // child→adult growth (cinematic pose)
-    finalblow: { frames: 13, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 1066, sheet: "./gon_atlas.png" }     // the sudden-death decisive strike
-    // (no adult idle/walk/attack art in the batch → Adult Form is a BUFF-MODE overlay on the child body,
+    // rush1 = B+Forward flurry opener → rush2 = Y Attack charge→aura-ball launching finisher. ──
+    rush1: { frames: 5,  width: 45, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_bforward_uniform.png" },
+    rush2: { frames: 12, width: 61, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_yattack_uniform.png" },
+    // ── STAGE 3 JAJANKEN (3 separate specials on separate inputs — Phase 1 keeps existing wiring;
+    // the HOLD-chant system lands in Phase 2). rock→4 Koma A (punch+rock) · paper→2 Koma (aura ball)
+    // · scissors→Y+Up (rising Nen blade). currentMove drives the sprite. ──
+    rock:     { frames: 14, width: 65,  height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_rock_uniform.png" },       // 4 Koma A — charge → devastating punch + rock debris
+    paper:    { frames: 15, width: 65,  height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_paper_uniform.png" },      // 2 Koma — Nen aura-ball emission
+    scissors: { frames: 9,  width: 146, height: 78, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_scissors_uniform.png" },  // Y+Up — rising transmuted Nen blade
+    // ── HOLD-TO-CHARGE — Nen-gathering pose (hold P). Ultimate-Action aura-flare strip (2f, loops
+    // while held). Rendered by sprite.js when isCharging (universal hold-to-charge for any maxEnergy>0
+    // char). In Phase 2 this same key drives the Jajanken CHANT stages. ──
+    charge: { frames: 2, width: 59, height: 63, speed: 6, anchorY: 0, loop: true, sheet: "./gon_charge_uniform.png" },
+    // ── STAGE 4 — ADULT FORM (Ultimate). The 7-Koma-A rows: `transform` = child kneel/charge →
+    // black-silhouette flash → ADULT GON forms (row 1); `finalblow` = the adult Rock charge → blast
+    // → final pose (row 2, the all-or-nothing sudden-death). The adult cells are ~216px tall →
+    // actionScale 0.42 shrinks them to a ~2× intimidating grown silhouette vs child Gon. ──
+    transform: { frames: 15, width: 259, height: 216, speed: 4, anchorY: 0, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_transform_uniform.png" },   // child→adult growth (cinematic pose)
+    finalblow: { frames: 12, width: 193, height: 215, speed: 3, anchorY: 0, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_finalblow_uniform.png" }     // the sudden-death decisive strike (adult Rock blast)
+    // (no adult idle/walk art in the batch → Adult Form is a BUFF-MODE overlay on the child body,
     //  like Godspeed/Flash Time; a full adult body-swap is a deferred visual-polish item.)
   },
   // No dedicated intro strip in the batch → idle-hold intro (the fighter settles in his STANCE

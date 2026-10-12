@@ -550,9 +550,9 @@ export const SPRITE_MANIFEST = {
 
   // Gon Freecss (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Gon from procedural box to sprite. Per-action rendering reads characters.js → gon.animationData
-  // (each action carries its own .sheet). idle = the STANCE row extracted from the master sheet + resliced.
+  // (each action carries its own .sheet). idle = the STANCE row from the AmandioHype sheet, resliced.
   gon: {
-    actions: { idle: "./gon_atlas.png" }   // ATLASED (Stage 22B) — spritesReady decodes the atlas
+    actions: { idle: "./gon_idle_uniform.png" }   // AmandioHype re-skin (2026-10-11) — per-action uniform strips
   },
 
   // The Flash (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip →

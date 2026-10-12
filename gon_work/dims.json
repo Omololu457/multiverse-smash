@@ -1,0 +1,212 @@
+{
+ "idle": {
+  "name": "idle",
+  "frames": 4,
+  "w": 38,
+  "h": 44
+ },
+ "walk": {
+  "name": "walk",
+  "frames": 8,
+  "w": 51,
+  "h": 44
+ },
+ "dash": {
+  "name": "dash",
+  "frames": 2,
+  "w": 45,
+  "h": 38
+ },
+ "jump": {
+  "name": "jump",
+  "frames": 7,
+  "w": 42,
+  "h": 45
+ },
+ "guard": {
+  "name": "guard",
+  "frames": 3,
+  "w": 39,
+  "h": 43
+ },
+ "hurt": {
+  "name": "hurt",
+  "frames": 4,
+  "w": 44,
+  "h": 45
+ },
+ "ko": {
+  "name": "ko",
+  "frames": 9,
+  "w": 57,
+  "h": 36
+ },
+ "hang": {
+  "name": "hang",
+  "frames": 6,
+  "w": 47,
+  "h": 46
+ },
+ "charge": {
+  "name": "charge",
+  "frames": 2,
+  "w": 59,
+  "h": 63
+ },
+ "light": {
+  "name": "light",
+  "frames": 3,
+  "w": 52,
+  "h": 45
+ },
+ "bforward": {
+  "name": "bforward",
+  "frames": 5,
+  "w": 45,
+  "h": 48
+ },
+ "rod": {
+  "name": "rod",
+  "frames": 9,
+  "w": 67,
+  "h": 46
+ },
+ "up": {
+  "name": "up",
+  "frames": 7,
+  "w": 60,
+  "h": 60
+ },
+ "air": {
+  "name": "air",
+  "frames": 3,
+  "w": 38,
+  "h": 42
+ },
+ "yattack": {
+  "name": "yattack",
+  "frames": 12,
+  "w": 61,
+  "h": 45
+ },
+ "heavy": {
+  "name": "heavy",
+  "frames": 7,
+  "w": 52,
+  "h": 40
+ },
+ "ydown": {
+  "name": "ydown",
+  "frames": 10,
+  "w": 65,
+  "h": 45
+ },
+ "scissors": {
+  "name": "scissors",
+  "frames": 9,
+  "w": 146,
+  "h": 78
+ },
+ "yjump": {
+  "name": "yjump",
+  "frames": 6,
+  "w": 54,
+  "h": 49
+ },
+ "win": {
+  "name": "win",
+  "frames": 5,
+  "w": 42,
+  "h": 48
+ },
+ "lose": {
+  "name": "lose",
+  "frames": 3,
+  "w": 32,
+  "h": 39
+ },
+ "paper": {
+  "name": "paper",
+  "frames": 15,
+  "w": 65,
+  "h": 45
+ },
+ "rock": {
+  "name": "rock",
+  "frames": 14,
+  "w": 65,
+  "h": 45
+ },
+ "koma4a_fx": {
+  "name": "koma4a_fx",
+  "frames": 3,
+  "w": 116,
+  "h": 100
+ },
+ "koma4b": {
+  "name": "koma4b",
+  "frames": 10,
+  "w": 41,
+  "h": 47
+ },
+ "killua": {
+  "name": "killua",
+  "frames": 6,
+  "w": 134,
+  "h": 46
+ },
+ "orb": {
+  "name": "orb",
+  "frames": 4,
+  "w": 78,
+  "h": 69
+ },
+ "renpillar": {
+  "name": "renpillar",
+  "frames": 6,
+  "w": 53,
+  "h": 66
+ },
+ "furybubble": {
+  "name": "furybubble",
+  "frames": 2,
+  "w": 60,
+  "h": 63
+ },
+ "furydust": {
+  "name": "furydust",
+  "frames": 6,
+  "w": 100,
+  "h": 32
+ },
+ "groundbrk": {
+  "name": "groundbrk",
+  "frames": 8,
+  "w": 58,
+  "h": 44
+ },
+ "gb_crater": {
+  "name": "gb_crater",
+  "frames": 5,
+  "w": 132,
+  "h": 100
+ },
+ "fullchant": {
+  "name": "fullchant",
+  "frames": 19,
+  "w": 78,
+  "h": 64
+ },
+ "transform": {
+  "name": "transform",
+  "frames": 15,
+  "w": 259,
+  "h": 216
+ },
+ "finalblow": {
+  "name": "finalblow",
+  "frames": 12,
+  "w": 193,
+  "h": 215
+ }
+}

@@ -1174,15 +1174,17 @@ export const SKINS = {
     { id: "killuaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },
   ],
 
-  // Gon Freecss (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin() pulls the
-  // getSkins() spriteScale:1 fallback and he renders at native ~half size. Sources his real
-  // spriteScale (2.5) + portrait from the character.
+  // Gon Freecss (Hunter x Hunter) — AmandioHype re-skin (2026-10-11). Same gate: WITHOUT a default skin,
+  // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~half size. Sources
+  // his real spriteScale + portrait from the character. ★ The former baked recolor skins (Albedo/Valkyrie/
+  // Alien X) relied on per-action `__tag.png` sheets generated against the OLD atlas — those don't exist
+  // for the new per-action sheets, so they are now render-time TINT washes (ids/names kept so saved
+  // selections still resolve), consistent with the new white-outfit body. No baked recolor art needed.
   gon: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "gonAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("gon", "albedo"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "albedo") },
-    { id: "gonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gon", "valkyrie"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "valkyrie") },
-    { id: "gonAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gon", "alienx"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "alienx") },
+    { id: "gonAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#cfd6e6", tintStrength: 0.38 },
+    { id: "gonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#d9a63c", tintStrength: 0.38 },
+    { id: "gonAlienX",   name: "Alien X",  unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#5a3fcf", tintStrength: 0.42 },
     // Stage 23 auto-palettes — default art + a render-time colour wash (no baked art), the same
     // mechanism as the "Pink Fit" tint skin. Gives every roster fighter ≥3 palettes.
     { id: "gon_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },

@@ -60,11 +60,12 @@ ok(Math.round(hp1) === Math.round(hp0), `NO chip damage taken on the eat (hp ${M
 await shot("06_belly_eat_pip");
 
 // ── 3) BELLY SPIT — refire the stored projectile as Shizuku's OWN ──
-await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.fillEnergy?.(); });
+// Push the foe FAR first so the spat projectile doesn't instantly connect+despawn before we read it.
+await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.fillEnergy?.(); try { window.__harness.setP2X?.((window.__harness.p1().x || 0) + 520); } catch (_) {} });
 await waitFrames(2);
 const before = await sz("p1");
 await specialDir("D");
-await waitFrames(3);
+await waitFrames(1);                               // read the same frame it spawns (before it can travel/hit)
 const after = await sz("p1");
 ok(before.belly >= 1 && after.belly === before.belly - 1, `Belly Spit consumed the oldest stored item (belly ${before.belly}→${after.belly})`);
 ok(after.projSelf >= 1, `Belly Spit launched a projectile OWNED BY shizuku (projSelf=${after.projSelf})`);

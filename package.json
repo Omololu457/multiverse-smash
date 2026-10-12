@@ -70,6 +70,7 @@
     "test:academy-coverage": "node harness/academy_coverage.mjs",
     "test:academy-p1": "node harness/academy_phase1_live.mjs",
     "test:academy-p2": "node harness/academy_phase2_live.mjs",
+    "test:academy-p4": "node harness/academy_phase4_live.mjs",
     "test:combo-stage-b": "node harness/combo_stage_b.test.mjs",
     "test:combo-stage-c": "node harness/combo_stage_c.test.mjs",
     "test:combo-stage-d": "node harness/combo_stage_d.test.mjs",

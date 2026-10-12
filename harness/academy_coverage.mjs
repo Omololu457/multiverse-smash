@@ -34,7 +34,7 @@ let tested = 0, fired = 0;
 const t0 = Date.now();
 for (const key of roster) {
   const lessons = await page.evaluate(k => window.__harness.academy.lessons(k), key);
-  const fireable = lessons.filter(l => l.cat !== "passive");
+  const fireable = lessons.filter(l => l.cat !== "passive" && l.cat !== "guided");   // guided (curated) lessons are verified by academy_phase4_live
   let f = 0;
   for (const l of fireable) {
     const d = await page.evaluate(([k, i]) => { window.__harness.academy.openChar(k); return window.__harness.academy.drill(i, "showme"); }, [key, l.i]);

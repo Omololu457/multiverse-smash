@@ -378,6 +378,7 @@ import * as tutorial from "./tutorial.js"                   // first-boot guided
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import * as academy from "./academy.js"   // CHARACTER ACADEMY — lesson generation, device labels, SHOW-ME scripts, read-only detection, local progress (additive, isolated)
 import { academyTagsFor, scenarioFromTags } from "./academyTags.js"   // CHARACTER ACADEMY — per-move scenario tags → dummy behaviour + state setup (separate data file, no kit edits)
+import { curatedFor, curatedFighters } from "./academyCurated.js"   // CHARACTER ACADEMY — hand-tuned multi-step lessons for complex fighters (separate data file)
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
@@ -18960,9 +18961,18 @@ function getAcademyFilteredRoster() {
     (academyUniverse === "All" || c.universeLabel === academyUniverse) &&
     (!q || c.name.toLowerCase().includes(q) || c.key.toLowerCase().includes(q)))
 }
+// The full lesson list for a fighter = GUIDED (curated multi-step) first, then the auto-generated per-move lessons.
+// Shared by the cache, the index-based drill, and the test hooks so every index agrees.
+function _academyFlatLessons(key) {
+  const guided = curatedFor(key).map((cl, i) => ({
+    id: `${key}:guided:${i}:${(cl.name || "").replace(/\s+/g, "_")}`, section: "Guided Lessons",
+    name: cl.name, input: `${cl.steps.length}-step lesson`, desc: cl.desc, cat: "guided", steps: cl.steps,
+  }))
+  return guided.concat(academy.buildCharacterLessons(key, characters[key]))
+}
 function _academyLessons() {
   if (!academyLessonsCache || academyLessonsCache.key !== academyCharKey) {
-    const flat = academy.buildCharacterLessons(academyCharKey, characters[academyCharKey])
+    const flat = _academyFlatLessons(academyCharKey)
     academyLessonsCache = { key: academyCharKey, flat, groups: academy.groupLessons(flat) }
   }
   return academyLessonsCache
@@ -19014,10 +19024,12 @@ function academySnapshot(f) {
 // pipeline; sets academySession so the per-frame hooks drive SHOW ME / TRY IT. FREE PRACTICE leaves training live.
 function startAcademyDrill(lesson, mode) {
   const key = academyCharKey; if (!key || !characters[key]) return
-  // PHASE 2 — SCENARIO: infer the move's tags → a descriptor → apply it to THIS match only.
-  const tags = academyTagsFor(lesson, key)
-  const sc = scenarioFromTags(tags)
-  const oppKey = (sc.opponent && characters[sc.opponent]) ? sc.opponent : key   // opponent:<key> or a mirror dummy
+  // Curated lessons are multi-step; a normal lesson is a single step. Steps reuse the lesson shape.
+  const steps = (lesson.cat === "guided" && Array.isArray(lesson.steps) && lesson.steps.length)
+    ? lesson.steps : [{ name: lesson.name, input: lesson.input, cat: lesson.cat, desc: lesson.desc, tags: academyTagsFor(lesson, key) }]
+  // The opponent is fixed for the whole lesson — the first step that names one wins (else a mirror dummy).
+  let oppKey = key
+  for (const s of steps) { const t = s.tags || academyTagsFor(s, key); const o = t.find(x => x.startsWith("opponent:")); if (o && characters[o.slice(9)]) { oppKey = o.slice(9); break } }
   matchConfig.mode = "training"; matchConfig.aiDifficulty = "dummy"
   matchConfig.p1CharKey = key; matchConfig.p1Char = characters[key]
   matchConfig.p2CharKey = oppKey; matchConfig.p2Char = characters[oppKey]
@@ -19026,12 +19038,22 @@ function startAcademyDrill(lesson, mode) {
   startMatch()
   trainingState.enabled = true; trainingState.infiniteResources = true; trainingState.dummyBehavior = "stand"
   matchIntroTimer = 0; countdown = 0; gameState = GAME_STATES.BATTLE
-  academySession = { lesson, mode, tags, script: academy.scriptForInput(lesson.input, lesson.cat), frame: 0, _sub: 0,
-    baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR,
-    _p2Fire: false, notes: sc.notes, _followup: sc.followup, opponent: oppKey }
-  _academyApplyScenario(sc)
-  academySession._startSnap = academySnapshot(p1); academySession._fired = false   // Phase 3 coverage: latch if the move fires
-  if (mode === "showme") academySession.demoSpeed = 1
+  academySession = { parent: lesson, steps, stepIdx: 0, mode, lesson: steps[0], opponent: oppKey,
+    frame: 0, _sub: 0, baseline: null, misses: 0, state: "arm", flash: 0, demoSpeed: 1, returnTo: GAME_STATES.ACADEMY_CHAR,
+    _p2Fire: false, notes: [], _followup: false }
+  _academyArmStep(0)
+}
+// Arm step `i` of the current lesson: set its script + scenario + fresh detection baseline.
+function _academyArmStep(i) {
+  const s = academySession; if (!s) return
+  const step = s.steps[i]; s.stepIdx = i; s.lesson = step
+  const tags = step.tags || academyTagsFor(step, academyCharKey)
+  const sc = scenarioFromTags(tags)
+  s.notes = sc.notes; s._p2Fire = !!sc.p2Fire; s._followup = sc.followup
+  _academyApplyScenario(sc)                              // opponent already fixed at boot; this sets dummy/meter/hp/corner/mode
+  s.script = academy.scriptForInput(step.input, step.cat)
+  s.frame = 0; s._sub = 0; s.baseline = null; s.misses = 0; s.state = "arm"; s.flash = 0; s.hint = null
+  s._startSnap = academySnapshot(p1); s._fired = false; s._resolve = 0
 }
 // Apply a scenario descriptor to the Academy's live match (p1/p2 exist now). Touches ONLY this match instance.
 function _academyApplyScenario(sc) {
@@ -19096,18 +19118,21 @@ function academyTick() {
   if (!s._fired && s._startSnap) { try { if (academy.detectLesson(s.lesson, s._startSnap, academySnapshot(p1))) s._fired = true } catch (_) {} }   // coverage: did the move ever fire?
   if (s.mode === "free") return
   if (s.mode === "showme") {
-    if (s.frame >= s.script.length + 30) {          // demo + tail pause → loop (or return after the slow demo)
-      if (s._slowDemo) { _academyStartSlowDemoEnd(s) } else { s.frame = 0; s._sub = 0 }
+    if (s.frame >= s.script.length + 24) {          // demo + tail pause → next step (guided) / loop
+      if (s._slowDemo) { _academyStartSlowDemoEnd(s) }
+      else if (s.stepIdx < s.steps.length - 1) { _academyArmStep(s.stepIdx + 1) }   // walk through the guided steps
+      else { _academyArmStep(0) }                                                   // loop the lesson
     }
     return
   }
   // TRY IT
-  if (s.state === "pass") { if ((s.flash = Math.max(0, s.flash - 1)) === 0 && s._passHold !== false) { s._passHold = false } return }
+  if (s.state === "pass") { s.flash = Math.max(0, s.flash - 1); return }
+  if (s.state === "stepdone") { if ((s.flash = Math.max(0, s.flash - 1)) === 0) _academyArmStep(s.stepIdx + 1); return }   // brief flash, then arm the next step
   const snap = academySnapshot(p1); if (!snap) return
   if (!s.baseline) { s.baseline = snap; return }
   if (academy.detectLesson(s.lesson, s.baseline, snap)) {
-    s.state = "pass"; s.flash = 80; s.hint = null
-    academyProgress = academy.markLessonComplete(academyProgress, academyCharKey, s.lesson.id)
+    if (s.stepIdx < s.steps.length - 1) { s.state = "stepdone"; s.flash = 42; s.hint = null }     // multi-step: advance after a flash
+    else { s.state = "pass"; s.flash = 80; s.hint = null; academyProgress = academy.markLessonComplete(academyProgress, academyCharKey, s.parent.id) }   // final step → lesson complete
     return
   }
   // miss tracking — a committed action that didn't satisfy the lesson (resolve after a short window)
@@ -19123,8 +19148,11 @@ function academyDrillOverlayInfo() {
   let inputs = ""
   try { const d = getRelativeDirectionsFromHistory(p1) || []; const btn = []; const raw = readRawControls(p1) || {}; for (const [k, label] of [["light", "L"], ["heavy", "H"], ["upAttack", "U"], ["special", "S"], ["ultimate", "ULT"], ["grab", "G"], ["charge", "C"], ["block", "B"], ["jump", "↑"]]) if (raw[k]) btn.push(label); inputs = d.concat(btn).join(" ") } catch (_) {}
   const note = (s.notes && s.notes.length) ? ("Scenario: " + s.notes.join(" · ")) : null
+  const multi = s.steps && s.steps.length > 1
   return { mode: s.mode, moveName: s.lesson.name, inputLabel: academyDeviceLabel(s.lesson), inputs,
-           state: s.state, flash: s.flash, hint: s.hint || note, demoSpeed: s.demoSpeed }
+           state: s.state, flash: s.flash, hint: s.hint || note, demoSpeed: s.demoSpeed,
+           stepLabel: multi ? `Step ${s.stepIdx + 1} / ${s.steps.length}` : null,
+           parentName: (s.parent && s.parent.cat === "guided") ? s.parent.name : null }
 }
 // PHASE 3 — per-fighter COVERAGE: lessons generated, fireable count, undetectable (passive) list, weak-detect
 // moves, and moves whose prose implies a scenario tag they're missing. Pure analysis over every roster fighter.
@@ -23137,10 +23165,12 @@ gameLoop()
       open:     () => { openAcademy(GAME_STATES.MAIN_MENU); return { state: gameState, roster: getAcademyFilteredRoster().length, universes: academyUniverses() } },
       roster:   () => getAcademyRoster().map(c => c.key),
       openChar: (key) => { academyCharKey = key || getAcademyRoster()[0]?.key; openAcademyChar(academyCharKey); const L = _academyLessons(); return { state: gameState, key: academyCharKey, lessons: L.flat.length, sections: L.groups.map(g => `${g.section}(${g.lessons.length})`) } },
-      lessons:  (key) => academy.buildCharacterLessons(key, characters[key]).map((l, i) => ({ i, id: l.id, section: l.section, name: l.name, cat: l.cat, input: l.input })),
-      tags:     (idx = 0, key) => { const k = key || academyCharKey; const flat = academy.buildCharacterLessons(k, characters[k]); const l = flat[idx]; return l ? { name: l.name, tags: academyTagsFor(l, k), scenario: scenarioFromTags(academyTagsFor(l, k)) } : null },
-      drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, tags: academySession?.tags || [], dummy: trainingState.dummyBehavior, p2Fire: !!academySession?._p2Fire, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey, p1Energy: Math.round(p1?.energy || 0), p1Hp: Math.round(p1?.health || 0) } },
-      drillState: () => academySession ? { mode: academySession.mode, frame: academySession.frame, state: academySession.state, misses: academySession.misses, hint: academySession.hint || null } : null,
+      lessons:  (key) => _academyFlatLessons(key).map((l, i) => ({ i, id: l.id, section: l.section, name: l.name, cat: l.cat, input: l.input })),
+      tags:     (idx = 0, key) => { const k = key || academyCharKey; const flat = _academyFlatLessons(k); const l = flat[idx]; return l ? { name: l.name, tags: academyTagsFor(l, k), scenario: scenarioFromTags(academyTagsFor(l, k)) } : null },
+      drill:    (idx = 0, mode = "showme") => { const L = _academyLessons(); const lesson = L.flat[idx]; if (!lesson) return null; startAcademyDrill(lesson, mode); return { state: gameState, mode, move: lesson.name, cat: lesson.cat, guided: lesson.cat === "guided", steps: academySession?.steps.length || 1, stepIdx: academySession?.stepIdx ?? 0, dummy: trainingState.dummyBehavior, p2Fire: !!academySession?._p2Fire, scriptLen: academySession?.script.length || 0, p1: p1?.rosterKey, p2: p2?.rosterKey, p1Energy: Math.round(p1?.energy || 0), p1Hp: Math.round(p1?.health || 0) } },
+      drillByName: (name, mode = "showme") => { const L = _academyLessons(); const i = L.flat.findIndex(l => l.name === name); if (i < 0) return { error: "no lesson", have: L.flat.map(l => l.name) }; return window.__harness.academy.drill(i, mode) },
+      drillState: () => academySession ? { mode: academySession.mode, frame: academySession.frame, state: academySession.state, misses: academySession.misses, hint: academySession.hint || null, stepIdx: academySession.stepIdx, steps: academySession.steps.length, stepName: academySession.lesson?.name } : null,
+      guided:   () => curatedFighters(),
       fired:    () => academySession ? !!academySession._fired : null,            // Phase 3: did the SHOW ME move actually fire?
       coverage: () => academyCoverageReport(),                                    // Phase 3: full per-fighter coverage analysis
       snap:     () => p1 ? academySnapshot(p1) : null,

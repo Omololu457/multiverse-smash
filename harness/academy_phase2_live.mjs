@@ -20,7 +20,7 @@ const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
 let FAILS = 0; const ok = (c, m) => { console.log(`  ${c ? "✅" : "❌"} ${m}`); if (!c) FAILS++; };
 // find a lesson index by (char, name-substring)
-async function findLesson(key, sub) { const ls = await page.evaluate(k => window.__harness.academy.lessons(k), key); return (ls.find(l => l.name.toLowerCase().includes(sub.toLowerCase())) || {}).i; }
+async function findLesson(key, sub) { const ls = await page.evaluate(k => window.__harness.academy.lessons(k), key); return (ls.find(l => l.cat !== "guided" && l.name.toLowerCase().includes(sub.toLowerCase())) || {}).i; }
 const tagsOf = (key, idx) => page.evaluate(([k, i]) => window.__harness.academy.tags(i, k), [key, idx]);
 async function drill(key, idx, mode = "tryit") { await page.evaluate(k => window.__harness.academy.openChar(k), key); return page.evaluate(([i, m]) => window.__harness.academy.drill(i, m), [idx, mode]); }
 const exit = () => page.evaluate(() => window.__harness.academy.exit());

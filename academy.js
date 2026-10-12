@@ -28,7 +28,7 @@ export function isLessonDone(prog, charKey, lessonId) { return !!(prog[charKey] 
 // LESSON GENERATION — from the hand-authored / synthesized kit (getKit). Grouped into the Academy's sections.
 // A lesson = { id, section, name, input, desc, cat }. cat drives the SHOW-ME script + the success detector.
 // ──────────────────────────────────────────────────────────────────────────────
-export const ACADEMY_SECTIONS = ["Basics", "Specials", "Ultimates", "Modes & Transformations", "Summons & Allies", "Mechanics & Passives"]
+export const ACADEMY_SECTIONS = ["Guided Lessons", "Basics", "Specials", "Ultimates", "Modes & Transformations", "Summons & Allies", "Mechanics & Passives"]
 
 // Heuristic: route a special/ult into a finer section from its words (kits carry no structured requirement field;
 // Phase 2 adds explicit tags — this keeps the grouping sensible until then).

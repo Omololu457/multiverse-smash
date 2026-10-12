@@ -5136,13 +5136,20 @@ export function drawAcademyDrillOverlay(ctx, canvas, info = {}) {
   _bevelPath(ctx, bx, by, bw, 62, 12); ctx.fillStyle = "rgba(8,10,22,0.82)"; ctx.fill()
   ctx.strokeStyle = "rgba(120,200,255,0.4)"; ctx.lineWidth = 1.4; ctx.stroke()
   const tag = info.mode === "showme" ? "SHOW ME" : "TRY IT"
-  drawCenteredText(ctx, tag, bx + 16, by + 20, { font: "800 13px Arial", fill: "#7dd3fc", align: "left" })
+  const header = info.stepLabel ? `${tag}  ·  ${info.parentName || ""}  ·  ${info.stepLabel}` : tag
+  drawCenteredText(ctx, header, bx + 16, by + 20, { font: "800 13px Arial", fill: "#7dd3fc", align: "left" })
   drawCenteredText(ctx, info.moveName || "", bx + 16, by + 42, { font: "900 20px Arial", fill: "#ffffff", align: "left", maxWidth: bw * 0.6 })
   drawCenteredText(ctx, info.inputLabel || "", bx + bw - 16, by + 31, { font: "800 18px Arial", fill: "#ffe08a", align: "right" })
   // live input strip
   if (info.inputs) drawCenteredText(ctx, "Inputs: " + (info.inputs || "—"), w / 2, by + 78, { font: "700 13px Arial", fill: "rgba(180,220,255,0.9)" })
   // SHOW ME speed note
   if (info.mode === "showme" && info.demoSpeed && info.demoSpeed < 1) drawCenteredText(ctx, "½ speed", bx + bw / 2, by + 20, { font: "800 11px Arial", fill: "rgba(255,220,140,0.9)" })
+  // multi-step: a step cleared → advancing
+  if (info.state === "stepdone") {
+    ctx.globalAlpha = Math.min(1, (info.flash || 0) / 24)
+    drawCenteredText(ctx, "✓ step done — next…", w / 2, h * 0.42, { font: "900 34px Arial", fill: "#9effc0", shadowBlur: 16, shadowColor: "#2fff88" })
+    ctx.globalAlpha = 1
+  }
   // result flash
   if (info.state === "pass") {
     ctx.globalAlpha = Math.min(1, (info.flash || 0) / 20)

@@ -209,6 +209,24 @@ def phase2():
                        [(27, 2688, 108, 2778), (110, 2688, 190, 2778)], feet=False)  # 2 impact puffs
 
 
+def phase3():
+    # ══ PHASE 3 — ULTIMATE SHEETS (5-Koma A/B) + blood FX + palette reference sprites ══
+    by_band("shizuku_springclean_uniform.png", 2921, 2994, x1=580, expect=6)         # 5-Koma A: Spring Cleaning hose barrage
+    by_band("shizuku_bloodletting_uniform.png", 3126, 3194, x1=580, expect=9)        # 5-Koma B: Bloodletting combo → blood draw
+    # Blood FX (red streaks row 1 + splatter row 2) — on green, edge-checked. green_keyed handles the box.
+    green_keyed_frames("shizuku_blood_fx_uniform.png",
+                       [(192, 3221, 260, 3268), (262, 3221, 330, 3268), (332, 3221, 400, 3268),
+                        (192, 3270, 290, 3317), (292, 3270, 400, 3317)], feet=False)
+    # Palette reference sprites (LUT sources only — NOT game assets; saved for gen_recolor). green-keyed.
+    for tag, (x0, x1) in [("animeold", (808, 858)), ("anime", (882, 930)), ("manga", (954, 1004))]:
+        a = _rgb[448:514, x0:x1]; dist = np.abs(a - BG).sum(2); al = np.where(dist <= TOL, 0, 255).astype("uint8")
+        rgba = np.dstack([a.astype("uint8"), al]); ys, xs = np.where(al > ALPHA)
+        if len(xs):
+            Image.fromarray(rgba[ys.min():ys.max() + 1, xs.min():xs.max() + 1], "RGBA").save(f"pal_{tag}.png")
+            print(f"OK pal_{tag}.png: {(xs.max()-xs.min()+1)}x{(ys.max()-ys.min()+1)}")
+
+
 if __name__ == "__main__":
     main()
     phase2()
+    phase3()

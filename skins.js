@@ -904,9 +904,11 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.meruem?.portrait, spriteScale: characters.meruem?.spriteScale, animationData: null },
   ],
   shizuku: [
-    // Default (Anime) only in Phase 1 — REQUIRED (without it getSkins() forces spriteScale:1 → half-size).
-    // Anime-Old + Manga recolor skins (from the sheet's palette box) land in Phase 3.
-    { id: "default", name: "Anime", unlockLevel: 0, portrait: characters.shizuku?.portrait, spriteScale: characters.shizuku?.spriteScale, animationData: null },
+    // 3 anime palettes from the sheet's PALETTE BOX (Anime = default; Anime Old + Manga = recolor LUT via
+    // shizuku_work/gen_recolor.py). Default entry is REQUIRED (else getSkins() forces spriteScale:1).
+    { id: "default",  name: "Anime",     unlockLevel: 0, portrait: characters.shizuku?.portrait,          spriteScale: characters.shizuku?.spriteScale, animationData: null },
+    { id: "animeold", name: "Anime Old", unlockLevel: 0, portrait: recolorPortrait("shizuku", "animeold"), spriteScale: characters.shizuku?.spriteScale, animationData: recolorSkinAnim("shizuku", "animeold") },
+    { id: "manga",    name: "Manga",     unlockLevel: 0, portrait: recolorPortrait("shizuku", "manga"),    spriteScale: characters.shizuku?.spriteScale, animationData: recolorSkinAnim("shizuku", "manga") },
   ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },

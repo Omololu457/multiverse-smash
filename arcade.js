@@ -106,7 +106,10 @@ const GENERIC_RIVAL_WIN = (rivalName) => `Not bad, ${rivalName}. But not enough.
 export function arcadeRivalDialogue(playerKey, rivalKey, charactersMap) {
   const pc = charactersMap?.[playerKey], rc = charactersMap?.[rivalKey]
   const playerName = pc?.name || playerKey, rivalName = rc?.name || rivalKey
-  const lines = pc?.arcadeRivalLines
+  // OPT-IN per-opponent routing: `matchupLines[rivalKey]` (if present) overrides the generic arcadeRivalLines
+  // for that specific foe (Shizuku vs the HxH roster). Additive; no-op for characters without the field.
+  const matchup = pc?.matchupLines?.[rivalKey]
+  const lines = (matchup && (Array.isArray(matchup.pre) || typeof matchup.win === "string")) ? matchup : pc?.arcadeRivalLines
   return {
     pre: Array.isArray(lines?.pre) && lines.pre.length >= 2 ? lines.pre.slice(0, 2) : GENERIC_RIVAL_PRE(playerName, rivalName),
     win: typeof lines?.win === "string" && lines.win ? lines.win : GENERIC_RIVAL_WIN(rivalName)

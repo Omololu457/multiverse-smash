@@ -67,6 +67,7 @@
     "test:combo-standard": "node harness/combo_standard_audit.mjs",
     "test:shizuku-p1": "node harness/shizuku_phase1_live.mjs",
     "test:shizuku-p2": "node harness/shizuku_phase2_live.mjs",
+    "test:shizuku-p3": "node harness/shizuku_phase3_live.mjs",
     "academy-coverage-report": "node harness/academy_coverage_report.mjs",
     "test:academy-coverage": "node harness/academy_coverage.mjs",
     "test:academy-p1": "node harness/academy_phase1_live.mjs",

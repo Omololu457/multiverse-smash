@@ -49,7 +49,7 @@ import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } fr
 import { activateTojiReincarnationCinematic, isTojiReincarnationCinematicActive } from "./tojiReincarnationCinematic.js"   // Toji Reincarnated Form activation cinematic (no cycle; mirrors Overdrive/Godspeed)
 import { activateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive } from "./tojiFlyHeadsSwarm.js"   // Toji Fly Heads — dense screen-clutter vision-denial swarm overlay (0 damage; no cycle)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
-import { spawnCubeTrap } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (cubeTrap.js imports combat/input but NOT abilities → no cycle)
+import { spawnCubeTrap, activeCubeTraps } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (+ the shared list, cleared by Shizuku Spring Cleaning); cubeTrap.js imports combat/input but NOT abilities → no cycle
 import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension" Kamui banishment engine (character-agnostic; imports nothing from abilities → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
@@ -10844,9 +10844,103 @@ export function updateShizuku(fighter, context) {
   }
 
   // Cooldown / FX timers.
-  for (const k of ["_szPullCd", "_szDisarmCd", "_szEatFx", "_szPullFx", "_szSmashFx", "_szFeintFx", "_szForgetPop", "_szDisarmPop"]) {
+  for (const k of ["_szPullCd", "_szDisarmCd", "_szEatFx", "_szPullFx", "_szSmashFx", "_szFeintFx", "_szForgetPop", "_szDisarmPop",
+                   "_szUltCutin", "_szBloodFx", "_szHealFx", "_szCleanFx"]) {
     if ((fighter[k] || 0) > 0) fighter[k]--
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// SHIZUKU — PHASE 3 ULTIMATES. Directional (fighter._ultVariant stamped in game.js from the held dir):
+//   NEUTRAL = BLOODLETTING [CANON-ADJACENT] (Nen Impact precedent): cut-in → Blinky combo → blood-draw →
+//     heal 40% of damage dealt (cap 12% max HP). DOWN = SPRING CLEANING [CANON]: cut-in → hose barrage sweep
+//     → removes every opponent PROJECTILE on screen (first 3 into the belly) + opponent-owned cube traps.
+// Inline freeze-cinematic economy (live fighter, i-frames, scheduled guaranteed beats) — mirrors gaara
+// Sabaku / hinata Juuhou. Refuse during KO / Brutality / Domain / Rick-rewind (context.cinematicSafe).
+// combat.js UNTOUCHED. Deterministic (schedulePendingSpawn frames, no gameRng/Math.random).
+const SZ_BLOOD_LEN = 150
+const SZ_CLEAN_LEN = 132
+function szUltRefused(fighter, context) {
+  // Refuse during KO / Brutality / Domain events / Rick-Prime rewind (context.cinematicSafe mirrors
+  // _rewindUnsafeNow) + the fighter's own domain-freeze / KO state → refund the cost + refuse.
+  if ((context && context.cinematicSafe === false) || fighter.domainFrozen || fighter.eliminated || (fighter.health || 0) <= 0) {
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + (fighter.ultimate?.cost ?? 100))
+    return true
+  }
+  return false
+}
+function szUltBeat(fighter, context, d, big) {
+  const o = getTargetResolver(context)(fighter)
+  if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return 0
+  const dir = (o.x >= fighter.x ? 1 : -1)
+  let dmg = d
+  if (o.isBlocking) { o.blockstun = big ? 26 : 14; dmg = Math.floor(dmg * 0.25) }
+  else { o.hitstun = big ? 44 : 20; o.vx = dir * (big ? 8 : 1); o.vy = big ? -8 : 0; o.colorFlash = big ? 16 : 10; if (big) o.hitstop = Math.max(o.hitstop || 0, 24) }
+  const actual = applyScaledDamage(o, dmg, { source: "ability", attacker: fighter })
+  return (typeof actual === "number" && actual > 0) ? actual : dmg
+}
+
+function executeShizukuUltimate(fighter, context) {
+  if (!szIsShizuku(fighter)) return false
+  return (fighter._ultVariant === "springCleaning") ? szSpringCleaning(fighter, context) : szBloodletting(fighter, context)
+}
+
+// NEUTRAL+Ult — BLOODLETTING: cut-in → Blinky combo → blood-draw finisher → lifesteal (40% dealt, cap 12% maxHP).
+function szBloodletting(fighter, context) {
+  if (szUltRefused(fighter, context)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(SZ_BLOOD_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SZ_BLOOD_LEN)
+  fighter._spriteCastMove = "shizukuBloodletting"; fighter._spriteCastTimer = SZ_BLOOD_LEN
+  fighter._szUltCutin = 92; fighter._szUltKind = "bloodletting"
+  const dealt = { v: 0 }
+  const beats = [{ at: 34, dmg: 18 }, { at: 44, dmg: 18 }, { at: 54, dmg: 18 }, { at: 64, dmg: 22 },
+                 { at: 74, dmg: 22 }, { at: 86, dmg: 28 }, { at: 104, dmg: 120, big: true }]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => {
+    const got = szUltBeat(fighter, context, b.dmg, b.big); dealt.v += got
+    if (b.big && got > 0) fighter._szBloodFx = 30   // stylized blood-draw FX at the foe (no gore)
+  }))
+  schedulePendingSpawn(112, () => {
+    fighter._szUltDealt = dealt.v   // debug/telemetry
+    const heal = Math.min(Math.floor(dealt.v * 0.40), Math.floor((fighter.maxHealth || 1120) * 0.12))
+    if (heal > 0) { fighter.health = Math.min(fighter.maxHealth || 1120, (fighter.health || 0) + heal); fighter._szHealFx = 30 }
+  })
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.1, 20); shakeCamera(context, 6, 16) } catch (_) {}
+  return true
+}
+
+// DOWN+Ult — SPRING CLEANING: cut-in → hose barrage → clear opponent projectiles (first 3 → belly) + cube traps.
+function szSpringCleaning(fighter, context) {
+  if (szUltRefused(fighter, context)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(SZ_CLEAN_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SZ_CLEAN_LEN)
+  fighter._spriteCastMove = "shizukuSpringClean"; fighter._spriteCastTimer = SZ_CLEAN_LEN
+  fighter._szUltCutin = 82; fighter._szUltKind = "springCleaning"
+  // SWEEP CLEAR (beat 30): remove opponent PROJECTILES (first 3 → belly) + opponent-owned CUBE TRAPS.
+  // Generic lists only (activeProjectiles / activeCubeTraps). Summons are LIVING → never swept.
+  schedulePendingSpawn(30, () => {
+    const o = getTargetResolver(context)(fighter)
+    let intoBelly = 0
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (!p || p.owner === fighter || p.visualOnly) continue
+      if (o && p.owner && p.owner !== o) continue            // opponent-owned only
+      if (intoBelly < 3) { szBellyStore(fighter, p); intoBelly++ }
+      activeProjectiles.splice(i, 1)
+    }
+    try {
+      for (let i = activeCubeTraps.length - 1; i >= 0; i--) {
+        const cbt = activeCubeTraps[i]
+        if (cbt && (cbt.owner === o || cbt.caster === o)) activeCubeTraps.splice(i, 1)
+      }
+    } catch (_) {}
+    fighter._szCleanFx = 26
+  })
+  const beats = [{ at: 40, dmg: 30 }, { at: 52, dmg: 30 }, { at: 64, dmg: 34 }, { at: 78, dmg: 34 }, { at: 94, dmg: 48, big: true }]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => szUltBeat(fighter, context, b.dmg, b.big)))
+  try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.08, 18); shakeCamera(context, 5, 14) } catch (_) {}
+  return true
 }
 
 // DISPATCHER — directional Special. Neutral (ground OR air) = Raikiri, armed in game.js canStart
@@ -16371,20 +16465,141 @@ function fireGonCommand(fighter, key, context) {
 // normal path this frame) only when it actually fires a stage.
 export function updateGonCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon" || !inputState) return false
+  if (fighter._adultFormActive) return false                      // Adult Form has no command kit
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const phase    = getPhase?.(fighter)
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
   fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
   // CONTINUE — fresh Heavy during the current part's recovery, only if it CONNECTED (cancel-on-hit).
   const opp = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireGonCommand(fighter, next, context)
-  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
-  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
-  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
-  if (canStart && grounded && forward && heavyEdge) return fireGonCommand(fighter, "rush1", context)
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0 && (fighter.hitstun || 0) <= 0
+  if (!canStart || !grounded) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const up = !!inputState.up, down = !!inputState.down
+  // ── DIRECTIONAL HEAVY command moves (Phase 2). Each consumes the Heavy press so the normal doesn't fire.
+  // Forward+Heavy = Rush rekka opener (Stage B standardization) · Down+Heavy = REN (Nen aura pillar →
+  // damage buff) · Back+Heavy = FURY DASH (armored lunge). (Up is NOT used for a Heavy command — it's the
+  // jump input; Ground Breaker lives on Forward+Light below, and Up-Scissors is a chant release.)
+  if (heavyEdge) {
+    if (down)      return fireGonRen(fighter, context)
+    if (back)      return fireGonFuryDash(fighter, context)
+    if (forward)   return fireGonCommand(fighter, "rush1", context)
+  }
+  // ── DIRECTIONAL LIGHT command moves. Down+Light = FISHING ROD SNAG (B+Down) · Forward+Light = GROUND
+  // BREAKER (leaping Rock → crater). Each consumes the Light press.
+  if (lightEdge) {
+    if (down)      return fireGonRod(fighter, context)
+    if (forward)   return fireGonGroundBreaker(fighter, context)
+  }
   return false
+}
+
+// ── FISHING ROD SNAG (CANON-ADJACENT: the rod Gon used to snatch Hisoka's badge) — Down+Light. On a
+// CLEAN hit the hooked foe is reeled toward Gon and ~10% of their meter is siphoned. A per-frame watcher
+// (updateGonPhase2Systems) resolves the on-hit pull/steal. 16 Nen.
+function fireGonRod(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 16)) return false
+  const md = { damage: 24, startup: 7, active: 5, recovery: 16, hitstun: 24, blockstun: 10, knockbackX: -2, knockbackY: 0, rangeX: 150, rangeY: 54, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "rod", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack._gonRod = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "rod" → fishing-rod cast sprite
+  fighter._gonRodAtk = attack; fighter._gonRodStole = false
+  try { sound.playSfxFile?.(pickGonVoice("rekka"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// ── REN (CANON: the sustained Nen-output training) — Down+Heavy. A brief aura-pillar stance that grants a
+// 5s (300f) damage buff; cooldown-gated so it isn't spammable. No hitbox. 24 Nen.
+const GON_REN_DURATION = 300
+const GON_REN_COOLDOWN = 240
+const GON_REN_MUL      = 1.22
+function fireGonRen(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._gonRenCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 24)) return false
+  const total = 30
+  fighter._spriteCastMove = "ren"; fighter._spriteCastTimer = total   // sprite via _spriteCastMove (auto-clears); no currentMove
+  fighter.attackCooldown = total
+  fighter._gonRenTimer = GON_REN_DURATION
+  fighter._gonRenCd    = GON_REN_DURATION + GON_REN_COOLDOWN
+  fighter.damageMultiplier = Math.max(fighter.damageMultiplier || 1, GON_REN_MUL)
+  fighter.attackMultiplier = Math.max(fighter.attackMultiplier || 1, GON_REN_MUL)
+  shakeCamera(context, 4, 8)
+  try { sound.playSfxFile?.(pickGonVoice("scissors"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // reuse a Nen-focus bark
+  return true
+}
+
+// ── FURY DASH (CANON-ADJACENT: his anger aura) — Back+Heavy. A red-aura armored lunge that shrugs ONE
+// projectile/hit (brief cast super-armor via _castArmor, read by combat.js) and closes distance. 22 Nen.
+function fireGonFuryDash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 22)) return false
+  const md = { damage: 64, startup: 8, active: 8, recovery: 16, hitstun: 22, blockstun: 10, knockbackX: 12, knockbackY: -4, rangeX: 96, rangeY: 60, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "furydash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "furydash" → red-aura bubble sprite
+  fighter._castArmor = Math.max(fighter._castArmor || 0, md.startup + md.active)   // armor the lunge (combat.js castArmored)
+  fighter._gonFury   = 24                                                          // red-aura FX timer (game.js)
+  fighter.vx = (fighter.facing || 1) * 14                                          // charge forward through fire
+  shakeCamera(context, 5, 8)
+  try { sound.playSfxFile?.(pickGonVoice("rekka"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// ── GROUND BREAKER (6 Koma A) — Up+Heavy. A leaping Rock that slams down into a crater + rock debris.
+// Reuses spawnProjectile for the ground shock (built-in "sand"-style debris read via color). 34 Nen.
+function fireGonGroundBreaker(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 34)) return false
+  const md = { damage: 120, startup: 14, active: 8, recovery: 20, hitstun: 32, blockstun: 20, knockbackX: 10, knockbackY: 6, rangeX: 120, rangeY: 80, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "groundbreaker", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = false
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "groundbreaker" → leaping-punch sprite
+  fighter.vy = -11; fighter.vx = (fighter.facing || 1) * 7                // leap into the slam
+  fighter._gonGroundBreak = md.startup + md.active                        // crater FX window (game.js)
+  // ground shock at the slam frame — a short low debris burst (reuses the energy-orb projectile render).
+  schedulePendingSpawn(md.startup, () => { shakeCamera(context, 12, 16); spawnProjectile(fighter, "gonCrater", {
+    damage: 60, w: 40, h: 24, radius: 20, speed: 7, lifetime: 26, hitstun: 20, knockbackX: 8, knockbackY: -6, color: "#c9a06a", isSpecial: true
+  }, context) })
+  try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// Per-frame Phase-2 bookkeeping (Ren buff/cooldown timers; Fishing-Rod on-hit pull + meter steal; Fury/
+// Ground-Breaker/Called-It FX timers). Called from game.js each frame for Gon. Deterministic.
+export function updateGonPhase2Systems(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon") return
+  // Ren buff timer → clears the damage buff when it lapses (unless Adult Form owns the multiplier).
+  if ((fighter._gonRenTimer || 0) > 0) {
+    fighter._gonRenTimer--
+    if (fighter._gonRenTimer <= 0 && !fighter._adultFormActive) { fighter.damageMultiplier = 1; fighter.attackMultiplier = 1 }
+  }
+  if ((fighter._gonRenCd || 0) > 0) fighter._gonRenCd--
+  // Fishing Rod — on a CLEAN connect, reel the foe in + siphon ~10% of their meter (once per cast).
+  const atk = fighter._gonRodAtk
+  if (atk && !fighter._gonRodStole) {
+    if (atk.hasHit) {
+      const opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
+      if (opp && !opp.isBlocking) {
+        const pull = Math.sign((fighter.x || 0) - (opp.x || 0)) * 46
+        opp.x = (opp.x || 0) + pull                                  // small reel-in toward Gon
+        const steal = Math.round((opp.maxEnergy || 100) * 0.10)
+        opp.energy    = Math.max(0, (opp.energy || 0) - steal)
+        fighter.energy = Math.min(fighter.maxEnergy || 160, (fighter.energy || 0) + steal)
+        fighter._gonRodStoleAmt = steal                               // HUD/harness tell
+      }
+      fighter._gonRodStole = true
+    }
+    if (!fighter.attacking && (fighter.currentMove !== "rod")) fighter._gonRodAtk = null
+  }
+  // FX timers
+  for (const k of ["_gonFury", "_gonGroundBreak", "_gonCalledIt", "_gonChantBroken"]) if ((fighter[k] || 0) > 0) fighter[k]--
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24642,56 +24857,153 @@ function executeGonSpecial(fighter, context) {
   // ADULT FORM overrides the SPECIAL button entirely: Jajanken is gone — the only move is the
   // all-or-nothing SUDDEN-DEATH strike (win-on-hit / lose-on-miss). You are committed to the finisher.
   if (fighter._adultFormActive) return fireGonSuddenDeath(fighter, context)
-  const dir = fighter._specialHeldDir || null
-  if (dir === "F") return fireGonScissors(fighter, context)
-  if (dir === "D") return fireGonPaper(fighter, context)
-  return fireGonRock(fighter, context)   // neutral (and Back/Up) = Rock, the signature
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  // AIRBORNE Special = a quick stage-1 PAPER emission (air zoning); the chant is a grounded ritual.
+  if (!grounded) return fireGonPaper(fighter, context, { stage: 1, air: true })
+  // GROUNDED → begin the JAJANKEN CHANT (Phase 2). Hold Special to climb stages (the 5 charge rings;
+  // "JAN…"/"KEN…" code-drawn text); RELEASE + direction picks the hand (Fwd=Rock / Up=Scissors /
+  // Neutral-Back=Paper). Getting hit cancels the chant (canon weakness). The per-frame driver
+  // (updateGonJajankenChant, game.js) advances the charge and fires on release. Press just ARMS it —
+  // NO hand comes out on the press (consume the press so no instant special fires).
+  if (fighter._gonChant) return true
+  fighter._gonChant = { frames: 0, stage: 1, dir: fighter._specialHeldDir || null }
+  fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 6
+  return true
 }
 
-// NEUTRAL — ROCK. A REAL telegraphed charge: 18f startup shows the charge-windup frames (the opponent
-// can see it coming and block), then ONE devastating punch. Highest damage + commitment in the base
-// kit. Big knockback + slight launch. 45 Nen.
-function fireGonRock(fighter, context) {
+// ── JAJANKEN STAGE/Called-It SCALING (Phase 2, deterministic) ──────────────────────────────────
+// Chant stages scale damage; Scissors & Paper deal ~70% of Rock (canon: Rock = Enhancer fist, his
+// strongest; Scissors = transmuted blade; Paper = Emission blast, weaker for an Enhancer). "CALLED IT!"
+// (hand counters the opponent's state) adds +20%. gonHandDamage() centralises the number so each hand's
+// base is honest and reported.
+const GON_CHANT_STAGE_MUL = { 1: 1.0, 2: 1.4, 3: 1.85 }   // frames-held → stage → damage ×
+const GON_CALLED_IT_MUL   = 1.2
+function gonHandMul(opts = {}) {
+  const stage = Math.max(1, Math.min(3, opts.stage || 1))
+  return (GON_CHANT_STAGE_MUL[stage] || 1) * (opts.calledIt ? GON_CALLED_IT_MUL : 1)
+}
+
+// ROCK (chant RELEASE Forward) — Enhancer fist, his STRONGEST + biggest commitment. GUARD-CRUSH feel =
+// heavy blockstun + big pushback on block (combat.js untouched — no new field). Base 150 (S1) → stage/
+// Called-It scaled. Cost climbs with stage (40/50/60 Nen).
+function fireGonRock(fighter, context, opts = {}) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, 45)) return false
-  const md = { damage: 150, startup: 18, active: 5, recovery: 18, hitstun: 30, blockstun: 16, knockbackX: 14, knockbackY: -6, rangeX: 112, rangeY: 66, isSpecial: true }
+  const stage = Math.max(1, Math.min(3, opts.stage || 1))
+  if (!spendEnergy(fighter, 30 + 10 * stage)) return false
+  const dmg = Math.round(150 * gonHandMul(opts))
+  const md = { damage: dmg, startup: 14, active: 5, recovery: 18, hitstun: 30, blockstun: 26, knockbackX: 16, knockbackY: -6, rangeX: 112, rangeY: 66, isSpecial: true }
   const attack = createAttackFromMove(fighter, "rock", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true; attack.launcher = true
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "rock" → charge-windup→punch sprite (the telegraph)
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "rock" → charge-windup→punch sprite
   fighter.vx = (fighter.facing || 1) * 3            // small step into the punch on release
-  shakeCamera(context, 6, 10)
+  shakeCamera(context, 6 + 2 * stage, 10)
   try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken ROCK cast (audio-only)
   return true
 }
 
-// FORWARD — SCISSORS. Rapid multi-hit jab string (Flash spin-whirl pattern): 5 low-per-hit connects
-// across a long active window; low knockback PINS the target so all hits land → combo starter/extender.
-// 30 Nen.
-function fireGonScissors(fighter, context) {
+// SCISSORS (chant RELEASE Up) — transmuted Nen blade, a RISING anti-air launcher. Multi-hit (5 connects)
+// that LAUNCHES on the first. ~70% of Rock total (≈21/hit ×5 at S1). 30 Nen.
+function fireGonScissors(fighter, context, opts = {}) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 30)) return false
-  const md = { damage: 20, startup: 6, active: 22, recovery: 14, hitstun: 12, blockstun: 8, knockbackX: 1, knockbackY: 0, rangeX: 84, rangeY: 58, isSpecial: true }
+  const perHit = Math.round(21 * gonHandMul(opts))
+  const md = { damage: perHit, startup: 6, active: 22, recovery: 14, hitstun: 14, blockstun: 10, knockbackX: 2, knockbackY: -10, rangeX: 84, rangeY: 72, isSpecial: true }
   const attack = createAttackFromMove(fighter, "scissors", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  attack.isSpecial = true
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "scissors" → multi-hit jab sprite
+  attack.isSpecial = true; attack.launcher = true   // rising anti-air — pops the foe up
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "scissors" → rising-blade sprite
   // 5 HITS: initial connect + 4 re-arms across the active window. Guarded so a later move isn't touched.
   for (const t of [11, 15, 19, 23]) schedulePendingSpawn(t, () => { if (fighter.currentAttack && fighter.currentAttack.name === "scissors") fighter.currentAttack.hasHit = false })
   try { sound.playSfxFile?.(pickGonVoice("scissors"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken SCISSORS cast (audio-only)
   return true
 }
 
-// DOWN — PAPER. Open-palm push: low damage, HUGE knockback = a spacing/defensive reset tool (NOT a
-// combo piece). Fast, short. 24 Nen.
-function fireGonPaper(fighter, context) {
+// PAPER (chant RELEASE Neutral/Back) — Emission blast: a long-range Nen AURA-BALL PROJECTILE (the canon
+// "weaker for an Enhancer" ranged option). ~70% of Rock (105 at S1). The cast is animation-only; the
+// spawned orb carries the damage (reuses spawnProjectile's built-in energy-orb render — no new art/FX).
+function fireGonPaper(fighter, context, opts = {}) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, 24)) return false
-  const md = { damage: 46, startup: 8, active: 4, recovery: 16, hitstun: 14, blockstun: 10, knockbackX: 18, knockbackY: -2, rangeX: 92, rangeY: 62, isSpecial: true }
-  const attack = createAttackFromMove(fighter, "paper", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  attack.isSpecial = true
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "paper" → palm-push sprite
+  const stage = Math.max(1, Math.min(3, opts.stage || 1))
+  if (!spendEnergy(fighter, 18 + 6 * stage)) return false
+  const dmg   = Math.round(105 * gonHandMul(opts))
+  const total = 8 + 2 + 16
+  // Sprite driven by _spriteCastMove (auto-clears via _spriteCastTimer, like the Adult-Form transform) —
+  // do NOT set currentMove (nothing would clear it → Gon would read "busy" forever). attackCooldown locks
+  // the cast so there's no melee hitbox; only the spawned orb deals damage.
+  fighter._spriteCastMove  = "paper"
+  fighter._spriteCastTimer = total
+  fighter.attackCooldown   = total
+  fighter.vx = (fighter.facing || 1) * (opts.air ? 0 : -1)   // tiny recoil on the grounded palm-push
+  schedulePendingSpawn(opts.air ? 2 : 8, () => spawnProjectile(fighter, "gonPaper", {
+    damage: dmg, w: 28, h: 28, radius: 15, speed: 12, lifetime: 96,
+    hitstun: 20, knockbackX: 16, knockbackY: -4, color: "#9be7a0", isSpecial: true
+  }, context))
   shakeCamera(context, 3, 6)
   try { sound.playSfxFile?.(pickGonVoice("paper"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken PAPER cast (audio-only)
   return true
+}
+
+// ── JAJANKEN CHANT DRIVER (Phase 2) — per-frame, deterministic/LAN-safe (frame-counted, inputState-
+// sourced; no gameRng). Called from game.js alongside updateGonCommandCombat. Advances the chant while
+// Special is HELD, cancels it on a hit (canon weakness), and on RELEASE fires the hand the held
+// direction picks — with the stage-scaled damage + a "CALLED IT!" bonus when the hand counters the
+// opponent's state. ─────────────────────────────────────────────────────────────────────────────
+const GON_CHANT_S2 = 24     // frames held → stage 2
+const GON_CHANT_S3 = 48     // frames held → stage 3
+const GON_CHANT_MAX = 78    // charge cap
+const GON_HALF_SCREEN = 380 // "beyond ~half-screen" distance for the Paper Called-It read
+export function updateGonJajankenChant(fighter, inputState, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon" || !inputState) return false
+  const c = fighter._gonChant
+  if (!c) return false
+  if (fighter._adultFormActive) { fighter._gonChant = null; return false }
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  // CANCEL — getting hit (or a throw / losing footing) breaks the chant. Its canon weakness.
+  if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0 || fighter.isHurt || fighter.beingThrown || !grounded) {
+    fighter._gonChant = null; fighter._gonChantBroken = 12
+    return false
+  }
+  // track the last meaningful held direction (read at release)
+  const facing = fighter.facing || 1
+  const fwd  = facing === 1 ? !!inputState.right : !!inputState.left
+  const back = facing === 1 ? !!inputState.left  : !!inputState.right
+  if (inputState.up) c.dir = "U"; else if (fwd) c.dir = "F"; else if (back) c.dir = "B"; else if (inputState.down) c.dir = "D"
+  if (inputState.special) {
+    c.frames = Math.min(GON_CHANT_MAX, c.frames + 1)
+    c.stage  = c.frames >= GON_CHANT_S3 ? 3 : c.frames >= GON_CHANT_S2 ? 2 : 1
+    fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 3   // hold the chant pose
+    fighter.vx = (fighter.vx || 0) * 0.4                                // root in place while chanting
+    return true
+  }
+  // RELEASE → fire the chosen hand.
+  const dir = c.dir, stage = c.stage
+  fighter._gonChant = null
+  return fireGonChantHand(fighter, context, dir, stage)
+}
+
+// Resolve the hand from the release direction, compute the "CALLED IT!" read, fire + flag the pop/cut-in.
+function fireGonChantHand(fighter, context, dir, stage) {
+  const opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : (context?.p2 || null)
+  const hand = (dir === "F") ? "rock" : (dir === "U") ? "scissors" : "paper"   // neutral / Back / Down = Paper
+  // CALLED IT — the hand counters the opponent's CURRENT state at release.
+  let calledIt = false
+  if (opp) {
+    const oppAir   = !(opp.onGround ?? opp.grounded ?? true)
+    const oppBlock = !!opp.isBlocking
+    const dist     = Math.abs((opp.x || 0) - (fighter.x || 0))
+    if      (hand === "rock"     && oppBlock) calledIt = true
+    else if (hand === "scissors" && oppAir)   calledIt = true
+    else if (hand === "paper"    && dist > GON_HALF_SCREEN) calledIt = true
+  }
+  const opts = { stage, calledIt }
+  const ok = (hand === "rock") ? fireGonRock(fighter, context, opts)
+           : (hand === "scissors") ? fireGonScissors(fighter, context, opts)
+           : fireGonPaper(fighter, context, opts)
+  if (ok && calledIt) {
+    fighter._gonCalledIt     = 52         // "CALLED IT!" pop + manga-panel cut-in timer (drawn in game.js)
+    fighter._gonCalledItHand = hand
+    try { shakeCamera(context, 9, 12) } catch (_) {}
+  }
+  return ok
 }
 
 // ── GON ULTIMATE — ADULT FORM + SUDDEN-DEATH ("Final Blow") — Stage 4 ───────────────────────
@@ -31556,6 +31868,72 @@ const MERUEM_SYNTH_MAX = 100          // AURA SYNTHESIS gauge (fills from hits l
 
 function meruemAddSynth(f, amt) { if (!isMeruem(f)) return; f._meruemSynth = Math.min(MERUEM_SYNTH_MAX, (f._meruemSynth || 0) + Math.max(0, amt)) }
 
+// ── PHASE 3 PASSIVES (Gungi Mind adaptation · Never Pushed · Final Hours) ─────────────────────────────
+const MERUEM_ADAPT_THRESH   = 3      // clean hits of the SAME move before Gungi Mind reads it
+const MERUEM_ADAPT_REDUCE   = 0.30   // a LEARNED move deals 30% less to Meruem
+const MERUEM_EVO_MAX        = 3      // Never Pushed — max Evolution stacks per MATCH (kept across rounds)
+const MERUEM_EVO_PER        = 0.05   // +5% speed & +5% damage per stack
+const MERUEM_EVO_COMBO_FRAC = 0.25   // a single combo dealing ≥25% of max HP grants a stack
+const MERUEM_COMBO_DECAY    = 48     // frames with no new hit → the combo is considered ended
+const MERUEM_FINAL_HP_FRAC  = 0.20   // Final Hours awakens when HP first drops below 20%
+const MERUEM_FINAL_DMG      = 1.15   // +15% damage during Final Hours
+const MERUEM_FINAL_POISON   = 0.06   // slow poison drain per frame (clamped — never below 1 HP)
+
+// Keep the offensive/speed multipliers in sync with the Evolution stacks + Final Hours. No-op (×1) with no
+// buffs. combat.js reads max(damageMultiplier, attackMultiplier) for offense, and fighter.speed for walk.
+function meruemApplyBuffs(fighter) {
+  const evoMult = 1 + MERUEM_EVO_PER * (fighter._meruemEvo || 0)
+  const dmgMult = evoMult * (fighter._meruemFinalHours ? MERUEM_FINAL_DMG : 1)
+  fighter.damageMultiplier = dmgMult
+  fighter.attackMultiplier = dmgMult
+  if (fighter.baseSpeed) fighter.speed = fighter.baseSpeed * evoMult
+}
+
+// ── LINES (original text only; no copied quotes). Touch Komugi / Gungi / the Rose / his name / "a king who
+//    learned". Matchup intros per HxH rosterKey. Text only — no audio. ──────────────────────────────────
+const MERUEM_LINES = {
+  intro: [
+    "I am Meruem. Every move you make, I will have already learned.",
+    "Kneel. The King grants you one lesson before the end.",
+    "Show me your strength — I will make it mine before this is over.",
+  ],
+  matchup: {
+    netero:   ["Chairman — set the board. I remember every stone we ever played."],
+    gon:      ["So small, and so full of ruin. Teach the King what that rage becomes."],
+    killua:   ["Lightning sleeps in your hands. I will learn its tempo in three strikes."],
+    hisoka:   ["A jester starved for a stronger foe. Amuse the King — briefly."],
+    chrollo:  ["You collect the gifts of others. A King is not a thing to be collected."],
+    kurapika: ["Scarlet eyes, scarlet hate. Hatred is a clumsy opening move."],
+  },
+  evolution: [
+    "I am still evolving.",
+    "You pushed me. Thank you for that.",
+    "Limitless — and I have not yet peaked.",
+  ],
+  finalHours: [
+    "So the Rose has bloomed in me. Then the King spends his last hours as a King.",
+    "I feel it ending — good. I will finish standing.",
+  ],
+  win: [
+    "Komugi... the King kept his word. One more game is waiting.",
+    "I learned. In the end, that is all a King is for.",
+    "Gungi taught me patience; you taught me nothing new.",
+    "A king who learned — it was enough. It was everything.",
+  ],
+}
+// Deterministic rotation (no gameRng): a per-fighter per-kind counter, LAN-identical.
+function meruemPickLine(fighter, kind, oppKey) {
+  let pool = null
+  if (kind === "intro" && oppKey) pool = MERUEM_LINES.matchup[(oppKey || "").toLowerCase()] || null
+  if (!pool) pool = MERUEM_LINES[kind] || []
+  if (!pool.length) return ""
+  const idx = fighter ? ((fighter._meruemLineIdx = (fighter._meruemLineIdx || {}), (fighter._meruemLineIdx[kind] = (fighter._meruemLineIdx[kind] || 0) + 1) - 1)) : 0
+  return pool[idx % pool.length]
+}
+// Exported for game.js intro/win banners (keyed by the fighter + the opponent).
+export function meruemIntroBanter(fighter, oppKey) { return meruemPickLine(fighter, "intro", oppKey) }
+export function meruemWinBanter(fighter)           { return meruemPickLine(fighter, "win") }
+
 // N — AURA BULLET (fired by updateMeruem on charge release; tap = light, hold = charged).
 function fireMeruemAuraBullet(fighter, context, charged) {
   const cost = charged ? 30 : (fighter.specials?.auraBullet?.cost ?? 18)
@@ -31678,6 +32056,7 @@ function executeMeruemUltimate(fighter, context) {
   fighter.facing = opp0 ? (opp0.x >= fighter.x ? 1 : -1) : (fighter.facing || 1)
   fighter._meruemUltTimer = MERUEM_ULT_LEN; fighter._meruemUltMax = MERUEM_ULT_LEN
   fighter._meruemCutinFx = 56                                      // menace-panel cut-in slide (drawMeruemUltCinematic)
+  fighter._meruemCutinKind = (fighter._ultVariant === "royalFeast") ? "royalFeast" : "onslaught"
   fighter.attackCooldown = getAttackDuration(MERUEM_ULT_LEN, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, MERUEM_ULT_LEN)
   fighter._spriteCastMove = "meruemKingsLunge"; fighter._spriteCastTimer = 56
@@ -31765,6 +32144,67 @@ export function updateMeruem(fighter, context, heldSpecial = false, blockCinemat
     fighter._meruemOppWasCasting = false
   }
   if (fighter._meruemReadNameT > 0 && --fighter._meruemReadNameT <= 0) fighter._meruemReadName = null
+
+  // ══ PHASE 3 PASSIVES ══
+  meruemApplyBuffs(fighter)
+  if (fighter._meruemBanner > 0) fighter._meruemBanner--
+  if (fighter._meruemEvoPopT > 0) fighter._meruemEvoPopT--
+  if (fighter._meruemComboDecay > 0 && --fighter._meruemComboDecay <= 0) fighter._meruemComboDmg = 0
+
+  const hpNow  = fighter.health || 0
+  const hpPrev = (fighter._meruemHpLast == null) ? hpNow : fighter._meruemHpLast
+  // A combat hit THIS frame: colorFlash is set by combat.js on every connect (melee/projectile), and HP
+  // dropped by more than the Final-Hours poison tick → it's an enemy hit, not self-drain. Catches each combo hit.
+  const tookHit = (fighter.colorFlash || 0) > 0 && (hpPrev - hpNow) > 0.5
+  if (tookHit) {
+    const delta = hpPrev - hpNow
+    const opp = getTargetResolver(context)(fighter)
+    // GUNGI MIND — attribute the hit to the opponent's connecting move (combat.js nulls the DEFENDER's move,
+    // so read the ATTACKER's currentMove/currentAttack.name).
+    const key = String((opp && (opp.currentMove || opp.currentAttack?.name)) || "strike")
+    const adapt   = fighter._meruemAdapt   || (fighter._meruemAdapt = {})
+    const learned = fighter._meruemLearned || (fighter._meruemLearned = {})
+    const n = (adapt[key] || 0) + 1
+    if (!learned[key] && n >= MERUEM_ADAPT_THRESH && !blockCinematics && (fighter.invulnTimer || 0) <= 0) {
+      // 3rd hit of this move → Gungi Mind READS it: auto-parry ONCE (refund the hit, i-frames, tail counter),
+      // the move is now LEARNED (future hits −30%), and the count drops to 2.
+      fighter.health = Math.min(fighter.maxHealth || hpNow, hpNow + delta)
+      fighter.hitstun = 0
+      learned[key] = true; adapt[key] = MERUEM_ADAPT_THRESH - 1
+      meruemTailLanceCounter(fighter, context)
+      fighter._meruemReadFx = 30
+    } else {
+      // a LEARNED move deals 30% less to Meruem (refund 30% of this hit). The auto-parry only fires ONCE
+      // (the first time a move reaches 3) — afterwards the move is simply dulled, no repeat parry.
+      if (learned[key]) fighter.health = Math.min(fighter.maxHealth || hpNow, hpNow + delta * MERUEM_ADAPT_REDUCE)
+      adapt[key] = Math.min(n, MERUEM_ADAPT_THRESH)
+    }
+    // NEVER PUSHED — accumulate combo damage; a combo ≥25% max HP grants an Evolution stack.
+    fighter._meruemComboDmg = (fighter._meruemComboDmg || 0) + delta
+    fighter._meruemComboDecay = MERUEM_COMBO_DECAY
+    if (fighter._meruemComboDmg >= (fighter.maxHealth || 1) * MERUEM_EVO_COMBO_FRAC && (fighter._meruemEvo || 0) < MERUEM_EVO_MAX) {
+      fighter._meruemEvo = (fighter._meruemEvo || 0) + 1
+      fighter._meruemComboDmg = 0
+      fighter._meruemEvoPopT = 90
+      fighter._meruemBannerText = meruemPickLine(fighter, "evolution"); fighter._meruemBanner = 120
+    }
+  }
+
+  // FINAL HOURS — once per match (ORIGINAL nod to the Poor Man's Rose): when HP first drops below 20%.
+  if (!fighter._meruemFinalHours && hpNow > 0 && hpNow < (fighter.maxHealth || 1) * MERUEM_FINAL_HP_FRAC) {
+    fighter._meruemFinalHours = true
+    if (!blockCinematics) {
+      fighter._meruemCutinFx = 56; fighter._meruemFinalFlash = 48; fighter._meruemCutinKind = "finalHours"
+      fighter._meruemBannerText = meruemPickLine(fighter, "finalHours"); fighter._meruemBanner = 150
+    }
+  }
+  // Final Hours slow poison — drains, but can NEVER take him below 1 HP.
+  if (fighter._meruemFinalHours && (fighter.health || 0) > 1) {
+    fighter.health = Math.max(1, (fighter.health || 0) - MERUEM_FINAL_POISON)
+  }
+  if (fighter._meruemFinalFlash > 0) fighter._meruemFinalFlash--
+
+  fighter._meruemHpLast = fighter.health || 0
 }
 
 export function triggerSpecial(fighter, context = {}) {
@@ -31809,8 +32249,10 @@ export function triggerSpecial(fighter, context = {}) {
     case "naruto_hokage": return executeNarutoHokageSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton wall / D=Throw Weapon (KCM upgrades when golden form active)
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)
     case "rick":    return executeRickSpecial(fighter, context)
+    case "shizuku": return executeShizukuSpecial(fighter, context)   // Blinky (Phase 2): N=Phantom Jab Rush / F=Blinky Pull (suction+reel) / B=Blinky Smash / D=Belly Spit (refire stored projectile) / U=Disarm (lock foe projectile specials). Bloodletting/Spring Cleaning ULTs = Phase 3
     case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "gaara":   return executeGaaraSpecial(fighter, context)   // Phase 1: D=Sand Bullet (projectile). N/F/B/U sand specials = Phase 2; Sabaku Taisou ULT = Phase 3; Shukaku = Phase 4
+    case "meruem":  return executeMeruemSpecial(fighter, context)   // N=Aura Bullet (charge-hold, armed in game.js) / F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field. Ant King's Onslaught ULT. Royal Feast=Phase 4
     case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
@@ -32021,7 +32463,6 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (fighter.attacking) return false
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
-    case "shizuku": return executeShizukuSpecial(fighter, context)   // Blinky (Phase 2): N=Phantom Jab Rush / F=Blinky Pull (suction+reel) / B=Blinky Smash / D=Belly Spit (refire stored projectile) / U=Disarm (lock foe projectile specials). Bloodletting/Spring Cleaning ULTs = Phase 3
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
   // ADDITIVE: Naruto-universe clone-choreography — pressing Ultimate while a clone formation is staged fires
   // the Ultimate-Swarm (the 6th move). Intercepted before the signature-ultimate switch, so the character's
@@ -32054,6 +32495,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
+      case "shizuku": cast = executeShizukuUltimate(fighter, context); break   // NEUTRAL = Bloodletting (combo → blood-draw → lifesteal 40% cap 12% maxHP) / DOWN = Spring Cleaning (hose barrage → clear opp projectiles [first 3→belly] + cube traps). _ultVariant stamped in game.js.
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
@@ -33198,4 +33640,3 @@ export function activateUltimate(fighter) {
 // module-scope (spendEnergy/spawnProjectile/schedulePendingSpawn/activeProjectiles) or combat.js imports
 // (applyScaledDamage). Without this call API stays null and every dōjutsu move throws → it MUST run on load.
 initSasukeDojutsu({ spendEnergy, spawnProjectile, schedulePendingSpawn, activeProjectiles, applyScaledDamage })
-    case "meruem":  return executeMeruemSpecial(fighter, context)   // N=Aura Bullet (charge-hold, armed in game.js) / F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field. Ant King's Onslaught ULT. Royal Feast=Phase 4

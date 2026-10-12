@@ -181,7 +181,9 @@ import {
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
   updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
-  updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
+  updateGonCommandCombat,     // Gon Forward+Heavy "Rush" rekka + Up/Down/Back+Heavy & Down+Light Phase-2 command moves (Ground Breaker/Ren/Fury Dash/Fishing Rod)
+  updateGonJajankenChant,     // Gon Phase-2 Jajanken CHANT driver (hold Special → stage up → release dir picks Rock/Scissors/Paper + "Called It!")
+  updateGonPhase2Systems,     // Gon Phase-2 per-frame bookkeeping (Ren buff/cooldown, Fishing-Rod on-hit pull+meter-steal, Fury/Crater/Called-It/Chant FX timers)
   updateStandardStringCombat, // MK-feel Stage 2b: single-poke chars' shared light→light→heavy(launcher) + heavy→special cancel string
 
   updateChrolloCommandCombat,  // Chrollo Fwd+Heavy 2-hit "Blade Rush" command-normal cancel chain (chCombo1→chComboFin launcher, cancel-on-hit)
@@ -288,9 +290,11 @@ import {
   spawnGuaranteedCloneHit,     // guaranteed-hit primitive — reused per Uzumaki Barrage choreography beat
   updateHinata, applyHinataGuutenToProjectiles,   // HINATA (Phase 2) — per-frame buff/FX tick + Hakkesho Guuten projectile deflection
   updateGaara, applyGaaraUltimateDefense,   // GAARA (Phase 1-2) — per-frame FX/armor tick + Ultimate Defense projectile stop (no-op otherwise)
+  updateShizuku,   // SHIZUKU (Phase 2) — per-frame tick: Blinky belly guard-eat + forget timers, pull-bounce, Disarm vacuum/lockout, FX (no-op otherwise)
+  updateMeruem, startMeruemAuraCharge,   // MERUEM (Phase 2) — per-frame tick (Aura-Bullet charge-hold release, Gungi Stance counter/absorb, Photon Field read, Synthesis fill, FX) + Aura-Bullet charge START (neutral-Special arm)
+  meruemIntroBanter, meruemWinBanter,   // MERUEM (Phase 3) — intro (opponent-aware matchup) + win banter lines (text only, no audio)
   toggleKakashiAnbuSharingan, updateKakashiAnbu, startKakashiAnbuRaikiri,   // KAKASHI (ANBU) Phase 2 — Sharingan charge-TAP toggle + per-frame state tick (drain/fatigue/Raikiri charge+dash) + Raikiri charge START (neutral-Special arm)
   updateKakashiWar, startKakashiWarRaikiri,   // KAKASHI (KAMUI) Phase 1 — per-frame state tick (Raikiri charge+dash ground/air, Kawarimi cd/FX) + Raikiri charge START (neutral-Special arm, ground+air)
-  updateShizuku,   // SHIZUKU (Phase 2) — per-frame tick: Blinky belly guard-eat + forget timers, pull-bounce, Disarm vacuum/lockout, FX (no-op otherwise)
   toggleKakashiWarSharingan, toggleKakashiWarFrog   // KAKASHI (KAMUI) Phase 2 Sharingan charge-TAP toggle + Phase 3 Frog Henge (Crouch+Charge-tap)
 } from "./abilities.js"
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
@@ -3816,6 +3820,11 @@ function resetRound() {
     if (f && (f.rosterKey || "").toLowerCase() === "shisui_trinity") {
       f._shisuiSignalFlash = 22; f._shisuiSwapBanner = 150; f._shisuiSwapBannerText = shisuiIntroBanter(f.rosterKey)
     }
+    // Meruem — INTRO: an opponent-aware banter line above the head (matchup line vs each HxH fighter, else generic).
+    if (f && (f.rosterKey || "").toLowerCase() === "meruem") {
+      const opp = (f === p1) ? p2 : p1
+      f._meruemBannerText = meruemIntroBanter(f, opp?.rosterKey || ""); f._meruemBanner = 150
+    }
   }
   // Arcade final-boss buffs (Stage 20): applied ONLY when this p2 is the arcade boss opponent. Any
   // other appearance of the same character (normal vs, other fights) is a fair, normal fighter. MUST
@@ -5756,6 +5765,10 @@ function _checkMatchOver() {
       const loseF = winner === "p1" ? p2 : p1
       if (winF?.animationData?.win)   winF._forceAction  = "win"
       if (loseF?.animationData?.lose) loseF._forceAction = "lose"
+      // Meruem — WIN BANTER (touches Komugi / Gungi / the Rose / "a king who learned"; text only).
+      if (winF && (winF.rosterKey || "").toLowerCase() === "meruem") {
+        winF._meruemBannerText = meruemWinBanter(winF); winF._meruemBanner = 240
+      }
       // Shisui (Trinity) — WIN BANTER in the ACTIVE identity's voice (the one standing at the KO).
       if (winF && /^shisui_(trinity|blade|puppeteer)$/.test((winF.rosterKey || "").toLowerCase())) {
         winF._shisuiSwapBanner = 240; winF._shisuiSwapBannerText = shisuiWinBanter(winF.rosterKey)
@@ -7934,6 +7947,13 @@ function _updatePlayerCombatBody(fighter) {
         !fighter._raikiriCharging && !fighter._raikiriDashing) {
       startKakashiWarRaikiri(fighter, getAbilityContext()); return
     }
+    // MERUEM — a NEUTRAL Special is the AURA BULLET charge-hold (tap = light round / HOLD = charged round).
+    // Start the frame-based charge and consume the press; the HOLD/RELEASE fire runs in updateMeruem. A
+    // DIRECTIONAL Special (F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field) falls
+    // through to triggerSpecial. Not while already charging.
+    if ((fighter.rosterKey || "").toLowerCase() === "meruem" && !fighter._specialHeldDir && !fighter._meruemAuraCharging) {
+      startMeruemAuraCharge(fighter); return
+    }
     // SASUKE — RINNEGAN SPACE-TIME on CHARGE + Special (R1/R2/R5). Charge + Special = Amenotejikara Kunai
     // Swap · Charge + Fwd + Special = Portal Chidori · Charge + Back + Special = Portal Redirect. Rinnegan-
     // gated (sensei). Un-Charged Special falls straight through to the normal eye-set dispatch → fully additive.
@@ -8033,6 +8053,13 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gaara") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "shukaku" : "sabakuTaisou"
   }
+  // MERUEM — Ultimate is directional: NEUTRAL = Ant King's Onslaught (Phase 2) · DOWN = Royal Feast (Phase 4,
+  // needs full Aura Synthesis — no-ops until then). Stamp the held dir + a fresh cinematics gate (updateBattle's
+  // tick is skipped during cinematics) so the ultimate refuses during KO / Brutality / Domain / Rick rewind.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "meruem") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "royalFeast" : "onslaught"
+    fighter._meruemCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
+  }
   // KAKASHI (ANBU) — Ultimate is directional: NEUTRAL = Full-Charge Raikiri · Down = Copy Ninja (mirror the
   // foe's recent projectile; needs Sharingan + copy-ready) · Up = Kamui Rift (only after the Mangekyō awakening).
   // Copy/Kamui self-gate in executeKakashiAnbuUltimate (no-op → ult not consumed when unavailable).
@@ -8055,6 +8082,12 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "shisui_fallen") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "U" ? "kotoamatsukami" : _hd === "D" ? "emeraldSusanoo" : _hd === "F" ? "flickerTime" : "thousandShadows"
+  }
+  // SHIZUKU — Ultimate is directional: NEUTRAL = Bloodletting (combo → blood-draw → lifesteal) · DOWN = Spring
+  // Cleaning (hose barrage → clear opp projectiles [first 3 → belly] + cube traps). Stamp the held dir so
+  // executeShizukuUltimate picks the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "shizuku") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "springCleaning" : "bloodletting"
   }
   // SHISUI (TRINITY) — the active identity's Ultimate is a cinematic (Susanoo Tsukumo / Kotoamatsukami).
   // Stamp a fresh cinematics gate so it refuses during KO / Brutality / Domain / Rick-Prime-rewind. The
@@ -13518,34 +13551,11 @@ function drawMadaraRibcageGuard(c, fighter) {
   else        c.drawImage(img, -dw / 2, -dh / 2, dw, dh)
   c.restore()
 }
-function drawGaaraFx(c, fighter) {
-  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
-  const w = fighter.w ?? 60, h = fighter.h ?? 100
-  const facing = fighter.facing || 1
-  const cx = fighter.x + w / 2, feetY = fighter.y + h
-
-  // (Phase 1) SAND SHIELD — sand wall rising in front while blocking.
-  if (fighter.isBlocking) {
-    const rise = Math.min(1, (fighter._gaaraShieldAnim = Math.min(12, (fighter._gaaraShieldAnim || 0) + 1)) / 10)
-    const t = (fighter._gaaraShieldT = (fighter._gaaraShieldT || 0) + 1)
-    const frontX = facing === 1 ? fighter.x + w * 0.78 : fighter.x + w * 0.22
-    const wallH = h * 0.86 * rise, wallW = w * 0.46
-    c.save(); c.translate(frontX, feetY)
-    c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.7)"
-    const grad = c.createLinearGradient(0, 0, 0, -wallH)
-    grad.addColorStop(0, "rgba(176,146,92,0.95)"); grad.addColorStop(1, "rgba(216,195,154,0.78)")
-    c.fillStyle = grad; c.beginPath(); c.moveTo(-wallW * 0.5, 0)
-    for (let i = 0; i <= 6; i++) {
-      const fx = -wallW * 0.5 + (wallW * i / 6)
-      const crest = -wallH * (0.8 + 0.2 * Math.sin(t * 0.18 + i * 1.3)) - Math.sin(i * 2.1) * 4
-      c.lineTo(fx, crest)
-    }
-    c.lineTo(wallW * 0.5, 0); c.closePath(); c.fill()
 // ── SHIZUKU FX — code-drawn belly pips + text pops + absorb tint (per the build brief: code-drawn FX only
 // for text pops / HUD pips / tints) + the sheet-sliced suction/impact puffs (real art, not invented).
 const _shizukuFxImgs = {}
 function _shizukuFxImg(src) { if (!_shizukuFxImgs[src]) { const i = new Image(); i.src = src; _shizukuFxImgs[src] = i } return _shizukuFxImgs[src] }
-;["./shizuku_pull_fx_uniform.png", "./shizuku_smash_fx_uniform.png"].forEach(_shizukuFxImg)
+;["./shizuku_pull_fx_uniform.png", "./shizuku_smash_fx_uniform.png", "./shizuku_blood_fx_uniform.png", "./shizuku_cutin_a.png", "./shizuku_cutin_b.png"].forEach(_shizukuFxImg)
 function _shizukuBlitFx(c, img, frames, fi, cx, cy, sc, alpha) {
   if (!img || !img.complete || img.naturalWidth === 0) return
   const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
@@ -13569,6 +13579,17 @@ function drawShizukuFx(c, fighter) {
   if ((fighter._szSmashFx || 0) > 0) _shizukuBlitFx(c, _shizukuFxImg("./shizuku_smash_fx_uniform.png"), 2, Math.floor((24 - fighter._szSmashFx) / 7) % 2, cx + face * (w * 0.6), cy - h * 0.12, sc * 0.5, Math.min(0.9, fighter._szSmashFx / 16))
   // Gulp tint flash on a belly eat.
   if ((fighter._szEatFx || 0) > 0) { c.save(); c.globalAlpha = Math.min(0.4, fighter._szEatFx / 16 * 0.4); c.fillStyle = "#bfe9ff"; c.beginPath(); c.arc(cx + face * (w * 0.5), cy, 14, 0, Math.PI * 2); c.fill(); c.restore() }
+  // ── PHASE 3 ULT FX ──
+  const _szOpp = (fighter === p1) ? p2 : p1
+  // Bloodletting: stylized blood-draw FX (sheet) at the foe (no gore).
+  if ((fighter._szBloodFx || 0) > 0 && _szOpp) {
+    const ow = _szOpp.w ?? 60, oh = _szOpp.h ?? 100
+    _shizukuBlitFx(c, _shizukuFxImg("./shizuku_blood_fx_uniform.png"), 5, Math.floor((30 - fighter._szBloodFx) / 6) % 5, _szOpp.x + ow / 2, _szOpp.y + oh * 0.45, sc * 0.8, Math.min(0.9, fighter._szBloodFx / 18))
+  }
+  // Bloodletting lifesteal: crimson restore ring on Shizuku.
+  if ((fighter._szHealFx || 0) > 0) { c.save(); c.globalAlpha = Math.min(0.7, fighter._szHealFx / 30); c.strokeStyle = "#c0304a"; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, 10 + (30 - fighter._szHealFx) * 1.1, 0, Math.PI * 2); c.stroke(); c.restore() }
+  // Spring Cleaning sweep: a fan of suction puffs across the forward arc.
+  if ((fighter._szCleanFx || 0) > 0) { for (let k = 0; k < 3; k++) _shizukuBlitFx(c, _shizukuFxImg("./shizuku_pull_fx_uniform.png"), 2, Math.floor((26 - fighter._szCleanFx) / 6) % 2, cx + face * (w * 0.6 + 26 + k * 34), cy - 18 + k * 20, sc * 0.5, Math.min(0.8, fighter._szCleanFx / 16)) }
   // BELLY PIPS — 3 amber dots above her head (filled = stored count).
   const n = Array.isArray(fighter._szBelly) ? fighter._szBelly.length : 0
   c.save()
@@ -13586,6 +13607,29 @@ function drawShizukuFx(c, fighter) {
     c.strokeText("...I forgot.", cx, ty); c.fillText("...I forgot.", cx, ty); c.restore()
   }
 }
+function drawGaaraFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, feetY = fighter.y + h
+
+  // (Phase 1) SAND SHIELD — sand wall rising in front while blocking.
+  if (fighter.isBlocking) {
+    const rise = Math.min(1, (fighter._gaaraShieldAnim = Math.min(12, (fighter._gaaraShieldAnim || 0) + 1)) / 10)
+    const t = (fighter._gaaraShieldT = (fighter._gaaraShieldT || 0) + 1)
+    const frontX = facing === 1 ? fighter.x + w * 0.78 : fighter.x + w * 0.22
+    const wallH = h * 0.86 * rise, wallW = w * 0.46
+    c.save(); c.translate(frontX, feetY)
+    c.shadowBlur = 8; c.shadowColor = "rgba(150,120,70,0.7)"
+    const grad = c.createLinearGradient(0, 0, 0, -wallH)
+    grad.addColorStop(0, "rgba(176,146,92,0.95)"); grad.addColorStop(1, "rgba(216,195,154,0.78)")
+    c.fillStyle = grad; c.beginPath(); c.moveTo(-wallW * 0.5, 0)
+    for (let i = 0; i <= 6; i++) {
+      const fx = -wallW * 0.5 + (wallW * i / 6)
+      const crest = -wallH * (0.8 + 0.2 * Math.sin(t * 0.18 + i * 1.3)) - Math.sin(i * 2.1) * 4
+      c.lineTo(fx, crest)
+    }
+    c.lineTo(wallW * 0.5, 0); c.closePath(); c.fill()
     c.shadowBlur = 0; c.fillStyle = "rgba(120,96,56,0.8)"
     for (let k = 0; k < 10; k++) {
       const gx = -wallW * 0.45 + (wallW * 0.9) * ((k + 0.5) / 10)
@@ -13975,6 +14019,146 @@ function drawKakashiWarFx(c, fighter) {
     const fi = Math.min(2, Math.floor((mx - d) / 5))
     const img = _kwarFxImg("./kakashi_war_dog_uniform.png")
     _gaaraBlitFx(c, img, 3, fi, fighter._warDogX || fighter.x, fighter._warDogY || (fighter.y + (fighter.h || 100)), 1.6, Math.min(0.95, d / 8))
+  }
+}
+// ── MERUEM — code-drawn aura FX (world-space, per-fighter; meruem only). Gungi-Stance aura flash, Photon
+// Field photon scatter + read label, READ counter/absorb pop, tail-rush streak, Aura-Bullet charge glow,
+// and the Aura Synthesis gauge above the head. All procedural/deterministic (no gameRng). No sprite art.
+const _meruemFxImgs = {}
+function _meruemFxImg(src) { if (!_meruemFxImgs[src]) { const i = new Image(); i.src = src; _meruemFxImgs[src] = i } return _meruemFxImgs[src] }
+function drawMeruemFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "meruem") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100, facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5, headY = fighter.y - h * 0.12
+  const t = (fighter._meruemFxClock = (fighter._meruemFxClock || 0) + 1)
+
+  // PHOTON FIELD — scattered drifting purple photon motes across the stage + a faint violet field tint.
+  if ((fighter._photonFieldActive || 0) > 0) {
+    const cw = c.canvas?.width || 1280, ch = c.canvas?.height || 720
+    const life = fighter._photonFieldActive, fade = Math.min(1, life / 30) * Math.min(1, (240 - life) / 20 + 0.3)
+    c.save()
+    c.fillStyle = "rgba(120,50,190,0.05)"; c.fillRect(0, 0, cw, ch)   // faint field wash
+    for (let i = 0; i < 26; i++) {
+      // deterministic drift (sin/cos of index + clock) — no RNG
+      const px = ((i * 97 + t * (0.6 + (i % 5) * 0.12)) % cw)
+      const py = (ch * 0.2) + (Math.sin(i * 1.7 + t * 0.02) * 0.5 + 0.5) * ch * 0.6
+      const r = 2 + (i % 3)
+      const a = (0.35 + 0.35 * Math.sin(t * 0.08 + i)) * fade
+      c.globalAlpha = Math.max(0, a); c.fillStyle = "#c98cff"; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"
+      c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill()
+    }
+    c.restore()
+    // READ LABEL — the foe's next special name, read the instant they input it.
+    if (fighter._meruemReadName) {
+      c.save(); c.globalAlpha = Math.min(1, (fighter._meruemReadNameT || 0) / 20 + 0.4)
+      c.font = "bold 15px monospace"; c.textAlign = "center"
+      c.fillStyle = "#1a0a24"; c.fillRect(cx - 86, headY - 44, 172, 20)
+      c.strokeStyle = "#c98cff"; c.lineWidth = 1; c.strokeRect(cx - 86, headY - 44, 172, 20)
+      c.fillStyle = "#e6c6ff"; c.fillText("READ ▸ " + String(fighter._meruemReadName).slice(0, 16), cx, headY - 29)
+      c.restore()
+    }
+  }
+
+  // GUNGI MIND STANCE — a pulsing violet aura ring while the read window is open.
+  if ((fighter._meruemStanceFx || 0) > 0) {
+    const s = fighter._meruemStanceFx
+    c.save(); c.globalAlpha = Math.min(0.8, s / 14)
+    c.strokeStyle = "#c98cff"; c.lineWidth = 3; c.shadowBlur = 14; c.shadowColor = "#9b2fd6"
+    const rr = w * (0.7 + 0.25 * Math.sin(t * 0.5))
+    c.beginPath(); c.ellipse(cx, cy, rr, rr * 1.2, 0, 0, Math.PI * 2); c.stroke()
+    c.restore()
+  }
+
+  // TAIL-RUSH streak — a purple after-trail behind Meruem during the tail rush.
+  if ((fighter._meruemTailFx || 0) > 0) {
+    const s = fighter._meruemTailFx
+    c.save(); c.globalAlpha = Math.min(0.6, s / 16)
+    const grad = c.createLinearGradient(cx - facing * w, cy, cx, cy)
+    grad.addColorStop(0, "rgba(155,47,214,0)"); grad.addColorStop(1, "rgba(201,140,255,0.8)")
+    c.fillStyle = grad; c.fillRect(cx - facing * w, cy - h * 0.18, facing * w, h * 0.36)
+    c.restore()
+  }
+
+  // AURA-BULLET charge glow — a growing purple orb at the lead hand while charging.
+  if ((fighter._meruemAuraCharging || 0) > 0) {
+    const cf = Math.min(1, (fighter._meruemAuraChargeFrames || 0) / 58)
+    const hx = fighter.x + w * (0.5 + facing * 0.4), hy = fighter.y + h * 0.5
+    c.save(); c.globalAlpha = 0.5 + 0.4 * cf; c.shadowBlur = 16; c.shadowColor = "#9b2fd6"
+    c.fillStyle = cf >= 0.34 ? "#e6c6ff" : "#b24cf0"
+    c.beginPath(); c.arc(hx, hy, 4 + cf * 12, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+
+  // READ pop — "READ" text after a Gungi counter / absorb.
+  if ((fighter._meruemReadFx || 0) > 0) {
+    const s = fighter._meruemReadFx
+    c.save(); c.globalAlpha = Math.min(1, s / 18); c.font = "bold 20px monospace"; c.textAlign = "center"
+    c.fillStyle = "#e6c6ff"; c.shadowBlur = 10; c.shadowColor = "#9b2fd6"
+    c.fillText("READ", cx, headY - 48 - (30 - s))
+    c.restore()
+  }
+
+  // AURA SYNTHESIS gauge — thin violet bar above the head (fills → Royal Feast, Phase 4).
+  const synth = fighter._meruemSynth || 0
+  if (synth > 0) {
+    const full = synth >= 100, bw = Math.max(44, w * 1.1), bh = 5
+    const bx = cx - bw / 2, by = headY - 16
+    c.save()
+    c.fillStyle = "#1a0a24"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+    c.fillStyle = full ? (Math.floor(t / 6) % 2 ? "#e6c6ff" : "#b24cf0") : "#8a3fc0"
+    c.fillRect(bx, by, bw * Math.min(1, synth / 100), bh)
+    if (full) { c.strokeStyle = "#e6c6ff"; c.lineWidth = 1; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"; c.strokeRect(bx - 1, by - 1, bw + 2, bh + 2) }
+    c.restore()
+  }
+
+  // ── PHASE 3 — EVOLUTION aura brighten (per Never-Pushed stack): a rising violet glow intensifies with stacks.
+  const evo = fighter._meruemEvo || 0
+  if (evo > 0) {
+    c.save(); c.globalCompositeOperation = "lighter"
+    const pulse = 0.12 + 0.05 * Math.sin(t * 0.12)
+    c.globalAlpha = Math.min(0.5, evo * pulse)
+    const g = c.createRadialGradient(cx, cy, 2, cx, cy, h * 0.7)
+    g.addColorStop(0, "#c98cff"); g.addColorStop(1, "rgba(155,47,214,0)")
+    c.fillStyle = g; c.beginPath(); c.arc(cx, cy, h * 0.7, 0, Math.PI * 2); c.fill()
+    c.restore()
+    // EVOLVED ×N pop
+    if ((fighter._meruemEvoPopT || 0) > 0) {
+      c.save(); c.globalAlpha = Math.min(1, fighter._meruemEvoPopT / 20); c.font = "bold 14px monospace"; c.textAlign = "center"
+      c.fillStyle = "#e6c6ff"; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"
+      c.fillText("EVOLVED ×" + evo, cx, headY - 62 - (90 - fighter._meruemEvoPopT) * 0.2)
+      c.restore()
+    }
+  }
+
+  // ── PHASE 3 — FINAL HOURS: a sickly purple-green tint wash over the body + a rising flare on awakening.
+  if (fighter._meruemFinalHours) {
+    c.save()
+    c.globalAlpha = 0.22 + 0.06 * Math.sin(t * 0.16)
+    c.globalCompositeOperation = "multiply"
+    c.fillStyle = "#6a4a7a"   // sickly violet
+    c.fillRect(fighter.x - w * 0.1, fighter.y, w * 1.2, h)
+    c.globalCompositeOperation = "lighter"; c.globalAlpha = 0.1
+    c.fillStyle = "#8aff6a"   // faint sickly-green bloom
+    c.fillRect(fighter.x - w * 0.1, fighter.y, w * 1.2, h)
+    c.restore()
+  }
+  if ((fighter._meruemFinalFlash || 0) > 0) {
+    const s = fighter._meruemFinalFlash
+    c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = Math.min(0.6, s / 24)
+    c.shadowBlur = 20; c.shadowColor = "#9b2fd6"; c.strokeStyle = "#c98cff"; c.lineWidth = 3
+    const rr = w * (0.6 + (48 - s) * 0.03)
+    c.beginPath(); c.ellipse(cx, cy, rr, rr * 1.3, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
+
+  // ── PHASE 3 — BANNER (intro matchup / evolution / Final Hours / win line) above the head. Text only.
+  if ((fighter._meruemBanner || 0) > 0 && fighter._meruemBannerText) {
+    const bt = fighter._meruemBanner
+    c.save(); c.globalAlpha = Math.min(1, bt / 18)
+    c.font = "bold 11px monospace"; c.textAlign = "center"
+    const tx = cx, ty = fighter.y - 22
+    c.fillStyle = "rgba(0,0,0,0.65)"; c.fillText(fighter._meruemBannerText, tx + 1, ty + 1)
+    c.fillStyle = "rgba(230,198,255,0.97)"; c.fillText(fighter._meruemBannerText, tx, ty)
+    c.restore()
   }
 }
 // ── KAKASHI (ANBU) — Full-Charge Raikiri ULTIMATE illustration cut-in (SCREEN space). The illustration
@@ -14790,6 +14974,91 @@ function drawGonAdultAura(c, fighter) {
   c.restore()
 }
 
+// GON — Phase-2 code-drawn FX (chant rings + "JAN…/KEN…" text, Ren aura pillar, Fury red-aura bubble,
+// Ground-Breaker crater cracks, and the "CALLED IT!" read-pop + manga-panel cut-in). ALL code-drawn
+// except the cut-in, which blits a manga panel from gon_cutins.png (the sheet's own chant screencaps —
+// the ONLY sanctioned image use for reads). World-space near the body; purely cosmetic (no gameplay).
+const _gonFxImgs = {}
+function _gonFxImg(src) { if (!_gonFxImgs[src]) { const i = new Image(); i.src = src; _gonFxImgs[src] = i } return _gonFxImgs[src] }
+function drawGonPhase2Fx(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "gon") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const cx = x + w / 2, headY = y - 6, feetY = y + h
+  const t = (fighter._gonFxT = (fighter._gonFxT || 0) + 1)
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.3)
+
+  // ── JAJANKEN CHANT — concentric charge rings + "JAN…/KEN…" text, intensity by stage ──
+  const chant = fighter._gonChant
+  if (chant) {
+    const stage = chant.stage || 1
+    const col = stage >= 3 ? "#ffd166" : stage >= 2 ? "#a7f3d0" : "#86efac"   // green→mint→gold as it climbs
+    c.save()
+    c.globalAlpha = 0.5 + 0.3 * pulse; c.shadowBlur = 18; c.shadowColor = col; c.strokeStyle = col; c.lineWidth = 2.5
+    const rings = Math.min(5, 1 + Math.floor((chant.frames || 0) / 14))   // up to 5 charge rings
+    for (let k = 0; k < rings; k++) {
+      const rr = 14 + k * 9 + pulse * 4
+      c.beginPath(); c.arc(cx, y + h * 0.5, rr, 0, Math.PI * 2); c.stroke()
+    }
+    c.restore()
+    const txt = stage >= 3 ? "JAN… KEN…!" : stage >= 2 ? "JAN… KEN…" : "JAN…"
+    c.save()
+    c.font = "bold 15px 'Arial Black', sans-serif"; c.textAlign = "center"
+    c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,0.85)"; c.strokeText(txt, cx, headY - 20 - stage * 2)
+    c.fillStyle = col; c.fillText(txt, cx, headY - 20 - stage * 2)
+    c.restore()
+  } else if ((fighter._gonChantBroken || 0) > 0) {
+    c.save(); c.globalAlpha = (fighter._gonChantBroken / 12) * 0.8
+    c.font = "bold 13px 'Arial Black', sans-serif"; c.textAlign = "center"
+    c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,0.8)"; c.strokeText("—broken!", cx, headY - 18)
+    c.fillStyle = "#cbd5e1"; c.fillText("—broken!", cx, headY - 18); c.restore()
+  }
+
+  // ── REN — rising Nen aura pillar (gold/white) while the buff is live ──
+  if ((fighter._gonRenTimer || 0) > 0) {
+    c.save(); c.globalAlpha = 0.14 + 0.1 * pulse
+    const grd = c.createLinearGradient(0, feetY, 0, y - 24)
+    grd.addColorStop(0, "rgba(255,235,150,0.0)"); grd.addColorStop(0.4, "rgba(255,235,150,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0.0)")
+    c.fillStyle = grd; c.fillRect(x - 6, y - 24, w + 12, h + 24)
+    c.restore()
+  }
+
+  // ── FURY DASH — red anger-aura bubble ──
+  if ((fighter._gonFury || 0) > 0) {
+    c.save(); c.globalAlpha = 0.25 + 0.2 * pulse; c.shadowBlur = 20; c.shadowColor = "#ef4444"
+    c.fillStyle = "rgba(239,68,68,0.28)"; c.beginPath(); c.ellipse(cx, y + h * 0.5, w * 0.8, h * 0.6, 0, 0, Math.PI * 2); c.fill()
+    c.restore()
+  }
+
+  // ── GROUND BREAKER — crater crack lines radiating at the feet ──
+  if ((fighter._gonGroundBreak || 0) > 0) {
+    c.save(); c.globalAlpha = 0.6; c.strokeStyle = "#7c5a33"; c.lineWidth = 3
+    for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(cx, feetY); c.lineTo(cx + k * 26, feetY + 10 + Math.abs(k) * 3); c.stroke() }
+    c.restore()
+  }
+
+  // ── CALLED IT! — read-pop banner + manga-panel cut-in (from gon_cutins.png) ──
+  if ((fighter._gonCalledIt || 0) > 0) {
+    const a = Math.min(1, fighter._gonCalledIt / 18)
+    // manga cut-in card (left cluster of the chant screencaps)
+    const img = _gonFxImg("./gon_cutins.png")
+    if (img && img.complete && img.naturalWidth) {
+      const cw = 150, chh = 190, dw = 150, dh = 190 * (dw / cw) * 0.5
+      c.save(); c.globalAlpha = 0.9 * a
+      const px = cx - dw / 2, py = headY - 56 - dh
+      c.drawImage(img, 0, 0, cw, chh, px, py, dw, dh)
+      c.lineWidth = 3; c.strokeStyle = fighter._gonFxT % 8 < 4 ? "#ffd166" : "#ffffff"; c.strokeRect(px, py, dw, dh)
+      c.restore()
+    }
+    c.save(); c.globalAlpha = a
+    c.font = "bold 22px 'Arial Black', sans-serif"; c.textAlign = "center"
+    const bob = Math.sin(fighter._gonFxT * 0.5) * 2
+    c.lineWidth = 5; c.strokeStyle = "rgba(0,0,0,0.9)"; c.strokeText("CALLED IT!", cx, headY - 30 + bob)
+    c.fillStyle = "#ffd166"; c.fillText("CALLED IT!", cx, headY - 30 + bob)
+    c.restore()
+  }
+}
+
 // MIWA — Rapid Slash Vortex FX (§10): a SEPARATE overlay layer (NOT part of the character animation
 // sub-clip) played on the air-special hit. Sprite = kasumi_vortex_fx.png (4 spinning-vortex frames,
 // character frames 0-1 stay in the airVortex sub-clip). Armed by abilities.fireMiwaAirSlash (_miwaVortex
@@ -14858,6 +15127,12 @@ function updateFighterState(fighter) {
   applyGodspeedSystem(updated)       // Killua Godspeed: continuous Nen drain + auto-revert at 0 + afterimage-trail recording
   applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
+  updateGonPhase2Systems(updated, getAbilityContext())   // Gon Phase 2: Ren buff/cooldown timers + Fishing-Rod on-hit pull+meter-steal + Fury/Crater/Called-It/Chant-broken FX timers
+  // GON Jajanken CHANT advance/release — UNCONDITIONAL per-frame (the Special-press input block returns
+  // every held frame, so the chant must climb here, reading the deterministic held-input snapshot). Armed
+  // by executeGonSpecial on the press; this climbs the stage while Special is HELD, cancels on a hit, and
+  // fires the direction-picked hand on RELEASE.
+  if ((updated.rosterKey || "").toLowerCase() === "gon") updateGonJajankenChant(updated, readRawControls(updated) || {}, getAbilityContext())
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
   updateTransformJutsu(updated)         // Transformation Jutsu (Naruto-universe): counts the disguise/full-copy window down + auto-reverts
   updateGhostfaceSwap(updated)          // Ghostface Companion Swap: counts the borrowed-kit window down + auto-reverts to Ghostface
@@ -16017,6 +16292,7 @@ function updateBattle() {
   updateHinata(p1); updateHinata(p2)                               // HINATA: tick Byakugan buff + FX timers (no-op otherwise)
   applyHinataGuutenToProjectiles(p1); applyHinataGuutenToProjectiles(p2)   // HINATA: Hakkesho Guuten deflects projectiles during the spin window
   { const _gctx = getAbilityContext(); updateGaara(p1, _gctx); updateGaara(p2, _gctx); updateShizuku(p1, _gctx); updateShizuku(p2, _gctx) }   // GAARA: sand FX + Sand Armor + One-Tail gauge + Shukaku driver // SHIZUKU: Blinky belly guard-eat + forget + pull-bounce + Disarm vacuum/lockout + FX (both no-op otherwise)
+  { const _mctx = getAbilityContext(); const _mblk = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateMeruem(p1, _mctx, !!readRawControls(p1)?.special, _mblk || !!p1.domainFrozen); updateMeruem(p2, _mctx, !!readRawControls(p2)?.special, _mblk || !!p2.domainFrozen) }   // MERUEM: Aura-Bullet charge-hold release + Gungi Stance counter/absorb + Photon Field read + Synthesis fill + FX timers (no-op otherwise)
   applyGaaraUltimateDefense(p1); applyGaaraUltimateDefense(p2)     // GAARA: Ultimate Defense auto-stops the first incoming projectile while still
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateKakashiAnbu(p1, _kctx, !!readRawControls(p1)?.special, _kblock); updateKakashiAnbu(p2, _kctx, !!readRawControls(p2)?.special, _kblock) }   // KAKASHI (ANBU): Sharingan + Raikiri + Ninken pin + Read + Copy-ready + Mangekyō awakening + Kamui rift/exhaustion + FX timers (no-op otherwise)
   { const _kctx = getAbilityContext(); const _kblock = brutalityState.active || rewindState.active || !!_kamuiDimActive(); const _rc1 = readRawControls(p1), _rc2 = readRawControls(p2); updateKakashiWar(p1, _kctx, !!_rc1?.special, _kblock, _rc1); updateKakashiWar(p2, _kctx, !!_rc2?.special, _kblock, _rc2) }   // KAKASHI (KAMUI): Raikiri charge+dash + Kawarimi + Sharingan/Kamui/Tsuiga/copy-ready + Frog Henge upkeep (rawControls → frog pop-on-button) (no-op otherwise)
@@ -16249,6 +16525,7 @@ function renderHybridFighter(fighter) {
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
+    drawGonPhase2Fx(c, fighter)        // Gon — Phase-2 code-drawn FX: chant rings/JAN-KEN text, Ren pillar, Fury bubble, crater, "CALLED IT!" pop + cut-in (Gon only)
     drawGokuFormAura(c, fighter)       // Goku — SSJ ladder transformed-state aura + label (procedural box indicator; Goku only, transformIndex>0)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
@@ -16298,9 +16575,11 @@ function renderHybridFighter(fighter) {
     drawSasukeWarCrater(c, fighter)         // War-Susano'o (sensei/adult) — ground-slam crater from the Arm Grab throw
     drawMadaraRibcageGuard(c, fighter)      // Madara — Partial-Susanoo ribcage GUARD visual (grows while blocking; madara only, render-only)
     drawGaaraFx(c, fighter)                 // Gaara — Sand Shield wall rising in front while blocking (code-drawn, no art; gaara only)
+    drawMeruemFx(c, fighter)                // Meruem — Gungi-Stance aura ring + Photon Field motes/read + tail-rush streak + charge glow + READ pop + Aura Synthesis gauge (code-drawn, no art; meruem only)
     drawShukakuGauge(c, fighter)            // Gaara — One-Tail gauge bar above the head (gaara only, pre-summon)
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
+    drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
     drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
@@ -16503,7 +16782,6 @@ function _drawOnlinePlaceholder() {
   ctx.fillText("ONLINE", cw / 2, ch * 0.4)
   ctx.fillStyle = "#94a3b8"; ctx.font = "18px Arial"
   ctx.fillText("Placeholder — netcode is not implemented yet.", cw / 2, ch * 0.4 + 44)
-    drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
   ctx.fillText("(Dev-unlocked entry point for future matchmaking.)", cw / 2, ch * 0.4 + 72)
   ctx.fillStyle = "#A00"; ctx.fillRect(cw / 2 - 100, ch * 0.4 + 110, 200, 46)
   ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.fillText("BACK", cw / 2, ch * 0.4 + 138)
@@ -17587,6 +17865,32 @@ function drawLightKiraCinematic(ctx, canvas) {
 // the cast/kneel pose underneath via _spriteCastMove). The world-space sand burial FX are in drawGaaraFx;
 // the existing roster-wide ultimate zoom-crop auto-fires on the collapse hitstop. No-op when no Gaara is
 // mid-ultimate. Mirrors drawLightKiraCinematic (cut-in panel pattern).
+// Shizuku Bloodletting / Spring Cleaning ult — screen-space cut-in: themed vignette + a banner strip with the
+// anime cut-in panel sliding in + the ult name. World-space combat/blood/sweep FX live in drawShizukuFx.
+// No duplicate fighter instance (the live Shizuku holds the cast pose). No-op when no Shizuku is mid-ult.
+function drawShizukuUltCutin(ctx, canvas) {
+  if (!ctx || !canvas) return
+  const f = (p1 && (p1._szUltCutin || 0) > 0) ? p1 : (p2 && (p2._szUltCutin || 0) > 0) ? p2 : null
+  if (!f) return
+  const kind = f._szUltKind || "bloodletting", crimson = kind === "bloodletting"
+  const maxT = crimson ? 92 : 82, prog = 1 - (f._szUltCutin / maxT)
+  const slide = prog < 0.2 ? (prog / 0.2) : prog > 0.82 ? Math.max(0, 1 - (prog - 0.82) / 0.18) : 1
+  const W = canvas.width, H = canvas.height, by = Math.round(H * 0.30), bh = Math.round(H * 0.26)
+  ctx.save()
+  ctx.globalAlpha = 0.26 * slide; ctx.fillStyle = crimson ? "#5a0c18" : "#0c3a4a"; ctx.fillRect(0, 0, W, H)
+  ctx.globalAlpha = 0.9 * slide; ctx.fillStyle = crimson ? "#1a0408" : "#04181f"; ctx.fillRect(0, by, W, bh)
+  ctx.fillStyle = crimson ? "#c0304a" : "#3fb6c8"; ctx.fillRect(0, by, W, 3); ctx.fillRect(0, by + bh - 3, W, 3)
+  const img = _shizukuFxImg(crimson ? "./shizuku_cutin_a.png" : "./shizuku_cutin_b.png")
+  if (img && img.complete && img.naturalWidth > 0) {
+    const ph = bh - 16, pw = (img.naturalWidth / img.naturalHeight) * ph, px = -pw + slide * (pw + W * 0.07)
+    ctx.globalAlpha = slide; ctx.drawImage(img, px, by + 8, pw, ph)
+  }
+  ctx.globalAlpha = slide; ctx.font = "bold " + Math.round(H * 0.06) + "px sans-serif"; ctx.textAlign = "right"
+  ctx.fillStyle = "#fff"; ctx.strokeStyle = crimson ? "#c0304a" : "#3fb6c8"; ctx.lineWidth = 4
+  const name = crimson ? "BLOODLETTING" : "SPRING CLEANING"
+  ctx.strokeText(name, W - 24, by + bh * 0.62); ctx.fillText(name, W - 24, by + bh * 0.62)
+  ctx.restore()
+}
 function drawGaaraSabakuTaisouCinematic(ctx, canvas) {
   const caster = [p1, p2].find(f => f && (f._gaaraUltTimer || 0) > 0)
   if (!caster) return
@@ -17629,6 +17933,42 @@ function drawGaaraSabakuTaisouCinematic(ctx, canvas) {
   // 3) additive sand-dust flash on the COLLAPSE payoff beat (uT ≈ 58).
   const fl = 1 - Math.min(1, Math.abs(uT - 58) / 14)
   if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.42 * fl; ctx.fillStyle = "#d8c39a"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+// ── MERUEM — ANT KING'S ONSLAUGHT / Royal Feast menace-panel cut-in (SCREEN space). The purple menace panel
+// SLIDES in from the left during _meruemCutinFx (56→0), over a violet vignette. The textured panel image is
+// used when decoded; a code-drawn violet card is the fallback so the cut-in never silently vanishes.
+function drawMeruemUltCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._meruemCutinFx || 0) > 0)
+  if (!caster) return
+  const uT = caster._meruemCutinFx || 0   // counts DOWN 56→0
+  const cw = canvas.width, ch = canvas.height
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  // violet vignette build→release
+  const vgEnv = uT > 44 ? (56 - uT) / 12 : Math.max(0, uT / 44)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, ch * 0.10, cw / 2, ch * 0.52, ch * 0.95)
+  vg.addColorStop(0, `rgba(30,10,44,${0.06 * vgEnv})`); vg.addColorStop(1, `rgba(20,6,34,${0.6 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // panel slide in uT 56→46, HOLD 46→14, slide out 14→0
+  const pEnv = uT >= 46 ? (56 - uT) / 10 : uT >= 14 ? 1 : uT / 14
+  if (pEnv > 0) {
+    const kind = caster._meruemCutinKind || (caster._ultVariant === "royalFeast" ? "royalFeast" : "onslaught")
+    const src = (kind === "royalFeast") ? "./meruem_menace_green.png" : "./meruem_menace_purple.png"
+    const panel = _meruemFxImg(src)
+    const ready = panel && panel.complete && panel.naturalWidth > 0
+    const dh = ch * 0.44
+    const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.3
+    const slide = (1 - pEnv) * (dw + 40)
+    const dx = cw * 0.07 - slide, dy = ch * 0.28
+    ctx.globalAlpha = 0.5 * pEnv; ctx.fillStyle = "#120421"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
+    ctx.globalAlpha = pEnv
+    if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
+    else { ctx.fillStyle = "#2a0d44"; ctx.fillRect(dx, dy, dw, dh); ctx.strokeStyle = "#c98cff"; ctx.lineWidth = 3; ctx.strokeRect(dx, dy, dw, dh) }
+    // title
+    ctx.globalAlpha = pEnv; ctx.font = "bold 22px monospace"; ctx.textAlign = "left"; ctx.fillStyle = "#e6c6ff"
+    ctx.shadowBlur = 8; ctx.shadowColor = "#9b2fd6"
+    ctx.fillText(kind === "finalHours" ? "FINAL HOURS" : kind === "royalFeast" ? "ROYAL FEAST" : "ANT KING'S ONSLAUGHT", dx + dw + 18, dy + dh * 0.5)
+  }
   ctx.restore()
 }
 
@@ -18400,7 +18740,9 @@ function drawBattle() {
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawLightKiraCinematic(ctx, canvas)         // fullscreen "I Am Kira" scythe-ult overlay (crimson vignette → I'M KIRA cut-in panel → purple swing flash)
+  drawShizukuUltCutin(ctx, canvas)            // Shizuku Bloodletting / Spring Cleaning ult — themed vignette + cut-in panel slide + ult name (shizuku only, _szUltCutin)
   drawGaaraSabakuTaisouCinematic(ctx, canvas) // Gaara Sabaku Taisou ult — 砂瀑大葬 kanji cut-in slide + sand vignette + collapse dust flash (world-space burial FX in drawGaaraFx)
+  drawMeruemUltCinematic(ctx, canvas)         // Meruem Ant King's Onslaught / Royal Feast — menace-panel cut-in slide + violet vignette (meruem only, _meruemCutinFx)
   drawKakashiAnbuRaikiriCutin(ctx, canvas)    // Kakashi (ANBU) Full-Charge Raikiri ult — illustration cut-in slide + red flash (kakashi_anbu only, _kanbuUltCutin)
   drawKakashiWarCutin(ctx, canvas)            // Kakashi (Kamui) Kamui Raikiri ult — Sharingan eye-banner cut-in slide + red flash (kakashi_war only, _warUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
@@ -21784,6 +22126,8 @@ gameLoop()
     // is timing-flaky in a harness). Returns the vanish cast + pre-blink X so a test can confirm the blink.
     yamamotoShunpo: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const x0 = f.x; const ok = fireYamamotoShunpo(f, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, x0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },
     miwaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { vortex: !!f._miwaVortex, vortexT: f._miwaVortex?.t ?? null, energy: f.energy, charging: !!f.isCharging, action: f._lastSpriteAction || null, move: f.currentMove || null } : null },
+    // Gon Phase-2 telemetry — Jajanken chant stage, Ren/Fury/Called-It/Rod state (read-only).
+    gonPhase2: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), chant: f._gonChant ? { frames: f._gonChant.frames, stage: f._gonChant.stage, dir: f._gonChant.dir } : null, chantBroken: f._gonChantBroken || 0, renTimer: f._gonRenTimer || 0, renCd: f._gonRenCd || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, fury: f._gonFury || 0, castArmor: f._castArmor || 0, groundBreak: f._gonGroundBreak || 0, calledIt: f._gonCalledIt || 0, calledItHand: f._gonCalledItHand || null, rodStole: f._gonRodStoleAmt || 0 } : null },
     // Mayuri movement-FX telemetry — the overlay stamps _mayuriTrailActive/_mayuriShockActive each draw.
     mayuriFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { trail: !!f._mayuriTrailActive, shock: !!f._mayuriShockActive, shockT: f._mayuriShockT || 0, crouching: !!f._crouching, dashTimer: f.dashTimer || 0, vx: Math.round((f.vx || 0) * 10) / 10, atkFx: f._mayuriAtkFx || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, rekkaNext: f._rekkaNext || null, cmdHit: !!f._cmdHitLanded, coatActive: !!f._mayuriCoatActive, coatTimer: f._mayuriCoatTimer || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, dot: (who === "p1" ? p2 : p1)?._dot ? { ticks: ((who === "p1" ? p2 : p1)._dot.ticks) } : null, bankaiTimer: f._mayuriBankaiTimer || 0 } : null },
     byakuyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, fadeTimer: f._byakuyaFadeTimer || 0, bankaiTimer: f._byakuyaBankaiTimer || 0, bankaiMax: f._byakuyaBankaiMax || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
@@ -22936,6 +23280,11 @@ gameLoop()
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, w: p.w, h: p.h, radius: p.radius, piercing: !!p.piercing, piercesMulti: !!p.piercesMulti, damage: p.damage, spriteScale: p.spriteScale, spriteFrames: p.spriteFrames, spriteH: p.spriteH, spriteOnce: !!p.spriteOnce, visualOnly: !!p.visualOnly, returning: !!p.returning, boomerang: !!p.boomerang, sheet: p.sheet })),
+    // SHIZUKU (Phase 2) test-only reader — belly/forget/disarm/pull state + projectile-ownership counts (snapshot whitelists _sz* fields out).
+    shizukuState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), belly: Array.isArray(f._szBelly) ? f._szBelly.length : 0, bellyOldestForget: (f._szBelly && f._szBelly[0]) ? f._szBelly[0].forget : null, eatFx: f._szEatFx || 0, pullCd: f._szPullCd || 0, disarmCd: f._szDisarmCd || 0, forgetPop: f._szForgetPop || 0, disarmPop: f._szDisarmPop || 0, oppDisarmed: o ? (o._szDisarmed || 0) : 0, oppGrabbed: o ? !!o.isGrabbed : false, projSelf: activeProjectiles.filter(p => p.owner === f).length, projOpp: o ? activeProjectiles.filter(p => p.owner === o).length : 0, ultDealt: f._szUltDealt || 0, healFx: f._szHealFx || 0, cleanFx: f._szCleanFx || 0, ultCutin: f._szUltCutin || 0, cast: f._spriteCastMove || null, health: Math.round(f.health || 0) } },
+    // SHIZUKU (Phase 3) test-only — fire a directional ultimate on the LIVE fighter (snapshot can't set _ultVariant) + set domainFrozen for the refusal path.
+    shizukuUlt: (variant = "bloodletting", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._ultVariant = variant; f.energy = f.maxEnergy || 200; f.ultimateCooldown = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f._spriteCastMove = null; const e0 = f.energy; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, variant: f._ultVariant, cast: f._spriteCastMove || null, spent: Math.round(e0 - f.energy), health: Math.round(f.health || 0) } },
+    shizukuSetDomainFrozen: (v = true, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f.domainFrozen = !!v; return !!f?.domainFrozen },
     // Isshiki cube shrink-trap (Stage-2 isolated harness): spawn a trap with p1 as caster onto p2 (or vice-versa), + read its state.
     spawnCubeTrap: (casterSide = "p1", opts = {}) => { const c = casterSide === "p2" ? p2 : p1; const tgt = casterSide === "p2" ? p1 : p2; if (!c || !tgt) return null; spawnCubeTrap(c, tgt, getAbilityContext(), opts); return cubeTrapState() },
     cubeTrap: () => cubeTrapState(),
@@ -23172,12 +23521,14 @@ gameLoop()
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // MERUEM Phase 3 — read passive state (custom fields the p1() snapshot omits) + a test-only NAMED-hit
+    // injector (sets the exact signals updateMeruem reads: opponent currentMove + HP drop + colorFlash + hitstun).
+    meruemState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { evo: f._meruemEvo || 0, finalHours: !!f._meruemFinalHours, adapt: f._meruemAdapt ? { ...f._meruemAdapt } : {}, learned: f._meruemLearned ? Object.keys(f._meruemLearned) : [], synth: Math.round(f._meruemSynth || 0), dmgMult: +(f.damageMultiplier || 1).toFixed(3), speed: +(f.speed || 0).toFixed(2), baseSpeed: +(f.baseSpeed || 0).toFixed(2), banner: f._meruemBannerText || null, comboDmg: Math.round(f._meruemComboDmg || 0), hp: Math.round(f.health || 0), elim: !!f.eliminated } },
+    meruemHit: (move = "light", dmg = 40, who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f || !o) return null; o.currentMove = move; o.currentAttack = { name: move }; f.health = Math.max(1, (f.health || 0) - dmg); f.hitstun = Math.max(f.hitstun || 0, 12); f.colorFlash = 8; return { hp: Math.round(f.health), oppHp: Math.round(o.health || 0) } },
     // KAKASHI (ANBU) Phase 2 — read Sharingan/Raikiri state (custom fields the p1() snapshot omits) + toggle hook.
     kakashiAnbu: {
       state: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: f.rosterKey, sharingan: !!f._sharinganActive, fatigue: f._sharinganFatigue || 0, speedMult: f.speedMultiplier || 1, raikiriCharging: !!f._raikiriCharging, raikiriChargeFrames: f._raikiriChargeFrames || 0, raikiriDashing: !!f._raikiriDashing, raikiriTracking: !!f._raikiriDashTracking, ultCutin: f._kanbuUltCutin || 0, ninkenPin: !!f._ninkenPin, ninkenPinT: f._ninkenPin?.t || 0, ninkenDismiss: f._ninkenDismiss || 0, readWindow: f._readWindow || 0, readCd: f._readCd || 0, genjutsuCd: f._genjutsuCd || 0, oppGenjutsuFx: o?._kanbuGenjutsuFx || 0, oppHitstun: Math.round(o?.hitstun || 0), copyReady: f._copyReady || 0, copyCapture: f._copyCapture?.source || null, mangekyou: !!f._kanbuMangekyou, kamuiUnlocked: !!f._kamuiUnlocked, awakenFlash: f._kanbuAwakenFlash || 0, kamuiRift: !!f._kamuiRift, kamuiExhaust: f._kamuiExhaust || 0, ultVariant: f._ultVariant || null, health: Math.round(f.health || 0), energy: Math.round(f.energy || 0), move: f._spriteCastMove || f.currentMove || null, attackCd: Math.round(f.attackCooldown || 0) } },
       toggleSharingan: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = toggleKakashiAnbuSharingan(f); return { ok, sharingan: !!f._sharinganActive } },
-    // SHIZUKU (Phase 2) test-only reader — belly/forget/disarm/pull state + projectile-ownership counts (snapshot whitelists _sz* fields out).
-    shizukuState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), belly: Array.isArray(f._szBelly) ? f._szBelly.length : 0, bellyOldestForget: (f._szBelly && f._szBelly[0]) ? f._szBelly[0].forget : null, eatFx: f._szEatFx || 0, pullCd: f._szPullCd || 0, disarmCd: f._szDisarmCd || 0, forgetPop: f._szForgetPop || 0, disarmPop: f._szDisarmPop || 0, oppDisarmed: o ? (o._szDisarmed || 0) : 0, oppGrabbed: o ? !!o.isGrabbed : false, projSelf: activeProjectiles.filter(p => p.owner === f).length, projOpp: o ? activeProjectiles.filter(p => p.owner === o).length : 0 } },
       // KAKASHI (KAMUI) Phase 4 — Obito's Gift test hooks (bond/gift state are snapshot-hidden). Read-only state +
       // a bond setter so the live test can reach a full meter deterministically without grinding many hits.
       kakashiWarGift: (who = "p1", setBond = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (setBond != null) f._obitoBond = setBond; const ps = f._perfectSusano; return { bond: f._obitoBond || 0, gift: !!f._giftActive, giftTimer: f._giftTimer || 0, lockout: !!f._kamuiLockout, intangible: f._giftIntangible || 0, phased: !!f._kamuiPhased, exhaust: f._kamuiExhaust || 0, sharingan: !!f._sharinganActive, susano: !!ps, susanoHp: ps ? Math.round(ps.hp) : 0, susanoMax: ps ? ps.max : 0, susanoT: ps ? ps.t : 0, susanoPose: ps ? ps.pose : null, susanoAction: ps ? ps.action : null, susanoRaikiri: ps ? !!ps.raikiri : false, susanoVolley: ps ? !!ps.volley : false } },
@@ -23768,146 +24119,3 @@ gameLoop()
     fireIntroVoice: side => { const f = side === "p2" ? p2 : p1; if (f) { f._introVoiceDone = false; try { maybeFireIntroVoice(f) } catch (_) {} } }
   }
 })()
-  updateMeruem, startMeruemAuraCharge,   // MERUEM (Phase 2) — per-frame tick (Aura-Bullet charge-hold release, Gungi Stance counter/absorb, Photon Field read, Synthesis fill, FX) + Aura-Bullet charge START (neutral-Special arm)
-    // MERUEM — a NEUTRAL Special is the AURA BULLET charge-hold (tap = light round / HOLD = charged round).
-    // Start the frame-based charge and consume the press; the HOLD/RELEASE fire runs in updateMeruem. A
-    // DIRECTIONAL Special (F=King's Lunge / D=Tail Aura Rush / B=Gungi Mind Stance / U=Photon Field) falls
-    // through to triggerSpecial. Not while already charging.
-    if ((fighter.rosterKey || "").toLowerCase() === "meruem" && !fighter._specialHeldDir && !fighter._meruemAuraCharging) {
-      startMeruemAuraCharge(fighter); return
-    }
-  // MERUEM — Ultimate is directional: NEUTRAL = Ant King's Onslaught (Phase 2) · DOWN = Royal Feast (Phase 4,
-  // needs full Aura Synthesis — no-ops until then). Stamp the held dir + a fresh cinematics gate (updateBattle's
-  // tick is skipped during cinematics) so the ultimate refuses during KO / Brutality / Domain / Rick rewind.
-  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "meruem") {
-    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "royalFeast" : "onslaught"
-    fighter._meruemCineBlocked = brutalityState.active || rewindState.active || !!_kamuiDimActive() || !!fighter.domainFrozen
-  }
-// ── MERUEM — code-drawn aura FX (world-space, per-fighter; meruem only). Gungi-Stance aura flash, Photon
-// Field photon scatter + read label, READ counter/absorb pop, tail-rush streak, Aura-Bullet charge glow,
-// and the Aura Synthesis gauge above the head. All procedural/deterministic (no gameRng). No sprite art.
-const _meruemFxImgs = {}
-function _meruemFxImg(src) { if (!_meruemFxImgs[src]) { const i = new Image(); i.src = src; _meruemFxImgs[src] = i } return _meruemFxImgs[src] }
-function drawMeruemFx(c, fighter) {
-  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "meruem") return
-  const w = fighter.w ?? 60, h = fighter.h ?? 100, facing = fighter.facing || 1
-  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5, headY = fighter.y - h * 0.12
-  const t = (fighter._meruemFxClock = (fighter._meruemFxClock || 0) + 1)
-
-  // PHOTON FIELD — scattered drifting purple photon motes across the stage + a faint violet field tint.
-  if ((fighter._photonFieldActive || 0) > 0) {
-    const cw = c.canvas?.width || 1280, ch = c.canvas?.height || 720
-    const life = fighter._photonFieldActive, fade = Math.min(1, life / 30) * Math.min(1, (240 - life) / 20 + 0.3)
-    c.save()
-    c.fillStyle = "rgba(120,50,190,0.05)"; c.fillRect(0, 0, cw, ch)   // faint field wash
-    for (let i = 0; i < 26; i++) {
-      // deterministic drift (sin/cos of index + clock) — no RNG
-      const px = ((i * 97 + t * (0.6 + (i % 5) * 0.12)) % cw)
-      const py = (ch * 0.2) + (Math.sin(i * 1.7 + t * 0.02) * 0.5 + 0.5) * ch * 0.6
-      const r = 2 + (i % 3)
-      const a = (0.35 + 0.35 * Math.sin(t * 0.08 + i)) * fade
-      c.globalAlpha = Math.max(0, a); c.fillStyle = "#c98cff"; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"
-      c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill()
-    }
-    c.restore()
-    // READ LABEL — the foe's next special name, read the instant they input it.
-    if (fighter._meruemReadName) {
-      c.save(); c.globalAlpha = Math.min(1, (fighter._meruemReadNameT || 0) / 20 + 0.4)
-      c.font = "bold 15px monospace"; c.textAlign = "center"
-      c.fillStyle = "#1a0a24"; c.fillRect(cx - 86, headY - 44, 172, 20)
-      c.strokeStyle = "#c98cff"; c.lineWidth = 1; c.strokeRect(cx - 86, headY - 44, 172, 20)
-      c.fillStyle = "#e6c6ff"; c.fillText("READ ▸ " + String(fighter._meruemReadName).slice(0, 16), cx, headY - 29)
-      c.restore()
-    }
-  }
-
-  // GUNGI MIND STANCE — a pulsing violet aura ring while the read window is open.
-  if ((fighter._meruemStanceFx || 0) > 0) {
-    const s = fighter._meruemStanceFx
-    c.save(); c.globalAlpha = Math.min(0.8, s / 14)
-    c.strokeStyle = "#c98cff"; c.lineWidth = 3; c.shadowBlur = 14; c.shadowColor = "#9b2fd6"
-    const rr = w * (0.7 + 0.25 * Math.sin(t * 0.5))
-    c.beginPath(); c.ellipse(cx, cy, rr, rr * 1.2, 0, 0, Math.PI * 2); c.stroke()
-    c.restore()
-  }
-
-  // TAIL-RUSH streak — a purple after-trail behind Meruem during the tail rush.
-  if ((fighter._meruemTailFx || 0) > 0) {
-    const s = fighter._meruemTailFx
-    c.save(); c.globalAlpha = Math.min(0.6, s / 16)
-    const grad = c.createLinearGradient(cx - facing * w, cy, cx, cy)
-    grad.addColorStop(0, "rgba(155,47,214,0)"); grad.addColorStop(1, "rgba(201,140,255,0.8)")
-    c.fillStyle = grad; c.fillRect(cx - facing * w, cy - h * 0.18, facing * w, h * 0.36)
-    c.restore()
-  }
-
-  // AURA-BULLET charge glow — a growing purple orb at the lead hand while charging.
-  if ((fighter._meruemAuraCharging || 0) > 0) {
-    const cf = Math.min(1, (fighter._meruemAuraChargeFrames || 0) / 58)
-    const hx = fighter.x + w * (0.5 + facing * 0.4), hy = fighter.y + h * 0.5
-    c.save(); c.globalAlpha = 0.5 + 0.4 * cf; c.shadowBlur = 16; c.shadowColor = "#9b2fd6"
-    c.fillStyle = cf >= 0.34 ? "#e6c6ff" : "#b24cf0"
-    c.beginPath(); c.arc(hx, hy, 4 + cf * 12, 0, Math.PI * 2); c.fill()
-    c.restore()
-  }
-
-  // READ pop — "READ" text after a Gungi counter / absorb.
-  if ((fighter._meruemReadFx || 0) > 0) {
-    const s = fighter._meruemReadFx
-    c.save(); c.globalAlpha = Math.min(1, s / 18); c.font = "bold 20px monospace"; c.textAlign = "center"
-    c.fillStyle = "#e6c6ff"; c.shadowBlur = 10; c.shadowColor = "#9b2fd6"
-    c.fillText("READ", cx, headY - 48 - (30 - s))
-    c.restore()
-  }
-
-  // AURA SYNTHESIS gauge — thin violet bar above the head (fills → Royal Feast, Phase 4).
-  const synth = fighter._meruemSynth || 0
-  if (synth > 0) {
-    const full = synth >= 100, bw = Math.max(44, w * 1.1), bh = 5
-    const bx = cx - bw / 2, by = headY - 16
-    c.save()
-    c.fillStyle = "#1a0a24"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
-    c.fillStyle = full ? (Math.floor(t / 6) % 2 ? "#e6c6ff" : "#b24cf0") : "#8a3fc0"
-    c.fillRect(bx, by, bw * Math.min(1, synth / 100), bh)
-    if (full) { c.strokeStyle = "#e6c6ff"; c.lineWidth = 1; c.shadowBlur = 8; c.shadowColor = "#9b2fd6"; c.strokeRect(bx - 1, by - 1, bw + 2, bh + 2) }
-    c.restore()
-  }
-}
-  { const _mctx = getAbilityContext(); const _mblk = brutalityState.active || rewindState.active || !!_kamuiDimActive(); updateMeruem(p1, _mctx, !!readRawControls(p1)?.special, _mblk || !!p1.domainFrozen); updateMeruem(p2, _mctx, !!readRawControls(p2)?.special, _mblk || !!p2.domainFrozen) }   // MERUEM: Aura-Bullet charge-hold release + Gungi Stance counter/absorb + Photon Field read + Synthesis fill + FX timers (no-op otherwise)
-    drawMeruemFx(c, fighter)                // Meruem — Gungi-Stance aura ring + Photon Field motes/read + tail-rush streak + charge glow + READ pop + Aura Synthesis gauge (code-drawn, no art; meruem only)
-// ── MERUEM — ANT KING'S ONSLAUGHT / Royal Feast menace-panel cut-in (SCREEN space). The purple menace panel
-// SLIDES in from the left during _meruemCutinFx (56→0), over a violet vignette. The textured panel image is
-// used when decoded; a code-drawn violet card is the fallback so the cut-in never silently vanishes.
-function drawMeruemUltCinematic(ctx, canvas) {
-  const caster = [p1, p2].find(f => f && (f._meruemCutinFx || 0) > 0)
-  if (!caster) return
-  const uT = caster._meruemCutinFx || 0   // counts DOWN 56→0
-  const cw = canvas.width, ch = canvas.height
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
-  // violet vignette build→release
-  const vgEnv = uT > 44 ? (56 - uT) / 12 : Math.max(0, uT / 44)
-  const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, ch * 0.10, cw / 2, ch * 0.52, ch * 0.95)
-  vg.addColorStop(0, `rgba(30,10,44,${0.06 * vgEnv})`); vg.addColorStop(1, `rgba(20,6,34,${0.6 * vgEnv})`)
-  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
-  // panel slide in uT 56→46, HOLD 46→14, slide out 14→0
-  const pEnv = uT >= 46 ? (56 - uT) / 10 : uT >= 14 ? 1 : uT / 14
-  if (pEnv > 0) {
-    const src = (caster._ultVariant === "royalFeast") ? "./meruem_menace_green.png" : "./meruem_menace_purple.png"
-    const panel = _meruemFxImg(src)
-    const ready = panel && panel.complete && panel.naturalWidth > 0
-    const dh = ch * 0.44
-    const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.3
-    const slide = (1 - pEnv) * (dw + 40)
-    const dx = cw * 0.07 - slide, dy = ch * 0.28
-    ctx.globalAlpha = 0.5 * pEnv; ctx.fillStyle = "#120421"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // manga backing bar
-    ctx.globalAlpha = pEnv
-    if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
-    else { ctx.fillStyle = "#2a0d44"; ctx.fillRect(dx, dy, dw, dh); ctx.strokeStyle = "#c98cff"; ctx.lineWidth = 3; ctx.strokeRect(dx, dy, dw, dh) }
-    // title
-    ctx.globalAlpha = pEnv; ctx.font = "bold 22px monospace"; ctx.textAlign = "left"; ctx.fillStyle = "#e6c6ff"
-    ctx.shadowBlur = 8; ctx.shadowColor = "#9b2fd6"
-    ctx.fillText(caster._ultVariant === "royalFeast" ? "ROYAL FEAST" : "ANT KING'S ONSLAUGHT", dx + dw + 18, dy + dh * 0.5)
-  }
-  ctx.restore()
-}
-  drawMeruemUltCinematic(ctx, canvas)         // Meruem Ant King's Onslaught / Royal Feast — menace-panel cut-in slide + violet vignette (meruem only, _meruemCutinFx)

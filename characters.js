@@ -4428,6 +4428,11 @@ const gon = {
     rock:     { frames: 14, width: 65,  height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_rock_uniform.png" },       // 4 Koma A — charge → devastating punch + rock debris
     paper:    { frames: 15, width: 65,  height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_paper_uniform.png" },      // 2 Koma — Nen aura-ball emission
     scissors: { frames: 9,  width: 146, height: 78, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_scissors_uniform.png" },  // Y+Up — rising transmuted Nen blade
+    // ── PHASE 2 MOVES (deterministic, LAN-safe; driven from updateGonCommandCombat / chant driver). ──
+    rod:          { frames: 9, width: 67, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_rod_uniform.png" },        // B+Down — Fishing Rod Snag (hook + pull + meter steal)
+    ren:          { frames: 6, width: 53, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_renpillar_uniform.png" },  // Down+Heavy — Ren (Nen aura pillar → 5s dmg buff)
+    furydash:     { frames: 2, width: 60, height: 63, speed: 4, anchorY: 0, loop: true,  sheet: "./gon_furybubble_uniform.png" },                      // Back+Heavy — Fury Dash (red aura bubble → armored lunge)
+    groundbreaker:{ frames: 8, width: 58, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_groundbrk_uniform.png" },  // Up+Heavy — Ground Breaker (leaping Rock → crater)
     // ── HOLD-TO-CHARGE — Nen-gathering pose (hold P). Ultimate-Action aura-flare strip (2f, loops
     // while held). Rendered by sprite.js when isCharging (universal hold-to-charge for any maxEnergy>0
     // char). In Phase 2 this same key drives the Jajanken CHANT stages. ──
@@ -10904,11 +10909,29 @@ const shizuku = {
     shizukuPhantom: { frames: 6, width: 70, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_phantom_uniform.png" },  // 2-Koma Phantom Jab Rush
     shizukuPull:    { frames: 3, width: 44, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_pull_uniform.png" },     // 4-Koma A Blinky Pull / Disarm suction
     shizukuSmash:   { frames: 4, width: 61, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_smash_uniform.png" },    // 4-Koma B Blinky Smash
-    shizukuSpit:    { frames: 3, width: 44, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_pull_uniform.png" }       // Belly Spit (reuses the Blinky-forward pose)
+    shizukuSpit:    { frames: 3, width: 44, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_pull_uniform.png" },      // Belly Spit (reuses the Blinky-forward pose)
+    // ── PHASE 3 ULTIMATE CAST POSES (_spriteCastMove, identity-mapped in sprite.js MOVE_TO_ACTION) ──
+    shizukuBloodletting: { frames: 9, width: 61, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_bloodletting_uniform.png" }, // 5-Koma B: combo → blood draw
+    shizukuSpringClean:  { frames: 6, width: 90, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shizuku_springclean_uniform.png" }    // 5-Koma A: Blinky hose barrage
   },
   // No dedicated intro strip in the batch → idle-hold intro (she settles in STANCE during the
   // intro phase). Canon intro = the Ultimate-Action conjure pose + white conjure puff (deferred FX).
-  introPool: ["idle"]
+  introPool: ["idle"],
+  ultimate: { name: "Bloodletting / Spring Cleaning", cost: 100, description: "Directional. NEUTRAL = Bloodletting — a cut-in, a Blinky combo, then a stylized blood-draw that heals Shizuku 40% of the damage dealt (capped at 12% max HP); i-frames during the cast, blocked beats deal 25%. DOWN = Spring Cleaning — a hose-barrage sweep that removes every opponent PROJECTILE on screen (the first 3 go into Blinky's belly) and every opponent-owned cube trap (via the engine's generic lists), while dealing guaranteed sweep damage." },
+  // Calm, blunt, forgetful. She forgets the opponent's name; matchup lines route via arcade.js for any
+  // Hunter x Hunter rosterKey (chrollo = her leader, kurapika/gon/killua/hisoka/meruem), else the generic pair.
+  arcadeRivalLines: {
+    pre: ["Shizuku: Oh. It's you. ...Sorry, your name slipped my mind again.", "Rival: You really don't remember? We've met before."],
+    win: "Battlefield's clean. I just need to remember what I was cleaning up..."
+  },
+  matchupLines: {
+    chrollo:  { pre: ["Shizuku: Danchou. Just say the word and I'll clean this up.", "Chrollo: No need to rush, Shizuku. Enjoy the work."], win: "The Troupe comes first. Always." },
+    kurapika: { pre: ["Shizuku: You hunt the Troupe. I can't let a spider get stepped on.", "Kurapika: Then you'll answer for what the Spiders took."], win: "Chains won't hold Blinky. Nothing non-living escapes it." },
+    hisoka:   { pre: ["Shizuku: You left the Troupe. That makes this simple.", "Hisoka: Mmm... try not to bore me, Shizuku."], win: "You were always more trouble than you were worth, Hisoka." },
+    gon:      { pre: ["Shizuku: A Hunter, huh. Try not to get swept up.", "Gon: I won't lose! Not to the Phantom Troupe!"], win: "Spirited kid. Blinky doesn't care how loud you are." },
+    killua:   { pre: ["Shizuku: Fast hands. Blinky's faster.", "Killua: You're one of them. The Spiders."], win: "Quick, but you can't out-vacuum me." },
+    meruem:   { pre: ["Shizuku: ...I don't know what you are. But you're not leaving a mess.", "Meruem: You will address your King properly."], win: "Even a King leaves debris. I cleaned it up." }
+  }
 }
 
 export const characters = {

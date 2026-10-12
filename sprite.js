@@ -242,11 +242,17 @@ const MOVE_TO_ACTION = {
   // Shizuku — Blinky special cast poses (_spriteCastMove). Identity maps so a cast recovery tail never
   // resolves to the fallback box. (Phantom Jab Rush / Blinky Pull+Disarm suction / Blinky Smash / Belly Spit.)
   shizukuPhantom: "shizukuPhantom", shizukuPull: "shizukuPull", shizukuSmash: "shizukuSmash", shizukuSpit: "shizukuSpit",
+  shizukuBloodletting: "shizukuBloodletting", shizukuSpringClean: "shizukuSpringClean",   // Phase 3 ult cast poses
   // Gaara — Sand Bullet throw cast poses (_spriteCastMove, context-sensitive ground/air/crouch). Identity
   // maps so a throw recovery tail never resolves to the fallback box. (Phase 2+ sand specials join here.)
   gaaraThrow: "gaaraThrow", gaaraThrowAir: "gaaraThrowAir", gaaraThrowCrouch: "gaaraThrowCrouch",
   gaaraSandCast: "gaaraSandCast",   // Phase 2: shared sand-jutsu cast pose (Coffin/Burial/Tsunami/Dome). Identity map.
   gaaraUltCast: "gaaraUltCast", gaaraUltKneel: "gaaraUltKneel",   // Phase 3: Sabaku Taisou Part-1 cast loop + Part-2 kneel. Identity maps.
+  // Meruem — Phase 2 special cast poses (_spriteCastMove). Identity maps so a cast recovery tail never
+  // resolves to the fallback box. (Aura Bullet cast / King's Lunge / Tail Rush / Aura Flash / Photon charge /
+  // Tail Lance counter / Tail Sweep finisher.)
+  meruemAuraCast: "meruemAuraCast", meruemKingsLunge: "meruemKingsLunge", meruemTailRush: "meruemTailRush",
+  meruemAuraFlash: "meruemAuraFlash", meruemPhotonCharge: "meruemPhotonCharge", meruemTailLance: "meruemTailLance", meruemTailSweep: "meruemTailSweep",
   // Naruto (Adult KCM) — special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the 128² fallback box. (KCM rework: Dash Barrage / Rising Flip Kick /
   // Chakra Arm Strike / Gamabunta+TBB gather pose.)
@@ -1509,6 +1515,3 @@ function _rrect(ctx, x, y, w, h, r = 10) {
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
-  // Meruem — Phase 2 special cast poses (_spriteCastMove). Identity maps so a cast recovery tail never
-  meruemAuraCast: "meruemAuraCast", meruemKingsLunge: "meruemKingsLunge", meruemTailRush: "meruemTailRush",
-  meruemAuraFlash: "meruemAuraFlash", meruemPhotonCharge: "meruemPhotonCharge", meruemTailLance: "meruemTailLance", meruemTailSweep: "meruemTailSweep",

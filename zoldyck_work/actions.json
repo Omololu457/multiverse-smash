@@ -19,5 +19,11 @@
   {"name": "up",       "region": [8, 1736, 125, 1796]},
   {"name": "downair",  "region": [5, 1842, 598, 1912]},
   {"name": "win",      "region": [8, 1980, 215, 2040]},
-  {"name": "lose",     "region": [214, 1980, 392, 2040], "gap": 2}
+  {"name": "lose",     "region": [214, 1980, 392, 2040], "gap": 2},
+  {"name": "rhythmecho", "region": [14, 2143, 344, 2196]},
+  {"name": "thunderbolt","region": [10, 2326, 386, 2390]},
+  {"name": "snackbreak", "region": [24, 2491, 946, 2548]},
+  {"name": "echostrike", "region": [18, 2618, 806, 2678]},
+  {"name": "barrage",    "region": [14, 2732, 650, 2790]},
+  {"name": "narukami",   "region": [12, 2836, 748, 2894]}
 ]

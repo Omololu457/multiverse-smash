@@ -405,6 +405,12 @@ export const FX_SHEETS_BY_CHAR = {
     "./sixpaths_naraka_kingofhell_uniform.png",  // Naraka Path — King of Hell Judgment head
     "./sixpaths_naraka_restore_uniform.png",     // Naraka Path — Restoration (emerging head + doton flames)
   ],
+  // Killua (Godspeed) `zoldyck` — Phase 2 Volts-special projectile/blast FX sheets (spawnProjectile sprites).
+  zoldyck: [
+    "./zoldyck_boltfx_uniform.png",     // N+Special Thunderbolt — electric bolt projectile (4-Koma A blast FX)
+    "./zoldyck_pillarfx_uniform.png",   // D+Special Narukami — lightning pillars (6-Koma A FX2)
+    "./zoldyck_barragefx_uniform.png",  // Ultimate Thunderbolt Barrage — blast FX (5-Koma B)
+  ],
 };
 
 // Union of FX sheets for the given roster keys, deduped. Unknown keys contribute nothing.

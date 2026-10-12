@@ -8115,6 +8115,11 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "shizuku") {
     fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "springCleaning" : "bloodletting"
   }
+  // KILLUA (GODSPEED) `zoldyck` — Ultimate is directional: NEUTRAL = Thunderbolt Barrage (guaranteed lightning
+  // blast). DOWN = Godspeed (Phase 3). Stamp the held dir so executeZoldyckUltimate picks the branch.
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "zoldyck") {
+    fighter._ultVariant = betaHeldDirFromInput(inputState, fighter.facing) === "D" ? "godspeed" : "barrage"
+  }
   // SHISUI (TRINITY) — the active identity's Ultimate is a cinematic (Susanoo Tsukumo / Kotoamatsukami).
   // Stamp a fresh cinematics gate so it refuses during KO / Brutality / Domain / Rick-Prime-rewind. The
   // regex covers all three identity keys (rosterKey switches on the Variant Swap in a later phase).
@@ -13689,6 +13694,60 @@ function drawShisuiItachiKidsFx(c, fighter) {
   }
 }
 
+// Killua (Godspeed) `zoldyck` — Phase 2 code-drawn FX: Rhythm Echo / Echo Strike afterimages (cyan ghost
+// silhouettes), Thunderbolt Barrage lightning crackle, Snack Break "+VOLTS" spark pop. Deterministic (frame
+// counters only; no Math.random). Projectile bolts/pillars render via the sprite-projectile system.
+function drawZoldyckFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "zoldyck") return
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const facing = fighter.facing || 1
+  const cx = fighter.x + w / 2, cy = fighter.y + h * 0.5
+
+  // AFTERIMAGES — trailing cyan ghost silhouettes behind the fighter (Rhythm Echo / Echo Strike).
+  if ((fighter._zEcho || 0) > 0) {
+    const t = fighter._zEcho
+    for (let k = 1; k <= 3; k++) {
+      const off = -facing * k * (14 + (36 - t) * 0.3)
+      c.save(); c.globalAlpha = 0.28 * (t / 36) * (1 - k * 0.22)
+      c.fillStyle = k % 2 ? "#7dd3fc" : "#e0f7ff"
+      c.fillRect(fighter.x + off + w * 0.2, fighter.y + h * 0.08, w * 0.6, h * 0.86)
+      c.restore()
+    }
+    fighter._zEcho--
+  }
+
+  // BARRAGE — crackling lightning arcs around the fighter during Thunderbolt Barrage.
+  if ((fighter._zBarrage || 0) > 0) {
+    const t = fighter._zBarrage
+    c.save(); c.strokeStyle = "#bfe9ff"; c.lineWidth = 2; c.shadowBlur = 10; c.shadowColor = "#7dd3fc"
+    c.globalAlpha = 0.55 + 0.25 * Math.sin(t * 0.6)
+    for (let a = 0; a < 5; a++) {
+      const ang = (t * 0.25 + a * 1.256)
+      const r0 = w * 0.5, r1 = w * (0.9 + 0.3 * ((a + t) % 3) / 3)
+      c.beginPath()
+      let px = cx + Math.cos(ang) * r0, py = cy + Math.sin(ang) * r0
+      c.moveTo(px, py)
+      for (let s = 1; s <= 3; s++) {
+        const rr = r0 + (r1 - r0) * (s / 3)
+        const jit = ((a * 7 + s * 13 + t) % 5 - 2) * 4
+        c.lineTo(cx + Math.cos(ang) * rr + jit, cy + Math.sin(ang) * rr - jit)
+      }
+      c.stroke()
+    }
+    c.restore()
+    fighter._zBarrage--
+  }
+
+  // SNACK BREAK refill pop — a small cyan "+VOLTS" spark burst when the ChocoRobo refill lands.
+  if ((fighter._zSnackPop || 0) > 0) {
+    const t = fighter._zSnackPop
+    c.save(); c.globalAlpha = Math.min(1, t / 12)
+    c.fillStyle = "#7dd3fc"; c.font = "bold 13px sans-serif"; c.textAlign = "center"
+    c.fillText("+VOLTS", cx, fighter.y - 10 - (24 - t) * 0.6)
+    c.restore()
+    fighter._zSnackPop--
+  }
+}
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -16758,6 +16817,7 @@ function renderHybridFighter(fighter) {
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
+    drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
     drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
@@ -22307,6 +22367,8 @@ gameLoop()
     miwaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { vortex: !!f._miwaVortex, vortexT: f._miwaVortex?.t ?? null, energy: f.energy, charging: !!f.isCharging, action: f._lastSpriteAction || null, move: f.currentMove || null } : null },
     // Gon Phase-2 telemetry — Jajanken chant stage, Ren/Fury/Called-It/Rod state (read-only).
     gonPhase2: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), chant: f._gonChant ? { frames: f._gonChant.frames, stage: f._gonChant.stage, dir: f._gonChant.dir } : null, chantBroken: f._gonChantBroken || 0, renTimer: f._gonRenTimer || 0, renCd: f._gonRenCd || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, fury: f._gonFury || 0, castArmor: f._castArmor || 0, groundBreak: f._gonGroundBreak || 0, calledIt: f._gonCalledIt || 0, calledItHand: f._gonCalledItHand || null, rodStole: f._gonRodStoleAmt || 0 } : null },
+    // Killua (Godspeed) `zoldyck` — Phase 2 Volts/special state readout (read-only). projSelf counts this fighter's live projectiles (Thunderbolt bolt / Narukami pillars).
+    zoldyckState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), energy: Math.round(f.energy || 0), maxEnergy: f.maxEnergy || 0, invuln: f.invulnTimer || 0, cast: f._spriteCastMove || null, attacking: !!f.attacking, cooldown: f.attackCooldown || 0, echo: f._zEcho || 0, snack: f._zSnack || 0, snackPop: f._zSnackPop || 0, barrage: f._zBarrage || 0, ultVariant: f._ultVariant || null, oppHealth: o ? Math.round(o.health || 0) : 0, projSelf: activeProjectiles.filter(p => p.owner === f).length } },
     // Gon Phase-3 — directional-ult trigger (mirrors the real stamp+token+trigger path) + state readout.
     gonUlt: (dir = null, opts = {}) => { const f = p1; if (!f) return null; if (opts.hp != null) f.health = opts.hp; if (opts.energy != null) f.energy = opts.energy; else f.energy = f.maxEnergy || 160; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f._gonUltDir = dir; f._gonVowTokenUsed = !!gonVowUsed.p1; const ok = triggerUltimate(f, getAbilityContext()); if (f._gonVowEntered) { gonVowUsed.p1 = true; f._gonVowEntered = false } return { ok, move: f.currentMove || null, cast: f._spriteCastMove || null, adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowUsed: !!gonVowUsed.p1, fullChant: f._gonFullChantCutin || 0, killuaFx: f._gonKilluaFx || 0, energy: Math.round(f.energy || 0) } },
     gonState: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowTimer: f._gonVowTimer || 0, adultRockFired: !!f._gonAdultRockFired, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, line: f._gonLineText || null, lineTimer: f._gonLineTimer || 0, energy: Math.round(f.energy || 0), currentForm: f.currentForm || null } : null },

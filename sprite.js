@@ -243,6 +243,12 @@ const MOVE_TO_ACTION = {
   // resolves to the fallback box. (Phantom Jab Rush / Blinky Pull+Disarm suction / Blinky Smash / Belly Spit.)
   shizukuPhantom: "shizukuPhantom", shizukuPull: "shizukuPull", shizukuSmash: "shizukuSmash", shizukuSpit: "shizukuSpit",
   shizukuBloodletting: "shizukuBloodletting", shizukuSpringClean: "shizukuSpringClean",   // Phase 3 ult cast poses
+  // Killua (Godspeed) `zoldyck` — command-normal + Volts-special + ult cast poses (_spriteCastMove). Identity
+  // maps so a cast recovery tail never falls back to the box. (P1 command poses + P2 Thunderbolt/Rhythm Echo/
+  // Echo Strike/Narukami/Snack Break/Thunderbolt Barrage.)
+  zoldyckPalm: "zoldyckPalm", zoldyckOrbit: "zoldyckOrbit", zoldyckYoyo: "zoldyckYoyo", zoldyckClaw: "zoldyckClaw", zoldyckCommand: "zoldyckCommand",
+  zoldyckThunderbolt: "zoldyckThunderbolt", zoldyckRhythmEcho: "zoldyckRhythmEcho", zoldyckEchoStrike: "zoldyckEchoStrike",
+  zoldyckNarukami: "zoldyckNarukami", zoldyckSnack: "zoldyckSnack", zoldyckBarrage: "zoldyckBarrage",
   // Shisui & Itachi (Kids) — special cast poses (_spriteCastMove). Identity maps so a cast recovery tail
   // never resolves to the fallback box. (Kunai Throw / Flicker Rush / Genjutsu Flash.)
   sikKunaiCast: "sikKunaiCast", sikFlicker: "sikFlicker", sikGenjutsu: "sikGenjutsu",

@@ -32608,6 +32608,159 @@ export function updateMeruem(fighter, context, heldSpecial = false, blockCinemat
   fighter._meruemHpLast = fighter.health || 0
 }
 
+// KILLUA (GODSPEED) `zoldyck` — PHASE 2: VOLTS specials + Thunderbolt Barrage ultimate.
+// VOLTS = the energy meter; it does NOT self-regen (regenEnergy early-returns for zoldyck) and refills
+// only by HOLDING Charge (doEnergyCharge, +0.5/f, vulnerable). Electric specials SPEND Volts (spendEnergy).
+// Deterministic + LAN-safe (schedulePendingSpawn frame beats; NO gameRng/Math.random). combat.js UNTOUCHED:
+// hit-absorption uses the engine's invulnTimer; damage uses applyScaledDamage; projectiles use spawnProjectile;
+// afterimage / pillar / barrage FX are code-drawn in game.js (drawZoldyckFx).
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+function zdIsZoldyck(f) { return !!f && (f.rosterKey || "").toLowerCase() === "zoldyck" }
+
+// Guaranteed ult/finisher beat on the opponent (mirrors szUltBeat; block → 25%). Returns damage dealt.
+function zdUltBeat(fighter, context, d, big) {
+  const o = getTargetResolver(context)(fighter)
+  if (!o || o.eliminated || (o.invulnTimer || 0) > 0) return 0
+  const dir = (o.x >= fighter.x ? 1 : -1)
+  let dmg = d
+  if (o.isBlocking) { o.blockstun = big ? 24 : 12; dmg = Math.floor(dmg * 0.25) }
+  else { o.hitstun = big ? 40 : 18; o.vx = dir * (big ? 8 : 2); o.vy = big ? -9 : 0; o.colorFlash = big ? 16 : 10; if (big) o.hitstop = Math.max(o.hitstop || 0, 22) }
+  const actual = applyScaledDamage(o, dmg, { source: "ability", attacker: fighter })
+  return (typeof actual === "number" && actual > 0) ? actual : dmg
+}
+
+// Refuse ult during KO / Brutality / Domain events / Rick-Prime rewind (+ own domain-freeze/KO) → refund.
+function zdUltRefused(fighter, context) {
+  if ((context && context.cinematicSafe === false) || fighter.domainFrozen || fighter.eliminated || (fighter.health || 0) <= 0) {
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + (fighter.ultimate?.cost ?? 100))
+    return true
+  }
+  return false
+}
+
+function executeZoldyckSpecial(fighter, context) {
+  if (!zdIsZoldyck(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return zdRhythmEcho(fighter, context)   // Forward = Rhythm Echo (afterimage i-frames)
+  if (dir === "B") return zdEchoStrike(fighter, context)   // Back    = Echo Strike (teleport multi-hit)
+  if (dir === "D") return zdNarukami(fighter, context)     // Down    = Narukami (leap → lightning pillars)
+  if (dir === "U") return zdSnackBreak(fighter, context)   // Up      = Snack Break (ChocoRobo → +40 Volts)
+  return zdThunderbolt(fighter, context)                   // Neutral = Thunderbolt (bolt projectile)
+}
+
+// N+Special — THUNDERBOLT [CANON-ADJACENT]: a forward electric bolt projectile. (4-Koma A) Cost 22 Volts.
+function zdThunderbolt(fighter, context) {
+  if (!spendEnergy(fighter, 22)) return false
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._spriteCastMove = "zoldyckThunderbolt"; fighter._spriteCastTimer = 26
+  const h = fighter.h || 100
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "zoldyck_bolt", {
+      w: 44, h: 44, radius: 22, speed: 14, spawnY: fighter.y + h * 0.42,
+      damage: 58, hitstun: 18, knockbackX: 7, knockbackY: -2, lifetime: 95, color: "#7dd3fc",
+      sheet: "./zoldyck_boltfx_uniform.png", spriteFrames: 3, spriteW: 66, spriteH: 63, spriteSpeed: 3, spriteScale: 0.82,
+      isSpecial: true
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+// F+Special — RHYTHM ECHO [CANON-ADJACENT assassin tech]: step forward leaving afterimages that absorb hits
+// for ~0.6s (modeled as a 36-frame intangibility window — combat.js honors invulnTimer). (2-Koma) Cost 18.
+function zdRhythmEcho(fighter, context) {
+  if (!spendEnergy(fighter, 18)) return false
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 36)   // ~0.6s — "afterimages absorb hits"
+  fighter.vx = (fighter.facing || 1) * 8                          // step forward
+  fighter._spriteCastMove = "zoldyckRhythmEcho"; fighter._spriteCastTimer = 24
+  fighter._zEcho = 36                                             // afterimage FX timer (drawZoldyckFx)
+  return true
+}
+
+// B+Special — ECHO STRIKE [CANON-ADJACENT]: a longer echo — zip forward with brief i-frames and strike from
+// the afterimages (advancing multi-hit). (5-Koma A) Cost 26 Volts.
+function zdEchoStrike(fighter, context) {
+  if (!spendEnergy(fighter, 26)) return false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 16)   // brief dash i-frames
+  fighter.vx = (fighter.facing || 1) * 15                        // zip forward
+  fighter._zEcho = 28                                            // afterimage FX
+  const md = { damage: 64, startup: 6, active: 8, recovery: 16, hitstun: 24, knockbackX: 9, knockbackY: -4, rangeX: 134, rangeY: 60, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "zoldyckEchoStrike", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = "zoldyckEchoStrike"; fighter._spriteCastTimer = 30
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+// D+Special — NARUKAMI [ORIGINAL, canon-named]: leap up, then lightning PILLARS strike down at the opponent's
+// position (3 columns around the foe's x, staggered). (6-Koma A + FX2 pillars) Cost 30 Volts.
+function zdNarukami(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  fighter.vy = -12                                               // leap
+  fighter._spriteCastMove = "zoldyckNarukami"; fighter._spriteCastTimer = 30
+  const o = getTargetResolver(context)(fighter)
+  // Snapshot the foe's x at cast (deterministic); 3 staggered pillars fall onto that column ±60px.
+  schedulePendingSpawn(14, () => {
+    const baseX = o ? (o.x + (o.w || 60) / 2) : (fighter.x + (fighter.facing || 1) * 160)
+    const groundY = o ? (o.y + (o.h || 100)) : (fighter.y + (fighter.h || 100))
+    const cols = [{ dx: 0, at: 0, dmg: 34 }, { dx: -60, at: 6, dmg: 28 }, { dx: 60, at: 12, dmg: 28 }]
+    cols.forEach(cc => schedulePendingSpawn(cc.at, () => {
+      spawnProjectile(fighter, "zoldyck_pillar", {
+        w: 40, h: 150, radius: 26, speed: 0, vy: 11,
+        spawnX: baseX + cc.dx - 20, spawnY: groundY - 260,
+        damage: cc.dmg, hitstun: 22, knockbackX: 0, knockbackY: -10, lifetime: 34, color: "#bfe9ff",
+        sheet: "./zoldyck_pillarfx_uniform.png", spriteFrames: 4, spriteW: 54, spriteH: 83, spriteSpeed: 3, spriteScale: 1.0,
+        isSpecial: true
+      }, context)
+    }))
+  })
+  try { shakeCamera(context, 4, 10) } catch (_) {}
+  return true
+}
+
+// U+Special — SNACK BREAK [ORIGINAL; red item CONFIRMED = ChocoRobo-kun candy box]: a long, VULNERABLE animation
+// (reach into pocket, eat) that refills ~40% Volts (+40). No i-frames — he can be punished. (4-Koma B) Cost 0.
+function zdSnackBreak(fighter, context) {
+  if ((fighter.energy || 0) >= (fighter.maxEnergy || 100)) return false   // already full — no point
+  fighter.attackCooldown = getAttackDuration(58, fighter)                 // long, committed, vulnerable
+  fighter._spriteCastMove = "zoldyckSnack"; fighter._spriteCastTimer = 58
+  fighter._zSnack = 58                                                    // chew FX timer (drawZoldyckFx)
+  schedulePendingSpawn(46, () => {                                        // refill lands near the end
+    fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + 40)
+    fighter._zSnackPop = 24
+  })
+  return true
+}
+
+// ULTIMATE — THUNDERBOLT BARRAGE (neutral) [CANON-ADJACENT]: long charge → a guaranteed full-body lightning
+// blast (scheduled beats + bolt volley). (5-Koma B + blast FX) Big Volts cost (full meter). DOWN = Godspeed
+// (Phase 3 — refunds here so the meter isn't wasted). _ultVariant is stamped in game.js.
+const ZD_BARRAGE_LEN = 96
+function executeZoldyckUltimate(fighter, context) {
+  if (!zdIsZoldyck(fighter)) return false
+  if (fighter._ultVariant === "godspeed") {   // Down+Ult — Godspeed arrives in Phase 3; refund + no-op for now.
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + (fighter.ultimate?.cost ?? 100))
+    return false
+  }
+  if (zdUltRefused(fighter, context)) return false
+  if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+  fighter.attackCooldown = getAttackDuration(ZD_BARRAGE_LEN, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, ZD_BARRAGE_LEN)
+  fighter._spriteCastMove = "zoldyckBarrage"; fighter._spriteCastTimer = ZD_BARRAGE_LEN
+  fighter._zBarrage = ZD_BARRAGE_LEN   // barrage FX timer (drawZoldyckFx)
+  // Zip to the foe so the barrage connects, then guaranteed beats (rising dmg) + a big finishing bolt.
+  const o = getTargetResolver(context)(fighter)
+  if (o) { const dir = (o.x >= fighter.x ? 1 : -1); fighter.facing = dir; fighter.x = o.x - dir * 96 }
+  const beats = [{ at: 22, dmg: 20 }, { at: 30, dmg: 20 }, { at: 38, dmg: 22 }, { at: 46, dmg: 22 },
+                 { at: 54, dmg: 24 }, { at: 62, dmg: 26 }, { at: 78, dmg: 110, big: true }]
+  beats.forEach(b => schedulePendingSpawn(b.at, () => zdUltBeat(fighter, context, b.dmg, b.big)))
+  try { focusCameraOnAction(context, fighter, o, 1.1, 20); shakeCamera(context, 6, 16) } catch (_) {}
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -32651,6 +32804,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "naruto_seventh": return executeNarutoSeventhSpecial(fighter, context)   // N=Rasengan / F=Rasenshuriken / B=Doton Earth-Wall / D=Throw Weapon / U=Four-Tails (Bond 2+, Phase 2)
     case "rick":    return executeRickSpecial(fighter, context)
     case "shizuku": return executeShizukuSpecial(fighter, context)   // Blinky (Phase 2): N=Phantom Jab Rush / F=Blinky Pull (suction+reel) / B=Blinky Smash / D=Belly Spit (refire stored projectile) / U=Disarm (lock foe projectile specials). Bloodletting/Spring Cleaning ULTs = Phase 3
+    case "zoldyck": return executeZoldyckSpecial(fighter, context)   // Killua (Godspeed) Volts specials (Phase 2): N=Thunderbolt (bolt projectile) / F=Rhythm Echo (afterimage i-frames) / B=Echo Strike (teleport multi-hit) / D=Narukami (leap→lightning pillars) / U=Snack Break (+40 Volts, vulnerable). Thunderbolt Barrage ULT. Godspeed=Phase 3
     case "shisui_itachi_kids": return executeShisuiItachiKidsSpecial(fighter, context)   // Kids (Phase 2): N/B=Kunai Throw (re-press in-flight → Blind-Spot deflect) / F=Flicker Rush / U=Genjutsu Flash (freeze) / D=Itachi Assist. Twin Flicker ULT = Phase 3
     case "hinata":  return executeHinataSpecial(fighter, context)   // Gentle-Fist (Phase 2): N=Sixty-Four Palms (rush+drain) / F=Hakke Hasangeki / B=Shugo Hakke (guard) / U=Hakkesho Guuten (deflect) / D=Byakugan (buff). ULT Juuhou Soshiken = Phase 3
     case "gaara":   return executeGaaraSpecial(fighter, context)   // Phase 1: D=Sand Bullet (projectile). N/F/B/U sand specials = Phase 2; Sabaku Taisou ULT = Phase 3; Shukaku = Phase 4
@@ -32898,6 +33052,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "shizuku": cast = executeShizukuUltimate(fighter, context); break   // NEUTRAL = Bloodletting (combo → blood-draw → lifesteal 40% cap 12% maxHP) / DOWN = Spring Cleaning (hose barrage → clear opp projectiles [first 3→belly] + cube traps). _ultVariant stamped in game.js.
+      case "zoldyck": cast = executeZoldyckUltimate(fighter, context); break   // NEUTRAL = Thunderbolt Barrage (long charge → guaranteed lightning blast beats). DOWN = Godspeed (Phase 3; refunds here). _ultVariant stamped in game.js.
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
@@ -33966,6 +34121,9 @@ export function doEnergyCharge(fighter) {
 export function regenEnergy(fighter) {
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
   if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down
+  // Killua (Godspeed) `zoldyck`: VOLTS do NOT self-regenerate — electricity is a spent resource that only
+  // refills by HOLDING Charge (doEnergyCharge, +0.5/f, vulnerable while charging). Skip passive regen.
+  if ((fighter.rosterKey || "").toLowerCase() === "zoldyck") return
 
   let regen = 0.06
 

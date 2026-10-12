@@ -11004,7 +11004,14 @@ const zoldyck = {
     zoldyckOrbit:   { frames: 9, width: 45, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_yoyoorbit_uniform.png" },     // B+Up yo-yo orbit (anti-air)
     zoldyckClaw:    { frames: 8, width: 79, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_claw_uniform.png" },          // Y+Down assassin claw
     zoldyckPalm:    { frames: 3, width: 37, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_palm_uniform.png" },          // B+Down Lightning Palm
-    zoldyckCommand: { frames: 7, width: 47, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_command_uniform.png" }        // B+Forward barrage/command
+    zoldyckCommand: { frames: 7, width: 47, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_command_uniform.png" },        // B+Forward barrage/command
+    // ── PHASE 2 Volts SPECIAL / ULT cast poses (_spriteCastMove, identity-mapped in sprite.js MOVE_TO_ACTION) ──
+    zoldyckThunderbolt: { frames: 9,  width: 62, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_thunderbolt_uniform.png" }, // N+Special Thunderbolt (4-Koma A)
+    zoldyckRhythmEcho:  { frames: 4,  width: 77, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_rhythmecho_uniform.png" },  // F+Special Rhythm Echo (2-Koma)
+    zoldyckEchoStrike:  { frames: 11, width: 77, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_echostrike_uniform.png" },  // B+Special Echo Strike (5-Koma A)
+    zoldyckNarukami:    { frames: 12, width: 35, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_narukami_uniform.png" },    // D+Special Narukami (6-Koma A)
+    zoldyckSnack:       { frames: 14, width: 59, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_snackbreak_uniform.png" },  // U+Special Snack Break (4-Koma B)
+    zoldyckBarrage:     { frames: 17, width: 62, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_barrage_uniform.png" }      // Ultimate Thunderbolt Barrage (5-Koma B)
   },
   // No dedicated intro strip → idle-hold intro (he settles in STANCE during the intro phase).
   introPool: ["idle"],

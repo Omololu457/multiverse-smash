@@ -493,6 +493,31 @@ export const KITS = {
     ]
   },
 
+  // Shisui & Itachi (Kids) — NEW additive fighter. Kid Shisui is the body; Kid Itachi is an assist only.
+  shisui_itachi_kids: {
+    type: "Child Rushdown / Assist", energy: "Chakra", difficulty: "Medium",
+    summary: "Shisui & Itachi (Kids) — the two prodigies as kids. Fast, fragile Kid Shisui (lowest HP, top-end speed) throws kunai, body-flickers through foes, and flashes a short Sharingan genjutsu; Kid Itachi is an assist-only partner who flickers in to throw kunai and can DEFLECT a thrown kunai into the opponent's blind spot. Every assist or deflect that lands fills a TRAINING BOND; a full bond unleashes the Twin Flicker ultimate.",
+    passive: { name: "Kid Body Flicker", effect: "Shisui of the Body Flicker in miniature — his dash is a short shunshin with a streak after-image, and he carries 2 regenerating flicker charges." },
+    basics: [
+      { name: "Combo String", input: "Light",                   desc: "quick kid taijutsu string" },
+      { name: "Committed Swing", input: "Heavy",                 desc: "slower, harder knockback strike" },
+      { name: "Rising Flurry", input: "Up-Attack",               desc: "launcher — rising flurry, starts air combos" },
+      { name: "Air Attack",    input: "Air (jump + Light)",      desc: "neutral aerial" },
+      { name: "Diving Kunai",  input: "Down-Air (jump + Heavy)", desc: "head-down dive strike" }
+    ],
+    specials: [
+      { name: "Kunai Throw",    input: "Special (Neutral/Back)", cost: 14, desc: "Shisui throws a kunai. RE-PRESS with a kunai still in flight → BLIND-SPOT SHURIKEN: Kid Itachi flips in overhead and bats it into the opponent's blind spot (above/behind, +25% dmg). Max one deflect per kunai [CANON-ADJACENT]" },
+      { name: "Flicker Rush",   input: "Forward + Special",      cost: 20, desc: "Body-Flicker gap-closer — Shisui streaks THROUGH the opponent with a strike [CANON]" },
+      { name: "Genjutsu Flash", input: "Up + Special",           cost: 18, desc: "short-range Sharingan flash — a white burst that FREEZES the opponent briefly (chip on block) [CANON-ADJACENT]" },
+      { name: "Itachi Assist",  input: "Down + Special",         cost: 26, desc: "Kid Itachi flickers in, throws a kunai, and flickers out (cooldown). A landing assist fills the Training Bond [CANON]" }
+    ],
+    passiveNote: "TRAINING BOND — the meter (5 pips above Shisui's head) fills +1 each time an Itachi ASSIST or a BLIND-SPOT DEFLECT kunai LANDS a clean hit. A FULL bond is the resource for the Twin Flicker ultimate (chakra is NOT required for it).",
+    ultimate: { name: "Twin Flicker", input: "Ultimate (needs FULL Training Bond)", cost: 0, desc: "Neutral Ultimate, gated on a FULL Training Bond (not chakra): a two-prodigies cut-in, then both boys flicker around the opponent — Shisui strikes from four after-images and Itachi's blind-spot kunai rain in — ending on a back-to-back pair pose. ~142 guaranteed, i-frames throughout. Refused during KO / Domain / the Rick Prime rewind [ORIGINAL]" },
+    combos: [
+      { name: "Flicker Juggle", sequence: "Up-Attack, Jump, Air", desc: "rising flurry into a quick aerial" }
+    ]
+  },
+
   // Kakashi (ANBU) — NEW additive fighter. Move list GROWS per phase; Phase 1 = normals + Body Flicker.
   // Sharingan toggle + Raikiri (P2), Ninken/Read/Genjutsu (P3), Copy-Ninja/Mangekyou/Kamui (P4) add rows later.
   kakashi_anbu: {

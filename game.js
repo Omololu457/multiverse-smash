@@ -13643,7 +13643,7 @@ function drawShizukuFx(c, fighter) {
 // the opponent. Driven by state set in abilities.js (_sikAssist / _sikBlind / _sikStreak / _sikFlashFx).
 const _sikFxImgs = {}
 function _sikFxImg(src) { if (!_sikFxImgs[src]) { const i = new Image(); i.src = src; _sikFxImgs[src] = i } return _sikFxImgs[src] }
-;["./shisui_itachi_kids_itachi_idle_uniform.png", "./shisui_itachi_kids_itachi_throw_uniform.png", "./shisui_itachi_kids_itachi_blindspot_uniform.png", "./shisui_itachi_kids_streak_uniform.png"].forEach(_sikFxImg)
+;["./shisui_itachi_kids_itachi_idle_uniform.png", "./shisui_itachi_kids_itachi_throw_uniform.png", "./shisui_itachi_kids_itachi_blindspot_uniform.png", "./shisui_itachi_kids_streak_uniform.png", "./shisui_itachi_kids_select.png"].forEach(_sikFxImg)
 function _sikBlitFeet(c, img, frames, fi, cx, feetY, face, sc, alpha, flipV) {
   if (!img || !img.complete || img.naturalWidth === 0) return
   const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
@@ -13692,8 +13692,38 @@ function drawShisuiItachiKidsFx(c, fighter) {
     c.globalAlpha = 0.5 * t; c.fillStyle = "#bfe0ff"
     c.beginPath(); c.arc(g.x, g.y, 34 * (1.25 - t * 0.5), 0, Math.PI * 2); c.fill(); c.restore()
   }
+  // ── TWIN FLICKER ultimate: four after-image strike streaks around the foe + the FINAL PAIR pose (Kid Itachi
+  // steps in beside Shisui). World-space; driven by _sikUlt (set/ticked in abilities.js).
+  const u = fighter._sikUlt
+  if (u) {
+    const strk = u.strikeFx
+    if (strk) {
+      const img = _sikFxImg("./shisui_itachi_kids_streak_uniform.png"), tt = strk.timer / 12
+      if (img && img.complete && img.naturalWidth) {
+        const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc
+        c.save(); c.globalAlpha = 0.85 * tt; c.drawImage(img, strk.x - dw / 2, strk.y - dh / 2, dw, dh); c.restore()
+      }
+      c.save(); c.globalAlpha = 0.6 * tt; c.strokeStyle = "#eaf4ff"; c.lineWidth = 3
+      c.beginPath(); c.moveTo(strk.x - 26, strk.y - 20); c.lineTo(strk.x + 26, strk.y + 20); c.stroke(); c.restore()
+    }
+    if (u.phase === "final") {
+      const face = fighter.facing || 1
+      _sikBlitFeet(c, _sikFxImg("./shisui_itachi_kids_itachi_idle_uniform.png"), 1, 0,
+        fighter.x + (fighter.w ?? 60) / 2 - face * 42, fighter.y + h, face, sc, 1, false)   // Itachi beside Shisui
+    }
+  }
+  // TRAINING BOND meter — 5 pips above the head (filled = stored; all-filled glows = Twin Flicker ready).
+  const bond = Math.max(0, Math.min(5, fighter._sikBond || 0)), cxh = fighter.x + (fighter.w ?? 60) / 2, pipY = fighter.y - 12
+  c.save()
+  for (let i = 0; i < 5; i++) {
+    const on = i < bond, full = bond >= 5
+    c.globalAlpha = on ? 1 : 0.24; c.fillStyle = on ? (full ? "#9fe0ff" : "#4aa8e0") : "#2a3b4a"
+    c.beginPath(); c.arc(cxh - 24 + i * 12, pipY - 6, 3.4, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = 0.9; c.strokeStyle = "#0a1a26"; c.lineWidth = 1; c.stroke()
+  }
+  if ((fighter._sikBondPop || 0) > 0) { c.globalAlpha = Math.min(1, fighter._sikBondPop / 26); c.fillStyle = "#bfe8ff"; c.font = "bold 10px sans-serif"; c.textAlign = "center"; c.fillText(bond >= 5 ? "BOND MAX" : "+BOND", cxh, pipY - 14) }
+  c.restore()
 }
-
 // Killua (Godspeed) `zoldyck` — Phase 2 code-drawn FX: Rhythm Echo / Echo Strike afterimages (cyan ghost
 // silhouettes), Thunderbolt Barrage lightning crackle, Snack Break "+VOLTS" spark pop. Deterministic (frame
 // counters only; no Math.random). Projectile bolts/pillars render via the sprite-projectile system.
@@ -18107,6 +18137,34 @@ function drawLightKiraCinematic(ctx, canvas) {
 // Shizuku Bloodletting / Spring Cleaning ult — screen-space cut-in: themed vignette + a banner strip with the
 // anime cut-in panel sliding in + the ult name. World-space combat/blood/sweep FX live in drawShizukuFx.
 // No duplicate fighter instance (the live Shizuku holds the cast pose). No-op when no Shizuku is mid-ult.
+// TWIN FLICKER ult cut-in (screen-space): the two-prodigies illustration slides in + a cyan flash + the ult
+// name. Driven by _sikUltCutin (set in abilities.js executeShisuiItachiKidsUltimate); self-decrements.
+function drawShisuiItachiKidsCutin(ctx, canvas) {
+  const f = ((p1?._sikUltCutin || 0) > 0) ? p1 : ((p2?._sikUltCutin || 0) > 0) ? p2 : null
+  if (!f) return
+  const cw = canvas.width, ch = canvas.height
+  const t = f._sikUltCutin; f._sikUltCutin = t - 1
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  const flash = Math.max(0, (t - 48) / 10)
+  if (flash > 0) { ctx.fillStyle = `rgba(150,210,255,${0.4 * flash})`; ctx.fillRect(0, 0, cw, ch) }
+  const env = t >= 56 ? (66 - t) / 10 : t >= 18 ? 1 : t / 18
+  const panel = _sikFxImg("./shisui_itachi_kids_select.png")
+  const ready = panel && panel.complete && panel.naturalWidth > 0
+  const dh = ch * 0.5
+  const dw = ready ? panel.naturalWidth * (dh / panel.naturalHeight) : cw * 0.26
+  const dx = cw * 0.06 - (1 - env) * (dw + 60), dy = ch * 0.26
+  ctx.globalAlpha = 0.5 * env; ctx.fillStyle = "#061018"; ctx.fillRect(0, dy - 8, cw, dh + 16)   // backing bar
+  ctx.globalAlpha = env
+  if (ready) { ctx.imageSmoothingEnabled = false; ctx.drawImage(panel, dx, dy, dw, dh) }
+  // ult name
+  ctx.globalAlpha = env; ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"
+  ctx.fillStyle = "#eaf6ff"; ctx.strokeStyle = "#0a2436"; ctx.lineWidth = 4
+  ctx.font = `bold ${Math.floor(ch * 0.07)}px serif`
+  ctx.strokeText("TWIN FLICKER", cw * 0.94, dy + dh * 0.6); ctx.fillText("TWIN FLICKER", cw * 0.94, dy + dh * 0.6)
+  ctx.globalAlpha = env * 0.85; ctx.strokeStyle = "#8fd2ff"; ctx.lineWidth = 3
+  ctx.beginPath(); ctx.moveTo(0, dy + dh + 6); ctx.lineTo(cw, dy + dh + 2); ctx.stroke()
+  ctx.restore()
+}
 function drawShizukuUltCutin(ctx, canvas) {
   if (!ctx || !canvas) return
   const f = (p1 && (p1._szUltCutin || 0) > 0) ? p1 : (p2 && (p2._szUltCutin || 0) > 0) ? p2 : null
@@ -18983,6 +19041,7 @@ function drawBattle() {
   drawGaaraSabakuTaisouCinematic(ctx, canvas) // Gaara Sabaku Taisou ult — 砂瀑大葬 kanji cut-in slide + sand vignette + collapse dust flash (world-space burial FX in drawGaaraFx)
   drawMeruemUltCinematic(ctx, canvas)         // Meruem Ant King's Onslaught / Royal Feast — menace-panel cut-in slide + violet vignette (meruem only, _meruemCutinFx)
   drawKakashiAnbuRaikiriCutin(ctx, canvas)    // Kakashi (ANBU) Full-Charge Raikiri ult — illustration cut-in slide + red flash (kakashi_anbu only, _kanbuUltCutin)
+  drawShisuiItachiKidsCutin(ctx, canvas)      // Shisui & Itachi (Kids) Twin Flicker ult — two-prodigies illustration slide + cyan flash + ult name (kids only, _sikUltCutin)
   drawKakashiWarCutin(ctx, canvas)            // Kakashi (Kamui) Kamui Raikiri ult — Sharingan eye-banner cut-in slide + red flash (kakashi_war only, _warUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
   drawMadaraTengaiSky(ctx, canvas)                 // Madara WAR polish — non-cinematic Tengai (ladder/avatar): darken the sky with a Rinnegan tint during the meteor call-down
@@ -23768,7 +23827,8 @@ gameLoop()
     // MERUEM Phase 3 — read passive state (custom fields the p1() snapshot omits) + a test-only NAMED-hit
     // injector (sets the exact signals updateMeruem reads: opponent currentMove + HP drop + colorFlash + hitstun).
     meruemState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { evo: f._meruemEvo || 0, finalHours: !!f._meruemFinalHours, adapt: f._meruemAdapt ? { ...f._meruemAdapt } : {}, learned: f._meruemLearned ? Object.keys(f._meruemLearned) : [], synth: Math.round(f._meruemSynth || 0), dmgMult: +(f.damageMultiplier || 1).toFixed(3), speed: +(f.speed || 0).toFixed(2), baseSpeed: +(f.baseSpeed || 0).toFixed(2), banner: f._meruemBannerText || null, comboDmg: Math.round(f._meruemComboDmg || 0), hp: Math.round(f.health || 0), elim: !!f.eliminated, winged: !!f._meruemWinged, wingedTimer: f._meruemWingedTimer || 0, rageFiring: f._meruemRageFiring || 0, beam: f._meruemBeamActive || 0, sheet: f.spriteSheet || (f.animationData?.idle?.sheet) || null } },
-    sikState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f || (f.rosterKey || "").toLowerCase() !== "shisui_itachi_kids") return null; return { bond: f._sikBond || 0, bondPop: f._sikBondPop || 0, assist: f._sikAssist ? { phase: f._sikAssist.phase, timer: f._sikAssist.timer, threw: !!f._sikAssist.threw } : null, blind: f._sikBlind ? { timer: f._sikBlind.timer } : null, flash: f._sikFlashFx ? { timer: f._sikFlashFx.timer } : null, streak: !!f._sikStreak, cd: { flicker: f._sikFlickerCd || 0, genjutsu: f._sikGenjutsuCd || 0, assist: f._sikAssistCd || 0, deflect: f._sikDeflectCd || 0 }, myKunai: activeProjectiles.filter(p => p.owner === f && p.name === "sikKunai").map(p => ({ x: Math.round(p.x), vx: Math.round(p.vx), vy: Math.round(p.vy), deflected: !!p._sikDeflected, assist: !!p._sikAssistKunai })) } },
+    sikState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f || (f.rosterKey || "").toLowerCase() !== "shisui_itachi_kids") return null; return { bond: f._sikBond || 0, bondPop: f._sikBondPop || 0, assist: f._sikAssist ? { phase: f._sikAssist.phase, timer: f._sikAssist.timer, threw: !!f._sikAssist.threw } : null, blind: f._sikBlind ? { timer: f._sikBlind.timer } : null, flash: f._sikFlashFx ? { timer: f._sikFlashFx.timer } : null, streak: !!f._sikStreak, ult: f._sikUlt ? { phase: f._sikUlt.phase, timer: f._sikUlt.timer } : null, cutin: f._sikUltCutin || 0, cd: { flicker: f._sikFlickerCd || 0, genjutsu: f._sikGenjutsuCd || 0, assist: f._sikAssistCd || 0, deflect: f._sikDeflectCd || 0 }, myKunai: activeProjectiles.filter(p => p.owner === f && p.name === "sikKunai").map(p => ({ x: Math.round(p.x), vx: Math.round(p.vx), vy: Math.round(p.vy), deflected: !!p._sikDeflected, assist: !!p._sikAssistKunai, ult: !!p.isUltimate })) } },
+    sikSetBond: (n, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f && (f.rosterKey || "").toLowerCase() === "shisui_itachi_kids") { f._sikBond = Math.max(0, Math.min(5, n | 0)); return f._sikBond } return null },
     meruemSetSynth: (v = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._meruemSynth = v; return f ? Math.round(f._meruemSynth || 0) : null },
     meruemRoyalFeast: (synth = 100, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._meruemSynth = synth; f.energy = f.maxEnergy || 200; f.ultimateCooldown = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f._ultVariant = "royalFeast"; f._meruemCineBlocked = false; const cast = triggerUltimate(f, getAbilityContext()); return { cast: !!cast, winged: !!f._meruemWinged, hp: Math.round(f.health || 0), synth: Math.round(f._meruemSynth || 0) } },
     meruemHit: (move = "light", dmg = 40, who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f || !o) return null; o.currentMove = move; o.currentAttack = { name: move }; f.health = Math.max(1, (f.health || 0) - dmg); f.hitstun = Math.max(f.hitstun || 0, 12); f.colorFlash = 8; return { hp: Math.round(f.health), oppHp: Math.round(o.health || 0) } },

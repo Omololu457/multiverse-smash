@@ -11093,7 +11093,24 @@ const shisuiItachiKids = {
   // INTRO — both boys stand together (Kid Itachi + Kid Shisui) before the fight.
   introPool: ["intro"],
   // Twin Flicker (Neutral Ultimate) is fully built in Phase 3; metadata here so the Move List can show it.
-  ultimate: { name: "Twin Flicker", cost: 100, description: "Needs a full Training Bond. Both boys flicker around the opponent, Shisui strikes from four after-images, and Itachi's blind-spot kunai rain in. (Built in Phase 3.)" }
+  ultimate: { name: "Twin Flicker", cost: 100, description: "Neutral Ultimate — needs a FULL Training Bond (not chakra). A two-prodigies cut-in, then both boys flicker around the opponent and Shisui strikes from four after-images, Itachi's blind-spot kunai rain in, and the pair land a final back-to-back pose. ~142 guaranteed, i-frames throughout. Refused during KO / Domain events / the Rick Prime rewind." },
+  // Wholesome, competitive best friends — Kid Shisui speaks (Kid Itachi chimes in). matchupLines route via
+  // arcade.js for the named rivals; everyone else gets the generic pair. Original text only.
+  arcadeRivalLines: {
+    pre: ["Shisui: Ready, Itachi? Let's show 'em what real teamwork looks like!", "Rival: Two little kids? This'll be over quick."],
+    win: "Shisui: Told you we'd win! Me and Itachi — best team in the whole village."
+  },
+  matchupLines: {
+    itachi:        { pre: ["Shisui: ...Itachi? Is that you, all grown up? Whoa, you got TALL.", "Itachi: Shisui. Some things are better left in the past."], win: "Shisui: Still can't out-flicker me, huh? Some things never change, partner." },
+    shisui_trinity:   { pre: ["Shisui: Hold on — is that... me? The grown-up me?", "Shisui (Trinity): Treasure these days, kid. They don't last forever."], win: "Shisui: If that's my future, I've got a LOT to live up to!" },
+    shisui_blade:     { pre: ["Shisui: Another me?! How many of us even ARE there?", "Shisui (Blade): Focus, child. A blade does not hesitate."], win: "Shisui: Cool sword, future-me — but today, the little guy wins!" },
+    shisui_puppeteer: { pre: ["Shisui: You fight just like me, but... colder somehow.", "Shisui (Puppeteer): Sentiment is only a thread to be cut."], win: "Shisui: I'll never cut the threads to my friends. Never ever." },
+    shisui_fallen:    { pre: ["Shisui: You've got my face, but your eyes are all wrong.", "Shisui (Fallen): Those precious bonds of yours will break you."], win: "Shisui: My bonds are my strength — you just forgot that, didn't you?" },
+    sasuke:        { pre: ["Shisui: Hey, you're Itachi's little brother, right? He talks about you ALL the time!", "Sasuke: ...Nii-san never mentioned you."], win: "Shisui: Go easy on Itachi someday, okay? He loves you more than anything." },
+    kakashi_anbu:  { pre: ["Shisui: Itachi says you'll be his captain someday. Those are big shoes!", "Kakashi (ANBU): A shinobi should hide their intentions, kid."], win: "Shisui: Look after Itachi when you're his captain, alright? Promise me." },
+    madara:        { pre: ["Shisui: You're the scary old guy from the campfire stories!", "Madara: Children playing at war. How quaint."], win: "Shisui: Scary stories don't scare ME — not when I've got Itachi right here!" },
+    obito:         { pre: ["Shisui: How come you look so sad behind that mask, mister?", "Obito: ...You wouldn't understand, child."], win: "Shisui: Whatever's hurting you — the village could've helped. I'm really sorry." }
+  }
 }
 
 export const characters = {

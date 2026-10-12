@@ -11093,9 +11093,59 @@ export function updateShisuiItachiKids(fighter, context) {
   // BOND credit: a landed assist/deflect kunai set _sikBondHit on this fighter (hitFlag). Consume → fill.
   if (fighter._sikBondHit) {
     fighter._sikBondHit = false
-    fighter._sikBond = Math.min((fighter._sikBond || 0) + 1, 5)   // meter display + Twin Flicker ult = Phase 3
+    fighter._sikBond = Math.min((fighter._sikBond || 0) + 1, 5)   // 5 = FULL → Twin Flicker ult ready
     fighter._sikBondPop = 26
   }
+  // TWIN FLICKER ultimate choreography tick (world-space strike FX → final-pair phase).
+  const u = fighter._sikUlt
+  if (u) {
+    u.timer--
+    if (u.strikeFx && (--u.strikeFx.timer) <= 0) u.strikeFx = null
+    if (u.timer <= 30) u.phase = "final"
+    if (u.timer <= 0) fighter._sikUlt = null
+  }
+}
+
+// TWIN FLICKER — Neutral Ultimate. Needs a FULL Training Bond (5). Both boys flicker around the opponent,
+// Shisui strikes from four after-images, Itachi's blind-spot kunai rain in, then the two prodigies strike a
+// final pair pose. Uses only this sheet's frames + the select illustration cut-in. Deterministic (scheduled
+// beats, no gameRng). Refused during KO / Brutality / Domain events / Rick-Prime rewind.
+const SIK_ULT_DUR = 142
+function executeShisuiItachiKidsUltimate(fighter, context) {
+  if (!sikIs(fighter)) return false
+  if ((fighter._sikBond || 0) < 5) return false   // not ready — needs a FULL bond (no energy spent)
+  if ((context && context.cinematicSafe === false) || fighter.domainFrozen || fighter.eliminated || (fighter.health || 0) <= 0) return false
+  fighter._sikBond = 0                              // consume the whole bond
+  const opp = getTargetResolver(context)(fighter)
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter.vx = 0
+  fighter.attackCooldown = getAttackDuration(SIK_ULT_DUR, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SIK_ULT_DUR)
+  fighter._spriteCastMove = "sikFlicker"; fighter._spriteCastTimer = SIK_ULT_DUR
+  fighter._sikUltCutin = 66                          // screen-space illustration cut-in (drawShisuiItachiKidsCutin)
+  fighter._sikUlt = { timer: SIK_ULT_DUR, phase: "cutin", strikeFx: null }
+  if (opp) {
+    const cx = opp.x + (opp.w || 60) * 0.5, cy = opp.y + (opp.h || 100) * 0.5
+    // Four after-image flicker strikes around the opponent (deterministic beats).
+    const pts = [[-86, -34], [86, -34], [-86, 30], [86, 30]]
+    pts.forEach((p, i) => schedulePendingSpawn(40 + i * 15, () => {
+      if (opp && !opp.eliminated && (opp.health || 0) > 0) {
+        applyScaledDamage(opp, 22, { source: "ability" }); opp.hitstun = 14; opp.vx = 0; opp.vy = 0; opp.colorFlash = 8
+      }
+      if (fighter._sikUlt) fighter._sikUlt.strikeFx = { x: cx + p[0], y: cy + p[1], timer: 12 }
+    }))
+    // Itachi's blind-spot kunai RAIN — three kunai drop from overhead onto the opponent.
+    schedulePendingSpawn(104, () => {
+      for (let k = 0; k < 3; k++) spawnProjectile(fighter, "sikKunai", {
+        speed: 11, damage: 18, hitstun: 10, knockbackX: 0, knockbackY: 2, w: 30, h: 14, lifetime: 42,
+        spawnX: cx + (k - 1) * 34, spawnY: cy - 160, vx: 0, vy: 12,
+        sheet: "./shisui_itachi_kids_kunai_uniform.png", spriteFrames: 1, spriteW: 36, spriteH: 17, spriteScale: 1.15,
+        isSpecial: true, isUltimate: true, color: "#c7ccd6"
+      }, context)
+    })
+  }
+  try { shakeCamera(context, 6, 16); focusCameraOnAction(context, fighter, opp, 0.9, 22) } catch (_) {}
+  return true
 }
 
 // DISPATCHER — directional Special. Neutral (ground OR air) = Raikiri, armed in game.js canStart
@@ -32608,6 +32658,7 @@ export function updateMeruem(fighter, context, heldSpecial = false, blockCinemat
   fighter._meruemHpLast = fighter.health || 0
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
 // KILLUA (GODSPEED) `zoldyck` — PHASE 2: VOLTS specials + Thunderbolt Barrage ultimate.
 // VOLTS = the energy meter; it does NOT self-regen (regenEnergy early-returns for zoldyck) and refills
 // only by HOLDING Charge (doEnergyCharge, +0.5/f, vulnerable). Electric specials SPEND Volts (spendEnergy).
@@ -33052,6 +33103,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
       case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "shizuku": cast = executeShizukuUltimate(fighter, context); break   // NEUTRAL = Bloodletting (combo → blood-draw → lifesteal 40% cap 12% maxHP) / DOWN = Spring Cleaning (hose barrage → clear opp projectiles [first 3→belly] + cube traps). _ultVariant stamped in game.js.
+      case "shisui_itachi_kids": cast = executeShisuiItachiKidsUltimate(fighter, context); break   // NEUTRAL = Twin Flicker (needs FULL Training Bond): cut-in → 4-point after-image strikes → Itachi blind-spot kunai rain → final pair. Gated on _sikBond===5, not energy.
       case "zoldyck": cast = executeZoldyckUltimate(fighter, context); break   // NEUTRAL = Thunderbolt Barrage (long charge → guaranteed lightning blast beats). DOWN = Godspeed (Phase 3; refunds here). _ultVariant stamped in game.js.
       case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)

@@ -32701,16 +32701,18 @@ function executeZoldyckSpecial(fighter, context) {
 }
 
 // N+Special — THUNDERBOLT [CANON-ADJACENT]: a forward electric bolt projectile. (4-Koma A) Cost 22 Volts.
+// During GODSPEED (Whirlwind) it becomes the CRESCENT variant — faster, bigger, hits harder.
 function zdThunderbolt(fighter, context) {
   if (!spendEnergy(fighter, 22)) return false
-  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const crescent = !!(fighter._zGsActive && fighter._zGsMode === "whirlwind")
+  fighter.attackCooldown = getAttackDuration(crescent ? 18 : 24, fighter)
   fighter._spriteCastMove = "zoldyckThunderbolt"; fighter._spriteCastTimer = 26
   const h = fighter.h || 100
-  schedulePendingSpawn(8, () => {
+  schedulePendingSpawn(crescent ? 6 : 8, () => {
     spawnProjectile(fighter, "zoldyck_bolt", {
-      w: 44, h: 44, radius: 22, speed: 14, spawnY: fighter.y + h * 0.42,
-      damage: 58, hitstun: 18, knockbackX: 7, knockbackY: -2, lifetime: 95, color: "#7dd3fc",
-      sheet: "./zoldyck_boltfx_uniform.png", spriteFrames: 3, spriteW: 66, spriteH: 63, spriteSpeed: 3, spriteScale: 0.82,
+      w: crescent ? 58 : 44, h: crescent ? 52 : 44, radius: crescent ? 28 : 22, speed: crescent ? 18 : 14, spawnY: fighter.y + h * 0.42,
+      damage: crescent ? 72 : 58, hitstun: crescent ? 22 : 18, knockbackX: crescent ? 9 : 7, knockbackY: -2, lifetime: 95, color: "#bfe9ff",
+      sheet: "./zoldyck_boltfx_uniform.png", spriteFrames: 3, spriteW: 66, spriteH: 63, spriteSpeed: 3, spriteScale: crescent ? 1.05 : 0.82,
       isSpecial: true
     }, context)
   })
@@ -32792,11 +32794,11 @@ function zdSnackBreak(fighter, context) {
 const ZD_BARRAGE_LEN = 96
 function executeZoldyckUltimate(fighter, context) {
   if (!zdIsZoldyck(fighter)) return false
-  if (fighter._ultVariant === "godspeed") {   // Down+Ult — Godspeed arrives in Phase 3; refund + no-op for now.
-    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + (fighter.ultimate?.cost ?? 100))
-    return false
+  if (zdUltRefused(fighter, context)) return false   // refuse Barrage AND Godspeed during KO/Brutality/Domain/rewind (refund)
+  if (fighter._ultVariant === "godspeed") {           // Down+Ult — GODSPEED (Phase 3): enter the sustained form.
+    return enterZoldyckGodspeed(fighter, context)     // its own Volts economy (ZD_GS_ENTRY + per-frame drain); triggerUltimate does not pre-charge.
   }
-  if (zdUltRefused(fighter, context)) return false
+  if (fighter._zGsActive) return false               // can't fire Thunderbolt Barrage while already in Godspeed
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   fighter.attackCooldown = getAttackDuration(ZD_BARRAGE_LEN, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, ZD_BARRAGE_LEN)
@@ -32810,6 +32812,104 @@ function executeZoldyckUltimate(fighter, context) {
   beats.forEach(b => schedulePendingSpawn(b.at, () => zdUltBeat(fighter, context, b.dmg, b.big)))
   try { focusCameraOnAction(context, fighter, o, 1.1, 20); shakeCamera(context, 6, 16) } catch (_) {}
   return true
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// KILLUA (GODSPEED) `zoldyck` — PHASE 3: GODSPEED (Down+Ult). Full-body electricity: entry costs Volts,
+// then a steady per-frame Volts drain → ends at 0 Volts with a short DRAINED STAGGER (vulnerable). Two
+// modes toggled with the CHARGE button while active (toggle handled in game.js so Charge no longer
+// recharges during Godspeed):
+//   • WHIRLWIND (rush, DEFAULT): dash becomes a lightning-bolt blink leaving blue afterimages; the buff
+//     (×1.2 dmg, ×1.35 atk-speed, big dash/speed) makes strings faster; Thunderbolt gets a crescent variant.
+//   • SPEED OF LIGHTNING (auto-react, "after pass the line"): a crouch/read stance + a cyan FLOOR LINE in
+//     front; when the opponent CROSSES the line OR attacks within its range, Killua auto lightning-teleports
+//     and counter-strikes (max 3 per activation). Normal blocking still applies.
+// (Canon naming note: sources disagree which mode is the automatic one — I use SPEED OF LIGHTNING = auto-react
+//  and WHIRLWIND = rush, matching the build brief's labels.) Refuses during KO/Brutality/Domain/Rick-rewind
+// (checked at entry via zdUltRefused and every frame in applyZoldyckGodspeed). combat.js UNTOUCHED — buffs are
+// standard multipliers, the counter uses createAttackFromMove + invulnTimer, drain is a plain meter decrement.
+const ZD_GS_ENTRY = 30          // Volts spent on entry
+const ZD_GS_DRAIN = 0.26        // Volts/frame while active (~4.5s from a full 100-30 tank; recharge is impossible mid-Godspeed)
+const ZD_GS_MULT  = { dmg: 1.2, atkSpeed: 1.35, dash: 26, speed: 115 }
+const ZD_GS_LINE  = 185         // Speed-of-Lightning auto-react trigger range in front (px)
+
+function zdGsActive(f) { return !!f?._zGsActive }
+
+function enterZoldyckGodspeed(fighter, context) {
+  if (fighter._zGsActive) return false
+  if ((fighter.energy || 0) < ZD_GS_ENTRY) return false
+  if (!spendEnergy(fighter, ZD_GS_ENTRY)) return false
+  fighter._zGsActive   = true
+  fighter.currentForm  = "godspeed"
+  fighter._zGsMode     = "whirlwind"       // default rush mode; Charge toggles to speedOfLightning
+  fighter._zGsCounters = 3                 // Speed-of-Lightning auto-counters remaining this activation
+  fighter._zGsBaseDash  = fighter.dashSpeed
+  fighter._zGsBaseSpeed = fighter.speed
+  fighter.damageMultiplier      = ZD_GS_MULT.dmg
+  fighter.attackMultiplier      = ZD_GS_MULT.dmg
+  fighter.attackSpeedMultiplier = ZD_GS_MULT.atkSpeed
+  fighter.dashSpeed = ZD_GS_MULT.dash
+  fighter.speed     = ZD_GS_MULT.speed
+  fighter._zGsTrail = []
+  fighter._zGsBurst = 38                    // activation burst FX (drawZoldyckFx)
+  fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 22   // brief charge-pose activation flash
+  try { shakeCamera(context, 5, 14); focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 16) } catch (_) {}
+  return true
+}
+
+function revertZoldyckGodspeed(fighter, staggered) {
+  if (!fighter || !fighter._zGsActive) return
+  fighter._zGsActive = false
+  fighter.currentForm = "base"
+  fighter.damageMultiplier = 1; fighter.attackMultiplier = 1; fighter.attackSpeedMultiplier = 1
+  if (fighter._zGsBaseDash  != null) { fighter.dashSpeed = fighter._zGsBaseDash;  fighter._zGsBaseDash  = null }
+  if (fighter._zGsBaseSpeed != null) { fighter.speed     = fighter._zGsBaseSpeed; fighter._zGsBaseSpeed = null }
+  fighter._zGsTrail = []; fighter._zGsMode = null; fighter._zGsCounters = 0
+  if (staggered) {   // DRAINED STAGGER — brief vulnerable stun when the Volts run dry
+    fighter.hitstun = Math.max(fighter.hitstun || 0, 34)
+    fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 34)
+    fighter._zDrained = 34
+    fighter._spriteCastMove = "hurt"; fighter._spriteCastTimer = 34
+  }
+}
+
+// Per-frame (game.js, beside applyGodspeedSystem): drain → stagger at 0 Volts; refuse to persist through
+// KO/Brutality/Domain/rewind; record the Whirlwind afterimage trail; run the Speed-of-Lightning auto-react.
+export function applyZoldyckGodspeed(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "zoldyck") return
+  if ((fighter._zDrained || 0) > 0) fighter._zDrained--
+  if ((fighter._zGsCounterCd || 0) > 0) fighter._zGsCounterCd--
+  if (!fighter._zGsActive) return
+  // End immediately (no stagger, no softlock) if a cinematic/KO/domain/rewind context takes over.
+  if ((context && context.cinematicSafe === false) || fighter.eliminated || (fighter.health || 0) <= 0) { revertZoldyckGodspeed(fighter, false); return }
+  // Steady Volts drain → drained stagger at 0.
+  fighter.energy = Math.max(0, (fighter.energy || 0) - ZD_GS_DRAIN)
+  if ((fighter.energy || 0) <= 0) { revertZoldyckGodspeed(fighter, true); return }
+  // Whirlwind afterimage trail (also drawn in drawZoldyckFx).
+  const trail = fighter._zGsTrail || (fighter._zGsTrail = [])
+  trail.unshift({ x: fighter.x, y: fighter.y }); if (trail.length > 6) trail.pop()
+  // SPEED OF LIGHTNING — hold the read stance + auto-counter when the foe crosses the line / attacks in range.
+  if (fighter._zGsMode === "speedOfLightning") {
+    if (!fighter.attacking && (fighter.attackCooldown || 0) <= 0) { fighter._spriteCastMove = "zoldyckGsCrouch"; fighter._spriteCastTimer = 6 }
+    if ((fighter._zGsCounters || 0) > 0 && (fighter._zGsCounterCd || 0) <= 0 && !fighter.attacking && (fighter.attackCooldown || 0) <= 0) {
+      const o = getTargetResolver(context)(fighter)
+      if (o && !o.eliminated && (o.invulnTimer || 0) <= 0) {
+        const face = fighter.facing || 1
+        const cx = fighter.x + (fighter.w || 60) / 2, ox = o.x + (o.w || 60) / 2
+        const inFront = (face === 1) ? (ox > cx && ox - cx <= ZD_GS_LINE) : (ox < cx && cx - ox <= ZD_GS_LINE)
+        // trigger when the foe is inside the line AND either attacking OR moving across it
+        if (inFront && (!!o.attacking || Math.abs(o.vx || 0) > 0.8)) {
+          fighter.x = o.x - face * 42; fighter.facing = face   // lightning-teleport to the foe
+          fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+          const md = { damage: 48, startup: 2, active: 4, recovery: 10, hitstun: 26, knockbackX: 9, knockbackY: -5, rangeX: 94, rangeY: 62, isSpecial: true }
+          const atk = createAttackFromMove(fighter, "zoldyckGsCrouch", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+          setAttackState(fighter, atk, md.startup + md.active + md.recovery)
+          fighter._zGsCounters--; fighter._zGsCounterCd = 26; fighter._zGsBolt = 14
+          try { shakeCamera(context, 3, 8) } catch (_) {}
+        }
+      }
+    }
+  }
 }
 
 export function triggerSpecial(fighter, context = {}) {

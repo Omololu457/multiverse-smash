@@ -80,6 +80,7 @@ import {
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
   enterMangekyou, revertMangekyou, applyMangekyouSystem, isMangekyouActive,   // Itachi Mangekyou Sharingan (buff mode)
   applyGodspeedSystem,   // Killua Godspeed: sustained buff-mode ultimate (drain tick + afterimage trail)
+  applyZoldyckGodspeed,  // Killua (Godspeed) `zoldyck`: Godspeed drain/stagger + Speed-of-Lightning auto-react + Whirlwind trail
   applyFlashTimeSystem, forceRevertFlashTime,   // Flash — Flash Time: sustained buff-mode ultimate (drain tick + block-lockout + afterimage trail)
   applyGonAdultFormSystem, forceRevertGonAdultForm,   // Gon Adult Form: sustained buff-mode ultimate (drain tick + movement-lockout + green aura trail)
   applyHisokaOverdriveSystem, forceRevertHisokaOverdrive,   // Hisoka Bloodlust Overdrive: sustained buff-mode ultimate (drain tick + _skinAnim golden power-up body-swap)
@@ -7613,7 +7614,17 @@ function updateMovementInput(fighter) {
   // "charge" windup pose) so the Charged Flame Strike can release on keyup — but there's no meter to build.
   const noEnergyCharger = (fighter.rosterKey || "").toLowerCase() === "rengoku"
   if (!inputState.charge) fighter._suppressChargeUntilRelease = false   // Ghostface-swap latch clears on release
-  if (inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
+  // KILLUA (GODSPEED) `zoldyck`: while Godspeed is active, the CHARGE button TOGGLES the mode (Whirlwind ↔
+  // Speed of Lightning) on a rising edge instead of recharging — he can't refill Volts mid-Godspeed.
+  const zdGsCharge = (fighter.rosterKey || "").toLowerCase() === "zoldyck" && !!fighter._zGsActive
+  if (zdGsCharge) {
+    if (inputState.charge && !fighter._zGsTogglePrev) {
+      fighter._zGsMode = (fighter._zGsMode === "whirlwind") ? "speedOfLightning" : "whirlwind"
+      fighter._zGsModePop = 26   // mode-name HUD pop (drawZoldyckFx)
+    }
+    fighter._zGsTogglePrev = !!inputState.charge
+  } else { fighter._zGsTogglePrev = false }
+  if (!zdGsCharge && inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
     if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
     // SAMURAI RANGERS — AUTO Mega Mode (owner-requested): the instant Symbol Power crosses the threshold
@@ -13777,6 +13788,60 @@ function drawZoldyckFx(c, fighter) {
     c.restore()
     fighter._zSnackPop--
   }
+
+  // ── GODSPEED (Phase 3) ──────────────────────────────────────────────────────────────────────
+  if (fighter._zGsActive) {
+    const face = fighter.facing || 1, feetY = fighter.y + h, tt = (fighter._zGsAuraT = (fighter._zGsAuraT || 0) + 1)
+    // Whirlwind afterimage trail (blue ghost silhouettes at recent positions).
+    if (fighter._zGsMode === "whirlwind" && Array.isArray(fighter._zGsTrail)) {
+      fighter._zGsTrail.forEach((p, i) => {
+        c.save(); c.globalAlpha = 0.22 * (1 - i / 6); c.fillStyle = i % 2 ? "#7dd3fc" : "#2563eb"
+        c.fillRect(p.x + w * 0.22, p.y + h * 0.08, w * 0.56, h * 0.86); c.restore()
+      })
+    }
+    // Full-body blue electric aura (crackling ring).
+    c.save(); c.strokeStyle = "#bfe9ff"; c.lineWidth = 2; c.shadowBlur = 12; c.shadowColor = "#2563eb"
+    c.globalAlpha = 0.5 + 0.22 * Math.sin(tt * 0.5)
+    for (let a = 0; a < 6; a++) {
+      const ang = tt * 0.3 + a * 1.047, r0 = w * 0.42, r1 = w * (0.72 + 0.28 * ((a + tt) % 3) / 3)
+      c.beginPath(); c.moveTo(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0)
+      for (let s = 1; s <= 3; s++) { const rr = r0 + (r1 - r0) * (s / 3), j = ((a * 5 + s * 11 + tt) % 5 - 2) * 3; c.lineTo(cx + Math.cos(ang) * rr + j, cy + Math.sin(ang) * rr - j) }
+      c.stroke()
+    }
+    c.restore()
+    // SPEED OF LIGHTNING — cyan floor line in front (the auto-react trigger range) + counters pip.
+    if (fighter._zGsMode === "speedOfLightning") {
+      const x0 = face === 1 ? fighter.x + w * 0.6 : fighter.x - 185, x1 = face === 1 ? fighter.x + w * 0.6 + 185 : fighter.x + w * 0.4
+      c.save(); c.globalAlpha = 0.6 + 0.2 * Math.sin(tt * 0.4); c.strokeStyle = "#38f0ff"; c.lineWidth = 3; c.shadowBlur = 10; c.shadowColor = "#38f0ff"
+      c.beginPath(); c.moveTo(x0, feetY - 2); c.lineTo(x1, feetY - 2); c.stroke()
+      // small ticks along the line
+      for (let k = 0; k <= 4; k++) { const tx = x0 + (x1 - x0) * (k / 4); c.beginPath(); c.moveTo(tx, feetY - 8); c.lineTo(tx, feetY + 2); c.stroke() }
+      c.restore()
+      c.save(); c.globalAlpha = 0.9; c.fillStyle = "#38f0ff"; c.font = "bold 10px sans-serif"; c.textAlign = "center"
+      c.fillText("⚡".repeat(Math.max(0, fighter._zGsCounters || 0)), cx, fighter.y - 16); c.restore()
+    }
+    // Activation burst (expanding blue ring).
+    if ((fighter._zGsBurst || 0) > 0) {
+      const t = fighter._zGsBurst, p = 1 - t / 38
+      c.save(); c.globalAlpha = 0.7 * (t / 38); c.strokeStyle = "#bfe9ff"; c.lineWidth = 4; c.shadowBlur = 16; c.shadowColor = "#2563eb"
+      c.beginPath(); c.arc(cx, cy, w * (0.3 + p * 1.6), 0, Math.PI * 2); c.stroke(); c.restore()
+      fighter._zGsBurst--
+    }
+    // Mode-switch name pop.
+    if ((fighter._zGsModePop || 0) > 0) {
+      const t = fighter._zGsModePop
+      c.save(); c.globalAlpha = Math.min(1, t / 14); c.fillStyle = "#bfe9ff"; c.font = "bold 12px sans-serif"; c.textAlign = "center"
+      c.fillText(fighter._zGsMode === "whirlwind" ? "WHIRLWIND" : "SPEED OF LIGHTNING", cx, fighter.y - 28 - (26 - t) * 0.5); c.restore()
+      fighter._zGsModePop--
+    }
+  } else if ((fighter._zGsModePop || 0) > 0) { fighter._zGsModePop--; }
+  // Teleport bolt flash (auto-counter / whirlwind blink).
+  if ((fighter._zGsBolt || 0) > 0) {
+    const t = fighter._zGsBolt
+    c.save(); c.globalAlpha = Math.min(1, t / 14); c.strokeStyle = "#ffffff"; c.lineWidth = 3; c.shadowBlur = 14; c.shadowColor = "#38f0ff"
+    c.beginPath(); c.moveTo(cx, fighter.y - 8); c.lineTo(cx - 10, fighter.y + h * 0.4); c.lineTo(cx + 8, fighter.y + h * 0.55); c.lineTo(cx, fighter.y + h); c.stroke(); c.restore()
+    fighter._zGsBolt--
+  }
 }
 function drawGaaraFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "gaara") return
@@ -15389,6 +15454,7 @@ function updateFighterState(fighter) {
   updateTobiKamui(updated)           // Tobi Kamui Intangibility: continuous chakra drain + auto-off at 0 + melee-drop/reactivate + i-frame phase (own `_tobi*` state)
   updatePortalReflectStance(updated) // Obito/Tobi Kamui Portal-Reflect: startup→active→recovery phase machine (reflect works while `_portalActive`)
   applyGodspeedSystem(updated)       // Killua Godspeed: continuous Nen drain + auto-revert at 0 + afterimage-trail recording
+  applyZoldyckGodspeed(updated, getAbilityContext())   // Killua (Godspeed) `zoldyck`: Volts drain → drained stagger at 0; Speed-of-Lightning auto-counter; Whirlwind trail; refuses through KO/Brutality/Domain/rewind
   applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   updateGonPhase2Systems(updated, getAbilityContext())   // Gon Phase 2: Ren buff/cooldown timers + Fishing-Rod on-hit pull+meter-steal + Fury/Crater/Called-It/Chant-broken FX timers
@@ -22427,7 +22493,7 @@ gameLoop()
     // Gon Phase-2 telemetry — Jajanken chant stage, Ren/Fury/Called-It/Rod state (read-only).
     gonPhase2: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), chant: f._gonChant ? { frames: f._gonChant.frames, stage: f._gonChant.stage, dir: f._gonChant.dir } : null, chantBroken: f._gonChantBroken || 0, renTimer: f._gonRenTimer || 0, renCd: f._gonRenCd || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, fury: f._gonFury || 0, castArmor: f._castArmor || 0, groundBreak: f._gonGroundBreak || 0, calledIt: f._gonCalledIt || 0, calledItHand: f._gonCalledItHand || null, rodStole: f._gonRodStoleAmt || 0 } : null },
     // Killua (Godspeed) `zoldyck` — Phase 2 Volts/special state readout (read-only). projSelf counts this fighter's live projectiles (Thunderbolt bolt / Narukami pillars).
-    zoldyckState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), energy: Math.round(f.energy || 0), maxEnergy: f.maxEnergy || 0, invuln: f.invulnTimer || 0, cast: f._spriteCastMove || null, attacking: !!f.attacking, cooldown: f.attackCooldown || 0, echo: f._zEcho || 0, snack: f._zSnack || 0, snackPop: f._zSnackPop || 0, barrage: f._zBarrage || 0, ultVariant: f._ultVariant || null, oppHealth: o ? Math.round(o.health || 0) : 0, projSelf: activeProjectiles.filter(p => p.owner === f).length } },
+    zoldyckState: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p2" ? p1 : p2; if (!f) return null; return { key: (f.rosterKey || "").toLowerCase(), energy: Math.round(f.energy || 0), maxEnergy: f.maxEnergy || 0, invuln: f.invulnTimer || 0, cast: f._spriteCastMove || null, attacking: !!f.attacking, cooldown: f.attackCooldown || 0, hitstun: f.hitstun || 0, echo: f._zEcho || 0, snack: f._zSnack || 0, snackPop: f._zSnackPop || 0, barrage: f._zBarrage || 0, ultVariant: f._ultVariant || null, gsActive: !!f._zGsActive, gsMode: f._zGsMode || null, gsCounters: f._zGsCounters || 0, drained: f._zDrained || 0, form: f.currentForm || null, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, oppHealth: o ? Math.round(o.health || 0) : 0, projSelf: activeProjectiles.filter(p => p.owner === f).length } },
     // Gon Phase-3 — directional-ult trigger (mirrors the real stamp+token+trigger path) + state readout.
     gonUlt: (dir = null, opts = {}) => { const f = p1; if (!f) return null; if (opts.hp != null) f.health = opts.hp; if (opts.energy != null) f.energy = opts.energy; else f.energy = f.maxEnergy || 160; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f._gonUltDir = dir; f._gonVowTokenUsed = !!gonVowUsed.p1; const ok = triggerUltimate(f, getAbilityContext()); if (f._gonVowEntered) { gonVowUsed.p1 = true; f._gonVowEntered = false } return { ok, move: f.currentMove || null, cast: f._spriteCastMove || null, adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowUsed: !!gonVowUsed.p1, fullChant: f._gonFullChantCutin || 0, killuaFx: f._gonKilluaFx || 0, energy: Math.round(f.energy || 0) } },
     gonState: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowTimer: f._gonVowTimer || 0, adultRockFired: !!f._gonAdultRockFired, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, line: f._gonLineText || null, lineTimer: f._gonLineTimer || 0, energy: Math.round(f.energy || 0), currentForm: f.currentForm || null } : null },

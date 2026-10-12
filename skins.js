@@ -76,6 +76,19 @@ function n7RecolorAnim(tag) {
   return out
 }
 
+// Killua (Godspeed) `zoldyck` recolor: retag EVERY action's body sheet EXCEPT the GODSPEED stances
+// (zoldyckGsRun/zoldyckGsCrouch), which keep their own blue palette (no __tag file exists for them).
+// Pairs with zoldyck_work/gen_recolor.py's EXCLUDE list.
+const ZD_GODSPEED_ACTIONS = new Set(["zoldyckGsRun", "zoldyckGsCrouch"])
+function zdRecolorAnim(tag) {
+  const base = characters.zoldyck?.animationData || {}
+  const out = {}
+  for (const [action, def] of Object.entries(base)) {
+    out[action] = (def?.sheet && !ZD_GODSPEED_ACTIONS.has(action)) ? { ...def, sheet: def.sheet.replace(/\.png$/i, `__${tag}.png`) } : def
+  }
+  return out
+}
+
 // Recolored portrait path for a skin's select-screen thumbnail: the char's portrait retagged
 // (recolor output is always PNG), or the recolored idle sheet when the char has no portrait.
 function recolorPortrait(rosterKey, tag) {
@@ -918,7 +931,12 @@ export const SKINS = {
   // Killua (Godspeed) — Phase 1 ships the default (Anime) skin only; Anime Old + Manga recolors arrive
   // in Phase 3 via the palette box + recolor LUT. Default entry is REQUIRED (else getSkins() forces spriteScale:1).
   zoldyck: [
-    { id: "default", name: "Anime", unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: null },
+    // 3 palettes from the sheet's PALETTE BOX (Anime = default; Anime Old + Manga = recolor LUT via
+    // zoldyck_work/gen_recolor.py). GODSPEED frames keep their own blue palette (zdRecolorAnim excludes them).
+    // All skins share the DEFAULT portrait (the detailed illustration corrupts under the body LUT).
+    { id: "default",  name: "Anime",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: null },
+    { id: "animeold", name: "Anime Old", unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("animeold") },
+    { id: "manga",    name: "Manga",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("manga") },
   ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },

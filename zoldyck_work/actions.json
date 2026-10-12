@@ -25,5 +25,7 @@
   {"name": "snackbreak", "region": [24, 2491, 946, 2548]},
   {"name": "echostrike", "region": [18, 2618, 806, 2678]},
   {"name": "barrage",    "region": [14, 2732, 650, 2790]},
-  {"name": "narukami",   "region": [12, 2836, 748, 2894]}
+  {"name": "narukami",   "region": [12, 2836, 748, 2894]},
+  {"name": "gsrun",      "region": [275, 3280, 455, 3354]},
+  {"name": "gscrouch",   "region": [10, 3538, 335, 3598]}
 ]

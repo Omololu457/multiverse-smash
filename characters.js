@@ -11011,12 +11011,31 @@ const zoldyck = {
     zoldyckEchoStrike:  { frames: 11, width: 77, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_echostrike_uniform.png" },  // B+Special Echo Strike (5-Koma A)
     zoldyckNarukami:    { frames: 12, width: 35, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_narukami_uniform.png" },    // D+Special Narukami (6-Koma A)
     zoldyckSnack:       { frames: 14, width: 59, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_snackbreak_uniform.png" },  // U+Special Snack Break (4-Koma B)
-    zoldyckBarrage:     { frames: 17, width: 62, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_barrage_uniform.png" }      // Ultimate Thunderbolt Barrage (5-Koma B)
+    zoldyckBarrage:     { frames: 17, width: 62, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zoldyck_barrage_uniform.png" },     // Ultimate Thunderbolt Barrage (5-Koma B)
+    // ── PHASE 3 GODSPEED cast poses (blue palette kept) — Whirlwind run + Speed-of-Lightning read stance ──
+    zoldyckGsRun:    { frames: 4, width: 39, height: 46, speed: 4, anchorY: 0, loop: true, sheet: "./zoldyck_gsrun_uniform.png" },        // 6-Koma B#1 — Godspeed (Whirlwind) run
+    zoldyckGsCrouch: { frames: 6, width: 121, height: 55, speed: 4, anchorY: 0, loop: true, sheet: "./zoldyck_gscrouch_uniform.png" }     // 6-Koma B#2 — Godspeed (Speed of Lightning) auto-react read stance
   },
   // No dedicated intro strip → idle-hold intro (he settles in STANCE during the intro phase).
   introPool: ["idle"],
-  // Ultimate wiring arrives in Phase 2 (neutral-U Thunderbolt Barrage) / Phase 3 (Down+U Godspeed).
-  ultimate: { name: "Thunderbolt Barrage", cost: 100, description: "NEUTRAL = Thunderbolt Barrage — a long charge into a full lightning blast (big Volts cost). DOWN = Godspeed — full-body electricity with two Charge-toggled modes (arrives Phase 3)." }
+  ultimate: { name: "Thunderbolt Barrage / Godspeed", cost: 100, description: "NEUTRAL = Thunderbolt Barrage — a long charge into a full lightning blast (big Volts cost; guaranteed beats). DOWN = GODSPEED — full-body electricity: costs Volts on entry then drains steadily, ending with a drained stagger at 0. Toggle two modes with Charge: WHIRLWIND (rush — bolt-dash afterimages, faster strings, crescent Thunderbolt) and SPEED OF LIGHTNING (auto-react — crouch/read + cyan floor line; when the foe crosses it or attacks in range he auto lightning-teleports and counters, max 3)." },
+  // Original lines — sharp, teasing, fiercely protective of Gon. HxH matchups route via arcade.js opt-in
+  // (matchupLines[rivalKey]); any other opponent gets the generic arcadeRivalLines pair. Text only; voice
+  // reuses base Killua's intro pool (no new audio).
+  arcadeRivalLines: {
+    pre: ["Killua: Heh. You look slow. This'll be over before you blink.", "Rival: Big talk for a kid."],
+    win: "Told you. You never even saw me move."
+  },
+  matchupLines: {
+    gon:      { pre: ["Killua: Gon! ...Fine. If it's you, I won't hold back. Show me how far you've come.", "Gon: Yeah! Let's go all out, Killua!"], win: "Heh. You've gotten strong, Gon. ...But I'm still faster." },
+    hisoka:   { pre: ["Killua: Stay away from Gon, clown. I'll put you down myself.", "Hisoka: Mmm♦ Those eyes... you'll be delicious to break."], win: "Creep. Gon's not your toy — and neither am I." },
+    kurapika:  { pre: ["Killua: You're after the Spiders, not us. So don't get in my way.", "Kurapika: Then stay out of mine, Zoldyck."], win: "Chains are slow. Lightning isn't." },
+    chrollo:  { pre: ["Killua: The Troupe's leader, huh. Gon and I already beat two of you.", "Chrollo: Then you'll make for an interesting read."], win: "Your book can't copy speed it can't follow." },
+    shizuku:  { pre: ["Killua: Number eight. Blinky can't vacuum what it can't catch.", "Shizuku: ...Your name again? Nevermind. Cleaning up."], win: "Too slow. Go sweep somewhere else." },
+    meruem:   { pre: ["Killua: A King, or whatever you are — you're still just something in my way.", "Meruem: You will learn your place, human."], win: "Even a King blinks. That's all I needed." },
+    netero:   { pre: ["Killua: Chairman Netero... I've seen how fast your hands are. I'll be faster.", "Netero: Hoho! Show me, boy — give this old man a thrill!"], win: "Phew... okay, you're insane. But I got there first." },
+    killua:   { pre: ["Killua: ...A mirror? Or an assassin wearing my face. Either way — not good enough.", "Killua: Funny. I was about to say the same thing."], win: "There's only one me that keeps up with Gon. And it's this one." }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────

@@ -249,6 +249,7 @@ const MOVE_TO_ACTION = {
   zoldyckPalm: "zoldyckPalm", zoldyckOrbit: "zoldyckOrbit", zoldyckYoyo: "zoldyckYoyo", zoldyckClaw: "zoldyckClaw", zoldyckCommand: "zoldyckCommand",
   zoldyckThunderbolt: "zoldyckThunderbolt", zoldyckRhythmEcho: "zoldyckRhythmEcho", zoldyckEchoStrike: "zoldyckEchoStrike",
   zoldyckNarukami: "zoldyckNarukami", zoldyckSnack: "zoldyckSnack", zoldyckBarrage: "zoldyckBarrage",
+  zoldyckGsRun: "zoldyckGsRun", zoldyckGsCrouch: "zoldyckGsCrouch",   // Phase 3 Godspeed stances (Whirlwind run / Speed-of-Lightning read)
   // Shisui & Itachi (Kids) — special cast poses (_spriteCastMove). Identity maps so a cast recovery tail
   // never resolves to the fallback box. (Kunai Throw / Flicker Rush / Genjutsu Flash.)
   sikKunaiCast: "sikKunaiCast", sikFlicker: "sikFlicker", sikGenjutsu: "sikGenjutsu",

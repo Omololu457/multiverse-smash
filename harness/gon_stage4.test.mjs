@@ -42,16 +42,17 @@ async function waitGrounded() { await page.waitForFunction(() => { const p = win
 async function tapKey(key) { await page.keyboard.down(key); await waitFrames(2); await page.keyboard.up(key); await waitFrames(1); }
 async function reboot() { await page.evaluate(() => window.__harness.boot()); await waitFrames(6); await waitGrounded(); }
 
-// Trigger Adult Form and wait out the activation cinematic; returns the post-cinematic form state.
-async function enterAdultForm() {
-  await page.evaluate(() => window.__harness.fillEnergy());
-  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+// Enter THE VOW (Down+Ult, HP<30%) and wait out the activation cinematic; returns the post-cinematic state.
+// Uses the gonUlt helper (mirrors the real stamp+token+trigger path) for a reliable Down-direction entry.
+async function enterVow(hp = 300) {
+  const during0 = await page.evaluate(h => window.__harness.gonUlt("D", { hp: h }), hp);
   await waitFrames(3);
   const during = await cine();
   await page.waitForFunction(() => !window.__harness.adultFormCine().active, null, { timeout: 12000, polling: 16 }).catch(() => {});
   await waitFrames(2);
-  return { during, form: await adult() };
+  return { entered: !!during0?.adult, during, form: await adult() };
 }
+const gState = () => page.evaluate(() => window.__harness.gonState("p1"));
 
 try {
   await page.goto(`${base}/index.html?harness=1&p1=gon&p2=goku`, { waitUntil: "load" });
@@ -64,31 +65,27 @@ try {
   const reg = await p1();
   check("Gon is p1", (reg.key || "").toLowerCase() === "gon", reg.key);
 
-  // ── sudden-death is NOT reachable outside Adult Form ──
-  section("sudden-death gated to Adult Form");
-  await page.evaluate(() => window.__harness.fillEnergy());
-  await tapKey("l");                             // neutral SPECIAL outside the form = Jajanken ROCK, not sudden-death
-  await waitFrames(4);
-  const outside = await adult();
-  check("no sudden-death armed outside form", outside.suddenDeathWatch === false, `watch=${outside.suddenDeathWatch}`);
-  check("Special outside form = Jajanken (not Final Blow)", outside.action !== "finalblow", `action=${outside.action}`);
-  check("match still live (no override from a normal special)", (await flow()).victoryActive === false, "");
-  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) === 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  await waitGrounded();
+  // ── THE VOW is GATED: only below 30% HP (Down+Ult) ──
+  section("The Vow gated to <30% HP");
+  const refused = await page.evaluate(() => window.__harness.gonUlt("D", { hp: 1100 }));   // above 30% → refused
+  check("The Vow REFUSED above 30% HP", refused?.adult === false, `adult=${refused?.adult}`);
+  check("not already in the Adult Form", (await adult()).active === false, "");
+  await reboot();
 
-  // ── ACTIVATION + MOVEMENT LOCKOUT ──
-  section("Adult Form activation + movement lockout");
-  await reboot();   // clear any lingering Jajanken-chant state before triggering the ultimate
-  const act = await enterAdultForm();
+  // ── ACTIVATION + MOVEMENT LOCKOUT (The Vow, below 30% HP) ──
+  section("The Vow activation + movement lockout");
+  const act = await enterVow(300);
   check("activation cinematic played", act.during.active === true || act.during.frame > 0, `cine=${JSON.stringify(act.during)}`);
   check("Adult Form is active", act.form.active === true, `active=${act.form.active} form=${act.form.currentForm}`);
+  check("massive damage (dmgMult > 1.5)", (await gState())?.dmgMult > 1.5, `dmgMult=${(await gState())?.dmgMult}`);
   check("cannot jump (canJump=false)", act.form.canJump === false, `canJump=${act.form.canJump}`);
   check("cannot dash (noDash=true)", act.form.noDash === true, `noDash=${act.form.noDash}`);
   check("lumber speed (walk clamped down)", act.form.speed === 40, `speed=${act.form.speed}`);
+  check("timed form (vowTimer counting down)", (await gState())?.vowTimer > 0, `vowTimer=${(await gState())?.vowTimer}`);
   await page.screenshot({ path: path.join(OUT, "gon_s4_adultform_active.png") });
 
-  // Behavioral lockout: hold JUMP → must stay grounded; double-tap dash → no dash burst.
-  const g0 = await adult();
+  // ── Behavioral lockout: hold JUMP → must stay grounded; double-tap dash → no dash burst ──
+  section("movement lockout (behavioral)");
   await page.keyboard.down("w"); await waitFrames(10);
   const jumpTry = await adult();
   await page.keyboard.up("w"); await waitFrames(4);
@@ -99,56 +96,25 @@ try {
   await page.keyboard.up("d"); await waitFrames(4);
   check("dash input produces no dash burst (walk-speed only)", Math.abs(dashTry.vy) < 1.5, `vy=${dashTry.vy?.toFixed?.(2)}`);
 
-  // ── SUDDEN-DEATH HIT → INSTANT WIN (at 0-0, bypassing roundWins) ──
-  section("sudden-death HIT → instant WIN (roundWins 0-0)");
-  await page.evaluate(() => window.__harness.setRoundWins(0, 0));
-  await page.evaluate(() => window.__harness.healP2());
-  await page.evaluate(() => window.__harness.setP2Invuln(0));
-  const gp = await p1();
-  await page.evaluate(x => window.__harness.setP2X(x), gp.x + 34);   // IN range → clean connect
-  await waitFrames(2);
-  const scoreBefore = await flow();
-  check("round score is 0-0 before the finisher", scoreBefore.roundWins.p1 === 0 && scoreBefore.roundWins.p2 === 0, JSON.stringify(scoreBefore.roundWins));
-  await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
-  await page.waitForFunction(() => window.__harness.matchFlow().victoryActive === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  const win = await flow();
-  check("Final Blow connected → match ended", win.victoryActive === true, `victoryActive=${win.victoryActive}`);
-  check("winner is Gon (p1) despite 0-0 round score", win.winnerSide === "p1", `winnerSide=${win.winnerSide} rounds=${JSON.stringify(win.roundWins)}`);
-  check("gameState = victory", win.gameState === "victory", `gameState=${win.gameState}`);
-  await waitFrames(80);   // let the victory screen fade in before the shot
-  await page.screenshot({ path: path.join(OUT, "gon_s4_suddendeath_WIN.png") });
-
-  // ── SUDDEN-DEATH WHIFF → INSTANT LOSS (while Gon LEADS on rounds) ──
-  section("sudden-death WHIFF → instant LOSS (Gon leading 1-0)");
-  await reboot();
-  await page.evaluate(() => window.__harness.setRoundWins(1, 0));    // Gon is AHEAD — the override must ignore this
-  const act2 = await enterAdultForm();
-  check("Adult Form re-activated for the loss branch", act2.form.active === true, `active=${act2.form.active}`);
-  await page.evaluate(() => window.__harness.setP2Invuln(600));       // ensure it CANNOT connect
-  const gp2 = await p1();
-  await page.evaluate(x => window.__harness.setP2X(x), gp2.x + 380);  // OUT of range → guaranteed whiff
-  await waitFrames(2);
-  const leadBefore = await flow();
-  check("Gon leads 1-0 before the finisher", leadBefore.roundWins.p1 === 1 && leadBefore.roundWins.p2 === 0, JSON.stringify(leadBefore.roundWins));
-  await page.keyboard.down("l"); await waitFrames(4); await page.keyboard.up("l");
-  // Capture the Final Blow strike + prove it resolves to the real finalblow sheet (no fallback box).
+  // ── ADULT ROCK blast (Special in form) → ENDS the form → "THE PRICE" (no Nen) ──
+  section("Adult Rock blast → THE PRICE");
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
   const strike = await adult();
-  check("Final Blow plays the finalblow sprite (not a fallback box)", strike.action === "finalblow", `action=${strike.action}`);
+  check("Adult Rock plays the finalblow sprite (not a fallback box)", strike.action === "finalblow" || (await p1()).currentMove === "finalblow", `action=${strike.action}`);
   const strikeSheet = await page.evaluate(() => window.__harness.p1().spriteSheet || "");
   check("finalblow resolves to gon_finalblow_uniform.png", /gon_finalblow_uniform\.png$/.test(strikeSheet), strikeSheet);
   await page.screenshot({ path: path.join(OUT, "gon_s4_finalblow_strike.png") });
-  await page.waitForFunction(() => window.__harness.matchFlow().victoryActive === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  const loss = await flow();
-  check("Final Blow whiffed → match ended", loss.victoryActive === true, `victoryActive=${loss.victoryActive}`);
-  check("winner is the OPPONENT (p2) despite Gon leading 1-0", loss.winnerSide === "p2", `winnerSide=${loss.winnerSide} rounds=${JSON.stringify(loss.roundWins)}`);
-  check("gameState = victory", loss.gameState === "victory", `gameState=${loss.gameState}`);
-  await waitFrames(80);   // let the victory screen fade in before the shot
-  await page.screenshot({ path: path.join(OUT, "gon_s4_suddendeath_LOSS.png") });
+  await page.waitForFunction(() => window.__harness.gonState("p1")?.noNen === true, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  const priced = await gState();
+  check("firing the Adult Rock ENDS the form", priced?.adult === false, `adult=${priced?.adult}`);
+  check("THE PRICE — no Nen (meter locked at 0)", priced?.noNen === true && priced?.energy === 0, `noNen=${priced?.noNen} energy=${priced?.energy}`);
 
-  // ── override independence sanity: it fired with NEITHER player at 2 wins in BOTH branches ──
-  section("override independence");
-  check("WIN fired with neither side at 2 round wins", win.roundWins.p1 < 2 && win.roundWins.p2 < 2, JSON.stringify(win.roundWins));
-  check("LOSS fired with neither side at 2 round wins", loss.roundWins.p1 < 2 && loss.roundWins.p2 < 2, JSON.stringify(loss.roundWins));
+  // ── THE PRICE lockout: specials & ultimates disabled; meter re-pinned to 0 ──
+  section("THE PRICE lockout");
+  await page.evaluate(() => window.__harness.setEnergy?.(160)); await waitFrames(3);
+  check("meter re-pinned to 0 under THE PRICE", (await gState())?.energy === 0, `energy=${(await gState())?.energy}`);
+  const noUlt = await page.evaluate(() => window.__harness.gonUlt(null, { energy: 160 }));
+  check("ultimate disabled under THE PRICE", noUlt?.cast !== "fullchant", `cast=${noUlt?.cast}`);
 
   section("no JS errors");
   check("no page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

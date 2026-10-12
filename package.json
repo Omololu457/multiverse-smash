@@ -347,6 +347,7 @@
     "test:afterimage-trail": "node harness/afterimage_trail_verify.mjs",
     "test:gon-stage4": "node harness/gon_stage4.test.mjs",
     "test:gon-phase2": "node harness/gon_phase2.test.mjs",
+    "test:gon-phase3": "node harness/gon_phase3.test.mjs",
     "test:hisoka-stage1": "node harness/hisoka_stage1.mjs",
     "test:hisoka-stage2": "node harness/hisoka_stage2.mjs",
     "test:hisoka-stage3": "node harness/hisoka_stage3.mjs",

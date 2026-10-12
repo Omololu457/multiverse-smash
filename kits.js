@@ -432,7 +432,7 @@ export const KITS = {
       { name: "Fury Dash",           input: "Back + Heavy",      cost: 22, desc: "red anger-aura armored lunge — shrugs one projectile/hit [CANON-ADJACENT]" },
       { name: "Ground Breaker",      input: "Forward + Light",   cost: 34, desc: "a leaping Rock that slams into a crater + rock debris [CANON-ADJACENT]" }
     ],
-    ultimate: { name: "Adult Form — Final Blow", input: "Ultimate (near-max Nen)", cost: 100, desc: "transforms into giant Adult Gon (movement-locked, stronger) → ONE all-or-nothing sudden-death strike: a clean hit INSTANTLY wins the match, a whiff/block INSTANTLY loses it. (Phase 3 reworks the ultimates to directional: Full-Chant / Gon & Killua / The Vow + \"THE PRICE\" no-Nen lockout.) [CANON]" },
+    ultimate: { name: "Jajanken Ultimates (directional)", input: "Ultimate (100 Nen) — Neutral / Up / Down", cost: 100, desc: "NEUTRAL = Full-Chant Jajanken (manga chant cut-in → one giant gold blast) · UP = Gon & Killua (Killua appears, charges the lightning orb, Gon's Rock launches it) · DOWN = THE VOW (once per match, only below 30% HP): become giant Adult Gon for ~10s — massive damage + light armor, movement-locked; its adult Rock blast ends the form → \"THE PRICE\": NO NEN for the rest of the round (meter locked at 0, every special & ultimate disabled, normals only). Refused during KO / Brutality / Domain / rewind. [CANON]" },
     combos: [
       { name: "Rush", sequence: "Forward + Heavy, Heavy (on hit)", desc: "rush1 flurry → rush2 launching finisher (cancel-on-hit)" }
     ]

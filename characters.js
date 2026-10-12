@@ -4433,6 +4433,7 @@ const gon = {
     ren:          { frames: 6, width: 53, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_renpillar_uniform.png" },  // Down+Heavy — Ren (Nen aura pillar → 5s dmg buff)
     furydash:     { frames: 2, width: 60, height: 63, speed: 4, anchorY: 0, loop: true,  sheet: "./gon_furybubble_uniform.png" },                      // Back+Heavy — Fury Dash (red aura bubble → armored lunge)
     groundbreaker:{ frames: 8, width: 58, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_groundbrk_uniform.png" },  // Up+Heavy — Ground Breaker (leaping Rock → crater)
+    fullchant:    { frames: 19, width: 78, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gon_fullchant_uniform.png" },  // Neutral+Ult — Full-Chant Jajanken (6 Koma B: full chant → giant gold blast)
     // ── HOLD-TO-CHARGE — Nen-gathering pose (hold P). Ultimate-Action aura-flare strip (2f, loops
     // while held). Rendered by sprite.js when isCharging (universal hold-to-charge for any maxEnergy>0
     // char). In Phase 2 this same key drives the Jajanken CHANT stages. ──

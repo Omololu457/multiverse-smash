@@ -125,64 +125,25 @@ try {
     check("PAPER (chant Neutral-release) projectile connects", d > 0, `−${d.toFixed(0)}`); }
   await waitGrounded();
 
-  // sudden-death must be GATED to Adult Form: a normal Special is the Jajanken chant, not the finisher.
-  await prep(200);
-  await tapKey("l"); await waitFrames(3);
-  const outside = await adult();
-  check("sudden-death NOT armed outside Adult Form", outside.suddenDeathWatch === false && outside.action !== "finalblow", `watch=${outside.suddenDeathWatch} action=${outside.action}`);
-  check("normal Special does not force a match end", (await flow()).victoryActive === false, "");
-  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) === 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  await waitGrounded();
-
-  // ── STAGE 4: Adult Form — activation, lockout, drain, sudden-death ──
-  section("Adult Form — activation + movement lockout");
-  await reboot();   // clear any lingering chant/Jajanken state from Stage 3 before the ultimate
-  const act = await enterAdultForm();
-  check("activation cinematic played", act.during.active === true || act.during.frame > 0, `cine=${JSON.stringify(act.during)}`);
-  check("Adult Form is active", act.form.active === true && act.form.currentForm === "adult", `active=${act.form.active} form=${act.form.currentForm}`);
-  check("cannot jump (canJump=false)", act.form.canJump === false, `canJump=${act.form.canJump}`);
-  check("cannot dash (noDash=true)", act.form.noDash === true, `noDash=${act.form.noDash}`);
-  check("lumber speed (walk clamped)", act.form.speed === 40, `speed=${act.form.speed}`);
-  await page.keyboard.down("w"); await waitFrames(10); const jt = await adult(); await page.keyboard.up("w"); await waitFrames(4);
-  check("jump input leaves Gon grounded", jt.onGround === true && Math.abs(jt.vy) < 1.5, `onGround=${jt.onGround} vy=${jt.vy?.toFixed?.(2)}`);
-  // drain → auto-revert when the meter empties
-  await page.evaluate(() => window.__harness.setP1Energy(0.02)); await waitFrames(3);
-  const drained = await adult();
-  check("Adult Form auto-reverts when Nen empties", drained.active === false && drained.canJump === true && drained.noDash === false, `active=${drained.active} canJump=${drained.canJump}`);
-
-  section("sudden-death HIT → INSTANT WIN (at 0-0)");
+  // ── STAGE 4: directional ULTIMATES (Full-Chant / Gon & Killua / The Vow) + THE PRICE ──
+  section("Ultimates — Full-Chant / Gon & Killua / The Vow");
   await reboot();
-  await page.evaluate(() => window.__harness.setRoundWins(0, 0));
-  await enterAdultForm();
-  await page.evaluate(() => { window.__harness.healP2(); window.__harness.setP2Invuln(0); });
-  { const gp = await p1(); await page.evaluate(x => window.__harness.setP2X(x), gp.x + 34); }
-  await waitFrames(2);
-  const before = await flow();
-  check("round score 0-0 before the finisher", before.roundWins.p1 === 0 && before.roundWins.p2 === 0, JSON.stringify(before.roundWins));
-  await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
-  await page.waitForFunction(() => window.__harness.matchFlow().victoryActive === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  const win = await flow();
-  check("clean hit → match ended", win.victoryActive === true, `victoryActive=${win.victoryActive}`);
-  check("winner is Gon (p1) despite 0-0", win.winnerSide === "p1", `winnerSide=${win.winnerSide} rounds=${JSON.stringify(win.roundWins)}`);
-  check("override fired with neither side at 2 wins", win.roundWins.p1 < 2 && win.roundWins.p2 < 2, JSON.stringify(win.roundWins));
-
-  section("sudden-death WHIFF → INSTANT LOSS (while leading 1-0)");
+  { const r = await page.evaluate(() => window.__harness.gonUlt(null)); check("Neutral+Ult = Full-Chant Jajanken", r?.cast === "fullchant", `cast=${r?.cast}`); }
   await reboot();
-  await page.evaluate(() => window.__harness.setRoundWins(1, 0));
-  await enterAdultForm();
-  await page.evaluate(() => window.__harness.setP2Invuln(600));
-  { const gp = await p1(); await page.evaluate(x => window.__harness.setP2X(x), gp.x + 380); }
+  { const r = await page.evaluate(() => window.__harness.gonUlt("U")); check("Up+Ult = Gon & Killua", (r?.killuaFx || 0) > 0, `killuaFx=${r?.killuaFx}`); }
+  await reboot();
+  { const hi = await page.evaluate(() => window.__harness.gonUlt("D", { hp: 1100 })); check("The Vow refused above 30% HP", hi?.adult === false, `adult=${hi?.adult}`); }
+  { const lo = await page.evaluate(() => window.__harness.gonUlt("D", { hp: 300 })); check("The Vow (Down+Ult) enters below 30% HP", lo?.adult === true, `adult=${lo?.adult}`); }
+  await page.waitForFunction(() => !window.__harness.adultFormCine().active, null, { timeout: 12000, polling: 16 }).catch(() => {});
   await waitFrames(2);
-  const lead = await flow();
-  check("Gon leads 1-0 before the finisher", lead.roundWins.p1 === 1 && lead.roundWins.p2 === 0, JSON.stringify(lead.roundWins));
-  await page.keyboard.down("l"); await waitFrames(4); await page.keyboard.up("l");
+  const vf = await adult();
+  check("Adult Gon active + movement-locked", vf.active === true && vf.canJump === false && vf.noDash === true && vf.speed === 40, `active=${vf.active} canJump=${vf.canJump} noDash=${vf.noDash} speed=${vf.speed}`);
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
   const strike = await record();
-  check("Final Blow plays the finalblow strip", strike.action === "finalblow" && /gon_finalblow_uniform\.png$/.test(strike.spriteSheet || ""), `action=${strike.action} sheet=${strike.spriteSheet}`);
-  await page.waitForFunction(() => window.__harness.matchFlow().victoryActive === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  const loss = await flow();
-  check("whiff → match ended", loss.victoryActive === true, `victoryActive=${loss.victoryActive}`);
-  check("winner is the OPPONENT (p2) despite Gon leading 1-0", loss.winnerSide === "p2", `winnerSide=${loss.winnerSide} rounds=${JSON.stringify(loss.roundWins)}`);
-  check("override fired with neither side at 2 wins", loss.roundWins.p1 < 2 && loss.roundWins.p2 < 2, JSON.stringify(loss.roundWins));
+  check("Adult Rock plays the finalblow strip", strike.action === "finalblow" && /gon_finalblow_uniform\.png$/.test(strike.spriteSheet || ""), `action=${strike.action} sheet=${strike.spriteSheet}`);
+  await page.waitForFunction(() => window.__harness.gonState("p1")?.noNen === true, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  const priced = await page.evaluate(() => window.__harness.gonState("p1"));
+  check("form ends → THE PRICE (no Nen, meter 0)", priced?.noNen === true && priced?.energy === 0, `noNen=${priced?.noNen} energy=${priced?.energy}`);
 
   // ── fallback-box sweep + portrait + integrity ──
   section("fallback-box sweep + integrity");

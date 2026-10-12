@@ -184,6 +184,7 @@ import {
   updateGonCommandCombat,     // Gon Forward+Heavy "Rush" rekka + Up/Down/Back+Heavy & Down+Light Phase-2 command moves (Ground Breaker/Ren/Fury Dash/Fishing Rod)
   updateGonJajankenChant,     // Gon Phase-2 Jajanken CHANT driver (hold Special → stage up → release dir picks Rock/Scissors/Paper + "Called It!")
   updateGonPhase2Systems,     // Gon Phase-2 per-frame bookkeeping (Ren buff/cooldown, Fishing-Rod on-hit pull+meter-steal, Fury/Crater/Called-It/Chant FX timers)
+  gonIntroBanter, gonWinBanter,   // Gon Phase-3 — matchup intro/win lines (text only, no audio)
   updateStandardStringCombat, // MK-feel Stage 2b: single-poke chars' shared light→light→heavy(launcher) + heavy→special cancel string
 
   updateChrolloCommandCombat,  // Chrollo Fwd+Heavy 2-hit "Blade Rush" command-normal cancel chain (chCombo1→chComboFin launcher, cancel-on-hit)
@@ -1826,6 +1827,9 @@ let roundWins        = { p1: 0, p2: 0 }
 // COMEBACK FINISHER — once-per-MATCH usage, keyed by side. Fighters are recreated each round
 // (resetRound), so the match-level token lives here, not on the fighter. Reset in startMatch.
 let comebackFinisherUsed = { p1: false, p2: false, p3: false, p4: false }
+// GON — "The Vow" (Down+Ult) is ONCE PER MATCH. Round reset re-creates fighters, so the token lives at the
+// match level here (mirrors comebackFinisherUsed). Reset on a fresh match; burned when the Vow enters.
+let gonVowUsed = { p1: false, p2: false, p3: false, p4: false }
 // INSTANT MATCH-END OVERRIDE — set by a sudden-death mechanic (Gon Adult Form "Final Blow") to force an
 // immediate match winner, INDEPENDENTLY of the normal roundWins>=2 / MAX_ROUNDS logic. `{ winnerSide }`
 // or null. Consumed (one-shot) inside _checkMatchOver(). See forceMatchEnd() / _updateGonSuddenDeath().
@@ -3825,6 +3829,12 @@ function resetRound() {
       const opp = (f === p1) ? p2 : p1
       f._meruemBannerText = meruemIntroBanter(f, opp?.rosterKey || ""); f._meruemBanner = 150
     }
+    // Gon — INTRO: an opponent-aware matchup line (killua/hisoka/kurapika/chrollo/shizuku/meruem/netero/
+    // any HxH, else generic), drawn above the head by drawGonPhase2Fx. Text only — no new audio.
+    if (f && (f.rosterKey || "").toLowerCase() === "gon") {
+      const opp = (f === p1) ? p2 : p1
+      f._gonLineText = gonIntroBanter(f, opp); f._gonLineTimer = 150
+    }
   }
   // Arcade final-boss buffs (Stage 20): applied ONLY when this p2 is the arcade boss opponent. Any
   // other appearance of the same character (normal vs, other fights) is a fair, normal fighter. MUST
@@ -4619,6 +4629,7 @@ function startMatch() {
   roundNumber  = 1
   roundWins    = { p1: 0, p2: 0 }
   comebackFinisherUsed = { p1: false, p2: false, p3: false, p4: false }   // fresh match → each side's one finisher is available again
+  gonVowUsed = { p1: false, p2: false, p3: false, p4: false }             // fresh match → Gon's once-per-match "The Vow" is available again
   winnerText   = ""
   matchStats   = createMatchStats()
   victoryState = createVictoryState()
@@ -5768,6 +5779,10 @@ function _checkMatchOver() {
       // Meruem — WIN BANTER (touches Komugi / Gungi / the Rose / "a king who learned"; text only).
       if (winF && (winF.rosterKey || "").toLowerCase() === "meruem") {
         winF._meruemBannerText = meruemWinBanter(winF); winF._meruemBanner = 240
+      }
+      // Gon — WIN BANTER (opponent-aware matchup line; text only, drawn by drawGonPhase2Fx).
+      if (winF && (winF.rosterKey || "").toLowerCase() === "gon") {
+        winF._gonLineText = gonWinBanter(winF, loseF); winF._gonLineTimer = 240
       }
       // Shisui (Trinity) — WIN BANTER in the ACTIVE identity's voice (the one standing at the KO).
       if (winF && /^shisui_(trinity|blade|puppeteer)$/.test((winF.rosterKey || "").toLowerCase())) {
@@ -8033,6 +8048,13 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "naruto_hokage") {
     const _hd = betaHeldDirFromInput(inputState, fighter.facing)
     fighter._ultVariant = _hd === "F" ? "fourTails" : _hd === "D" ? "rikudou" : "bijuudama"
+  }
+  // GON — the Ultimate is DIRECTIONAL (Phase 3): NEUTRAL = Full-Chant Jajanken · UP = Gon & Killua · DOWN =
+  // The Vow (once-per-match, HP<30%). Stamp the held direction so executeGonUltimate picks the branch, and
+  // pass the match-level Vow token as a read-only hint for enterGonVow (burned after a successful entry).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "gon") {
+    fighter._gonUltDir = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._gonVowTokenUsed = !!gonVowUsed[fighter.side]
   }
   // NARUTO (SEVENTH) — TRANSFORM INPUT: while HOLDING Charge (P), each TAP of Ultimate steps UP the nine-tails
   // ladder (base → … → Nine-Tails Chakra Cloak, the strongest). The transform fires INSTEAD of the ultimate;
@@ -15101,6 +15123,55 @@ function drawGonPhase2Fx(c, fighter) {
     c.fillStyle = "#ffd166"; c.fillText("CALLED IT!", cx, headY - 30 + bob)
     c.restore()
   }
+
+  // ── FULL-CHANT JAJANKEN (Neutral+Ult) — manga chant cut-in card + "JAJANKEN!!" banner ──
+  if ((fighter._gonFullChantCutin || 0) > 0) {
+    const a = Math.min(1, fighter._gonFullChantCutin / 20)
+    const img = _gonFxImg("./gon_cutins.png")
+    if (img && img.complete && img.naturalWidth) {
+      const cw = 150, chh = 190, dw = 160, dh = 190 * (dw / cw) * 0.52
+      const px = cx - dw / 2, py = headY - 60 - dh
+      c.save(); c.globalAlpha = 0.92 * a; c.drawImage(img, img.naturalWidth - cw, 0, cw, chh, px, py, dw, dh)
+      c.lineWidth = 3; c.strokeStyle = fighter._gonFxT % 8 < 4 ? "#ffd700" : "#ffffff"; c.strokeRect(px, py, dw, dh); c.restore()
+    }
+    c.save(); c.globalAlpha = a; c.font = "bold 24px 'Arial Black', sans-serif"; c.textAlign = "center"
+    c.lineWidth = 5; c.strokeStyle = "rgba(0,0,0,0.9)"; c.strokeText("JAJANKEN!!", cx, headY - 32)
+    c.fillStyle = "#ffd700"; c.fillText("JAJANKEN!!", cx, headY - 32); c.restore()
+  }
+
+  // ── GON & KILLUA (Up+Ult) — Killua appears beside Gon (this sheet's own Killua art) + a purple orb-charge glow ──
+  if ((fighter._gonKilluaFx || 0) > 0) {
+    const img = _gonFxImg("./gon_killua_uniform.png")
+    const face = fighter.facing || 1
+    if (img && img.complete && img.naturalWidth) {
+      const frames = 6, fw = Math.floor(img.naturalWidth / frames)
+      const fi = Math.min(frames - 1, Math.floor((84 - fighter._gonKilluaFx) / 6))
+      const dw = fw * 1.7, dh = img.naturalHeight * 1.7
+      c.save(); c.globalAlpha = Math.min(1, fighter._gonKilluaFx / 16)
+      const kx = cx - face * (w * 0.9) - dw / 2   // stand Killua just BEHIND Gon
+      c.translate(kx + dw / 2, feetY - dh); if (face < 0) c.scale(-1, 1)
+      c.drawImage(img, fi * fw, 0, fw, img.naturalHeight, -dw / 2, 0, dw, dh); c.restore()
+    }
+    // purple lightning charge glow between them
+    c.save(); c.globalAlpha = 0.3 + 0.2 * pulse; c.shadowBlur = 22; c.shadowColor = "#b06bff"
+    c.fillStyle = "rgba(176,107,255,0.4)"; c.beginPath(); c.arc(cx + face * w * 0.5, y + h * 0.45, 12 + pulse * 6, 0, Math.PI * 2); c.fill(); c.restore()
+  }
+
+  // ── THE PRICE — "NO NEN" HUD banner above Gon (persists for the rest of the round) ──
+  if (fighter._gonNoNen) {
+    c.save(); c.globalAlpha = 0.85 + 0.15 * pulse
+    c.font = "bold 14px 'Arial Black', sans-serif"; c.textAlign = "center"
+    c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,0.9)"; c.strokeText("NO NEN", cx, y - 20)
+    c.fillStyle = "#9aa4b2"; c.fillText("NO NEN", cx, y - 20); c.restore()
+  }
+
+  // ── MATCHUP / ROD-TAUNT line pop (original text) ──
+  if ((fighter._gonLineTimer || 0) > 0 && fighter._gonLineText) {
+    const a = Math.min(1, fighter._gonLineTimer / 20)
+    c.save(); c.globalAlpha = a; c.font = "italic bold 13px sans-serif"; c.textAlign = "center"
+    c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,0.85)"; c.strokeText(fighter._gonLineText, cx, y - 40)
+    c.fillStyle = "#fde68a"; c.fillText(fighter._gonLineText, cx, y - 40); c.restore()
+  }
 }
 
 // MIWA — Rapid Slash Vortex FX (§10): a SEPARATE overlay layer (NOT part of the character animation
@@ -15176,7 +15247,10 @@ function updateFighterState(fighter) {
   // every held frame, so the chant must climb here, reading the deterministic held-input snapshot). Armed
   // by executeGonSpecial on the press; this climbs the stage while Special is HELD, cancels on a hit, and
   // fires the direction-picked hand on RELEASE.
-  if ((updated.rosterKey || "").toLowerCase() === "gon") updateGonJajankenChant(updated, readRawControls(updated) || {}, getAbilityContext())
+  if ((updated.rosterKey || "").toLowerCase() === "gon") {
+    updateGonJajankenChant(updated, readRawControls(updated) || {}, getAbilityContext())
+    if (updated._gonVowEntered) { gonVowUsed[updated.side] = true; updated._gonVowEntered = false }   // burn the once-per-match Vow token
+  }
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
   updateTransformJutsu(updated)         // Transformation Jutsu (Naruto-universe): counts the disguise/full-copy window down + auto-reverts
   updateGhostfaceSwap(updated)          // Ghostface Companion Swap: counts the borrowed-kit window down + auto-reverts to Ghostface
@@ -22172,6 +22246,9 @@ gameLoop()
     miwaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { vortex: !!f._miwaVortex, vortexT: f._miwaVortex?.t ?? null, energy: f.energy, charging: !!f.isCharging, action: f._lastSpriteAction || null, move: f.currentMove || null } : null },
     // Gon Phase-2 telemetry — Jajanken chant stage, Ren/Fury/Called-It/Rod state (read-only).
     gonPhase2: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), chant: f._gonChant ? { frames: f._gonChant.frames, stage: f._gonChant.stage, dir: f._gonChant.dir } : null, chantBroken: f._gonChantBroken || 0, renTimer: f._gonRenTimer || 0, renCd: f._gonRenCd || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, fury: f._gonFury || 0, castArmor: f._castArmor || 0, groundBreak: f._gonGroundBreak || 0, calledIt: f._gonCalledIt || 0, calledItHand: f._gonCalledItHand || null, rodStole: f._gonRodStoleAmt || 0 } : null },
+    // Gon Phase-3 — directional-ult trigger (mirrors the real stamp+token+trigger path) + state readout.
+    gonUlt: (dir = null, opts = {}) => { const f = p1; if (!f) return null; if (opts.hp != null) f.health = opts.hp; if (opts.energy != null) f.energy = opts.energy; else f.energy = f.maxEnergy || 160; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f._gonUltDir = dir; f._gonVowTokenUsed = !!gonVowUsed.p1; const ok = triggerUltimate(f, getAbilityContext()); if (f._gonVowEntered) { gonVowUsed.p1 = true; f._gonVowEntered = false } return { ok, move: f.currentMove || null, cast: f._spriteCastMove || null, adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowUsed: !!gonVowUsed.p1, fullChant: f._gonFullChantCutin || 0, killuaFx: f._gonKilluaFx || 0, energy: Math.round(f.energy || 0) } },
+    gonState: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { adult: !!f._adultFormActive, noNen: !!f._gonNoNen, vowTimer: f._gonVowTimer || 0, adultRockFired: !!f._gonAdultRockFired, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, line: f._gonLineText || null, lineTimer: f._gonLineTimer || 0, energy: Math.round(f.energy || 0), currentForm: f.currentForm || null } : null },
     // Mayuri movement-FX telemetry — the overlay stamps _mayuriTrailActive/_mayuriShockActive each draw.
     mayuriFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { trail: !!f._mayuriTrailActive, shock: !!f._mayuriShockActive, shockT: f._mayuriShockT || 0, crouching: !!f._crouching, dashTimer: f.dashTimer || 0, vx: Math.round((f.vx || 0) * 10) / 10, atkFx: f._mayuriAtkFx || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, rekkaNext: f._rekkaNext || null, cmdHit: !!f._cmdHitLanded, coatActive: !!f._mayuriCoatActive, coatTimer: f._mayuriCoatTimer || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, dot: (who === "p1" ? p2 : p1)?._dot ? { ticks: ((who === "p1" ? p2 : p1)._dot.ticks) } : null, bankaiTimer: f._mayuriBankaiTimer || 0 } : null },
     byakuyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, fadeTimer: f._byakuyaFadeTimer || 0, bankaiTimer: f._byakuyaBankaiTimer || 0, bankaiMax: f._byakuyaBankaiMax || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },

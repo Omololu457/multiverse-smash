@@ -16465,7 +16465,7 @@ function fireGonCommand(fighter, key, context) {
 // normal path this frame) only when it actually fires a stage.
 export function updateGonCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon" || !inputState) return false
-  if (fighter._adultFormActive) return false                      // Adult Form has no command kit
+  if (fighter._adultFormActive || fighter._gonNoNen) return false // Adult Form / THE PRICE — no command specials
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const phase    = getPhase?.(fighter)
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
@@ -16591,15 +16591,17 @@ export function updateGonPhase2Systems(fighter, context) {
         opp.x = (opp.x || 0) + pull                                  // small reel-in toward Gon
         const steal = Math.round((opp.maxEnergy || 100) * 0.10)
         opp.energy    = Math.max(0, (opp.energy || 0) - steal)
-        fighter.energy = Math.min(fighter.maxEnergy || 160, (fighter.energy || 0) + steal)
+        if (!fighter._gonNoNen) fighter.energy = Math.min(fighter.maxEnergy || 160, (fighter.energy || 0) + steal)
         fighter._gonRodStoleAmt = steal                               // HUD/harness tell
+        const taunt = gonRodTauntLine(opp)                            // special line vs Hisoka (the badge)
+        if (taunt) { fighter._gonLineText = taunt; fighter._gonLineTimer = 100 }
       }
       fighter._gonRodStole = true
     }
     if (!fighter.attacking && (fighter.currentMove !== "rod")) fighter._gonRodAtk = null
   }
-  // FX timers
-  for (const k of ["_gonFury", "_gonGroundBreak", "_gonCalledIt", "_gonChantBroken"]) if ((fighter[k] || 0) > 0) fighter[k]--
+  // FX timers (Phase 2 + Phase 3)
+  for (const k of ["_gonFury", "_gonGroundBreak", "_gonCalledIt", "_gonChantBroken", "_gonFullChantCutin", "_gonKilluaFx", "_gonLineTimer"]) if ((fighter[k] || 0) > 0) fighter[k]--
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -24854,9 +24856,10 @@ function fireFlashTornado(fighter, context) {
 // Damage/cost modeled off the BALANCE_AUDIT special tier; Rock sits noticeably above Paper/Scissors.
 // ─────────────────────────────────────────────────────────────────────────────
 function executeGonSpecial(fighter, context) {
-  // ADULT FORM overrides the SPECIAL button entirely: Jajanken is gone — the only move is the
-  // all-or-nothing SUDDEN-DEATH strike (win-on-hit / lose-on-miss). You are committed to the finisher.
-  if (fighter._adultFormActive) return fireGonSuddenDeath(fighter, context)
+  // THE VOW (Adult Form) overrides the SPECIAL button: no Jajanken chant as an adult — the only move is the
+  // ADULT ROCK BLAST (massive, ends the form → "THE PRICE").
+  if (fighter._adultFormActive) return fireGonAdultRock(fighter, context)
+  if (fighter._gonNoNen) return false                       // THE PRICE — all specials disabled rest of round
   const grounded = fighter.onGround ?? fighter.grounded ?? true
   // AIRBORNE Special = a quick stage-1 PAPER emission (air zoning); the chant is a grounded ritual.
   if (!grounded) return fireGonPaper(fighter, context, { stage: 1, air: true })
@@ -25080,52 +25083,176 @@ function revertGonAdultForm(fighter) {
   fighter._canvasHeightRefH   = null
   fighter._adultTrail = []
 }
-// Public revert for reset paths (round/KO/menu) — mirrors forceRevertFlashTime's role.
-export function forceRevertGonAdultForm(fighter) { revertGonAdultForm(fighter) }
+// Public revert for reset paths (round/KO/menu) — mirrors forceRevertFlashTime's role. Also clears THE
+// PRICE / Vow per-round state (the once-per-match token lives in game.js gonVowUsed, reset on match start).
+export function forceRevertGonAdultForm(fighter) {
+  if (!fighter) return
+  revertGonAdultForm(fighter)
+  fighter._gonVowTimer = null; fighter._gonAdultRockFired = false; fighter._gonNoNen = false
+  fighter._gonChant = null; fighter._gonVowEntered = false
+}
 
 // Per-frame (game.updateFighterState): drain the meter → auto-revert at 0, and record the position
 // trail the green Nen aura overlay draws (game.drawGonAdultAura).
 export function applyGonAdultFormSystem(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon") return
+  // THE PRICE — pin the meter at 0 for the rest of the round while "NO NEN" is in effect.
+  if (fighter._gonNoNen) fighter.energy = 0
   if (!fighter._adultFormActive) return
-  tickSustainedFormDrain(fighter, { active: isGonAdultFormActive, drainPerFrame: GON_ADULT_DRAIN, revert: revertGonAdultForm })
-  if (!fighter._adultFormActive) return   // reverted this frame
+  // THE VOW is TIMED (not Nen-drained): light sustained armor + a fixed countdown; it ends on the timer OR
+  // once the adult Rock blast resolves → endGonVow (revert + THE PRICE).
+  fighter._castArmor = Math.max(fighter._castArmor || 0, 10)   // light armor
+  if ((fighter._gonVowTimer || 0) > 0) {
+    fighter._gonVowTimer--
+    if (fighter._gonVowTimer <= 0) { endGonVow(fighter); return }
+  }
+  if (fighter._gonAdultRockFired) {
+    fighter._gonAdultRockEndT = (fighter._gonAdultRockEndT || 0) - 1
+    if (fighter._gonAdultRockEndT <= 0 && !fighter.attacking) { endGonVow(fighter); return }
+  }
   const trail = fighter._adultTrail || (fighter._adultTrail = [])
   trail.unshift({ x: fighter.x, y: fighter.y })
   if (trail.length > 5) trail.pop()
 }
 
-// ADULT FORM = the buff/lockout (applied at trigger) + a frozen ACTIVATION CINEMATIC
-// (gonAdultFormCinematic.js — camera pushes in on Gon, the growth plays, the camera pulls back).
+// ── GON ULTIMATES (Phase 3) — DIRECTIONAL, stamped by game.js (_gonUltDir via betaHeldDirFromInput):
+//   NEUTRAL = FULL-CHANT JAJANKEN (6 Koma B)  · UP = GON & KILLUA (4 Koma B)  · DOWN = THE VOW (7 Koma A).
+// In THE VOW form the Ultimate/Special is the ADULT ROCK BLAST (ends the form → "THE PRICE"). Refused
+// during KO / Brutality / Domain / Rick-Prime rewind (context.cinematicSafe), and while "NO NEN".
 function executeGonUltimate(fighter, context) {
+  if (fighter._adultFormActive) return fireGonAdultRock(fighter, context)   // THE VOW: the adult Rock blast
+  if (fighter._gonNoNen) return false                      // THE PRICE — ultimates disabled rest of round
   if (isGonAdultFormCinematicActive()) return false        // already mid-activation
-  if (fighter._adultFormActive) return false               // already transformed
-  if (!enterGonAdultForm(fighter, context)) return false    // apply the buff/lockout (gated on near-max Nen)
-  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
-  activateGonAdultFormCinematic(fighter, opp)
-  return true
+  if (context && context.cinematicSafe === false) return false   // refuse during KO/Brutality/Domain/rewind
+  const dir = fighter._gonUltDir || null
+  if (dir === "D") return enterGonVow(fighter, context)
+  if (dir === "U") return fireGonAndKillua(fighter, context)
+  return fireGonFullChant(fighter, context)                // neutral (and Back) = Full-Chant Jajanken
 }
 
 // SUDDEN-DEATH ("Final Blow") — fired by the SPECIAL button ONLY while Adult Form is active. A short-
 // range, fast, all-or-nothing strike. game._updateGonSuddenDeath() reads _gonSuddenDeath + the armed
 // watch and forces an INSTANT match win (clean hit) or loss (whiff/block), bypassing round-count.
-function fireGonSuddenDeath(fighter, context) {
+// THE VOW's ADULT ROCK BLAST — the Adult Form's only strike (Special or Ultimate while in the Vow). A
+// massive single hit + a short rock-shock reach; FIRING IT ENDS THE FORM (→ "THE PRICE"). Keeps the
+// Final-Blow voice line (now the Vow's climactic blow). No instant-win/loss — it's raw damage.
+function fireGonAdultRock(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (fighter._suddenDeathWatch) return false              // one throw per form — already committed
-  const md = { damage: 400, startup: 6, active: 12, recovery: 22, hitstun: 40, blockstun: 18, knockbackX: 22, knockbackY: -12, rangeX: 82, rangeY: 84, isSpecial: true }
+  if (fighter._gonAdultRockFired) return false             // one blast per Vow — already committed
+  const md = { damage: 420, startup: 10, active: 10, recovery: 26, hitstun: 44, blockstun: 22, knockbackX: 24, knockbackY: -14, rangeX: 120, rangeY: 92, isSpecial: true }
   const attack = createAttackFromMove(fighter, "finalblow", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  attack.isSpecial = true
-  attack._gonSuddenDeath = true                            // combat.js marks _sdConnect ("clean"/"blocked") on contact
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "finalblow" → decisive-strike sprite
-  fighter._suddenDeathWatch = true                         // arm the game.js watcher (win-on-hit / lose-on-miss)
-  fighter._suddenDeathAtk   = attack
-  fighter.vx = (fighter.facing || 1) * 4                   // small commit step into the strike
-  shakeCamera(context, 8, 12)
-  // VOICE: the EXCLUSIVE Final Blow line ("it's fine if this ends" / sudden-death janken). Wired here
-  // ONLY — not in any pool — so it can never leak to another Jajanken variant or the Adult Form transform.
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "finalblow" → adult Rock sprite
+  fighter._gonAdultRockFired = true                        // → endGonVow once the swing resolves (applyGonAdultFormSystem)
+  fighter._gonAdultRockEndT  = md.startup + md.active + md.recovery + 8
+  fighter.vx = (fighter.facing || 1) * 6
+  schedulePendingSpawn(md.startup, () => spawnProjectile(fighter, "gonAdultRock", {
+    damage: 200, w: 56, h: 40, radius: 28, speed: 9, lifetime: 42, hitstun: 32, knockbackX: 18, knockbackY: -8, color: "#d9a066", isSpecial: true
+  }, context))
+  shakeCamera(context, 14, 18)
   try { sound.playSfxFile?.(GON_FINAL_BLOW_SFX, null); fighter._atkVoiceCd = 150 } catch (_) {}
   return true
 }
+
+// FULL-CHANT JAJANKEN (Neutral+Ult, 6 Koma B) — the manga chant cut-in → full charge → ONE giant gold
+// blast (a large Nen projectile). Spends 100 Nen (the ultimate cost).
+function fireGonFullChant(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) < 100) return false
+  fighter.energy = Math.max(0, (fighter.energy || 0) - 100)
+  const total = 50
+  fighter._spriteCastMove  = "fullchant"; fighter._spriteCastTimer = total
+  fighter.attackCooldown   = total
+  fighter._gonFullChantCutin = 72                          // manga chant cut-in + "JAJANKEN!!" pop (game.js)
+  schedulePendingSpawn(30, () => { shakeCamera(context, 16, 22); spawnProjectile(fighter, "gonFullChant", {
+    damage: 300, w: 92, h: 92, radius: 46, speed: 9, lifetime: 80, hitstun: 44, knockbackX: 26, knockbackY: -12, color: "#ffd700", isSpecial: true
+  }, context) })
+  try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// GON & KILLUA (Up+Ult, 4 Koma B) — Killua appears beside Gon (this sheet's OWN Killua art), charges the
+// purple lightning orb (gon_orb), and Gon's Rock LAUNCHES it as a fast orb; Killua leaves. Spends 100 Nen.
+function fireGonAndKillua(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) < 100) return false
+  fighter.energy = Math.max(0, (fighter.energy || 0) - 100)
+  const total = 56
+  fighter._spriteCastMove  = "rock"; fighter._spriteCastTimer = total    // Gon does his Rock cast
+  fighter.attackCooldown   = total
+  fighter._gonKilluaFx = 84                                // Killua overlay + orb-charge FX timer (game.js)
+  schedulePendingSpawn(40, () => { shakeCamera(context, 14, 20); spawnProjectile(fighter, "gonKilluaOrb", {
+    damage: 260, w: 70, h: 70, radius: 36, speed: 13, lifetime: 72, hitstun: 40, knockbackX: 22, knockbackY: -8, color: "#b06bff",
+    sheet: "./gon_orb_uniform.png", spriteFrames: 4, spriteW: 78, spriteH: 69, spriteSpeed: 3, isSpecial: true
+  }, context) })
+  try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// THE VOW (Down+Ult, 7 Koma A) — CANON: the contract that traded his Nen and nearly his life for all his
+// future power. ONCE PER MATCH (game.js module token gonVowUsed, since round reset re-creates fighters),
+// only below 30% HP. Kneel/charge → black-silhouette flash → ADULT GON — a TIMED ~10s form: massive damage
+// + light armor, movement-locked (giant). Reuses the Adult-Form machinery on a fixed timer (not Nen drain);
+// its only strike is the adult Rock blast (fireGonAdultRock), which ENDS the form → THE PRICE.
+const GON_VOW_DURATION = 600          // ~10s @60fps
+const GON_VOW_DMG_MUL  = 1.7          // "massive damage"
+function enterGonVow(fighter, context) {
+  if (fighter._adultFormActive || fighter._gonNoNen) return false
+  if (fighter._gonVowTokenUsed) return false                               // once per match (game.js token)
+  if ((fighter.health || 0) > (fighter.maxHealth || 1150) * 0.30) return false   // only below 30% HP
+  fighter._adultFormActive  = true
+  fighter.currentForm       = "adult"
+  fighter.damageMultiplier  = GON_VOW_DMG_MUL
+  fighter.attackMultiplier  = GON_VOW_DMG_MUL
+  fighter._adultBaseSpeed   = fighter.speed
+  fighter._adultBaseCanJump = fighter.canJump
+  fighter._adultBaseNoDash  = fighter.noDash
+  fighter.speed             = GON_ADULT_SPEED
+  fighter.canJump           = false
+  fighter.noDash            = true
+  fighter._canvasHeightFrac = GON_ADULT_CANVAS_FRAC
+  fighter._canvasHeightRefH = GON_ADULT_REF_H
+  fighter._adultTrail       = []
+  fighter._gonVowTimer      = GON_VOW_DURATION             // TIMED (not Nen drain)
+  fighter._gonAdultRockFired = false
+  fighter._gonVowEntered    = true                         // game.js burns the match token this frame
+  fighter._spriteCastMove   = "transform"; fighter._spriteCastTimer = 170
+  activateGonAdultFormCinematic(fighter, context?.getOpponent?.(fighter) || context?.p2 || null)
+  return true
+}
+
+// End the Vow → revert the giant body + apply THE PRICE: no Nen for the rest of the round (meter locked 0,
+// every special & ultimate disabled, "NO NEN" HUD; normals only). The lock clears on round reset.
+function endGonVow(fighter) {
+  revertGonAdultForm(fighter)
+  fighter._gonVowTimer = null
+  fighter._gonAdultRockFired = false
+  fighter._gonNoNen = true                                 // THE PRICE
+  fighter.energy = 0
+}
+
+// ── GON LINES (Phase 3) — ORIGINAL text only (bright, stubborn, honest); no new audio (any existing voice
+// is kept). Matchup-aware intro/win banter + a Fishing-Rod taunt vs Hisoka. Drawn as code text pops by game.js.
+const GON_LINES = {
+  killua:   { intro: "Killua! Let's give it everything — ready?",   win: "That was awesome, Killua! Let's go again!" },
+  hisoka:   { intro: "You're strong… but I'm taking that badge back.", win: "I told you — I'd win it back.", rod: "Hey, Hisoka! That badge is MINE!" },
+  kurapika: { intro: "Kurapika, I won't lose — not to anyone.",      win: "You're really strong. No wonder Killua trusts you." },
+  chrollo:  { intro: "You hurt my friends. I'm not holding back.",    win: "Stay down. That's for everyone you hurt." },
+  shizuku:  { intro: "Phantom Troupe… I'll stop every one of you.",   win: "One down. I'm coming for the rest of the Spiders." },
+  meruem:   { intro: "You're the strongest I've ever faced. So what?", win: "Even a King can be beaten. I just proved it." },
+  netero:   { intro: "Chairman! Teach me everything — starting now!", win: "Did I pass, Chairman Netero?" }
+}
+const GON_LINE_GENERIC    = { intro: "I'm Gon! Let's give it our all!",        win: "Yes! That was a good fight!" }
+const GON_LINE_HXH_GENERIC= { intro: "A fellow Hunter, huh? I won't go easy!",  win: "Good fight! A Hunter never gives up." }
+function gonLineFor(opp) {
+  const k = (opp?.rosterKey || "").toLowerCase()
+  if (GON_LINES[k]) return GON_LINES[k]
+  if ((opp?.universe || "").toLowerCase() === "hunter_x_hunter") return GON_LINE_HXH_GENERIC
+  return GON_LINE_GENERIC
+}
+export function gonIntroBanter(fighter, opp) { return gonLineFor(opp).intro }
+export function gonWinBanter(fighter, opp)   { return gonLineFor(opp).win }
+export function gonRodTauntLine(opp)         { return gonLineFor(opp).rod || null }   // the special line vs Hisoka
 
 // ── KILLUA ULTIMATE — GODSPEED (Kanmuru) — Stage 5 ──────────────────────────────────────────
 // The OVERLAY path (decided Stage 1, KILLUA_ASSET_MAP.md): NOT an alternate-form sprite swap

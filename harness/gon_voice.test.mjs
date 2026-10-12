@@ -113,20 +113,21 @@ try {
   // ── (3) CRITICAL: Final Blow EXCLUSIVE line + Adult Form transform has NO 017 leak ──
   section("CRITICAL: Final Blow exclusivity");
   await ready();
-  // Adult Form transform itself must NOT fire 017 (or any cast line)
+  // THE VOW transform itself must NOT fire 017 (or any cast line). Enter via Down+Ult, HP<30%.
   await clearSfx();
-  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(4);
-  { const log = await sfxLog(); check("Adult Form TRANSFORM does NOT fire gonnen_017", !has017(log), log.filter(f=>/^gonnen/.test(f)).join(",")); }
+  await page.evaluate(() => window.__harness.gonUlt("D", { hp: 300 }));
+  await waitFrames(4);
+  { const log = await sfxLog(); check("The Vow TRANSFORM does NOT fire gonnen_017", !has017(log), log.filter(f=>/^gonnen/.test(f)).join(",")); }
   await page.waitForFunction(() => !window.__harness.adultFormCine().active, null, { timeout: 12000, polling: 16 }).catch(() => {});
   await waitFrames(2);
   const inForm = await gon();
-  check("Adult Form active (precondition for Final Blow)", inForm.active === true, `active=${inForm.active}`);
-  // Final Blow = Special while Adult Form active → 017 fires
-  await page.evaluate(() => { window.__harness.setP2Invuln(600); });   // whiff so the match doesn't instantly end mid-check
+  check("Adult Form active (precondition for the Adult Rock)", inForm.active === true, `active=${inForm.active}`);
+  // Adult Rock blast = Special while Adult Form active → the Final-Blow line (017) fires
+  await page.evaluate(() => { window.__harness.setP2Invuln(600); });   // whiff so the match doesn't end mid-check
   { const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 300); }
   await clearSfx();
   await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
-  { const log = await sfxLog(); check("Final Blow FIRES gonnen_017 (exclusive)", has017(log), log.filter(f=>/^gonnen/.test(f)).join(",")); }
+  { const log = await sfxLog(); check("Adult Rock FIRES gonnen_017 (exclusive)", has017(log), log.filter(f=>/^gonnen/.test(f)).join(",")); }
 
   section("no JS errors");
   check("no page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

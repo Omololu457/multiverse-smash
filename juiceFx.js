@@ -19,6 +19,7 @@ import { juiceSettings } from "./juiceSettings.js"
 export const JUICE_PARTICLE_CAP = 300          // hard cap: debris + smoke combined
 const DEBRIS_MAX = 200, SMOKE_MAX = 100        // = 300 total
 const FIREBALL_MAX = 24, SHOCK_MAX = 24, SWELL_MAX = 12
+export const JUICE_BOLT_CAP = 16               // max simultaneous lightning bolts (reported for perf)
 
 // Per-tier shape. counts are PRE-particleScale; debris bounce once; smoke hangs ~1.5s.
 const TIER = {
@@ -44,6 +45,7 @@ const smoke     = mkPool(SMOKE_MAX,   () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 6
 const fireballs = mkPool(FIREBALL_MAX,() => ({ x: 0, y: 0, rMax: 40, age: 0, grow: 6, fade: 30, tier: "small" }))
 const shocks    = mkPool(SHOCK_MAX,   () => ({ x: 0, y: 0, groundY: 0, age: 0, maxAge: 26, rMax: 120, tier: "medium" }))
 const swells    = mkPool(SWELL_MAX,   () => ({ x: 0, y: 0, age: 0, maxAge: 18, tier: "small" }))
+const bolts     = mkPool(JUICE_BOLT_CAP, () => ({ x1: 0, y1: 0, x2: 0, y2: 0, age: 0, maxAge: 15, seed: 0, r: 180, g: 220, b: 255, width: 4 }))
 
 function acquire(pool) { for (let i = 0; i < pool.length; i++) if (!pool[i].active) return pool[i]; return null }
 function liveParticles() { let n = 0; for (const p of debris) if (p.active) n++; for (const p of smoke) if (p.active) n++; return n }
@@ -131,7 +133,7 @@ export function fireJuiceDust({ x, y, dir = 1, frame = 0, player = 0 }) {
 }
 
 // ── HIT FEEL: directional spark burst in the hit direction (arcs + gravity, never straight) ──
-export function fireJuiceHitSpark({ x, y, dir = 1, count = 6, speed = 4, frame = 0, player = 0 }) {
+export function fireJuiceHitSpark({ x, y, dir = 1, count = 6, speed = 4, frame = 0, player = 0, color = null }) {
   const n = Math.max(1, Math.round(count * juiceSettings.hitEffectScale()))
   const seed = (frame * 131 + player * 733) >>> 0
   const base = dir < 0 ? Math.PI : 0                       // emission centre = the hit direction
@@ -145,8 +147,13 @@ export function fireJuiceHitSpark({ x, y, dir = 1, count = 6, speed = 4, frame =
     d.size = 1.5 + rnd(seed, 407, i) * 2.2
     d.maxLife = d.life = 10 + Math.floor(rnd(seed, 409, i) * 10)
     d.groundY = 0; d.bounced = true                        // no floor bounce for a quick hit spark
-    const warm = rnd(seed, 411, i)
-    d.r = 255; d.g = 200 + Math.floor(warm * 55); d.b = 120 + Math.floor(warm * 80)
+    if (color) {                                            // HIT FEEL Phase D: element tint (slight per-spark jitter)
+      const j = rnd(seed, 411, i) * 40 - 20
+      d.r = Math.max(0, Math.min(255, color[0] + j)); d.g = Math.max(0, Math.min(255, color[1] + j)); d.b = Math.max(0, Math.min(255, color[2] + j))
+    } else {
+      const warm = rnd(seed, 411, i)
+      d.r = 255; d.g = 200 + Math.floor(warm * 55); d.b = 120 + Math.floor(warm * 80)
+    }
   }
 }
 
@@ -188,8 +195,38 @@ export function fireJuiceChargeIn({ x, y, frame = 0, player = 0, tier = "medium"
   }
 }
 
+// ── LIGHTNING BOLT (shared renderer) — a jagged bolt between two points, 3 layers (wide soft glow →
+// narrower bright glow → sharp white core), that thins/breaks up/fades over ~15f. Path is a seeded hash
+// (deterministic, NOT gameRng); the break-up re-jitters every 2 frames. Capped at JUICE_BOLT_CAP. ──
+export function fireJuiceBolt({ x1, y1, x2, y2, frame = 0, player = 0, color = null, maxAge = 15 }) {
+  const b = acquire(bolts); if (!b) return                 // at cap → drop (hard cap)
+  b.active = true; b.x1 = x1; b.y1 = y1; b.x2 = x2; b.y2 = y2
+  b.age = 0; b.maxAge = maxAge; b.seed = ((frame * 2246822519) ^ (player * 40503) ^ 0x1b7) >>> 0
+  const c = color || [180, 220, 255]
+  b.r = c[0]; b.g = c[1]; b.b = c[2]; b.width = 4
+}
+
+// Build a jagged polyline from (x1,y1)→(x2,y2): segments jittered perpendicular with exaggerated corners.
+// `variant` changes the jitter (break-up animation); `amp` scales the jaggedness (shrinks as the bolt fades).
+function _boltPath(b, variant, amp) {
+  const dx = b.x2 - b.x1, dy = b.y2 - b.y1, len = Math.hypot(dx, dy) || 1
+  const nx = -dy / len, ny = dx / len                      // perpendicular
+  const segs = 7
+  const pts = [[b.x1, b.y1]]
+  for (let i = 1; i < segs; i++) {
+    const t = i / segs
+    const h = (hash3(b.seed, i, variant) % 1000) / 1000 - 0.5
+    const edge = Math.sin(t * Math.PI)                     // 0 at ends, 1 in the middle → anchored endpoints
+    const off = h * amp * edge * 2
+    pts.push([b.x1 + dx * t + nx * off, b.y1 + dy * t + ny * off])
+  }
+  pts.push([b.x2, b.y2])
+  return pts
+}
+
 // ── advance all pools one sim frame (deterministic; call each sim frame) ──────
 export function updateJuiceFx() {
+  for (const b of bolts) { if (b.active && ++b.age >= b.maxAge) b.active = false }
   for (const d of debris) {
     if (!d.active) continue
     if (!d.noGrav) d.vy += 0.35                           // gravity (charge-in particles float straight in)
@@ -270,6 +307,22 @@ export function drawJuiceFxWorld(ctx) {
     ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2); ctx.stroke()
     ctx.restore()
   }
+  // lightning bolts — 3 layers (wide glow → bright glow → white core), on top, break up + fade.
+  for (const b of bolts) {
+    if (!b.active) continue
+    const t = b.age / b.maxAge
+    const fade = t < 0.14 ? 1 : Math.max(0, 1 - (t - 0.14) / 0.86)   // quick flash → fade
+    if (fade <= 0.02) continue
+    const span = Math.hypot(b.x2 - b.x1, b.y2 - b.y1)
+    const amp = Math.max(6, span * 0.16) * (1 - t * 0.6)             // jaggedness shrinks as it thins out
+    const pts = _boltPath(b, Math.floor(b.age / 2), amp)            // re-jitter every 2 frames
+    ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.globalCompositeOperation = "lighter"
+    const stroke = (col, lw) => { ctx.strokeStyle = col; ctx.lineWidth = Math.max(0.5, lw); ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.stroke() }
+    stroke(`rgba(${b.r},${b.g},${b.b},${(0.16 * fade).toFixed(3)})`, b.width * 3.4 * fade)   // wide soft glow
+    stroke(`rgba(${b.r},${b.g},${b.b},${(0.5 * fade).toFixed(3)})`, b.width * 1.6 * fade)    // bright glow
+    stroke(`rgba(255,255,255,${(0.95 * fade).toFixed(3)})`, b.width * 0.55 * fade)           // sharp white core
+    ctx.restore()
+  }
 }
 
 // Clear every pool (round / match reset).
@@ -279,6 +332,7 @@ export function resetJuiceFx() {
   for (const p of fireballs) p.active = false
   for (const p of shocks) p.active = false
   for (const p of swells) p.active = false
+  for (const p of bolts) p.active = false
 }
 
 // Diagnostics for the harness.
@@ -286,9 +340,9 @@ export function juiceFxStatus() {
   const count = (pool) => pool.reduce((n, p) => n + (p.active ? 1 : 0), 0)
   return {
     debris: count(debris), smoke: count(smoke), fireballs: count(fireballs),
-    shocks: count(shocks), swells: count(swells),
-    particles: liveParticles(), cap: JUICE_PARTICLE_CAP,
+    shocks: count(shocks), swells: count(swells), bolts: count(bolts),
+    particles: liveParticles(), cap: JUICE_PARTICLE_CAP, boltCap: JUICE_BOLT_CAP,
   }
 }
 
-export default { fireJuiceExplosion, fireJuiceAnticipation, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus }
+export default { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus }

@@ -202,6 +202,12 @@ export const JUICE_STANDINS = {
   dash_windup_cloth_STANDIN: { src: "swish_fast_02", rate: 0.9, filter: { type: "lowpass",  freq: 900  }, offset: 0, duration: 0.14, gain: 0.8 },
   dash_skid_STANDIN:         { src: "swish_fast_01", rate: 0.6, filter: { type: "lowpass",  freq: 700  },                          gain: 1.0 },
   dash_dust_kick_STANDIN:    { src: "swish_fast_03", rate: 1.0, filter: { type: "highpass", freq: 2500 }, offset: 0, duration: 0.06, gain: 0.7 },
+  // HIT FEEL Phase D — element-sound gaps (no real clips): synthesized from existing pack clips. Swap in
+  // real files later by registering a buffer under the same *_STANDIN id.
+  zap_crackle_STANDIN:        { src: "crack_sizzle_bright", rate: 1.35, filter: { type: "highpass", freq: 1800 }, offset: 0, duration: 0.25, gain: 0.7 },
+  fire_ignite_whoosh_STANDIN: { src: "whoosh_medium_01",    rate: 0.82, filter: { type: "lowpass",  freq: 1400 }, offset: 0, duration: 0.40, gain: 0.7 },
+  whack_STANDIN:              { src: "impact_hit_01",       rate: 0.9,  filter: { type: "lowpass",  freq: 2200 },                           gain: 0.8 },
+  balloon_pop_STANDIN:        { src: "impact_crack_01",     rate: 1.5,  filter: { type: "highpass", freq: 2600 }, offset: 0, duration: 0.09, gain: 0.6 },
 }
 
 export const JUICE_VOICE_CAP = 12                 // max simultaneous juice SFX (audio voice cap)

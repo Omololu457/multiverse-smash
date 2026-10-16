@@ -12,6 +12,7 @@ import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource 
 import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controller glyphs (Xbox/PS/Switch)
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
+import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -3499,6 +3500,13 @@ function _projImg(src) {
 // churn beyond a bounded ring). Drawn BEFORE the projectile body so the body sits on top.
 function _drawProjectileTrail(ctx, p, x, y) {
   if (!juiceSettings.hitEffectsOn() || p.visualOnly) return
+  // HIT FEEL (Phase D): element-tint — resolve ONCE from the owner's kit + this projectile's move name
+  // (central hook; no per-character code). Falls back to generic ki cyan.
+  if (!p._jcolor) {
+    const owner = p.owner, key = (owner && (owner.rosterKey || owner.id)) || null
+    const el = key ? elementFor(key, { currentMove: p.name, isUltimate: !!p.isUltimate, ultVariant: owner && owner._ultVariant }) : "ki"
+    p._jcolor = elementColor(el)
+  }
   if (!p._jtrail) p._jtrail = []
   const buf = p._jtrail
   buf.push({ x, y })

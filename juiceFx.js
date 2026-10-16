@@ -40,7 +40,7 @@ const rnd = (a, b, c) => (hash3(a, b, c) % 100000) / 100000   // 0..1
 // ── pools (preallocated once; no per-frame allocation) ───────────────────────
 function mkPool(n, shape) { const a = new Array(n); for (let i = 0; i < n; i++) a[i] = { active: false, ...shape() }; return a }
 const debris    = mkPool(DEBRIS_MAX,  () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 3, life: 0, maxLife: 1, groundY: 0, bounced: false, r: 200, g: 150, b: 90 }))
-const smoke     = mkPool(SMOKE_MAX,   () => ({ x: 0, y: 0, vy: 0, size: 6, grow: 0.4, life: 0, maxLife: 1, shade: 90 }))
+const smoke     = mkPool(SMOKE_MAX,   () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 6, grow: 0.4, life: 0, maxLife: 1, shade: 90, dust: false }))
 const fireballs = mkPool(FIREBALL_MAX,() => ({ x: 0, y: 0, rMax: 40, age: 0, grow: 6, fade: 30, tier: "small" }))
 const shocks    = mkPool(SHOCK_MAX,   () => ({ x: 0, y: 0, groundY: 0, age: 0, maxAge: 26, rMax: 120, tier: "medium" }))
 const swells    = mkPool(SWELL_MAX,   () => ({ x: 0, y: 0, age: 0, maxAge: 18, tier: "small" }))
@@ -91,7 +91,7 @@ export function fireJuiceExplosion({ x, y, tier = "medium", frame = 0, player = 
   const nSmoke = Math.max(1, Math.round(t.smoke * pScale))
   for (let i = 0; i < nSmoke; i++) {
     const s = acquire(smoke); if (!s) break
-    s.active = true
+    s.active = true; s.dust = false; s.vx = 0
     s.x = x + (rnd(seed, 201, i) - 0.5) * t.fireR
     s.y = y + (rnd(seed, 203, i) - 0.5) * t.fireR * 0.6
     s.vy = -(0.3 + rnd(seed, 205, i) * 0.5)               // rises slowly
@@ -112,6 +112,24 @@ export function fireJuiceExplosion({ x, y, tier = "medium", frame = 0, player = 
   }
 }
 
+// ── DASH dust kick (ground-only) — tan puffs kicked backward from the dash ────
+export function fireJuiceDust({ x, y, dir = 1, frame = 0, player = 0 }) {
+  const n = Math.max(1, Math.round(6 * juiceSettings.particleScale()))
+  const seed = (frame * 53 + player * 911) >>> 0
+  for (let i = 0; i < n; i++) {
+    const s = acquire(smoke); if (!s) break
+    s.active = true; s.dust = true
+    s.x = x + (rnd(seed, 301, i) - 0.5) * 18
+    s.y = y - rnd(seed, 303, i) * 5
+    s.vx = -dir * (0.3 + rnd(seed, 305, i) * 0.7)         // kicks opposite the dash direction
+    s.vy = -(0.15 + rnd(seed, 307, i) * 0.3)              // low, lazy rise
+    s.size = 5 + rnd(seed, 309, i) * 7
+    s.grow = 0.4 + rnd(seed, 311, i) * 0.4
+    s.maxLife = s.life = 22 + Math.floor(rnd(seed, 313, i) * 14)
+    s.shade = 150 + Math.floor(rnd(seed, 315, i) * 40)
+  }
+}
+
 // ── advance all pools one sim frame (deterministic; call each sim frame) ──────
 export function updateJuiceFx() {
   for (const d of debris) {
@@ -125,7 +143,7 @@ export function updateJuiceFx() {
   }
   for (const s of smoke) {
     if (!s.active) continue
-    s.y += s.vy; s.size += s.grow; s.vy *= 0.985
+    s.x += s.vx || 0; s.y += s.vy; s.size += s.grow; s.vy *= 0.985; s.vx *= 0.9
     if (--s.life <= 0) s.active = false
   }
   for (const f of fireballs) { if (f.active && ++f.age >= f.grow + f.fade) f.active = false }
@@ -150,9 +168,10 @@ export function drawJuiceFxWorld(ctx) {
   for (const s of smoke) {
     if (!s.active) continue
     const env = s.life / s.maxLife
-    const a = 0.33 * Math.min(1, env * 1.6)               // fade in slightly then out
+    const a = (s.dust ? 0.4 : 0.33) * Math.min(1, env * 1.6)   // fade in slightly then out
     ctx.save()
-    ctx.fillStyle = `rgba(${s.shade},${s.shade},${s.shade},${a.toFixed(3)})`
+    // dust = warm tan ground kick; smoke = neutral grey.
+    ctx.fillStyle = s.dust ? `rgba(200,180,140,${a.toFixed(3)})` : `rgba(${s.shade},${s.shade},${s.shade},${a.toFixed(3)})`
     ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill()
     ctx.restore()
   }

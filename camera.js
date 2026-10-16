@@ -31,6 +31,10 @@ function boxOf(f) {
 export const camera = {
   x: 0, y: 0, zoom: 1,
   targetX: 0, targetY: 0, targetZoom: 1,
+  // JUICE (Phase 3): dash camera-LEAD — a small eased world-space offset in the dash direction
+  // (~3-4% of the viewport, scaled down in >2-player matches so nobody leaves the frame). Visual-only;
+  // applied in applyTransform, eased in advance()/update(). _leadTarget decays so the lead returns to 0.
+  leadX: 0, _leadTarget: 0,
 
   worldWidth: 3200,
   worldHeight: 2000,
@@ -84,6 +88,8 @@ export const camera = {
     this.shakeStrength = 0
     this.shakeX = 0
     this.shakeY = 0
+    this.leadX = 0
+    this._leadTarget = 0
   },
 
   shake(strength = 10, duration = 15) {
@@ -218,6 +224,7 @@ export const camera = {
     return Math.max(this.minZoom, fit)
   },
   advance(canvas, zoomStep = this.maxZoomStep) {
+    this._tickDashLead()   // JUICE (Phase 3): ease the dash camera-lead (common per-frame tick for 1v1 + FFA)
     const { width: cw, height: ch } = getCanvasMetrics(canvas)
 
     // ── SMOOTH + SOFT RATE-LIMIT (eased, no snapping) ──
@@ -273,7 +280,20 @@ export const camera = {
     ctx.save()
     ctx.translate(cw * 0.5, ch * 0.5)
     ctx.scale(this.zoom, this.zoom)
-    ctx.translate(-this.x + this.shakeX, -this.y + this.shakeY)
+    ctx.translate(-this.x - this.leadX + this.shakeX, -this.y + this.shakeY)
+  },
+
+  // JUICE (Phase 3): set the dash lead target (world units) toward `dir` (−1/+1), ~3.5% of the visible
+  // world width × `scale` (scale < 1 in >2-player matches). Eased toward in advance()/update().
+  setDashLead(dir, worldViewWidth, scale = 1) {
+    const d = dir < 0 ? -1 : dir > 0 ? 1 : 0
+    this._leadTarget = d * (worldViewWidth || 0) * 0.035 * Math.max(0, Math.min(1, scale))
+  },
+  // Ease leadX toward the (decaying) target. Called once per frame from advance()/update().
+  _tickDashLead() {
+    this.leadX += (this._leadTarget - this.leadX) * 0.12
+    this._leadTarget *= 0.90                       // decays → the lead returns to centre after the dash
+    if (Math.abs(this.leadX) < 0.05 && Math.abs(this._leadTarget) < 0.05) { this.leadX = 0; this._leadTarget = 0 }
   },
 
   clearTransform(ctx) {

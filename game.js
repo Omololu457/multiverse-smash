@@ -549,7 +549,7 @@ import {
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant } from "./sound.js"
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
-import { fireJuiceExplosion, fireJuiceAnticipation, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion FX (presentation-only)
+import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion + dash-dust FX (presentation-only)
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -2163,6 +2163,114 @@ function _drawJuiceImpactFlash() {
   if (--jf.timer <= 0) _juiceImpactFrame = null
 }
 
+// ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
+// Flicker/teleport dashes (SPEED_TIER_TELEPORT_KEYS / high base-speed) keep their OWN native visuals: we only
+// swap the whoosh for warp_wobble and skip the skid + dust + squash + generic afterimage trail (a generic
+// trail was tried on teleport dashes before and removed — it read as an unreadable swirl). Nothing here
+// touches the sim: dash detection READS dashTimer/airDashing; all state is render-only fighter fields.
+
+// Squash/stretch + wind-up lean as a function of frames since dash start (t) and dash direction.
+function _juiceSquashAt(t, dir) {
+  if (t < 2)  return { sx: 0.85, sy: 1.10, lean: -dir * 5 * (1 - t / 2) }   // wind-up lean-back + squash (2f)
+  if (t < 8)  return { sx: 1.15, sy: 0.92, lean: 0 }                        // stretch along the dash
+  if (t < 12) { const k = (t - 8) / 4; return { sx: 1.15 + (1 - 1.15) * k, sy: 0.92 + (1 - 0.92) * k, lean: 0 } }   // ease back
+  return null
+}
+
+// Bias the camera slightly in the dash direction (scaled down in >2-player matches so nobody leaves frame).
+function _juiceCameraLead(dir) {
+  const worldViewW = (canvas.width || 1280) / (camera.zoom || 1)
+  const n = (gameState === GAME_STATES.FFA_BATTLE) ? Math.max(2, ffaAliveFighters().length) : 2
+  camera.setDashLead?.(dir, worldViewW, n > 2 ? 2 / n : 1)
+}
+
+// Per-fighter, per-frame dash FX driver. Detects ground/air dash edges, drives the squash timeline + trail
+// flag, and fires sounds/dust/camera-lead. player (0/1) seeds deterministic sound variation.
+function _tickJuiceDash(f, player) {
+  if (!f) return
+  const groundDash = (f.dashTimer || 0) > 0
+  const airDash    = !!f.airDashing || (f.airDashTimer || 0) > 0
+  const dashing    = groundDash || airDash
+  const startGround = (f.dashTimer || 0) > (f._juicePrevDashT || 0)   // dashTimer resets to max → rising edge = new dash
+  const startAir    = airDash && !f._juicePrevAirDash
+  f._juicePrevDashT = f.dashTimer || 0
+  f._juicePrevAirDash = airDash
+  const flicker = isSpeedTierTeleport(f)
+
+  if (startGround || startAir) {
+    if (flicker) {
+      // keep native flicker visuals; just swap the whoosh for a warp wobble (no skid/dust/squash/trail).
+      sound.playJuiceSfx?.(juicePickVariant(["warp_wobble_01", "warp_wobble_02"], globalFrameCount, player), { gain: 0.4, pitch: juicePitch(globalFrameCount, player, 0.03) })
+    } else {
+      f._juiceDashFx = { t: 0, air: startAir && !startGround, dir: (f.facing || 1) < 0 ? -1 : 1 }
+      sound.playJuiceSfx?.("dash_windup_cloth_STANDIN", { gain: 0.5 })
+      const heavy = (f.baseSpeed || f.speed || 8) <= 6
+      const whoosh = heavy ? juicePickVariant(["whoosh_medium_01", "whoosh_medium_02"], globalFrameCount, player)
+                           : juicePickVariant(["swish_fast_01", "swish_fast_02", "swish_fast_03"], globalFrameCount, player)
+      sound.playJuiceSfx?.(whoosh, { gain: 0.35, pitch: juicePitch(globalFrameCount, player) })
+      if (startGround) {   // dust kick at the launch point — GROUND dashes only
+        fireJuiceDust({ x: f.x + (f.w || 60) / 2, y: f.y + (f.h || 100), dir: f._juiceDashFx.dir, frame: globalFrameCount, player })
+        sound.playJuiceSfx?.("dash_dust_kick_STANDIN", { gain: 0.4 })
+      }
+      _juiceCameraLead(f._juiceDashFx.dir)
+    }
+  }
+
+  if (flicker) { f._juiceDashSquash = null; f._juiceDashTrail = false; return }   // flicker → native visuals only
+
+  const fx = f._juiceDashFx
+  if (fx) {
+    f._juiceDashSquash = _juiceSquashAt(fx.t, fx.dir)   // squash/stretch this frame
+    f._juiceDashTrail  = dashing                        // capture afterimages while actually dashing
+    fx.t++
+    if (!dashing) {
+      if (!fx.air && !fx._skidded) { sound.playJuiceSfx?.("dash_skid_STANDIN", { gain: 0.5 }); fx._skidded = true }   // ground stop skid (not air-dashes)
+      if (fx.t > 12) { f._juiceDashFx = null; f._juiceDashSquash = null; f._juiceDashTrail = false }   // fully eased → done (trail keeps fading)
+    }
+  } else { f._juiceDashSquash = null; f._juiceDashTrail = false }
+}
+
+// Clear per-fighter dash render-state (round/match reset) so no trail/squash streaks across the cut.
+function _clearJuiceDashFx() {
+  const live = (gameState === GAME_STATES.FFA_BATTLE && ffaState.fighters) ? ffaState.fighters : [p1, p2]
+  for (const f of live) {
+    if (!f) continue
+    f._juiceDashFx = null; f._juiceDashSquash = null; f._juiceDashTrail = false
+    f._juiceTrailBuf = null; f._juicePrevDashT = 0; f._juicePrevAirDash = false
+  }
+}
+
+// Afterimage trail — 3-4 faithful ghost copies of the ACTUAL current frame (from the sprite handler's
+// _lastRender draw params), fading over ~10f. Drawn BEHIND the body, in the battle-scene camera transform.
+// Never re-invokes the sprite draw (no animation double-advance); it replays the captured drawImage, exactly
+// like the engine's own transition-ghost. Non-flicker fighters only (flag gated in _tickJuiceDash).
+function _drawJuiceDashTrail(c, fighter) {
+  const lr = fighter.spriteHandler && fighter.spriteHandler._lastRender
+  if (fighter._juiceDashTrail && lr && lr.sheet && lr.sheet.complete && lr.sheet.naturalWidth > 0) {
+    fighter._juiceTrailClock = (fighter._juiceTrailClock || 0) + 1
+    if (fighter._juiceTrailClock % 2 === 0) {   // every other frame → spacing between ghosts
+      if (!fighter._juiceTrailBuf) fighter._juiceTrailBuf = []
+      fighter._juiceTrailBuf.push({ sheet: lr.sheet, sx: lr.sx, sy: lr.sy, dw: lr.dw, dh: lr.dh, fx: lr.fx, offsetX: lr.offsetX, drawY: lr.drawY, dstW: lr.dstW, dstH: lr.dstH, facing: lr.facing, life: 10 })
+      while (fighter._juiceTrailBuf.length > 4) fighter._juiceTrailBuf.shift()
+    }
+  }
+  const buf = fighter._juiceTrailBuf
+  if (!buf || !buf.length) return
+  c.save(); c.imageSmoothingEnabled = false
+  for (let i = 0; i < buf.length; i++) {
+    const g = buf[i]
+    const a = 0.42 * (g.life / 10) * ((i + 1) / buf.length)   // older = fainter; whole trail fades over ~10f
+    if (a > 0.015 && g.sheet.complete && g.sheet.naturalWidth > 0) {
+      c.globalAlpha = a
+      if (g.facing === -1) { c.save(); c.scale(-1, 1); c.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, -g.fx + g.offsetX - g.dstW, g.drawY, g.dstW, g.dstH); c.restore() }
+      else c.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, g.fx - g.offsetX, g.drawY, g.dstW, g.dstH)
+    }
+    if (!fighter._animFrozen) g.life--
+  }
+  c.globalAlpha = 1; c.restore()
+  fighter._juiceTrailBuf = buf.filter(g => g.life > 0)
+}
+
 // ── STAGE 3 — PANEL-STYLE ZOOM-CROP ON ULTIMATE CONNECT (camera only) ──────────────────────
 // At the instant an ultimate lands (hitstop-tier "ultimate"), HARD-SNAP the camera to a tight crop —
 // a manga-panel hard-cut, distinct from the existing eased ultimate punch-in. Held briefly, then the
@@ -3213,8 +3321,8 @@ function updateFFAEffects(live) {
     if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
   }
   updateDamageNumbers()
-  // JUICE (Phase 2): per-attacker detonation cooldown + pooled FX advance (FFA path).
-  for (const f of live) if (f && f._juiceDetCd > 0) f._juiceDetCd--
+  // JUICE (Phase 2+3): per-attacker detonation cooldown + dash FX + pooled FX advance (FFA path).
+  for (const f of live) { if (!f) continue; if (f._juiceDetCd > 0) f._juiceDetCd--; _tickJuiceDash(f, (f.ffaSlot | 0) % 2) }
   updateJuiceFx()
 }
 
@@ -3950,7 +4058,7 @@ function resetRound() {
   impactHitState.active = false; impactHitState.timer = 0          // clear the Impact Hit cascade on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -5119,7 +5227,7 @@ function resetToStart() {
   damageNumbers.length = 0
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -6504,7 +6612,7 @@ function _doRematch() {
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
   _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -15865,7 +15973,8 @@ function updateEffectsAndDomains() {
   _tickJuiceAnticipation(p1, 0); _tickJuiceAnticipation(p2, 1)
   if (p1 && p1._juiceDetCd > 0) p1._juiceDetCd--
   if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
-  updateJuiceFx()   // advance pooled explosion FX (deterministic; frozen on slow-mo skip frames with the sim)
+  _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
+  updateJuiceFx()   // advance pooled explosion + dash-dust FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
 
 // Edge-detect a raw key (true only on the frame it goes down). Used for the training
@@ -17047,7 +17156,12 @@ function renderHybridFighter(fighter) {
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
     drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
+    _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3): dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
+    // JUICE (Phase 3): dash squash/stretch + wind-up lean — wrap ONLY the body draw (not the trail/auras),
+    // scaled about the feet. Render-only transform; _juiceDashSquash is set by _tickJuiceDash.
+    const _jsq = fighter._juiceDashSquash
+    if (_jsq) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.save(); c.translate(ax + _jsq.lean, ay); c.scale(_jsq.sx, _jsq.sy); c.translate(-ax, -ay) }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
     const _ssA = _shadowSinkBodyAlpha(fighter)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
@@ -17057,6 +17171,7 @@ function renderHybridFighter(fighter) {
       drawFighter(c, fighter, camera)
     }
     if (_ssA < 1) c.restore()
+    if (_jsq) c.restore()               // JUICE (Phase 3): close the dash squash/stretch transform
     _drawComboCracks(c, fighter)        // STAGE 2: cracking-glass overlay on a fighter being deep-combo'd (5/9/15 tiers), ON TOP of the body — purely cosmetic
     drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
     drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
@@ -23793,6 +23908,11 @@ gameLoop()
       setNetSlowMo:(v) => { _juiceSlowmoNetFlag = (v == null ? null : !!v); return _juiceSlowmoNetFlag },   // simulate a LAN host decision
       anticipate: (tier = "medium") => { const f = p1 || p2; fireJuiceAnticipation((f?.x || 0) + (f?.w || 60) / 2, (f?.y || 0) + (f?.h || 100) * 0.42, tier); return juiceFxStatus().swells },
       shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
+      // ── Phase 3 (dashes) ──
+      dash:       (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },   // arm a REAL ground dash (physics consumes next frame)
+      dashState:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { flicker: isSpeedTierTeleport(f), dashTimer: f.dashTimer || 0, airDashing: !!f.airDashing, fx: f._juiceDashFx ? { t: f._juiceDashFx.t, air: f._juiceDashFx.air, dir: f._juiceDashFx.dir } : null, squash: f._juiceDashSquash || null, trail: (f._juiceTrailBuf || []).length, trailFlag: !!f._juiceDashTrail } },
+      forceAirDash: (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.y -= 170; f.onGround = false; f.grounded = false; f.isGrounded = false; f.airborne = true; f.airDashCount = 0; f.dashCooldown = 0; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; return { armed: true } },   // lift + arm an AIR dash (physics takes the air branch)
+      cameraLead: ()   => ({ leadX: +(camera.leadX || 0).toFixed(2), target: +(camera._leadTarget || 0).toFixed(2) }),
     },
     // HUD boss-bar variant proof (Stage 4): flag P2 as an arcade boss so the HUD draws the single
     // wide center-draining boss bar (view-only; does not change combat). Mirrors the p2._isBoss branch.

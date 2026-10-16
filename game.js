@@ -1355,6 +1355,12 @@ canvas.addEventListener("wheel", e => {
       return
     }
   }
+  // SETTINGS: wheel anywhere else scrolls the whole (dense) settings page so the low rows (VISUAL FX) are reachable.
+  if (gameState === GAME_STATES.SETTINGS && _settingsMaxScroll() > 0) {
+    e.preventDefault()
+    settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll + e.deltaY))
+    return
+  }
   // CODEX consumes wheel to scroll the franchise-grouped fighter list.
   if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
   if (gameState === GAME_STATES.ACADEMY) { e.preventDefault(); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); academyScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.gridH), academyScroll + e.deltaY)); return }
@@ -19690,6 +19696,13 @@ const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
 // HIT FEEL (Phase A) — two more toggles in the same group: Hit Effects (Off/Low/Full) + Damage Numbers.
 const hitFxRect         = { x: 0, y: 676, w: 92, h: 30 }
 const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
+// SETTINGS page scroll — the screen is dense (the VISUAL FX group sits low in the right column), so on a
+// short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
+// draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
+let settingsScroll = 0
+const SETTINGS_CONTENT_BOTTOM = 742   // lowest content row (VISUAL FX note); maxScroll derives from the viewport
+function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
+function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -19749,7 +19762,9 @@ function _layoutSettings() {
 
 function drawSettingsScreen() {
   _layoutSettings()
-  _mkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#101a30" })
+  _mkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#101a30" })   // backdrop stays fixed (un-scrolled)
+  _clampSettingsScroll()
+  ctx.save(); ctx.translate(0, -settingsScroll)   // SETTINGS page scroll — everything below scrolls together
   // Angular beveled control box — the shared metallic language, keeping each control's own tone/edge/state.
   const box = (r, fill, stroke, lw = 1, glow = false, cut = 8) => {
     _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.fillStyle = fill; ctx.fill()
@@ -19974,6 +19989,22 @@ function drawSettingsScreen() {
   box(backSettingRect, "rgba(60,20,20,0.92)", "#e05454", 1.5, true)
   ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
+  ctx.restore()   // end SETTINGS page-scroll translate
+
+  // Scroll affordance (fixed, screen-space): a right-edge scrollbar + "scroll ▼" hint when the page overflows.
+  const _maxS = _settingsMaxScroll()
+  if (_maxS > 0) {
+    const trackH = canvas.height - 40, trackY = 20, trackX = canvas.width - 8
+    ctx.fillStyle = "rgba(120,150,200,0.18)"; ctx.fillRect(trackX, trackY, 4, trackH)
+    const thumbH = Math.max(32, trackH * (canvas.height / SETTINGS_CONTENT_BOTTOM))
+    const thumbY = trackY + (trackH - thumbH) * (settingsScroll / _maxS)
+    ctx.fillStyle = "rgba(120,180,240,0.7)"; ctx.fillRect(trackX, thumbY, 4, thumbH)
+    if (settingsScroll < _maxS - 1) {
+      ctx.fillStyle = "rgba(180,210,255,0.85)"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+      ctx.fillText("scroll ▼", canvas.width - 54, canvas.height - 12)
+    }
+    ctx.textAlign = "center"
+  }
 }
 
 // ── CUSTOM PLAYLIST BROWSER (MUSIC_LIBRARY screen) ──────────────────────────
@@ -21044,64 +21075,65 @@ function handleMenuClicks() {
     }
     case GAME_STATES.SETTINGS: {
       _layoutSettings()   // keep rects in sync with the render before hit-testing
+      const _smy = mouse.y + settingsScroll   // SETTINGS page-scroll: hit-test in content space
       // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
-      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
-      if (pointInRect(mouse.x, mouse.y, p2SettingRect)) inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, _smy, p1SettingRect)) inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, _smy, p2SettingRect)) inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
       // Audio toggles — each independently mutes its own category (SFX / Music).
-      if (pointInRect(mouse.x, mouse.y, sfxToggleRect)) {
+      if (pointInRect(mouse.x, _smy, sfxToggleRect)) {
         audioSettings.sfxMuted = !audioSettings.sfxMuted
         sound.setSfxMuted?.(audioSettings.sfxMuted)
         persistCurrentSettings()   // settings changed → rewrite full save snapshot
       }
-      if (pointInRect(mouse.x, mouse.y, musicToggleRect)) {
+      if (pointInRect(mouse.x, _smy, musicToggleRect)) {
         audioSettings.musicMuted = !audioSettings.musicMuted
         sound.setMusicMuted?.(audioSettings.musicMuted)
         persistCurrentSettings()
       }
       // UI / Display scale stepper (Part 3 #13). Changing it re-sizes the canvas backing store live.
-      if (pointInRect(mouse.x, mouse.y, uiScaleMinusRect)) { setUiScale(uiScale - UI_SCALE_STEP); break }
-      if (pointInRect(mouse.x, mouse.y, uiScalePlusRect))  { setUiScale(uiScale + UI_SCALE_STEP); break }
+      if (pointInRect(mouse.x, _smy, uiScaleMinusRect)) { setUiScale(uiScale - UI_SCALE_STEP); break }
+      if (pointInRect(mouse.x, _smy, uiScalePlusRect))  { setUiScale(uiScale + UI_SCALE_STEP); break }
       // Blood hit-effects toggle (cosmetic; persisted to localStorage).
-      if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
-      if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
-      if (pointInRect(mouse.x, mouse.y, n7OirokeToggleRect)) { setNarutoSeventhOiroke(!narutoSeventhOirokeEnabled()); break }
+      if (pointInRect(mouse.x, _smy, bloodToggleRect))  { setBloodFx(!bloodFx); break }
+      if (pointInRect(mouse.x, _smy, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
+      if (pointInRect(mouse.x, _smy, n7OirokeToggleRect)) { setNarutoSeventhOiroke(!narutoSeventhOirokeEnabled()); break }
       // VISUAL FX (JUICE) — presentation-only, self-persisting (localStorage, like bloodFx/brutality).
-      if (pointInRect(mouse.x, mouse.y, juiceShakeRect))    { juiceSettings.cycleScreenShake(); break }   // Off → Low → Full
-      if (pointInRect(mouse.x, mouse.y, juiceFlashRect))    { juiceSettings.toggleReduceFlashing(); break }
-      if (pointInRect(mouse.x, mouse.y, juiceSlowmoRect))   { juiceSettings.toggleSlowMo(); break }
-      if (pointInRect(mouse.x, mouse.y, juiceParticleRect)) { juiceSettings.cycleParticles(); break }   // Low ↔ Full
-      if (pointInRect(mouse.x, mouse.y, hitFxRect))  { juiceSettings.cycleHitEffects(); break }   // HIT FEEL: Off → Low → Full
-      if (pointInRect(mouse.x, mouse.y, dmgNumRect)) { juiceSettings.toggleDmgNumbers(); break }
-      if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
-      if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
+      if (pointInRect(mouse.x, _smy, juiceShakeRect))    { juiceSettings.cycleScreenShake(); break }   // Off → Low → Full
+      if (pointInRect(mouse.x, _smy, juiceFlashRect))    { juiceSettings.toggleReduceFlashing(); break }
+      if (pointInRect(mouse.x, _smy, juiceSlowmoRect))   { juiceSettings.toggleSlowMo(); break }
+      if (pointInRect(mouse.x, _smy, juiceParticleRect)) { juiceSettings.cycleParticles(); break }   // Low ↔ Full
+      if (pointInRect(mouse.x, _smy, hitFxRect))  { juiceSettings.cycleHitEffects(); break }   // HIT FEEL: Off → Low → Full
+      if (pointInRect(mouse.x, _smy, dmgNumRect)) { juiceSettings.toggleDmgNumbers(); break }
+      if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
+      if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
-      const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
+      const kb = getKeybindRects().find(r => pointInRect(mouse.x, _smy, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
-      if (pointInRect(mouse.x, mouse.y, resetBindRect())) {
+      if (pointInRect(mouse.x, _smy, resetBindRect())) {
         Object.assign(P1_CONTROLS, DEFAULT_P1_CONTROLS); rebindAction = null; rebindWarning = "Defaults restored."
       }
       // PERSONALIZE BY PLAYSTYLE: reorder the menu playlist to the player's tracked Big-Five
       // profile. Manual (button-press) on purpose — no silent auto-reorder. Feedback in the label.
       // MUSIC SOURCE selector — pick default / personalized / custom as the active menu music.
-      { const sr = getMusicSourceRects().find(r => pointInRect(mouse.x, mouse.y, r))
+      { const sr = getMusicSourceRects().find(r => pointInRect(mouse.x, _smy, r))
         if (sr) { _selectMusicSource(sr.source); break } }
       // Build / Edit My Playlist → open the full-screen song browser (pre-checked from saved custom).
-      if (pointInRect(mouse.x, mouse.y, buildPlaylistRect)) { _openMusicLibrary(); break }
+      if (pointInRect(mouse.x, _smy, buildPlaylistRect)) { _openMusicLibrary(); break }
       // Menu-music playlist reorder: ▲ moves a track up, ▼ moves it down. sound.moveMenuTrack
       // mutates MENU_PLAYLIST in place (live sequence) and keeps the now-playing cursor pinned.
       for (const r of getPlaylistRects()) {
         // Arrows first (they sit inside the row's right edge): ▲/▼ reorder the upcoming sequence.
-        if (pointInRect(mouse.x, mouse.y, r.upRect))   { sound.moveMenuTrack?.(r.index, -1); persistCurrentSettings(); break }
-        if (pointInRect(mouse.x, mouse.y, r.downRect)) { sound.moveMenuTrack?.(r.index, +1); persistCurrentSettings(); break }
+        if (pointInRect(mouse.x, _smy, r.upRect))   { sound.moveMenuTrack?.(r.index, -1); persistCurrentSettings(); break }
+        if (pointInRect(mouse.x, _smy, r.downRect)) { sound.moveMenuTrack?.(r.index, +1); persistCurrentSettings(); break }
         // Row body → CLICK-TO-PLAY: switch the live track to this song right now (the fix for
         // "selecting a song doesn't change what's playing" — previously the row body had no handler).
-        if (pointInRect(mouse.x, mouse.y, r.rowRect))  { sound.selectMenuTrack?.(r.index); break }
+        if (pointInRect(mouse.x, _smy, r.rowRect))  { sound.selectMenuTrack?.(r.index); break }
       }
       // ── SAVE DATA: Export (blob download) / Import (file picker) / Reconnect (FSA gesture) ──
-      if (pointInRect(mouse.x, mouse.y, saveExportRect)) { doExportSave(); break }
-      if (pointInRect(mouse.x, mouse.y, saveImportRect)) { doImportSave(); break }
-      if (needsReconnect() && pointInRect(mouse.x, mouse.y, saveReconnectRect)) {
+      if (pointInRect(mouse.x, _smy, saveExportRect)) { doExportSave(); break }
+      if (pointInRect(mouse.x, _smy, saveImportRect)) { doImportSave(); break }
+      if (needsReconnect() && pointInRect(mouse.x, _smy, saveReconnectRect)) {
         // requestPermission() needs THIS gesture; reconnectSaveFile awaits it, then hydrates.
         reconnectSaveFile().then(r => {
           if (r?.ok) { hydrateFromLoadedSave(); _saveUiMsg = "Save file reconnected." }
@@ -21109,7 +21141,7 @@ function handleMenuClicks() {
         })
         break
       }
-      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; _musicSourceMsg = ""; gameState = GAME_STATES.START }
+      if (pointInRect(mouse.x, _smy, backSettingRect)) { rebindAction = null; _musicSourceMsg = ""; gameState = GAME_STATES.START }
       break
     }
     case GAME_STATES.MUSIC_LIBRARY: {

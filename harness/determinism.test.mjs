@@ -84,6 +84,36 @@ try {
   const diverged = JSON.stringify({ p1: r1.p1, p2: r1.p2 }) !== JSON.stringify({ p1: r3.p1, p2: r3.p2 });
   check("different seed → diverged fighter state", diverged, diverged ? "" : "seeds 7777 and 4242 produced identical state (suspicious)");
 
+  // ── (JUICE Phase 2) ULTIMATE slow-mo stays deterministic — with Slow-Mo ON and OFF ──────
+  // The slow-mo is a sim-side frame-skip (half speed) armed by the detonation event. It must not
+  // introduce nondeterminism: same seed → identical state, whether slow-mo is ON or OFF. We force a
+  // seed, run a match, fire an ULTIMATE explosion mid-run (arming slow-mo when ON), finish, and snapshot;
+  // repeating the exact sequence with the same seed must reproduce bit-identically for BOTH settings.
+  section("ULTIMATE slow-mo is deterministic (Slow-Mo ON and OFF)");
+  const runSlowmo = async (seed, slowOn) => page.evaluate(([s, on]) => {
+    window.__harness.juice.setSlowMo(on);
+    window.__harness.rng.forceSeed(s);
+    window.__harness.aiVsAi.start({ p1: "netero", p2: "beerus", matches: 1, speed: 1 });
+    window.__harness.aiVsAi.step(200);
+    window.__harness.juice.explode("ultimate");     // detonation event → arms slow-mo iff ON
+    const armed = window.__harness.juice.slowmoState().timer;
+    window.__harness.aiVsAi.step(160);
+    const snap = who => { const p = window.__harness[who](); return { x: +p.x.toFixed(4), y: +p.y.toFixed(4), health: p.health, energy: +(p.energy || 0).toFixed(4) }; };
+    return { armed, p1: snap("p1"), p2: snap("p2") };
+  }, [seed, slowOn]);
+
+  const on1 = await runSlowmo(31337, true);
+  const on2 = await runSlowmo(31337, true);
+  const off1 = await runSlowmo(31337, false);
+  const off2 = await runSlowmo(31337, false);
+  check("slow-mo ON actually arms on the ult detonation", on1.armed > 0, `armed=${on1.armed}`);
+  check("slow-mo OFF does NOT arm", off1.armed === 0, `armed=${off1.armed}`);
+  check("same seed + slow-mo ON → identical state",
+    JSON.stringify(on1) === JSON.stringify(on2), `a=${JSON.stringify(on1)} b=${JSON.stringify(on2)}`);
+  check("same seed + slow-mo OFF → identical state",
+    JSON.stringify({p1:off1.p1,p2:off1.p2}) === JSON.stringify({p1:off2.p1,p2:off2.p2}), `a=${JSON.stringify(off1)} b=${JSON.stringify(off2)}`);
+  await page.evaluate(() => window.__harness.juice.setSlowMo(true));   // restore default
+
   // ── auto-generated seed path (normal play) ───────────────────────────────
   section("normal play — fresh seed per match");
   const freshSeeds = await page.evaluate(() => {

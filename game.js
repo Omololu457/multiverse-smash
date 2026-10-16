@@ -546,8 +546,10 @@ import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
-import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
+import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant } from "./sound.js"
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
+import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
+import { fireJuiceExplosion, fireJuiceAnticipation, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion FX (presentation-only)
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -1887,6 +1889,20 @@ const KO_SHAKE_STRENGTH = 26, KO_SHAKE_FRAMES = 26, KO_SLOWMO_FRAMES = 30, KO_HA
 // Distinct from KO_SHAKE (camera) and KO_SLOWMO (1/3-speed): this is a true 0-motion hold. Kept short.
 const KO_FREEZE_FRAMES = 5
 let _koBeatFired = false, _koHangTimer = 0, _koFreeze = 0
+// ── JUICE explosions (Phase 2, presentation-only) ─────────────────────────────
+// Deterministic ULTIMATE slow-mo, mirroring the existing `slowdownTimer % 3` idiom
+// but HALF speed (% 2) and governed by the Slow-Mo setting + a 2 s cooldown; the
+// early-return runs BEFORE `_replayFrame++` (16187) so LAN peers pause the input
+// clock identically. `_juiceImpactFrame` = the 1-2f black/white (or soft-dim) flash.
+// `_juiceSlowmoNetFlag` carries the HOST's Slow-Mo setting in a LAN match so both
+// peers decide identically (null = standalone → use the local setting).
+const JUICE_SLOWMO_FRAMES   = 15    // ~0.25s window
+const JUICE_SLOWMO_COOLDOWN = 120   // max one slow-mo per 2s
+const JUICE_DET_COOLDOWN    = 8     // per-attacker: collapse a burst of sparks into ONE explosion
+let _juiceSlowmoTimer    = 0
+let _juiceSlowmoCooldown = 0
+let _juiceImpactFrame    = null     // { timer, maxTimer, tier, reduce }
+let _juiceSlowmoNetFlag  = null     // LAN: host-authoritative Slow-Mo flag (null = standalone)
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -2007,6 +2023,144 @@ function _drawImpactBurst() {
   }
   ctx.restore()
   if (--b.timer <= 0) _impactBurst = null
+}
+
+// ══ JUICE EXPLOSIONS (Phase 2) — presentation-only detonation treatment ═══════════════════════
+// Fired from the fresh-spark detonation hook (updateEffectsAndDomains). A spark carries the
+// combat-tagged attacker side, move name, category and WORLD hit point; juice_tiers classifies
+// the explosion tier. Reads sim state ONLY (never writes it) → determinism/LAN-safe.
+function _juiceFighterFor(side) {
+  if (!side) return null
+  for (const f of [p1, p2]) if (f && f.side === side) return f                      // 1v1
+  if (ffaState && ffaState.fighters) for (const f of ffaState.fighters) if (f && f.side === side) return f   // FFA p3/p4
+  if (side === "p1") return p1
+  if (side === "p2") return p2
+  return null
+}
+
+// Is a slow-mo forbidden right now? Never during KO, Domain events, or the Rick Prime rewind
+// (also finisher / impact-hit / existing KO slow-mo, which own the clock).
+function _juiceSlowmoBlocked() {
+  if (brutalityState.active || impactHitState.active) return true
+  if (_koFreeze > 0 || _koHangTimer > 0 || slowdownTimer > 0) return true            // KO beat / KO slow-mo
+  if ((p1 && p1.health <= 0) || (p2 && p2.health <= 0) || roundTimer <= 0) return true // KO
+  if (activeDomains.length > 0) return true                                           // Domain events
+  if (rewindState.active) return true                                                 // Rick Prime rewind
+  return false
+}
+
+// Whether slow-mo is enabled for THIS peer. Standalone → the local setting. In a LAN match → the
+// host's setting (replicated via MATCH_SETUP), so both peers skip/run the sim schedule identically.
+function _juiceSlowmoEnabled() {
+  if (netMatch.isActive() && _juiceSlowmoNetFlag !== null) return !!_juiceSlowmoNetFlag
+  return !!juiceSettings.slowMo
+}
+
+// Arm the deterministic ULTIMATE slow-mo (half speed ~0.25s). Guarded by the setting, the 2s
+// cooldown, and the KO/Domain/rewind block. Triggered by the sim detonation event → both peers arm
+// on the same sim frame. Audio-only cues layer on top (pitch drop in; rise-hold out at release).
+function _triggerJuiceSlowmo(frame, player) {
+  if (!_juiceSlowmoEnabled() || _juiceSlowmoCooldown > 0 || _juiceSlowmoTimer > 0) return
+  if (_juiceSlowmoBlocked()) return
+  _juiceSlowmoTimer    = JUICE_SLOWMO_FRAMES
+  _juiceSlowmoCooldown = JUICE_SLOWMO_COOLDOWN
+  sound.playJuiceSfx?.("pitch_drop_slowmo", { gain: 0.8, pitch: juicePitch(frame, player, 0.02) })
+}
+
+// The 1-2 frame impact frame: fighters as black silhouettes on a white flash (code-drawn below).
+// Reduce Flashing → a soft dim instead (no white, no silhouette). SMALL tier gets a bright flash, no
+// silhouette. Black silhouette reuses the existing render-only _impactFlash (sprite.js draws it).
+function _fireJuiceImpactFrame(tier, silhouettes = true) {
+  const reduce = !!juiceSettings.reduceFlashing
+  const frames = tier === "ultimate" ? 2 : tier === "medium" ? 1 : 0   // SMALL: flash only, no hold
+  _juiceImpactFrame = { timer: Math.max(frames, 1), maxTimer: Math.max(frames, 1), tier, reduce }
+  if (!reduce && frames >= 1 && silhouettes) {
+    // black silhouettes for the hold (reuse the Black-Flash marker at max extremity). 1v1 only — in FFA
+    // there are 4 fighters, so just the white flash (no p1/p2-specific silhouette stamp).
+    if (p1) _stampImpactFlash(p1, 3, frames, "ultimate", p1.comboCounter || 0, 0)
+    if (p2) _stampImpactFlash(p2, 3, frames, "ultimate", p2.comboCounter || 0, 0)
+  }
+}
+
+// Apply the full juice treatment for a KNOWN tier at a world point (FX + impact frame + shake + sound +
+// ult slow-mo). Split out so the combat path (classify first) and the test hook (fire a tier directly)
+// share one implementation. player (0/1) seeds the deterministic variation; isFFA gates silhouettes + slow-mo.
+function _applyJuiceTreatment(tier, x, y, player, isFFA) {
+  const frame = globalFrameCount
+  // 1) FX: fireball + debris + smoke (+ shockwave MEDIUM/ULT), pooled + deterministic.
+  fireJuiceExplosion({ x, y, tier, frame, player, groundY })
+  // 2) Impact frame + flash (MEDIUM/ULT silhouettes; SMALL bright flash; Reduce Flashing → soft dim).
+  _fireJuiceImpactFrame(tier, !isFFA)
+  // 3) Camera shake (Screen Shake setting gates magnitude inside camera.shake).
+  const shk = tier === "ultimate" ? 13 : tier === "medium" ? 8 : 4
+  camera.shake?.(shk, shk + (tier === "ultimate" ? 12 : 4))
+  // 4) Sound: crack at frame 0, boom 1-2f later (deterministic clip/pitch variation). Loudness lives
+  //    here, not in the files (all clips are -16 LUFS). ULT boom bypasses the duck bus + ducks others.
+  const crack = juicePickVariant(["impact_crack_01", "crack_sizzle_bright"], frame, player)
+  sound.playJuiceSfx?.(crack, { gain: tier === "ultimate" ? 0.9 : 0.7, pitch: juicePitch(frame, player) })
+  if (tier === "small") {
+    sound.playJuiceSfx?.("boom_medium_01", { gain: 0.5, pitch: juicePitch(frame + 2, player), delay: 1 / 60 })
+  } else if (tier === "medium") {
+    sound.playJuiceSfx?.("boom_medium_02", { gain: 0.75, pitch: juicePitch(frame + 2, player), delay: 2 / 60 })
+  } else {
+    const bigBoom = juicePickVariant(["boom_huge_01", "boom_huge_02_roar"], frame, player)
+    sound.playJuiceSfx?.(bigBoom, { gain: 1.0, pitch: juicePitch(frame + 2, player), delay: 2 / 60, ultBoom: true, duckSec: 0.6 })
+    sound.playJuiceSfx?.("rumble_tail_01", { gain: 0.6, delay: 6 / 60 })
+  }
+  // 5) ULTIMATE-only deterministic slow-mo at the peak. Not in FFA — a live 4-player match shouldn't
+  //    stall on every ult (mirrors the existing no-slow-mo-on-FFA-elimination decision).
+  if (tier === "ultimate" && !isFFA) _triggerJuiceSlowmo(frame, player)
+}
+
+// MAIN detonation entry — classify the explosive move, then fire the treatment for one explosive hit.
+function _fireJuiceDetonation(spark) {
+  if (!spark || brutalityState.active) return
+  const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
+  const f = _juiceFighterFor(side)
+  const isUlt = spark.category === "ultimate"
+  const move  = spark.moveName || (f && f.currentMove) || null
+  const tier  = f ? juiceTierForMove(f.rosterKey || f.id, { isUltimate: isUlt, ultVariant: f._ultVariant, currentMove: move, form: f._form })
+                  : (spark._juiceTier || null)       // test hook: explicit tier when no real fighter
+  if (!tier) return                                   // not an explosive move → no juice
+  // DEDUPE: an ult can spawn dozens of sparks — collapse a burst into ONE explosion per attacker.
+  if (f) { if ((f._juiceDetCd || 0) > 0) return; f._juiceDetCd = JUICE_DET_COOLDOWN }
+  const player = (side === "p2" || side === "p4") ? 1 : 0   // deterministic variation seed (parity by side)
+  _applyJuiceTreatment(tier, spark.x, spark.y, player, gameState === GAME_STATES.FFA_BATTLE)
+}
+
+// ANTICIPATION (startup ≥ 8f charge moves, from JUICE_ANTICIPATES): on the rising edge of a fighter
+// entering such a move, swell + redden the source (code-drawn) and start the charge riser. Pops at
+// detonation. Scanned once per sim frame per fighter; reads currentMove only.
+function _tickJuiceAnticipation(f, player) {
+  if (!f) return
+  const mv = f.currentMove
+  const prev = f._juicePrevMove
+  f._juicePrevMove = mv
+  if (mv && mv !== prev && JUICE_ANTICIPATES.has(mv)) {
+    const tier = juiceTierForMove(f.rosterKey || f.id, { currentMove: mv }) || "medium"
+    const cx = (f.x || 0) + (f.w || 60) / 2, cy = (f.y || 0) + (f.h || 100) * 0.42
+    fireJuiceAnticipation(cx, cy, tier)
+    sound.playJuiceSfx?.("charge_swell_riser", { gain: 0.5, pitch: juicePitch(globalFrameCount, player, 0.02) })
+    if (tier === "ultimate") sound.playJuiceSfx?.("charge_hum_rise", { gain: 0.4 })
+  }
+}
+
+// Screen-space impact-frame overlay: white flash + (SMALL) bright wash, or (Reduce Flashing) a soft
+// dim. The black silhouettes are drawn by sprite.js from _impactFlash; this is the full-screen layer.
+function _drawJuiceImpactFlash() {
+  const jf = _juiceImpactFrame
+  if (!jf || jf.timer <= 0) return
+  const env = jf.timer / jf.maxTimer
+  ctx.save()
+  if (jf.reduce) {
+    ctx.fillStyle = `rgba(0,0,0,${(0.22 * env).toFixed(3)})`         // accessibility: soft dim, no flash
+  } else {
+    const a = jf.tier === "small" ? 0.5 * env : 0.85 * env
+    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`              // pure white flash (silhouettes read as black on it)
+  }
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.restore()
+  if (--jf.timer <= 0) _juiceImpactFrame = null
 }
 
 // ── STAGE 3 — PANEL-STYLE ZOOM-CROP ON ULTIMATE CONNECT (camera only) ──────────────────────
@@ -3053,12 +3207,15 @@ function updateFFAEffects(live) {
   updateEnergyRegen(live)
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     const spark = hitSparks[i]
-    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); spark._fresh = false }
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); spark._fresh = false }   // JUICE (Phase 2): explosion detonation (FFA path)
     spark.timer--
     const _pAlive = _tickSparkParticles(spark)   // FFA path: same debris burst as the 1v1 loop
     if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
   }
   updateDamageNumbers()
+  // JUICE (Phase 2): per-attacker detonation cooldown + pooled FX advance (FFA path).
+  for (const f of live) if (f && f._juiceDetCd > 0) f._juiceDetCd--
+  updateJuiceFx()
 }
 
 // Spawn N fighters spread across the WIDE arena. In team mode fighters are ORDERED so
@@ -3793,6 +3950,7 @@ function resetRound() {
   impactHitState.active = false; impactHitState.timer = 0          // clear the Impact Hit cascade on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -4961,6 +5119,7 @@ function resetToStart() {
   damageNumbers.length = 0
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -5121,7 +5280,9 @@ function startOnlineHostMatch() {
     p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
     p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
     stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
+    slowMo: !!juiceSettings.slowMo,   // JUICE (Phase 2): host-authoritative Slow-Mo → both peers decide identically (LAN-safe)
   })
+  _juiceSlowmoNetFlag = !!juiceSettings.slowMo   // host uses its own setting
   netMatch.begin(online.getSession(), { localSide: "p1" })
   _forcedSeed = seed
   startMatch()
@@ -5135,6 +5296,7 @@ function applyOnlineSetup(m) {
   matchConfig.p2CharKey = m.p2Char; matchConfig.p2Char = characters[m.p2Char]
   matchConfig.p1Skin = m.p1Skin || "default"; matchConfig.p2Skin = m.p2Skin || "default"
   matchConfig.selectedStage = stages.find(s => s.name === m.stage) || stages[0]
+  _juiceSlowmoNetFlag = (typeof m.slowMo === "boolean") ? m.slowMo : null   // JUICE (Phase 2): adopt the host's Slow-Mo decision
   netMatch.begin(online.getSession(), { localSide: "p2" })
   _forcedSeed = (m.seed >>> 0)
   startMatch()
@@ -5145,6 +5307,7 @@ function leaveOnline(reason = null) {
   try { online.disconnect(reason) } catch {}
   netMatch.end()
   matchConfig.online = null
+  _juiceSlowmoNetFlag = null   // JUICE (Phase 2): back to the local Slow-Mo setting outside a LAN match
 }
 
 // ── AI vs AI — SPECTATOR / TESTING MODE ──────────────────────────────────────
@@ -6341,6 +6504,7 @@ function _doRematch() {
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
   _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx()
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -15685,6 +15849,7 @@ function updateEffectsAndDomains() {
       // path has no per-hit shake of its own — only wall-splat / hazard / ult cinematics do). Skipped on
       // block so a guarded hit doesn't shake like a clean landing.
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
+      _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
       spark._fresh = false
     }
     spark.timer--
@@ -15696,6 +15861,11 @@ function updateEffectsAndDomains() {
   updateDamageNumbers()
   updateComboDisplay(p1, "p1")
   updateComboDisplay(p2, "p2")
+  // ── JUICE (Phase 2): anticipation rising-edge + per-attacker detonation cooldown + FX advance ──
+  _tickJuiceAnticipation(p1, 0); _tickJuiceAnticipation(p2, 1)
+  if (p1 && p1._juiceDetCd > 0) p1._juiceDetCd--
+  if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
+  updateJuiceFx()   // advance pooled explosion FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
 
 // Edge-detect a raw key (true only on the frame it goes down). Used for the training
@@ -16122,6 +16292,18 @@ function updateBattle() {
     if (slowdownTimer % 3 !== 0) {
       if (slowdownTarget && typeof camera.advance === "function") camera.advance(canvas)
       else if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      return
+    }
+  }
+  // JUICE (Phase 2): ULTIMATE slow-mo — HALF speed (% 2) for ~0.25s at the peak. Same frame-skip idiom
+  // as the KO slow-mo above and ALSO before `_replayFrame++` (16335), so LAN peers pause the input clock
+  // identically. Cooldown always ticks. On release, play the pitch-rise-hold "out" sting.
+  if (_juiceSlowmoCooldown > 0) _juiceSlowmoCooldown--
+  if (_juiceSlowmoTimer > 0) {
+    _juiceSlowmoTimer--
+    if (_juiceSlowmoTimer === 0) sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6 })
+    if (_juiceSlowmoTimer % 2 !== 0) {
+      if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
   }
@@ -18605,6 +18787,7 @@ function drawBattleScene() {
   _drawHiruzenEnmaAura(p1)
   _drawHiruzenEnmaAura(p2)
   drawHitSparksEnhanced()
+  drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion fireball/debris/smoke/shockwave/swell (world space, over sparks)
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
@@ -19068,6 +19251,7 @@ function drawBattle() {
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
+  _drawJuiceImpactFlash()     // JUICE (Phase 2): explosion impact-frame white flash / soft dim (Reduce Flashing), over the scene, under HUD
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawBattleHud()
@@ -19166,6 +19350,7 @@ function drawFFAScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
   drawHitSparksEnhanced()
+  drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion FX (FFA scene, world space)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   ctx.restore()
 }
@@ -19236,6 +19421,7 @@ function drawFFAResult() {
 
 function drawFFABattle() {
   drawFFAScene()
+  _drawJuiceImpactFlash()   // JUICE (Phase 2): explosion impact-frame flash (FFA), over the scene, under HUD
   drawFFAHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, 1, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -23590,6 +23776,23 @@ gameLoop()
       sfxStatus:  ()   => sound.juiceStatus?.() || null,                      // decoded clips / voice cap / naruto-pool state
       playSfx:    (id, opts = {}) => sound.playJuiceSfx?.(id, opts),          // fire one juice clip (returns true if it played)
       narutoExtra:(on) => { sound.setJuiceNarutoExtra?.(on); return sound.isJuiceNarutoExtra?.() },
+      // ── Phase 2 (explosions + slow-mo) ──
+      fxStatus:   ()   => juiceFxStatus(),                                    // live pooled-FX counts (debris/smoke/fireballs/shockwaves/swells + cap)
+      // Fire a detonation of an EXPLICIT tier directly (bypasses combat classification) for render/perf
+      // shots. tier: small|medium|ultimate. Mirrors the real treatment exactly (FX + flash + shake + sound
+      // + ult slow-mo); slow-mo is gated OFF in FFA just like the real path.
+      explode:    (tier = "medium", x = null, y = null) => {
+        const f = p1 || p2
+        const ex = x != null ? x : (f ? (f.x || 0) + (f.w || 60) / 2 : canvas.width / 2)
+        const ey = y != null ? y : (f ? (f.y || 0) + (f.h || 100) * 0.42 : canvas.height / 2)
+        _applyJuiceTreatment(tier, ex, ey, 0, gameState === GAME_STATES.FFA_BATTLE)
+        return { tier, x: ex, y: ey, fx: juiceFxStatus(), slowmo: _juiceSlowmoTimer, impactFrame: !!_juiceImpactFrame }
+      },
+      slowmoState:()   => ({ timer: _juiceSlowmoTimer, cooldown: _juiceSlowmoCooldown, enabled: _juiceSlowmoEnabled(), blocked: _juiceSlowmoBlocked(), netFlag: _juiceSlowmoNetFlag }),
+      impactFrame:()   => _juiceImpactFrame ? { ..._juiceImpactFrame } : null,
+      setNetSlowMo:(v) => { _juiceSlowmoNetFlag = (v == null ? null : !!v); return _juiceSlowmoNetFlag },   // simulate a LAN host decision
+      anticipate: (tier = "medium") => { const f = p1 || p2; fireJuiceAnticipation((f?.x || 0) + (f?.w || 60) / 2, (f?.y || 0) + (f?.h || 100) * 0.42, tier); return juiceFxStatus().swells },
+      shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
     },
     // HUD boss-bar variant proof (Stage 4): flag P2 as an arcade boss so the HUD draws the single
     // wide center-draining boss bar (view-only; does not change combat). Mirrors the p2._isBoss branch.

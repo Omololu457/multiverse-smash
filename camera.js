@@ -1,5 +1,6 @@
 // camera.js — smooth dynamic camera. Frames BOTH fighters, follows high jumps,
 // and NEVER hard-snaps, so attacks/knockback/shake can't make the screen jerk.
+import { juiceSettings } from "./juiceSettings.js"   // Screen Shake setting (Off/Low/Full) gates camera.shake()
 
 function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
 function lerp(a, b, t) { return a + (b - a) * t }
@@ -86,8 +87,12 @@ export const camera = {
   },
 
   shake(strength = 10, duration = 15) {
+    // Screen Shake setting (accessibility): Off → no shake at all; Low → half; Full → as-is.
+    // Applied here so the setting governs ALL camera shake (JUICE explosions + every existing caller).
+    const scale = juiceSettings.shakeScale()
+    if (scale <= 0) return
     // Cap shake so it can never look like a glitch.
-    strength = Math.min(strength, 14)
+    strength = Math.min(strength, 14) * scale
     this.shakeStrength = Math.max(this.shakeTimer > 0 ? this.shakeStrength : 0, strength)
     this.shakeTimer = Math.max(this.shakeTimer, duration)
   },

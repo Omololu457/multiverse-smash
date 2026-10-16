@@ -911,6 +911,7 @@
     "test:form-transform-cine": "node harness/form_transform_cinematic.test.mjs",
     "test:naoya-redesign": "node harness/naoya_redesign.test.mjs",
     "test:sz-hitsound-phase1": "node harness/sz_hitsound_phase1_live.mjs",
+    "test:sz-hitsound-phase2": "node harness/sz_hitsound_phase2_live.mjs",
     "test:track-a-juice": "node harness/track_a_juice.mjs",
     "test:track-c-specials": "node harness/track_c_specials.mjs",
     "test:track-d-cine": "node harness/track_d_cine.mjs",

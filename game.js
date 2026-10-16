@@ -549,7 +549,7 @@ import {
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant, juiceHash } from "./sound.js"
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
-import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit FX (presentation-only)
+import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS } from "./sfx_map.js"   // SPARKING ZERO hit-sound pack — tier → clip mapping table
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
@@ -2153,6 +2153,8 @@ function _tickJuiceAnticipation(f, player) {
     const tier = juiceTierForMove(f.rosterKey || f.id, { currentMove: mv }) || "medium"
     const cx = (f.x || 0) + (f.w || 60) / 2, cy = (f.y || 0) + (f.h || 100) * 0.42
     fireJuiceAnticipation(cx, cy, tier)
+    // DISNEY (Phase B): charge-in — particles pulled IN toward the source hand (+ the swelling core above).
+    if (juiceSettings.hitEffectsOn()) fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player, tier })
     sound.playJuiceSfx?.("charge_swell_riser", { gain: 0.5, pitch: juicePitch(globalFrameCount, player, 0.02) })
     if (tier === "ultimate") sound.playJuiceSfx?.("charge_hum_rise", { gain: 0.4 })
   }
@@ -2258,8 +2260,17 @@ function _fireHitFeel(spark) {
   // KNOCKBACK FEEL — target sprite nudged PAST its sim position (eased back); attacker recoils on HEAVY/FINISHER.
   if (target) target._hitKbOffset = (target._hitKbOffset || 0) + dir * HITFEEL.kbOffset[tier]
   if (attacker && HITFEEL.attackerRecoil[tier]) attacker._hitKbOffset = (attacker._hitKbOffset || 0) - dir * HITFEEL.attackerRecoil[tier]
+  // DISNEY (Phase B) SQUASH — the target squashes on the hit (scaleY 0.9, scaleX 1.08 for 3f), then eases back.
+  if (target) target._hitSquash = { t: 0 }
   // SHAKE — tiny tier-scaled kick (respects the Screen Shake setting inside camera.shake).
   if (HITFEEL.shake[tier]) camera.shake?.(HITFEEL.shake[tier], HITFEEL.shake[tier] + 2)
+}
+
+// DISNEY (Phase B): target hit-squash timeline — scaleX 1.08 / scaleY 0.9 for 3f, ease to 1,1 by ~8f.
+function _hitSquashAt(t) {
+  if (t < 3) return { sx: 1.08, sy: 0.90 }
+  if (t < 8) { const k = (t - 3) / 5; return { sx: 1.08 + (1 - 1.08) * k, sy: 0.90 + (1 - 0.90) * k } }
+  return null
 }
 
 // KO POP — a burst of coloured pieces on the FINAL hit (not during a Brutality finish, which owns its own
@@ -2277,6 +2288,7 @@ function _fireHitFeelKo(loser) {
 function _tickHitFeel(f) {
   if (!f) return
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
+  if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
 }
 
 // ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
@@ -2353,7 +2365,7 @@ function _clearJuiceDashFx() {
     if (!f) continue
     f._juiceDashFx = null; f._juiceDashSquash = null; f._juiceDashTrail = false
     f._juiceTrailBuf = null; f._juicePrevDashT = 0; f._juicePrevAirDash = false
-    f._hitKbOffset = 0; f._hfComboDmg = 0   // HIT FEEL (Phase A): clear visual knockback + combo-total
+    f._hitKbOffset = 0; f._hfComboDmg = 0; f._hitSquash = null   // HIT FEEL (Phase A) + DISNEY (Phase B): clear kb/combo/hit-squash
   }
 }
 
@@ -17302,12 +17314,15 @@ function renderHybridFighter(fighter) {
     // wrap ONLY the body draw (not the trail/auras), scaled about the feet. Render-only transforms; the
     // knockback offset moves the SPRITE a few px past its sim position (hitboxes are never touched).
     const _jsq = fighter._juiceDashSquash
+    const _hsq = fighter._hitSquash ? _hitSquashAt(fighter._hitSquash.t) : null   // DISNEY (Phase B) target hit-squash
     const _kbx = Math.round(fighter._hitKbOffset || 0)
-    const _bodyWrap = !!_jsq || _kbx !== 0
+    const _bodyWrap = !!_jsq || !!_hsq || _kbx !== 0
     if (_bodyWrap) {
       c.save()
       if (_kbx) c.translate(_kbx, 0)
-      if (_jsq) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _jsq.lean, ay); c.scale(_jsq.sx, _jsq.sy); c.translate(-ax, -ay) }
+      // Combine dash squash/stretch (+ wind-up lean) and the hit-squash, scaled about the feet.
+      const _sx = (_jsq ? _jsq.sx : 1) * (_hsq ? _hsq.sx : 1), _sy = (_jsq ? _jsq.sy : 1) * (_hsq ? _hsq.sy : 1), _lean = _jsq ? _jsq.lean : 0
+      if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
     const _ssA = _shadowSinkBodyAlpha(fighter)
@@ -24100,7 +24115,10 @@ gameLoop()
       slowmoState:()   => ({ timer: _juiceSlowmoTimer, cooldown: _juiceSlowmoCooldown, enabled: _juiceSlowmoEnabled(), blocked: _juiceSlowmoBlocked(), netFlag: _juiceSlowmoNetFlag }),
       impactFrame:()   => _juiceImpactFrame ? { ..._juiceImpactFrame } : null,
       setNetSlowMo:(v) => { _juiceSlowmoNetFlag = (v == null ? null : !!v); return _juiceSlowmoNetFlag },   // simulate a LAN host decision
-      anticipate: (tier = "medium") => { const f = p1 || p2; fireJuiceAnticipation((f?.x || 0) + (f?.w || 60) / 2, (f?.y || 0) + (f?.h || 100) * 0.42, tier); return juiceFxStatus().swells },
+      anticipate: (tier = "medium") => { const f = p1 || p2; const cx = (f?.x || 0) + (f?.w || 60) / 2, cy = (f?.y || 0) + (f?.h || 100) * 0.42; fireJuiceAnticipation(cx, cy, tier); fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player: 0, tier }); return juiceFxStatus() },   // DISNEY (Phase B): swell + charge-in
+      squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash
+      spawnTestProjectile: () => { const f = p1 || p2; const proj = { x: (f?.x || 400), y: (f?.y || 300) - 170, vx: 6, vy: 0, radius: 18, isSpecial: true, name: "testProj", owner: f, ownerId: f?.side || "p1", lifetime: 300, damage: 0 }; activeProjectiles.push(proj); window.__hfTestProj = proj; return { pushed: true, n: activeProjectiles.length } },
+      projTrailLen: () => (window.__hfTestProj && window.__hfTestProj._jtrail) ? window.__hfTestProj._jtrail.length : 0,   // DISNEY (Phase B): projectile trail ring-buffer length
       shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
       // ── Phase 3 (dashes) ──
       dash:       (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },   // arm a REAL ground dash (physics consumes next frame)

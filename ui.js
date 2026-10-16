@@ -11,6 +11,7 @@ import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
 import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controller glyphs (Xbox/PS/Switch)
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
+import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -3443,11 +3444,37 @@ function _projImg(src) {
   return img
 }
 
+// HIT FEEL (Phase B — Disney layer): a lagging velocity-aligned TRAIL behind every projectile. The ribbon
+// of recent positions reads as both "stretch along velocity" and a trail that lags a few frames behind,
+// WITHOUT distorting bespoke projectile art. Tinted by element (p._jcolor, set by Phase D) or generic
+// ki/energy cyan. Render-only; gated by Hit Effects. The buffer lives on the projectile object (no alloc
+// churn beyond a bounded ring). Drawn BEFORE the projectile body so the body sits on top.
+function _drawProjectileTrail(ctx, p, x, y) {
+  if (!juiceSettings.hitEffectsOn() || p.visualOnly) return
+  if (!p._jtrail) p._jtrail = []
+  const buf = p._jtrail
+  buf.push({ x, y })
+  const CAP = 8
+  while (buf.length > CAP) buf.shift()
+  if (buf.length < 3) return
+  const col = p._jcolor || [150, 220, 255]   // [r,g,b] — Phase D sets p._jcolor by element
+  const R = Math.max(5, (p.radius || p.w || 14) * 0.6)
+  ctx.save(); ctx.globalCompositeOperation = "lighter"
+  for (let i = 0; i < buf.length - 1; i++) {
+    const a = (i / buf.length) * 0.4            // older = fainter
+    const rr = R * (0.3 + 0.7 * (i / buf.length))
+    ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${a.toFixed(3)})`
+    ctx.beginPath(); ctx.arc(buf[i].x, buf[i].y, rr, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
 export function drawProjectiles(ctx, projectiles = [], camera = null) {
   if (!Array.isArray(projectiles)) return
   projectiles.forEach(p => {
     const x = p.x ?? 0
     const y = p.y ?? 0
+    _drawProjectileTrail(ctx, p, x, y)   // HIT FEEL (Phase B): lagging velocity trail, behind the projectile body
 
     // OPTIONAL SPRITE HOOK (Task 3): if the projectile carries a `sheet` (a
     // horizontal strip of `spriteFrames` cells of `spriteW`×`spriteH`), draw the

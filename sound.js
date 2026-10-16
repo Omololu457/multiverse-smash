@@ -1385,6 +1385,48 @@ class SoundManager {
     } catch (_) { return false }
   }
 
+  // Play a juice clip but RETURN A HANDLE so the caller can stop it early with a fade
+  // (multi-hit flurry cut short on interrupt) or crossfade into another (barrage chaining).
+  // Same cap / mute / gesture rules as playJuiceSfx. opts: gain, pitch, fadeIn (sec),
+  // ultBoom, duckSec. Returns { id, duration, stop(fadeSec) } or null if it couldn't play.
+  // Audio-only; never reads gameRng or touches the sim.
+  playJuiceSfxTracked(id, opts = {}) {
+    if (this._sfxMuted || !this._gestured || !this._ctx || !this._ready) return null
+    if (this._ctx.state === "suspended") { try { this._ctx.resume() } catch (_) {} }
+    const buf = this._juiceBuffers.get(id)
+    if (!buf) return null
+    this._pruneJuiceVoices()
+    if (this._juiceActive.length >= JUICE_VOICE_CAP) {
+      if (!opts.ultBoom) return null
+      const victim = this._juiceActive.shift(); try { victim && victim.src && victim.src.stop() } catch (_) {}
+    }
+    try {
+      const ctx = this._ctx, now = ctx.currentTime
+      const src = ctx.createBufferSource(); src.buffer = buf
+      src.playbackRate.value = (typeof opts.pitch === "number" && opts.pitch > 0) ? opts.pitch : 1
+      const g = ctx.createGain()
+      const target = Math.max(0, (typeof opts.gain === "number") ? opts.gain : 1)
+      const fin = Math.max(0, opts.fadeIn || 0)
+      if (fin > 0) { g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(target, now + fin) } else g.gain.value = target
+      src.connect(g); g.connect(opts.ultBoom ? this._master : (this._juiceBus || this._master))
+      if (opts.ultBoom) this._juiceDuck(opts.duckSec || 0.5)
+      src.start(now)
+      const dur = buf.duration / (src.playbackRate.value || 1)
+      const entry = { src, end: now + dur }; this._juiceActive.push(entry)
+      src.onended = () => { const i = this._juiceActive.indexOf(entry); if (i >= 0) this._juiceActive.splice(i, 1) }
+      return {
+        id, duration: dur,
+        stop(fadeSec = 0.12) {
+          try {
+            const t = ctx.currentTime, f = Math.max(0.02, fadeSec)
+            g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + f)
+            src.stop(t + f + 0.02); entry.end = t + f + 0.02
+          } catch (_) {}
+        },
+      }
+    } catch (_) { return null }
+  }
+
   // Diagnostics (harness/report): what loaded, the voice cap, naruto-pool state.
   juiceStatus() {
     return {

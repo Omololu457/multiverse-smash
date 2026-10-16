@@ -39,7 +39,7 @@ const rnd = (a, b, c) => (hash3(a, b, c) % 100000) / 100000   // 0..1
 
 // ── pools (preallocated once; no per-frame allocation) ───────────────────────
 function mkPool(n, shape) { const a = new Array(n); for (let i = 0; i < n; i++) a[i] = { active: false, ...shape() }; return a }
-const debris    = mkPool(DEBRIS_MAX,  () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 3, life: 0, maxLife: 1, groundY: 0, bounced: false, r: 200, g: 150, b: 90 }))
+const debris    = mkPool(DEBRIS_MAX,  () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 3, life: 0, maxLife: 1, groundY: 0, bounced: false, noGrav: false, r: 200, g: 150, b: 90 }))
 const smoke     = mkPool(SMOKE_MAX,   () => ({ x: 0, y: 0, vx: 0, vy: 0, size: 6, grow: 0.4, life: 0, maxLife: 1, shade: 90, dust: false }))
 const fireballs = mkPool(FIREBALL_MAX,() => ({ x: 0, y: 0, rMax: 40, age: 0, grow: 6, fade: 30, tier: "small" }))
 const shocks    = mkPool(SHOCK_MAX,   () => ({ x: 0, y: 0, groundY: 0, age: 0, maxAge: 26, rMax: 120, tier: "medium" }))
@@ -78,7 +78,7 @@ export function fireJuiceExplosion({ x, y, tier = "medium", frame = 0, player = 
     const d = acquire(debris); if (!d) break
     const ang = rnd(seed, 101, i) * Math.PI * 2
     const spd = (2 + rnd(seed, 103, i) * 4) * (tier === "ultimate" ? 1.6 : tier === "medium" ? 1.2 : 1)
-    d.active = true; d.x = x; d.y = y
+    d.active = true; d.x = x; d.y = y; d.noGrav = false
     d.vx = Math.cos(ang) * spd
     d.vy = -Math.abs(Math.sin(ang) * spd) - 1.5          // biased upward → arcs out
     d.size = 2 + rnd(seed, 107, i) * (tier === "ultimate" ? 4 : 3)
@@ -139,7 +139,7 @@ export function fireJuiceHitSpark({ x, y, dir = 1, count = 6, speed = 4, frame =
     const d = acquire(debris); if (!d) break
     const ang = base + (rnd(seed, 401, i) - 0.5) * 1.6     // ±0.8 rad cone around the hit direction
     const sp = speed * (0.6 + rnd(seed, 403, i) * 0.8)
-    d.active = true; d.x = x; d.y = y
+    d.active = true; d.x = x; d.y = y; d.noGrav = false
     d.vx = Math.cos(ang) * sp
     d.vy = Math.sin(ang) * sp - (0.5 + rnd(seed, 405, i) * 1.5)   // slight upward pop → the spark ARCS
     d.size = 1.5 + rnd(seed, 407, i) * 2.2
@@ -158,7 +158,7 @@ export function fireJuiceKoPop({ x, y, groundY = 0, frame = 0, player = 0, color
     const d = acquire(debris); if (!d) break
     const ang = rnd(seed, 501, i) * Math.PI * 2
     const sp = 2 + rnd(seed, 503, i) * 5
-    d.active = true; d.x = x; d.y = y
+    d.active = true; d.x = x; d.y = y; d.noGrav = false
     d.vx = Math.cos(ang) * sp; d.vy = -Math.abs(Math.sin(ang) * sp) - 2
     d.size = 2 + rnd(seed, 505, i) * 4
     d.maxLife = d.life = 30 + Math.floor(rnd(seed, 507, i) * 30)
@@ -168,11 +168,31 @@ export function fireJuiceKoPop({ x, y, groundY = 0, frame = 0, player = 0, color
   }
 }
 
+// ── DISNEY (Phase B): CHARGE-IN — particles pulled IN from a ring toward the source (converging) ──
+export function fireJuiceChargeIn({ x, y, frame = 0, player = 0, tier = "medium", color = null }) {
+  const n = Math.max(1, Math.round((tier === "ultimate" ? 12 : 8) * juiceSettings.hitEffectScale()))
+  const seed = (frame * 263 + player * 619) >>> 0
+  const R = tier === "ultimate" ? 90 : 60
+  for (let i = 0; i < n; i++) {
+    const d = acquire(debris); if (!d) break
+    const ang = rnd(seed, 601, i) * Math.PI * 2
+    const r0 = R * (0.7 + rnd(seed, 603, i) * 0.4)
+    d.active = true; d.noGrav = true; d.bounced = true; d.groundY = 0
+    d.x = x + Math.cos(ang) * r0; d.y = y + Math.sin(ang) * r0
+    const sp = r0 / (10 + rnd(seed, 605, i) * 6)          // arrive at the core in ~10-16f
+    d.vx = -Math.cos(ang) * sp; d.vy = -Math.sin(ang) * sp
+    d.size = 1.2 + rnd(seed, 607, i) * 2
+    d.maxLife = d.life = 10 + Math.floor(rnd(seed, 609, i) * 6)
+    const c = color || [150, 220, 255]                    // generic ki/energy; Phase D tints by element
+    d.r = c[0]; d.g = c[1]; d.b = c[2]
+  }
+}
+
 // ── advance all pools one sim frame (deterministic; call each sim frame) ──────
 export function updateJuiceFx() {
   for (const d of debris) {
     if (!d.active) continue
-    d.vy += 0.35                                          // gravity
+    if (!d.noGrav) d.vy += 0.35                           // gravity (charge-in particles float straight in)
     d.x += d.vx; d.y += d.vy
     if (!d.bounced && d.groundY && d.y >= d.groundY) {    // bounce ONCE
       d.y = d.groundY; d.vy = -d.vy * 0.42; d.vx *= 0.6; d.bounced = true

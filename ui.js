@@ -3440,9 +3440,9 @@ function drawStageAtmosphere(ctx, worldWidth, covTop, covBot, groundY, accent) {
   const H = covBot - covTop
   // 1) DARK MOOD GRADE — deepen the scene; stronger at top & bottom = depth.
   const grade = ctx.createLinearGradient(0, covTop, 0, covBot)
-  grade.addColorStop(0,    "rgba(8,10,20,0.50)")
-  grade.addColorStop(0.52, "rgba(12,14,24,0.12)")
-  grade.addColorStop(1,    "rgba(5,7,14,0.58)")
+  grade.addColorStop(0,    "rgba(8,10,20,0.58)")
+  grade.addColorStop(0.52, "rgba(12,14,24,0.22)")
+  grade.addColorStop(1,    "rgba(5,7,14,0.66)")
   ctx.save()
   ctx.fillStyle = grade; ctx.fillRect(0, covTop, worldWidth, H)
   // 2) DRIFTING FOG — 3 parallax layers (back = slow/faint/high, front = faster/lower).

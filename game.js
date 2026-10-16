@@ -1911,6 +1911,13 @@ let _juiceSlowmoTimer    = 0
 let _juiceSlowmoCooldown = 0
 let _juiceImpactFrame    = null     // { timer, maxTimer, tier, reduce }
 let _juiceSlowmoNetFlag  = null     // LAN: host-authoritative Slow-Mo flag (null = standalone)
+// HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s). A deterministic freeze (LAN-safe,
+// before _replayFrame++) → black silhouettes on a bright flash → negative INVERT → radial burst lines →
+// hard punch-in zoom → snap back with a colour flash. Reduce Flashing → soft dim, no invert/strobe.
+let _animFin        = null   // { t, x, y, player, reduce } | null  (render-only sequence state)
+let _animFinFreeze  = 0      // deterministic hard-freeze frames remaining (mirrors _koFreeze)
+let _animFinCd      = 0      // cooldown frames until the next finisher is allowed
+let _animFinZoomHeld = false // whether we applied a camera punch-in that must be released
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -2264,6 +2271,8 @@ function _fireHitFeel(spark) {
   if (target) target._hitSquash = { t: 0 }
   // SHAKE — tiny tier-scaled kick (respects the Screen Shake setting inside camera.shake).
   if (HITFEEL.shake[tier]) camera.shake?.(HITFEEL.shake[tier], HITFEEL.shake[tier] + 2)
+  // ANIME FINISHER (Phase C) — dramatic freeze/silhouette/invert/burst/punch-in on a FINISHER hit.
+  if (tier === HIT_TIER.FINISHER) _triggerAnimFinisher(x, y, player)
 }
 
 // DISNEY (Phase B): target hit-squash timeline — scaleX 1.08 / scaleY 0.9 for 3f, ease to 1,1 by ~8f.
@@ -2289,6 +2298,68 @@ function _tickHitFeel(f) {
   if (!f) return
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
   if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
+}
+
+// ══ HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s) ═══════════════════════════════
+// freeze → black silhouettes on a bright flash → negative invert → radial burst lines → hard punch-in →
+// snap back with a colour flash. The FREEZE is a deterministic frame-step (LAN-safe; runs before
+// _replayFrame++). Never during KO / Domain / Rick Prime rewind / Brutality (reuses _juiceSlowmoBlocked),
+// and not in FFA (a 4-player match shouldn't stall). Reduce Flashing → soft dim, no invert/strobing.
+function _triggerAnimFinisher(x, y, player) {
+  if (!juiceSettings.hitEffectsOn() || !juiceSettings.animFinisher) return
+  if (gameState === GAME_STATES.FFA_BATTLE) return
+  if (_animFin || _animFinFreeze > 0 || _animFinCd > 0) return
+  if (_juiceSlowmoBlocked()) return
+  const reduce = !!juiceSettings.reduceFlashing
+  _animFin = { t: 0, x, y, player, reduce }
+  _animFinFreeze = HITFEEL.finisher.freezeFrames
+  _animFinCd = HITFEEL.finisher.cooldownFrames
+  _juiceSlowmoTimer = 0                      // the finisher REPLACES the ult slow-mo (no double cinematic)
+  if (!reduce) {                             // black silhouettes for the silhouette beat (reuse the flash marker)
+    if (p1) _stampImpactFlash(p1, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
+    if (p2) _stampImpactFlash(p2, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
+  }
+  // PUNCH-IN: hard zoom toward the hit point; the normal two-shot reframe eases it back out after the freeze.
+  camera.targetZoom = Math.min(camera.maxZoom || 2.6, (camera.targetZoom || camera.zoom || 1) * HITFEEL.finisher.zoomIn)
+  if (camera.focusOnFighter && (p1 || p2)) { /* keep focus on the clash; two-shot resumes after */ }
+  sound.playJuiceSfx?.("impact_crack_01", { gain: 0.9, pitch: juicePitch(globalFrameCount, player) })
+  sound.playJuiceSfx?.("boom_huge_01", { gain: 0.9, delay: 2 / 60, ultBoom: true })
+  sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6, delay: HITFEEL.finisher.freezeFrames / 60 })
+}
+
+function _tickAnimFinisher() {
+  if (_animFinCd > 0) _animFinCd--   // cooldown ticks in SIM time (paused during the freeze — negligible)
+}
+
+// Screen-space finisher overlay (over the scene, UNDER the HUD so bars stay readable).
+function _drawAnimFinisher() {
+  if (!_animFin) return
+  const f = _animFin, t = f.t, w = canvas.width, h = canvas.height, F = HITFEEL.finisher
+  ctx.save()
+  if (f.reduce) {
+    const env = Math.max(0, 1 - t / (F.freezeFrames + 8))                 // photosensitivity: steady soft dim, no strobe/invert
+    ctx.fillStyle = `rgba(0,0,0,${(0.32 * env).toFixed(3)})`; ctx.fillRect(0, 0, w, h)
+  } else {
+    if (t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.fillRect(0, 0, w, h) }                 // SILHOUETTE: bright flash
+    else if (t < F.silhouetteFrames + F.invertFrames) { ctx.globalCompositeOperation = "difference"; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = "source-over" }   // INVERT (negative)
+    else if (t >= F.freezeFrames + 5 && t < F.freezeFrames + 8) { ctx.fillStyle = "rgba(255,90,60,0.22)"; ctx.fillRect(0, 0, w, h) }   // snap-back colour flash
+  }
+  // BURST LINES: sharp radial spikes from the hit point (fade over the sequence).
+  if (t < F.freezeFrames + 8) {
+    const sp = _worldToScreen(f.x, f.y), env = Math.max(0, 1 - t / (F.freezeFrames + 8))
+    ctx.strokeStyle = f.reduce ? `rgba(200,210,230,${(0.5 * env).toFixed(3)})` : `rgba(255,250,235,${(0.95 * env).toFixed(3)})`
+    ctx.lineWidth = 2 + 2 * env; ctx.lineCap = "round"
+    const maxLen = Math.max(w, h) * (0.5 + 0.35 * env)
+    for (let i = 0; i < F.burstLines; i++) {
+      const ang = (i / F.burstLines) * Math.PI * 2 + (f.player ? 0.12 : 0)
+      const r1 = maxLen * (0.55 + 0.45 * (((i * 2654435761) >>> 0) % 100 / 100))
+      ctx.beginPath(); ctx.moveTo(sp.x + Math.cos(ang) * 42, sp.y + Math.sin(ang) * 42); ctx.lineTo(sp.x + Math.cos(ang) * r1, sp.y + Math.sin(ang) * r1); ctx.stroke()
+    }
+  }
+  ctx.restore()
+  // Advance the sequence here (the draw runs EVERY frame, incl. the freeze frames where the sim update is
+  // skipped) so the silhouette→invert→burst beats play on time. Render-only; not sim state.
+  if (gameState !== GAME_STATES.PAUSED) { _animFin.t++; if (_animFin.t >= F.freezeFrames + 12) _animFin = null }
 }
 
 // ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
@@ -4187,7 +4258,7 @@ function resetRound() {
   impactHitState.active = false; impactHitState.timer = 0          // clear the Impact Hit cascade on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -5356,7 +5427,7 @@ function resetToStart() {
   damageNumbers.length = 0
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -6741,7 +6812,7 @@ function _doRematch() {
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
   _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -16125,6 +16196,7 @@ function updateEffectsAndDomains() {
   if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
   _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
   _tickHitFeel(p1); _tickHitFeel(p2)             // HIT FEEL (Phase A): ease the visual knockback offset back
+  _tickAnimFinisher()                            // HIT FEEL (Phase C): advance the anime-finisher sequence + cooldown
   updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
 
@@ -16480,8 +16552,8 @@ function _drawStageVignette() {
   const w = canvas.width, h = canvas.height
   const g = ctx.createRadialGradient(w / 2, h * 0.46, Math.min(w, h) * 0.32, w / 2, h * 0.5, Math.max(w, h) * 0.72)
   g.addColorStop(0, "rgba(0,0,0,0)")
-  g.addColorStop(0.7, "rgba(4,6,12,0.12)")
-  g.addColorStop(1, "rgba(2,3,8,0.42)")
+  g.addColorStop(0.7, "rgba(4,6,12,0.18)")
+  g.addColorStop(1, "rgba(2,3,8,0.52)")
   ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore()
 }
 
@@ -16580,6 +16652,13 @@ function updateBattle() {
       if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
+  }
+  // ANIME FINISHER (Phase C): deterministic hard FREEZE (0 motion) — like _koFreeze, BEFORE _replayFrame++ so
+  // LAN peers pause the input clock identically. Only the camera advances (the punch-in zoom eases in).
+  if (_animFinFreeze > 0) {
+    _animFinFreeze--
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
   }
 
   // Susanoo (either fighter) PAUSES the round clock — a 20s sustained giant form shouldn't
@@ -19543,6 +19622,7 @@ function drawBattle() {
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
   _drawJuiceImpactFlash()     // JUICE (Phase 2): explosion impact-frame white flash / soft dim (Reduce Flashing), over the scene, under HUD
+  _drawAnimFinisher()         // HIT FEEL (Phase C): anime-finisher silhouette/invert/burst-lines overlay, over the scene, under HUD
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawBattleHud()
@@ -24138,6 +24218,10 @@ gameLoop()
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash
       spawnTestProjectile: () => { const f = p1 || p2; const proj = { x: (f?.x || 400), y: (f?.y || 300) - 170, vx: 6, vy: 0, radius: 18, isSpecial: true, name: "testProj", owner: f, ownerId: f?.side || "p1", lifetime: 300, damage: 0 }; activeProjectiles.push(proj); window.__hfTestProj = proj; return { pushed: true, n: activeProjectiles.length } },
       projTrailLen: () => (window.__hfTestProj && window.__hfTestProj._jtrail) ? window.__hfTestProj._jtrail.length : 0,   // DISNEY (Phase B): projectile trail ring-buffer length
+      // ── Phase C (anime finisher) ──
+      setAnimFinisher: (on) => { juiceSettings.setAnimFinisher(on); return juiceSettings.animFinisher },
+      triggerFinisher: () => { const f = p1 || p2; const x = f ? (f.x || 0) + (f.w || 60) / 2 : canvas.width / 2, y = f ? (f.y || 0) + (f.h || 100) * 0.42 : canvas.height / 2; _triggerAnimFinisher(x, y, 0); return { active: !!_animFin, freeze: _animFinFreeze, cooldown: _animFinCd } },
+      finisherState: () => ({ active: !!_animFin, t: _animFin ? _animFin.t : -1, reduce: _animFin ? _animFin.reduce : null, freeze: _animFinFreeze, cooldown: _animFinCd }),
       shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
       // ── Phase 3 (dashes) ──
       dash:       (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },   // arm a REAL ground dash (physics consumes next frame)

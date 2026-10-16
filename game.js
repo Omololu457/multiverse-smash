@@ -547,6 +547,7 @@ import {
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
+import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -19289,6 +19290,12 @@ const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
 const touchToggleRect = { x: 0, y: 448, w: 190, h: 34 }
 // NARUTO (SEVENTH) OIROKE toggle (opt-in gag distraction, default OFF) — top-right column. x set by _layoutSettings.
 const n7OirokeToggleRect = { x: 0, y: 522, w: 190, h: 34 }
+// VISUAL FX (JUICE) — presentation-only, saved. A 2×2 toggle grid in the right column below Oiroke:
+// Screen Shake (Off/Low/Full) · Reduce Flashing · Slow-Mo (On/Off) · Particles (Low/Full). x set by _layoutSettings.
+const juiceShakeRect    = { x: 0, y: 596, w: 92, h: 30 }
+const juiceFlashRect    = { x: 0, y: 596, w: 92, h: 30 }
+const juiceSlowmoRect   = { x: 0, y: 636, w: 92, h: 30 }
+const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -19337,6 +19344,11 @@ function _layoutSettings() {
   colorblindToggleRect.x = rx
   touchToggleRect.x = rx
   n7OirokeToggleRect.x = rx
+  // VISUAL FX (JUICE) 2×2 grid: two 92px columns in the right column.
+  juiceShakeRect.x    = rx
+  juiceFlashRect.x    = rx + 98
+  juiceSlowmoRect.x   = rx
+  juiceParticleRect.x = rx + 98
 }
 
 function drawSettingsScreen() {
@@ -19438,6 +19450,25 @@ function drawSettingsScreen() {
     ctx.fillText(`Oiroke: ${on ? "ON" : "OFF"}`, n7OirokeToggleRect.x + n7OirokeToggleRect.w / 2, n7OirokeToggleRect.y + 22)
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Charge-tap gag distraction (saved)", n7OirokeToggleRect.x, n7OirokeToggleRect.y + n7OirokeToggleRect.h + 13) }
+
+  // ── VISUAL FX (JUICE): Screen Shake / Reduce Flashing / Slow-Mo / Particles (presentation-only, saved) ──
+  { ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+    ctx.fillText("VISUAL FX", juiceShakeRect.x, juiceShakeRect.y - 10)
+    // compact 2×2 toggle: `on` tints green/amber, label is pre-formatted per control
+    const fxBox = (r, label, on, accent = "#4ade80") => {
+      box(r, on ? "rgba(23,58,36,0.9)" : "rgba(20,26,40,0.9)", on ? accent : "rgba(120,150,200,0.4)", 2, on, 6)
+      ctx.fillStyle = "#fff"; ctx.font = "700 12px Arial"; ctx.textAlign = "center"
+      ctx.fillText(label, r.x + r.w / 2, r.y + 20)
+    }
+    const shakeLbl = `Shake: ${juiceSettings.screenShake.toUpperCase()}`
+    fxBox(juiceShakeRect, shakeLbl, juiceSettings.screenShake !== "off", "#4aa8e0")
+    // Reduce Flashing ON is the ACCESSIBILITY-SAFE state → amber "REDUCED"; OFF = full flash.
+    fxBox(juiceFlashRect, `Flash: ${juiceSettings.reduceFlashing ? "REDUCED" : "FULL"}`, juiceSettings.reduceFlashing, "#ff9d2e")
+    fxBox(juiceSlowmoRect, `Slow-Mo: ${juiceSettings.slowMo ? "ON" : "OFF"}`, juiceSettings.slowMo, "#4ade80")
+    fxBox(juiceParticleRect, `FX: ${juiceSettings.particles.toUpperCase()}`, juiceSettings.particles === "full", "#4ade80")
+    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+    ctx.fillText("Explosion/dash juice (saved)", juiceSlowmoRect.x, juiceParticleRect.y + juiceParticleRect.h + 13)
+    ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
   ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
@@ -20636,6 +20667,11 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
       if (pointInRect(mouse.x, mouse.y, n7OirokeToggleRect)) { setNarutoSeventhOiroke(!narutoSeventhOirokeEnabled()); break }
+      // VISUAL FX (JUICE) — presentation-only, self-persisting (localStorage, like bloodFx/brutality).
+      if (pointInRect(mouse.x, mouse.y, juiceShakeRect))    { juiceSettings.cycleScreenShake(); break }   // Off → Low → Full
+      if (pointInRect(mouse.x, mouse.y, juiceFlashRect))    { juiceSettings.toggleReduceFlashing(); break }
+      if (pointInRect(mouse.x, mouse.y, juiceSlowmoRect))   { juiceSettings.toggleSlowMo(); break }
+      if (pointInRect(mouse.x, mouse.y, juiceParticleRect)) { juiceSettings.cycleParticles(); break }   // Low ↔ Full
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -23544,6 +23580,16 @@ gameLoop()
       combo:        (who = "p1") => { const ds = comboDisplay[who === "p2" ? "p2" : "p1"]; return ds ? { count: ds.lastCount, tier: ds.rankTier, rankText: ds.rankText || "", pop: +(ds.pop || 0).toFixed(2), opacity: +(ds.opacity || 0).toFixed(2) } : null },
       firePseudoParry: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.parryFlash = 12; return true },
       firePseudoClash: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.clashFlash = 10; return true },
+      // ── JUICE pass (presentation-only): settings get/set + sound-pack status/playback ──
+      settings:   () => ({ screenShake: juiceSettings.screenShake, reduceFlashing: juiceSettings.reduceFlashing, slowMo: juiceSettings.slowMo, particles: juiceSettings.particles }),
+      setShake:   (v)  => { juiceSettings.setScreenShake(v); return juiceSettings.screenShake },
+      cycleShake: ()   => { juiceSettings.cycleScreenShake(); return juiceSettings.screenShake },
+      setFlash:   (b)  => { juiceSettings.setReduceFlashing(b); return juiceSettings.reduceFlashing },
+      setSlowMo:  (b)  => { juiceSettings.setSlowMo(b); return juiceSettings.slowMo },
+      setParticles:(v) => { juiceSettings.setParticles(v); return juiceSettings.particles },
+      sfxStatus:  ()   => sound.juiceStatus?.() || null,                      // decoded clips / voice cap / naruto-pool state
+      playSfx:    (id, opts = {}) => sound.playJuiceSfx?.(id, opts),          // fire one juice clip (returns true if it played)
+      narutoExtra:(on) => { sound.setJuiceNarutoExtra?.(on); return sound.isJuiceNarutoExtra?.() },
     },
     // HUD boss-bar variant proof (Stage 4): flag P2 as an arcade boss so the HUD draws the single
     // wide center-draining boss bar (view-only; does not change combat). Mirrors the p2._isBoss branch.

@@ -117,6 +117,96 @@ export const MUSIC = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// JUICE SFX PACK (presentation-only "juice" pass)
+// ─────────────────────────────────────────────────────────────────
+// Real sampled clips (the multiverse_sfx pack, copied into ./sfx/). These are
+// DECODED into AudioBuffers once at init through the existing AudioContext and
+// played via playJuiceSfx(). All clips are normalized to -16 LUFS on disk, so
+// loudness differences come entirely from per-event `gain` at the call site —
+// never from re-encoding. Playback is pure presentation and NEVER reads
+// gameRng or touches the simulation.
+export const JUICE_SFX_BASE = "./sfx/"
+
+// CORE pool — preloaded. id → path under JUICE_SFX_BASE.
+export const JUICE_SFX = {
+  // clean_tones_whooshes
+  charge_swell_riser:    "clean_tones_whooshes/charge_swell_riser.ogg",
+  charge_hum_rise:       "clean_tones_whooshes/charge_hum_rise.ogg",
+  sting_pitch_rise_hold: "clean_tones_whooshes/sting_pitch_rise_hold.ogg",
+  swish_fast_01:         "clean_tones_whooshes/swish_fast_01.ogg",
+  swish_fast_02:         "clean_tones_whooshes/swish_fast_02.ogg",
+  swish_fast_03:         "clean_tones_whooshes/swish_fast_03.ogg",
+  whoosh_medium_01:      "clean_tones_whooshes/whoosh_medium_01.ogg",
+  whoosh_medium_02:      "clean_tones_whooshes/whoosh_medium_02.ogg",
+  warp_wobble_01:        "clean_tones_whooshes/warp_wobble_01.ogg",
+  warp_wobble_02:        "clean_tones_whooshes/warp_wobble_02.ogg",
+  energy_hum_low:        "clean_tones_whooshes/energy_hum_low.ogg",
+  energy_tone_hold:      "clean_tones_whooshes/energy_tone_hold.ogg",
+  pitch_drop_slowmo:     "clean_tones_whooshes/pitch_drop_slowmo.ogg",
+  // explosion_impact_design
+  boom_anticipation_suck:  "explosion_impact_design/boom_anticipation_suck.ogg",
+  impact_crack_01:         "explosion_impact_design/impact_crack_01.ogg",
+  crack_sizzle_bright:     "explosion_impact_design/crack_sizzle_bright.ogg",
+  impact_hit_01:           "explosion_impact_design/impact_hit_01.ogg",
+  boom_medium_01:          "explosion_impact_design/boom_medium_01.ogg",
+  boom_medium_02:          "explosion_impact_design/boom_medium_02.ogg",
+  boom_huge_01:            "explosion_impact_design/boom_huge_01.ogg",
+  boom_huge_02_roar:       "explosion_impact_design/boom_huge_02_roar.ogg",
+  impact_frame_boom_long:  "explosion_impact_design/impact_frame_boom_long.ogg",
+  rumble_tail_01:          "explosion_impact_design/rumble_tail_01.ogg",
+  // hits
+  hit_flurry_01:         "hits/hit_flurry_01.ogg",
+  hit_heavy_boom_01:     "hits/hit_heavy_boom_01.ogg",
+}
+
+// OPTIONAL "naruto_extra" pool — 28 clips that carry ANIME BACKGROUND MUSIC
+// (manifest background_music:true, confidence "category-guess"). OFF by default:
+// never decoded or referenced in the default event mapping. setJuiceNarutoExtra(true)
+// lazily decodes + enables them for players who want the extra flavour.
+export const JUICE_SFX_NARUTO_EXTRA = Object.freeze(
+  Object.fromEntries(Array.from({ length: 28 }, (_, i) => {
+    const n = String(i + 1).padStart(2, "0")
+    const tag = ["impact","mixed","rumble_low","whoosh_noise","whoosh_noise","whoosh_noise","mixed","mixed",
+                 "whoosh_noise","impact","tonal","mixed","tonal","rumble_low","impact","impact","tonal","tonal",
+                 "mixed","rumble_low","rumble_low","mixed","mixed","whoosh_noise","mixed","mixed","mixed","mixed"][i]
+    const id = `naruto_${n}_${tag}`
+    return [id, `naruto_clips_bgm/${id}.ogg`]
+  }))
+)
+
+// STANDIN sounds — GAPS in the pack (no real clip exists): dash_skid, dash_dust_kick,
+// dash_windup_cloth. Each is synthesized at PLAY TIME with WebAudio from an existing
+// clip (playbackRate + filter + slice), so a real file can be dropped in later: if a
+// buffer is ever registered under the *_STANDIN id, playJuiceSfx() uses it directly and
+// skips the synth path. `src` is a CORE clip id; `offset`/`duration` (optional) slice it.
+export const JUICE_STANDINS = {
+  dash_windup_cloth_STANDIN: { src: "swish_fast_02", rate: 0.9, filter: { type: "lowpass",  freq: 900  }, offset: 0, duration: 0.14, gain: 0.8 },
+  dash_skid_STANDIN:         { src: "swish_fast_01", rate: 0.6, filter: { type: "lowpass",  freq: 700  },                          gain: 1.0 },
+  dash_dust_kick_STANDIN:    { src: "swish_fast_03", rate: 1.0, filter: { type: "highpass", freq: 2500 }, offset: 0, duration: 0.06, gain: 0.7 },
+}
+
+export const JUICE_VOICE_CAP = 12                 // max simultaneous juice SFX (audio voice cap)
+export const JUICE_DUCK_GAIN = Math.pow(10, -4 / 20)   // ≈0.631 — duck other juice SFX ~4 dB under an ultimate boom
+
+// ── DETERMINISTIC, LAN-SAFE AUDIO VARIATION ──────────────────────────────────
+// Pick a clip variant / pitch jitter from the sim FRAME and player index — NEVER
+// gameRng and NEVER Math.random (so audio can't desync a match and both peers vary
+// identically). Audio reads these; it never writes to them.
+export function juiceHash(frame, player) {
+  let h = (Math.imul(((frame | 0) ^ 0x9e3779b9) >>> 0, 2654435761) ^ Math.imul(((player | 0) + 1) >>> 0, 40503)) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13
+  return h >>> 0
+}
+export function juicePickVariant(ids, frame, player) {
+  if (!ids || !ids.length) return null
+  return ids[juiceHash(frame, player) % ids.length]
+}
+export function juicePitch(frame, player, spread = 0.04) {
+  const unit = (juiceHash((frame | 0) ^ 0x55, player) % 1000) / 999   // 0..1
+  return 1 + (unit * 2 - 1) * spread                                  // 1 ± spread (default ±4%)
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SOUND DEFINITIONS
 // Each sound is a function: (ctx, masterGain) => void
 // ─────────────────────────────────────────────────────────────────
@@ -530,6 +620,16 @@ class SoundManager {
     // When true, cues started right now are PERSISTENT (survive stopAllSfx unless includePersistent) —
     // used to preserve win-lines that intentionally play into the victory screen.
     this._forcePersistent = false
+    // ── JUICE SFX PACK (sampled .ogg explosion/dash clips) ───────────────────────
+    // Decoded AudioBuffers (id → AudioBuffer), a dedicated bus gain feeding _master
+    // (so they follow SFX volume + mute and can be ducked as a group under an
+    // ult boom), the live-voice registry for the ~12-voice cap, and the optional
+    // naruto_extra pool flag (OFF → its clips are never decoded).
+    this._juiceBuffers      = new Map()
+    this._juiceBus          = null
+    this._juiceActive       = []      // [{ src, end }] live voices (pruned on play)
+    this._juiceLoaded       = false
+    this._juiceNarutoEnabled = false
   }
 
   // ── INIT ──────────────────────────────────────────────────────
@@ -542,7 +642,15 @@ class SoundManager {
       this._master.gain.value = this._sfxVol
       this._master.connect(this._ctx.destination)
       this._musicPlayer = new MusicPlayer(this._ctx, this._master)
+      // JUICE bus: all sampled juice SFX route through here into _master, so they
+      // inherit SFX volume/mute AND can be ducked as a group under an ult boom.
+      this._juiceBus = this._ctx.createGain()
+      this._juiceBus.gain.value = 1
+      this._juiceBus.connect(this._master)
       this._ready  = true
+      // Preload (decode) the core pack now. decodeAudioData works on a suspended
+      // context, so buffers are ready before the first gesture unlocks playback.
+      this.loadJuicePack()
     } catch(_) { return }
 
     // AUTOPLAY: do nothing audible until the first user gesture. On that gesture
@@ -1137,6 +1245,135 @@ class SoundManager {
     if (this._duckCount <= 0) return
     this._duckCount--
     if (this._duckCount === 0) { this._musicDuckScale = 1; this._applyMusicLevel() }
+  }
+
+  // ── JUICE SFX PACK: load / play / duck ────────────────────────
+  // Decode the CORE pack into AudioBuffers through the existing AudioContext.
+  // Fire-and-forget per clip: a clip that 404s or won't decode simply stays
+  // absent and playJuiceSfx() no-ops for it (never throws, never blocks boot).
+  loadJuicePack() {
+    if (!this._ctx || this._juiceLoaded) return
+    this._juiceLoaded = true
+    for (const id in JUICE_SFX) this._decodeJuiceClip(id, JUICE_SFX[id])
+  }
+
+  _decodeJuiceClip(id, rel) {
+    if (!this._ctx || this._juiceBuffers.has(id)) return
+    const url = JUICE_SFX_BASE + rel
+    try {
+      fetch(url)
+        .then(r => (r && r.ok) ? r.arrayBuffer() : Promise.reject(r && r.status))
+        .then(ab => this._ctx.decodeAudioData(ab))
+        .then(buf => { if (buf) this._juiceBuffers.set(id, buf) })
+        .catch(() => {})   // missing/undecodable → stays absent (graceful)
+    } catch (_) {}
+  }
+
+  // Optional "naruto_extra" pool: OFF by default. Enabling lazily decodes its 28
+  // background-music clips; they are NEVER used by the default event mapping.
+  setJuiceNarutoExtra(on) {
+    this._juiceNarutoEnabled = !!on
+    if (this._juiceNarutoEnabled && this._ctx) {
+      for (const id in JUICE_SFX_NARUTO_EXTRA) this._decodeJuiceClip(id, JUICE_SFX_NARUTO_EXTRA[id])
+    }
+  }
+  isJuiceNarutoExtra() { return !!this._juiceNarutoEnabled }
+
+  // Drop finished voices from the live registry (ctx time past their scheduled end).
+  _pruneJuiceVoices() {
+    if (!this._ctx) return
+    const now = this._ctx.currentTime
+    this._juiceActive = this._juiceActive.filter(v => v.end > now)
+  }
+
+  // Duck the whole juice bus ~4 dB for `dur` seconds (other juice SFX drop under an
+  // ult boom), then ramp back. The boom itself bypasses the bus (plays on _master) so
+  // it stays at full level. Audio-only; no sim effect.
+  _juiceDuck(dur = 0.5) {
+    if (!this._juiceBus || !this._ctx) return
+    const now = this._ctx.currentTime
+    const g = this._juiceBus.gain
+    try {
+      g.cancelScheduledValues(now)
+      g.setValueAtTime(JUICE_DUCK_GAIN, now)
+      g.linearRampToValueAtTime(1, now + Math.max(0.1, dur))
+    } catch (_) {}
+  }
+
+  // Play one sampled juice clip. opts:
+  //   gain   — per-event linear gain (loudness lives here, NOT in the files)
+  //   pitch  — playbackRate (use juicePitch(frame,player) for ±4% deterministic jitter)
+  //   ultBoom— route past the duck bus (stay full) AND duck other juice SFX ~4 dB
+  //   delay  — start this many seconds from now (e.g. boom 1-2 frames after the crack)
+  // Honors SFX mute + the first-gesture gate + the ~12-voice cap. Returns false if it
+  // couldn't play (muted / pre-gesture / missing buffer / at cap for a non-boom).
+  playJuiceSfx(id, opts = {}) {
+    if (this._sfxMuted || !this._gestured || !this._ctx || !this._ready) return false
+    if (this._ctx.state === "suspended") { try { this._ctx.resume() } catch (_) {} }
+
+    // Resolve a real buffer; else a STANDIN synth descriptor over a core buffer.
+    let buf = this._juiceBuffers.get(id)
+    const standin = (!buf && JUICE_STANDINS[id]) ? JUICE_STANDINS[id] : null
+    if (!buf && standin) buf = this._juiceBuffers.get(standin.src)
+    if (!buf) return false
+
+    // Voice cap: prune finished, then enforce ~12. A non-boom at the cap is dropped;
+    // an ult boom steals the oldest voice so it always lands.
+    this._pruneJuiceVoices()
+    if (this._juiceActive.length >= JUICE_VOICE_CAP) {
+      if (!opts.ultBoom) return false
+      const victim = this._juiceActive.shift()
+      try { victim && victim.src && victim.src.stop() } catch (_) {}
+    }
+
+    try {
+      const now   = this._ctx.currentTime
+      const when  = now + Math.max(0, opts.delay || 0)
+      const src   = this._ctx.createBufferSource()
+      src.buffer  = buf
+      src.playbackRate.value = (typeof opts.pitch === "number" && opts.pitch > 0) ? opts.pitch : (standin ? standin.rate : 1)
+
+      const g = this._ctx.createGain()
+      let gain = (typeof opts.gain === "number") ? opts.gain : 1
+      if (standin && typeof standin.gain === "number") gain *= standin.gain
+      g.gain.value = Math.max(0, gain)
+
+      // STANDIN filter (lowpass skid / highpass dust) between source and gain.
+      let head = src
+      if (standin && standin.filter) {
+        const f = this._ctx.createBiquadFilter()
+        f.type = standin.filter.type
+        f.frequency.value = standin.filter.freq
+        src.connect(f); head = f
+      }
+      head.connect(g)
+      // ult boom bypasses the duck bus (full level) and ducks everything else.
+      g.connect(opts.ultBoom ? this._master : (this._juiceBus || this._master))
+      if (opts.ultBoom) this._juiceDuck(opts.duckSec || 0.5)
+
+      // Slice (STANDIN offset/duration) or full clip.
+      const off = standin && typeof standin.offset === "number" ? standin.offset : 0
+      const dur = standin && typeof standin.duration === "number" ? standin.duration : undefined
+      if (dur !== undefined) src.start(when, off, dur); else src.start(when, off)
+
+      const endAt = when + (dur !== undefined ? dur : (buf.duration / (src.playbackRate.value || 1)))
+      const entry = { src, end: endAt }
+      this._juiceActive.push(entry)
+      src.onended = () => { const i = this._juiceActive.indexOf(entry); if (i >= 0) this._juiceActive.splice(i, 1) }
+      return true
+    } catch (_) { return false }
+  }
+
+  // Diagnostics (harness/report): what loaded, the voice cap, naruto-pool state.
+  juiceStatus() {
+    return {
+      loaded: [...this._juiceBuffers.keys()],
+      coreCount: Object.keys(JUICE_SFX).length,
+      standins: Object.keys(JUICE_STANDINS),
+      narutoExtra: this._juiceNarutoEnabled,
+      voiceCap: JUICE_VOICE_CAP,
+      activeVoices: this._juiceActive.length,
+    }
   }
 
   // ── PRELOAD stub — kept for API compatibility, does nothing ───

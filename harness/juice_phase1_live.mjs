@@ -36,7 +36,7 @@ let st = null;
 for (let i = 0; i < 40 && (!st || st.loaded.length < st.coreCount); i++) { st = await page.evaluate(() => window.__harness.juice.sfxStatus()); await page.waitForTimeout(150); }
 console.log(`  sfx: loaded ${st?.loaded.length}/${st?.coreCount} core clips; standins=${st?.standins.length}; voiceCap=${st?.voiceCap}; narutoExtra=${st?.narutoExtra}`);
 ok(st && st.loaded.length >= st.coreCount, `all ${st?.coreCount} CORE clips decoded (${st?.loaded.length})`);
-ok(st && st.standins.length === 3, `3 STANDIN descriptors registered (${st?.standins.join(", ")})`);
+ok(st && ["dash_windup_cloth_STANDIN", "dash_skid_STANDIN", "dash_dust_kick_STANDIN"].every(s => st.standins.includes(s)), `the 3 dash STANDIN descriptors registered (of ${st?.standins.length}: ${st?.standins.join(", ")})`);
 ok(st && st.voiceCap === 12, `audio voice cap = 12`);
 ok(st && st.narutoExtra === false, `naruto_extra pool OFF by default`);
 

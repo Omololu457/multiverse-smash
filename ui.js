@@ -3456,8 +3456,8 @@ function drawStageAtmosphere(ctx, worldWidth, covTop, covBot, groundY, accent) {
   ]
   for (let li = 0; li < LAYERS.length; li++) {
     const L = LAYERS[li]
-    const step = L.r * 1.5
-    const n = Math.min(48, Math.ceil(worldWidth / step) + 2)   // capped for perf on wide (FFA) stages
+    const step = L.r * 2.4                                     // wider spacing = fewer, bigger blobs (perf)
+    const n = Math.min(22, Math.ceil(worldWidth / step) + 2)   // capped for perf on wide (FFA) stages
     const drift = (t * L.speed) % step
     for (let i = 0; i < n; i++) {
       const hx = ((i * 2654435761) >>> 0) % 1000 / 1000

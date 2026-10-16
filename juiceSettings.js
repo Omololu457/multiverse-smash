@@ -17,10 +17,14 @@
 // ─────────────────────────────────────────────────────────────────
 
 const LS_KEYS = {
-  shake:     "ms_juice_shake",          // "off" | "low" | "full"
-  flash:     "ms_juice_reduce_flash",   // "1" (reduce) | "0"
-  slowmo:    "ms_juice_slowmo",         // "1" (on) | "0"
-  particles: "ms_juice_particles",      // "low" | "full"
+  shake:      "ms_juice_shake",          // "off" | "low" | "full"
+  flash:      "ms_juice_reduce_flash",   // "1" (reduce) | "0"
+  slowmo:     "ms_juice_slowmo",         // "1" (on) | "0"
+  particles:  "ms_juice_particles",      // "low" | "full"
+  // HIT FEEL pass
+  hitEffects: "ms_hitfeel",              // "off" | "low" | "full"
+  dmgNumbers: "ms_hitfeel_dmgnum",       // "1" (on) | "0"  — default OFF in versus; forced ON in Training (game.js)
+  animFinish: "ms_hitfeel_finisher",     // "1" (on) | "0"
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -58,6 +62,23 @@ export const juiceSettings = {
   cycleParticles() { this.setParticles(this.particles === "full" ? "low" : "full") },
   // Multiplier consumers apply to a tier's debris/smoke counts.
   particleScale() { return this.particles === "low" ? 0.4 : 1 },
+
+  // ── HIT FEEL (Off / Low / Full) — Off restores the exact pre-pass look (no hit-feel additions run) ──
+  hitEffects: (() => { const v = _get(LS_KEYS.hitEffects, "full"); return _SHAKE.includes(v) ? v : "full" })(),  // reuses off/low/full
+  setHitEffects(v) { if (!_SHAKE.includes(v)) return; this.hitEffects = v; _set(LS_KEYS.hitEffects, v) },
+  cycleHitEffects() { this.setHitEffects(_SHAKE[(_SHAKE.indexOf(this.hitEffects) + 1) % _SHAKE.length]) },
+  hitEffectsOn() { return this.hitEffects !== "off" },
+  hitEffectScale() { return this.hitEffects === "low" ? 0.4 : 1 },
+
+  // ── Damage Numbers (Off / On) — user pref (default OFF). Training Mode forces ON (resolved in game.js). ──
+  dmgNumbers: _get(LS_KEYS.dmgNumbers, "0") === "1",
+  setDmgNumbers(on) { this.dmgNumbers = !!on; _set(LS_KEYS.dmgNumbers, this.dmgNumbers ? "1" : "0") },
+  toggleDmgNumbers() { this.setDmgNumbers(!this.dmgNumbers) },
+
+  // ── Anime Finisher (On / Off) — default ON (Phase C) ──
+  animFinisher: _get(LS_KEYS.animFinish, "1") === "1",
+  setAnimFinisher(on) { this.animFinisher = !!on; _set(LS_KEYS.animFinish, this.animFinisher ? "1" : "0") },
+  toggleAnimFinisher() { this.setAnimFinisher(!this.animFinisher) },
 }
 
 export default juiceSettings

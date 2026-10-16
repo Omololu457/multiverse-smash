@@ -114,6 +114,25 @@ try {
     JSON.stringify({p1:off1.p1,p2:off1.p2}) === JSON.stringify({p1:off2.p1,p2:off2.p2}), `a=${JSON.stringify(off1)} b=${JSON.stringify(off2)}`);
   await page.evaluate(() => window.__harness.juice.setSlowMo(true));   // restore default
 
+  // ── (HIT FEEL Phase A) a FINISHER hit + KO pop stays deterministic ───────────────────────
+  // The hit-feel treatment is render-only (sound/particles/sprite nudge); it must not perturb the sim.
+  // Same seed → identical fighter state whether or not a finisher hit + KO pop is fired mid-run.
+  section("HIT FEEL finisher + KO pop is deterministic");
+  const runHitFeel = async (seed) => page.evaluate(([s]) => {
+    window.__harness.juice.setHitFx("full");
+    window.__harness.rng.forceSeed(s);
+    window.__harness.aiVsAi.start({ p1: "netero", p2: "beerus", matches: 1, speed: 1 });
+    window.__harness.aiVsAi.step(180);
+    window.__harness.juice.hit("finisher");     // render-only finisher treatment
+    window.__harness.juice.koPop("p2");         // render-only KO pop
+    window.__harness.aiVsAi.step(120);
+    const snap = who => { const p = window.__harness[who](); return { x: +p.x.toFixed(4), y: +p.y.toFixed(4), health: p.health, energy: +(p.energy || 0).toFixed(4) }; };
+    return { p1: snap("p1"), p2: snap("p2") };
+  }, [seed]);
+  const hf1 = await runHitFeel(5150), hf2 = await runHitFeel(5150);
+  check("same seed + finisher hit + KO pop → identical fighter state",
+    JSON.stringify(hf1) === JSON.stringify(hf2), `a=${JSON.stringify(hf1)} b=${JSON.stringify(hf2)}`);
+
   // ── auto-generated seed path (normal play) ───────────────────────────────
   section("normal play — fresh seed per match");
   const freshSeeds = await page.evaluate(() => {

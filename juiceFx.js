@@ -130,6 +130,44 @@ export function fireJuiceDust({ x, y, dir = 1, frame = 0, player = 0 }) {
   }
 }
 
+// ── HIT FEEL: directional spark burst in the hit direction (arcs + gravity, never straight) ──
+export function fireJuiceHitSpark({ x, y, dir = 1, count = 6, speed = 4, frame = 0, player = 0 }) {
+  const n = Math.max(1, Math.round(count * juiceSettings.hitEffectScale()))
+  const seed = (frame * 131 + player * 733) >>> 0
+  const base = dir < 0 ? Math.PI : 0                       // emission centre = the hit direction
+  for (let i = 0; i < n; i++) {
+    const d = acquire(debris); if (!d) break
+    const ang = base + (rnd(seed, 401, i) - 0.5) * 1.6     // ±0.8 rad cone around the hit direction
+    const sp = speed * (0.6 + rnd(seed, 403, i) * 0.8)
+    d.active = true; d.x = x; d.y = y
+    d.vx = Math.cos(ang) * sp
+    d.vy = Math.sin(ang) * sp - (0.5 + rnd(seed, 405, i) * 1.5)   // slight upward pop → the spark ARCS
+    d.size = 1.5 + rnd(seed, 407, i) * 2.2
+    d.maxLife = d.life = 10 + Math.floor(rnd(seed, 409, i) * 10)
+    d.groundY = 0; d.bounced = true                        // no floor bounce for a quick hit spark
+    const warm = rnd(seed, 411, i)
+    d.r = 255; d.g = 200 + Math.floor(warm * 55); d.b = 120 + Math.floor(warm * 80)
+  }
+}
+
+// ── HIT FEEL: KO "pop" — a burst of coloured pieces thrown outward (gravity + bounce). ──
+export function fireJuiceKoPop({ x, y, groundY = 0, frame = 0, player = 0, colors = null, count = 28 }) {
+  const n = Math.max(1, Math.round(count * juiceSettings.hitEffectScale() * juiceSettings.particleScale()))
+  const seed = (frame * 197 + player * 877) >>> 0
+  for (let i = 0; i < n; i++) {
+    const d = acquire(debris); if (!d) break
+    const ang = rnd(seed, 501, i) * Math.PI * 2
+    const sp = 2 + rnd(seed, 503, i) * 5
+    d.active = true; d.x = x; d.y = y
+    d.vx = Math.cos(ang) * sp; d.vy = -Math.abs(Math.sin(ang) * sp) - 2
+    d.size = 2 + rnd(seed, 505, i) * 4
+    d.maxLife = d.life = 30 + Math.floor(rnd(seed, 507, i) * 30)
+    d.groundY = groundY; d.bounced = false
+    const c = (colors && colors.length) ? colors[i % colors.length] : [255, 80 + Math.floor(rnd(seed, 509, i) * 120), 80]
+    d.r = c[0]; d.g = c[1]; d.b = c[2]
+  }
+}
+
 // ── advance all pools one sim frame (deterministic; call each sim frame) ──────
 export function updateJuiceFx() {
   for (const d of debris) {

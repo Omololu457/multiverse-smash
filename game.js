@@ -549,7 +549,8 @@ import {
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant } from "./sound.js"
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
-import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion + dash-dust FX (presentation-only)
+import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit FX (presentation-only)
+import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -1957,9 +1958,9 @@ function announce(pool, opts = {}) {
 }
 // Stamp the Black-Flash marker on one fighter (render-only field, like _shActive/_idSwapActive — sprite.js
 // reads it for the palette swap, _tickImpactFlash clears it; never read by the sim → determinism-safe).
-function _stampImpactFlash(f, level, dur, tier, combo, comboTier) {
+function _stampImpactFlash(f, level, dur, tier, combo, comboTier, phase) {
   if (!f) return
-  f._impactFlash = { timer: dur, maxTimer: dur, level, tier, combo, comboTier }
+  f._impactFlash = { timer: dur, maxTimer: dur, level, tier, combo, comboTier, phase }   // phase "white" (HIT FEEL) / undefined = classic red (sprite.js _impactFlashOverlay)
 }
 // Fire the impact frame for a freshly-landed hit. attacker = the fighter whose comboCounter just rose;
 // combo = its live comboCounter (READ-ONLY). tier weight is read from the hitstop applied this frame.
@@ -1974,10 +1975,15 @@ function triggerImpactFrame(attacker, combo) {
   if (ct === 0) attacker._announcedComboTier = 0
   else if (ct > (attacker._announcedComboTier || 0)) { attacker._announcedComboTier = ct; announce("comboMilestone", { priority: true, minGap: 700 }) }
   const level = Math.min(3, ct + (IMPACT_HIT_TIER[tier] || 0))   // 0..3 recolor extremity (combo tier + hit weight)
-  const dur   = 4 + level * 2                                    // ESCALATED: 4/6/8/10f — longer HOLD at EVERY tier (was 2..5)
+  // HIT FEEL (Phase A): with Hit Effects on, LIGHT/MEDIUM hits (level < 2) flash WHITE for the configured
+  // 2/3f ("target turns white"); the beloved BLACK silhouette is PRESERVED for HEAVY/combo hits (level ≥ 2)
+  // and whenever Hit Effects is Off → the exact pre-pass look. This EXTENDS the one flash system (no stacking).
+  const hf = juiceSettings.hitEffectsOn() && level < 2
+  const phase = hf ? "white" : undefined
+  const dur   = hf ? (level === 0 ? HITFEEL.flashFrames.light : HITFEEL.flashFrames.medium) : (4 + level * 2)   // existing 4/6/8/10f otherwise
   // Both fighters flash: the struck opponent (primary) and the attacker landing it (the "connection").
-  _stampImpactFlash(opp,      level, dur, tier, combo, ct)
-  _stampImpactFlash(attacker, level, dur, tier, combo, ct)
+  _stampImpactFlash(opp,      level, dur, tier, combo, ct, phase)
+  _stampImpactFlash(attacker, level, dur, tier, combo, ct, phase)
   // STAGE 2: at the higher tiers, a radiating CRACK/shatter burst from the impact point sells real force.
   if (level >= 2) _fireImpactBurst(opp || attacker, level, dur)
 }
@@ -2163,6 +2169,59 @@ function _drawJuiceImpactFlash() {
   if (--jf.timer <= 0) _juiceImpactFrame = null
 }
 
+// ══ HIT FEEL (Phase A) — presentation-only punchy-hit treatment, built on the juice systems ═══════════════
+// Fired from the same fresh-spark hook as explosions. Tiers each hit (hitfeel_config), then: sampled impact
+// sound, directional arced spark burst, visual knockback nudge (sprite-only), tier shake, and (on the final
+// hit) a KO pop. The per-hit FLASH is the single existing _impactFlash system, extended in triggerImpactFrame.
+// Reads sim state ONLY. Gated by the Hit Effects setting (Off → none of this runs → exact pre-pass look).
+
+// Effective damage-number visibility: user pref (default OFF in versus) but FORCED ON in Training Mode.
+function _dmgNumbersEffective() {
+  return (matchConfig.mode === "training") ? true : !!juiceSettings.dmgNumbers
+}
+
+function _fireHitFeel(spark) {
+  if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
+  if (spark.blocked) return                         // blocked hits don't get the full punchy treatment
+  const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
+  const attacker = _juiceFighterFor(side)
+  const target = attacker ? getOpponent(attacker) : null
+  const roundEnd = !!(target && (target.health || 0) <= 0)
+  const tier = hitTierFor({ category: spark.category, damage: spark.damage || 0, roundEnd, isUltMove: spark.category === "ultimate" })
+  const player = (side === "p2" || side === "p4") ? 1 : 0
+  const frame = globalFrameCount
+  const dir = attacker ? ((attacker.facing || 1) < 0 ? -1 : 1) : 1
+  const x = spark.x, y = spark.y
+
+  // SOUND — sampled pack clip on the impact frame (deterministic ±4% pitch).
+  const sc = HITFEEL.sound[tier]
+  if (sc) sound.playJuiceSfx?.(sc.clip, { gain: sc.gain, pitch: juicePitch(frame, player) })
+  // PARTICLES — directional arced spark burst (reuses the juiceFx pool).
+  fireJuiceHitSpark({ x, y, dir, count: HITFEEL.sparkCount[tier], speed: HITFEEL.sparkSpeed[tier], frame, player })
+  // KNOCKBACK FEEL — target sprite nudged PAST its sim position (eased back); attacker recoils on HEAVY/FINISHER.
+  if (target) target._hitKbOffset = (target._hitKbOffset || 0) + dir * HITFEEL.kbOffset[tier]
+  if (attacker && HITFEEL.attackerRecoil[tier]) attacker._hitKbOffset = (attacker._hitKbOffset || 0) - dir * HITFEEL.attackerRecoil[tier]
+  // SHAKE — tiny tier-scaled kick (respects the Screen Shake setting inside camera.shake).
+  if (HITFEEL.shake[tier]) camera.shake?.(HITFEEL.shake[tier], HITFEEL.shake[tier] + 2)
+}
+
+// KO POP — a burst of coloured pieces on the FINAL hit (not during a Brutality finish, which owns its own
+// system). Called from the KO frame. Uses the loser's HUD/accent palette if available, else a warm default.
+function _fireHitFeelKo(loser) {
+  if (!juiceSettings.hitEffectsOn() || !loser || brutalityState.active) return
+  const x = (loser.x || 0) + (loser.w || 60) / 2, y = (loser.y || 0) + (loser.h || 100) * 0.42
+  const player = (loser.side === "p2" || loser.side === "p4") ? 1 : 0
+  const accent = loser.tintColor || null
+  const cols = accent ? null : null   // default warm pop; element/FIRE ash dissolve handled in Phase D
+  fireJuiceKoPop({ x, y, groundY, frame: globalFrameCount, player, colors: cols, count: HITFEEL.koPieces })
+}
+
+// Ease every fighter's visual knockback offset back toward 0 (called each sim frame per fighter).
+function _tickHitFeel(f) {
+  if (!f) return
+  if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
+}
+
 // ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
 // Flicker/teleport dashes (SPEED_TIER_TELEPORT_KEYS / high base-speed) keep their OWN native visuals: we only
 // swap the whoosh for warp_wobble and skip the skid + dust + squash + generic afterimage trail (a generic
@@ -2237,6 +2296,7 @@ function _clearJuiceDashFx() {
     if (!f) continue
     f._juiceDashFx = null; f._juiceDashSquash = null; f._juiceDashTrail = false
     f._juiceTrailBuf = null; f._juicePrevDashT = 0; f._juicePrevAirDash = false
+    f._hitKbOffset = 0; f._hfComboDmg = 0   // HIT FEEL (Phase A): clear visual knockback + combo-total
   }
 }
 
@@ -3315,14 +3375,14 @@ function updateFFAEffects(live) {
   updateEnergyRegen(live)
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     const spark = hitSparks[i]
-    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); spark._fresh = false }   // JUICE (Phase 2): explosion detonation (FFA path)
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); _fireHitFeel(spark); spark._fresh = false }   // JUICE (Phase 2) + HIT FEEL (Phase A): detonation + punchy-hit (FFA path)
     spark.timer--
     const _pAlive = _tickSparkParticles(spark)   // FFA path: same debris burst as the 1v1 loop
     if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
   }
   updateDamageNumbers()
-  // JUICE (Phase 2+3): per-attacker detonation cooldown + dash FX + pooled FX advance (FFA path).
-  for (const f of live) { if (!f) continue; if (f._juiceDetCd > 0) f._juiceDetCd--; _tickJuiceDash(f, (f.ffaSlot | 0) % 2) }
+  // JUICE (Phase 2+3) + HIT FEEL (Phase A): per-attacker detonation cooldown + dash FX + kb ease + FX advance (FFA path).
+  for (const f of live) { if (!f) continue; if (f._juiceDetCd > 0) f._juiceDetCd--; _tickJuiceDash(f, (f.ffaSlot | 0) % 2); _tickHitFeel(f) }
   updateJuiceFx()
 }
 
@@ -15853,24 +15913,40 @@ function applyGojoInfinityBarrier(gojo, target) {
 // ------------------------------------------------------------------
 function spawnDamageNumber(spark) {
   if (!spark || spark.damage == null) return
+  // HIT FEEL (Phase A): Damage Numbers setting — OFF by default in versus, forced ON in Training.
+  if (!_dmgNumbersEffective()) return
   const cat = spark.category || "light"
-  // Reuse the impact-FX tier palette (matches _SPARK_FX / hit-spark cores). Heavier tiers read
-  // bigger + bolder so an ultimate's number visibly outweighs a jab's — presentation only.
-  const colorMap = { light: "#ffffff", heavy: "#fbbf24", special: "#f97316", ultimate: "#ef4444" }
-  const sizeMap  = { light: 20,        heavy: 26,        special: 30,        ultimate: 36 }
   const d = poolAcquire("dmg")   // Stage 22C: reuse a recycled damage-number instead of allocating
-  // Combo-offset stacking: successive hits in a combo fan out (alternating sides + a slight rise)
-  // instead of piling onto one pixel, so a long string stays legible. Reads the attacker's live
-  // comboCounter — render-only, no sim/state mutation.
   const att  = spark.attackerSide === "p2" ? p2 : (spark.attackerSide === "p1" ? p1 : null)
-  const step = Math.max(0, (att?.comboCounter || 0) - 1)
+  const combo = att?.comboCounter || 0
+  const step = Math.max(0, combo - 1)
   const dx   = step ? ((step % 2 ? -1 : 1) * (12 + (step % 3) * 8)) : 0
   const dy   = -(step % 4) * 8
   d.x = spark.x + dx; d.y = spark.y + dy
-  d.text = String(Math.round(spark.damage || 0))
-  d.color = colorMap[cat] || "#ffffff"
-  d.timer = 45; d.maxTimer = 45; d.opacity = 1
-  d.vy = -1.2; d.fontSize = sizeMap[cat] || 22
+  // Running combo total (accumulates across the combo; resets when the combo drops to a fresh hit).
+  if (att) { if (combo <= 1) att._hfComboDmg = 0; att._hfComboDmg = (att._hfComboDmg || 0) + Math.round(spark.damage || 0) }
+  const hfOn = juiceSettings.hitEffectsOn()
+  if (hfOn) {
+    // HIT FEEL styling: tier color + size; during a combo the number shows the ACCUMULATING total.
+    const roundEnd = !!(att && getOpponent(att) && (getOpponent(att).health || 0) <= 0)
+    const tier = hitTierFor({ category: cat, damage: spark.damage || 0, roundEnd, isUltMove: cat === "ultimate" })
+    const isCombo = combo >= 2
+    d.text = isCombo ? String(att._hfComboDmg) : String(Math.round(spark.damage || 0))
+    d.color = isCombo ? HITFEEL.dmg.comboTotalColor : (HITFEEL.dmg.color[tier] || "#ffffff")
+    d.fontSize = HITFEEL.dmg.size[tier] || 22
+    d.timer = d.maxTimer = HITFEEL.dmg.fadeFrames
+    d.vy = HITFEEL.dmg.riseVY
+    const player = spark.attackerSide === "p2" ? 1 : 0
+    d.vx = HITFEEL.dmg.arcVX * (((globalFrameCount + player) & 1) ? 1 : -1)   // deterministic arc sign
+  } else {
+    // Exact previous look (no HIT FEEL): classic palette, straight-up drift, 45f.
+    const colorMap = { light: "#ffffff", heavy: "#fbbf24", special: "#f97316", ultimate: "#ef4444" }
+    const sizeMap  = { light: 20,        heavy: 26,        special: 30,        ultimate: 36 }
+    d.text = String(Math.round(spark.damage || 0))
+    d.color = colorMap[cat] || "#ffffff"; d.fontSize = sizeMap[cat] || 22
+    d.timer = d.maxTimer = 45; d.vy = -1.2; d.vx = 0
+  }
+  d.opacity = 1
   damageNumbers.push(d)
 }
 
@@ -15880,7 +15956,11 @@ function updateDamageNumbers() {
   let w = 0
   for (let i = 0; i < damageNumbers.length; i++) {
     const d = damageNumbers[i]
-    d.y -= 1.2; d.timer--; d.opacity = d.timer / d.maxTimer
+    // HIT FEEL (Phase A): arc drift — horizontal vx + a gentle gravity on vy so the number curves, not a line.
+    d.x += d.vx || 0
+    d.vy = (d.vy || -1.2) + (d.vx ? HITFEEL.dmg.gravity : 0)
+    d.y += d.vy
+    d.timer--; d.opacity = d.timer / d.maxTimer
     if (d.timer <= 0) { poolRelease("dmg", d); continue }   // expired → recycle + drop
     damageNumbers[w++] = d                                   // keep → compact
   }
@@ -15958,6 +16038,7 @@ function updateEffectsAndDomains() {
       // block so a guarded hit doesn't shake like a clean landing.
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
+      _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
       spark._fresh = false
     }
     spark.timer--
@@ -15974,7 +16055,8 @@ function updateEffectsAndDomains() {
   if (p1 && p1._juiceDetCd > 0) p1._juiceDetCd--
   if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
   _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
-  updateJuiceFx()   // advance pooled explosion + dash-dust FX (deterministic; frozen on slow-mo skip frames with the sim)
+  _tickHitFeel(p1); _tickHitFeel(p2)             // HIT FEEL (Phase A): ease the visual knockback offset back
+  updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
 
 // Edge-detect a raw key (true only on the frame it goes down). Used for the training
@@ -16141,6 +16223,7 @@ function checkRoundEnd() {
     announce("ko", { priority: true })   // ANNOUNCER — "K.O.!" on the knockout beat (layers over the KO camera/freeze)
     knockoutFlash = 18; _koStamp = _koStampMax = 48   // Stage 9: fire the K.O. stamp on the knockout frame
     const koLoser = (p1.health <= 0) ? p1 : p2
+    _fireHitFeelKo(koLoser)   // HIT FEEL (Phase A): KO "pop" (coloured pieces) — NOT during a Brutality finish (gated inside)
     camera.shake?.(KO_SHAKE_STRENGTH, KO_SHAKE_FRAMES)
     _koFreeze = KO_FREEZE_FRAMES                        // hard-hold the finishing frame FIRST (the "beat")
     triggerSlowdown(KO_SLOWMO_FRAMES, koLoser)          // …then the slow-mo hang plays out (set now, ticks after the freeze)
@@ -17158,10 +17241,17 @@ function renderHybridFighter(fighter) {
     drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
     _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3): dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
-    // JUICE (Phase 3): dash squash/stretch + wind-up lean — wrap ONLY the body draw (not the trail/auras),
-    // scaled about the feet. Render-only transform; _juiceDashSquash is set by _tickJuiceDash.
+    // JUICE (Phase 3) dash squash/stretch + wind-up lean + HIT FEEL (Phase A) visual knockback nudge —
+    // wrap ONLY the body draw (not the trail/auras), scaled about the feet. Render-only transforms; the
+    // knockback offset moves the SPRITE a few px past its sim position (hitboxes are never touched).
     const _jsq = fighter._juiceDashSquash
-    if (_jsq) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.save(); c.translate(ax + _jsq.lean, ay); c.scale(_jsq.sx, _jsq.sy); c.translate(-ax, -ay) }
+    const _kbx = Math.round(fighter._hitKbOffset || 0)
+    const _bodyWrap = !!_jsq || _kbx !== 0
+    if (_bodyWrap) {
+      c.save()
+      if (_kbx) c.translate(_kbx, 0)
+      if (_jsq) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _jsq.lean, ay); c.scale(_jsq.sx, _jsq.sy); c.translate(-ax, -ay) }
+    }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
     const _ssA = _shadowSinkBodyAlpha(fighter)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
@@ -17171,7 +17261,7 @@ function renderHybridFighter(fighter) {
       drawFighter(c, fighter, camera)
     }
     if (_ssA < 1) c.restore()
-    if (_jsq) c.restore()               // JUICE (Phase 3): close the dash squash/stretch transform
+    if (_bodyWrap) c.restore()          // JUICE (Phase 3) squash + HIT FEEL (Phase A) knockback — close the body transform
     _drawComboCracks(c, fighter)        // STAGE 2: cracking-glass overlay on a fighter being deep-combo'd (5/9/15 tiers), ON TOP of the body — purely cosmetic
     drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
     drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
@@ -19597,6 +19687,9 @@ const juiceShakeRect    = { x: 0, y: 596, w: 92, h: 30 }
 const juiceFlashRect    = { x: 0, y: 596, w: 92, h: 30 }
 const juiceSlowmoRect   = { x: 0, y: 636, w: 92, h: 30 }
 const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
+// HIT FEEL (Phase A) — two more toggles in the same group: Hit Effects (Off/Low/Full) + Damage Numbers.
+const hitFxRect         = { x: 0, y: 676, w: 92, h: 30 }
+const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -19650,6 +19743,8 @@ function _layoutSettings() {
   juiceFlashRect.x    = rx + 98
   juiceSlowmoRect.x   = rx
   juiceParticleRect.x = rx + 98
+  hitFxRect.x         = rx
+  dmgNumRect.x        = rx + 98
 }
 
 function drawSettingsScreen() {
@@ -19767,8 +19862,11 @@ function drawSettingsScreen() {
     fxBox(juiceFlashRect, `Flash: ${juiceSettings.reduceFlashing ? "REDUCED" : "FULL"}`, juiceSettings.reduceFlashing, "#ff9d2e")
     fxBox(juiceSlowmoRect, `Slow-Mo: ${juiceSettings.slowMo ? "ON" : "OFF"}`, juiceSettings.slowMo, "#4ade80")
     fxBox(juiceParticleRect, `FX: ${juiceSettings.particles.toUpperCase()}`, juiceSettings.particles === "full", "#4ade80")
+    // HIT FEEL (Phase A): Hit Effects (Off/Low/Full) + Damage Numbers (Off/On).
+    fxBox(hitFxRect, `Hit FX: ${juiceSettings.hitEffects.toUpperCase()}`, juiceSettings.hitEffectsOn(), "#f472b6")
+    fxBox(dmgNumRect, `Dmg #: ${juiceSettings.dmgNumbers ? "ON" : "OFF"}`, juiceSettings.dmgNumbers, "#4ade80")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
-    ctx.fillText("Explosion/dash juice (saved)", juiceSlowmoRect.x, juiceParticleRect.y + juiceParticleRect.h + 13)
+    ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, dmgNumRect.y + dmgNumRect.h + 13)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -20973,6 +21071,8 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, juiceFlashRect))    { juiceSettings.toggleReduceFlashing(); break }
       if (pointInRect(mouse.x, mouse.y, juiceSlowmoRect))   { juiceSettings.toggleSlowMo(); break }
       if (pointInRect(mouse.x, mouse.y, juiceParticleRect)) { juiceSettings.cycleParticles(); break }   // Low ↔ Full
+      if (pointInRect(mouse.x, mouse.y, hitFxRect))  { juiceSettings.cycleHitEffects(); break }   // HIT FEEL: Off → Low → Full
+      if (pointInRect(mouse.x, mouse.y, dmgNumRect)) { juiceSettings.toggleDmgNumbers(); break }
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -23910,6 +24010,23 @@ gameLoop()
       shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
       // ── Phase 3 (dashes) ──
       dash:       (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },   // arm a REAL ground dash (physics consumes next frame)
+      // ── HIT FEEL (Phase A) ──
+      hitSettings: () => ({ hitEffects: juiceSettings.hitEffects, dmgNumbers: juiceSettings.dmgNumbers, dmgEffective: _dmgNumbersEffective(), animFinisher: juiceSettings.animFinisher }),
+      setHitFx:   (v)  => { juiceSettings.setHitEffects(v); return juiceSettings.hitEffects },
+      setDmgNum:  (b)  => { juiceSettings.setDmgNumbers(b); return juiceSettings.dmgNumbers },
+      // Fire a hit of an explicit tier directly (bypasses combat) for render/perf shots.
+      hit:        (tier = "medium", who = "p1") => {
+        const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null
+        const cat = tier === "finisher" ? "ultimate" : tier === "heavy" ? "heavy" : tier === "medium" ? "special" : "light"
+        const dmg = tier === "finisher" ? 200 : tier === "heavy" ? 110 : tier === "medium" ? 55 : 15
+        const x = tgt ? (tgt.x || 0) + (tgt.w || 60) / 2 : canvas.width / 2, y = tgt ? (tgt.y || 0) + (tgt.h || 100) * 0.42 : canvas.height / 2
+        _fireHitFeel({ attackerSide: att.side || "p1", category: cat, damage: dmg, x, y, blocked: false })
+        spawnDamageNumber({ attackerSide: att.side || "p1", category: cat, damage: dmg, x, y })
+        return { tier, fx: juiceFxStatus(), targetKb: tgt ? Math.round(tgt._hitKbOffset || 0) : 0, dmgNums: damageNumbers.length }
+      },
+      koPop:      (who = "p2") => { const f = who === "p2" ? p2 : p1; _fireHitFeelKo(f); return juiceFxStatus() },
+      kbOffset:   (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? Math.round(f._hitKbOffset || 0) : 0 },
+      flashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._impactFlash) ? { phase: f._impactFlash.phase || "red", timer: f._impactFlash.timer, level: f._impactFlash.level } : null },
       dashState:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { flicker: isSpeedTierTeleport(f), dashTimer: f.dashTimer || 0, airDashing: !!f.airDashing, fx: f._juiceDashFx ? { t: f._juiceDashFx.t, air: f._juiceDashFx.air, dir: f._juiceDashFx.dir } : null, squash: f._juiceDashSquash || null, trail: (f._juiceTrailBuf || []).length, trailFlag: !!f._juiceDashTrail } },
       forceAirDash: (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.y -= 170; f.onGround = false; f.grounded = false; f.isGrounded = false; f.airborne = true; f.airDashCount = 0; f.dashCooldown = 0; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; return { armed: true } },   // lift + arm an AIR dash (physics takes the air branch)
       cameraLead: ()   => ({ leadX: +(camera.leadX || 0).toFixed(2), target: +(camera._leadTarget || 0).toFixed(2) }),

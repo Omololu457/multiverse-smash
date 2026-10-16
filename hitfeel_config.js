@@ -1,0 +1,104 @@
+// hitfeel_config.js
+// ─────────────────────────────────────────────────────────────────
+// ONE tunable config for the "HIT FEEL" pass (presentation-only). Every starting
+// number lives here so it can be tuned in one place. NOTHING here changes damage,
+// hitboxes, frame data, knockback numbers or balance — it only drives visuals,
+// sound and camera. The hit-feel effects READ sim events (hit sparks, KO) and
+// never write sim state; all visual randomness is a deterministic hash of
+// (frame, playerIndex, effectIndex) — never gameRng.
+//
+// Built ON TOP of the juice pass (Phases 1-3): it reuses their particle pool
+// (juiceFx), impact-frame field (_impactFlash), tier table (juice_tiers), sound
+// pack (sound.playJuiceSfx) and settings (juiceSettings). It EXTENDS those — it
+// does not add a second hitstop / shake / flash system.
+//
+// SIM-SIDE HITSTOP IS NOT TOUCHED. combat.js HITSTOP = { light 4, air 4, grab 6,
+// heavy 10, launcher 12, spike 12, special 16, ultimate 28 } is frame data and
+// stays exactly as-is. If it wants retuning, that is reported, not changed here.
+// ─────────────────────────────────────────────────────────────────
+
+export const HIT_TIER = Object.freeze({ LIGHT: "light", MEDIUM: "medium", HEAVY: "heavy", FINISHER: "finisher" })
+
+// ── HIT TIER RULES ───────────────────────────────────────────────────────────
+// A hit is tiered from the combat-tagged spark it produces: its category
+// (light/heavy/launcher/spike/special/ultimate — already computed by combat.js)
+// and its damage, plus whether it ends the round / is an ultimate / is tagged
+// ULTIMATE in the juice tier table.
+//   FINISHER = round-ending hit OR ultimate connect OR juice-table ULTIMATE move.
+//   HEAVY    = heavy/launcher/spike category OR damage >= heavyDamage.
+//   MEDIUM   = special category OR damage >= mediumDamage.
+//   LIGHT    = everything else.
+export const HIT_TIERS = Object.freeze({
+  heavyCategories:  ["heavy", "launcher", "spike"],
+  mediumCategories: ["special"],
+  heavyDamage:  90,     // damage ≥ this → HEAVY (fallback when category is ambiguous)
+  mediumDamage: 45,     // damage ≥ this → MEDIUM
+})
+
+export const HITFEEL = {
+  // ── PHASE A: PUNCHY HIT ──────────────────────────────────────────────────
+  // 1 FLASH — target white-tint duration (frames) per tier (via _impactFlash phase:"white").
+  flashFrames: { light: 2, medium: 3, heavy: 4, finisher: 4 },
+  // 2 SOUND — sampled pack clip + gain per tier, on the impact frame (±4% deterministic pitch).
+  sound: {
+    light:    { clip: "impact_crack_01",   gain: 0.40 },
+    medium:   { clip: "hit_flurry_01",      gain: 0.55 },
+    heavy:    { clip: "hit_heavy_boom_01",  gain: 0.80 },
+    finisher: { clip: "hit_heavy_boom_01",  gain: 0.90 },
+  },
+  // 3 PARTICLES — directional arced spark burst (gravity, never straight). Counts per tier.
+  sparkCount: { light: 4, medium: 8, heavy: 14, finisher: 18 },
+  sparkSpeed: { light: 2.6, medium: 3.6, heavy: 4.8, finisher: 5.6 },
+  // 4 KNOCKBACK FEEL — target sprite offset a few px past its sim position, eased back (visual only);
+  //   attacker recoils a touch on HEAVY/FINISHER. NEVER moves hitboxes.
+  kbOffset:        { light: 3, medium: 5, heavy: 9, finisher: 12 },   // px the TARGET sprite is nudged
+  kbEase:          0.35,                                              // per-frame ease-back toward 0
+  attackerRecoil:  { heavy: 2, finisher: 2 },                         // px the ATTACKER sprite bounces back
+  // 5 SHAKE — tiny camera kick scaled by tier (respects the Screen Shake setting inside camera.shake).
+  shake: { light: 0, medium: 2, heavy: 4, finisher: 7 },
+  // 6 DAMAGE NUMBERS — arc drift + 0.6s fade; HEAVY/FINISHER bigger + different colour; combo total.
+  dmg: {
+    fadeFrames: 36,                                                  // ~0.6s @60fps (was 45)
+    size:  { light: 20, medium: 26, heavy: 32, finisher: 38 },
+    color: { light: "#ffffff", medium: "#ffe08a", heavy: "#ff8a3a", finisher: "#ff4d4d" },
+    arcVX: 1.1,                                                      // horizontal drift seed (deterministic sign)
+    riseVY: -1.5, gravity: 0.06,                                     // arc: rise then settle
+    comboTotalColor: "#ffd24a",
+  },
+  // 7 KO POP — burst of coloured pieces on the final hit (ash dissolve handled by elements/FIRE).
+  //   NOT applied to Brutality finishes (they keep their own system).
+  koPiecePool: 60,                                                   // pooled pieces (reuses juiceFx budget)
+  koPieces:    28,
+
+  // ── PHASE C: ANIME FINISHER (built in Phase C; values pre-declared for the config report) ──
+  finisher: {
+    cooldownFrames: 150,   // once per 2.5s max
+    freezeFrames:   5,     // 4-6
+    silhouetteFrames: 2,
+    invertFrames:   2,
+    burstLines:     14,
+    zoomIn:         1.45,  // punch-in scale
+    maxFlashesPerSec: 3,   // photosensitivity clamp
+  },
+
+  // ── GLOBAL ──
+  // "Hit Effects" setting scales everything: full = 1, low = fewer particles / no KO pop / no recoil,
+  // off = NONE of the hit-feel additions run (the exact pre-pass look is restored).
+  lowParticleScale: 0.4,
+}
+
+// Resolve a hit's tier from its spark (combat-tagged) + whether it ended the round / is an ult-table move.
+//   opts.category  — spark.category (light/heavy/launcher/spike/special/ultimate)
+//   opts.damage    — spark.damage
+//   opts.roundEnd  — this hit dropped the target to 0 HP
+//   opts.isUltMove — the move is tagged ULTIMATE in the juice tier table (or category === "ultimate")
+export function hitTierFor(opts = {}) {
+  const cat = opts.category || "light"
+  const dmg = +opts.damage || 0
+  if (opts.roundEnd || opts.isUltMove || cat === "ultimate") return HIT_TIER.FINISHER
+  if (HIT_TIERS.heavyCategories.includes(cat) || dmg >= HIT_TIERS.heavyDamage) return HIT_TIER.HEAVY
+  if (HIT_TIERS.mediumCategories.includes(cat) || dmg >= HIT_TIERS.mediumDamage) return HIT_TIER.MEDIUM
+  return HIT_TIER.LIGHT
+}
+
+export default { HIT_TIER, HIT_TIERS, HITFEEL, hitTierFor }

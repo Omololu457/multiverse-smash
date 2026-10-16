@@ -28,6 +28,7 @@ const LS_KEYS = {
   // SPARKING ZERO hit-sound pack — PER-PLAYER, audio-only, NOT part of LAN-synced state.
   hitSoundP1: "ms_hitsound_p1",          // "sparking" | "classic"  (default "sparking")
   hitSoundP2: "ms_hitsound_p2",          // "sparking" | "classic"  (default "sparking")
+  atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -102,6 +103,13 @@ export const juiceSettings = {
     const i = player === 1 ? 1 : 0
     this.setHitSoundPack(i, this.hitSounds[i] === "sparking" ? "classic" : "sparking")
   },
+
+  // ── Atmosphere (On / Off) — moody stage grade + drifting parallax fog + vignette (default ON) ──
+  // Presentation-only; Off restores the plain stage look exactly.
+  atmosphere: _get(LS_KEYS.atmosphere, "1") === "1",
+  setAtmosphere(on) { this.atmosphere = !!on; _set(LS_KEYS.atmosphere, this.atmosphere ? "1" : "0") },
+  toggleAtmosphere() { this.setAtmosphere(!this.atmosphere) },
+  atmosphereOn() { return !!this.atmosphere },
 }
 
 export default juiceSettings

@@ -3419,12 +3419,60 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   ctx.fillStyle = "rgba(0,0,0,0.10)"
   ctx.fillRect(0, groundY + 30, worldWidth, Math.max(0, floorExt - 30))
 
+  // ── ATMOSPHERE (polish pass): moody grade + drifting parallax fog, OVER the scene, UNDER fighters + the
+  // stage-name label. Transforms the flat/bright stages into the layered, hazy look of the reference clip.
+  drawStageAtmosphere(ctx, worldWidth, covTop, covBot, groundY, accent)
+
   if (stage?.name) {
     drawPanel(ctx, 22, 22, 250, 44, {
       radius: 14, fill: "rgba(0,0,0,0.35)", stroke: "rgba(255,255,255,0.14)", lineWidth: 1
     })
     drawCenteredText(ctx, stage.name, 147, 44, { font: "700 16px Arial", fill: accent })
   }
+}
+
+// Moody atmosphere layer (world-space, inside the camera transform). Presentation-only; gated by the
+// Atmosphere setting (Off → plain stage). A dark depth-grade (deeper at top & bottom) + three parallax fog
+// layers of soft tinted blobs drifting slowly. Drift uses wall-clock (ambient only — NOT sim state), so it
+// never affects gameplay/determinism. Blob LAYOUT is a stable hash so the fog is coherent, just scrolling.
+function drawStageAtmosphere(ctx, worldWidth, covTop, covBot, groundY, accent) {
+  if (!juiceSettings.atmosphereOn()) return
+  const H = covBot - covTop
+  // 1) DARK MOOD GRADE — deepen the scene; stronger at top & bottom = depth.
+  const grade = ctx.createLinearGradient(0, covTop, 0, covBot)
+  grade.addColorStop(0,    "rgba(8,10,20,0.50)")
+  grade.addColorStop(0.52, "rgba(12,14,24,0.12)")
+  grade.addColorStop(1,    "rgba(5,7,14,0.58)")
+  ctx.save()
+  ctx.fillStyle = grade; ctx.fillRect(0, covTop, worldWidth, H)
+  // 2) DRIFTING FOG — 3 parallax layers (back = slow/faint/high, front = faster/lower).
+  const t = (typeof performance !== "undefined" ? performance.now() : 0) / 1000
+  const midY = covTop + H * 0.50
+  const LAYERS = [
+    { speed: 5,  band: H * 0.30, yOff: -H * 0.12, alpha: 0.10, r: 170, tint: [130, 140, 160] },
+    { speed: 12, band: H * 0.24, yOff:  H * 0.00, alpha: 0.13, r: 135, tint: [95, 105, 125] },
+    { speed: 20, band: H * 0.18, yOff:  H * 0.14, alpha: 0.12, r: 105, tint: [60, 66, 82] },
+  ]
+  for (let li = 0; li < LAYERS.length; li++) {
+    const L = LAYERS[li]
+    const step = L.r * 1.5
+    const n = Math.min(48, Math.ceil(worldWidth / step) + 2)   // capped for perf on wide (FFA) stages
+    const drift = (t * L.speed) % step
+    for (let i = 0; i < n; i++) {
+      const hx = ((i * 2654435761) >>> 0) % 1000 / 1000
+      const hy = ((i * 40503 + li * 99991) >>> 0) % 1000 / 1000
+      let bx = i * step - drift + hx * step * 0.5
+      bx = ((bx % worldWidth) + worldWidth) % worldWidth
+      const by = midY + L.yOff + (hy - 0.5) * L.band
+      const rr = L.r * (0.7 + hx * 0.6)
+      const g = ctx.createRadialGradient(bx, by, 0, bx, by, rr)
+      g.addColorStop(0, `rgba(${L.tint[0]},${L.tint[1]},${L.tint[2]},${L.alpha})`)
+      g.addColorStop(1, `rgba(${L.tint[0]},${L.tint[1]},${L.tint[2]},0)`)
+      ctx.fillStyle = g
+      ctx.beginPath(); ctx.ellipse(bx, by, rr, rr * 0.55, 0, 0, Math.PI * 2); ctx.fill()
+    }
+  }
+  ctx.restore()
 }
 
 // ─────────────────────────────────────────────

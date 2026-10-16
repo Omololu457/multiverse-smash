@@ -16472,6 +16472,19 @@ function _updateLowHpVignette() {
   const below = _lowHpVignetteOn ? LOW_HP_INTENSITY_RELEASE : LOW_HP_INTENSITY_ENGAGE
   _lowHpVignetteOn = _anyFighterLowHP(below)
 }
+// POLISH (atmosphere): a neutral dark-edge vignette (screen space) that frames the action and deepens the
+// mood — the finishing touch over the stage fog/grade. Gated by the Atmosphere setting. Reduce Flashing
+// doesn't apply (it's steady, not a flash). Cheap: one cached-ish radial fill per frame.
+function _drawStageVignette() {
+  if (!juiceSettings.atmosphereOn()) return
+  const w = canvas.width, h = canvas.height
+  const g = ctx.createRadialGradient(w / 2, h * 0.46, Math.min(w, h) * 0.32, w / 2, h * 0.5, Math.max(w, h) * 0.72)
+  g.addColorStop(0, "rgba(0,0,0,0)")
+  g.addColorStop(0.7, "rgba(4,6,12,0.12)")
+  g.addColorStop(1, "rgba(2,3,8,0.42)")
+  ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore()
+}
+
 function _drawLowHpVignette() {
   const target = _lowHpVignetteOn ? 1 : 0
   _lowHpVignetteA += (target - _lowHpVignetteA) * 0.08     // ease in/out so it fades, never snaps
@@ -19524,6 +19537,7 @@ function drawBattle() {
   if (!(typeof window !== "undefined" && window.__hideTojiSwarm))   // harness-only: hide the flies to isolate Toji's self-fade for evidence shots (swarm logic still ticks)
     drawTojiFlyHeadsSwarm(ctx, canvas)   // Toji Fly Heads — dense screen-clutter swarm OVER the fighters but UNDER the HUD (vision-denial, HP bars stay readable)
   _drawGhostfaceSwapFlash()   // Ghostface killer-swap identity-tinted flash (over fighters, under HUD)
+  _drawStageVignette()        // POLISH: neutral dark edge vignette (mood), under the low-HP red vignette + HUD
   _drawLowHpVignette()        // Track A3: low-HP red edge vignette (atmosphere, under HUD)
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
@@ -19762,6 +19776,7 @@ const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
 // HIT FEEL (Phase A) — two more toggles in the same group: Hit Effects (Off/Low/Full) + Damage Numbers.
 const hitFxRect         = { x: 0, y: 676, w: 92, h: 30 }
 const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
+const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody stage grade + fog + vignette
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -19769,7 +19784,7 @@ const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
 // short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
 // draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
 let settingsScroll = 0
-const SETTINGS_CONTENT_BOTTOM = 782   // lowest content row (VISUAL FX note, below the Hit Sounds row); maxScroll derives from the viewport
+const SETTINGS_CONTENT_BOTTOM = 812   // lowest content row (Atmosphere, below the Hit Sounds row); maxScroll derives from the viewport
 function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
 function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
@@ -19829,6 +19844,7 @@ function _layoutSettings() {
   dmgNumRect.x        = rx + 98
   hitSndP1Rect.x      = rx
   hitSndP2Rect.x      = rx + 98
+  atmosphereRect.x    = rx
 }
 
 function drawSettingsScreen() {
@@ -19954,9 +19970,11 @@ function drawSettingsScreen() {
     // SPARKING ZERO hit sounds — PER-PLAYER pack (P1 left / P2 right). Sparking = accent (default).
     fxBox(hitSndP1Rect, `P1: ${juiceSettings.hitSoundPack(0) === "sparking" ? "SPARK" : "CLASSIC"}`, juiceSettings.hitSoundPack(0) === "sparking", "#ffd24a")
     fxBox(hitSndP2Rect, `P2: ${juiceSettings.hitSoundPack(1) === "sparking" ? "SPARK" : "CLASSIC"}`, juiceSettings.hitSoundPack(1) === "sparking", "#ffd24a")
+    // POLISH: Atmosphere (moody stage grade + fog + vignette).
+    fxBox(atmosphereRect, `Atmosphere: ${juiceSettings.atmosphere ? "ON" : "OFF"}`, juiceSettings.atmosphere, "#8b5cf6")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
-    ctx.fillText("Hit Sounds: Sparking pack / Classic — per-player, saved", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
+    ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21182,6 +21200,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, dmgNumRect)) { juiceSettings.toggleDmgNumbers(); break }
       if (pointInRect(mouse.x, _smy, hitSndP1Rect)) { juiceSettings.cycleHitSoundPack(0); break }   // SPARKING ZERO: Sparking ↔ Classic (P1)
       if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
+      if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.

@@ -96,10 +96,12 @@ ok(noRepeat(P1.filter(e => e.pack === "sparking" && e.role === "primary")), "P1 
 // Dedicated no-repeat stress: put P2 on Sparking and fire a MEDIUM string (one pool) in ONE synchronous
 // burst, so no sim tick (real combat) interleaves a different clip into P2's sequence. Drain active voices
 // first (the ~12-voice cap would otherwise drop later hits in a single-instant burst → fewer logged).
-await page.evaluate(() => window.__harness.juice.szQuiesce()); await waitFrames(90);   // let the juice voice pool drain
-await page.evaluate(() => { window.__harness.juice.setHitSoundPack(1, "sparking"); window.__harness.juice.szQuiesce(); window.__harness.juice.clearHitSfxLog(); for (let k = 0; k < 8; k++) window.__harness.juice.hit("medium", "p2"); });
+// Burst of 5 (not more) so it + any per-hit ELEMENT aftermath sound (HIT FEEL Phase D) stay under the
+// ~12-voice cap → every medium primary lands; the no-repeat property is what's asserted (count floor is a sanity margin).
+await page.evaluate(() => window.__harness.juice.szQuiesce()); await waitFrames(120);   // let the juice voice pool fully drain
+await page.evaluate(() => { window.__harness.juice.setHitSoundPack(1, "sparking"); window.__harness.juice.szQuiesce(); window.__harness.juice.clearHitSfxLog(); for (let k = 0; k < 5; k++) window.__harness.juice.hit("medium", "p2"); });
 const p2spark = (await page.evaluate(() => window.__harness.juice.hitSfxLog())).filter(e => e.player === 1 && e.role === "primary");
-ok(p2spark.length >= 6 && p2spark.every(e => e.pack === "sparking" && shortc.test(e.clip)) && noRepeat(p2spark), `P2 Sparking: ${p2spark.length} MEDIUM hits, none twice in a row (${p2spark.map(e=>e.clip.slice(-2)).join(" ")})`);
+ok(p2spark.length >= 4 && p2spark.every(e => e.pack === "sparking" && shortc.test(e.clip)) && noRepeat(p2spark), `P2 Sparking: ${p2spark.length} MEDIUM hits, none twice in a row (${p2spark.map(e=>e.clip.slice(-2)).join(" ")})`);
 await page.evaluate(() => window.__harness.juice.setHitSoundPack(1, "classic"));   // restore the per-player split for the report
 
 // 6) Voice cap holds under spam (12-cap; non-boom beyond the cap is dropped → playSfx returns false).

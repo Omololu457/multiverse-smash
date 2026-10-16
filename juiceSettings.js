@@ -25,6 +25,9 @@ const LS_KEYS = {
   hitEffects: "ms_hitfeel",              // "off" | "low" | "full"
   dmgNumbers: "ms_hitfeel_dmgnum",       // "1" (on) | "0"  — default OFF in versus; forced ON in Training (game.js)
   animFinish: "ms_hitfeel_finisher",     // "1" (on) | "0"
+  // SPARKING ZERO hit-sound pack — PER-PLAYER, audio-only, NOT part of LAN-synced state.
+  hitSoundP1: "ms_hitsound_p1",          // "sparking" | "classic"  (default "sparking")
+  hitSoundP2: "ms_hitsound_p2",          // "sparking" | "classic"  (default "sparking")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -79,6 +82,26 @@ export const juiceSettings = {
   animFinisher: _get(LS_KEYS.animFinish, "1") === "1",
   setAnimFinisher(on) { this.animFinisher = !!on; _set(LS_KEYS.animFinish, this.animFinisher ? "1" : "0") },
   toggleAnimFinisher() { this.setAnimFinisher(!this.animFinisher) },
+
+  // ── Hit Sounds (Classic / Sparking pack) — PER-PLAYER, saved, audio-only ──
+  // Default "sparking". "classic" restores the exact previous hit sounds (hitfeel_config
+  // HITFEEL.sound). The attacker's pack plays on their hits (chosen by player index at
+  // the call site). NEVER serialized into net state — a purely local audio preference.
+  hitSounds: [
+    (() => { const v = _get(LS_KEYS.hitSoundP1, "sparking"); return (v === "classic" || v === "sparking") ? v : "sparking" })(),
+    (() => { const v = _get(LS_KEYS.hitSoundP2, "sparking"); return (v === "classic" || v === "sparking") ? v : "sparking" })(),
+  ],
+  hitSoundPack(player) { return this.hitSounds[player === 1 ? 1 : 0] },
+  setHitSoundPack(player, v) {
+    if (v !== "classic" && v !== "sparking") return
+    const i = player === 1 ? 1 : 0
+    this.hitSounds[i] = v
+    _set(i === 1 ? LS_KEYS.hitSoundP2 : LS_KEYS.hitSoundP1, v)
+  },
+  cycleHitSoundPack(player) {
+    const i = player === 1 ? 1 : 0
+    this.setHitSoundPack(i, this.hitSounds[i] === "sparking" ? "classic" : "sparking")
+  },
 }
 
 export default juiceSettings

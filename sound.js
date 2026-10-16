@@ -159,6 +159,25 @@ export const JUICE_SFX = {
   hit_heavy_boom_01:     "hits/hit_heavy_boom_01.ogg",
 }
 
+// ── SPARKING ZERO hit-sound pack (37 clips) ──────────────────────────────────
+// Decoded through the SAME audio loader as the core pack (just under a different
+// base) and PRELOADED alongside it at init (see loadJuicePack). id → path under
+// SPARKING_SFX_BASE. Clips are NEVER re-encoded; every clip is -16 LUFS on disk so
+// loudness differences come entirely from the per-event `gain` at the call site
+// (see sfx_map.js). Selected per-player via the Hit Sounds setting; mapped onto the
+// HIT FEEL tiers in game.js. Audio-only — never reads gameRng, never touches the sim.
+export const SPARKING_SFX_BASE = "./sparking_zero_sfx/"
+export const SPARKING_SFX = Object.freeze((() => {
+  const out = {}
+  const add = (folder, prefix, n) => { for (let i = 1; i <= n; i++) { const id = `${prefix}_${String(i).padStart(2, "0")}`; out[id] = `${folder}/${id}.ogg` } }
+  add("click",         "sz_click",         6)
+  add("hit_short",     "sz_hit_short",     7)
+  add("hit_long_tail", "sz_hit_long_tail", 14)
+  add("flurry",        "sz_flurry",        7)
+  add("barrage",       "sz_barrage",       3)
+  return out
+})())
+
 // OPTIONAL "naruto_extra" pool — 28 clips that carry ANIME BACKGROUND MUSIC
 // (manifest background_music:true, confidence "category-guess"). OFF by default:
 // never decoded or referenced in the default event mapping. setJuiceNarutoExtra(true)
@@ -1255,11 +1274,13 @@ class SoundManager {
     if (!this._ctx || this._juiceLoaded) return
     this._juiceLoaded = true
     for (const id in JUICE_SFX) this._decodeJuiceClip(id, JUICE_SFX[id])
+    // SPARKING ZERO pack — preloaded alongside the core pack, under its own base.
+    for (const id in SPARKING_SFX) this._decodeJuiceClip(id, SPARKING_SFX[id], SPARKING_SFX_BASE)
   }
 
-  _decodeJuiceClip(id, rel) {
+  _decodeJuiceClip(id, rel, base = JUICE_SFX_BASE) {
     if (!this._ctx || this._juiceBuffers.has(id)) return
-    const url = JUICE_SFX_BASE + rel
+    const url = base + rel
     try {
       fetch(url)
         .then(r => (r && r.ok) ? r.arrayBuffer() : Promise.reject(r && r.status))
@@ -1369,6 +1390,8 @@ class SoundManager {
     return {
       loaded: [...this._juiceBuffers.keys()],
       coreCount: Object.keys(JUICE_SFX).length,
+      sparkingCount: Object.keys(SPARKING_SFX).length,
+      sparkingLoaded: Object.keys(SPARKING_SFX).filter(id => this._juiceBuffers.has(id)).length,
       standins: Object.keys(JUICE_STANDINS),
       narutoExtra: this._juiceNarutoEnabled,
       voiceCap: JUICE_VOICE_CAP,

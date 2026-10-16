@@ -546,11 +546,12 @@ import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
-import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant } from "./sound.js"
+import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant, juiceHash } from "./sound.js"
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
+import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS } from "./sfx_map.js"   // SPARKING ZERO hit-sound pack — tier → clip mapping table
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -2186,6 +2187,57 @@ function _dmgNumbersEffective() {
   return (matchConfig.mode === "training") ? true : !!juiceSettings.dmgNumbers
 }
 
+// ── SPARKING ZERO hit-sound dispatch (audio + presentation only) ─────────────
+// Per-player "last clip" memory so the same clip never plays twice in a row for a
+// player. This is AUDIO-ONLY module state: it only influences WHICH sampled clip is
+// chosen — never sim state — and is NEVER serialized into net play (LAN-safe).
+// Keyed per player (0/1) then per channel ("primary"/"layer") so the layered quiet
+// clip and the primary clip each avoid their own immediate repeat independently.
+const _szLastClip = [{}, {}]
+function _szPick(ids, frame, player, chan) {
+  if (!ids || !ids.length) return null
+  const p = player === 1 ? 1 : 0
+  const mem = _szLastClip[p]
+  if (ids.length === 1) { mem[chan] = ids[0]; return ids[0] }
+  let i = juiceHash(frame, p) % ids.length                 // deterministic hash of (frame, playerIndex) — never gameRng
+  if (ids[i] === mem[chan]) i = (i + 1) % ids.length       // never twice in a row for this player/channel
+  mem[chan] = ids[i]
+  return ids[i]
+}
+
+// Audio-event log (clip, frame, gain, …) for verification — the test harness reads this
+// since the sound can't be heard in a report. Capped ring; audio-only, no sim effect.
+const _hitSfxLog = []
+function _logHitSfx(rec) { _hitSfxLog.push(rec); if (_hitSfxLog.length > 500) _hitSfxLog.shift() }
+
+// Play the hit-impact sound for a tier, honoring the ATTACKER's per-player Hit Sounds
+// setting. CLASSIC → the exact previous clip+gain (hitfeel_config HITFEEL.sound). SPARKING
+// → the sfx_map table for the Phase-1 tiers (LIGHT/MEDIUM/HEAVY); other tiers (finisher
+// until Phase 2) fall back to Classic so there's no half-built cue. All loudness is the
+// per-event gain here (clips are -16 LUFS); pitch is a deterministic ±4% hash jitter.
+function _playHitFeelSound(tier, frame, player) {
+  const pack = juiceSettings.hitSoundPack(player)
+  const szMap = (pack === "sparking" && SPARKING_PHASE1_TIERS.includes(tier)) ? SPARKING_HIT_MAP[tier] : null
+  if (szMap) {
+    const clip = _szPick(szMap.pool, frame, player, "primary")
+    if (clip && sound.playJuiceSfx?.(clip, { gain: szMap.gain, pitch: juicePitch(frame, player) })) {
+      _logHitSfx({ frame, player, pack: "sparking", tier, role: "primary", clip, gain: szMap.gain })
+    }
+    if (szMap.layer) {   // LIGHT: quiet sz_hit_short_* layered under the click (gain 0.35)
+      const lclip = _szPick(szMap.layer.pool, frame ^ 0x3b, player, "layer")   // distinct seed so layer != primary
+      if (lclip && sound.playJuiceSfx?.(lclip, { gain: szMap.layer.gain, pitch: juicePitch(frame ^ 0x3b, player) })) {
+        _logHitSfx({ frame, player, pack: "sparking", tier, role: "layer", clip: lclip, gain: szMap.layer.gain })
+      }
+    }
+    return
+  }
+  // CLASSIC (or any tier not yet Sparking-mapped): the exact previous behavior.
+  const sc = HITFEEL.sound[tier]
+  if (sc && sound.playJuiceSfx?.(sc.clip, { gain: sc.gain, pitch: juicePitch(frame, player) })) {
+    _logHitSfx({ frame, player, pack: "classic", tier, role: "primary", clip: sc.clip, gain: sc.gain })
+  }
+}
+
 function _fireHitFeel(spark) {
   if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
   if (spark.blocked) return                         // blocked hits don't get the full punchy treatment
@@ -2199,9 +2251,8 @@ function _fireHitFeel(spark) {
   const dir = attacker ? ((attacker.facing || 1) < 0 ? -1 : 1) : 1
   const x = spark.x, y = spark.y
 
-  // SOUND — sampled pack clip on the impact frame (deterministic ±4% pitch).
-  const sc = HITFEEL.sound[tier]
-  if (sc) sound.playJuiceSfx?.(sc.clip, { gain: sc.gain, pitch: juicePitch(frame, player) })
+  // SOUND — Classic (prior pack) or Sparking Zero pack per the ATTACKER's per-player setting.
+  _playHitFeelSound(tier, frame, player)
   // PARTICLES — directional arced spark burst (reuses the juiceFx pool).
   fireJuiceHitSpark({ x, y, dir, count: HITFEEL.sparkCount[tier], speed: HITFEEL.sparkSpeed[tier], frame, player })
   // KNOCKBACK FEEL — target sprite nudged PAST its sim position (eased back); attacker recoils on HEAVY/FINISHER.
@@ -19696,11 +19747,14 @@ const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
 // HIT FEEL (Phase A) — two more toggles in the same group: Hit Effects (Off/Low/Full) + Damage Numbers.
 const hitFxRect         = { x: 0, y: 676, w: 92, h: 30 }
 const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
+// SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
+const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
+const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
 // SETTINGS page scroll — the screen is dense (the VISUAL FX group sits low in the right column), so on a
 // short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
 // draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
 let settingsScroll = 0
-const SETTINGS_CONTENT_BOTTOM = 742   // lowest content row (VISUAL FX note); maxScroll derives from the viewport
+const SETTINGS_CONTENT_BOTTOM = 782   // lowest content row (VISUAL FX note, below the Hit Sounds row); maxScroll derives from the viewport
 function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
 function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
@@ -19758,6 +19812,8 @@ function _layoutSettings() {
   juiceParticleRect.x = rx + 98
   hitFxRect.x         = rx
   dmgNumRect.x        = rx + 98
+  hitSndP1Rect.x      = rx
+  hitSndP2Rect.x      = rx + 98
 }
 
 function drawSettingsScreen() {
@@ -19880,8 +19936,12 @@ function drawSettingsScreen() {
     // HIT FEEL (Phase A): Hit Effects (Off/Low/Full) + Damage Numbers (Off/On).
     fxBox(hitFxRect, `Hit FX: ${juiceSettings.hitEffects.toUpperCase()}`, juiceSettings.hitEffectsOn(), "#f472b6")
     fxBox(dmgNumRect, `Dmg #: ${juiceSettings.dmgNumbers ? "ON" : "OFF"}`, juiceSettings.dmgNumbers, "#4ade80")
+    // SPARKING ZERO hit sounds — PER-PLAYER pack (P1 left / P2 right). Sparking = accent (default).
+    fxBox(hitSndP1Rect, `P1: ${juiceSettings.hitSoundPack(0) === "sparking" ? "SPARK" : "CLASSIC"}`, juiceSettings.hitSoundPack(0) === "sparking", "#ffd24a")
+    fxBox(hitSndP2Rect, `P2: ${juiceSettings.hitSoundPack(1) === "sparking" ? "SPARK" : "CLASSIC"}`, juiceSettings.hitSoundPack(1) === "sparking", "#ffd24a")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
-    ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, dmgNumRect.y + dmgNumRect.h + 13)
+    ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
+    ctx.fillText("Hit Sounds: Sparking pack / Classic — per-player, saved", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21105,6 +21165,8 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, juiceParticleRect)) { juiceSettings.cycleParticles(); break }   // Low ↔ Full
       if (pointInRect(mouse.x, _smy, hitFxRect))  { juiceSettings.cycleHitEffects(); break }   // HIT FEEL: Off → Low → Full
       if (pointInRect(mouse.x, _smy, dmgNumRect)) { juiceSettings.toggleDmgNumbers(); break }
+      if (pointInRect(mouse.x, _smy, hitSndP1Rect)) { juiceSettings.cycleHitSoundPack(0); break }   // SPARKING ZERO: Sparking ↔ Classic (P1)
+      if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -24046,6 +24108,12 @@ gameLoop()
       hitSettings: () => ({ hitEffects: juiceSettings.hitEffects, dmgNumbers: juiceSettings.dmgNumbers, dmgEffective: _dmgNumbersEffective(), animFinisher: juiceSettings.animFinisher }),
       setHitFx:   (v)  => { juiceSettings.setHitEffects(v); return juiceSettings.hitEffects },
       setDmgNum:  (b)  => { juiceSettings.setDmgNumbers(b); return juiceSettings.dmgNumbers },
+      // ── SPARKING ZERO hit-sound pack (Phase 1) — per-player setting + audio-event log ──
+      hitSoundSettings: () => ({ p1: juiceSettings.hitSoundPack(0), p2: juiceSettings.hitSoundPack(1) }),
+      setHitSoundPack:  (player, v) => { juiceSettings.setHitSoundPack(player, v); return juiceSettings.hitSoundPack(player) },
+      hitSfxLog:    () => _hitSfxLog.slice(),              // [{frame,player,pack,tier,role,clip,gain}] — the audio cues actually fired
+      clearHitSfxLog: () => { _hitSfxLog.length = 0; return true },
+      sfxMapStatus: () => ({ phase1Tiers: SPARKING_PHASE1_TIERS, map: SPARKING_HIT_MAP }),
       // Fire a hit of an explicit tier directly (bypasses combat) for render/perf shots.
       hit:        (tier = "medium", who = "p1") => {
         const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null

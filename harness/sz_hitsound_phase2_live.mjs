@@ -37,6 +37,7 @@ const gs = await state(); const lpx = await vivid(0.04, 0.42), rpx = await vivid
 ok(gs === "battle", "match is in BATTLE");
 ok(lpx > 8000 && rpx > 8000, `BOTH fighters render (L=${lpx}, R=${rpx})`);
 await page.evaluate(() => { window.__harness.juice.setHitSoundPack(0, "sparking"); window.__harness.juice.setHitSoundPack(1, "sparking"); });
+await page.evaluate(() => window.__harness.juice.szQuiesce());   // freeze real combat (both invuln) so it can't interleave/interrupt the audio-log tests
 await shot("01_match");
 
 const longFin = /^sz_hit_long_tail_(09|1[0-4])$/, booms = ["boom_huge_01","boom_huge_02_roar"], flurryc = /^sz_flurry_\d\d$/, barragec = /^sz_barrage_\d\d$/;
@@ -52,43 +53,45 @@ ok(fin.some(e => e.role === "rumble" && e.clip === "rumble_tail_01" && e.gain ==
 ok(fin.length <= 3, `≤3 layers stacked on the finisher (${fin.length})`);
 
 // 2) MULTI-HIT FLURRY: 5 rapid same-move hits → ONE flurry clip; per-hit impacts suppressed after hit 3.
-await clearLog(); await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(25);   // clear any prior streak
-await clearLog();
-for (let k = 0; k < 5; k++) { await page.evaluate(() => window.__harness.juice.hitMove("light", "p1", "PalmRush")); await waitFrames(4); }
+// Fired in ONE synchronous burst so no sim tick (real combat / interrupt) runs between the hits.
+await page.evaluate(() => window.__harness.juice.szQuiesce()); await clearLog();
+const sFl = await page.evaluate(() => { for (let i = 0; i < 5; i++) window.__harness.juice.hitMove("light", "p1", "PalmRush"); return window.__harness.juice.szStreak(0); });   // capture streak IN the burst (no tick between)
 const fl = await log();
 console.log("\n  ── FLURRY event log ──"); for (const e of fl) console.log(`  f${e.frame} P${e.player} ${e.tier.padEnd(7)} ${e.role.padEnd(12)} ${e.clip}`);
 const streamStart = fl.find(e => e.role === "stream-start");
 const perHitAfterStream = streamStart ? fl.filter(e => e.role === "primary" && e.frame > streamStart.frame).length : -1;
-const sFl = await page.evaluate(() => window.__harness.juice.szStreak(0));
 ok(streamStart && flurryc.test(streamStart.clip) && streamStart.tier === "flurry", `3+-hit rush → ONE flurry clip (${streamStart?.clip})`);
 ok(fl.filter(e => e.role === "primary").length === 2, `first 2 hits play per-hit impacts, then the flurry OWNS it (${fl.filter(e=>e.role==="primary").length} per-hit)`);
 ok(perHitAfterStream === 0, `no per-hit impacts after the flurry starts (suppressed) (${perHitAfterStream})`);
 ok(sFl && sFl.streaming && sFl.kind === "flurry" && sFl.count >= 5, `streak live: kind=${sFl?.kind}, count=${sFl?.count}`);
 
 // 3) INTERRUPT: the attacker is hit mid-rush → the flurry stops early (with a fade); streak clears.
+// Re-establish a fresh live stream (burst), confirm it's live, then interrupt and let one tick process it.
+await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(22);   // clear prior streak (stale)
+const sLive = await page.evaluate(() => { window.__harness.juice.szQuiesce(); for (let i = 0; i < 5; i++) window.__harness.juice.hitMove("light", "p1", "Rush2"); return window.__harness.juice.szStreak(0); });
+ok(sLive && sLive.streaming, `fresh flurry stream is live before interrupt (count=${sLive?.count})`);
 await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(4);
 const sAfter = await page.evaluate(() => window.__harness.juice.szStreak(0));
 ok(sAfter === null, "flurry interrupted → stream fades out + streak clears");
 
 // 4) BARRAGE: a rapid energy string (barrage-keyword move) → single sz_barrage_* clip over the move.
-await clearLog(); await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(25);
-await clearLog();
-for (let k = 0; k < 8; k++) { await page.evaluate(() => window.__harness.juice.hitMove("medium", "p1", "Ki Barrage")); await waitFrames(2); }
+await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(25);   // clear any prior streak
+await page.evaluate(() => window.__harness.juice.szQuiesce()); await clearLog();
+const sBar = await page.evaluate(() => { for (let i = 0; i < 8; i++) window.__harness.juice.hitMove("medium", "p1", "Ki Barrage"); return window.__harness.juice.szStreak(0); });   // synchronous burst → barrage
 const bar = await log();
 const barStart = bar.find(e => e.role === "stream-start");
-const sBar = await page.evaluate(() => window.__harness.juice.szStreak(0));
 console.log("\n  ── BARRAGE event log ──"); for (const e of bar.filter(e => e.role.startsWith("stream"))) console.log(`  f${e.frame} ${e.tier} ${e.role} ${e.clip}`);
 ok(barStart && barragec.test(barStart.clip) && barStart.tier === "barrage", `rapid barrage → single sz_barrage_* clip (${barStart?.clip})`);
 ok(sBar && sBar.kind === "barrage" && sBar.streaming, `barrage streak live (kind=${sBar?.kind}, chained=${sBar?.chained})`);
 
-// 5) BARRAGE CHAINING: keep firing past the clip length → a 2nd barrage clip crossfades in (if the move outlasts the clip).
-for (let k = 0; k < 90; k++) { await page.evaluate(() => window.__harness.juice.hitMove("medium", "p1", "Ki Barrage")); await waitFrames(2); }
+// 5) BARRAGE CHAINING: keep firing PAST the longest clip (~5.6s) → a 2nd barrage clip crossfades in.
+let sBar2 = null;
+for (let k = 0; k < 75 && !(sBar2 && sBar2.chained); k++) { await page.evaluate(() => { window.__harness.juice.szQuiesce(); window.__harness.juice.hitMove("medium", "p1", "Ki Barrage"); }); await waitFrames(6); sBar2 = await page.evaluate(() => window.__harness.juice.szStreak(0)); }
 const bar2 = await log();
 const chain = bar2.find(e => e.role === "stream-chain");
-const sBar2 = await page.evaluate(() => window.__harness.juice.szStreak(0));
-console.log(`  barrage after ~3s: streaming=${!!(sBar2&&sBar2.streaming)}, chained=${!!(sBar2&&sBar2.chained)}, chainEvent=${!!chain}${chain?" ("+chain.clip+")":""}`);
+console.log(`  long barrage: streaming=${!!(sBar2&&sBar2.streaming)}, chained=${!!(sBar2&&sBar2.chained)}, chainEvent=${!!chain}${chain?" ("+chain.clip+")":""}`);
 ok(sBar2 && sBar2.streaming, "barrage still streaming across a long move (sized to the move)");
-ok(!!chain === !!(sBar2 && sBar2.chained), `crossfade-chain state consistent (chained=${!!(sBar2&&sBar2.chained)})`);
+ok(!!chain && !!(sBar2 && sBar2.chained) && barragec.test(chain.clip), `move outlasts the clip → 2nd barrage clip crossfades in (${chain?.clip})`);
 await page.evaluate(() => window.__harness.juice.szForceInterrupt("p1")); await waitFrames(6);
 
 // 6) Voice cap still holds under spam.

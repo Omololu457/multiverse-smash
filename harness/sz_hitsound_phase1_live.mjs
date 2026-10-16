@@ -2,7 +2,7 @@
 // Boots the REAL game, starts a REAL match (render-checks BOTH fighters), confirms the 37-clip pack decoded THROUGH the existing
 // audio loader, fires LIGHT/MEDIUM/HEAVY hits (Sparking) + Classic hits, and reads the audio-event log (clip/frame/gain) so the
 // mapping can be verified from text (the sound can't be heard in a report). Also checks: no clip twice in a row per player, the
-// voice cap holds under spam, the per-player setting persists, and FINISHER (Phase 1) falls back to Classic.
+// voice cap holds under spam, the per-player setting persists, and the Sparking FINISHER layers long-tail + boom.
 // Serve root defaults to the repo (working tree); set SZ_SERVE_ROOT to boot an archived mine-only tree.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path";
@@ -53,12 +53,13 @@ ok(hs.p1 === "sparking" && hs.p2 === "classic", `per-player packs set (P1=${hs.p
 ok(lsp.p1 === "sparking" && lsp.p2 === "classic", `setting persists to localStorage (${JSON.stringify(lsp)})`);
 
 // 4) Fire tiered hits and read the audio-event log. P1 (player 0) = Sparking, P2 (player 1) = Classic.
+await page.evaluate(() => window.__harness.juice.szQuiesce());   // freeze real combat (both invuln) so it can't interleave the audio-log tests
 await page.evaluate(() => window.__harness.juice.clearHitSfxLog());
 const fire = async (tier, who, times) => { for (let k = 0; k < times; k++) { await page.evaluate(([t, w]) => window.__harness.juice.hit(t, w), [tier, who]); await waitFrames(5); } };
 await fire("light", "p1", 4);
 await fire("medium", "p1", 3);
 await fire("heavy", "p1", 3);
-await fire("finisher", "p1", 1);   // Phase 1: Sparking finisher FALLS BACK to Classic
+await fire("finisher", "p1", 1);   // Sparking finisher = long-tail + boom (wired in Phase 2)
 await fire("medium", "p2", 2);     // Classic pack
 await fire("finisher", "p2", 1);   // Classic pack
 const log = await page.evaluate(() => window.__harness.juice.hitSfxLog());
@@ -79,9 +80,9 @@ ok(mP.length > 0 && mP.every(e => e.pack === "sparking" && shortc.test(e.clip) &
 // HEAVY (Sparking): long_tail 01..08 @0.75
 const hP = P1.filter(e => e.tier === "heavy" && e.role === "primary");
 ok(hP.length > 0 && hP.every(e => e.pack === "sparking" && longHeavy(e.clip) && e.gain === 0.75), `HEAVY = sz_hit_long_tail_01..08 @0.75 (${hP.map(e=>e.clip).join(",")})`);
-// FINISHER (Sparking, Phase 1): falls back to Classic (no half-built cue)
+// FINISHER (Sparking): long-tail 09..14 + the earlier pack's boom (wired in Phase 2).
 const fP1 = P1.filter(e => e.tier === "finisher");
-ok(fP1.length > 0 && fP1.every(e => e.pack === "classic"), `FINISHER (Sparking) Phase-1 falls back to Classic (${fP1.map(e=>e.pack+":"+e.clip).join(",")})`);
+ok(fP1.some(e => e.role === "longtail" && e.pack === "sparking") && fP1.some(e => e.role === "boom"), `FINISHER (Sparking) = long-tail + boom (Phase 2) (${fP1.map(e=>e.role+":"+e.clip).join(",")})`);
 // P2 CLASSIC: medium = the exact prior clip (hit_flurry_01 @0.55); finisher = hit_heavy_boom_01 @0.90
 const mP2 = P2.filter(e => e.tier === "medium" && e.role === "primary");
 ok(mP2.length > 0 && mP2.every(e => e.pack === "classic" && e.clip === "hit_flurry_01" && e.gain === 0.55), `P2 Classic MEDIUM = hit_flurry_01 @0.55 (exact prior sound)`);
@@ -92,11 +93,13 @@ ok(fP2.length > 0 && fP2.every(e => e.pack === "classic" && e.clip === "hit_heav
 //    (Classic intentionally uses fixed single clips — repeating is the exact prior behavior, not a bug.)
 const noRepeat = arr => { for (let i = 1; i < arr.length; i++) if (arr[i].clip === arr[i-1].clip) return false; return true; };
 ok(noRepeat(P1.filter(e => e.pack === "sparking" && e.role === "primary")), "P1 Sparking: no primary clip twice in a row");
-// Dedicated no-repeat stress: put P2 on Sparking and fire a long MEDIUM string (one pool, 7 clips).
-await page.evaluate(() => { window.__harness.juice.setHitSoundPack(1, "sparking"); window.__harness.juice.clearHitSfxLog(); });
-for (let k = 0; k < 10; k++) { await page.evaluate(() => window.__harness.juice.hit("medium", "p2")); await waitFrames(4); }
+// Dedicated no-repeat stress: put P2 on Sparking and fire a MEDIUM string (one pool) in ONE synchronous
+// burst, so no sim tick (real combat) interleaves a different clip into P2's sequence. Drain active voices
+// first (the ~12-voice cap would otherwise drop later hits in a single-instant burst → fewer logged).
+await page.evaluate(() => window.__harness.juice.szQuiesce()); await waitFrames(90);   // let the juice voice pool drain
+await page.evaluate(() => { window.__harness.juice.setHitSoundPack(1, "sparking"); window.__harness.juice.szQuiesce(); window.__harness.juice.clearHitSfxLog(); for (let k = 0; k < 8; k++) window.__harness.juice.hit("medium", "p2"); });
 const p2spark = (await page.evaluate(() => window.__harness.juice.hitSfxLog())).filter(e => e.player === 1 && e.role === "primary");
-ok(p2spark.length >= 8 && p2spark.every(e => e.pack === "sparking" && shortc.test(e.clip)) && noRepeat(p2spark), `P2 Sparking: ${p2spark.length} MEDIUM hits, none twice in a row (${p2spark.map(e=>e.clip.slice(-2)).join(" ")})`);
+ok(p2spark.length >= 6 && p2spark.every(e => e.pack === "sparking" && shortc.test(e.clip)) && noRepeat(p2spark), `P2 Sparking: ${p2spark.length} MEDIUM hits, none twice in a row (${p2spark.map(e=>e.clip.slice(-2)).join(" ")})`);
 await page.evaluate(() => window.__harness.juice.setHitSoundPack(1, "classic"));   // restore the per-player split for the report
 
 // 6) Voice cap holds under spam (12-cap; non-boom beyond the cap is dropped → playSfx returns false).

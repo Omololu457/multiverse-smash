@@ -551,7 +551,7 @@ import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE 
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
-import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS } from "./sfx_map.js"   // SPARKING ZERO hit-sound pack — tier → clip mapping table
+import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS, SZ_HIT_LONG_FINISHER, SZ_FLURRY, SZ_BARRAGE, SZ_FINISHER_BOOM, SZ_FINISHER_RUMBLE, SZ_STREAK, SZ_BARRAGE_HINT } from "./sfx_map.js"   // SPARKING ZERO — tier mapping + Phase-2 finisher/flurry/barrage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -1911,13 +1911,6 @@ let _juiceSlowmoTimer    = 0
 let _juiceSlowmoCooldown = 0
 let _juiceImpactFrame    = null     // { timer, maxTimer, tier, reduce }
 let _juiceSlowmoNetFlag  = null     // LAN: host-authoritative Slow-Mo flag (null = standalone)
-// HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s). A deterministic freeze (LAN-safe,
-// before _replayFrame++) → black silhouettes on a bright flash → negative INVERT → radial burst lines →
-// hard punch-in zoom → snap back with a colour flash. Reduce Flashing → soft dim, no invert/strobe.
-let _animFin        = null   // { t, x, y, player, reduce } | null  (render-only sequence state)
-let _animFinFreeze  = 0      // deterministic hard-freeze frames remaining (mirrors _koFreeze)
-let _animFinCd      = 0      // cooldown frames until the next finisher is allowed
-let _animFinZoomHeld = false // whether we applied a camera punch-in that must be released
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -2219,13 +2212,68 @@ function _szPick(ids, frame, player, chan) {
 const _hitSfxLog = []
 function _logHitSfx(rec) { _hitSfxLog.push(rec); if (_hitSfxLog.length > 500) _hitSfxLog.shift() }
 
+// ── SPARKING ZERO Phase-2: FINISHER layering + MULTI-HIT/BARRAGE streams (audio-only, deterministic) ──
+// FINISHER/ULTIMATE connect → long-tail (09..14) + the earlier pack's boom + rumble, on the impact frame
+// (≤3 layers). The boom uses the duck-bypassing ult-boom bus (full level, ducks other juice ~4 dB).
+function _szPlayFinisher(frame, player) {
+  const lt = _szPick(SZ_HIT_LONG_FINISHER, frame, player, "primary")
+  if (lt && sound.playJuiceSfx?.(lt, { gain: 1.0, pitch: juicePitch(frame, player) })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "longtail", clip: lt, gain: 1.0 })
+  const boom = juicePickVariant(SZ_FINISHER_BOOM, frame, player)
+  if (boom && sound.playJuiceSfx?.(boom, { gain: 1.0, pitch: juicePitch(frame + 2, player), delay: 2 / 60, ultBoom: true, duckSec: 0.6 })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "boom", clip: boom, gain: 1.0 })
+  if (sound.playJuiceSfx?.(SZ_FINISHER_RUMBLE, { gain: 0.6, delay: 6 / 60 })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "rumble", clip: SZ_FINISHER_RUMBLE, gain: 0.6 })
+}
+
+// Per-attacker streak: 3+ rapid same-move hits → ONE flurry (or, for very dense/energy strings, barrage)
+// clip over the whole move. Returns true once the stream OWNS the sound (per-hit impacts then suppressed).
+// The stream starts on the hit that CONFIRMS 3+ (foreknowledge at hit 1 would need a per-move table).
+const _szStreak = [null, null]
+function _szMultiHit(spark, frame, player) {
+  const move = spark && spark.moveName
+  if (!move) { _szStreakEnd(player, 6); return false }                 // untracked move → normal per-hit
+  let s = _szStreak[player]
+  if (!s || s.move !== move || (frame - s.last) > SZ_STREAK.gapFrames) { _szStreakEnd(player, 6); _szStreak[player] = { move, first: frame, last: frame, count: 1 }; return false }
+  s.count++; s.last = frame
+  if (s.count < SZ_STREAK.minHits) return false                        // hits 1..2 → normal per-hit impacts
+  if (!s.handle) {
+    const avgGap = (s.last - s.first) / Math.max(1, s.count - 1)
+    const barrage = (s.count >= SZ_STREAK.barrageMinHits && avgGap <= SZ_STREAK.barrageMaxGap) || SZ_BARRAGE_HINT.test(move)
+    s.kind = barrage ? "barrage" : "flurry"
+    const clip = _szPick(barrage ? SZ_BARRAGE : SZ_FLURRY, s.first, player, "stream")
+    const gain = barrage ? 0.70 : 0.60
+    s.handle = sound.playJuiceSfxTracked?.(clip, { gain, pitch: juicePitch(s.first, player) }) || null
+    if (s.handle) _logHitSfx({ frame, player, pack: "sparking", tier: s.kind, role: "stream-start", clip, gain })
+  } else if (s.kind === "barrage" && !s.chained && s.handle.duration && ((frame - s.first) / 60) >= (s.handle.duration - 0.25)) {
+    const clip2 = _szPick(SZ_BARRAGE, frame, player, "stream")         // barrage outlasts the clip → crossfade a 2nd
+    const h2 = sound.playJuiceSfxTracked?.(clip2, { gain: 0.70, pitch: juicePitch(frame, player), fadeIn: 0.20 }) || null
+    if (h2) { s.handle.stop(0.20); s.handle = h2; s.chained = true; _logHitSfx({ frame, player, pack: "sparking", tier: "barrage", role: "stream-chain", clip: clip2, gain: 0.70 }) }
+  }
+  return true
+}
+function _szStreakEnd(player, fadeFrames) {
+  const s = _szStreak[player]
+  if (s && s.handle) { try { s.handle.stop(Math.max(2, fadeFrames || 7) / 60) } catch (_) {} }
+  _szStreak[player] = null
+}
+// Per sim frame per fighter (attacker): end a stale streak (no same-move hit for > gap) or on interrupt
+// (hitstun / knockdown / no longer attacking) → stop the stream early with a short fade.
+function _szFlurryTickFighter(f) {
+  if (!f) return
+  const player = (f.side === "p2" || f.side === "p4") ? 1 : 0
+  const s = _szStreak[player]; if (!s) return
+  const interrupted = (f.hitstun > 0) || !!f.knockedDown   // the attacker got hit / knocked down mid-rush
+  if ((globalFrameCount - s.last) > SZ_STREAK.gapFrames || interrupted) _szStreakEnd(player, 7)   // stale (move ended) or interrupted → fade out
+}
+
 // Play the hit-impact sound for a tier, honoring the ATTACKER's per-player Hit Sounds
 // setting. CLASSIC → the exact previous clip+gain (hitfeel_config HITFEEL.sound). SPARKING
-// → the sfx_map table for the Phase-1 tiers (LIGHT/MEDIUM/HEAVY); other tiers (finisher
-// until Phase 2) fall back to Classic so there's no half-built cue. All loudness is the
-// per-event gain here (clips are -16 LUFS); pitch is a deterministic ±4% hash jitter.
-function _playHitFeelSound(tier, frame, player) {
+// → the sfx_map table (LIGHT/MEDIUM/HEAVY), the finisher layering, or a flurry/barrage stream.
+// All loudness is the per-event gain here (clips are -16 LUFS); pitch is a deterministic ±4% hash jitter.
+function _playHitFeelSound(tier, frame, player, spark) {
   const pack = juiceSettings.hitSoundPack(player)
+  if (pack === "sparking") {
+    if (tier === "finisher") { _szPlayFinisher(frame, player); return }   // Phase 2: long-tail + boom on the impact frame
+    if (_szMultiHit(spark, frame, player)) return                          // 3+-hit rush / barrage stream owns this hit
+  }
   const szMap = (pack === "sparking" && SPARKING_PHASE1_TIERS.includes(tier)) ? SPARKING_HIT_MAP[tier] : null
   if (szMap) {
     const clip = _szPick(szMap.pool, frame, player, "primary")
@@ -2261,7 +2309,7 @@ function _fireHitFeel(spark) {
   const x = spark.x, y = spark.y
 
   // SOUND — Classic (prior pack) or Sparking Zero pack per the ATTACKER's per-player setting.
-  _playHitFeelSound(tier, frame, player)
+  _playHitFeelSound(tier, frame, player, spark)
   // PARTICLES — directional arced spark burst (reuses the juiceFx pool).
   fireJuiceHitSpark({ x, y, dir, count: HITFEEL.sparkCount[tier], speed: HITFEEL.sparkSpeed[tier], frame, player })
   // KNOCKBACK FEEL — target sprite nudged PAST its sim position (eased back); attacker recoils on HEAVY/FINISHER.
@@ -2271,8 +2319,6 @@ function _fireHitFeel(spark) {
   if (target) target._hitSquash = { t: 0 }
   // SHAKE — tiny tier-scaled kick (respects the Screen Shake setting inside camera.shake).
   if (HITFEEL.shake[tier]) camera.shake?.(HITFEEL.shake[tier], HITFEEL.shake[tier] + 2)
-  // ANIME FINISHER (Phase C) — dramatic freeze/silhouette/invert/burst/punch-in on a FINISHER hit.
-  if (tier === HIT_TIER.FINISHER) _triggerAnimFinisher(x, y, player)
 }
 
 // DISNEY (Phase B): target hit-squash timeline — scaleX 1.08 / scaleY 0.9 for 3f, ease to 1,1 by ~8f.
@@ -2298,68 +2344,7 @@ function _tickHitFeel(f) {
   if (!f) return
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
   if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
-}
-
-// ══ HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s) ═══════════════════════════════
-// freeze → black silhouettes on a bright flash → negative invert → radial burst lines → hard punch-in →
-// snap back with a colour flash. The FREEZE is a deterministic frame-step (LAN-safe; runs before
-// _replayFrame++). Never during KO / Domain / Rick Prime rewind / Brutality (reuses _juiceSlowmoBlocked),
-// and not in FFA (a 4-player match shouldn't stall). Reduce Flashing → soft dim, no invert/strobing.
-function _triggerAnimFinisher(x, y, player) {
-  if (!juiceSettings.hitEffectsOn() || !juiceSettings.animFinisher) return
-  if (gameState === GAME_STATES.FFA_BATTLE) return
-  if (_animFin || _animFinFreeze > 0 || _animFinCd > 0) return
-  if (_juiceSlowmoBlocked()) return
-  const reduce = !!juiceSettings.reduceFlashing
-  _animFin = { t: 0, x, y, player, reduce }
-  _animFinFreeze = HITFEEL.finisher.freezeFrames
-  _animFinCd = HITFEEL.finisher.cooldownFrames
-  _juiceSlowmoTimer = 0                      // the finisher REPLACES the ult slow-mo (no double cinematic)
-  if (!reduce) {                             // black silhouettes for the silhouette beat (reuse the flash marker)
-    if (p1) _stampImpactFlash(p1, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
-    if (p2) _stampImpactFlash(p2, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
-  }
-  // PUNCH-IN: hard zoom toward the hit point; the normal two-shot reframe eases it back out after the freeze.
-  camera.targetZoom = Math.min(camera.maxZoom || 2.6, (camera.targetZoom || camera.zoom || 1) * HITFEEL.finisher.zoomIn)
-  if (camera.focusOnFighter && (p1 || p2)) { /* keep focus on the clash; two-shot resumes after */ }
-  sound.playJuiceSfx?.("impact_crack_01", { gain: 0.9, pitch: juicePitch(globalFrameCount, player) })
-  sound.playJuiceSfx?.("boom_huge_01", { gain: 0.9, delay: 2 / 60, ultBoom: true })
-  sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6, delay: HITFEEL.finisher.freezeFrames / 60 })
-}
-
-function _tickAnimFinisher() {
-  if (_animFinCd > 0) _animFinCd--   // cooldown ticks in SIM time (paused during the freeze — negligible)
-}
-
-// Screen-space finisher overlay (over the scene, UNDER the HUD so bars stay readable).
-function _drawAnimFinisher() {
-  if (!_animFin) return
-  const f = _animFin, t = f.t, w = canvas.width, h = canvas.height, F = HITFEEL.finisher
-  ctx.save()
-  if (f.reduce) {
-    const env = Math.max(0, 1 - t / (F.freezeFrames + 8))                 // photosensitivity: steady soft dim, no strobe/invert
-    ctx.fillStyle = `rgba(0,0,0,${(0.32 * env).toFixed(3)})`; ctx.fillRect(0, 0, w, h)
-  } else {
-    if (t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.fillRect(0, 0, w, h) }                 // SILHOUETTE: bright flash
-    else if (t < F.silhouetteFrames + F.invertFrames) { ctx.globalCompositeOperation = "difference"; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = "source-over" }   // INVERT (negative)
-    else if (t >= F.freezeFrames + 5 && t < F.freezeFrames + 8) { ctx.fillStyle = "rgba(255,90,60,0.22)"; ctx.fillRect(0, 0, w, h) }   // snap-back colour flash
-  }
-  // BURST LINES: sharp radial spikes from the hit point (fade over the sequence).
-  if (t < F.freezeFrames + 8) {
-    const sp = _worldToScreen(f.x, f.y), env = Math.max(0, 1 - t / (F.freezeFrames + 8))
-    ctx.strokeStyle = f.reduce ? `rgba(200,210,230,${(0.5 * env).toFixed(3)})` : `rgba(255,250,235,${(0.95 * env).toFixed(3)})`
-    ctx.lineWidth = 2 + 2 * env; ctx.lineCap = "round"
-    const maxLen = Math.max(w, h) * (0.5 + 0.35 * env)
-    for (let i = 0; i < F.burstLines; i++) {
-      const ang = (i / F.burstLines) * Math.PI * 2 + (f.player ? 0.12 : 0)
-      const r1 = maxLen * (0.55 + 0.45 * (((i * 2654435761) >>> 0) % 100 / 100))
-      ctx.beginPath(); ctx.moveTo(sp.x + Math.cos(ang) * 42, sp.y + Math.sin(ang) * 42); ctx.lineTo(sp.x + Math.cos(ang) * r1, sp.y + Math.sin(ang) * r1); ctx.stroke()
-    }
-  }
-  ctx.restore()
-  // Advance the sequence here (the draw runs EVERY frame, incl. the freeze frames where the sim update is
-  // skipped) so the silhouette→invert→burst beats play on time. Render-only; not sim state.
-  if (gameState !== GAME_STATES.PAUSED) { _animFin.t++; if (_animFin.t >= F.freezeFrames + 12) _animFin = null }
+  _szFlurryTickFighter(f)   // SPARKING ZERO (Phase 2): end/interrupt a flurry/barrage stream
 }
 
 // ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
@@ -2431,6 +2416,7 @@ function _tickJuiceDash(f, player) {
 
 // Clear per-fighter dash render-state (round/match reset) so no trail/squash streaks across the cut.
 function _clearJuiceDashFx() {
+  _szStreakEnd(0, 2); _szStreakEnd(1, 2)   // SPARKING ZERO (Phase 2): stop any flurry/barrage stream on round reset
   const live = (gameState === GAME_STATES.FFA_BATTLE && ffaState.fighters) ? ffaState.fighters : [p1, p2]
   for (const f of live) {
     if (!f) continue
@@ -4258,7 +4244,7 @@ function resetRound() {
   impactHitState.active = false; impactHitState.timer = 0          // clear the Impact Hit cascade on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()   // JUICE (Phase 2): clear explosion FX + slow-mo on round reset
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -5427,7 +5413,7 @@ function resetToStart() {
   damageNumbers.length = 0
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -6812,7 +6798,7 @@ function _doRematch() {
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
   _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
-  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx(); _animFin = null; _animFinFreeze = 0; _animFinCd = 0
+  _juiceSlowmoTimer = 0; _juiceSlowmoCooldown = 0; _juiceImpactFrame = null; resetJuiceFx(); _clearJuiceDashFx()
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -16196,7 +16182,6 @@ function updateEffectsAndDomains() {
   if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
   _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
   _tickHitFeel(p1); _tickHitFeel(p2)             // HIT FEEL (Phase A): ease the visual knockback offset back
-  _tickAnimFinisher()                            // HIT FEEL (Phase C): advance the anime-finisher sequence + cooldown
   updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
 
@@ -16552,8 +16537,8 @@ function _drawStageVignette() {
   const w = canvas.width, h = canvas.height
   const g = ctx.createRadialGradient(w / 2, h * 0.46, Math.min(w, h) * 0.32, w / 2, h * 0.5, Math.max(w, h) * 0.72)
   g.addColorStop(0, "rgba(0,0,0,0)")
-  g.addColorStop(0.7, "rgba(4,6,12,0.18)")
-  g.addColorStop(1, "rgba(2,3,8,0.52)")
+  g.addColorStop(0.7, "rgba(4,6,12,0.12)")
+  g.addColorStop(1, "rgba(2,3,8,0.42)")
   ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore()
 }
 
@@ -16652,13 +16637,6 @@ function updateBattle() {
       if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
-  }
-  // ANIME FINISHER (Phase C): deterministic hard FREEZE (0 motion) — like _koFreeze, BEFORE _replayFrame++ so
-  // LAN peers pause the input clock identically. Only the camera advances (the punch-in zoom eases in).
-  if (_animFinFreeze > 0) {
-    _animFinFreeze--
-    if (typeof camera.advance === "function") camera.advance(canvas)
-    return
   }
 
   // Susanoo (either fighter) PAUSES the round clock — a 20s sustained giant form shouldn't
@@ -19622,7 +19600,6 @@ function drawBattle() {
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
   _drawJuiceImpactFlash()     // JUICE (Phase 2): explosion impact-frame white flash / soft dim (Reduce Flashing), over the scene, under HUD
-  _drawAnimFinisher()         // HIT FEEL (Phase C): anime-finisher silhouette/invert/burst-lines overlay, over the scene, under HUD
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawBattleHud()
@@ -24218,10 +24195,6 @@ gameLoop()
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash
       spawnTestProjectile: () => { const f = p1 || p2; const proj = { x: (f?.x || 400), y: (f?.y || 300) - 170, vx: 6, vy: 0, radius: 18, isSpecial: true, name: "testProj", owner: f, ownerId: f?.side || "p1", lifetime: 300, damage: 0 }; activeProjectiles.push(proj); window.__hfTestProj = proj; return { pushed: true, n: activeProjectiles.length } },
       projTrailLen: () => (window.__hfTestProj && window.__hfTestProj._jtrail) ? window.__hfTestProj._jtrail.length : 0,   // DISNEY (Phase B): projectile trail ring-buffer length
-      // ── Phase C (anime finisher) ──
-      setAnimFinisher: (on) => { juiceSettings.setAnimFinisher(on); return juiceSettings.animFinisher },
-      triggerFinisher: () => { const f = p1 || p2; const x = f ? (f.x || 0) + (f.w || 60) / 2 : canvas.width / 2, y = f ? (f.y || 0) + (f.h || 100) * 0.42 : canvas.height / 2; _triggerAnimFinisher(x, y, 0); return { active: !!_animFin, freeze: _animFinFreeze, cooldown: _animFinCd } },
-      finisherState: () => ({ active: !!_animFin, t: _animFin ? _animFin.t : -1, reduce: _animFin ? _animFin.reduce : null, freeze: _animFinFreeze, cooldown: _animFinCd }),
       shakeState: ()   => ({ timer: camera.shakeTimer || 0, strength: +(camera.shakeStrength || 0).toFixed(2) }),   // observe the Screen Shake setting's effect
       // ── Phase 3 (dashes) ──
       dash:       (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },   // arm a REAL ground dash (physics consumes next frame)
@@ -24235,6 +24208,11 @@ gameLoop()
       hitSfxLog:    () => _hitSfxLog.slice(),              // [{frame,player,pack,tier,role,clip,gain}] — the audio cues actually fired
       clearHitSfxLog: () => { _hitSfxLog.length = 0; return true },
       sfxMapStatus: () => ({ phase1Tiers: SPARKING_PHASE1_TIERS, map: SPARKING_HIT_MAP }),
+      // Phase 2: fire a hit carrying a moveName (drives flurry/barrage streak detection) + stream inspector.
+      hitMove: (tier = "light", who = "p1", moveName = "TestRush") => { const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null; const cat = tier === "finisher" ? "ultimate" : tier === "heavy" ? "heavy" : tier === "medium" ? "special" : "light"; const dmg = tier === "finisher" ? 200 : tier === "heavy" ? 110 : tier === "medium" ? 55 : 15; const x = tgt ? (tgt.x || 0) + (tgt.w || 60) / 2 : canvas.width / 2, y = tgt ? (tgt.y || 0) + (tgt.h || 100) * 0.42 : canvas.height / 2; _fireHitFeel({ attackerSide: att.side || "p1", category: cat, damage: dmg, x, y, blocked: false, moveName }); return { tier, moveName }; },
+      szStreak: (player = 0) => { const s = _szStreak[player === 1 ? 1 : 0]; return s ? { move: s.move, count: s.count, kind: s.kind || null, streaming: !!s.handle, chained: !!s.chained } : null; },
+      szForceInterrupt: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f.hitstun = 20; return !!f; },   // simulate the attacker getting hit mid-rush (tick fades the stream)
+      szQuiesce: () => { for (const f of [p1, p2]) { if (!f) continue; f.invulnTimer = 999999; f.hitstun = 0; f.knockedDown = false; } return true; },   // test-only: both fighters invulnerable + no hitstun so real combat can't interleave/interrupt the audio-log tests
       // Fire a hit of an explicit tier directly (bypasses combat) for render/perf shots.
       hit:        (tier = "medium", who = "p1") => {
         const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null

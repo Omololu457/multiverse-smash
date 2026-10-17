@@ -1957,6 +1957,13 @@ const IMPACT_HIT_TIER = { light: 0, heavy: 1, special: 1, ultimate: 2 }   // wei
 function _impactTierFromHitstop(hs) { return hs >= 24 ? "ultimate" : hs >= 15 ? "special" : hs >= 9 ? "heavy" : "light" }
 function _impactComboTier(combo) { return combo >= 15 ? 3 : combo >= 9 ? 2 : combo >= 5 ? 1 : 0 }   // mirrors the 5/9/15 combo-counter colour tiers
 
+// HIGH-COMBO 3-COLOUR IMPACT FLASH — the solid silhouette colours strobed on each hit once a Gojo/Sukuna
+// combo gets big. Reuses sprite.js's existing per-phase overlay (black #05060b / white #eef4ff / red cursed),
+// so this is pure presentation: game.js just rotates _impactFlash.phase over the flash's life (no sprite.js
+// change, no sim read → determinism/LAN-safe). Only gojo & sukuna opt in (per request).
+const _IMPACT_CYCLE_COLORS = ["black", "white", "red"]
+const _IMPACT_CYCLE_CHARS  = new Set(["gojo", "sukuna"])
+
 // ── ANNOUNCER (audio-only; generic VO over match-flow moments; NEVER touches the sim/determinism) ──
 // One announcer CHANNEL (fixed sentinel owner → a new line stops the previous, never overlaps itself; a
 // non-fighter owner so it never cross-cuts a character's voice). A time-gap keeps rapid events (combos,
@@ -2003,6 +2010,20 @@ function triggerImpactFrame(attacker, combo) {
   _stampImpactFlash(attacker, level, dur, tier, combo, ct, phase)
   // STAGE 2: at the higher tiers, a radiating CRACK/shatter burst from the impact point sells real force.
   if (level >= 2) _fireImpactBurst(opp || attacker, level, dur)
+  // HIGH-COMBO 3-COLOUR FLASH (Gojo & Sukuna only): once the combo is big (tier ≥ 2 = 9+ hits), both the
+  // struck opponent and the attacker STROBE through solid black → white → red for this hit — selling the
+  // escalation. Respects Hit Effects + Reduce Flashing (the strobe is exactly what the photosensitivity
+  // setting guards). Phase is derived from the flash timer in _tickImpactFlash (deterministic, LAN-safe).
+  if (juiceSettings.hitEffectsOn() && !juiceSettings.reduceFlashing && ct >= 2 && _IMPACT_CYCLE_CHARS.has((attacker.rosterKey || "").toLowerCase())) {
+    const cycDur = ct >= 3 ? 16 : 12          // combo 15+ → longer, faster strobe
+    const strobe = ct >= 3 ? 2 : 3            // frames per colour (tier 3 flickers harder)
+    for (const t of [opp, attacker]) {
+      if (!t || !t._impactFlash) continue
+      t._impactFlash.timer = cycDur; t._impactFlash.maxTimer = cycDur
+      t._impactFlash.cycle = true; t._impactFlash.strobe = strobe
+      t._impactFlash.phase = "black"; t._impactFlash.level = 3   // start on black; max recolor extremity
+    }
+  }
 }
 
 // STAGE 2 — IMPACT CRACK BURST (purely visual). Jagged white-cored, red-glow "shatter" lines radiating from
@@ -19549,7 +19570,10 @@ function _tickImpactFlash() {
   for (const f of [p1, p2]) {
     if (!f || !f._impactFlash) continue
     if (brutalityState.active) { f._impactFlash = null; continue }
-    if (--f._impactFlash.timer <= 0) f._impactFlash = null
+    const fl = f._impactFlash
+    if (--fl.timer <= 0) { f._impactFlash = null; continue }
+    // HIGH-COMBO 3-COLOUR FLASH (Gojo/Sukuna): strobe the silhouette through black → white → red while live.
+    if (fl.cycle) fl.phase = _IMPACT_CYCLE_COLORS[Math.floor((fl.maxTimer - fl.timer) / (fl.strobe || 3)) % _IMPACT_CYCLE_COLORS.length]
   }
 }
 

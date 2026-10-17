@@ -47,7 +47,8 @@ sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · 
 Batch 4A DONE: naruto(Rasengan)/naruto_hokage(Rasenshuriken shred)/naruto_seventh(Bijuudama)/minato(Flying Raijin). New FX: rasengan (color-param glow). Batch 4B DONE: hashirama(Wood Style tendrils+spike)/tobirama(Water Fang raijin+bisect)/hiruzen(Adamantine Staff impale)/jiraiya(Needle Jizo steel storm). New FX: woodBind. Batch 4C DONE: orochimaru(Kusanagi green-impale+snakes)/kakashi(Raikiri lightning)/kakashi_anbu(ANBU tantō bisect)/kakashi_war(Kamui Raikiri warp). No new FX (reuse). ★33 concepts total (phases 1-4). Next: Phase 5 Hidden Leaf.
 naruto · naruto_hokage · naruto_seventh · minato · hashirama · tobirama · hiruzen · jiraiya · orochimaru · kakashi · kakashi_anbu · kakashi_war
 
-## Phase 5 — The Hidden Leaf   ☐
+## Phase 5 — The Hidden Leaf   ◐ IN PROGRESS
+Batch 5A DONE: gaara(Sand Coffin)/onoki(Dust Release cube)/pain(Shinra Tensei)/six_paths_pain(Chibaku Tensei). New FX: sandCrush, dustRelease, shockRing. Pending 5B (isshiki/boruto/kiba/hinata/sakura).
 gaara · onoki · pain · six_paths_pain · isshiki · boruto · kiba · hinata · sakura
 
 ## Phase 6 — Saiyan Blood (DB)   ☐

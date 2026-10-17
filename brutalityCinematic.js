@@ -693,6 +693,38 @@ const PRIM = {
     }
     c.restore()
   },
+
+  // ── PHASE 5 — THE HIDDEN LEAF ────────────────────────────────────────────────────────────────────
+
+  // GAARA — Sand Coffin: swirling sand converges, engulfs and constricts the target (Sabaku Kyū → Sōsō)
+  sandCrush(c, W, H, p, beat, S, f) {
+    const r = S.rect; if (!r) return
+    const cx = r.x + r.w * 0.5, cy = r.y + r.h * 0.5, e = ease(p), col = beat.color || "#d8b870"
+    c.save()
+    for (let i = 0; i < 60; i++) { const ang = i / 60 * Math.PI * 2 + f * 0.05 + i, conv = 1 - e * 0.7, d = r.w * (0.3 + conv * 0.9) * (0.7 + 0.3 * Math.sin(f * 0.1 + i)); c.fillStyle = i % 3 ? col : "#b89850"; c.globalAlpha = 0.6; c.beginPath(); c.arc(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d * 0.8, 2 + rnd(i, 1) * 2, 0, 7); c.fill() }
+    c.globalAlpha = e * 0.5; c.fillStyle = col; c.beginPath(); c.ellipse(cx, cy, r.w * 0.5 * (1 - e * 0.3), r.h * 0.55 * (1 - e * 0.2), 0, 0, 7); c.fill()
+    c.restore()
+  },
+
+  // ONOKI — Dust Release (Jinton): a particle cube forms and atomises the target to dust
+  dustRelease(c, W, H, p, beat, S, f) {
+    const r = S.rect; if (!r) return
+    const cx = r.x + r.w * 0.5, cy = r.y + r.h * 0.45, e = ease(p), rad = r.w * (0.4 + e * 0.6)
+    c.save()
+    c.strokeStyle = "rgba(255,245,210,0.8)"; c.lineWidth = 2; c.globalAlpha = 1 - Math.max(0, e - 0.8) * 5
+    c.save(); c.translate(cx, cy); c.rotate(f * 0.04); c.strokeRect(-rad, -rad, rad * 2, rad * 2); c.rotate(Math.PI / 4); c.strokeRect(-rad * 0.8, -rad * 0.8, rad * 1.6, rad * 1.6); c.restore()
+    c.globalAlpha = e * 0.4; c.fillStyle = "#fff5d2"; c.beginPath(); c.arc(cx, cy, rad * 0.6 * e, 0, 7); c.fill(); c.globalAlpha = 1
+    for (let i = 0; i < 30; i++) { const prog = ((f * 0.04 + rnd(i, 1)) % 1), px = cx + (rnd(i, 2) - 0.5) * rad * 2, py = cy + rad - prog * rad * 2.5; c.fillStyle = `rgba(230,215,170,${((1 - prog) * e).toFixed(3)})`; c.beginPath(); c.arc(px, py, (1 - prog) * 2 + 1, 0, 7); c.fill() }
+    c.restore()
+  },
+
+  // PAIN — expanding gravity shock rings (Shinra Tensei repulsion); reusable concentric-ring burst
+  shockRing(c, W, H, p, beat, S, f) {
+    const r = S.rect; const cx = r ? r.x + r.w * 0.5 : W / 2, cy = r ? r.y + r.h * 0.45 : H / 2, col = beat.color || "rgba(200,210,230,0.8)", n = beat.count || 4
+    c.save()
+    for (let i = 0; i < n; i++) { const rp = (((f - beat.t0) * 0.03 + i / n) % 1), rad = rp * (r ? r.w : 200) * 2.2; c.strokeStyle = col; c.globalAlpha = (1 - rp) * 0.8; c.lineWidth = (1 - rp) * 5 + 1; c.beginPath(); c.arc(cx, cy, rad, 0, 7); c.stroke() }
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

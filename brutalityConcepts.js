@@ -1149,6 +1149,115 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 5 — THE HIDDEN LEAF ───────────────────────────────────────────────────────────────────
+  // Batch 5A "Earth & Gravity": gaara · onoki · pain · six_paths_pain
+
+  // GAARA — Sand Coffin: his sand swallows the target whole, then closes its fist. Sabaku Sōsō.
+  gaara: {
+    banner: "SAND COFFIN", bannerRgb: "216,184,112", base: "hurt", choreographed: true, total: 178,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 178, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 178, rgb: "14,10,4", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "sandCrush", t0: 52, t1: 150, color: "#d8b870" },
+      { fx: "cam",   t0: 120, t1: 152, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 130 },
+      { fx: "headPop", t0: 124, t1: 152, headY: 0.4 },
+      { fx: "bloodGush", t0: 124, t1: 178, x: 0.5, y: 0.46, amount: 28 },
+      { fx: "cam",   t0: 152, t1: 178, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 178, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 178, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 178 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 52,  id: "warp_wobble_01",    gain: 0.5 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",    gain: 0.55 },
+    ],
+  },
+
+  // ONOKI — Dust Release: a Particle-Style cube forms around the target and atomises it to drifting dust.
+  onoki: {
+    banner: "DUST RELEASE", bannerRgb: "230,215,170", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "6,6,10", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 176, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 54, t1: 62 },
+      { fx: "dustRelease", t0: 58, t1: 172, color: "#e6d7aa" },
+      { fx: "cam",   t0: 120, t1: 162, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "banner", t0: 150, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 54,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",    gain: 0.5 },
+    ],
+  },
+
+  // PAIN — Shinra Tensei: a pulse of pure gravity repulsion crushes and blasts the target apart.
+  pain: {
+    banner: "SHINRA TENSEI", bannerRgb: "180,190,210", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "8,8,12", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 110, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 112, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.7, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "whiteSpike", t0: 90, t1: 100 },
+      { fx: "shockRing", t0: 88, t1: 150, count: 5, color: "rgba(200,210,235,0.8)" },
+      { fx: "bloodGush", t0: 96, t1: 172, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 112, t1: 146, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "headPop", t0: 116, t1: 146, headY: 0.4 },
+      { fx: "bloodGush", t0: 116, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 88,  id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 116, id: "boom_huge_01",    gain: 0.9, ultBoom: true, duckSec: 0.4 },
+      { t: 122, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // SIX PATHS OF PAIN — Chibaku Tensei: a black gravity core rises and entombs the target in a forming planetoid.
+  six_paths_pain: {
+    banner: "CHIBAKU TENSEI", bannerRgb: "140,120,200", base: "hurt", choreographed: true, total: 182,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 182, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 182, rgb: "6,4,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "shockRing", t0: 54, t1: 120, count: 4, color: "rgba(150,120,220,0.6)" },
+      { fx: "voidOrb", t0: 60, t1: 172 },
+      { fx: "cam",   t0: 120, t1: 158, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 130 },
+      { fx: "banner", t0: 156, t1: 182 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",        gain: 0.5 },
+      { t: 60,  id: "warp_wobble_01",         gain: 0.6 },
+      { t: 120, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

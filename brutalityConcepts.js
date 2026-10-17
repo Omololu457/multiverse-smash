@@ -1537,6 +1537,126 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 6B "Spheres & Blades": vegeta_dark · bardock · vegito · gotenks
+
+  // VEGETA (DARK) — Big Bang Attack: a single sphere of condensed ki detonates with planet-cracking force.
+  vegeta_dark: {
+    banner: "BIG BANG ATTACK", bannerRgb: "200,120,255", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "8,2,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "rasengan", t0: 70, t1: 116, headY: 0.45, size: 0.5, color: "#c060f0" },
+      { fx: "whiteSpike", t0: 108, t1: 118 },
+      { fx: "bloodGush", t0: 80, t1: 172, x: 0.5, y: 0.46, amount: 6 },
+      { fx: "cam",   t0: 114, t1: 148, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 128 },
+      { fx: "shockRing", t0: 114, t1: 148, count: 4, color: "rgba(200,120,255,0.7)" },
+      { fx: "headPop", t0: 118, t1: 148, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam",   t0: 148, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 70,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 114, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 120, id: "rumble_tail_01",    gain: 0.55 },
+    ],
+  },
+
+  // BARDOCK — Riot Javelin: a desperate, defiant sphere of raw ki hurled with everything he has left.
+  bardock: {
+    banner: "RIOT JAVELIN", bannerRgb: "120,230,180", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 170, rgb: "2,12,8", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 114, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 112, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "rasengan", t0: 68, t1: 114, headY: 0.45, size: 0.5, color: "#50e090" },
+      { fx: "whiteSpike", t0: 106, t1: 116 },
+      { fx: "bloodGush", t0: 78, t1: 170, x: 0.5, y: 0.46, amount: 6 },
+      { fx: "cam",   t0: 112, t1: 146, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 126 },
+      { fx: "shockRing", t0: 112, t1: 146, count: 4, color: "rgba(120,230,180,0.7)" },
+      { fx: "headPop", t0: 116, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 116, t1: 170, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam",   t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 68,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 112, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 118, id: "rumble_tail_01",    gain: 0.55 },
+    ],
+  },
+
+  // VEGITO — Spirit Sword: a blade of pure ki lances out and cuts the target clean in two.
+  vegito: {
+    banner: "SPIRIT SWORD", bannerRgb: "120,200,255", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 166, rgb: "4,8,18", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 100, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 96, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 100, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 66, t1: 100, x: 0.52, y: 0.46, len: 0.42, angle: -2.4, sweep: 3.0, color: "rgba(140,210,255,0.95)" },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "cam",   t0: 100, t1: 144, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 100, t1: 158 },
+      { fx: "bloodGush", t0: 104, t1: 166, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam",   t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 66,  id: "swish_fast_01",   gain: 0.6 },
+      { t: 100, id: "boom_medium_02",  gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 106, id: "rumble_tail_01",  gain: 0.45 },
+    ],
+  },
+
+  // GOTENKS — Super Ghost Kamikaze Attack: a squadron of exploding ghosts swarms the target and detonates as one.
+  gotenks: {
+    banner: "GHOST KAMIKAZE", bannerRgb: "180,160,240", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "6,6,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 116, zoom: 1.4, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 116, action: "run", around: 0.5, aroundY: 0.48, count: 8, radX: 0.3, radY: 0.14, color: "#c0a8f0" },
+      { fx: "actor", t0: 50, t1: 116, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "shockRing", t0: 60, t1: 116, count: 3, color: "rgba(200,180,255,0.6)" },
+      { fx: "bloodGush", t0: 66, t1: 176, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 116, t1: 150, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 132 },
+      { fx: "shockRing", t0: 116, t1: 150, count: 5, color: "rgba(210,190,255,0.7)" },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.42 },
+      { fx: "bloodGush", t0: 120, t1: 176, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam",   t0: 150, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 48,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01",         gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

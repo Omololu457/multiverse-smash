@@ -16,9 +16,9 @@ const st = () => page.evaluate(() => window.__harness.state());
 async function wf(n) { const s = (await st()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }).catch(() => {}); }
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log("  ✓", m); } else { fail++; console.log("  ✗", m); } };
 
-const WINNERS = ["goku", "vegeta", "gohan", "gogeta"];
+const WINNERS = ["vegeta_dark", "bardock", "vegito", "gotenks"];
 const VICTIM = "sasuke";
-const SHOT_AT = { goku: 84, vegeta: 84, gohan: 84, gogeta: 84 };
+const SHOT_AT = { vegeta_dark: 130, bardock: 128, vegito: 120, gotenks: 134 };
 
 for (const w of WINNERS) {
   console.log(`\n── ${w} vs ${VICTIM} ──`);

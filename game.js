@@ -2423,10 +2423,14 @@ function _triggerAnimFinisher(x, y, player, opts = {}) {
   const stretch = Math.max(1, opts.stretch | 0 || 1)   // demo/capture: hold each beat `stretch`× longer
   const cfg = pop ? HITFEEL.finisher.pop : HITFEEL.finisher   // the active (pop vs full) timing/scale
   _animFin = { t: 0, _sub: 0, x, y, player, reduce, stretch, pop, cfg, color: opts.color || [255, 90, 60] }
-  _animFinFreeze = cfg.freezeFrames * stretch
+  // POP (HEAVY/special) is a VISUAL-ONLY flourish — it must NEVER freeze the sim, or every connected
+  // heavy/special hit would hard-pause combat ("land a couple hits → the game stops"). Only the FULL
+  // ultimate cinematic earns the deterministic hard freeze. The pop's burst/zoom/sound still play as a
+  // pure render overlay over live gameplay.
+  _animFinFreeze = pop ? 0 : cfg.freezeFrames * stretch
   _animFinCd = HITFEEL.finisher.cooldownFrames
   _juiceSlowmoTimer = 0                      // the finisher REPLACES the ult slow-mo (no double cinematic)
-  if (!reduce) {                             // black silhouettes for the silhouette beat (reuse the flash marker)
+  if (!reduce && !pop) {                     // black silhouettes for the freeze beat — FULL ult only (a pop must not recolor/hold BOTH fighters mid-combat)
     if (p1) _stampImpactFlash(p1, 3, cfg.freezeFrames * stretch + 2, "ultimate", 0, 0)
     if (p2) _stampImpactFlash(p2, 3, cfg.freezeFrames * stretch + 2, "ultimate", 0, 0)
   }
@@ -2455,7 +2459,7 @@ function _drawAnimFinisher() {
     const env = Math.max(0, 1 - t / TOT)                                  // photosensitivity: steady soft dim, no strobe/invert
     ctx.fillStyle = `rgba(0,0,0,${(0.32 * env).toFixed(3)})`; ctx.fillRect(0, 0, w, h)
   } else {
-    if (t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(0, 0, w, h) }                 // SILHOUETTE: bright flash (fighters read black)
+    if (!f.pop && t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(0, 0, w, h) }         // SILHOUETTE: bright flash (fighters read black) — FULL cinematic only; a pop would strobe the screen white on every heavy/special hit
     else if (F.invertFrames > 0 && t < F.silhouetteFrames + F.invertFrames) { ctx.globalCompositeOperation = "difference"; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = "source-over" }   // INVERT (full cinematic only)
     else if (t >= F.freezeFrames + F.tail - 4 && t < F.freezeFrames + F.tail - 1) { ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.26)`; ctx.fillRect(0, 0, w, h) }   // snap-back colour flash
   }

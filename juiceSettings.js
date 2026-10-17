@@ -29,6 +29,7 @@ const LS_KEYS = {
   hitSoundP1: "ms_hitsound_p1",          // "sparking" | "classic"  (default "sparking")
   hitSoundP2: "ms_hitsound_p2",          // "sparking" | "classic"  (default "sparking")
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
+  hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "scaled")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -110,6 +111,17 @@ export const juiceSettings = {
   setAtmosphere(on) { this.atmosphere = !!on; _set(LS_KEYS.atmosphere, this.atmosphere ? "1" : "0") },
   toggleAtmosphere() { this.setAtmosphere(!this.atmosphere) },
   atmosphereOn() { return !!this.atmosphere },
+
+  // ── Hitstop Style (Scaled / Classic) — FEEL PASS Phase 1. "Scaled" (default) = power-scaled impact
+  // freeze + block tick + multi-hit discipline; "Classic" restores the exact pre-pass hitstop values
+  // and behaviour. This is the ONE juice setting that affects a SIM-visible value (the shared impact
+  // freeze), so — exactly like Slow-Mo — the EFFECTIVE style is host-authoritative in LAN (game.js
+  // replicates it via MATCH_SETUP) and combat.js is told the agreed style, keeping peers in lockstep.
+  // Frame advantage is identical in both styles (both fighters freeze equally; stun never ticks during
+  // hitstop), so this only changes impact WEIGHT, never match outcome.
+  hitstopStyle: (() => { const v = _get(LS_KEYS.hitstop, "scaled"); return (v === "classic" || v === "scaled") ? v : "scaled" })(),
+  setHitstopStyle(v) { if (v !== "classic" && v !== "scaled") return; this.hitstopStyle = v; _set(LS_KEYS.hitstop, v) },
+  cycleHitstopStyle() { this.setHitstopStyle(this.hitstopStyle === "scaled" ? "classic" : "scaled") },
 }
 
 export default juiceSettings

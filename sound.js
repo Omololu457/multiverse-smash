@@ -208,6 +208,8 @@ export const JUICE_STANDINS = {
   fire_ignite_whoosh_STANDIN: { src: "whoosh_medium_01",    rate: 0.82, filter: { type: "lowpass",  freq: 1400 }, offset: 0, duration: 0.40, gain: 0.7 },
   whack_STANDIN:              { src: "impact_hit_01",       rate: 0.9,  filter: { type: "lowpass",  freq: 2200 },                           gain: 0.8 },
   balloon_pop_STANDIN:        { src: "impact_crack_01",     rate: 1.5,  filter: { type: "highpass", freq: 2600 }, offset: 0, duration: 0.09, gain: 0.6 },
+  // FEEL PASS (Phase 1) — BLOCK cue: a duller, low-passed thud (guarded hit = muffled impact, no sharp crack).
+  block_thud_STANDIN:         { src: "impact_hit_01",       rate: 0.78, filter: { type: "lowpass",  freq: 1100 }, offset: 0, duration: 0.12, gain: 0.5 },
 }
 
 export const JUICE_VOICE_CAP = 12                 // max simultaneous juice SFX (audio voice cap)

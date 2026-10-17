@@ -63,7 +63,8 @@ import {
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
   trackSkillHunterUnlock,             // harness: drive Chrollo's REAL 3-distinct-move Skill Hunter unlock engine
   getCancelWindow,                    // harness/combo-flow: inspect a fighter's shared cancel window
-  applyVegitoUISystem, VEGITO_UI      // Vegito Ultra Instinct evasion resource: passive drain + charge-refill + health-conversion + meter-tell tier
+  applyVegitoUISystem, VEGITO_UI,     // Vegito Ultra Instinct evasion resource: passive drain + charge-refill + health-conversion + meter-tell tier
+  setHitstopStyle, getHitstopStyle    // FEEL PASS (Phase 1): push/read the agreed Hitstop Style (LAN-authoritative via MATCH_SETUP); getter used to style-match the impact-flash tier thresholds
 } from "./combat.js"
 import { resolveStageHazard, hazardBox } from "./stageHazards.js"   // STAGE INTERACTABLES pilot — knocked-into-hazard reaction + draw box
 import { updatePlatforms, drawPlatforms, spawnPlatform, clearPlatforms, getPlatforms, PLATFORM_DEFAULTS } from "./platforms.js"   // Wood Release climbable terrain (Stage 1 — isolated primitive)
@@ -1928,6 +1929,17 @@ let _juiceSlowmoTimer    = 0
 let _juiceSlowmoCooldown = 0
 let _juiceImpactFrame    = null     // { timer, maxTimer, tier, reduce }
 let _juiceSlowmoNetFlag  = null     // LAN: host-authoritative Slow-Mo flag (null = standalone)
+let _hitstopStyleNetFlag = null     // FEEL PASS (Phase 1): LAN host-authoritative Hitstop Style ("scaled"|"classic"|null=standalone)
+
+// FEEL PASS (Phase 1): resolve the EFFECTIVE Hitstop Style and push it into the sim. Standalone →
+// the local setting; in a LAN match → the host's choice (replicated via MATCH_SETUP), so every peer
+// feeds combat.js the identical style and the shared impact-freeze stays in lockstep. Called at match
+// start, on the settings toggle, and whenever the net flag changes.
+function _pushHitstopStyle() {
+  const eff = (netMatch.isActive() && _hitstopStyleNetFlag != null) ? _hitstopStyleNetFlag : juiceSettings.hitstopStyle
+  setHitstopStyle(eff)
+  return eff
+}
 // HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s). A deterministic freeze (LAN-safe,
 // before _replayFrame++) → black silhouettes on a bright flash → negative INVERT → radial burst lines →
 // hard punch-in zoom → snap back with a colour flash. Reduce Flashing → soft dim, no invert/strobe.
@@ -1968,7 +1980,13 @@ const COMBO_RANKS = [
 // state; gated OFF during Brutality. Extremity + duration scale by hit tier (light/heavy/special/
 // ultimate, keyed off the hitstop weight) and escalate with the live combo at 5 / 9 / 15.
 const IMPACT_HIT_TIER = { light: 0, heavy: 1, special: 1, ultimate: 2 }   // weightier hits recolor a notch harder
-function _impactTierFromHitstop(hs) { return hs >= 24 ? "ultimate" : hs >= 15 ? "special" : hs >= 9 ? "heavy" : "light" }
+// FEEL PASS (Phase 1): thresholds track the SIM's EFFECTIVE Hitstop Style so the recolor extremity still
+// matches the hit weight under Scaled (heavy 8 / special 10 / ultimate 14) as it did under Classic
+// (heavy 10 / special 16 / ultimate 28). Reads combat.js's active style (the LAN-authoritative value).
+function _impactTierFromHitstop(hs) {
+  if (getHitstopStyle() === "scaled") return hs >= 14 ? "ultimate" : hs >= 10 ? "special" : hs >= 8 ? "heavy" : "light"
+  return hs >= 24 ? "ultimate" : hs >= 15 ? "special" : hs >= 9 ? "heavy" : "light"
+}
 function _impactComboTier(combo) { return combo >= 15 ? 3 : combo >= 9 ? 2 : combo >= 5 ? 1 : 0 }   // mirrors the 5/9/15 combo-counter colour tiers
 
 // HIGH-COMBO 3-COLOUR IMPACT FLASH — the solid silhouette colours strobed on each hit once a Gojo/Sukuna
@@ -2342,10 +2360,19 @@ function _playHitFeelSound(tier, frame, player, spark) {
 
 function _fireHitFeel(spark) {
   if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
-  if (spark.blocked) return                         // blocked hits don't get the full punchy treatment
   const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
   const attacker = _juiceFighterFor(side)
   const target = attacker ? getOpponent(attacker) : null
+  // FEEL PASS (Phase 1) — BLOCK CUE (visual + audio only, no rule changes): a guarded hit gets a DULLER
+  // low-passed thud + a small cyan shield-flash spark at the contact point, instead of the full punchy
+  // clean-hit treatment. Respects Reduce Flashing (softer, fewer sparks).
+  if (spark.blocked) {
+    const bframe = globalFrameCount, bplayer = (side === "p2" || side === "p4") ? 1 : 0
+    sound.playJuiceSfx?.("block_thud_STANDIN", { gain: 0.5, pitch: juicePitch(bframe, bplayer) })
+    const soft = !!juiceSettings.reduceFlashing
+    fireJuiceHitSpark({ x: spark.x, y: spark.y, dir: (attacker && (attacker.facing || 1) < 0) ? -1 : 1, count: soft ? 3 : 6, speed: 2.6, frame: bframe, player: bplayer, color: [150, 220, 255] })
+    return
+  }
   const roundEnd = !!(target && (target.health || 0) <= 0)
   const tier = hitTierFor({ category: spark.category, damage: spark.damage || 0, roundEnd, isUltMove: spark.category === "ultimate" })
   const player = (side === "p2" || side === "p4") ? 1 : 0
@@ -2403,12 +2430,47 @@ function _fireHitFeelKo(loser) {
   fireJuiceKoPop({ x, y, groundY, frame: globalFrameCount, player, colors: cols, count: HITFEEL.koPieces })
 }
 
+// FEEL PASS (Phase 1): the faint blue-white "open" tint pulsed on a fighter who just whiffed a
+// heavy/special (set in _tickHitFeel as f._openTint, counts down there). A soft additive glow over the
+// body box for ~3 frames — purely a readability cue for the punish window. Suppressed by Reduce Flashing
+// (the field is never set when it's on). Presentation-only; hitboxes/sim untouched.
+function _drawWhiffOpenTint(c, fighter) {
+  const t = fighter && (fighter._openTint || 0)
+  if (!t) return
+  const a = (t / 3) * 0.3   // peak ~0.3 alpha, eases out over the 3f pulse
+  const x = fighter.x, y = fighter.y, w = fighter.w || 60, h = fighter.h || 100
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  c.fillStyle = _withAlpha("#bfe4ff", a)
+  _rrectFill(c, x - 2, y - 2, w + 4, h + 4, 10)
+  c.restore()
+}
+
 // Ease every fighter's visual knockback offset back toward 0 (called each sim frame per fighter).
 function _tickHitFeel(f) {
   if (!f) return
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
   if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
   if (f._fireBurn) { f._fireBurn.t++; if (f._fireBurn.t >= f._fireBurn.max) f._fireBurn = null }   // ELEMENT (Phase D): fire burn fades out
+  // FEEL PASS (Phase 1) WHIFF CUE (visual + audio only): a committed HEAVY/SPECIAL/launcher/ultimate
+  // swing whose active window passed with NO connect (hasHit false, now in recovery). Fire a soft airy
+  // swish + a dust puff, and pulse a faint blue-white "open" tint on the attacker (3f) marking the
+  // punish window. The `_whiffCued` latch lives on the attack instance, so it auto-resets next swing.
+  const _wa = f.currentAttack
+  if (juiceSettings.hitEffectsOn() && f.attacking && _wa && !_wa.hasHit && !_wa._whiffCued) {
+    const heavySwing = !!(_wa.isSpecial || _wa.launcher || _wa.isUltimate || _wa.category === "heavy" || _wa.name === "heavy")
+    if (heavySwing && getAttackPhase(f) === "recovery") {
+      _wa._whiffCued = true
+      const wf = globalFrameCount, wp = (f.side === "p2" || f.side === "p4") ? 1 : 0
+      const wx = (f.x || 0) + (f.w || 60) / 2
+      const wgy = (f.groundY != null) ? f.groundY : ((f.y || 0) + (f.h || 100))
+      const swish = ["swish_fast_01", "swish_fast_02", "swish_fast_03"][(wf + wp) % 3]   // deterministic variant → LAN-identical
+      sound.playJuiceSfx?.(swish, { gain: 0.3, pitch: juicePitch(wf, wp) })
+      fireJuiceDust({ x: wx, y: wgy, dir: (f.facing || 1) < 0 ? -1 : 1, frame: wf, player: wp })
+      if (!juiceSettings.reduceFlashing) f._openTint = 3   // blue-white punish-window pulse (drawn in the body-overlay pass)
+    }
+  }
+  if ((f._openTint || 0) > 0) f._openTint--
   _szFlurryTickFighter(f)   // SPARKING ZERO (Phase 2): end/interrupt a flurry/barrage stream
   // MELEE MOTION-TRAIL (polish): a brief afterimage smear on BIG swings (heavy / special / launcher /
   // ultimate), reusing the dash-trail ghost mechanism so every character's weighty attacks read with motion.
@@ -2693,11 +2755,15 @@ let _ultCropHold = 0, _ultCropHoldZoom = 0, _ultCropArm = false
 // Detect an ultimate CONNECT directly: a fighter's hitstop rising-edge into ultimate tier (independent of the
 // combo counter, which some ultimates don't increment). Called each battle frame; fires the crop once per hit.
 function _detectUltimateConnect() {
+  // FEEL PASS (Phase 1): detect an ultimate CONNECT from a deterministic per-fighter pulse set in
+  // combat.js (applyHitstopForHit / projectile path) when an isUltimate attack lands — INDEPENDENT of
+  // the hitstop magnitude. The old `hitstop >= 24` sniff broke once the Scaled profile dropped the
+  // ultimate freeze below 24 and could false-trigger on a clash (also hitstop 14). The flag is a clean
+  // one-frame signal: fire the crop once, then clear so it can re-arm on the next ultimate.
   for (const f of [p1, p2]) {
     if (!f) continue
-    const hs = f.hitstop || 0
-    if (hs >= ULT_CROP_HITSTOP && (f._prevHsCrop || 0) < ULT_CROP_HITSTOP && !_ultCrop && !brutalityState.active) triggerUltimateCrop()
-    f._prevHsCrop = hs
+    if (f._ultLanded && !_ultCrop && !brutalityState.active) triggerUltimateCrop()
+    f._ultLanded = false
   }
 }
 const ULT_CROP_RELEASE = 5   // last frames of the hold ramp the zoom back to the camera max (smooth pull-back)
@@ -5299,6 +5365,7 @@ function startMatch() {
   const _matchSeed = (_forcedSeed != null) ? (_forcedSeed >>> 0) : makeSeed()
   matchConfig.seed = _matchSeed
   reseedRng(_matchSeed)
+  _pushHitstopStyle()   // FEEL PASS (Phase 1): tell the sim the agreed Hitstop Style (local, or the host's in LAN) before any hit lands
   _roundEndAudioStopped = false
   // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
   // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
@@ -5795,8 +5862,10 @@ function startOnlineHostMatch() {
     p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
     stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
     slowMo: !!juiceSettings.slowMo,   // JUICE (Phase 2): host-authoritative Slow-Mo → both peers decide identically (LAN-safe)
+    hitstopStyle: juiceSettings.hitstopStyle,   // FEEL PASS (Phase 1): host-authoritative Hitstop Style → identical sim freeze on both peers
   })
   _juiceSlowmoNetFlag = !!juiceSettings.slowMo   // host uses its own setting
+  _hitstopStyleNetFlag = juiceSettings.hitstopStyle   // host uses its own Hitstop Style
   netMatch.begin(online.getSession(), { localSide: "p1" })
   _forcedSeed = seed
   startMatch()
@@ -5811,6 +5880,7 @@ function applyOnlineSetup(m) {
   matchConfig.p1Skin = m.p1Skin || "default"; matchConfig.p2Skin = m.p2Skin || "default"
   matchConfig.selectedStage = stages.find(s => s.name === m.stage) || stages[0]
   _juiceSlowmoNetFlag = (typeof m.slowMo === "boolean") ? m.slowMo : null   // JUICE (Phase 2): adopt the host's Slow-Mo decision
+  _hitstopStyleNetFlag = (m.hitstopStyle === "classic" || m.hitstopStyle === "scaled") ? m.hitstopStyle : null   // FEEL PASS (Phase 1): adopt the host's Hitstop Style
   netMatch.begin(online.getSession(), { localSide: "p2" })
   _forcedSeed = (m.seed >>> 0)
   startMatch()
@@ -5822,6 +5892,8 @@ function leaveOnline(reason = null) {
   netMatch.end()
   matchConfig.online = null
   _juiceSlowmoNetFlag = null   // JUICE (Phase 2): back to the local Slow-Mo setting outside a LAN match
+  _hitstopStyleNetFlag = null  // FEEL PASS (Phase 1): back to the local Hitstop Style outside a LAN match
+  _pushHitstopStyle()
 }
 
 // ── AI vs AI — SPECTATOR / TESTING MODE ──────────────────────────────────────
@@ -17655,6 +17727,7 @@ function renderHybridFighter(fighter) {
     if (_bodyWrap) c.restore()          // JUICE (Phase 3) squash + HIT FEEL (Phase A) knockback — close the body transform
     _drawComboCracks(c, fighter)        // STAGE 2: cracking-glass overlay on a fighter being deep-combo'd (5/9/15 tiers), ON TOP of the body — purely cosmetic
     _drawFireBurn(c, fighter)           // ELEMENT (Phase D): flickering fire-burn overlay on a fire-hit target, ON TOP of the body
+    _drawWhiffOpenTint(c, fighter)      // FEEL PASS (Phase 1): faint blue-white "open" punish-window pulse on a whiffed heavy/special (ON TOP of the body)
     drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
     drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
     drawBorutoShidenFX(c, fighter)      // Boruto — Lightning Shiden electric arcs along the forearm during the thrust, ON TOP of the body (Boruto only)
@@ -19529,6 +19602,7 @@ function captureFrameAdvantage(def, atk) {
       value: stun - atkRecovery,
       stun, recovery: atkRecovery,   // exposed components (value === stun − recovery)
       onBlock,
+      hitstop: def.hitstop || 0,     // FEEL PASS (Phase 1): the APPLIED impact-freeze on this connect (display-only; both fighters froze this many frames, so it does not alter `value`)
       move: atk.currentAttack?.name || atk.currentMove || "move",
       who: atk === p1 ? "P1" : "P2",
       frame: globalFrameCount
@@ -20105,6 +20179,8 @@ const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
 const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody stage grade + fog + vignette
 // HUD STYLE toggle — Themed (portrait + per-character accent) / Classic (exact previous look). x set by _layoutSettings.
 const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
+// HITSTOP STYLE toggle — Scaled (power-scaled impact freeze, default) / Classic (exact old values). x set by _layoutSettings.
+const hitstopStyleRect  = { x: 0, y: 828, w: 190, h: 30 }
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -20174,6 +20250,7 @@ function _layoutSettings() {
   hitSndP1Rect.x      = rx
   hitSndP2Rect.x      = rx + 98
   atmosphereRect.x    = rx
+  hitstopStyleRect.x  = rx
 }
 
 function drawSettingsScreen() {
@@ -20303,10 +20380,13 @@ function drawSettingsScreen() {
     fxBox(atmosphereRect, `Atmosphere: ${juiceSettings.atmosphere ? "ON" : "OFF"}`, juiceSettings.atmosphere, "#8b5cf6")
     // THEMED HUD style — Themed (portrait + per-character accent) / Classic (exact previous look).
     fxBox(hudStyleToggleRect, `HUD: ${hudThemed ? "THEMED" : "CLASSIC"}`, hudThemed, "#38bdf8")
+    // FEEL PASS (Phase 1): Hitstop Style — Scaled (power-scaled impact freeze, default) / Classic (exact old values).
+    fxBox(hitstopStyleRect, `Hitstop: ${juiceSettings.hitstopStyle === "scaled" ? "SCALED" : "CLASSIC"}`, juiceSettings.hitstopStyle === "scaled", "#f59e0b")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
+    ctx.fillText("Hitstop: Scaled = weightier impact freeze / Classic = exact old (saved)", hitstopStyleRect.x, hitstopStyleRect.y + hitstopStyleRect.h + 13)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21534,6 +21614,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
       if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
+      if (pointInRect(mouse.x, _smy, hitstopStyleRect)) { juiceSettings.cycleHitstopStyle(); _pushHitstopStyle(); break }   // FEEL PASS (Phase 1): Scaled ↔ Classic (re-push so a live match picks it up when not net-locked)
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -24473,6 +24554,11 @@ gameLoop()
       slowmoState:()   => ({ timer: _juiceSlowmoTimer, cooldown: _juiceSlowmoCooldown, enabled: _juiceSlowmoEnabled(), blocked: _juiceSlowmoBlocked(), netFlag: _juiceSlowmoNetFlag }),
       impactFrame:()   => _juiceImpactFrame ? { ..._juiceImpactFrame } : null,
       setNetSlowMo:(v) => { _juiceSlowmoNetFlag = (v == null ? null : !!v); return _juiceSlowmoNetFlag },   // simulate a LAN host decision
+      // FEEL PASS (Phase 1): Hitstop Style hooks — read the live setting/effective style, set the local
+      // preference, or simulate a LAN host decision. `effective` is what the sim is actually told.
+      hitstopStyle:    () => ({ setting: juiceSettings.hitstopStyle, effective: _pushHitstopStyle(), netFlag: _hitstopStyleNetFlag }),
+      setHitstopStyle: (v) => { juiceSettings.setHitstopStyle(v); return _pushHitstopStyle() },
+      setNetHitstopStyle: (v) => { _hitstopStyleNetFlag = (v === "classic" || v === "scaled") ? v : null; return _pushHitstopStyle() },
       anticipate: (tier = "medium") => { const f = p1 || p2; const cx = (f?.x || 0) + (f?.w || 60) / 2, cy = (f?.y || 0) + (f?.h || 100) * 0.42; fireJuiceAnticipation(cx, cy, tier); fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player: 0, tier }); return juiceFxStatus() },   // DISNEY (Phase B): swell + charge-in
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash
       spawnTestProjectile: () => { const f = p1 || p2; const proj = { x: (f?.x || 400), y: (f?.y || 300) - 170, vx: 6, vy: 0, radius: 18, isSpecial: true, name: "testProj", owner: f, ownerId: f?.side || "p1", lifetime: 300, damage: 0 }; activeProjectiles.push(proj); window.__hfTestProj = proj; return { pushed: true, n: activeProjectiles.length } },

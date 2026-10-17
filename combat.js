@@ -14,6 +14,7 @@
 
 import { physics } from "./physics.js"
 import { poolAcquire } from "./pool.js"   // Stage 22C: recycle hit-spark objects (spawned in bursts during ultimates)
+import { hitstopOverrideFor } from "./hitstop_overrides.js"   // FEEL PASS (Phase 1): sparse per-move hitstop overrides (Scaled-only, deterministic)
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickOmololuVoice } from "./omololuVoice.js"   // Omololu hit-react + low-health voice pools (audio-only)
@@ -99,6 +100,52 @@ export const HITSTOP = {
   default: 4
 }
 
+// ========================
+// FEEL PASS (Phase 1) — HITSTOP STYLE: Classic vs Scaled-by-power
+// ========================
+// `HITSTOP` above is the CLASSIC profile = the exact pre-FeelPass values; the "Classic" setting
+// restores it byte-for-byte (and harness/hitstop.test.mjs — which imports combat.js directly and
+// never flips the style — keeps exercising it, so Classic is a proven byte-identical snapshot).
+// `HITSTOP_SCALED` is the Phase-1 power-scaled PROFILE (the in-game default; game.js opts in at boot).
+// Both tables are LAN-safe: the EFFECTIVE style is replicated host-authoritatively in MATCH_SETUP
+// (same pattern as Slow-Mo), so every peer reads identical values → the sim stays in lockstep.
+// Frame advantage is invariant to the chosen style: both fighters freeze the SAME frames and
+// hitstun/blockstun never tick during hitstop (updateCombat early-returns), so the value only
+// changes how long the shared impact-freeze holds — never who recovers first.
+export const HITSTOP_SCALED = {
+  light: 3,        // snappy pokes
+  air: 3,
+  grab: 5,         // MEDIUM-weight
+  heavy: 8,
+  launcher: 8,     // HEAVY family
+  spike: 8,
+  special: 10,
+  ultimate: 14,    // connect value; a full-ult cinematic (when enabled) owns the dramatic hold on top
+  projectile: 8,   // unchanged (zoner-friendly)
+  parry: 14,       // defensive clash feedback — not an attack-power tier, kept equal to Classic
+  clash: 14,
+  medium: 5,       // a light-category normal that hits >= HITSTOP_MEDIUM_DMG reads as MEDIUM
+  roundEnd: 20,    // DATA only: a round-ending blow; NOT applied separately — the KO freeze owns that moment
+  default: 3
+}
+// Blocked-hit hitstop (Scaled only). Classic blocks apply ZERO hitstop (the historical "freeze is a
+// clean-hit reward" rule, still asserted by hitstop.test.mjs §5). Scaled gives a block a light shared
+// tick so a guard reads with weight; both fighters still freeze equally → block advantage unchanged.
+export const HITSTOP_BLOCK_SCALED = { light: 2, medium: 3, heavy: 5, special: 6, ultimate: 8, default: 2 }
+export const HITSTOP_MULTIHIT_NONFINAL = 3   // non-final hit of a multi-hit move (Scaled): a brief tick, no stutter-freeze
+export const HITSTOP_MOVE_CAP          = 24  // Scaled: cap CUMULATIVE hitstop a single move instance can impose
+export const HITSTOP_MEDIUM_DMG        = 45  // Scaled: light-category normal at/above this damage = MEDIUM tier (mirrors HIT_FEEL mediumDamage)
+
+// Active style. DEFAULT "classic" so a direct combat.js import (unit tests) sees the exact old
+// behaviour; game.js pushes the effective style ("scaled" by default, or the host's choice in LAN).
+let _hitstopStyle = "classic"
+export function setHitstopStyle(style) { _hitstopStyle = (style === "scaled") ? "scaled" : "classic" }
+export function getHitstopStyle() { return _hitstopStyle }
+function _hsTable() { return _hitstopStyle === "scaled" ? HITSTOP_SCALED : HITSTOP }
+// The active-style ULTIMATE hitstop value — exported so the ultimate-connect detector never has to
+// hard-code a magnitude (it keys off a deterministic flag instead; this is a fallback/telemetry read).
+export function getUltimateHitstopFrames() { return _hsTable().ultimate }
+
 // Single shared entry point for applying hit-stop. BOTH the melee path
 // (resolveAttackHit) and the projectile path (resolveProjectileHitsMulti) call this,
 // so freezing is one system, not two divergent copies. Uses max() so a heavier
@@ -110,15 +157,56 @@ export function applyHitstop(attacker, defender, frames) {
   if (defender) defender.hitstop = Math.max(defender.hitstop || 0, f)
 }
 
+// FEEL PASS (Phase 1): apply melee hit-stop for a CLEAN connect, with Scaled-mode refinements —
+// multi-hit discipline (non-final hits get a brief tick; the committing/finisher hit gets the full
+// tier value) and a per-move CUMULATIVE cap so a long multi-hit can't stack into an endless freeze.
+// Also raises a deterministic ultimate-connect pulse (read + cleared by game.js's ultimate zoom-crop,
+// which no longer sniffs the hitstop magnitude). In CLASSIC mode this is byte-identical to the old
+// single `applyHitstop(attacker, defender, getHitstopFrames(atk))` call — none of the refinements run.
+export function applyHitstopForHit(attacker, defender, atk) {
+  let want = getHitstopFrames(atk, attacker)
+  if (_hitstopStyle === "scaled") {
+    const a = attacker && attacker.currentAttack
+    if (a) {
+      a._hsHits = (a._hsHits || 0) + 1
+      const finisher  = !!(atk.launcher || atk.spike || atk.isSpecial || atk.isUltimate)
+      const moreActive = (a.timer || 0) > 1 && getAttackPhase(attacker) === "active"
+      // non-final repeat hit of a multi-hit move → a brief tick, no stutter-freeze
+      if (a._hsHits > 1 && !finisher && moreActive) want = Math.min(want, HITSTOP_MULTIHIT_NONFINAL)
+      // cumulative cap: the FIRST hit is uncapped (one big blow keeps its full tier value); each later
+      // hit may only consume the remaining budget, so the move's TOTAL imposed freeze stays ≤ the cap
+      if (a._hsHits > 1) want = Math.min(want, Math.max(0, HITSTOP_MOVE_CAP - (a._hsUsed || 0)))
+      a._hsUsed = (a._hsUsed || 0) + Math.max(0, want)
+    }
+  }
+  applyHitstop(attacker, defender, want)
+  if (atk.isUltimate) { if (attacker) attacker._ultLanded = true; if (defender) defender._ultLanded = true }
+}
+
+// Blocked-hit hit-stop (Scaled only). Returns 0 in Classic (historical "block = no freeze" rule,
+// asserted by hitstop.test.mjs §5). Keyed by the same tier the clean hit would use.
+export function getBlockHitstopFrames(atk) {
+  if (_hitstopStyle !== "scaled" || !atk) return 0
+  const B = HITSTOP_BLOCK_SCALED
+  if (atk.isUltimate) return B.ultimate
+  if (atk.isSpecial)  return B.special
+  if (atk.launcher || atk.spike) return B.heavy
+  const c = atk.category || _catFromName(atk.name)
+  if (c === "heavy") return B.heavy
+  if ((c === "light" || c === "air" || !c) && (atk.damage || 0) >= HITSTOP_MEDIUM_DMG) return B.medium
+  return B[c] ?? B.default
+}
+
 // Projectile hit-stop frames. Weight-scaled like melee, with two escape hatches so
 // rapid multi-hit / DOT projectiles don't stutter-freeze: a per-projectile numeric
 // `hitstop` override, and a `noHitstop` opt-out. visualOnly projectiles never freeze.
 export function getProjectileHitstopFrames(proj) {
   if (!proj || proj.visualOnly || proj.noHitstop) return 0
   if (typeof proj.hitstop === "number") return proj.hitstop
-  if (proj.isUltimate) return HITSTOP.ultimate
-  if (proj.isSpecial)  return HITSTOP.special
-  return HITSTOP.projectile
+  const T = _hsTable()
+  if (proj.isUltimate) return T.ultimate
+  if (proj.isSpecial)  return T.special
+  return T.projectile
 }
 
 // ========================
@@ -400,20 +488,30 @@ export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMB
 // ATTACK PHASE
 // ========================
 
-export function getHitstopFrames(atk) {
-  if (!atk) return HITSTOP.default
-  if (atk.isUltimate) return HITSTOP.ultimate
-  if (atk.isSpecial) return HITSTOP.special
+export function getHitstopFrames(atk, owner) {
+  const T = _hsTable()
+  if (!atk) return T.default
+  // FEEL PASS (Phase 1): a sparse per-move override wins over the tier (Scaled only; Classic is the
+  // byte-exact snapshot and ignores overrides). "skip" → 0 (a cinematic owns this move's impact).
+  if (_hitstopStyle === "scaled") {
+    const ov = hitstopOverrideFor(owner?.rosterKey || atk.rosterKey, atk.name)
+    if (ov === "skip") return 0
+    if (typeof ov === "number") return Math.max(0, Math.min(HITSTOP_MOVE_CAP, ov | 0))
+  }
+  if (atk.isUltimate) return T.ultimate
+  if (atk.isSpecial) return T.special
   // COMBO-FLOW: honor the launcher/spike FLAGS, not just the name. Rekka finishers are named
   // per-stage (barrage4, batCombo3, …) so _catFromName can't see they're launchers — without this
   // they froze at jab weight (HITSTOP.light) despite launching. Fire fns set attack.launcher on the
   // finisher (and md.launcher/spike propagate via createAttackFromMove.category), so this is the ONE
   // place the whole roster's chain finishers get their proper heavy/launcher impact-freeze.
-  if (atk.launcher) return HITSTOP.launcher
-  if (atk.spike)    return HITSTOP.spike
+  if (atk.launcher) return T.launcher
+  if (atk.spike)    return T.spike
 
   const c = atk.category || _catFromName(atk.name)
-  return HITSTOP[c] ?? HITSTOP.default
+  // MEDIUM tier (Scaled): a light-category normal that hits hard enough reads as a mid-weight blow.
+  if (_hitstopStyle === "scaled" && (c === "light" || c === "air" || !c) && (atk.damage || 0) >= HITSTOP_MEDIUM_DMG) return T.medium
+  return T[c] ?? T.default
 }
 
 export function getSparkCategory(atk) {
@@ -3250,6 +3348,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
+    // FEEL PASS (Phase 1): a BLOCK now imparts a light shared impact-freeze (Scaled only; Classic = 0,
+    // the historical "freeze is a clean-hit reward" rule). Both fighters freeze equally and blockstun
+    // does not tick during hitstop → block frame advantage is UNCHANGED. A flawless block (punish
+    // window) stays freeze-free so the defender's advantage isn't blunted.
+    if (!flawless) applyHitstop(attacker, defender, getBlockHitstopFrames(atk))
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
 
@@ -3288,7 +3391,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
     } else {
-      applyHitstop(attacker, defender, getHitstopFrames(atk))
+      applyHitstopForHit(attacker, defender, atk)   // FEEL PASS (Phase 1): tier value + Scaled multi-hit/cap + ult-connect pulse (Classic = byte-identical to the old call)
       defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)) + (isCounter ? COUNTER_HIT_BONUS_HITSTUN : 0))   // COUNTER-HIT: +8 hitstun
       // JUGGLE GRAVITY (MK-feel Stage 1b): this hit landed on an AIRBORNE (already-juggled) opponent →
       // bump their juggleCount so physics.applyGravity ramps their fall (each successive air hit drops them
@@ -4121,6 +4224,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         // (regressed Beerus's nova pose + Naruto's cast/voice timing). Opt out per-projectile
         // via noHitstop (rapid barrages / DOT); tune magnitude via HITSTOP.projectile. Clean-hit only.
         applyHitstop(fighter, null, getProjectileHitstopFrames(proj))
+        if (proj.isUltimate) fighter._ultLanded = true   // FEEL PASS (Phase 1): deterministic ultimate-connect pulse for the zoom-crop (read + cleared by game.js)
         try { sound?.play?.(SFX?.HIT_PROJECTILE) } catch (_) {}
       }
 

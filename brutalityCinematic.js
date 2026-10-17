@@ -119,7 +119,7 @@ export function updateBrutalityCinematic(ctx = {}) {
 }
 
 // which render pass each primitive belongs to in a choreographed cutaway (world = inside the camera transform)
-const PASS_BG = new Set(["darken", "voidInvert", "shrineBg"])
+const PASS_BG = new Set(["darken", "voidInvert", "shrineBg", "tsukuyomiBg"])
 const PASS_OVERLAY = new Set(["whiteSpike", "banner", "speedLines", "dataFlood", "letterbox"])
 // everything else (actor/flickerIn/flickerRush/swordSlash/bloodGush/headPop/slashCross/...) draws in world space
 function _passOf(fx) { return PASS_BG.has(fx) ? 0 : PASS_OVERLAY.has(fx) ? 2 : 1 }
@@ -389,7 +389,8 @@ const PRIM = {
     const g = c.createLinearGradient(0, ly - 14, 0, ly + 6)
     g.addColorStop(0, "rgba(255,180,40,0)"); g.addColorStop(0.6, beat.color || "#ff7a1e"); g.addColorStop(1, "rgba(120,20,0,0.85)")
     c.fillStyle = g; c.fillRect(r.x - 4, ly - 14, r.w + 8, 20)
-    for (let i = 0; i < 44; i++) { const bx = r.x + rnd(i, 1) * r.w, prog = ((f * 0.04 + rnd(i, 2)) % 1), by = ly - prog * r.h * 0.75, sz = (1 - prog) * 4 + 1; c.globalAlpha = (1 - prog) * e; c.fillStyle = i % 3 ? "#ffb032" : "#ff5a10"; c.beginPath(); c.arc(bx, by, sz, 0, 7); c.fill() }
+    const emberA = beat.black ? "#e636b4" : "#ffb032", emberB = beat.black ? "#8a0044" : "#ff5a10"   // Amaterasu = black flame (magenta edge so it READS on dark)
+    for (let i = 0; i < 44; i++) { const bx = r.x + rnd(i, 1) * r.w, prog = ((f * 0.04 + rnd(i, 2)) % 1), by = ly - prog * r.h * 0.75, sz = (1 - prog) * 4 + 1; c.globalAlpha = (1 - prog) * e; c.fillStyle = i % 3 ? emberA : emberB; c.beginPath(); c.arc(bx, by, sz, 0, 7); c.fill() }
     c.globalAlpha = 1; c.restore()
   },
 
@@ -563,6 +564,37 @@ const PRIM = {
     const g = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85)
     g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, `rgba(0,0,0,${(0.5 * prog).toFixed(3)})`)
     c.fillStyle = g; c.fillRect(0, 0, W, H)
+    c.restore()
+  },
+
+  // ── PHASE 3 — THE SHARINGAN (Uchiha) ─────────────────────────────────────────────────────────────
+
+  // SASUKE — Chidori: a crackling nest of lightning at the pierce point (world-space, targets S.rect)
+  lightning(c, W, H, p, beat, S, f) {
+    const r = S.rect; const x = r ? r.x + r.w * (beat.hx ?? 0.5) : W / 2, y = r ? r.y + r.h * (beat.headY ?? 0.45) : H / 2
+    const col = beat.color || "#7ec8ff"
+    c.save()
+    for (let i = 0; i < 9; i++) {
+      const ang = (hash(i, f >> 1) % 360) * Math.PI / 180; let px = x, py = y
+      c.strokeStyle = col; c.lineWidth = 2; c.globalAlpha = 0.55 + 0.45 * Math.sin(f * 0.5 + i)
+      c.beginPath(); c.moveTo(px, py)
+      for (let k = 0; k < 5; k++) { px += Math.cos(ang) * 18 + (rnd(i * 5 + k, f) - 0.5) * 20; py += Math.sin(ang) * 18 + (rnd(i * 5 + k, f + 1) - 0.5) * 20; c.lineTo(px, py) }
+      c.stroke()
+    }
+    c.globalAlpha = 1; c.fillStyle = "#eaf6ff"; c.beginPath(); c.arc(x, y, (r ? r.w : 80) * 0.11, 0, 7); c.fill()
+    c.restore()
+  },
+
+  // ITACHI — Tsukuyomi: the genjutsu world. Inverted red sky / black ground + a dark blood-moon (BG pass)
+  tsukuyomiBg(c, W, H, p, beat, S, f) {
+    const a = ease(Math.min(1, (f - beat.t0) / 16))
+    c.save()
+    const g = c.createLinearGradient(0, 0, 0, H)
+    g.addColorStop(0, `rgba(120,10,10,${(a * 0.85).toFixed(3)})`); g.addColorStop(0.5, `rgba(40,0,0,${a.toFixed(3)})`); g.addColorStop(1, `rgba(4,0,0,${a.toFixed(3)})`)
+    c.fillStyle = `rgba(14,0,0,${a.toFixed(3)})`; c.fillRect(0, 0, W, H)
+    c.fillStyle = g; c.fillRect(0, 0, W, H)
+    c.globalAlpha = a; c.fillStyle = "#1a0000"; c.beginPath(); c.arc(W * 0.5, H * 0.23, H * 0.12, 0, 7); c.fill()
+    c.strokeStyle = "#c01010"; c.lineWidth = 3; c.stroke()
     c.restore()
   },
 }

@@ -444,6 +444,126 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 3 — THE SHARINGAN (Uchiha) ───────────────────────────────────────────────────────────
+  // Batch 3A "Sons of Indra": sasuke · sasuke_adult · sasuke_sensei · itachi
+
+  // SASUKE — Chidori: a thrust of concentrated lightning punched clean through the chest. His oldest, coldest
+  // technique. Dashes in, pierces, the lightning tears the wound open.
+  sasuke: {
+    banner: "CHIDORI", bannerRgb: "120,180,255", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 168, rgb: "4,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 52, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 46, action: "run", fromX: 0.9, toX: 0.6, y: 0.52, facing: -1, color: "rgba(120,180,255,0.5)" },
+      { fx: "cam",   t0: 44, t1: 112, zoom: 1.9, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 144, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "impale", t0: 50, t1: 112, color: "#bfe0ff", headY: 0.45 },
+      { fx: "lightning", t0: 50, t1: 144, headY: 0.45, color: "#7ec8ff" },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 58, t1: 168, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.2, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 114, t1: 144, headY: 0.45 },
+      { fx: "bloodGush", t0: 114, t1: 168, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 168 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",     gain: 0.5 },
+      { t: 50,  id: "crack_sizzle_bright", gain: 0.6 },
+      { t: 112, id: "boom_huge_01",        gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",      gain: 0.5 },
+    ],
+  },
+
+  // SASUKE (ADULT) — Amaterasu: the inextinguishable BLACK FLAMES of the left Mangekyo. Wherever his gaze lands,
+  // the target simply burns — black fire that consumes to nothing.
+  sasuke_adult: {
+    banner: "AMATERASU", bannerRgb: "170,60,210", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "2,0,4", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 176, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 54, t1: 62 },
+      { fx: "incinerate", t0: 58, t1: 172, color: "#e636b4", black: true },
+      { fx: "cam",   t0: 120, t1: 162, zoom: 2.1, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "banner", t0: 150, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",        gain: 0.5 },
+      { t: 54,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // SASUKE (SENSEI) — Susanoo: the ethereal avatar's giant blade descends in one overwhelming cleave.
+  sasuke_sensei: {
+    banner: "SUSANOO", bannerRgb: "130,90,230", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "6,2,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 110, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 70, t1: 110, x: 0.52, y: 0.46, len: 0.42, angle: -2.5, sweep: 3.0, color: "rgba(150,110,240,0.95)" },
+      { fx: "whiteSpike", t0: 100, t1: 112 },
+      { fx: "cam",   t0: 114, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "headPop", t0: 116, t1: 150, headY: 0.45 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 150, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 70,  id: "swish_fast_01",   gain: 0.6 },
+      { t: 114, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // ITACHI — Tsukuyomi: dragged into the inverted red world, slashed a thousand times in a single instant until
+  // the mind simply breaks. A genjutsu kill — no body is cut, but the victim never comes back.
+  itachi: {
+    banner: "TSUKUYOMI", bannerRgb: "210,30,30", base: "hurt", choreographed: true, total: 184,
+    beats: [
+      { fx: "letterbox",   t0: 0, t1: 184, in: 14, h: 0.13 },
+      { fx: "tsukuyomiBg", t0: 0, t1: 184 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 6,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 16, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 120, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 50, t1: 120, count: 26, color: "#e02020" },
+      { fx: "bloodGush", t0: 60, t1: 184, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 120, t1: 152, zoom: 2.1, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 130 },
+      { fx: "headPop", t0: 122, t1: 152, headY: 0.3 },
+      { fx: "bloodGush", t0: 122, t1: 184, x: 0.5, y: 0.47, amount: 28 },
+      { fx: "cam",   t0: 152, t1: 184, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 184, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 184, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 184 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 50,  id: "crack_sizzle_bright",    gain: 0.4 },
+      { t: 120, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 126, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

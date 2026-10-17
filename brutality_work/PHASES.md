@@ -75,7 +75,8 @@ nezuko · inosuke · rengoku · shinobu · zenitsu
 Batch 11A DONE: the 5 Supermen — heat-vision (superman/superman_dcuc/superman_new52 = kiBeam red headY0.3) + Kryptonian-Might super-punch (superman_classic/superman_fighter = flickerIn+headPop+shockRing). No new FX. Batch 11B DONE: batman(Dark Knight batarangs)/dark_knight(beatdown)/flash(Speed Force)/green_lantern(Willpower construct)/deathstroke(Promethium Cleave)/brainiac(Assimilation dataFlood green). No new FX. ★87 concepts total (phases 1-11). Next: Phase 12 Marvel/Invincible.
 superman · superman_classic · superman_dcuc · superman_fighter · superman_new52 · batman · dark_knight · flash · green_lantern · deathstroke · brainiac
 
-## Phase 12 — With Great Power (Marvel/Invincible)   ☐
+## Phase 12 — With Great Power (Marvel/Invincible)   ◐ IN PROGRESS
+Batch 12A DONE: spiderman x4 Web-Slinger(strings web + flickerRush swing) + miles Venom-Strike(flickerRush+lightning cyan) + gwen Spider-Gwen(web pink). No new FX. Pending 12B (iron_man x3 + omniman).
 spiderman · spiderman_mci · spiderman_raimi · spiderman_ssf2 · miles · gwen · iron_man · iron_man_2 · iron_man_3 · omniman
 
 ## Phase 13 — One Punch (OPM/Ben10/Baki)   ☐

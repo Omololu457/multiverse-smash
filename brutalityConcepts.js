@@ -2774,6 +2774,196 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 12 — WITH GREAT POWER (Marvel / Invincible) ────────────────────────────────────────────
+  // Batch 12A "The Spider-Verse": spiderman x4 + miles + gwen
+
+  // SPIDER-MAN — Web-Slinger: pinned in webbing, then a blur of swing-kicks and a final yank.
+  spiderman: {
+    banner: "WEB-SLINGER", bannerRgb: "230,40,50", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "10,2,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#e85060" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(240,240,250,0.8)" },
+      { fx: "slashCross", t0: 56, t1: 114, count: 12, color: "#e85060" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // SPIDER-MAN (MCU-ish) — Web-Slinger.
+  spiderman_mci: {
+    banner: "WEB-SLINGER", bannerRgb: "220,50,60", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "8,2,6", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#e05868" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(240,240,250,0.8)" },
+      { fx: "slashCross", t0: 56, t1: 114, count: 12, color: "#e05868" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // SPIDER-MAN (RAIMI) — Web-Slinger.
+  spiderman_raimi: {
+    banner: "WEB-SLINGER", bannerRgb: "210,40,50", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "10,2,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#d85060" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(235,235,245,0.8)" },
+      { fx: "slashCross", t0: 56, t1: 114, count: 12, color: "#d85060" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // SPIDER-MAN (SSF2) — Web-Slinger.
+  spiderman_ssf2: {
+    banner: "WEB-SLINGER", bannerRgb: "235,45,55", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "10,3,6", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#e85868" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(240,240,250,0.8)" },
+      { fx: "slashCross", t0: 56, t1: 114, count: 12, color: "#e85868" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // MILES — Venom Strike: his bio-electric venom overloads the target in a storm of sparks.
+  miles: {
+    banner: "VENOM STRIKE", bannerRgb: "90,210,230", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 168, rgb: "2,8,12", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 112, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 112, action: "run", around: 0.5, aroundY: 0.48, count: 10, radX: 0.3, radY: 0.14, color: "#60d8ee" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "lightning", t0: 54, t1: 112, headY: 0.45, color: "#60d8ee" },
+      { fx: "bloodGush", t0: 60, t1: 168, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 112, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 124 },
+      { fx: "lightning", t0: 112, t1: 142, headY: 0.45, color: "#60d8ee" },
+      { fx: "headPop", t0: 116, t1: 146, headY: 0.45 },
+      { fx: "bloodGush", t0: 116, t1: 168, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 168 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 48, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // SPIDER-GWEN — a ballet of web-shots and spins that leaves the target bound and broken.
+  gwen: {
+    banner: "SPIDER-GWEN", bannerRgb: "240,120,200", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "10,4,12", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#ff78c8" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(255,255,255,0.85)" },
+      { fx: "slashCross", t0: 56, t1: 114, count: 12, color: "#ff78c8" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

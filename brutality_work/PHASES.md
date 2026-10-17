@@ -40,7 +40,7 @@ New FX primitives: shrineBg · slashCross · shatter · flameBeam · incinerate 
 Verified: test:brutality-phase2 45/45 (8 JJK + gojo regression), determinism 14/0, sim byte-identical. NO game.js change (uncontended).
 
 ## Phase 3 — The Sharingan (Uchiha)   ◐ IN PROGRESS
-Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sasuke_sensei(Susanoo cleave)/itachi(Tsukuyomi red-world). New FX: lightning, tsukuyomiBg, incinerate black:true. shisui_fallen DONE. Pending 3B (madara/obito/tobi) + 3C (shisui_blade/puppeteer/trinity/itachi_kids).
+Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sasuke_sensei(Susanoo cleave)/itachi(Tsukuyomi red-world). New FX: lightning, tsukuyomiBg, incinerate black:true. shisui_fallen DONE. Batch 3B DONE: madara(Tengai Shinsei meteor)/obito(Kamui spiral warp)/tobi(Truth-Seeking void orb). New FX: meteor, kamuiSpiral, voidOrb. Pending 3C (shisui_blade/puppeteer/trinity/itachi_kids).
 sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · shisui_fallen · shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids
 
 ## Phase 4 — Will of Fire (Hokage/Sannin)   ☐

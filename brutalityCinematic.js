@@ -597,6 +597,54 @@ const PRIM = {
     c.strokeStyle = "#c01010"; c.lineWidth = 3; c.stroke()
     c.restore()
   },
+
+  // MADARA — Tengai Shinsei: a flaming meteor plummets from the sky onto the target (world-space, targets S.rect)
+  meteor(c, W, H, p, beat, S, f) {
+    const r = S.rect; const tx = r ? r.x + r.w * 0.5 : W / 2, ty = r ? r.y + r.h * 0.3 : H * 0.4
+    const e = ease(p), startY = -H * 0.35, ry = startY + (ty - startY) * Math.min(1, e * 1.25)
+    const rad = (r ? r.w : 120) * 0.7 * (0.3 + e * 0.9)
+    c.save()
+    for (let i = 0; i < 10; i++) { const a = (1 - i / 10) * 0.5 * (1 - Math.max(0, e - 0.8) * 5); c.fillStyle = `rgba(255,${120 - i * 8},20,${Math.max(0, a).toFixed(3)})`; c.beginPath(); c.arc(tx + (rnd(i, 1) - 0.5) * rad * 0.3, ry - i * rad * 0.5, rad * (1 - i * 0.06), 0, 7); c.fill() }
+    if (e < 0.85) {
+      c.fillStyle = "#2a1810"; c.beginPath()
+      const sp = 10; for (let i = 0; i < sp; i++) { const ang = i / sp * Math.PI * 2, rr = rad * (0.8 + 0.3 * rnd(i, 2)), x = tx + Math.cos(ang) * rr, y = ry + Math.sin(ang) * rr; i ? c.lineTo(x, y) : c.moveTo(x, y) } c.closePath(); c.fill()
+      c.strokeStyle = "#ff6a10"; c.lineWidth = 2; c.globalAlpha = 0.8
+      for (let i = 0; i < 5; i++) { const ang = rnd(i, 3) * Math.PI * 2; c.beginPath(); c.moveTo(tx, ry); c.lineTo(tx + Math.cos(ang) * rad * 0.8, ry + Math.sin(ang) * rad * 0.8); c.stroke() }
+      c.globalAlpha = 1
+    } else {   // impact — local burst + debris
+      const ia = (e - 0.8) / 0.2
+      const gg = c.createRadialGradient(tx, ty, 2, tx, ty, rad * 2.2 * ia); gg.addColorStop(0, `rgba(255,220,120,${(1 - ia).toFixed(3)})`); gg.addColorStop(1, "rgba(255,120,20,0)"); c.fillStyle = gg; c.beginPath(); c.arc(tx, ty, rad * 2.2 * ia, 0, 7); c.fill()
+      for (let i = 0; i < 18; i++) { const ang = i / 18 * Math.PI * 2, d = ia * rad * 2.4 * (rnd(i, 4) + 0.4); c.fillStyle = "#3a2418"; c.beginPath(); c.arc(tx + Math.cos(ang) * d, ty + Math.sin(ang) * d - ia * 10, (1 - ia) * 5 + 2, 0, 7); c.fill() }
+    }
+    c.restore()
+  },
+
+  // OBITO — Kamui: a spiralling vortex warps the target out of existence (world-space, centred on S.rect)
+  kamuiSpiral(c, W, H, p, beat, S, f) {
+    const r = S.rect; const cx = r ? r.x + r.w * 0.5 : W / 2, cy = r ? r.y + r.h * 0.4 : H * 0.4
+    const e = ease(p), maxR = (r ? r.w : 120) * 1.5
+    c.save(); c.translate(cx, cy); c.rotate(f * 0.12)
+    const arms = 4, fade = 1 - Math.max(0, e - 0.85) * 6
+    for (let a = 0; a < arms; a++) {
+      c.strokeStyle = `rgba(150,90,210,${Math.max(0, 0.75 * fade).toFixed(3)})`; c.lineWidth = 3; c.beginPath()
+      for (let t = 0; t < 1; t += 0.03) { const ang = a / arms * Math.PI * 2 + t * Math.PI * 3, rr = maxR * (1 - t) * (1 - e * 0.6), x = Math.cos(ang) * rr, y = Math.sin(ang) * rr; t === 0 ? c.moveTo(x, y) : c.lineTo(x, y) }
+      c.stroke()
+    }
+    c.fillStyle = `rgba(18,6,28,${Math.min(1, e * 1.3).toFixed(3)})`; c.beginPath(); c.arc(0, 0, maxR * 0.28 * e, 0, 7); c.fill()
+    c.restore()
+  },
+
+  // TOBI — Truth-Seeking Ball: a black orb expands over the target and disintegrates it to nothing (world-space)
+  voidOrb(c, W, H, p, beat, S) {
+    const r = S.rect; const cx = r ? r.x + r.w * 0.5 : W / 2, cy = r ? r.y + r.h * 0.45 : H * 0.45
+    const e = ease(p), rad = (r ? r.w : 120) * (0.15 + e * 1.0)
+    c.save()
+    const g = c.createRadialGradient(cx, cy, rad * 0.6, cx, cy, rad * 1.2); g.addColorStop(0, "rgba(90,12,110,0)"); g.addColorStop(0.8, "rgba(130,24,150,0.5)"); g.addColorStop(1, "rgba(90,12,110,0)"); c.fillStyle = g; c.beginPath(); c.arc(cx, cy, rad * 1.2, 0, 7); c.fill()
+    c.fillStyle = "#040208"; c.beginPath(); c.arc(cx, cy, rad, 0, 7); c.fill()
+    c.strokeStyle = "#9020b0"; c.lineWidth = 2; c.globalAlpha = 0.7; c.stroke(); c.globalAlpha = 1
+    for (let i = 0; i < 20; i++) { const ang = i / 20 * Math.PI * 2 + i * 0.5, d = rad * (0.9 + rnd(i, 1) * 0.3); c.fillStyle = "#7020a0"; c.beginPath(); c.arc(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d, (1 - e) * 3 + 1, 0, 7); c.fill() }
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

@@ -564,6 +564,90 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 3B "The Ghosts": madara · obito · tobi
+
+  // MADARA — Tengai Shinsei: he reaches to the heavens and drags a meteor down onto the target. Annihilation
+  // from the sky — the body is simply crushed into the earth.
+  madara: {
+    banner: "TENGAI SHINSEI", bannerRgb: "150,90,230", base: "hurt", choreographed: true, total: 186,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 186, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 186, rgb: "6,2,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 120, zoom: 1.4, cx: 0.5, cy: 0.42, ease: 0.07 },
+      { fx: "meteor", t0: 60, t1: 122 },
+      { fx: "bloodGush", t0: 110, t1: 186, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 122, t1: 154, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 122, t1: 134 },
+      { fx: "headPop", t0: 124, t1: 154, headY: 0.35 },
+      { fx: "bloodGush", t0: 124, t1: 186, x: 0.5, y: 0.47, amount: 34 },
+      { fx: "cam",   t0: 154, t1: 186, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 154, t1: 186, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 154, t1: 186, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 158, t1: 186 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 60,  id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 122, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 128, id: "rumble_tail_01",    gain: 0.6, delay: 0.05 },
+    ],
+  },
+
+  // OBITO — Kamui: the spiral opens and warps the target clean out of reality. No body, no blood — just gone.
+  obito: {
+    banner: "KAMUI", bannerRgb: "120,70,210", base: "hurt", choreographed: true, total: 178,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 178, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 178, rgb: "8,4,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kamuiSpiral", t0: 54, t1: 150 },
+      { fx: "cam",   t0: 118, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 142, t1: 152 },
+      { fx: "cam",   t0: 152, t1: 178, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 178, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 178 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.45 },
+      { t: 54,  id: "warp_wobble_01",  gain: 0.6 },
+      { t: 118, id: "warp_wobble_01",  gain: 0.5 },
+      { t: 142, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+    ],
+  },
+
+  // TOBI — the masked man's Truth-Seeking Ball: a black orb expands over the target and disintegrates it to
+  // nothing. Six-Paths matter-annihilation; whatever it touches ceases to exist.
+  tobi: {
+    banner: "TRUTH-SEEKER", bannerRgb: "160,40,190", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "6,2,12", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 110, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.65, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 54, t1: 62 },
+      { fx: "voidOrb", t0: 58, t1: 150 },
+      { fx: "cam",   t0: 118, t1: 150, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "cam",   t0: 152, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",        gain: 0.45 },
+      { t: 54,  id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 118, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 124, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

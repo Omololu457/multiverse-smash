@@ -2115,6 +2115,174 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 9 — SOUL REAPERS (Bleach) ──────────────────────────────────────────────────────────────
+  // ichigo · byakuya · zaraki · zaraki_shikai · mayuri · yamamoto
+
+  // ICHIGO — Getsuga Tensho: a crescent wave of black-red spirit energy cleaves the target in two.
+  ichigo: {
+    banner: "GETSUGA TENSHO", bannerRgb: "230,40,60", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "4,2,6", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 100, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 96, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 100, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 66, t1: 100, x: 0.52, y: 0.46, len: 0.44, angle: -2.5, sweep: 3.0, color: "rgba(220,50,70,0.95)" },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "cam", t0: 100, t1: 144, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 100, t1: 158 },
+      { fx: "bloodGush", t0: 104, t1: 166, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 66, id: "swish_fast_01", gain: 0.6 },
+      { t: 100, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 106, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // BYAKUYA — Senbonzakura: a thousand petal-blades swarm and shred the target to confetti.
+  byakuya: {
+    banner: "SENBONZAKURA", bannerRgb: "240,120,170", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 172, rgb: "12,4,10", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 116, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 52, t1: 116, count: 26, color: "#f078aa" },
+      { fx: "bloodGush", t0: 66, t1: 172, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam", t0: 116, t1: 158, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 128 },
+      { fx: "shatter", t0: 120, t1: 168, cols: 6, rows: 8, spread: 1.3 },
+      { fx: "bloodGush", t0: 122, t1: 172, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 158, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 172 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 52, id: "swish_fast_01", gain: 0.55 },
+      { t: 116, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 122, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // ZARAKI — Kendo: a single reckless, overwhelming cleave splits the target top to bottom.
+  zaraki: {
+    banner: "KENDO", bannerRgb: "220,110,60", base: "hurt", choreographed: true, total: 164,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 164, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 164, rgb: "10,6,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 100, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 96, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 100, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 66, t1: 100, x: 0.52, y: 0.42, len: 0.5, angle: -1.9, sweep: 3.2, color: "rgba(230,120,70,0.95)" },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "cam", t0: 100, t1: 142, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 100, t1: 156 },
+      { fx: "bloodGush", t0: 104, t1: 164, x: 0.5, y: 0.5, amount: 18 },
+      { fx: "cam", t0: 142, t1: 164, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 164, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 148, t1: 164 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 66, id: "swish_fast_01", gain: 0.6 },
+      { t: 100, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 106, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // ZARAKI (SHIKAI) — Nozarashi: the colossal cleaver comes down and dices whatever is beneath it.
+  zaraki_shikai: {
+    banner: "NOZARASHI", bannerRgb: "210,120,90", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 168, rgb: "12,6,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 110, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 104, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 110, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 70, t1: 110, x: 0.52, y: 0.4, len: 0.55, angle: -1.8, sweep: 2.6, color: "rgba(230,140,100,0.95)" },
+      { fx: "whiteSpike", t0: 100, t1: 112 },
+      { fx: "cam", t0: 110, t1: 152, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "shatter", t0: 114, t1: 162, cols: 5, rows: 7, spread: 1.2 },
+      { fx: "bloodGush", t0: 116, t1: 168, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 152, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 154, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 168 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 70, id: "swish_fast_01", gain: 0.6 },
+      { t: 110, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 116, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // MAYURI — Ashisogi Jizo: a vivisection carried out mid-fight; toxic blades open the target piece by piece.
+  mayuri: {
+    banner: "ASHISOGI JIZO", bannerRgb: "120,210,90", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "6,12,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 18, color: "#7ad040" },
+      { fx: "impale", t0: 74, t1: 114, color: "#aef050", headY: 0.45 },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "slashCross", t0: 114, t1: 146, count: 12, color: "#a0e860" },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 52, id: "swish_fast_01", gain: 0.55 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // YAMAMOTO — Ryujin Jakka: the oldest and fiercest flame zanpakuto; its fire consumes all it touches.
+  yamamoto: {
+    banner: "RYUJIN JAKKA", bannerRgb: "255,140,40", base: "hurt", choreographed: true, total: 178,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 178, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 178, rgb: "16,8,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 178, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 118, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "flameBeam", t0: 60, t1: 120, color: "#ff8a1e" },
+      { fx: "whiteSpike", t0: 56, t1: 64 },
+      { fx: "incinerate", t0: 60, t1: 174, color: "#ff7a1e" },
+      { fx: "cam", t0: 120, t1: 162, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "banner", t0: 150, t1: 178 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 56, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

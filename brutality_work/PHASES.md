@@ -63,7 +63,8 @@ frieza · cell · piccolo · beerus · goku_black · goku_rose
 Batch 8A DONE: killua(Godspeed lightning-blitz)/zoldyck(Thunderbolt)/gon(Jajanken)/meruem(The King)/netero(100-Type Guanyin). No new FX (reuse). Batch 8B DONE: hisoka(Bungee Gum strings+shatter)/chrollo(Sun and Moon detonate)/kurapika(Chain Jail gold-chains+impale)/shizuku(Blinky vacuum-maw). No new FX. ★65 concepts total (phases 1-8). Next: Phase 9 Soul Reapers (Bleach).
 killua · zoldyck · gon · hisoka · chrollo · kurapika · netero · meruem · shizuku
 
-## Phase 9 — Soul Reapers (Bleach)   ☐
+## Phase 9 — Soul Reapers (Bleach)   ☑ DONE
+ichigo(Getsuga Tensho)/byakuya(Senbonzakura shred)/zaraki(Kendo cleave)/zaraki_shikai(Nozarashi)/mayuri(Ashisogi Jizo vivisect)/yamamoto(Ryujin Jakka fire). No new FX (reuse). ★71 concepts total (phases 1-9). Next: Phase 10 Total Concentration (Demon Slayer).
 ichigo · byakuya · zaraki · zaraki_shikai · mayuri · yamamoto
 
 ## Phase 10 — Total Concentration (Demon Slayer)   ☐

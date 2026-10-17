@@ -660,6 +660,23 @@ const PRIM = {
     c.globalAlpha = e * 0.5; c.strokeStyle = "#5aa0ff"; c.lineWidth = 2; c.beginPath(); c.arc(cx, topY, 14, 0, 7); c.stroke()
     c.restore()
   },
+
+  // ── PHASE 4 — WILL OF FIRE (Hokage / Sannin) ─────────────────────────────────────────────────────
+
+  // NARUTO — Rasengan: a spiralling chakra sphere grinding at the impact point (world-space, targets S.rect)
+  rasengan(c, W, H, p, beat, S, f) {
+    const r = S.rect; const x = r ? r.x + r.w * (beat.hx ?? 0.5) : W / 2, y = r ? r.y + r.h * (beat.headY ?? 0.45) : H / 2
+    const rad = (r ? r.w : 120) * (beat.size ?? 0.4) * (0.65 + 0.35 * Math.sin(f * 0.4)), col = beat.color || "#50a8ff"
+    c.save()
+    for (let gi = 4; gi >= 1; gi--) { c.globalAlpha = 0.12 * (5 - gi); c.fillStyle = col; c.beginPath(); c.arc(x, y, rad * (0.4 + gi * 0.28), 0, 7); c.fill() }
+    c.globalAlpha = 1
+    c.save(); c.translate(x, y); c.rotate(f * 0.35); c.strokeStyle = "rgba(225,242,255,0.8)"; c.lineWidth = 2
+    for (let a = 0; a < 3; a++) { c.beginPath(); for (let t = 0; t < 1; t += 0.05) { const ang = a / 3 * Math.PI * 2 + t * Math.PI * 2.5, rr = rad * t, px = Math.cos(ang) * rr, py = Math.sin(ang) * rr; t === 0 ? c.moveTo(px, py) : c.lineTo(px, py) } c.stroke() }
+    c.restore()
+    c.fillStyle = "#eaf4ff"; c.beginPath(); c.arc(x, y, rad * 0.3, 0, 7); c.fill()
+    for (let i = 0; i < 10; i++) { const ang = f * 0.1 + i / 10 * Math.PI * 2, d = rad * (1.1 + 0.3 * Math.sin(f * 0.2 + i)); c.fillStyle = "rgba(185,222,255,0.6)"; c.beginPath(); c.arc(x + Math.cos(ang) * d, y + Math.sin(ang) * d, 2, 0, 7); c.fill() }
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

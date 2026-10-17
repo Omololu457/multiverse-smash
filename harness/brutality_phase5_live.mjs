@@ -16,9 +16,9 @@ const st = () => page.evaluate(() => window.__harness.state());
 async function wf(n) { const s = (await st()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }).catch(() => {}); }
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log("  ✓", m); } else { fail++; console.log("  ✗", m); } };
 
-const WINNERS = ["gaara", "onoki", "pain", "six_paths_pain"];
+const WINNERS = ["isshiki", "boruto", "kiba", "hinata", "sakura"];
 const VICTIM = "sasuke";
-const SHOT_AT = { gaara: 135, onoki: 135, pain: 130, six_paths_pain: 110 };
+const SHOT_AT = { isshiki: 130, boruto: 128, kiba: 135, hinata: 130, sakura: 116 };
 
 for (const w of WINNERS) {
   console.log(`\n── ${w} vs ${VICTIM} ──`);

@@ -1258,6 +1258,165 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 5B "The Next Generation": isshiki · boruto · kiba · hinata · sakura
+
+  // ISSHIKI — Black Rods: Otsutsuki chakra-rods rain down and pin the target through a dozen points.
+  isshiki: {
+    banner: "BLACK RODS", bannerRgb: "120,120,140", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "6,6,10", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 20, color: "#8a8aa0" },
+      { fx: "impale", t0: 70, t1: 114, color: "#6a6a80", headY: 0.42 },
+      { fx: "bloodGush", t0: 60, t1: 172, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "impale", t0: 114, t1: 146, color: "#8a8aa0", headY: 0.42 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.45 },
+      { t: 52,  id: "swish_fast_01",   gain: 0.55 },
+      { t: 114, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // BORUTO — Vanishing Rasengan: the sphere fades from sight mid-throw, then reappears grinding straight through.
+  boruto: {
+    banner: "VANISHING RASENGAN", bannerRgb: "80,210,200", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 166, rgb: "4,14,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 52, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 46, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(80,210,200,0.5)" },
+      { fx: "cam",   t0: 44, t1: 112, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 144, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "actor", t0: 44, t1: 80, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "rasengan", t0: 52, t1: 118, headY: 0.45, size: 0.45, color: "#40d0c0" },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 60, t1: 166, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.15, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "rasengan", t0: 112, t1: 140, headY: 0.45, size: 0.6, color: "#50e0d0" },
+      { fx: "headPop", t0: 116, t1: 144, headY: 0.45 },
+      { fx: "bloodGush", t0: 116, t1: 166, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 52,  id: "warp_wobble_01",  gain: 0.5 },
+      { t: 112, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // KIBA — Fang Over Fang: he and Akamaru become twin drilling tornadoes that tear the target to ribbons.
+  kiba: {
+    banner: "FANG OVER FANG", bannerRgb: "200,180,120", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 170, rgb: "10,8,4", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 112, zoom: 1.35, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 112, action: "run", around: 0.5, aroundY: 0.48, count: 7, radX: 0.3, radY: 0.14, color: "#c8a858" },
+      { fx: "actor", t0: 50, t1: 112, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 52, t1: 112, count: 16, color: "#d8c080" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 112, t1: 154, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 124 },
+      { fx: "shatter", t0: 116, t1: 164, cols: 6, rows: 8, spread: 1.2 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.5, amount: 14 },
+      { fx: "cam",   t0: 154, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 156, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 158, t1: 170 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 48,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 112, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // HINATA — Eight Trigrams Sixty-Four Palms: a blur of Gentle Fist strikes seals every chakra point, then the
+  // target's whole network collapses at once.
+  hinata: {
+    banner: "SIXTY-FOUR PALMS", bannerRgb: "200,210,235", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 170, rgb: "8,10,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 114, zoom: 1.5, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 12, radX: 0.22, radY: 0.12, color: "#b8c8f0" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 24, color: "#cfe0ff" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam",   t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.4, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.3 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.34, amount: 26 },
+      { fx: "cam",   t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48,  id: "swish_fast_01",          gain: 0.5 },
+      { t: 114, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // SAKURA — Cherry Blossom Impact: one chakra-charged fist lands with the force of a meteor and pulps the target.
+  sakura: {
+    banner: "SHANNARO!", bannerRgb: "240,120,170", base: "hurt", choreographed: true, total: 162,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 162, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 162, rgb: "14,6,10", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(240,120,170,0.5)" },
+      { fx: "cam",   t0: 42, t1: 96, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 44, t1: 140, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "whiteSpike", t0: 70, t1: 82 },
+      { fx: "bloodGush", t0: 72, t1: 162, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam",   t0: 96, t1: 138, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 96, t1: 106 },
+      { fx: "headPop", t0: 98, t1: 138, headY: 0.4 },
+      { fx: "shockRing", t0: 98, t1: 138, count: 3, color: "rgba(240,150,190,0.7)" },
+      { fx: "bloodGush", t0: 98, t1: 162, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam",   t0: 138, t1: 162, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 138, t1: 162, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 140, t1: 162, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 144, t1: 162 },
+    ],
+    sound: [
+      { t: 1,  id: "charge_hum_rise", gain: 0.5 },
+      { t: 42, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 96, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 102, id: "rumble_tail_01",  gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

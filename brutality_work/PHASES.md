@@ -39,8 +39,8 @@ New FX primitives: shrineBg · slashCross · shatter · flameBeam · incinerate 
 ★FIX: sprite slicing now loads the EXACT sim sheet (animationData[action].sheet) + derives per-frame width from the image (was grabbing multiple frames for chars whose manifest sheet ≠ animationData sheet, e.g. sasuke hurt = sasuke_damage.png 4×53).
 Verified: test:brutality-phase2 45/45 (8 JJK + gojo regression), determinism 14/0, sim byte-identical. NO game.js change (uncontended).
 
-## Phase 3 — The Sharingan (Uchiha)   ◐ IN PROGRESS
-Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sasuke_sensei(Susanoo cleave)/itachi(Tsukuyomi red-world). New FX: lightning, tsukuyomiBg, incinerate black:true. shisui_fallen DONE. Batch 3B DONE: madara(Tengai Shinsei meteor)/obito(Kamui spiral warp)/tobi(Truth-Seeking void orb). New FX: meteor, kamuiSpiral, voidOrb. Pending 3C (shisui_blade/puppeteer/trinity/itachi_kids).
+## Phase 3 — The Sharingan (Uchiha)   ☑ DONE
+Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sasuke_sensei(Susanoo cleave)/itachi(Tsukuyomi red-world). New FX: lightning, tsukuyomiBg, incinerate black:true. shisui_fallen DONE. Batch 3B DONE: madara(Tengai Shinsei meteor)/obito(Kamui spiral warp)/tobi(Truth-Seeking void orb). New FX: meteor, kamuiSpiral, voidOrb. Batch 3C DONE: shisui_blade(Iaido bisect)/shisui_puppeteer(Kotoamatsukami strings)/shisui_trinity(Trinity shatter)/shisui_itachi_kids(Twin Flicker). New FX: strings. ★ALL 12 Uchiha cinematic. 21 concepts total (phases 1-3 + shisui). Next: Phase 4 Will of Fire.
 sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · shisui_fallen · shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids
 
 ## Phase 4 — Will of Fire (Hokage/Sannin)   ☐

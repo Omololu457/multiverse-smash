@@ -645,6 +645,21 @@ const PRIM = {
     for (let i = 0; i < 20; i++) { const ang = i / 20 * Math.PI * 2 + i * 0.5, d = rad * (0.9 + rnd(i, 1) * 0.3); c.fillStyle = "#7020a0"; c.beginPath(); c.arc(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d, (1 - e) * 3 + 1, 0, 7); c.fill() }
     c.restore()
   },
+
+  // SHISUI (PUPPETEER) — Kotoamatsukami: control strings descend onto the victim's limbs + a control sigil above
+  strings(c, W, H, p, beat, S, f) {
+    const r = S.rect; if (!r) return
+    const cx = r.x + r.w * 0.5, e = ease(p), topY = r.y - r.h * 0.85
+    const anchors = [[r.x + r.w * 0.2, r.y + r.h * 0.22], [r.x + r.w * 0.8, r.y + r.h * 0.22], [r.x + r.w * 0.12, r.y + r.h * 0.55], [r.x + r.w * 0.88, r.y + r.h * 0.55], [cx, r.y + r.h * 0.05]]
+    c.save(); c.strokeStyle = beat.color || "rgba(120,200,255,0.7)"; c.lineWidth = 1.5; c.globalAlpha = e
+    for (let i = 0; i < anchors.length; i++) {
+      const [ax, ay] = anchors[i], jx = ax + Math.sin(f * 0.3 + i) * 4 * e
+      c.beginPath(); c.moveTo(cx + Math.sin(f * 0.2 + i) * 6 * e, topY); c.lineTo(jx, ay); c.stroke()
+      c.fillStyle = "#cfefff"; c.beginPath(); c.arc(jx, ay, 2, 0, 7); c.fill()
+    }
+    c.globalAlpha = e * 0.5; c.strokeStyle = "#5aa0ff"; c.lineWidth = 2; c.beginPath(); c.arc(cx, topY, 14, 0, 7); c.stroke()
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

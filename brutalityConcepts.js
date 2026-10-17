@@ -648,6 +648,127 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 3C "The Crows" (Shisui variants): shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids
+
+  // SHISUI (BLADE) — Iaido: a single flash-step draw-cut. Sheathed one instant, the victim falls in two the next.
+  shisui_blade: {
+    banner: "IAIDO", bannerRgb: "200,220,255", base: "hurt", choreographed: true, total: 164,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 164, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 164, rgb: "6,8,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 96, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.58, y: 0.52, facing: -1, color: "rgba(200,220,255,0.5)" },
+      { fx: "cam",   t0: 42, t1: 98, zoom: 1.8, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 70, who: "atk", action: "heavy", x: 0.6, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "swordSlash", t0: 48, t1: 72, x: 0.52, y: 0.47, len: 0.3, angle: -2.2, sweep: 2.8, color: "#ffffff" },
+      { fx: "whiteSpike", t0: 90, t1: 102 },
+      { fx: "cam",   t0: 98, t1: 142, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 98, t1: 156 },
+      { fx: "bloodGush", t0: 102, t1: 164, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam",   t0: 142, t1: 164, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 164, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 148, t1: 164 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "swish_fast_01",          gain: 0.6 },
+      { t: 98, id: "boom_medium_02",         gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 104, id: "rumble_tail_01",        gain: 0.45 },
+    ],
+  },
+
+  // SHISUI (PUPPETEER) — Kotoamatsukami: the ultimate mind-control genjutsu. Strings take the body, the eye takes
+  // the will, and the mind is forced to break itself.
+  shisui_puppeteer: {
+    banner: "KOTOAMATSUKAMI", bannerRgb: "90,160,255", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "4,8,18", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 50, t1: 60 },
+      { fx: "strings", t0: 56, t1: 150, color: "rgba(120,200,255,0.75)" },
+      { fx: "cam",   t0: 120, t1: 152, zoom: 2.0, cx: 0.5, cy: 0.3, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 130 },
+      { fx: "headPop", t0: 122, t1: 152, headY: 0.16 },
+      { fx: "bloodGush", t0: 122, t1: 180, x: 0.5, y: 0.18, amount: 26 },
+      { fx: "cam",   t0: 152, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 180, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",  gain: 0.45 },
+      { t: 50,  id: "warp_wobble_01",   gain: 0.55 },
+      { t: 120, id: "boom_huge_01",     gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 126, id: "rumble_tail_01",   gain: 0.5 },
+    ],
+  },
+
+  // SHISUI (TRINITY) — three after-images close from every direction at once; a storm of simultaneous cuts dices
+  // the victim before they can register a single one.
+  shisui_trinity: {
+    banner: "TRINITY", bannerRgb: "208,26,32", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "10,3,6", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 116, zoom: 1.35, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 116, action: "run", around: 0.5, aroundY: 0.48, count: 6, radX: 0.28, radY: 0.12, color: "#d0202a" },
+      { fx: "actor", t0: 50, t1: 116, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 52, t1: 116, count: 14, color: "#ff4040" },
+      { fx: "bloodGush", t0: 60, t1: 176, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 116, t1: 158, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 128 },
+      { fx: "shatter", t0: 120, t1: 168, cols: 5, rows: 7, spread: 1.0 },
+      { fx: "cam",   t0: 158, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 48,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 116, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 122, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // SHISUI & ITACHI (KIDS) — Twin Flicker: the two prodigies blitz as one, a flurry of after-image strikes capped
+  // by Itachi's kunai rain. Young, but already lethal in perfect sync.
+  shisui_itachi_kids: {
+    banner: "TWIN FLICKER", bannerRgb: "120,160,230", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "6,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 116, zoom: 1.35, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 116, action: "run", around: 0.5, aroundY: 0.48, count: 6, radX: 0.26, radY: 0.13, color: "#6aa0e0" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 54, t1: 116, count: 16, color: "#aac8f0" },
+      { fx: "bloodGush", t0: 60, t1: 172, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 116, t1: 148, zoom: 2.0, cx: 0.5, cy: 0.3, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 126 },
+      { fx: "headPop", t0: 118, t1: 148, headY: 0.16 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.18, amount: 26 },
+      { fx: "cam",   t0: 148, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 148, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 150, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 116, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 122, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

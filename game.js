@@ -552,7 +552,7 @@ import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // expl
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
-import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS } from "./sfx_map.js"   // SPARKING ZERO hit-sound pack — tier → clip mapping table
+import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS, SZ_HIT_LONG_FINISHER, SZ_FLURRY, SZ_BARRAGE, SZ_FINISHER_BOOM, SZ_FINISHER_RUMBLE, SZ_STREAK, SZ_BARRAGE_HINT } from "./sfx_map.js"   // SPARKING ZERO — tier mapping + Phase-2 finisher/flurry/barrage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
@@ -2220,13 +2220,68 @@ function _szPick(ids, frame, player, chan) {
 const _hitSfxLog = []
 function _logHitSfx(rec) { _hitSfxLog.push(rec); if (_hitSfxLog.length > 500) _hitSfxLog.shift() }
 
+// ── SPARKING ZERO Phase-2: FINISHER layering + MULTI-HIT/BARRAGE streams (audio-only, deterministic) ──
+// FINISHER/ULTIMATE connect → long-tail (09..14) + the earlier pack's boom + rumble, on the impact frame
+// (≤3 layers). The boom uses the duck-bypassing ult-boom bus (full level, ducks other juice ~4 dB).
+function _szPlayFinisher(frame, player) {
+  const lt = _szPick(SZ_HIT_LONG_FINISHER, frame, player, "primary")
+  if (lt && sound.playJuiceSfx?.(lt, { gain: 1.0, pitch: juicePitch(frame, player) })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "longtail", clip: lt, gain: 1.0 })
+  const boom = juicePickVariant(SZ_FINISHER_BOOM, frame, player)
+  if (boom && sound.playJuiceSfx?.(boom, { gain: 1.0, pitch: juicePitch(frame + 2, player), delay: 2 / 60, ultBoom: true, duckSec: 0.6 })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "boom", clip: boom, gain: 1.0 })
+  if (sound.playJuiceSfx?.(SZ_FINISHER_RUMBLE, { gain: 0.6, delay: 6 / 60 })) _logHitSfx({ frame, player, pack: "sparking", tier: "finisher", role: "rumble", clip: SZ_FINISHER_RUMBLE, gain: 0.6 })
+}
+
+// Per-attacker streak: 3+ rapid same-move hits → ONE flurry (or, for very dense/energy strings, barrage)
+// clip over the whole move. Returns true once the stream OWNS the sound (per-hit impacts then suppressed).
+// The stream starts on the hit that CONFIRMS 3+ (foreknowledge at hit 1 would need a per-move table).
+const _szStreak = [null, null]
+function _szMultiHit(spark, frame, player) {
+  const move = spark && spark.moveName
+  if (!move) { _szStreakEnd(player, 6); return false }                 // untracked move → normal per-hit
+  let s = _szStreak[player]
+  if (!s || s.move !== move || (frame - s.last) > SZ_STREAK.gapFrames) { _szStreakEnd(player, 6); _szStreak[player] = { move, first: frame, last: frame, count: 1 }; return false }
+  s.count++; s.last = frame
+  if (s.count < SZ_STREAK.minHits) return false                        // hits 1..2 → normal per-hit impacts
+  if (!s.handle) {
+    const avgGap = (s.last - s.first) / Math.max(1, s.count - 1)
+    const barrage = (s.count >= SZ_STREAK.barrageMinHits && avgGap <= SZ_STREAK.barrageMaxGap) || SZ_BARRAGE_HINT.test(move)
+    s.kind = barrage ? "barrage" : "flurry"
+    const clip = _szPick(barrage ? SZ_BARRAGE : SZ_FLURRY, s.first, player, "stream")
+    const gain = barrage ? 0.70 : 0.60
+    s.handle = sound.playJuiceSfxTracked?.(clip, { gain, pitch: juicePitch(s.first, player) }) || null
+    if (s.handle) _logHitSfx({ frame, player, pack: "sparking", tier: s.kind, role: "stream-start", clip, gain })
+  } else if (s.kind === "barrage" && !s.chained && s.handle.duration && ((frame - s.first) / 60) >= (s.handle.duration - 0.25)) {
+    const clip2 = _szPick(SZ_BARRAGE, frame, player, "stream")         // barrage outlasts the clip → crossfade a 2nd
+    const h2 = sound.playJuiceSfxTracked?.(clip2, { gain: 0.70, pitch: juicePitch(frame, player), fadeIn: 0.20 }) || null
+    if (h2) { s.handle.stop(0.20); s.handle = h2; s.chained = true; _logHitSfx({ frame, player, pack: "sparking", tier: "barrage", role: "stream-chain", clip: clip2, gain: 0.70 }) }
+  }
+  return true
+}
+function _szStreakEnd(player, fadeFrames) {
+  const s = _szStreak[player]
+  if (s && s.handle) { try { s.handle.stop(Math.max(2, fadeFrames || 7) / 60) } catch (_) {} }
+  _szStreak[player] = null
+}
+// Per sim frame per fighter (attacker): end a stale streak (no same-move hit for > gap) or on interrupt
+// (hitstun / knockdown / no longer attacking) → stop the stream early with a short fade.
+function _szFlurryTickFighter(f) {
+  if (!f) return
+  const player = (f.side === "p2" || f.side === "p4") ? 1 : 0
+  const s = _szStreak[player]; if (!s) return
+  const interrupted = (f.hitstun > 0) || !!f.knockedDown   // the attacker got hit / knocked down mid-rush
+  if ((globalFrameCount - s.last) > SZ_STREAK.gapFrames || interrupted) _szStreakEnd(player, 7)   // stale (move ended) or interrupted → fade out
+}
+
 // Play the hit-impact sound for a tier, honoring the ATTACKER's per-player Hit Sounds
 // setting. CLASSIC → the exact previous clip+gain (hitfeel_config HITFEEL.sound). SPARKING
-// → the sfx_map table for the Phase-1 tiers (LIGHT/MEDIUM/HEAVY); other tiers (finisher
-// until Phase 2) fall back to Classic so there's no half-built cue. All loudness is the
-// per-event gain here (clips are -16 LUFS); pitch is a deterministic ±4% hash jitter.
-function _playHitFeelSound(tier, frame, player) {
+// → the sfx_map table (LIGHT/MEDIUM/HEAVY), the finisher layering, or a flurry/barrage stream.
+// All loudness is the per-event gain here (clips are -16 LUFS); pitch is a deterministic ±4% hash jitter.
+function _playHitFeelSound(tier, frame, player, spark) {
   const pack = juiceSettings.hitSoundPack(player)
+  if (pack === "sparking") {
+    if (tier === "finisher") { _szPlayFinisher(frame, player); return }   // Phase 2: long-tail + boom on the impact frame
+    if (_szMultiHit(spark, frame, player)) return                          // 3+-hit rush / barrage stream owns this hit
+  }
   const szMap = (pack === "sparking" && SPARKING_PHASE1_TIERS.includes(tier)) ? SPARKING_HIT_MAP[tier] : null
   if (szMap) {
     const clip = _szPick(szMap.pool, frame, player, "primary")
@@ -2264,7 +2319,7 @@ function _fireHitFeel(spark) {
   const el = attacker ? elementFor(attacker.rosterKey || attacker.id, { currentMove: spark.moveName || attacker.currentMove, isUltimate: spark.category === "ultimate", ultVariant: attacker._ultVariant, form: attacker._form }) : ELEMENT.KI
 
   // SOUND — Classic (prior pack) or Sparking Zero pack per the ATTACKER's per-player setting.
-  _playHitFeelSound(tier, frame, player)
+  _playHitFeelSound(tier, frame, player, spark)
   // PARTICLES — directional arced spark burst, tinted by element (reuses the juiceFx pool).
   fireJuiceHitSpark({ x, y, dir, count: HITFEEL.sparkCount[tier], speed: HITFEEL.sparkSpeed[tier], frame, player, color: elementColor(el) })
   // ELEMENT AFTERMATH: FIRE → a flickering burn overlay on the target (~1s, scaled by tier; FIRE KO → ash
@@ -2315,6 +2370,7 @@ function _tickHitFeel(f) {
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
   if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
   if (f._fireBurn) { f._fireBurn.t++; if (f._fireBurn.t >= f._fireBurn.max) f._fireBurn = null }   // ELEMENT (Phase D): fire burn fades out
+  _szFlurryTickFighter(f)   // SPARKING ZERO (Phase 2): end/interrupt a flurry/barrage stream
   // MELEE MOTION-TRAIL (polish): a brief afterimage smear on BIG swings (heavy / special / launcher /
   // ultimate), reusing the dash-trail ghost mechanism so every character's weighty attacks read with motion.
   const a = f.currentAttack
@@ -2509,6 +2565,7 @@ function _tickJuiceDash(f, player) {
 
 // Clear per-fighter dash render-state (round/match reset) so no trail/squash streaks across the cut.
 function _clearJuiceDashFx() {
+  _szStreakEnd(0, 2); _szStreakEnd(1, 2)   // SPARKING ZERO (Phase 2): stop any flurry/barrage stream on round reset
   const live = (gameState === GAME_STATES.FFA_BATTLE && ffaState.fighters) ? ffaState.fighters : [p1, p2]
   for (const f of live) {
     if (!f) continue
@@ -24330,6 +24387,11 @@ gameLoop()
       hitSfxLog:    () => _hitSfxLog.slice(),              // [{frame,player,pack,tier,role,clip,gain}] — the audio cues actually fired
       clearHitSfxLog: () => { _hitSfxLog.length = 0; return true },
       sfxMapStatus: () => ({ phase1Tiers: SPARKING_PHASE1_TIERS, map: SPARKING_HIT_MAP }),
+      // Phase 2: fire a hit carrying a moveName (drives flurry/barrage streak detection) + stream inspector.
+      hitMove: (tier = "light", who = "p1", moveName = "TestRush") => { const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null; const cat = tier === "finisher" ? "ultimate" : tier === "heavy" ? "heavy" : tier === "medium" ? "special" : "light"; const dmg = tier === "finisher" ? 200 : tier === "heavy" ? 110 : tier === "medium" ? 55 : 15; const x = tgt ? (tgt.x || 0) + (tgt.w || 60) / 2 : canvas.width / 2, y = tgt ? (tgt.y || 0) + (tgt.h || 100) * 0.42 : canvas.height / 2; _fireHitFeel({ attackerSide: att.side || "p1", category: cat, damage: dmg, x, y, blocked: false, moveName }); return { tier, moveName }; },
+      szStreak: (player = 0) => { const s = _szStreak[player === 1 ? 1 : 0]; return s ? { move: s.move, count: s.count, kind: s.kind || null, streaming: !!s.handle, chained: !!s.chained } : null; },
+      szForceInterrupt: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f.hitstun = 20; return !!f; },   // simulate the attacker getting hit mid-rush (tick fades the stream)
+      szQuiesce: () => { for (const f of [p1, p2]) { if (!f) continue; f.invulnTimer = 999999; f.hitstun = 0; f.knockedDown = false; } return true; },   // test-only: both fighters invulnerable + no hitstun so real combat can't interleave/interrupt the audio-log tests
       // Fire a hit of an explicit tier directly (bypasses combat) for render/perf shots.
       hit:        (tier = "medium", who = "p1") => {
         const att = who === "p2" ? p2 : p1; const tgt = att ? getOpponent(att) : null; if (!att) return null

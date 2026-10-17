@@ -677,6 +677,22 @@ const PRIM = {
     for (let i = 0; i < 10; i++) { const ang = f * 0.1 + i / 10 * Math.PI * 2, d = rad * (1.1 + 0.3 * Math.sin(f * 0.2 + i)); c.fillStyle = "rgba(185,222,255,0.6)"; c.beginPath(); c.arc(x + Math.cos(ang) * d, y + Math.sin(ang) * d, 2, 0, 7); c.fill() }
     c.restore()
   },
+
+  // HASHIRAMA — Wood Style: thorned wooden tendrils erupt from the ground and bind/constrict the target
+  woodBind(c, W, H, p, beat, S, f) {
+    const r = S.rect; if (!r) return
+    const cx = r.x + r.w * 0.5, cy = r.y + r.h * 0.5, e = ease(p), col = beat.color || "#6b4a2a", n = beat.count || 6
+    c.save()
+    for (let i = 0; i < n; i++) {
+      const side = i % 2 ? 1 : -1, baseX = cx + side * r.w * (0.5 + (i / n) * 0.4), baseY = r.y + r.h * 1.15, grow = Math.min(1, e * 1.2)
+      c.strokeStyle = col; c.lineWidth = 6 * grow + 2; c.globalAlpha = Math.min(1, e * 1.5)
+      c.beginPath(); c.moveTo(baseX, baseY); let px = baseX, py = baseY
+      for (let k = 1; k <= 6; k++) { const tt = k / 6 * grow; px = baseX + (cx - baseX) * tt + Math.sin(f * 0.1 + i + k) * 8; py = baseY + (cy - r.h * 0.3 - baseY) * tt; c.lineTo(px, py) }
+      c.stroke()
+      c.fillStyle = "#4a3018"; c.beginPath(); c.arc(px, py, 5 * grow + 2, 0, 7); c.fill()
+    }
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

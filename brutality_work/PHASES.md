@@ -44,7 +44,7 @@ Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sas
 sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · shisui_fallen · shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids
 
 ## Phase 4 — Will of Fire (Hokage/Sannin)   ◐ IN PROGRESS
-Batch 4A DONE: naruto(Rasengan)/naruto_hokage(Rasenshuriken shred)/naruto_seventh(Bijuudama)/minato(Flying Raijin). New FX: rasengan (color-param glow). Pending 4B (hashirama/tobirama/hiruzen/jiraiya) + 4C (orochimaru/kakashi/kakashi_anbu/kakashi_war).
+Batch 4A DONE: naruto(Rasengan)/naruto_hokage(Rasenshuriken shred)/naruto_seventh(Bijuudama)/minato(Flying Raijin). New FX: rasengan (color-param glow). Batch 4B DONE: hashirama(Wood Style tendrils+spike)/tobirama(Water Fang raijin+bisect)/hiruzen(Adamantine Staff impale)/jiraiya(Needle Jizo steel storm). New FX: woodBind. Pending 4C (orochimaru/kakashi/kakashi_anbu/kakashi_war).
 naruto · naruto_hokage · naruto_seventh · minato · hashirama · tobirama · hiruzen · jiraiya · orochimaru · kakashi · kakashi_anbu · kakashi_war
 
 ## Phase 5 — The Hidden Leaf   ☐

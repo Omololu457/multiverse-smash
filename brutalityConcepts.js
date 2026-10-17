@@ -894,6 +894,133 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 4B "The First Hokages": hashirama · tobirama · hiruzen · jiraiya
+
+  // HASHIRAMA — Wood Style: the God of Shinobi raises a forest in an instant; thorned tendrils bind the target
+  // and a great wooden spike runs them through.
+  hashirama: {
+    banner: "WOOD STYLE", bannerRgb: "120,180,80", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "6,14,6", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "woodBind", t0: 52, t1: 150, count: 7, color: "#6b4a2a" },
+      { fx: "bloodGush", t0: 90, t1: 180, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam",   t0: 120, t1: 152, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "impale", t0: 120, t1: 152, color: "#5a3a1a", headY: 0.4 },
+      { fx: "whiteSpike", t0: 122, t1: 132 },
+      { fx: "headPop", t0: 124, t1: 152, headY: 0.4 },
+      { fx: "bloodGush", t0: 124, t1: 180, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 152, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 180, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",        gain: 0.5 },
+      { t: 52,  id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 120, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // TOBIRAMA — Flying Raijin + Water: teleport-strikes close in from every angle, finished by a clean water-blade
+  // cut that splits the target in two.
+  tobirama: {
+    banner: "WATER FANG", bannerRgb: "90,180,230", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 168, rgb: "4,12,20", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam",   t0: 44, t1: 100, zoom: 1.4, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 100, action: "run", around: 0.5, aroundY: 0.48, count: 8, radX: 0.28, radY: 0.13, color: "#5ab4e6" },
+      { fx: "actor", t0: 50, t1: 100, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "swordSlash", t0: 76, t1: 100, x: 0.52, y: 0.47, len: 0.32, angle: -2.3, sweep: 2.8, color: "rgba(140,210,245,0.95)" },
+      { fx: "whiteSpike", t0: 94, t1: 104 },
+      { fx: "bloodGush", t0: 60, t1: 168, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam",   t0: 100, t1: 144, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 100, t1: 158 },
+      { fx: "bloodGush", t0: 104, t1: 168, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam",   t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 168 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 48,  id: "warp_wobble_01",         gain: 0.55 },
+      { t: 100, id: "boom_medium_02",         gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 106, id: "rumble_tail_01",         gain: 0.45 },
+    ],
+  },
+
+  // HIRUZEN — Enma, the Adamantine Staff: the monkey-king transforms into an unbreakable staff that extends and
+  // runs the target through, then crushes.
+  hiruzen: {
+    banner: "ADAMANTINE STAFF", bannerRgb: "200,160,90", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 168, rgb: "10,8,4", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 112, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.66, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "impale", t0: 54, t1: 112, color: "#c8a05a", headY: 0.42 },
+      { fx: "whiteSpike", t0: 56, t1: 66 },
+      { fx: "bloodGush", t0: 62, t1: 168, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 114, t1: 144, headY: 0.42 },
+      { fx: "bloodGush", t0: 114, t1: 168, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 168 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.45 },
+      { t: 54,  id: "impact_hit_01",   gain: 0.7 },
+      { t: 112, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // JIRAIYA — Needle Jizo: the Toad Sage's mane hardens into a storm of steel needles that riddle the target from
+  // every direction.
+  jiraiya: {
+    banner: "NEEDLE JIZO", bannerRgb: "200,210,220", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 170, rgb: "8,8,10", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 28, color: "#c8d0dc" },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam",   t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "slashCross", t0: 114, t1: 146, count: 16, color: "#e0e8f0" },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.4 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",     gain: 0.45 },
+      { t: 52,  id: "swish_fast_01",       gain: 0.55 },
+      { t: 114, id: "boom_huge_01",        gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01",      gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

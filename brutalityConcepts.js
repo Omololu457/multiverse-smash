@@ -2431,6 +2431,164 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 11 — TRUTH & JUSTICE (DC) ──────────────────────────────────────────────────────────────
+  // Batch 11A "The Last Sons": the five Supermen (heat vision / Kryptonian might)
+
+  // SUPERMAN — Heat Vision: twin beams of solar fury bore through.
+  superman: {
+    banner: "HEAT VISION", bannerRgb: "255,90,60", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "4,6,14", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.44, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.42, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.3, color: "#ff4030", wide: 0.45 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.34, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.36, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.28 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.32, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // SUPERMAN (CLASSIC) — Kryptonian Might: a single super-strength blow with the force of a falling star.
+  superman_classic: {
+    banner: "KRYPTONIAN MIGHT", bannerRgb: "90,140,255", base: "hurt", choreographed: true, total: 162,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 162, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 162, rgb: "2,6,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(90,150,255,0.5)" },
+      { fx: "cam", t0: 42, t1: 96, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 44, t1: 140, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "whiteSpike", t0: 70, t1: 82 },
+      { fx: "bloodGush", t0: 72, t1: 162, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam", t0: 96, t1: 138, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 96, t1: 106 },
+      { fx: "headPop", t0: 98, t1: 138, headY: 0.4 },
+      { fx: "shockRing", t0: 98, t1: 138, count: 4, color: "rgba(90,150,255,0.7)" },
+      { fx: "bloodGush", t0: 98, t1: 162, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam", t0: 138, t1: 162, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 138, t1: 162, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 140, t1: 162, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 144, t1: 162 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.55 },
+      { t: 42, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 96, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 102, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // SUPERMAN (DCUC) — Heat Vision.
+  superman_dcuc: {
+    banner: "HEAT VISION", bannerRgb: "255,110,70", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "6,6,12", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.44, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.42, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.3, color: "#ff5838", wide: 0.45 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.34, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.36, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.28 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.32, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // SUPERMAN (FIGHTER) — Kryptonian Might.
+  superman_fighter: {
+    banner: "KRYPTONIAN MIGHT", bannerRgb: "110,160,255", base: "hurt", choreographed: true, total: 162,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 162, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 162, rgb: "2,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(110,170,255,0.5)" },
+      { fx: "cam", t0: 42, t1: 96, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 44, t1: 140, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "whiteSpike", t0: 70, t1: 82 },
+      { fx: "bloodGush", t0: 72, t1: 162, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam", t0: 96, t1: 138, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 96, t1: 106 },
+      { fx: "headPop", t0: 98, t1: 138, headY: 0.4 },
+      { fx: "shockRing", t0: 98, t1: 138, count: 4, color: "rgba(110,170,255,0.7)" },
+      { fx: "bloodGush", t0: 98, t1: 162, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam", t0: 138, t1: 162, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 138, t1: 162, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 140, t1: 162, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 144, t1: 162 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.55 },
+      { t: 42, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 96, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 102, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // SUPERMAN (NEW 52) — Heat Vision.
+  superman_new52: {
+    banner: "HEAT VISION", bannerRgb: "255,100,80", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "6,4,12", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.44, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.42, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.3, color: "#ff4a40", wide: 0.45 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.34, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.36, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.28 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.32, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

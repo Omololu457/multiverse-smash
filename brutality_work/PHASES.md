@@ -8,6 +8,15 @@ game.js) stays as a fallback / sub-element where it fits.
 
 Quality-first. Within a phase, sub-batch freely (name each sub-batch). 15 phases, ~124 brutalities.
 
+★★CINEMATIC ENGINE UPGRADE (user: "make it more cinematic, what you did was lazy") — concepts can set
+`choreographed: true` to use the TWO-ACTOR + internal-camera renderer: stage BOTH fighters' real action
+animations across camera "shots" (zoom/pan) instead of painting FX over one frozen victim frame. New primitives:
+cam (eased zoom/focus) · actor (draw a fighter's action frame, supports fallback-action arrays + rot) ·
+flickerIn (dash-in w/ after-images) · flickerRush (blitz around victim, multiple directions) · swordSlash
+(arc) · bloodGush (pours, accumulates) · speedLines. Flagship: shisui_fallen "FLICKER MASSACRE" (zoom→flicker-
+in strike→blitz rush→sword→blood+collapse). Old flat concepts (gojo + 8 JJK) still render (backward-compat) —
+TO RETROFIT to choreographed style. See brutality_shisui_cine.mjs.
+
 Status key: ☐ not started · ◐ in progress · ☑ done+verified
 
 ## Phase 1 — Infinite Void  (system + Gojo flagship)   ☑ DONE @ e264c39a

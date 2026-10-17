@@ -85,6 +85,11 @@ export function activateBrutalityCinematic(winner, victim, move) {
   _b = {
     t: 0, total: concept.total || 140, concept, winner, victim, wKey, vKey, img, def, rect: null, done: false,
     sounds: (concept.sound || []).map(s => ({ ...s, fired: false })),
+    // ── choreographed (two-actor) extras — both fighters' sprites + an eased internal camera ──
+    atk: { key: wKey, ad: winner.animationData || {}, cache: new Map() },   // attacker (winner) — flickers/strikes
+    vic: { key: vKey, ad: victim.animationData || {}, cache: new Map() },    // victim (loser) — reacts/bleeds
+    cam: { zoom: 1, cx: 0.5, cy: 0.5, tzoom: 1, tcx: 0.5, tcy: 0.5 },
+    W: 0, H: 0,
   }
   return true
 }
@@ -96,21 +101,89 @@ export function updateBrutalityCinematic(ctx = {}) {
   for (const e of s.sounds) {
     if (!e.fired && s.t >= (e.t || 0)) { e.fired = true; try { snd?.playJuiceSfx?.(e.id, { gain: e.gain, ultBoom: e.ultBoom, duckSec: e.duckSec, delay: e.delay }) } catch (_) {} }
   }
+  // choreographed concepts: ease the internal camera toward the latest active `cam` beat's framing
+  if (s.concept.choreographed) {
+    let cb = null
+    for (const b of s.concept.beats) if (b.fx === "cam" && s.t >= b.t0 && s.t <= b.t1) cb = b
+    if (cb) { s.cam.tzoom = cb.zoom ?? 1; s.cam.tcx = cb.cx ?? 0.5; s.cam.tcy = cb.cy ?? 0.5 }
+    const k = 0.16
+    s.cam.zoom += (s.cam.tzoom - s.cam.zoom) * k
+    s.cam.cx += (s.cam.tcx - s.cam.cx) * k
+    s.cam.cy += (s.cam.tcy - s.cam.cy) * k
+  }
   if (s.t >= s.total) s.done = true
 }
+
+// which render pass each primitive belongs to in a choreographed cutaway (world = inside the camera transform)
+const PASS_BG = new Set(["darken", "voidInvert", "shrineBg"])
+const PASS_OVERLAY = new Set(["whiteSpike", "banner", "speedLines", "dataFlood"])
+// everything else (actor/flickerIn/flickerRush/swordSlash/bloodGush/headPop/slashCross/...) draws in world space
+function _passOf(fx) { return PASS_BG.has(fx) ? 0 : PASS_OVERLAY.has(fx) ? 2 : 1 }
 
 export function drawBrutalityCinematic(c, canvas) {
   const s = _b; if (!s || !c || !canvas) return
   const W = canvas.width, H = canvas.height, f = s.t
+  s.W = W; s.H = H
+  const run = (beat) => { const span = Math.max(1, beat.t1 - beat.t0); const p = (f - beat.t0) / span; const fn = PRIM[beat.fx]; if (fn) { c.save(); fn(c, W, H, p, beat, s, f); c.restore() } }
+  const active = s.concept.beats.filter(b => f >= b.t0 && f <= b.t1)
+  if (!s.concept.choreographed) { c.save(); for (const b of active) run(b); c.restore(); return }
+  // ── choreographed: 3 passes — screen background · world (camera) · screen overlay ──
   c.save()
-  for (const beat of s.concept.beats) {
-    if (f < beat.t0 || f > beat.t1) continue
-    const span = Math.max(1, beat.t1 - beat.t0)
-    const p = (f - beat.t0) / span
-    const fn = PRIM[beat.fx]
-    if (fn) { c.save(); fn(c, W, H, p, beat, s, f); c.restore() }
-  }
+  for (const b of active) if (_passOf(b.fx) === 0) run(b)
+  c.save()
+  c.translate(W / 2, H / 2); c.scale(s.cam.zoom, s.cam.zoom); c.translate(-s.cam.cx * W, -s.cam.cy * H)
+  for (const b of active) if (_passOf(b.fx) === 1) run(b)
   c.restore()
+  for (const b of active) if (_passOf(b.fx) === 2) run(b)
+  c.restore()
+}
+
+// ── ACTOR DRAW (choreographed cutaways) ─────────────────────────────────────────────────────────────
+// Lazily load a fighter's action sheet (the EXACT sheet the sim uses) and cache it per actor.
+function _actorImg(actor, action) {
+  if (!actor) return null
+  if (actor.cache.has(action)) return actor.cache.get(action)
+  const def = actor.ad[action] || actor.ad.idle || null
+  let img = null
+  try {
+    if (def && def.sheet) { img = new Image(); img.src = def.sheet }
+    else { const sheets = getSpriteSheets(actor.key) || {}; img = sheets[action] || sheets.idle || null }
+  } catch (_) {}
+  const rec = (img && def) ? { img, def } : null
+  actor.cache.set(action, rec)
+  return rec
+}
+// pick the first action that actually exists on this actor (for graceful fallbacks, e.g. knockdown→lose→hurt)
+function _firstAction(actor, cands) { if (!actor) return "idle"; for (const a of cands) if (actor.ad[a]) return a; return "idle" }
+// resolve which frame of an action to show: "hold:N" | "anim:SPEED" | "once:SPEED@T0" | number
+function _frameIdx(sel, frames, t, t0) {
+  if (typeof sel === "number") return Math.max(0, Math.min(frames - 1, sel | 0))
+  if (typeof sel === "string") {
+    const [mode, arg] = sel.split(":")
+    const sp = Math.max(1, parseInt(arg || "6", 10))
+    if (mode === "hold") return Math.max(0, Math.min(frames - 1, parseInt(arg || "0", 10)))
+    if (mode === "once") return Math.min(frames - 1, Math.floor((t - (t0 || 0)) / sp))
+    return Math.floor(t / sp) % frames   // "anim"
+  }
+  return Math.floor(t / 6) % frames
+}
+// draw actor `who` ("atk"/"vic") action frame centered at world (wx,wy); H sizes it (~hFrac of H tall at zoom 1)
+function _drawActor(c, S, who, action, wx, wy, opts = {}) {
+  const actor = who === "atk" ? S.atk : S.vic
+  const rec = _actorImg(actor, action)
+  const H = S.H || 720, hFrac = opts.hFrac || 0.42, facing = opts.facing || 1, alpha = opts.alpha ?? 1
+  if (!rec || !rec.img || !rec.img.complete || !rec.img.naturalWidth) {
+    c.save(); c.globalAlpha = alpha * 0.8; c.fillStyle = "#1a1c24"; c.fillRect(wx - 20, wy - 40, 40, 80); c.restore(); return null
+  }
+  const def = rec.def, frames = Math.max(1, def.frames || 1)
+  const fw = rec.img.naturalWidth / frames, fh = rec.img.naturalHeight
+  const frame = _frameIdx(opts.frame ?? "anim:6", frames, S.t, opts.t0), sx = frame * fw
+  const scale = (H * hFrac) / fh * (opts.scale || 1), dw = fw * scale, dh = fh * scale
+  c.save(); c.globalAlpha = alpha; c.imageSmoothingEnabled = false
+  c.translate(wx, wy); if (opts.rot) c.rotate(opts.rot); c.scale(facing, 1)
+  try { c.drawImage(rec.img, sx, 0, fw, fh, -dw / 2, -dh / 2, dw, dh) } catch (_) {}
+  c.restore()
+  return { x: wx, y: wy, w: dw, h: dh }
 }
 
 // ── FX PRIMITIVE LIBRARY ──────────────────────────────────────────────────────────────────────────
@@ -403,6 +476,75 @@ const PRIM = {
     c.globalAlpha = 1
     const cx = r.x + r.w / 2, cy = r.y + r.h * 0.45
     for (let i = 0; i < 3; i++) { const rp = (f * 0.05 + i * 0.33) % 1; c.strokeStyle = `rgba(90,200,255,${((1 - rp) * 0.6).toFixed(3)})`; c.lineWidth = 3 * (1 - rp) + 1; c.beginPath(); c.arc(cx, cy, rp * r.w * 1.4, 0, 7); c.stroke() }
+    c.restore()
+  },
+
+  // ── CHOREOGRAPHED cutscene primitives (two-actor). Coords are fractions of W/H → world px. ────────
+
+  // draw an actor's action frame at a staged position (the attacker or the reacting victim)
+  actor(c, W, H, p, beat, S) {
+    const who = beat.who || "vic"
+    const action = Array.isArray(beat.action) ? _firstAction(who === "atk" ? S.atk : S.vic, beat.action) : (beat.action || "idle")
+    _drawActor(c, S, who, action, (beat.x ?? 0.5) * W, (beat.y ?? 0.5) * H,
+      { frame: beat.frame, facing: beat.facing || 1, scale: beat.scale || 1, hFrac: beat.hFrac || 0.42, t0: beat.t0, alpha: beat.alpha ?? 1, rot: beat.rot || 0 })
+  },
+
+  // attacker FLICKERS in from fromX→toX with fading after-images (Body Flicker approach + speed streak)
+  flickerIn(c, W, H, p, beat, S) {
+    const e = ease(p), fromX = (beat.fromX ?? 0.85) * W, toX = (beat.toX ?? 0.6) * W, y = (beat.y ?? 0.5) * H
+    const face = beat.facing || 1, action = beat.action || "run"
+    for (let i = 4; i >= 0; i--) { const te = Math.max(0, e - i * 0.12), x = fromX + (toX - fromX) * te; _drawActor(c, S, "atk", action, x, y, { frame: "anim:4", facing: face, alpha: i === 0 ? 1 : 0.18, hFrac: 0.42 }) }
+    c.save(); c.strokeStyle = beat.color || "rgba(200,40,46,0.5)"; c.lineWidth = 3; c.globalAlpha = 1 - e; c.beginPath(); c.moveTo(fromX, y); c.lineTo(toX, y); c.stroke(); c.restore()
+  },
+
+  // attacker BLITZES around the victim — teleporting between positions, each with ghosts + a slash flash + streak
+  flickerRush(c, W, H, p, beat, S, f) {
+    const cxw = (beat.around ?? 0.54) * W, cyw = (beat.aroundY ?? 0.48) * H
+    const n = beat.count || 7, radX = (beat.radX ?? 0.26) * W, radY = (beat.radY ?? 0.12) * H
+    const posAt = (k) => { const a = (k / n) * Math.PI * 2 + k * 1.7; return [cxw + Math.cos(a) * radX, cyw + Math.sin(a) * radY] }
+    const slot = Math.floor((f - beat.t0) / 7) % n, prev = (slot - 1 + n) % n
+    const [px, py] = posAt(prev), [x, y] = posAt(slot)
+    c.save(); c.strokeStyle = beat.color || "#d0202a"; c.lineWidth = 3; c.globalAlpha = 0.6; c.beginPath(); c.moveTo(px, py); c.lineTo(x, y); c.stroke(); c.restore()
+    for (let i = 1; i <= 2; i++) { const [gx, gy] = posAt((slot - i + n) % n); _drawActor(c, S, "atk", beat.action || "run", gx, gy, { frame: "anim:3", facing: gx < cxw ? 1 : -1, alpha: 0.2, hFrac: 0.4 }) }
+    _drawActor(c, S, "atk", beat.action || "run", x, y, { frame: "anim:3", facing: x < cxw ? 1 : -1, alpha: 1, hFrac: 0.4 })
+    const aa = 1 - ((f - beat.t0) % 7) / 7, sa = (hash(slot, 3) % 360) * Math.PI / 180, L = radX * 0.9
+    c.save(); c.strokeStyle = `rgba(255,240,245,${aa.toFixed(3)})`; c.lineWidth = 2.5 * aa + 1
+    c.beginPath(); c.moveTo(cxw - Math.cos(sa) * L, cyw - Math.sin(sa) * L); c.lineTo(cxw + Math.cos(sa) * L, cyw + Math.sin(sa) * L); c.stroke(); c.restore()
+  },
+
+  // a single big SWORD slash arc sweeping through (x,y) with a leading blade glint
+  swordSlash(c, W, H, p, beat, S) {
+    const x = (beat.x ?? 0.54) * W, y = (beat.y ?? 0.46) * H, e = ease(p)
+    const R = (beat.len ?? 0.3) * H, a0 = beat.angle ?? -2.2, sweep = beat.sweep ?? 2.6, ang = a0 + sweep * e
+    c.save()
+    c.strokeStyle = beat.color || "#ffffff"; c.lineWidth = 6 * (1 - e) + 2; c.globalAlpha = 0.9
+    c.beginPath(); c.arc(x, y, R, a0, ang, false); c.stroke()
+    const gx = x + Math.cos(ang) * R, gy = y + Math.sin(ang) * R
+    c.fillStyle = "#ffffff"; c.globalAlpha = 1 - e * 0.5; c.beginPath(); c.arc(gx, gy, 6 * (1 - e) + 2, 0, 7); c.fill()
+    c.restore()
+  },
+
+  // blood spurts from (x,y) and pours downward, accumulating (deterministic — seeded by index + frame)
+  bloodGush(c, W, H, p, beat, S, f) {
+    const x = (beat.x ?? 0.54) * W, y = (beat.y ?? 0.46) * H, amount = beat.amount || 24, age = f - beat.t0
+    c.save()
+    for (let i = 0; i < amount; i++) {
+      const birth = (i * 1.7) % 24, life = age - birth; if (life < 0) continue
+      const ang = -Math.PI / 2 + (rnd(i, 1) - 0.5) * 2.2, sp = rnd(i, 2) * 3 + 2
+      const px = x + Math.cos(ang) * sp * life, py = y + Math.sin(ang) * sp * life + 0.09 * life * life
+      const sz = rnd(i, 3) * 3 + 1.5
+      c.fillStyle = i % 4 ? "rgba(150,8,14,0.95)" : "rgba(110,4,10,0.95)"
+      c.beginPath(); c.arc(px, py, sz, 0, 7); c.fill()
+    }
+    c.restore()
+  },
+
+  // SCREEN-space radial speed lines — conveys the intensity of the flicker blitz
+  speedLines(c, W, H, p, beat, S, f) {
+    const e = Math.sin(Math.min(1, p * 2) * Math.PI) * 0.6 + 0.2
+    c.save(); c.globalAlpha = e; c.strokeStyle = beat.color || "rgba(230,230,235,0.5)"; c.lineWidth = 2
+    const cx = W / 2, cy = H / 2
+    for (let i = 0; i < 26; i++) { const ang = (i / 26) * Math.PI * 2 + f * 0.02, r0 = Math.min(W, H) * (0.4 + (hash(i, 1) % 20) / 100); c.beginPath(); c.moveTo(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0); c.lineTo(cx + Math.cos(ang) * (r0 + 60), cy + Math.sin(ang) * (r0 + 60)); c.stroke() }
     c.restore()
   },
 }

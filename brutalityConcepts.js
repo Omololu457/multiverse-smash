@@ -66,43 +66,48 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     bannerRgb: "208,26,32",
     base: "hurt",
     choreographed: true,
-    total: 186,
+    total: 204,
     beats: [
-      { fx: "darken", t0: 0, t1: 186, rgb: "10,3,6", max: 0.97, ramp: 8 },
-      // SHOT 1 — zoom on the victim
-      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.55, cx: 0.54, cy: 0.44 },
-      { fx: "actor", t0: 0,  t1: 52, who: "vic", action: "idle", x: 0.54, y: 0.52, frame: "anim:10", facing: -1 },
-      // SHOT 2 — Shisui flickers in + first strike → victim HURT
+      { fx: "letterbox", t0: 0, t1: 204, in: 14, h: 0.13 },           // cinematic bars + vignette (MK framing)
+      { fx: "darken", t0: 0, t1: 204, rgb: "10,3,6", max: 0.97, ramp: 8 },
+      // SHOT 1 — slow establishing zoom on the victim
+      { fx: "cam",   t0: 0,  t1: 48, zoom: 1.45, cx: 0.54, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 54, who: "vic", action: "idle", x: 0.54, y: 0.52, frame: "anim:10", facing: -1 },
+      // SHOT 2 — Shisui flickers in, HARD CUT to the strike (tight) → victim HURT
       { fx: "flickerIn", t0: 34, t1: 54, action: "run", fromX: 0.92, toX: 0.62, y: 0.52, facing: -1, color: "rgba(208,26,32,0.55)" },
-      { fx: "cam",   t0: 46, t1: 60, zoom: 1.72, cx: 0.53, cy: 0.47 },
-      { fx: "actor", t0: 50, t1: 70, who: "atk", action: "heavy", x: 0.62, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "cam",   t0: 50, t1: 66, zoom: 2.0, cx: 0.54, cy: 0.46, cut: true },
+      { fx: "actor", t0: 50, t1: 72, who: "atk", action: "heavy", x: 0.62, y: 0.5, frame: "once:3", facing: -1 },
       { fx: "whiteSpike", t0: 52, t1: 62 },
-      { fx: "actor", t0: 52, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
-      { fx: "bloodGush", t0: 56, t1: 150, x: 0.5, y: 0.46, amount: 10 },
-      // SHOT 3 — the flicker blitz, multiple directions
-      { fx: "cam",   t0: 62, t1: 116, zoom: 1.3, cx: 0.52, cy: 0.47 },
-      { fx: "flickerRush", t0: 64, t1: 116, action: "run", around: 0.52, aroundY: 0.48, count: 8, radX: 0.24, radY: 0.13, color: "#d0202a" },
-      { fx: "speedLines", t0: 64, t1: 116, color: "rgba(230,120,120,0.45)" },
-      { fx: "bloodGush", t0: 70, t1: 150, x: 0.52, y: 0.52, amount: 6 },
-      // SHOT 4 — the sword slash
-      { fx: "cam",   t0: 116, t1: 150, zoom: 1.75, cx: 0.53, cy: 0.47 },
-      { fx: "actor", t0: 118, t1: 142, who: "atk", action: "heavy", x: 0.42, y: 0.49, frame: "once:3", facing: 1 },
-      { fx: "swordSlash", t0: 120, t1: 142, x: 0.55, y: 0.47, len: 0.28, angle: -2.4, sweep: 2.8, color: "#ffffff" },
-      { fx: "whiteSpike", t0: 126, t1: 138 },
-      { fx: "bloodGush", t0: 130, t1: 186, x: 0.54, y: 0.47, amount: 24 },
-      // SHOT 5 — blood pours, victim collapses, Shisui stands over
-      { fx: "cam",   t0: 148, t1: 186, zoom: 1.4, cx: 0.52, cy: 0.53 },
-      { fx: "actor", t0: 148, t1: 186, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.49, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
-      { fx: "actor", t0: 150, t1: 186, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
-      { fx: "banner", t0: 158, t1: 186 },
+      { fx: "actor", t0: 52, t1: 168, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "bloodGush", t0: 56, t1: 168, x: 0.5, y: 0.46, amount: 12 },
+      // SHOT 3 — pull back for the blitz: Shisui blitzes around, multiple directions
+      { fx: "cam",   t0: 66, t1: 124, zoom: 1.28, cx: 0.52, cy: 0.47, ease: 0.1 },
+      { fx: "flickerRush", t0: 68, t1: 124, action: "run", around: 0.52, aroundY: 0.48, count: 9, radX: 0.25, radY: 0.13, color: "#d0202a" },
+      { fx: "speedLines", t0: 68, t1: 124, color: "rgba(230,120,120,0.45)" },
+      { fx: "bloodGush", t0: 74, t1: 168, x: 0.52, y: 0.52, amount: 7 },
+      // SHOT 4 — HARD CUT to the sword windup (tight)
+      { fx: "cam",   t0: 124, t1: 150, zoom: 1.75, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 124, t1: 150, who: "atk", action: "heavy", x: 0.42, y: 0.49, frame: "once:3", facing: 1 },
+      { fx: "swordSlash", t0: 128, t1: 150, x: 0.55, y: 0.46, len: 0.28, angle: -2.4, sweep: 2.8, color: "#ffffff" },
+      { fx: "whiteSpike", t0: 134, t1: 146 },
+      // SHOT 5 — EXTREME CLOSE-UP on the cut, blood ERUPTS
+      { fx: "cam",   t0: 150, t1: 178, zoom: 2.7, cx: 0.53, cy: 0.43, cut: true },
+      { fx: "whiteSpike", t0: 150, t1: 158 },
+      { fx: "actor", t0: 150, t1: 178, who: "vic", action: "hurt", x: 0.52, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "bloodGush", t0: 150, t1: 204, x: 0.54, y: 0.44, amount: 48 },
+      // SHOT 6 — pull back: the victim collapses, Shisui stands over → banner
+      { fx: "cam",   t0: 178, t1: 204, zoom: 1.35, cx: 0.52, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 178, t1: 204, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.49, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 180, t1: 204, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 184, t1: 204 },
     ],
     sound: [
       { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
       { t: 50,  id: "crack_sizzle_bright",    gain: 0.5 },
-      { t: 64,  id: "warp_wobble_01",         gain: 0.5 },
-      { t: 120, id: "swish_fast_01",          gain: 0.6 },
-      { t: 126, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
-      { t: 150, id: "rumble_tail_01",         gain: 0.5 },
+      { t: 68,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 128, id: "swish_fast_01",          gain: 0.6 },
+      { t: 150, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 156, id: "rumble_tail_01",         gain: 0.55, delay: 0.05 },
     ],
   },
 

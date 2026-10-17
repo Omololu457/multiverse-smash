@@ -21,7 +21,7 @@ await page.waitForFunction(() => window.__harness.state().countdown <= 0, null, 
 const trig = await page.evaluate(() => window.__harness.brutality.cineTrigger("p1"));
 ok(trig && trig.started && trig.wKey === "shisui_fallen", `activated (${JSON.stringify(trig)})`);
 
-const SHOTS_AT = [[20, "shot1_zoom"], [50, "shot2_strike"], [86, "shot3_rush"], [132, "shot4_sword"], [168, "shot5_blood"]];
+const SHOTS_AT = [[24, "shot1_zoom"], [57, "shot2_strike"], [96, "shot3_rush"], [140, "shot4_sword"], [162, "shot5_closeup"], [192, "shot6_collapse"]];
 for (const [t, name] of SHOTS_AT) {
   await page.waitForFunction(tt => { const s = window.__harness.brutality.cineStatus(); return !s.active || s.t >= tt; }, t, { timeout: 8000, polling: 6 }).catch(() => {});
   const s = await page.evaluate(() => window.__harness.brutality.cineStatus());

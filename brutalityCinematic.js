@@ -105,8 +105,12 @@ export function updateBrutalityCinematic(ctx = {}) {
   if (s.concept.choreographed) {
     let cb = null
     for (const b of s.concept.beats) if (b.fx === "cam" && s.t >= b.t0 && s.t <= b.t1) cb = b
-    if (cb) { s.cam.tzoom = cb.zoom ?? 1; s.cam.tcx = cb.cx ?? 0.5; s.cam.tcy = cb.cy ?? 0.5 }
-    const k = 0.16
+    if (cb) {
+      s.cam.tzoom = cb.zoom ?? 1; s.cam.tcx = cb.cx ?? 0.5; s.cam.tcy = cb.cy ?? 0.5
+      // hard CUT (MK-style) — snap to the new framing the instant this shot begins, instead of easing in
+      if (cb.cut && s.t === cb.t0) { s.cam.zoom = s.cam.tzoom; s.cam.cx = s.cam.tcx; s.cam.cy = s.cam.tcy }
+    }
+    const k = cb && cb.ease ? cb.ease : 0.16
     s.cam.zoom += (s.cam.tzoom - s.cam.zoom) * k
     s.cam.cx += (s.cam.tcx - s.cam.cx) * k
     s.cam.cy += (s.cam.tcy - s.cam.cy) * k
@@ -116,7 +120,7 @@ export function updateBrutalityCinematic(ctx = {}) {
 
 // which render pass each primitive belongs to in a choreographed cutaway (world = inside the camera transform)
 const PASS_BG = new Set(["darken", "voidInvert", "shrineBg"])
-const PASS_OVERLAY = new Set(["whiteSpike", "banner", "speedLines", "dataFlood"])
+const PASS_OVERLAY = new Set(["whiteSpike", "banner", "speedLines", "dataFlood", "letterbox"])
 // everything else (actor/flickerIn/flickerRush/swordSlash/bloodGush/headPop/slashCross/...) draws in world space
 function _passOf(fx) { return PASS_BG.has(fx) ? 0 : PASS_OVERLAY.has(fx) ? 2 : 1 }
 
@@ -545,6 +549,18 @@ const PRIM = {
     c.save(); c.globalAlpha = e; c.strokeStyle = beat.color || "rgba(230,230,235,0.5)"; c.lineWidth = 2
     const cx = W / 2, cy = H / 2
     for (let i = 0; i < 26; i++) { const ang = (i / 26) * Math.PI * 2 + f * 0.02, r0 = Math.min(W, H) * (0.4 + (hash(i, 1) % 20) / 100); c.beginPath(); c.moveTo(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0); c.lineTo(cx + Math.cos(ang) * (r0 + 60), cy + Math.sin(ang) * (r0 + 60)); c.stroke() }
+    c.restore()
+  },
+
+  // cinematic LETTERBOX bars (slide in, then hold) + a soft vignette — the MK "this is a finisher" framing
+  letterbox(c, W, H, p, beat, S, f) {
+    const prog = ease(Math.min(1, (f - beat.t0) / (beat.in || 10)))
+    const bh = H * (beat.h || 0.12) * prog
+    c.save()
+    c.fillStyle = "rgba(0,0,0,0.96)"; c.fillRect(0, 0, W, bh); c.fillRect(0, H - bh, W, bh)
+    const g = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85)
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, `rgba(0,0,0,${(0.5 * prog).toFixed(3)})`)
+    c.fillStyle = g; c.fillRect(0, 0, W, H)
     c.restore()
   },
 }

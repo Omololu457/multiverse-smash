@@ -19847,7 +19847,8 @@ function drawBattle() {
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
-  drawBattleHud()
+  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
+  if (!_cineHidesHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
   _drawComboCounters()

@@ -16,6 +16,11 @@ flickerIn (dash-in w/ after-images) · flickerRush (blitz around victim, multipl
 (arc) · bloodGush (pours, accumulates) · speedLines. Flagship: shisui_fallen "FLICKER MASSACRE" (zoom→flicker-
 in strike→blitz rush→sword→blood+collapse). Old flat concepts (gojo + 8 JJK) still render (backward-compat) —
 TO RETROFIT to choreographed style. See brutality_shisui_cine.mjs.
+★★MK-CINEMATIC POLISH (user ref: MK1 fatalities video — letterbox/hard-cuts/extreme-CU/HUD-hidden). Added:
+`letterbox` primitive (bars slide-in + vignette), cam `cut:true` (hard snap vs ease) + per-shot `ease`, and a
+game.js HUD-hide guard (_cineHidesHud → skip drawBattleHud + training overlay during any finisher cutaway; added
+as brut_apply.py hunk #6). Shisui re-cut to 6 shots w/ 2 hard cuts + an EXTREME close-up on the kill + bigger
+blood. game.js HUD guard is the only new game.js line (contended → private-index commit).
 
 Status key: ☐ not started · ◐ in progress · ☑ done+verified
 

@@ -16,7 +16,7 @@ HUNKS = [
         'import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)',
     ),
     (
-        "isBrutalityCinematicActive() return true",
+        "isBrutalityCinematicActive()) return true",
         "  if (brutalityState.active) return true\n",
         "  if (brutalityState.active) return true\n  if (isBrutalityCinematicActive()) return true\n",
     ),
@@ -60,6 +60,13 @@ HUNKS = [
         "      cineStatus:   () => brutalityCinematicStatus(),\n"
         '      cineTrigger:  (winner = "p1") => { const w = winner === "p1" ? p1 : p2, v = winner === "p1" ? p2 : p1; clearBrutalityCinematic(); return { started: activateBrutalityCinematic(w, v), ...brutalityCinematicStatus() } },\n'
         "      cineStep:     (n = 1) => { for (let i = 0; i < n; i++) updateBrutalityCinematic({ sound }); return brutalityCinematicStatus() },\n",
+    ),
+    (   # hide HUD / training overlay during a finisher cutaway (runs AFTER the draw hunk adds the brutality draw line)
+        "_cineHidesHud",
+        "  drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)\n  drawBattleHud()\n",
+        "  drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)\n"
+        "  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)\n"
+        "  if (!_cineHidesHud) drawBattleHud()\n",
     ),
 ]
 

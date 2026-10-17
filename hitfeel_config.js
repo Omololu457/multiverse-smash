@@ -75,12 +75,13 @@ export const HITFEEL = {
   //    shorter `pop`. Shared 2.5s cooldown (a full ULTIMATE bypasses it so it always gets its moment). ──
   finisher: {
     cooldownFrames: 150,   // once per 2.5s max (heavy pops respect this; ultimates bypass)
-    freezeFrames:   7,     // FULL cinematic — a longer dramatic hold
-    silhouetteFrames: 2,
-    invertFrames:   2,
-    burstLines:     24,
-    zoomIn:         1.70,  // punch-in scale
-    tail:           12,    // frames after the freeze (invert/burst/snap-back)
+    freezeFrames:   9,     // FULL cinematic — INTENSE: a long dramatic hold
+    silhouetteFrames: 3,
+    invertFrames:   3,
+    burstLines:     36,    // INTENSE: denser spikes
+    zoomIn:         2.00,  // INTENSE: hard punch-in
+    tail:           16,    // frames after the freeze (invert/burst/snap-back)
+    shake:          16,    // hard camera kick on the ultimate cinematic (capped at 18 in camera.shake)
     maxFlashesPerSec: 3,   // photosensitivity clamp
     // QUICK POP for HEAVY / special: short freeze, light zoom, no full-screen invert, fewer burst spikes.
     pop: { freezeFrames: 3, silhouetteFrames: 1, invertFrames: 0, burstLines: 12, zoomIn: 1.22, tail: 6 },

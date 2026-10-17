@@ -2375,6 +2375,7 @@ function _triggerAnimFinisher(x, y, player, opts = {}) {
   }
   // PUNCH-IN: hard zoom toward the hit point; the normal two-shot reframe eases it back out after the freeze.
   camera.targetZoom = Math.min(camera.maxZoom || 2.6, (camera.targetZoom || camera.zoom || 1) * cfg.zoomIn)
+  if (!pop && HITFEEL.finisher.shake) camera.shake?.(HITFEEL.finisher.shake, HITFEEL.finisher.shake + 6)   // INTENSE: hard kick on the full ult cinematic
   sound.playJuiceSfx?.("impact_crack_01", { gain: 0.9, pitch: juicePitch(globalFrameCount, player) })
   sound.playJuiceSfx?.("boom_huge_01", { gain: 0.9, delay: 2 / 60, ultBoom: true })
   sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6, delay: HITFEEL.finisher.freezeFrames / 60 })
@@ -2408,6 +2409,28 @@ function _drawAnimFinisher() {
     ctx.strokeStyle = `rgba(255,255,255,${(0.6 * (1 - rt)).toFixed(3)})`; ctx.lineWidth = 12 * (1 - rt) + 2
     ctx.beginPath(); ctx.arc(sp.x, sp.y, rr, 0, Math.PI * 2); ctx.stroke()
     ctx.globalCompositeOperation = "source-over"
+  }
+  // ── FULL CINEMATIC ONLY — extra drama: dense anime FOCUS-LINE wash (concentration lines) radiating from the
+  //    hit point BEHIND the spikes + a SECOND delayed impact ring. ──
+  if (!f.pop && !f.reduce) {
+    const diag = Math.hypot(w, h)
+    if (t < burstEnd) {                                         // focus lines (behind the tapered spikes)
+      const env = Math.max(0, 1 - t / TOT)
+      ctx.save(); ctx.globalCompositeOperation = "lighter"
+      for (let i = 0; i < 72; i++) {
+        const a = (i / 72) * Math.PI * 2 + ((i * 73) % 11) * 0.02
+        const r0 = diag * (0.15 + (((i * 2654435761) >>> 0) % 100 / 100) * 0.1)
+        ctx.strokeStyle = `rgba(255,255,255,${(0.14 * env).toFixed(3)})`; ctx.lineWidth = (i % 3 === 0) ? 2 : 1
+        ctx.beginPath(); ctx.moveTo(sp.x + Math.cos(a) * r0, sp.y + Math.sin(a) * r0); ctx.lineTo(sp.x + Math.cos(a) * diag, sp.y + Math.sin(a) * diag); ctx.stroke()
+      }
+      ctx.restore()
+    }
+    if (t >= 2 && t < TOT - 2) {                                // second, larger, delayed shockwave ring
+      const rt = (t - 2) / (TOT - 2), rr = Math.max(w, h) * (0.05 + rt * 0.78)
+      ctx.save(); ctx.globalCompositeOperation = "lighter"
+      ctx.strokeStyle = `rgba(200,230,255,${(0.4 * (1 - rt)).toFixed(3)})`; ctx.lineWidth = 9 * (1 - rt) + 1
+      ctx.beginPath(); ctx.arc(sp.x, sp.y, rr, 0, Math.PI * 2); ctx.stroke(); ctx.restore()
+    }
   }
   // ── BURST: tapered radial SPIKES (wide base → point) with a glow fill + white core, spark dots, and a
   //    finer secondary spike between each — the detailed "sharp spikes from the hit point" of the recipe. ──

@@ -52,6 +52,205 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+  // ── PHASE 2 — CURSED ENERGY (JJK) ──────────────────────────────────────────────────────────────
+  // Batch 2A "The Curses": sukuna · alt_sukuna · yuta · yuji
+
+  // SUKUNA (King of Curses) — Domain Expansion: Malevolent Shrine. An open-barrier domain, a skeletal Buddhist
+  // shrine whose guaranteed Dismantle/Cleave slashes flay everything in range. Cruel, bored, absolute. The victim
+  // is caught in the cutting space → a lattice of invisible slashes dices them → the pieces simply fall apart.
+  sukuna: {
+    banner: "MALEVOLENT SHRINE",
+    bannerRgb: "235,32,38",
+    base: "hurt",
+    total: 140,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 140, rgb: "20,2,6", max: 0.97, ramp: 10 },
+      { fx: "shrineBg",   t0: 6,  t1: 140 },
+      { fx: "sprite",     t0: 10, t1: 71, from: 0.98, to: 1.0, anchor: 0.56 },
+      { fx: "slashCross", t0: 40, t1: 78, count: 16, color: "#ff2b36" },
+      { fx: "whiteSpike", t0: 68, t1: 80 },
+      { fx: "shatter",    t0: 72, t1: 134, cols: 5, rows: 7, spread: 1.0 },
+      { fx: "banner",     t0: 104, t1: 140 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 40, id: "crack_sizzle_bright",    gain: 0.5 },
+      { t: 68, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 74, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // ALT SUKUNA (Heian-era, the Disgraced One) — in his true four-armed power he answers with FIRE: the flame
+  // technique Fūga, a concentrated arrow of black-red flame that reduces the target to cinders. Distinct from
+  // modern Sukuna's shrine-dicing — here the body simply burns away to ash.
+  alt_sukuna: {
+    banner: "FLAME ARROW",
+    bannerRgb: "255,140,40",
+    base: "hurt",
+    total: 136,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 136, rgb: "24,6,2", max: 0.97, ramp: 10 },
+      { fx: "sprite",     t0: 8,  t1: 136, from: 0.96, to: 1.02, anchor: 0.56 },
+      { fx: "flameBeam",  t0: 30, t1: 70, color: "#ff7a1e" },
+      { fx: "whiteSpike", t0: 56, t1: 70 },
+      { fx: "incinerate", t0: 60, t1: 126, color: "#ff7a1e" },
+      { fx: "banner",     t0: 98, t1: 136 },
+    ],
+    sound: [
+      { t: 1,  id: "charge_hum_rise",        gain: 0.55 },
+      { t: 30, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 56, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 62, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // YUTA OKKOTSU (Special Grade) — Rika, his bound "queen of curses," manifests as a towering monster. The maw
+  // descends and snaps shut over the victim — devoured by a love that never let go. "PURE LOVE."
+  yuta: {
+    banner: "RIKA",
+    bannerRgb: "186,46,228",
+    base: "hurt",
+    total: 140,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 140, rgb: "10,2,16", max: 0.97, ramp: 10 },
+      { fx: "sprite",     t0: 8,  t1: 96, from: 1.0, to: 1.0, anchor: 0.58 },
+      { fx: "maw",        t0: 30, t1: 100, color: "#b42edc" },
+      { fx: "whiteSpike", t0: 86, t1: 96 },
+      { fx: "headPop",    t0: 90, t1: 128, headY: 0.45 },
+      { fx: "banner",     t0: 104, t1: 140 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 30, id: "warp_wobble_01",         gain: 0.5 },
+      { t: 86, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 92, id: "rumble_tail_01",         gain: 0.6 },
+    ],
+  },
+
+  // YUJI ITADORI (Sukuna's vessel) — BLACK FLASH: cursed energy applied within 0.000001s of impact distorts
+  // space for 2.5× force (a black star wreathed in red lightning), chained into a Divergent Fist second impact.
+  // The kind kid hits like a freight train — the torso simply caves.
+  yuji: {
+    banner: "BLACK FLASH",
+    bannerRgb: "232,32,62",
+    base: "hurt",
+    total: 132,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 132, rgb: "2,2,6", max: 0.97, ramp: 8 },
+      { fx: "sprite",     t0: 6,  t1: 132, from: 1.0, to: 1.0, anchor: 0.56, tremble: 2 },
+      { fx: "blackFlash", t0: 40, t1: 74, headY: 0.45 },
+      { fx: "whiteSpike", t0: 48, t1: 58 },
+      { fx: "blackFlash", t0: 66, t1: 96, headY: 0.45 },
+      { fx: "headPop",    t0: 70, t1: 120, headY: 0.45 },
+      { fx: "banner",     t0: 96, t1: 132 },
+    ],
+    sound: [
+      { t: 1,  id: "charge_hum_rise", gain: 0.45 },
+      { t: 40, id: "boom_huge_01",    gain: 0.9, ultBoom: true, duckSec: 0.4 },
+      { t: 66, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 72, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // Batch 2B "The Sorcerer-Killers": toji · maki · naoya · aoi_todo
+
+  // TOJI FUSHIGURO (the Sorcerer Killer) — Heavenly Restriction: ZERO cursed energy, a monstrously honed body +
+  // cursed tools. Cold, efficient, mercenary. The Inverted Spear of Heaven punches clean through — no flash, no
+  // aura, just steel and blood. The most physical kill in the cast.
+  toji: {
+    banner: "INVERTED SPEAR",
+    bannerRgb: "205,214,228",
+    base: "hurt",
+    total: 126,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 126, rgb: "6,8,12", max: 0.96, ramp: 8 },
+      { fx: "sprite",     t0: 8,  t1: 126, from: 1.0, to: 1.0, anchor: 0.56 },
+      { fx: "impale",     t0: 34, t1: 96, color: "#cfd8e6", headY: 0.42 },
+      { fx: "whiteSpike", t0: 40, t1: 50 },
+      { fx: "headPop",    t0: 62, t1: 108, headY: 0.42 },
+      { fx: "banner",     t0: 90, t1: 126 },
+    ],
+    sound: [
+      { t: 1,  id: "swish_fast_01",  gain: 0.5 },
+      { t: 34, id: "impact_hit_01",  gain: 0.7 },
+      { t: 40, id: "boom_medium_02", gain: 0.9, ultBoom: true, duckSec: 0.4 },
+      { t: 64, id: "rumble_tail_01", gain: 0.45 },
+    ],
+  },
+
+  // MAKI ZENIN — after awakening her own Heavenly Restriction she wields cursed tools at superhuman level. The
+  // Split Soul Katana cuts the SOUL as well as the body: a single clean stroke bisects the victim as a white
+  // soul-flash tears free. Fierce, disciplined, vengeful (she razed the Zenin clan).
+  maki: {
+    banner: "SPLIT SOUL",
+    bannerRgb: "222,228,238",
+    base: "hurt",
+    total: 126,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 126, rgb: "8,8,10", max: 0.96, ramp: 8 },
+      { fx: "sprite",     t0: 8,  t1: 60, from: 1.0, to: 1.0, anchor: 0.56 },
+      { fx: "slashCross", t0: 34, t1: 58, count: 4, color: "#dfe6f2" },
+      { fx: "whiteSpike", t0: 54, t1: 66 },
+      { fx: "soulSplit",  t0: 58, t1: 118 },
+      { fx: "banner",     t0: 90, t1: 126 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 34, id: "swish_fast_01",          gain: 0.55 },
+      { t: 54, id: "boom_medium_02",         gain: 0.9, ultBoom: true, duckSec: 0.45 },
+      { t: 60, id: "rumble_tail_01",         gain: 0.45 },
+    ],
+  },
+
+  // NAOYA ZENIN — Projection Sorcery: divides a second into 24 animation frames; touch his drawn frames out of
+  // sequence and you're frozen for one full second. Arrogant, cruel, obsessed with speed. The victim locks up as
+  // reality stutters into frames and 24 hits land in the blink of an instant.
+  naoya: {
+    banner: "PROJECTION SORCERY",
+    bannerRgb: "255,190,60",
+    base: "hurt",
+    total: 132,
+    beats: [
+      { fx: "darken",       t0: 0,  t1: 132, rgb: "10,8,2", max: 0.96, ramp: 8 },
+      { fx: "sprite",       t0: 8,  t1: 132, from: 1.0, to: 1.0, anchor: 0.56 },
+      { fx: "frameFlicker", t0: 30, t1: 100, color: "#ffbe3c" },
+      { fx: "whiteSpike",   t0: 92, t1: 102 },
+      { fx: "headPop",      t0: 96, t1: 126, headY: 0.45 },
+      { fx: "banner",       t0: 100, t1: 132 },
+    ],
+    sound: [
+      { t: 1,  id: "charge_hum_rise", gain: 0.4 },
+      { t: 30, id: "warp_wobble_01",  gain: 0.5 },
+      { t: 92, id: "boom_huge_01",    gain: 0.95, ultBoom: true, duckSec: 0.5 },
+      { t: 98, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // AOI TODO — Boogie Woogie: a clap swaps the positions of anything with cursed energy. Loud, eccentric, utterly
+  // devoted to his "best friend." He blinks the victim around in a disorienting shuffle, then lands one colossal
+  // haymaker that ends it.
+  aoi_todo: {
+    banner: "BOOGIE WOOGIE",
+    bannerRgb: "90,200,255",
+    base: "hurt",
+    total: 130,
+    beats: [
+      { fx: "darken",     t0: 0,  t1: 130, rgb: "4,10,16", max: 0.96, ramp: 8 },
+      { fx: "sprite",     t0: 8,  t1: 130, from: 1.0, to: 1.0, anchor: 0.56 },
+      { fx: "boogie",     t0: 28, t1: 92, color: "#5ac8ff" },
+      { fx: "whiteSpike", t0: 84, t1: 96 },
+      { fx: "headPop",    t0: 88, t1: 122, headY: 0.45 },
+      { fx: "banner",     t0: 94, t1: 130 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 28, id: "warp_wobble_01",         gain: 0.5 },
+      { t: 60, id: "warp_wobble_01",         gain: 0.4 },
+      { t: 84, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 90, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

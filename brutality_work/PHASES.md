@@ -10,12 +10,20 @@ Quality-first. Within a phase, sub-batch freely (name each sub-batch). 15 phases
 
 Status key: ☐ not started · ◐ in progress · ☑ done+verified
 
-## Phase 1 — Infinite Void  (system + Gojo flagship)   ☐
+## Phase 1 — Infinite Void  (system + Gojo flagship)   ☑ DONE @ e264c39a
 System: brutalityConcepts.js · brutalityCinematic.js · FX primitive library · kill-trigger wiring.
-Flagship: gojo — "UNLIMITED VOID" (invert to pale void → zoom on enemy → binary/kanji data flood → head pop).
+Flagship: gojo — "UNLIMITED VOID" (invert to pale void → zoom on enemy → binary/data flood → overload → head pop).
+Trigger model: FINISH-window expires WITHOUT a fatality input → winner's brutality plays (fatalityWasPerformed() gate).
+FX primitives built: whiteSpike · darken · voidInvert · sprite · dataFlood · headPop · banner.
+Verified: test:brutality-cine 7/7, determinism 14/0, combat/characters/kits byte-identical.
+Restore tool (hostile shared checkout): brutality_work/brut_apply.py (re-applies 5 game.js hunks onto any base).
 
-## Phase 2 — Cursed Energy (JJK)   ☐
-sukuna · alt_sukuna · yuji · yuta · toji · maki · naoya · aoi_todo
+## Phase 2 — Cursed Energy (JJK)   ☑ DONE
+Batch 2A "The Curses": sukuna (Malevolent Shrine dice-shatter) · alt_sukuna (Flame Arrow incinerate) · yuta (Rika maw) · yuji (Black Flash)
+Batch 2B "The Sorcerer-Killers": toji (Inverted Spear impale) · maki (Split Soul bisect) · naoya (Projection Sorcery 24-frame) · aoi_todo (Boogie Woogie)
+New FX primitives: shrineBg · slashCross · shatter · flameBeam · incinerate · maw(+_jaw) · blackFlash · impale · soulSplit · frameFlicker · boogie.
+★FIX: sprite slicing now loads the EXACT sim sheet (animationData[action].sheet) + derives per-frame width from the image (was grabbing multiple frames for chars whose manifest sheet ≠ animationData sheet, e.g. sasuke hurt = sasuke_damage.png 4×53).
+Verified: test:brutality-phase2 45/45 (8 JJK + gojo regression), determinism 14/0, sim byte-identical. NO game.js change (uncontended).
 
 ## Phase 3 — The Sharingan (Uchiha)   ☐
 sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · shisui_fallen · shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids

@@ -551,6 +551,7 @@ import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE 
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
+import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
 import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS, SZ_HIT_LONG_FINISHER, SZ_FLURRY, SZ_BARRAGE, SZ_FINISHER_BOOM, SZ_FINISHER_RUMBLE, SZ_STREAK, SZ_BARRAGE_HINT } from "./sfx_map.js"   // SPARKING ZERO — tier mapping + Phase-2 finisher/flurry/barrage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
@@ -17119,6 +17120,11 @@ function updateBattle() {
   // YUJI "BLACK FLASH" CINEMATIC: SAME freeze contract — combat/physics/input paused through the Phase-1
   // cursed-energy BUILDUP. Its resolve begins the mashable "Koma" release (startYujiKoma); the freeze then
   // LIFTS into the interactive flurry (Phase 2), so the payoff is the player's mash, not a scripted hit.
+  if (isShisuiFallenFatalityActive()) {
+    updateShisuiFallenFatalityCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   if (isYujiUltimateCinematicActive()) {
     updateYujiUltimateCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
@@ -19846,6 +19852,7 @@ function drawBattle() {
   // (Hashirama Sealing Jutsu draws in WORLD space near the trapped opponent — see drawHashiramaSealingJutsuCinematic(ctx) above, NOT here.)
   drawPainChibakuTenseiCinematic(ctx, canvas)      // fullscreen Chibaku Tensei overlay (gravity sky → growing sphere → slam → flat/dome/flame-pillar ground effect)
   drawYujiUltimateCinematic(ctx, canvas)   // fullscreen "Black Flash" buildup overlay (cyan cursed-energy vignette → red/black flash burst)
+  drawShisuiFallenFatalityCinematic(ctx, canvas)   // Shisui (Fallen) ULT FATALITY cutaway
   drawShinobuButterflyCinematic(ctx, canvas)  // fullscreen Butterfly Dance overlay (violet vignette → strike flash → spiral slash rings)
   drawInosukeBeastCinematic(ctx, canvas)      // fullscreen Beast Breathing overlay (earthy vignette → strike flash → radiating slash arcs)
   drawMakiShibuyaCinematic(ctx, canvas)       // fullscreen Cursed Tool Awakening overlay (isolate + push-in + reveal flash)

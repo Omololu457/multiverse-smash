@@ -6,6 +6,7 @@ import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
 import { sound, juicePickVariant, juicePitch }      from "./sound.js"
+import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
@@ -22763,6 +22764,12 @@ export function executeShisuiFallenUltimate(fighter, context) {
   if (variant === "kotoamatsukami") return shisuiFallenKotoamatsukami(fighter, context)   // Phase 4 — Kotoamatsukami (spends the meter itself)
   if (variant === "emeraldSusanoo") return enterShisuiFallenSusano(fighter, context) // Phase 3 — Emerald Susanoo (spends the meter itself)
   if (variant === "flickerTime") return enterShisuiFlickerTime(fighter, context)     // Flicker Time — a drain-buff (gates on near-max meter, doesn't spend it)
+  // ULTIMATE FATALITY — neutral Ultimate on a NEAR-DEATH victim → the finisher cutaway (pre-built chopped sprite).
+  { const v = getTargetResolver(context)(fighter)
+    if (v && !v.eliminated && (v.health || 0) > 0 && (v.health || 0) <= Math.max(120, (v.maxHealth || 1000) * 0.15) && !isShisuiFallenFatalityActive()) {
+      if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
+      if (activateShisuiFallenFatality(fighter, v)) { fighter.attackCooldown = getAttackDuration(140, fighter); fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 140); fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 40; return true }
+    } }
   if (!spendEnergy(fighter, fighter.ultimate?.cost ?? 100)) return false
   const opp = getTargetResolver(context)(fighter)
   fighter.attackCooldown = getAttackDuration(62, fighter)

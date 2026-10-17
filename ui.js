@@ -4151,10 +4151,10 @@ function _hudHealthAnim(fighter) {
   if (actual < s.lastActual - 0.01) {
     const big = fighter._hudDmgTier === "big"
     s.big  = big
-    s.hold = 14                                  // ghost holds ~14 frames before draining
+    s.hold = 18                                  // ghost holds ~14 frames before draining
     s.flash = Math.max(s.flash, big ? 1 : 0.42)
-    s.shake = Math.max(s.shake, big ? 1 : 0.4)   // a small SHAKE on every hit now (was big-only)
-    s.punch = Math.max(s.punch, big ? 1 : 0.6)   // scale-PUNCH the bar on every hit (juicy pop)
+    s.shake = Math.max(s.shake, big ? 1.25 : 0.6)   // a small SHAKE on every hit now (was big-only)
+    s.punch = Math.max(s.punch, big ? 1 : 0.7)   // scale-PUNCH the bar on every hit (juicy pop)
   } else if (actual > s.lastActual + 0.01 && (actual - s.lastActual) < maxHp * 0.6) {
     s.heal = 1                                   // HP climbed by a plausible HEAL amount (not a full-bar round-reset refill) → edge glow + sparkles
   }
@@ -4177,7 +4177,7 @@ function _hudHealthAnim(fighter) {
 
   s.flash = Math.max(0, s.flash - 0.06)
   s.shake = Math.max(0, s.shake - 0.08)
-  s.punch = Math.max(0, s.punch - 0.12)   // quick pop, settles fast
+  s.punch = Math.max(0, s.punch - 0.095)   // quick pop, settles fast
   s.heal  = Math.max(0, s.heal  - 0.045)  // heal glow fades over ~22f
   return s
 }
@@ -4188,20 +4188,20 @@ function _hudHealthAnim(fighter) {
 function _hpHealFx(ctx, edgeX, topY, h, heal) {
   if (heal <= 0.02) return
   ctx.save()
-  const gy = ctx.createLinearGradient(edgeX - 12, 0, edgeX + 4, 0)
+  const gy = ctx.createLinearGradient(edgeX - 18, 0, edgeX + 6, 0)
   gy.addColorStop(0, "rgba(120,240,170,0)")
-  gy.addColorStop(1, `rgba(206,255,224,${(0.5 * heal).toFixed(3)})`)
-  ctx.fillStyle = gy; ctx.fillRect(edgeX - 12, topY, 16, h)
+  gy.addColorStop(1, `rgba(206,255,224,${(0.75 * heal).toFixed(3)})`)
+  ctx.fillStyle = gy; ctx.fillRect(edgeX - 18, topY - 2, 24, h + 4)
   ctx.globalCompositeOperation = "lighter"
   const rise = 1 - heal                                   // 0 at heal start → 1 as it fades
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 7; i++) {
     const seed = (((i + 1) * 2654435761) >>> 0)
-    const sxo = ((seed % 13) - 6)                         // -6..6 horizontal
-    const a = heal * (1 - rise * 0.35)
+    const sxo = ((seed % 19) - 9)                         // -9..9 horizontal spread
+    const a = heal * (1 - rise * 0.3)
     if (a <= 0.02) continue
-    const r = 1.3 + 1.7 * heal
+    const r = 1.8 + 2.6 * heal
     ctx.fillStyle = `rgba(212,255,226,${a.toFixed(3)})`
-    ctx.beginPath(); ctx.arc(edgeX + sxo, topY + h * 0.5 - rise * h * 1.5, r, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(edgeX + sxo, topY + h * 0.5 - rise * h * 1.9, r, 0, Math.PI * 2); ctx.fill()
   }
   ctx.restore()
 }
@@ -4293,8 +4293,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
     // BIG-hit shake: nudge the whole panel a few px (decaying), distinct from a light hit's
     // drain-only feedback. Deterministic (sine on the global frame clock — no Math.random).
-    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
-    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.9) * 5.0 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.5) * 3.2 * anim.shake : 0
     ctx.save()
     if (sx || sy) ctx.translate(sx, sy)
 
@@ -4303,10 +4303,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     _metalPanel(ctx, x, hpY, barW + 20, barH + 26, accent, 8, anim.flash)
 
     // BIG-hit backing flash — a hot wash over the panel the frame a heavy/special/ult lands.
-    if (anim.flash > 0.02 && anim.big) {
+    if (anim.flash > 0.02) {
       ctx.save()
       _bevelPath(ctx, x, hpY, barW + 20, barH + 26, 8)
-      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.38 * anim.flash})`
       ctx.fill()
       ctx.restore()
     }
@@ -4331,7 +4331,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     _bevelPath(ctx, ghostX, hpY + 14, ghostW, barH, 4)
     const gg = ctx.createLinearGradient(0, hpY + 14, 0, hpY + 14 + barH)
     gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
-    ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"
+    ctx.fillStyle = gg; ctx.shadowBlur = 11; ctx.shadowColor = "rgba(255,255,255,0.85)"
     ctx.fill()
     ctx.restore()
 
@@ -4339,7 +4339,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillW = barW * dispRatio
     const fillX = flip ? trackX + barW - fillW : trackX
     if (fillW > 0.5) {
-      const punchS = anim.punch > 0.01 ? 1 + 0.26 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit
+      const punchS = anim.punch > 0.01 ? 1 + 0.5 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit (bigger pop)
       ctx.save()
       if (punchS !== 1) { const cyf = hpY + 14 + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, hpY + 14, fillW, barH, 4)
@@ -4396,14 +4396,14 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     // distinguishable); the character accent still colours the portrait border + name plate.
     const edgeCol = _colorblindHud ? (flip ? "#ff9d2e" : "#4aa8e0") : accent
 
-    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
-    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.9) * 5.0 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.5) * 3.2 * anim.shake : 0
     ctx.save(); if (sx || sy) ctx.translate(sx, sy)
 
     _metalPanel(ctx, panelX, hpY, panelW, panelH, edgeCol, 8, anim.flash)
-    if (anim.flash > 0.02 && anim.big) {
+    if (anim.flash > 0.02) {
       ctx.save(); _bevelPath(ctx, panelX, hpY, panelW, panelH, 8)
-      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`; ctx.fill(); ctx.restore()
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.38 * anim.flash})`; ctx.fill(); ctx.restore()
     }
 
     // NAME PLATE — accent-tinted chamfered strip behind a fitted name.
@@ -4426,11 +4426,11 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
     const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
     gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
-    ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"; ctx.fill(); ctx.restore()
+    ctx.fillStyle = gg; ctx.shadowBlur = 11; ctx.shadowColor = "rgba(255,255,255,0.85)"; ctx.fill(); ctx.restore()
     const fillW = tBarW * dispRatio
     const fillX = flip ? trackX + tBarW - fillW : trackX
     if (fillW > 0.5) {
-      const punchS = anim.punch > 0.01 ? 1 + 0.26 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit
+      const punchS = anim.punch > 0.01 ? 1 + 0.5 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit (bigger pop)
       ctx.save()
       if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, trackY, fillW, barH, 4)

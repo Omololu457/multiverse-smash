@@ -1021,6 +1021,134 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 4C "Snakes & Copy Ninja": orochimaru · kakashi · kakashi_anbu · kakashi_war
+
+  // OROCHIMARU — Kusanagi & the Hidden Shadow Snakes: serpents erupt from his sleeves, then the Grass-Cutter
+  // sword runs the target through with a venomous sheen.
+  orochimaru: {
+    banner: "KUSANAGI", bannerRgb: "120,200,80", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 172, rgb: "6,12,4", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 14, color: "#7ad040" },
+      { fx: "bloodGush", t0: 60, t1: 172, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam",   t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "impale", t0: 114, t1: 146, color: "#aef050", headY: 0.42 },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 52,  id: "swish_fast_01",          gain: 0.5 },
+      { t: 114, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01",         gain: 0.5 },
+    ],
+  },
+
+  // KAKASHI — Raikiri: the Lightning Blade he refined from the Chidori; a fist of concentrated lightning punched
+  // clean through the chest.
+  kakashi: {
+    banner: "RAIKIRI", bannerRgb: "120,180,255", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 166, rgb: "4,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 52, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 46, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(120,180,255,0.5)" },
+      { fx: "cam",   t0: 44, t1: 112, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 144, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "impale", t0: 50, t1: 112, color: "#bfe0ff", headY: 0.45 },
+      { fx: "lightning", t0: 50, t1: 144, headY: 0.45, color: "#90c8ff" },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 58, t1: 166, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.15, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "lightning", t0: 112, t1: 140, headY: 0.45, color: "#aed8ff" },
+      { fx: "headPop", t0: 116, t1: 144, headY: 0.45 },
+      { fx: "bloodGush", t0: 116, t1: 166, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",     gain: 0.5 },
+      { t: 50,  id: "crack_sizzle_bright", gain: 0.6 },
+      { t: 112, id: "boom_huge_01",        gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",      gain: 0.5 },
+    ],
+  },
+
+  // KAKASHI (ANBU) — a silent assassination: one flash-step, one tanto stroke, and the target falls in two before
+  // they know he was there.
+  kakashi_anbu: {
+    banner: "ANBU", bannerRgb: "200,210,225", base: "hurt", choreographed: true, total: 164,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 164, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 164, rgb: "4,6,10", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 96, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.58, y: 0.52, facing: -1, color: "rgba(200,210,225,0.45)" },
+      { fx: "cam",   t0: 42, t1: 98, zoom: 1.8, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 70, who: "atk", action: "heavy", x: 0.6, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "swordSlash", t0: 48, t1: 72, x: 0.52, y: 0.47, len: 0.3, angle: -2.2, sweep: 2.8, color: "#dfe8f5" },
+      { fx: "whiteSpike", t0: 90, t1: 102 },
+      { fx: "cam",   t0: 98, t1: 142, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 98, t1: 156 },
+      { fx: "bloodGush", t0: 102, t1: 164, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam",   t0: 142, t1: 164, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 164, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 148, t1: 164 },
+    ],
+    sound: [
+      { t: 1,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "swish_fast_01",          gain: 0.6 },
+      { t: 98, id: "boom_medium_02",         gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 104, id: "rumble_tail_01",        gain: 0.45 },
+    ],
+  },
+
+  // KAKASHI (WAR) — Kamui Raikiri: he drives a lightning blade through, then Kamui warps the wound — and the rest
+  // of them — clean out of this dimension.
+  kakashi_war: {
+    banner: "KAMUI RAIKIRI", bannerRgb: "150,110,230", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "6,6,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 112, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 46, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(150,110,230,0.5)" },
+      { fx: "cam",   t0: 44, t1: 112, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "lightning", t0: 50, t1: 110, headY: 0.45, color: "#b090f0" },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 58, t1: 176, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 112, t1: 150, zoom: 1.9, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "kamuiSpiral", t0: 112, t1: 156 },
+      { fx: "whiteSpike", t0: 146, t1: 156 },
+      { fx: "cam",   t0: 156, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 156, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 160, t1: 176 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",     gain: 0.5 },
+      { t: 50,  id: "crack_sizzle_bright", gain: 0.6 },
+      { t: 112, id: "warp_wobble_01",      gain: 0.6 },
+      { t: 146, id: "boom_huge_01",        gain: 1.0, ultBoom: true, duckSec: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

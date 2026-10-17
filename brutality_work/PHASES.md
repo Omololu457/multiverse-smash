@@ -43,8 +43,8 @@ Verified: test:brutality-phase2 45/45 (8 JJK + gojo regression), determinism 14/
 Batch 3A DONE: sasuke(Chidori lightning)/sasuke_adult(Amaterasu black-flame)/sasuke_sensei(Susanoo cleave)/itachi(Tsukuyomi red-world). New FX: lightning, tsukuyomiBg, incinerate black:true. shisui_fallen DONE. Batch 3B DONE: madara(Tengai Shinsei meteor)/obito(Kamui spiral warp)/tobi(Truth-Seeking void orb). New FX: meteor, kamuiSpiral, voidOrb. Batch 3C DONE: shisui_blade(Iaido bisect)/shisui_puppeteer(Kotoamatsukami strings)/shisui_trinity(Trinity shatter)/shisui_itachi_kids(Twin Flicker). New FX: strings. ★ALL 12 Uchiha cinematic. 21 concepts total (phases 1-3 + shisui). Next: Phase 4 Will of Fire.
 sasuke · sasuke_adult · sasuke_sensei · itachi · madara · obito · tobi · shisui_fallen · shisui_blade · shisui_puppeteer · shisui_trinity · shisui_itachi_kids
 
-## Phase 4 — Will of Fire (Hokage/Sannin)   ◐ IN PROGRESS
-Batch 4A DONE: naruto(Rasengan)/naruto_hokage(Rasenshuriken shred)/naruto_seventh(Bijuudama)/minato(Flying Raijin). New FX: rasengan (color-param glow). Batch 4B DONE: hashirama(Wood Style tendrils+spike)/tobirama(Water Fang raijin+bisect)/hiruzen(Adamantine Staff impale)/jiraiya(Needle Jizo steel storm). New FX: woodBind. Pending 4C (orochimaru/kakashi/kakashi_anbu/kakashi_war).
+## Phase 4 — Will of Fire (Hokage/Sannin)   ☑ DONE
+Batch 4A DONE: naruto(Rasengan)/naruto_hokage(Rasenshuriken shred)/naruto_seventh(Bijuudama)/minato(Flying Raijin). New FX: rasengan (color-param glow). Batch 4B DONE: hashirama(Wood Style tendrils+spike)/tobirama(Water Fang raijin+bisect)/hiruzen(Adamantine Staff impale)/jiraiya(Needle Jizo steel storm). New FX: woodBind. Batch 4C DONE: orochimaru(Kusanagi green-impale+snakes)/kakashi(Raikiri lightning)/kakashi_anbu(ANBU tantō bisect)/kakashi_war(Kamui Raikiri warp). No new FX (reuse). ★33 concepts total (phases 1-4). Next: Phase 5 Hidden Leaf.
 naruto · naruto_hokage · naruto_seventh · minato · hashirama · tobirama · hiruzen · jiraiya · orochimaru · kakashi · kakashi_anbu · kakashi_war
 
 ## Phase 5 — The Hidden Leaf   ☐

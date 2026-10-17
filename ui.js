@@ -13,6 +13,9 @@ import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controlle
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
+import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
+import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
+import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -304,6 +307,13 @@ export function mkFrame() { return _mkFrame }  // harness read-out
 let _colorblindHud = false
 export function setColorblindHud(on) { _colorblindHud = !!on }
 export function getColorblindHud() { return _colorblindHud }   // harness read-out
+
+// THEMED HUD style. Default ON ("Themed" = portrait + per-character accent trim + name plate).
+// game.js owns the persisted setting (ms_hud_style) and pushes it here. "Classic" (false) restores
+// the EXACT previous look — the renderer branches to the untouched legacy panel. Presentation-only.
+let _hudThemed = true
+export function setHudThemed(on) { _hudThemed = !!on }
+export function getHudThemed() { return _hudThemed }   // harness read-out
 // Exposed so sibling modules (matchflow.js results/round screens) draw in the exact SAME language.
 export function mkAdvance() { _mkFrame++ }
 export function bevelPath(ctx, x, y, w, h, cut) { return _bevelPath(ctx, x, y, w, h, cut) }
@@ -3916,6 +3926,214 @@ export function drawTrainingCollisionBoxes(ctx, fighters = [], getHitbox = null)
 // live fighter object (persists across rounds; a round reset snaps the display UP to
 // full via the heal branch, so no phantom trail). WeakMap → auto-GC, no leak.
 const _hudAnim = new WeakMap()
+// ─────────────────────────────────────────────────────────────────
+// THEMED HUD PORTRAITS — resolve + cache a square portrait per fighter.
+// Priority:  override → select/cut-in art → idle head-crop → letter fallback.
+// The idle head-crop reads the fighter's LIVE idle sheet (via _skinAnim.idle.sheet
+// when a form sets one), so the portrait FOLLOWS the active form/identity; if a
+// form's sheet is not usable, the resolver keeps the base portrait. All results are
+// cached by a signature so nothing is recomputed per frame. No art is ever generated —
+// crops come only from sprites that already exist on disk.
+// ─────────────────────────────────────────────────────────────────
+const _formSheetCache = new Map()     // src → Image (form idle sheets not in the main manifest)
+const _portraitCache  = new Map()     // signature → { canvas } | { img } | { fallback: canvas }
+const _fallbackCache  = new Map()     // "L|#accent" → canvas
+
+function _formSheetImage(src) {
+  if (!src) return null
+  if (!_formSheetCache.has(src)) { const im = new Image(); im.src = src; _formSheetCache.set(src, im) }
+  return _formSheetCache.get(src)
+}
+
+// Live idle frame-0 source info for the fighter's CURRENT form. Prefers the form's own
+// idle sheet (_skinAnim.idle.sheet); falls back to the manifest idle image. null if nothing usable.
+function _liveIdleInfo(fighter) {
+  const idleAnim = fighter?._skinAnim?.idle || fighter?.animationData?.idle || null
+  const fw = idleAnim?.width  || 0
+  const fh = idleAnim?.height || 0
+  let img = idleAnim?.sheet ? _formSheetImage(idleAnim.sheet) : null
+  if (!_imageReady(img)) img = getSpriteSheets?.(fighter?.rosterKey)?.idle || null
+  if (!_imageReady(img)) return null
+  return { img, fw: fw || img.naturalWidth, fh: fh || img.naturalHeight }
+}
+
+// A short tag for the active form (the live idle sheet's basename), used for cache + override keys.
+function _formTag(fighter) {
+  const src = fighter?._skinAnim?.idle?.sheet || fighter?.animationData?.idle?.sheet || ""
+  const m = String(src).split("/").pop() || ""
+  return m.replace(/\.(png|webp|jpg|jpeg)$/i, "")
+}
+
+// Build a square head-and-shoulders crop (upper portion of the sprite's alpha bounding box,
+// centered on the head), nearest-neighbour. Returns an offscreen canvas or null.
+function _makeHeadCrop(img, fw, fh) {
+  try {
+    const tmp = document.createElement("canvas"); tmp.width = fw; tmp.height = fh
+    const tc = tmp.getContext("2d")
+    tc.imageSmoothingEnabled = false
+    tc.drawImage(img, 0, 0, fw, fh, 0, 0, fw, fh)   // frame 0 is at (0,0)
+    // alpha bounding box
+    let minX = fw, minY = fh, maxX = -1, maxY = -1
+    try {
+      const data = tc.getImageData(0, 0, fw, fh).data
+      for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) {
+        if (data[(y * fw + x) * 4 + 3] > 16) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x
+          if (y < minY) minY = y; if (y > maxY) maxY = y
+        }
+      }
+    } catch (_) { maxX = -1 }   // cross-origin / headless → use nominal frame
+    let cx, y0, side
+    if (maxX >= minX && maxY >= minY) {
+      const bw = maxX - minX + 1, bh = maxY - minY + 1
+      side = Math.max(6, Math.round(bh * 0.42))   // upper ~42% of the body = head + shoulders
+      cx   = (minX + maxX) / 2
+      y0   = minY
+    } else {
+      side = Math.max(6, Math.round(fh * 0.40)); cx = fw / 2; y0 = 0
+    }
+    let x0 = Math.round(cx - side / 2)
+    x0 = Math.max(0, Math.min(fw - 1, x0))
+    const sw = Math.min(side, fw - x0), sh = Math.min(side, fh - y0)
+    const out = document.createElement("canvas"); out.width = side; out.height = side
+    const oc = out.getContext("2d"); oc.imageSmoothingEnabled = false
+    oc.drawImage(tmp, x0, y0, sw, sh, 0, 0, sw, sh)
+    return out
+  } catch (_) { return null }
+}
+
+// A neutral silhouette portrait with the character's initial — the last-resort fallback.
+function _makeFallbackPortrait(letter, accent) {
+  const key = (letter || "?") + "|" + accent
+  if (_fallbackCache.has(key)) return _fallbackCache.get(key)
+  const S = 64, c = document.createElement("canvas"); c.width = S; c.height = S
+  const g = c.getContext("2d")
+  g.fillStyle = "rgba(14,18,24,0.95)"; g.fillRect(0, 0, S, S)
+  // soft bust silhouette
+  g.fillStyle = "rgba(255,255,255,0.10)"
+  g.beginPath(); g.arc(S / 2, S * 0.40, S * 0.20, 0, Math.PI * 2); g.fill()
+  g.beginPath(); g.ellipse(S / 2, S * 0.92, S * 0.34, S * 0.30, 0, 0, Math.PI * 2); g.fill()
+  g.fillStyle = accent
+  g.font = "800 30px Arial"; g.textAlign = "center"; g.textBaseline = "middle"
+  g.globalAlpha = 0.92; g.fillText(String(letter || "?").toUpperCase(), S / 2, S * 0.42); g.globalAlpha = 1
+  _fallbackCache.set(key, c)
+  return c
+}
+
+// Resolve the drawable portrait for a fighter → { src: canvas|img, isFallback }.
+function _resolveHudPortrait(fighter, accent) {
+  const key = String(fighter?.rosterKey || "").toLowerCase()
+  const tag = _formTag(fighter)
+  const ov  = getPortraitOverride(key, tag)
+  // Signature: form tag + override identity → recompute only when the form/override changes.
+  const sig = key + "|" + tag + (ov?.src ? "|ov:" + ov.src : "") + (ov?.crop ? "|c" : "")
+  const cached = _portraitCache.get(sig)
+  if (cached) return cached.fallback ? { src: cached.fallback, isFallback: true } : { src: cached.canvas || cached.img, isFallback: false }
+
+  // 1) OVERRIDE source image (+ optional crop)
+  if (ov?.src) {
+    const im = getPortraitImageBySrc(ov.src)
+    if (_imageReady(im)) {
+      if (ov.crop) { const cc = _cropImage(im, ov.crop); if (cc) { _portraitCache.set(sig, { canvas: cc }); return { src: cc, isFallback: false } } }
+      _portraitCache.set(sig, { img: im }); return { src: im, isFallback: false }
+    }
+  }
+
+  // Detect whether a non-base form/identity is active (so we follow it via the live crop).
+  const inForm = !!(fighter?._skinAnim && fighter?._baseSkinAnim && fighter._skinAnim !== fighter._baseSkinAnim)
+
+  // 2) SELECT / CUT-IN ART — the base identity portrait (used unless a form overrides it).
+  if (!inForm) {
+    const art = getPortraitImage(key)
+    if (_imageReady(art)) { _portraitCache.set(sig, { img: art }); return { src: art, isFallback: false } }
+  }
+
+  // 3) IDLE HEAD-CROP (follows the active form via its live idle sheet)
+  const info = _liveIdleInfo(fighter)
+  if (info) {
+    let crop
+    if (ov?.crop) crop = _cropImage(info.img, ov.crop)
+    else          crop = _makeHeadCrop(info.img, info.fw, info.fh)
+    if (crop) { _portraitCache.set(sig, { canvas: crop }); return { src: crop, isFallback: false } }
+  }
+  // 3b) if we were in a form but its sheet isn't usable, keep the BASE select art
+  if (inForm) {
+    const art = getPortraitImage(key)
+    if (_imageReady(art)) { return { src: art, isFallback: false } }   // not cached under form sig (transient)
+  }
+
+  // 4) FALLBACK — initial-letter silhouette (do NOT cache under a form sig that may resolve later)
+  const letter = (fighter?.name || key || "?").trim()[0] || "?"
+  return { src: _makeFallbackPortrait(letter, accent), isFallback: true }
+}
+
+// Load an arbitrary portrait source file (cached), separate from the rosterKey convention loader.
+const _srcImageCache = new Map()
+function getPortraitImageBySrc(src) {
+  if (!src) return null
+  if (!_srcImageCache.has(src)) { const im = new Image(); im.src = src; _srcImageCache.set(src, im) }
+  return _srcImageCache.get(src)
+}
+
+// Draw a fighter's resolved portrait into a square [x,y,size] with an accent border.
+// Shared by the themed 1v1 panel and the FFA (3–4 player) HUD. Nearest-neighbour (pixel-art).
+// `flash` (0..1) adds a hot glow on the border for hit reactions. Presentation-only.
+export function drawHudPortrait(ctx, fighter, x, y, size, accent, flash = 0) {
+  const p = _resolveHudPortrait(fighter, accent)
+  const cut = Math.max(3, Math.round(size * 0.1))
+  ctx.save()
+  _bevelPath(ctx, x - 1, y - 1, size + 2, size + 2, cut)
+  ctx.fillStyle = "rgba(4,6,10,0.92)"; ctx.fill()
+  if (p && p.src) {
+    ctx.save(); _bevelPath(ctx, x, y, size, size, cut); ctx.clip()
+    ctx.imageSmoothingEnabled = false
+    const iw = p.src.width || p.src.naturalWidth || size, ih = p.src.height || p.src.naturalHeight || size
+    const s = Math.max(size / iw, size / ih), dw = iw * s, dh = ih * s
+    ctx.drawImage(p.src, x + (size - dw) / 2, y + (size - dh) * 0.18, dw, dh)
+    ctx.imageSmoothingEnabled = true
+    ctx.restore()
+  }
+  _bevelPath(ctx, x, y, size, size, cut)
+  ctx.strokeStyle = accent; ctx.lineWidth = 2
+  if (flash > 0.01) { ctx.shadowBlur = 8 * flash; ctx.shadowColor = accent }
+  ctx.stroke(); ctx.shadowBlur = 0
+  ctx.restore()
+}
+
+// Crop a source image by a pixel rect → square offscreen canvas (nearest-neighbour).
+function _cropImage(img, crop) {
+  try {
+    const { x = 0, y = 0, w, h } = crop || {}
+    if (!(w > 0 && h > 0)) return null
+    const c = document.createElement("canvas"); c.width = w; c.height = h
+    const cc = c.getContext("2d"); cc.imageSmoothingEnabled = false
+    cc.drawImage(img, x, y, w, h, 0, 0, w, h)
+    return c
+  } catch (_) { return null }
+}
+
+// Shrink a bold font until `text` fits within `maxW` (down to minPx), returning the px size.
+// Keeps long names (e.g. "Shisui & Itachi (Kids)") on one line without overflow.
+function _fitHudName(ctx, text, maxW, maxPx = 13, minPx = 8, weight = "800") {
+  let px = maxPx
+  while (px > minPx) {
+    ctx.font = `${weight} ${px}px Arial`
+    if (ctx.measureText(text).width <= maxW) break
+    px -= 0.5
+  }
+  ctx.font = `${weight} ${px}px Arial`
+  return px
+}
+
+// Darken/lighten a #rrggbb by `amt` (-1..1) — accent trims that stay readable on the dark panel.
+function _shadeHex(hex, amt) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "")); if (!m) return hex
+  const n = parseInt(m[1], 16)
+  const f = (v) => Math.max(0, Math.min(255, Math.round(v + (amt < 0 ? v * amt : (255 - v) * amt))))
+  const r = f((n >> 16) & 255), g = f((n >> 8) & 255), b = f(n & 255)
+  return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)
+}
+
 function _hudHealthAnim(fighter) {
   const maxHp  = Math.max(1, fighter.maxHealth || 100)
   const actual = Math.max(0, Math.min(maxHp, fighter.health ?? maxHp))
@@ -4122,6 +4340,89 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.textBaseline = "alphabetic"
   }
 
+  // THEMED health panel (HUD Style = Themed). Same data + animator as the classic panel, plus a
+  // per-character PORTRAIT at the outer edge, a per-character ACCENT trim/name-plate, and a name that
+  // shrinks to fit. Presentation-only — identical HP/anim reads; Classic uses drawHealthPanel untouched.
+  const TH_PS = 52, TH_GAP = 8
+  const tBarW = clamp(cw * 0.24, 190, 360)
+  function drawThemedHealthPanel(flip, fighter) {
+    if (!fighter) return
+    const maxHp = Math.max(1, fighter.maxHealth || 100)
+    const anim  = _hudHealthAnim(fighter)
+    const dispRatio  = clamp(anim.dispHp  / maxHp, 0, 1)
+    const trailRatio = clamp(anim.trailHp / maxHp, 0, 1)
+    const ratio = clamp((fighter.health ?? maxHp) / maxHp, 0, 1)
+
+    const panelW = tBarW + 20, panelH = barH + 26
+    const portraitX = flip ? (cw - pad - TH_PS) : pad
+    const panelX    = flip ? (cw - pad - TH_PS - TH_GAP - panelW) : (pad + TH_PS + TH_GAP)
+
+    const accent = getHudAccent(fighter)
+    // Colorblind HUD keeps the CVD-safe blue/orange SIDE pair for the panel edge (so P1/P2 stay
+    // distinguishable); the character accent still colours the portrait border + name plate.
+    const edgeCol = _colorblindHud ? (flip ? "#ff9d2e" : "#4aa8e0") : accent
+
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
+    ctx.save(); if (sx || sy) ctx.translate(sx, sy)
+
+    _metalPanel(ctx, panelX, hpY, panelW, panelH, edgeCol, 8, anim.flash)
+    if (anim.flash > 0.02 && anim.big) {
+      ctx.save(); _bevelPath(ctx, panelX, hpY, panelW, panelH, 8)
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`; ctx.fill(); ctx.restore()
+    }
+
+    // NAME PLATE — accent-tinted chamfered strip behind a fitted name.
+    const name = fighter.name || (flip ? "P2" : "P1")
+    const npX = panelX + 6, npY = hpY + 1, npW = tBarW - 4, npH = 13
+    ctx.save(); _bevelPath(ctx, npX, npY, npW, npH, 3)
+    ctx.fillStyle = _withAlpha(_shadeHex(accent, -0.35), 0.55); ctx.fill()
+    ctx.restore()
+    const nameMaxW = npW - 10
+    _fitHudName(ctx, name, nameMaxW, 11, 7, "800")
+    ctx.textAlign = flip ? "right" : "left"; ctx.textBaseline = "middle"
+    ctx.fillStyle = "#f4f7fb"; ctx.shadowBlur = 2; ctx.shadowColor = "rgba(0,0,0,0.8)"
+    ctx.fillText(name, flip ? npX + npW - 5 : npX + 5, npY + npH / 2 + 0.5); ctx.shadowBlur = 0
+
+    // TRACK + GHOST + FRONT bar (colour-by-health unchanged).
+    const trackY = hpY + 15, trackX = panelX + 8
+    ctx.fillStyle = "rgba(0,0,0,0.62)"; _bevelPath(ctx, trackX, trackY, tBarW, barH, 4); ctx.fill()
+    const ghostW = tBarW * trailRatio
+    const ghostX = flip ? trackX + tBarW - ghostW : trackX
+    ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
+    const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
+    gg.addColorStop(0, "#ffe3e3"); gg.addColorStop(1, "#ff6b6b")
+    ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"; ctx.fill(); ctx.restore()
+    const fillW = tBarW * dispRatio
+    const fillX = flip ? trackX + tBarW - fillW : trackX
+    if (fillW > 0.5) {
+      _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
+      ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill()
+      ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
+    }
+
+    // BREAK pips (same resource read as classic).
+    const stotal = COMBO_BREAKER.stocksPerRound
+    const sleft  = Math.max(0, Math.min(stotal, fighter.comboBreakStocks ?? stotal))
+    const pipY   = trackY + barH + 7, pipGap = 9, pipR = 3
+    ctx.textBaseline = "middle"; ctx.textAlign = flip ? "right" : "left"
+    ctx.font = "700 8px Arial"; ctx.fillStyle = "rgba(251,191,36,0.85)"
+    const edge = flip ? panelX + tBarW + 12 : panelX + 8
+    ctx.fillText("BREAK", edge, pipY)
+    for (let i = 0; i < stotal; i++) {
+      const pipX = flip ? edge - 38 - i * pipGap : edge + 38 + i * pipGap
+      ctx.beginPath(); ctx.arc(pipX, pipY, pipR, 0, Math.PI * 2)
+      ctx.fillStyle = i < sleft ? "#fbbf24" : "rgba(255,255,255,0.14)"; ctx.fill()
+      ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.lineWidth = 1; ctx.stroke()
+    }
+    ctx.textBaseline = "alphabetic"
+
+    // PORTRAIT at the outer edge, with an accent border (border uses the CVD-safe side colour when on).
+    drawHudPortrait(ctx, fighter, portraitX, hpY, TH_PS, edgeCol, anim.flash)
+
+    ctx.restore()   // pop shake
+  }
+
   // COMBO-BREAK PROMPT (teach-the-system cue): the moment a fighter is BEING combo'd AND can actually afford
   // a break right now, flash a small "BREAK!" pill with that fighter's exact input beside their HUD — so a
   // player who doesn't know the system yet sees, in the moment, "you can escape right now, here's how." It is
@@ -4139,7 +4440,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     if (!hasEnergy && (fighter.comboBreakerCd || 0) > 0) return false                  // cooldown-cost gate
     return true
   }
-  function drawBreakPrompt(fighter, opponent, x, flip) {
+  function drawBreakPrompt(fighter, opponent, x, flip, pbw = barW) {
     if (!canBreakNow(fighter, opponent)) return
     const cc = fighter.controls || {}
     const label = `⛓ BREAK!  ${prettyKey(cc.block)} + ${prettyKey(cc.special)}`
@@ -4147,7 +4448,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.font = "800 12px Arial"
     const padX = 10, hgt = 20
     const boxW = ctx.measureText(label).width + padX * 2
-    const bx   = flip ? (x + barW + 20 - boxW) : x                    // right-align under P2's panel, left under P1's
+    const bx   = flip ? (x + pbw + 20 - boxW) : x                    // right-align under P2's panel, left under P1's
     const by   = hpY + 14 + barH + 18                                 // just below the BREAK-pip strip
     const pulse = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.3)        // deterministic flash (no Math.random)
     rrect(ctx, bx, by, boxW, hgt, 6)
@@ -4187,16 +4488,21 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.font = "700 10px Arial"; ctx.textAlign = "center"; ctx.fillStyle = "#ff6b6b"; ctx.fillText("◆ BOSS ◆", cw / 2, y + h + 14)
     ctx.restore()
   }
+  const themed = _hudThemed
+  const tPanelW  = tBarW + 20
+  const p1PanelX = themed ? (pad + TH_PS + TH_GAP) : pad
+  const p2PanelX = themed ? (cw - pad - TH_PS - TH_GAP - tPanelW) : (cw - pad - barW - 20)
+  const breakW   = themed ? tBarW : barW
   if (boss) {
     const human = boss === p2 ? p1 : p2
-    drawHealthPanel(pad, false, human)   // the human player, on the left
+    if (themed) drawThemedHealthPanel(false, human); else drawHealthPanel(pad, false, human)   // the human player, on the left
     drawBossBar(boss)
-    drawBreakPrompt(human, boss, pad, false)
+    drawBreakPrompt(human, boss, p1PanelX, false, breakW)
   } else {
-    drawHealthPanel(pad, false, p1)
-    drawHealthPanel(cw - pad - barW - 20, true,  p2)
-    drawBreakPrompt(p1, p2, pad, false)
-    drawBreakPrompt(p2, p1, cw - pad - barW - 20, true)
+    if (themed) { drawThemedHealthPanel(false, p1); drawThemedHealthPanel(true, p2) }
+    else        { drawHealthPanel(pad, false, p1); drawHealthPanel(cw - pad - barW - 20, true, p2) }
+    drawBreakPrompt(p1, p2, p1PanelX, false, breakW)
+    drawBreakPrompt(p2, p1, p2PanelX, true, breakW)
   }
 
   const pipCX = cw / 2, pipY = hpY + 22, pipR = 7, pipGap = 20, maxWins = 2
@@ -4220,7 +4526,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
   const enY = ch - enH - pad - 14
 
-  function drawEnergyPanel(x, flip, fighter) {
+  function drawEnergyPanel(x, flip, fighter, pbw = barW) {
     if (!fighter) return
     // Maki Zenin: the ONLY roster character with no resource meter at all — not
     // even a "no-meter flavor" label (Toji/Shinobu draw an empty flavored bar).
@@ -4255,9 +4561,9 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       if (reverted) mainCol = "#f59e0b"   // amber while locked out in human form
     }
 
-    _metalPanel(ctx, x, enY - 14, barW + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)
+    _metalPanel(ctx, x, enY - 14, pbw + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)
 
-    const labelX = flip ? x + barW + 12 : x + 8
+    const labelX = flip ? x + pbw + 12 : x + 8
     const labelAlign = flip ? "right" : "left"
     ctx.font = "bold 9px Arial"; ctx.textAlign = labelAlign; ctx.textBaseline = "alphabetic"
 
@@ -4265,7 +4571,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.fillStyle = "rgba(107,114,128,0.6)"
       ctx.fillText(flavor, labelX, enY - 2)
       ctx.fillStyle = "#111827"
-      rrect(ctx, x + 8, enY, barW, enH, 4); ctx.fill()
+      rrect(ctx, x + 8, enY, pbw, enH, 4); ctx.fill()
       return
     }
 
@@ -4294,7 +4600,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const isHigh = ratio > 0.80
 
     ctx.fillStyle = emptyC
-    rrect(ctx, x + 8, enY, barW, enH, 4); ctx.fill()
+    rrect(ctx, x + 8, enY, pbw, enH, 4); ctx.fill()
 
     let fillColor = mainCol
     if (isCrit) {
@@ -4316,8 +4622,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.shadowColor = glowC
     }
 
-    const fillW = barW * ratio
-    const fillX = flip ? x + 8 + barW - fillW : x + 8
+    const fillW = pbw * ratio
+    const fillX = flip ? x + 8 + pbw - fillW : x + 8
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
     ctx.shadowBlur = 0
@@ -4327,7 +4633,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     // player can see when a forced-reverted fighter may transform again.
     if (isDevice) {
       const notch = 0.15
-      const nx = flip ? x + 8 + barW - barW * notch : x + 8 + barW * notch
+      const nx = flip ? x + 8 + pbw - pbw * notch : x + 8 + pbw * notch
       ctx.strokeStyle = reverted ? "#fde047" : "rgba(255,255,255,0.5)"
       ctx.lineWidth = 1.5
       ctx.beginPath(); ctx.moveTo(nx, enY - 1); ctx.lineTo(nx, enY + enH + 1); ctx.stroke()
@@ -4342,7 +4648,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       const selm  = Math.min(Math.max(fighter._frSel || 0, 0), 2)
       const pipR = 3.5, gap = 12, py = enY - 5
       // p1 (label left) → pips near the RIGHT of the bar; p2 (label right) → pips near the LEFT.
-      const startX = flip ? x + 14 : x + 8 + barW - 2 * gap
+      const startX = flip ? x + 14 : x + 8 + pbw - 2 * gap
       ctx.save(); ctx.textBaseline = "middle"; ctx.textAlign = "left"
       ctx.font = "bold 8px Arial"; ctx.fillStyle = "#fde047"
       ctx.fillText("⚡", startX - 12, py)
@@ -4368,7 +4674,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.font = "bold 10px Arial"; ctx.textBaseline = "middle"
       const tw = ctx.measureText(label).width
       const bw = tw + 14, bh = 16, by = enY - bh - 6
-      const bx = flip ? x + barW + 20 - bw : x
+      const bx = flip ? x + pbw + 20 - bw : x
       rrect(ctx, bx, by, bw, bh, 5)
       ctx.fillStyle = "rgba(74,46,92,0.85)"; ctx.fill()                 // Chrollo Phantom-Troupe purple
       ctx.strokeStyle = "#c084fc"; ctx.lineWidth = 1.2; ctx.stroke()
@@ -4382,7 +4688,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
   }
 
   // Boss has infinite meter → its energy panel is meaningless; the human player keeps theirs.
-  if (boss) { drawEnergyPanel(pad, false, boss === p2 ? p1 : p2) }
+  if (boss) { drawEnergyPanel(themed ? p1PanelX : pad, false, boss === p2 ? p1 : p2, breakW) }
+  else if (themed) { drawEnergyPanel(p1PanelX, false, p1, tBarW); drawEnergyPanel(p2PanelX, true, p2, tBarW) }
   else { drawEnergyPanel(pad, false, p1); drawEnergyPanel(cw - pad - barW - 20, true, p2) }
 }
 

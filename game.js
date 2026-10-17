@@ -346,8 +346,11 @@ import {
   drawAccountScreen, getAccountButtons,
   resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
   drawImageFit,   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
-  setColorblindHud   // ACCESSIBILITY: push the persisted colorblind-HUD flag into ui.js's health-panel renderer
+  setColorblindHud,   // ACCESSIBILITY: push the persisted colorblind-HUD flag into ui.js's health-panel renderer
+  setHudThemed, getHudThemed,   // THEMED HUD style (portrait + per-character accent). Classic restores the exact old look.
+  drawHudPortrait   // THEMED HUD: shared portrait renderer (used by the FFA 3–4 player bars)
 } from "./ui.js"
+import { getHudAccent } from "./hud_theme.js"   // THEMED HUD: per-character accent colour (FFA bars)
 import { CREDITS, SOURCED_ART, artistLineForCharacter, allAttributedKeys } from "./credits.js"
 import { poolAcquire, poolRelease, poolStats, poolResetStats } from "./pool.js"
 import { createAccount, ensureDefaultAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator,
@@ -693,6 +696,14 @@ function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms
 let colorblindHud = (() => { try { return localStorage.getItem("ms_colorblind_hud") === "1" } catch (_) { return false } })()
 function setColorblindMode(on) { colorblindHud = !!on; try { localStorage.setItem("ms_colorblind_hud", colorblindHud ? "1" : "0") } catch (_) {} ; setColorblindHud?.(colorblindHud) }
 setColorblindHud?.(colorblindHud)   // sync ui.js to the persisted value at load
+
+// THEMED HUD style (COSMETIC). Default ON ("Themed" = per-character portrait + accent trim + name plate).
+// "Classic" (false) restores the EXACT previous health-bar look. Self-contained localStorage like the
+// other HUD toggles (no SAVE_VERSION coupling). The renderer lives in ui.js; setHudThemed pushes the flag.
+// Display-only: zero sim/balance/net impact.
+let hudThemed = (() => { try { const v = localStorage.getItem("ms_hud_style"); return v === null ? true : v !== "classic" } catch (_) { return true } })()
+function setHudStyle(themed) { hudThemed = !!themed; try { localStorage.setItem("ms_hud_style", hudThemed ? "themed" : "classic") } catch (_) {} ; setHudThemed?.(hudThemed) }
+setHudThemed?.(hudThemed)   // sync ui.js to the persisted value at load
 // BRUTALITY ENGINE (real gore-style, per-MOVE finishers). Eligible = the tonally-appropriate prototype
 // roster: horror slashers + canonically-brutal killers. zaraki_shikai shares zaraki's table (same fighter).
 // HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
@@ -19956,22 +19967,33 @@ function drawFFAHud() {
   const n = ffaState.fighters.length
   const gap = 12, totalW = Math.min(cw - 80, n * 240), barW = (totalW - (n - 1) * gap) / n
   const x0 = cw / 2 - totalW / 2, y = 20, h = 20
+  const themed = getHudThemed?.()
+  const PS = themed ? 34 : 0   // portrait size (themed only)
   ffaState.fighters.forEach((f, i) => {
     if (!f) return
     const x = x0 + i * (barW + gap)
     const frac = Math.max(0, (f.health || 0) / (f.maxHealth || 1))
     // TEAM MODE: bar colour = team colour (visual team indicator); FFA: per-slot colour.
-    const col = ffaState.teamMode ? (TEAM_COLORS[f.team] || "#94a3b8") : FFA_BAR_COLORS[i]
+    // THEMED (non-team): use the per-character accent so each bar reads as that fighter.
+    const slotCol = ffaState.teamMode ? (TEAM_COLORS[f.team] || "#94a3b8") : FFA_BAR_COLORS[i]
+    const col = (themed && !ffaState.teamMode && !f.eliminated) ? getHudAccent(f) : slotCol
     ctx.save()
     ctx.fillStyle = "rgba(8,12,26,0.85)"; ctx.fillRect(x - 2, y - 2, barW + 4, h + 4)
-    if (ffaState.teamMode) { ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, barW + 4, h + 4) }
+    if (ffaState.teamMode) { ctx.strokeStyle = slotCol; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, barW + 4, h + 4) }
     ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(x, y, barW, h)
     ctx.fillStyle = f.eliminated ? "#4b5563" : col
     ctx.fillRect(x, y, barW * frac, h)
     ctx.fillStyle = f.eliminated ? "#9ca3af" : "#f1f5f9"
     ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
     const tag = ffaState.teamMode ? `[${f.team}] ` : ""
-    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, x + 2, y + h + 10)
+    const labelX = themed ? x + PS + 6 : x + 2
+    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, labelX, y + h + 10)
+    // THEMED: a small portrait at the slot's outer (left) edge, accent-bordered.
+    if (themed) {
+      ctx.save(); if (f.eliminated) ctx.globalAlpha = 0.5
+      try { drawHudPortrait(ctx, f, x, y + h + 2, PS, ffaState.teamMode ? slotCol : col) } catch (_) {}
+      ctx.restore()
+    }
     ctx.restore()
   })
   // Mode badge + living count (per-team survivor tally in team mode).
@@ -20081,6 +20103,8 @@ const juiceParticleRect = { x: 0, y: 636, w: 92, h: 30 }
 const hitFxRect         = { x: 0, y: 676, w: 92, h: 30 }
 const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
 const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody stage grade + fog + vignette
+// HUD STYLE toggle — Themed (portrait + per-character accent) / Classic (exact previous look). x set by _layoutSettings.
+const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -20088,7 +20112,7 @@ const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
 // short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
 // draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
 let settingsScroll = 0
-const SETTINGS_CONTENT_BOTTOM = 812   // lowest content row (Atmosphere, below the Hit Sounds row); maxScroll derives from the viewport
+const SETTINGS_CONTENT_BOTTOM = 848   // lowest content row (HUD Style, below Atmosphere); maxScroll derives from the viewport
 function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
 function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
@@ -20139,6 +20163,7 @@ function _layoutSettings() {
   colorblindToggleRect.x = rx
   touchToggleRect.x = rx
   n7OirokeToggleRect.x = rx
+  hudStyleToggleRect.x = rx
   // VISUAL FX (JUICE) 2×2 grid: two 92px columns in the right column.
   juiceShakeRect.x    = rx
   juiceFlashRect.x    = rx + 98
@@ -20276,9 +20301,12 @@ function drawSettingsScreen() {
     fxBox(hitSndP2Rect, `P2: ${juiceSettings.hitSoundPack(1) === "sparking" ? "SPARK" : "CLASSIC"}`, juiceSettings.hitSoundPack(1) === "sparking", "#ffd24a")
     // POLISH: Atmosphere (moody stage grade + fog + vignette).
     fxBox(atmosphereRect, `Atmosphere: ${juiceSettings.atmosphere ? "ON" : "OFF"}`, juiceSettings.atmosphere, "#8b5cf6")
+    // THEMED HUD style — Themed (portrait + per-character accent) / Classic (exact previous look).
+    fxBox(hudStyleToggleRect, `HUD: ${hudThemed ? "THEMED" : "CLASSIC"}`, hudThemed, "#38bdf8")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
+    ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21505,6 +21533,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, hitSndP1Rect)) { juiceSettings.cycleHitSoundPack(0); break }   // SPARKING ZERO: Sparking ↔ Classic (P1)
       if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
       if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
+      if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.

@@ -552,7 +552,9 @@ import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // expl
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
-import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
+import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
+import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
+import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
 import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS, SZ_HIT_LONG_FINISHER, SZ_FLURRY, SZ_BARRAGE, SZ_FINISHER_BOOM, SZ_FINISHER_RUMBLE, SZ_STREAK, SZ_BARRAGE_HINT } from "./sfx_map.js"   // SPARKING ZERO — tier mapping + Phase-2 finisher/flurry/barrage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
@@ -935,6 +937,7 @@ const rewindState = { active: false, phase: "idle", timer: 0, snapIndex: -1, tar
 // Is any uninterruptible cinematic / finisher / domain currently live? (Used to gate BOTH sampling and activation.)
 function _rewindUnsafeNow() {
   if (brutalityState.active) return true
+  if (isBrutalityCinematicActive()) return true
   if (activeDomains.length > 0) return true
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
@@ -16800,9 +16803,20 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
-  if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → victory
+  if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → fatality?victory : brutality
     const _fwf = fatalityWinner(); updateFatalityCinematic({ ultPressed: _fwf ? !!(readRawControls(_fwf) || {}).ultimate : false, sound })
-    if (fatalityDone()) { clearFatalityCinematic(); _enterVictoryScreen() }
+    if (fatalityDone()) {
+      const _perf = fatalityWasPerformed(), _fw = fatalityWinner()
+      clearFatalityCinematic()
+      // window expired with NO fatality input → the loser gets brutalized by the winner's canon signature (if any)
+      if (!_perf && _fw && activateBrutalityCinematic(_fw, _fw === p1 ? p2 : p1)) return
+      _enterVictoryScreen()
+    }
+    return
+  }
+  if (isBrutalityCinematicActive()) {   // canon BRUTALITY cutaway plays out — freeze combat; on done → victory
+    updateBrutalityCinematic({ sound })
+    if (brutalityCinematicDone()) { clearBrutalityCinematic(); _enterVictoryScreen() }
     return
   }
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
@@ -19832,6 +19846,7 @@ function drawBattle() {
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
+  drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -23665,6 +23680,12 @@ gameLoop()
       finisherFor:  (key, move = null) => { const f = _resolveBrutalityFinisher(String(key || "").toLowerCase(), move); return { name: f.name, gore: f.gore, klassic: f === BRUTALITY_KLASSIC } },
       moves:        (key) => { const k = String(key || "").toLowerCase(); const t = BRUTALITY_FINISHERS[k === "zaraki_shikai" ? "zaraki" : k]; return t ? Object.keys(t) : [] },
       finishers:    () => Object.keys(BRUTALITY_FINISHERS),
+      // CANON BRUTALITY cutaway (concept-driven; plays on FINISH-window timeout). Which winners have a concept +
+      // a frame-exact driver to activate/step/inspect it deterministically (used by brutality_cine_live harness).
+      cineConcepts: () => Object.keys(BRUTALITY_CONCEPTS),
+      cineStatus:   () => brutalityCinematicStatus(),
+      cineTrigger:  (winner = "p1") => { const w = winner === "p1" ? p1 : p2, v = winner === "p1" ? p2 : p1; clearBrutalityCinematic(); return { started: activateBrutalityCinematic(w, v), ...brutalityCinematicStatus() } },
+      cineStep:     (n = 1) => { for (let i = 0; i < n; i++) updateBrutalityCinematic({ sound }); return brutalityCinematicStatus() },
       // Read the killing-blow-move stamp combat.js records on a fighter (Stage 2 real-combat verification).
       killMove:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._killingBlowMove ?? null) : null },
       // IMPACT HIT (obito prototype) — live state readout + a frame-exact driver (hold a phase for capture).

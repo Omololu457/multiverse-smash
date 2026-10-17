@@ -19,6 +19,9 @@ const STRIKES = [16, 24, 32, 40, 48], STRIKES_END = 54, CHOP = 70, END = 138
 export function isFatalityActive() { return !!_f && _f.phase !== "done" }
 export function fatalityDone() { return !!_f && _f.phase === "done" }
 export function fatalityWinner() { return _f ? _f.winner : null }
+// true only if the player actually INPUT a fatality (window → "fatality" phase); false if the window timed out.
+// game.js reads this (before clearing) to decide: performed → victory; timed-out → play the winner's brutality.
+export function fatalityWasPerformed() { return !!_f && !!_f.performed }
 export function fatalityStatus() { return _f ? { phase: _f.phase, t: _f.t, style: _f.style, imgReady: _f.imgReady } : { phase: null } }
 export function clearFatalityCinematic() { _f = null }
 
@@ -40,7 +43,7 @@ export function updateFatalityCinematic(ctx = {}) {
   if (s.phase === "window") {
     s.t++
     const ult = !!ctx.ultPressed
-    if (ult && !s.prevUlt) { s.phase = "fatality"; s.t = 0 }   // rising edge → perform the fatality
+    if (ult && !s.prevUlt) { s.phase = "fatality"; s.t = 0; s.performed = true }   // rising edge → perform the fatality
     s.prevUlt = ult
     if (s.phase === "window" && s.t >= WINDOW_FRAMES) s.phase = "done"   // timed out → normal victory
     return

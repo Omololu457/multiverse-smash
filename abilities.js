@@ -5,7 +5,7 @@
 import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
-import { sound }      from "./sound.js"
+import { sound, juicePickVariant, juicePitch }      from "./sound.js"
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
@@ -22491,12 +22491,18 @@ export function updateShisuiFallenFlicker(fighter) {
   const dx = fighter.x - (fighter._flickPrevX != null ? fighter._flickPrevX : fighter.x)
   if (!fighter.eliminated && Math.abs(dx) >= 70 && (fighter._flickBlinkCd || 0) <= 0) {
     fighter._flickBlinkCd = 10
+    if (!(fighter._spriteCastTimer > 0)) shisuiFallenFlickerCue(fighter)   // AUDIO — flicker-dash snap (suppressed during an ult cast so it layers cleanly)
     if ((fighter._flickerCharges || 0) > 0) {
       fighter._flickerCharges--
       fighter._flickGhosts.push({ x: fighter._flickPrevX, y: fighter.y, facing: fighter.facing || 1, t: SHISUI_GHOST_LIFE })
       if (fighter._flickGhosts.length > SHISUI_FLICKER_MAX) fighter._flickGhosts.shift()
     }
   }
+  // DASH SNAP — his regular Flicker-Step dash is a continuous fast move (dashTimer), not an instant >=70 jump,
+  // so catch its rising edge too (shared cooldown with the teleport-blink above avoids a double-trigger).
+  const _shiDashing = (fighter.dashTimer || 0) > 0
+  if (_shiDashing && !fighter._shiPrevDashing && !(fighter._spriteCastTimer > 0) && (fighter._flickBlinkCd || 0) <= 0) { shisuiFallenFlickerCue(fighter); fighter._flickBlinkCd = 6 }
+  fighter._shiPrevDashing = _shiDashing
   if ((fighter._flickBlinkCd || 0) > 0) fighter._flickBlinkCd--
   fighter._flickPrevX = fighter.x
   // HIT ABSORB — if Shisui takes damage while an afterimage is live, the ghost EATS the hit (health restored,
@@ -22696,6 +22702,61 @@ function shisuiFallenShadowClonePursuit(fighter, context) {
 // ULTIMATE — Shunshin: Thousand Shadows. Flicker between 5 points around the foe striking from each
 // (afterimage left at every departure), then a final committed thrust. Guaranteed cinematic (~196 EFF).
 // Up+Ult = Kotoamatsukami (Phase 4) and Down+Ult = Emerald Susanoo (Phase 3) are NOT wired yet → no-op.
+// ── SHISUI (FALLEN) move AUDIO — a DISTINCT, layered sound design per move (juice-pack clips; no two moves
+// share the same combo). Audio-only; variety is seeded off position (never gameRng / Math.random and no new
+// sim field) so it can't desync a match. Lives here in abilities.js so it survives the game.js churn. ──
+const SHI_WARP   = ["warp_wobble_01", "warp_wobble_02"]
+const SHI_STRIKE = ["crack_sizzle_bright", "impact_crack_01", "sz_hit_short_03", "sz_hit_short_05"]
+const SHI_TAIL   = ["sz_hit_long_tail_09", "sz_hit_long_tail_11", "sz_hit_long_tail_13"]
+function _shiSfx(id, opts) { try { sound.playJuiceSfx?.(id, opts || {}) } catch (_) {} }
+function _shiPick(ids, seed) { return juicePickVariant(ids, seed | 0, 0) || ids[0] }
+function _shiPitch(seed) { return juicePitch(seed | 0, 0, 0.05) }
+// FLICKER STEP — a sharp ELECTRIC teleport snap. Layers OVER the generic flicker warp into a lightning-
+// flicker so his dash reads distinct from every other teleporter (not another reused warp clip).
+function shisuiFallenFlickerCue(fighter) {
+  const s = fighter.x | 0
+  _shiSfx("crack_sizzle_bright", { gain: 0.4, pitch: _shiPitch(s + 11) })
+  _shiSfx(_shiPick(["sz_click_02", "sz_click_04", "sz_click_06"], s), { gain: 0.3, pitch: _shiPitch(s + 29) })
+}
+// THOUSAND SHADOWS (neutral ult): a GATHER, then 5 rapid flicker-STRIKES, then a HUGE final thrust.
+function shisuiFallenThousandCue(fighter) {
+  const s = fighter.x | 0
+  _shiSfx("boom_anticipation_suck", { gain: 0.5, pitch: _shiPitch(s) })
+  _shiSfx("charge_swell_riser", { gain: 0.45, delay: 2 / 60 })
+}
+function shisuiFallenStrikeCue(fighter, i) {
+  const s = (fighter.x | 0) + i * 7
+  _shiSfx(_shiPick(SHI_STRIKE, s), { gain: 0.5, pitch: _shiPitch(s) })
+  _shiSfx(_shiPick(SHI_WARP, s + 3), { gain: 0.22, pitch: _shiPitch(s + 5) })
+}
+function shisuiFallenThrustCue(fighter) {
+  const s = fighter.x | 0
+  _shiSfx("boom_huge_01", { gain: 0.95, pitch: _shiPitch(s), ultBoom: true, duckSec: 0.5 })
+  _shiSfx(_shiPick(SHI_TAIL, s + 13), { gain: 0.6, delay: 2 / 60 })
+  _shiSfx("rumble_tail_01", { gain: 0.5, delay: 6 / 60 })
+}
+// KOTOAMATSUKAMI (Up ult): an eerie reality-DROP + ominous drone; a crimson sting on the Uchiha curse-break.
+function shisuiFallenKotoCue(fighter) {
+  const s = fighter.x | 0
+  _shiSfx("pitch_drop_slowmo", { gain: 0.75, pitch: _shiPitch(s) })
+  _shiSfx("energy_hum_low", { gain: 0.4, delay: 3 / 60 })
+}
+// EMERALD SUSANOO (Down ult): the giant avatar MATERIALIZES — swell → roar-boom → long boom → rumble.
+function shisuiFallenSusanoCue(fighter, tier2) {
+  if (tier2) { _shiSfx("charge_hum_rise", { gain: 0.5 }); _shiSfx("boom_huge_01", { gain: 0.85, delay: 4 / 60, ultBoom: true, duckSec: 0.5 }); return }
+  _shiSfx("charge_swell_riser", { gain: 0.6 })
+  _shiSfx("boom_huge_02_roar", { gain: 1.0, delay: 5 / 60, ultBoom: true, duckSec: 0.6 })
+  _shiSfx("impact_frame_boom_long", { gain: 0.5, delay: 7 / 60 })
+  _shiSfx("rumble_tail_01", { gain: 0.7, delay: 10 / 60 })
+}
+// FLICKER TIME (speed buff): electric charge-up → rising sting → warp (he drops into flicker speed).
+function shisuiFallenFlickerTimeCue(fighter) {
+  const s = fighter.x | 0
+  _shiSfx("charge_hum_rise", { gain: 0.55, pitch: _shiPitch(s) })
+  _shiSfx("sting_pitch_rise_hold", { gain: 0.5, delay: 2 / 60 })
+  _shiSfx(_shiPick(SHI_WARP, s + 7), { gain: 0.4, delay: 1 / 60 })
+}
+
 export function executeShisuiFallenUltimate(fighter, context) {
   if (!isShisuiFallen(fighter)) return false
   const variant = fighter._ultVariant || "thousandShadows"
@@ -22708,6 +22769,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 62)   // flicker-through cinematic i-frames
   fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 62
   fighter._flickGlareFx = 18
+  shisuiFallenThousandCue(fighter)   // AUDIO — the gather before the flicker-strike flurry
   // 5 flicker-strikes around the foe (alternating sides), then the final thrust.
   const beats = [10, 18, 26, 34, 42]
   beats.forEach((delay, i) => {
@@ -22721,6 +22783,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
       fighter.facing = -side
       fighter.x = oCx + side * (50 + myW / 2)
       if (Math.abs(fighter.x - departX) >= 70) shisuiFallenPushGhost(fighter, departX)
+      shisuiFallenStrikeCue(fighter, i)   // AUDIO — each flicker-strike (varied crackle + warp)
       if ((o.invulnTimer || 0) > 0) return
       const kdir = (fighter.facing || 1)
       o.hitstun = Math.max(o.hitstun || 0, 20); o.vx = kdir * 5; o.vy = -3; o.colorFlash = 8
@@ -22734,6 +22797,7 @@ export function executeShisuiFallenUltimate(fighter, context) {
     if (!o || o.eliminated) return
     shisuiFallenBlinkTo(fighter, o, 46)
     fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 16
+    shisuiFallenThrustCue(fighter)   // AUDIO — the big final thrust (huge boom + long-tail + rumble)
     if ((o.invulnTimer || 0) > 0) return
     const kdir = (fighter.facing || 1)
     o.hitstun = Math.max(o.hitstun || 0, 34); o.vx = kdir * 16; o.vy = -8; o.colorFlash = 14
@@ -22769,10 +22833,11 @@ function shisuiFallenKotoamatsukami(fighter, context) {
   fighter._kotoOverlay = K.overlay                                   // screen-space genjutsu-world (drawShisuiKotoOverlay)
   fighter._kotoFallen = K.overlay                                    // crimson-tint the overlay (Fallen flavour)
   shisuiFallenXform(fighter, "crimson")                              // transformation beat — ink + crimson rings
+  shisuiFallenKotoCue(fighter)                                       // AUDIO — eerie reality-drop + ominous drone
   if (opp) {
     const isUchiha = SHISUI_FALLEN_UCHIHA.has((opp.rosterKey || "").toLowerCase())   // EASTER EGG — the Curse-Breaker dominates a fellow Uchiha
     opp._kotoMirror = isUchiha ? K.mirrorUchiha : K.mirror           // mirror L/R + lock specials/ult
-    if (isUchiha) fighter._kotoCurseBreak = 48                       // extra crimson "curse-break" eye + flash
+    if (isUchiha) { fighter._kotoCurseBreak = 48; _shiSfx("sting_pitch_rise_hold", { gain: 0.6, delay: 8 / 60 }) }   // extra crimson "curse-break" eye + flash + crimson sting
     schedulePendingSpawn(30, () => {                                 // a single chip as the genjutsu takes hold
       const o = getTargetResolver(context)(fighter) || opp
       if (!o || o.eliminated) return
@@ -22798,6 +22863,7 @@ function enterShisuiFlickerTime(fighter, context) {
   if ((fighter.energy || 0) < SHISUI_FLICKER_TIME.threshold) return false   // near-max Chakra (not spent — it drains)
   const T = SHISUI_FLICKER_TIME
   fighter._shiFlickerActive = true
+  shisuiFallenFlickerTimeCue(fighter)   // AUDIO — electric charge-up + warp into flicker speed
   fighter.currentForm = "flickerTime"
   fighter._shiFtBaseDash = fighter.dashSpeed
   fighter.attackSpeedMultiplier = T.atkSpeed                 // faster startup/recovery (getAttackDuration divides)
@@ -22896,6 +22962,7 @@ function enterShisuiFallenSusano(fighter, context) {
     PS.t = Math.max(PS.t, S2.dur); PS._shellFlash = 16; PS.action = null; PS.pose = "stance"; PS.poseT = 20
     fighter.colorFlash = 18; fighter.vx = 0; fighter._susanoClimbFx = 24
     shisuiFallenXform(fighter, "emerald")
+    shisuiFallenSusanoCue(fighter, true)   // AUDIO — the avatar reforms stronger (re-surge)
     try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.2, 26); shakeCamera(context, 20, 26) } catch (_) {}
     return true
   }
@@ -22907,6 +22974,7 @@ function enterShisuiFallenSusano(fighter, context) {
   fighter._spriteCastMove = "finisher"; fighter._spriteCastTimer = 24
   fighter.colorFlash = 16; fighter.vx = 0
   shisuiFallenXform(fighter, "emerald")
+  shisuiFallenSusanoCue(fighter, false)   // AUDIO — the giant emerald avatar materializes
   try { focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.12, 24); shakeCamera(context, 14, 20) } catch (_) {}
   return true
 }

@@ -79,7 +79,8 @@ superman · superman_classic · superman_dcuc · superman_fighter · superman_ne
 Batch 12A DONE: spiderman x4 Web-Slinger(strings web + flickerRush swing) + miles Venom-Strike(flickerRush+lightning cyan) + gwen Spider-Gwen(web pink). No new FX. Batch 12B DONE: iron_man(Unibeam cyan)/iron_man_2(Repulsor barrage)/iron_man_3(Unibeam gold)/omniman(Viltrumite punch-through impale red). No new FX. ★97 concepts total (phases 1-12). Next: Phase 13 OPM/Ben10/Baki.
 spiderman · spiderman_mci · spiderman_raimi · spiderman_ssf2 · miles · gwen · iron_man · iron_man_2 · iron_man_3 · omniman
 
-## Phase 13 — One Punch (OPM/Ben10/Baki)   ☐
+## Phase 13 — One Punch (OPM/Ben10/Baki)   ☑ DONE
+saitama(Serious Punch 7-ring shockwave)/genos(Incineration)/ben10(Omnitrix)/vilgax(Conqueror impale)/baki(Demon Rush)/ippo(Dempsey Roll). No new FX. ★103 concepts total (phases 1-13). Next: Phase 14 Infinite Timelines.
 saitama · genos · ben10 · vilgax · baki · ippo
 
 ## Phase 14 — Infinite Timelines (R&M/Rangers/Death Note)   ☐

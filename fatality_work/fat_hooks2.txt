@@ -1,0 +1,27 @@
+@@OLD@@
+import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
+@@NEW@@
+import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
+import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
+@@END@@
+@@OLD@@
+    if (!_tryStartImpactHit(winner) && !_tryStartBrutality(winner)) _enterVictoryScreen()
+@@NEW@@
+    if (!_tryStartImpactHit(winner) && !startFinishWindow(winner === "p1" ? p1 : p2, winner === "p1" ? p2 : p1) && !_tryStartBrutality(winner)) _enterVictoryScreen()
+@@END@@
+@@OLD@@
+  if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
+@@NEW@@
+  if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
+  if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → victory
+    const _fwf = fatalityWinner(); updateFatalityCinematic({ ultPressed: _fwf ? !!(readRawControls(_fwf) || {}).ultimate : false, sound })
+    if (fatalityDone()) { clearFatalityCinematic(); _enterVictoryScreen() }
+    return
+  }
+@@END@@
+@@OLD@@
+  _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
+@@NEW@@
+  _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
+  drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
+@@END@@

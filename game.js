@@ -552,6 +552,7 @@ import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // expl
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
+import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
 import { SPARKING_HIT_MAP, SPARKING_PHASE1_TIERS, SZ_HIT_LONG_FINISHER, SZ_FLURRY, SZ_BARRAGE, SZ_FINISHER_BOOM, SZ_FINISHER_RUMBLE, SZ_STREAK, SZ_BARRAGE_HINT } from "./sfx_map.js"   // SPARKING ZERO — tier mapping + Phase-2 finisher/flurry/barrage
 import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
@@ -6847,7 +6848,7 @@ function _checkMatchOver() {
     // first; it calls _enterVictoryScreen() itself when done. Otherwise go straight to the victory screen.
     // IMPACT HIT (obito prototype) plays FIRST as a lead-in beat; when it ends it either hands off to Brutality
     // (if the move has a real entry) or resolves to victory itself. Otherwise the normal Brutality/victory flow.
-    if (!_tryStartImpactHit(winner) && !_tryStartBrutality(winner)) _enterVictoryScreen()
+    if (!_tryStartImpactHit(winner) && !startFinishWindow(winner === "p1" ? p1 : p2, winner === "p1" ? p2 : p1) && !_tryStartBrutality(winner)) _enterVictoryScreen()
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
@@ -16778,6 +16779,11 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
+  if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → victory
+    const _fwf = fatalityWinner(); updateFatalityCinematic({ ultPressed: _fwf ? !!(readRawControls(_fwf) || {}).ultimate : false, sound })
+    if (fatalityDone()) { clearFatalityCinematic(); _enterVictoryScreen() }
+    return
+  }
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
   // Harness-only: hold the ultimate zoom-crop frame open (frozen, zoom pinned) for a frame-exact screenshot.
   if (_ultCropHold > 0) { _ultCropHold--; camera.zoom = _ultCropHoldZoom; camera.targetZoom = _ultCropHoldZoom; return }
@@ -19801,6 +19807,7 @@ function drawBattle() {
   _drawAnimFinisher()         // HIT FEEL (Phase C): anime-finisher silhouette/invert/burst-lines overlay, over the scene, under HUD
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
+  drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()

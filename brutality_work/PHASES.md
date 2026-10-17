@@ -83,8 +83,8 @@ spiderman · spiderman_mci · spiderman_raimi · spiderman_ssf2 · miles · gwen
 saitama(Serious Punch 7-ring shockwave)/genos(Incineration)/ben10(Omnitrix)/vilgax(Conqueror impale)/baki(Demon Rush)/ippo(Dempsey Roll). No new FX. ★103 concepts total (phases 1-13). Next: Phase 14 Infinite Timelines.
 saitama · genos · ben10 · vilgax · baki · ippo
 
-## Phase 14 — Infinite Timelines (R&M/Rangers/Death Note)   ◐ IN PROGRESS
-Batch 14A DONE: rick(Plasma kiBeam green)/rickprime(Portal kamuiSpiral; ★KEY LOWERCASED — engine lowercases rosterKey for lookup, camelCase rickPrime needs key 'rickprime')/morty+evilMorty(data-only, NOT playable manifest=0)/light(Death Note red dataFlood)/l_ryuuzaki(capoeira flickerRush). No new FX. Pending 14B (5 rangers).
+## Phase 14 — Infinite Timelines (R&M/Rangers/Death Note)   ☑ DONE
+Batch 14A DONE: rick(Plasma kiBeam green)/rickprime(Portal kamuiSpiral; ★KEY LOWERCASED — engine lowercases rosterKey for lookup, camelCase rickPrime needs key 'rickprime')/morty+evilMorty(data-only, NOT playable manifest=0)/light(Death Note red dataFlood)/l_ryuuzaki(capoeira flickerRush). No new FX. Batch 14B DONE: red_ranger_mmpr(Power Sword)/gold_samurai_ranger(Barracuda Blade)/samurai_red_ranger(Fire Smasher)/green_samurai_ranger(Forest Spear)/omega_ranger(Omega Blast). No new FX. ★114 concepts total (phases 1-14; 112 playable). Next: Phase 15 Wildcards (FINAL).
 rick · rickPrime · morty · evilMorty · red_ranger_mmpr · samurai_red_ranger · gold_samurai_ranger · green_samurai_ranger · omega_ranger · light · l_ryuuzaki
 
 ## Phase 15 — Wildcards (horror/originals)   ☐

@@ -71,15 +71,19 @@ export const HITFEEL = {
   koPiecePool: 90,                                                   // pooled pieces (reuses juiceFx budget)
   koPieces:    60,
 
-  // ── PHASE C: ANIME FINISHER (built in Phase C; values pre-declared for the config report) ──
+  // ── PHASE C: ANIME FINISHER. FULL cinematic reserved for ULTIMATE/finisher connects; HEAVY/special get the
+  //    shorter `pop`. Shared 2.5s cooldown (a full ULTIMATE bypasses it so it always gets its moment). ──
   finisher: {
-    cooldownFrames: 150,   // once per 2.5s max
-    freezeFrames:   7,     // INTENSITY-UP×2: a longer dramatic hold
+    cooldownFrames: 150,   // once per 2.5s max (heavy pops respect this; ultimates bypass)
+    freezeFrames:   7,     // FULL cinematic — a longer dramatic hold
     silhouetteFrames: 2,
     invertFrames:   2,
     burstLines:     24,
-    zoomIn:         1.70,  // punch-in scale (INTENSITY-UP×2)
+    zoomIn:         1.70,  // punch-in scale
+    tail:           12,    // frames after the freeze (invert/burst/snap-back)
     maxFlashesPerSec: 3,   // photosensitivity clamp
+    // QUICK POP for HEAVY / special: short freeze, light zoom, no full-screen invert, fewer burst spikes.
+    pop: { freezeFrames: 3, silhouetteFrames: 1, invertFrames: 0, burstLines: 12, zoomIn: 1.22, tail: 6 },
   },
 
   // ── GLOBAL ──

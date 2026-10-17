@@ -4141,7 +4141,7 @@ function _hudHealthAnim(fighter) {
   if (!s || s.maxHp !== maxHp) {
     // First sight of this fighter (or a maxHP change → new match/round): seed the
     // display AT the real value so nothing animates on spawn.
-    s = { dispHp: actual, trailHp: actual, lastActual: actual, hold: 0, flash: 0, shake: 0, big: false, maxHp }
+    s = { dispHp: actual, trailHp: actual, lastActual: actual, hold: 0, flash: 0, shake: 0, punch: 0, heal: 0, big: false, maxHp }
     _hudAnim.set(fighter, s)
   }
 
@@ -4153,7 +4153,10 @@ function _hudHealthAnim(fighter) {
     s.big  = big
     s.hold = 14                                  // ghost holds ~14 frames before draining
     s.flash = Math.max(s.flash, big ? 1 : 0.42)
-    s.shake = Math.max(s.shake, big ? 1 : 0)
+    s.shake = Math.max(s.shake, big ? 1 : 0.4)   // a small SHAKE on every hit now (was big-only)
+    s.punch = Math.max(s.punch, big ? 1 : 0.6)   // scale-PUNCH the bar on every hit (juicy pop)
+  } else if (actual > s.lastActual + 0.01 && (actual - s.lastActual) < maxHp * 0.6) {
+    s.heal = 1                                   // HP climbed by a plausible HEAL amount (not a full-bar round-reset refill) → edge glow + sparkles
   }
   s.lastActual = actual
 
@@ -4174,7 +4177,33 @@ function _hudHealthAnim(fighter) {
 
   s.flash = Math.max(0, s.flash - 0.06)
   s.shake = Math.max(0, s.shake - 0.08)
+  s.punch = Math.max(0, s.punch - 0.12)   // quick pop, settles fast
+  s.heal  = Math.max(0, s.heal  - 0.045)  // heal glow fades over ~22f
   return s
+}
+
+// HEAL feedback at the fill's LEADING edge: a soft green→white glow + a few rising sparkles while HP
+// climbs. Presentation-only, deterministic (sparkle layout seeded by index, animated by the `heal` decay
+// — no Math.random, no frame-flicker). edgeX = the advancing end of the fill.
+function _hpHealFx(ctx, edgeX, topY, h, heal) {
+  if (heal <= 0.02) return
+  ctx.save()
+  const gy = ctx.createLinearGradient(edgeX - 12, 0, edgeX + 4, 0)
+  gy.addColorStop(0, "rgba(120,240,170,0)")
+  gy.addColorStop(1, `rgba(206,255,224,${(0.5 * heal).toFixed(3)})`)
+  ctx.fillStyle = gy; ctx.fillRect(edgeX - 12, topY, 16, h)
+  ctx.globalCompositeOperation = "lighter"
+  const rise = 1 - heal                                   // 0 at heal start → 1 as it fades
+  for (let i = 0; i < 4; i++) {
+    const seed = (((i + 1) * 2654435761) >>> 0)
+    const sxo = ((seed % 13) - 6)                         // -6..6 horizontal
+    const a = heal * (1 - rise * 0.35)
+    if (a <= 0.02) continue
+    const r = 1.3 + 1.7 * heal
+    ctx.fillStyle = `rgba(212,255,226,${a.toFixed(3)})`
+    ctx.beginPath(); ctx.arc(edgeX + sxo, topY + h * 0.5 - rise * h * 1.5, r, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
 }
 
 // Chamfered ("corner-cut") rect path — the angular MK/Tekken container silhouette,
@@ -4301,7 +4330,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.save()
     _bevelPath(ctx, ghostX, hpY + 14, ghostW, barH, 4)
     const gg = ctx.createLinearGradient(0, hpY + 14, 0, hpY + 14 + barH)
-    gg.addColorStop(0, "#ffe3e3"); gg.addColorStop(1, "#ff6b6b")
+    gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
     ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"
     ctx.fill()
     ctx.restore()
@@ -4310,13 +4339,18 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillW = barW * dispRatio
     const fillX = flip ? trackX + barW - fillW : trackX
     if (fillW > 0.5) {
+      const punchS = anim.punch > 0.01 ? 1 + 0.26 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit
+      ctx.save()
+      if (punchS !== 1) { const cyf = hpY + 14 + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, hpY + 14, fillW, barH, 4)
       ctx.fillStyle = _hpGradient(ctx, fillX, hpY + 14, fillW, barH, dispRatio)
       ctx.fill()
       // top specular sheen line
       ctx.fillStyle = "rgba(255,255,255,0.18)"
       ctx.fillRect(fillX + 2, hpY + 15, Math.max(0, fillW - 4), 2)
+      ctx.restore()
     }
+    _hpHealFx(ctx, flip ? fillX : fillX + fillW, hpY + 14, barH, anim.heal)   // HEAL sparkles at the advancing edge
 
     ctx.restore()   // pop shake translate
 
@@ -4391,15 +4425,20 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const ghostX = flip ? trackX + tBarW - ghostW : trackX
     ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
     const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
-    gg.addColorStop(0, "#ffe3e3"); gg.addColorStop(1, "#ff6b6b")
+    gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
     ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"; ctx.fill(); ctx.restore()
     const fillW = tBarW * dispRatio
     const fillX = flip ? trackX + tBarW - fillW : trackX
     if (fillW > 0.5) {
+      const punchS = anim.punch > 0.01 ? 1 + 0.26 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit
+      ctx.save()
+      if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
       ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill()
       ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
+      ctx.restore()
     }
+    _hpHealFx(ctx, flip ? fillX : fillX + fillW, trackY, barH, anim.heal)   // HEAL sparkles at the advancing edge
 
     // BREAK pips (same resource read as classic).
     const stotal = COMBO_BREAKER.stocksPerRound

@@ -2286,7 +2286,9 @@ function _fireHitFeel(spark) {
   // SHAKE — tiny tier-scaled kick (respects the Screen Shake setting inside camera.shake).
   if (HITFEEL.shake[tier]) camera.shake?.(HITFEEL.shake[tier], HITFEEL.shake[tier] + 2)
   // ANIME FINISHER (Phase C) — dramatic freeze/silhouette/invert/burst/punch-in on a FINISHER hit.
-  if (tier === HIT_TIER.FINISHER) _triggerAnimFinisher(x, y, player)
+  // ANIME HIT — fire the 5-step cinematic on HEAVY / special / ULTIMATE hits (gated by the 2.5s cooldown,
+  // so it's a dramatic beat, not every jab). Element-tinted snap-back. Toggle via the Anime Finisher setting.
+  if (tier === HIT_TIER.HEAVY || tier === HIT_TIER.FINISHER || spark.category === "special") _triggerAnimFinisher(x, y, player, { color: elementColor(el) })
 }
 
 // DISNEY (Phase B): target hit-squash timeline — scaleX 1.08 / scaleY 0.9 for 3f, ease to 1,1 by ~8f.

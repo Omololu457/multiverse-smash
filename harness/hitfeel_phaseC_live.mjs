@@ -33,6 +33,14 @@ await page.evaluate(() => { window.__harness.juice.setHitFx("full"); window.__ha
 
 const coolDown = async () => { try { await page.waitForFunction(() => window.__harness.juice.finisherState().cooldown === 0 && !window.__harness.juice.finisherState().active, { timeout: 6000, polling: 50 }); } catch (_) {} };
 
+// 0) The anime hit fires on a real HEAVY / special hit (not LIGHT), gated by the cooldown.
+const heavyFires = await page.evaluate(() => { window.__harness.juice.hit("heavy", "p1"); return window.__harness.juice.finisherState().active; });
+ok(heavyFires === true, "a real HEAVY hit triggers the anime finisher");
+await coolDown();
+const lightFires = await page.evaluate(() => { window.__harness.juice.hit("light", "p1"); return window.__harness.juice.finisherState().active; });
+ok(lightFires === false, "a LIGHT hit does NOT trigger the anime finisher");
+await coolDown();
+
 // 1) Fire a finisher → freeze + cooldown armed; sequence runs (checked BEFORE the slow screenshot).
 const t0 = await page.evaluate(() => { const r = window.__harness.juice.triggerFinisher(); return { ...r, st: window.__harness.juice.finisherState() }; });
 ok(t0.active === true && t0.freeze > 0, `finisher fires (active, freeze=${t0.freeze})`);

@@ -97,8 +97,8 @@ export const camera = {
     // Applied here so the setting governs ALL camera shake (JUICE explosions + every existing caller).
     const scale = juiceSettings.shakeScale()
     if (scale <= 0) return
-    // Cap shake so it can never look like a glitch.
-    strength = Math.min(strength, 14) * scale
+    // Cap shake so it can never look like a glitch (raised 14→18 for the juicier hit-feel).
+    strength = Math.min(strength, 18) * scale
     this.shakeStrength = Math.max(this.shakeTimer > 0 ? this.shakeStrength : 0, strength)
     this.shakeTimer = Math.max(this.shakeTimer, duration)
   },

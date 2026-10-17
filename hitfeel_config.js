@@ -37,8 +37,8 @@ export const HIT_TIERS = Object.freeze({
 
 export const HITFEEL = {
   // ── PHASE A: PUNCHY HIT ──────────────────────────────────────────────────
-  // 1 FLASH — target white-tint duration (frames) per tier (via _impactFlash phase:"white"). INTENSITY-UP.
-  flashFrames: { light: 3, medium: 4, heavy: 5, finisher: 6 },
+  // 1 FLASH — target white-tint duration (frames) per tier (via _impactFlash phase:"white"). INTENSITY-UP×2.
+  flashFrames: { light: 3, medium: 5, heavy: 7, finisher: 9 },
   // 2 SOUND — sampled pack clip + gain per tier, on the impact frame (±4% deterministic pitch). INTENSITY-UP.
   sound: {
     light:    { clip: "impact_crack_01",   gain: 0.52 },
@@ -46,16 +46,17 @@ export const HITFEEL = {
     heavy:    { clip: "hit_heavy_boom_01",  gain: 0.95 },
     finisher: { clip: "hit_heavy_boom_01",  gain: 1.00 },
   },
-  // 3 PARTICLES — directional arced spark burst (gravity, never straight). Counts per tier. INTENSITY-UP.
-  sparkCount: { light: 7, medium: 13, heavy: 22, finisher: 30 },
-  sparkSpeed: { light: 3.3, medium: 4.5, heavy: 6.0, finisher: 6.8 },
+  // 3 PARTICLES — directional arced spark burst (gravity, never straight). Counts per tier. INTENSITY-UP×2.
+  sparkCount: { light: 10, medium: 18, heavy: 30, finisher: 42 },
+  sparkSpeed: { light: 4.0, medium: 5.5, heavy: 7.2, finisher: 8.2 },
   // 4 KNOCKBACK FEEL — target sprite offset a few px past its sim position, eased back (visual only);
-  //   attacker recoils a touch on HEAVY/FINISHER. NEVER moves hitboxes. INTENSITY-UP.
-  kbOffset:        { light: 4, medium: 8, heavy: 14, finisher: 20 },  // px the TARGET sprite is nudged
-  kbEase:          0.32,                                              // per-frame ease-back toward 0 (snappier recoil)
-  attackerRecoil:  { heavy: 3, finisher: 5 },                         // px the ATTACKER sprite bounces back
-  // 5 SHAKE — camera kick scaled by tier (respects the Screen Shake setting + the 14-cap inside camera.shake). INTENSITY-UP.
-  shake: { light: 2, medium: 5, heavy: 9, finisher: 13 },
+  //   attacker recoils a touch on HEAVY/FINISHER. NEVER moves hitboxes. INTENSITY-UP×2.
+  kbOffset:        { light: 6, medium: 12, heavy: 20, finisher: 28 }, // px the TARGET sprite is nudged
+  kbEase:          0.30,                                              // per-frame ease-back toward 0 (snappier recoil)
+  attackerRecoil:  { heavy: 4, finisher: 7 },                         // px the ATTACKER sprite bounces back
+  // 5 SHAKE — camera kick scaled by tier (respects the Screen Shake setting + the cap inside camera.shake,
+  //   now raised to 18). INTENSITY-UP×2.
+  shake: { light: 4, medium: 9, heavy: 15, finisher: 18 },
   // 6 DAMAGE NUMBERS — arc drift + 0.6s fade; HEAVY/FINISHER bigger + different colour; combo total. INTENSITY-UP (punchier size).
   dmg: {
     fadeFrames: 36,                                                  // ~0.6s @60fps (was 45)
@@ -67,17 +68,17 @@ export const HITFEEL = {
   },
   // 7 KO POP — burst of coloured pieces on the final hit (ash dissolve handled by elements/FIRE).
   //   NOT applied to Brutality finishes (they keep their own system). INTENSITY-UP.
-  koPiecePool: 80,                                                   // pooled pieces (reuses juiceFx budget)
-  koPieces:    44,
+  koPiecePool: 90,                                                   // pooled pieces (reuses juiceFx budget)
+  koPieces:    60,
 
   // ── PHASE C: ANIME FINISHER (built in Phase C; values pre-declared for the config report) ──
   finisher: {
     cooldownFrames: 150,   // once per 2.5s max
-    freezeFrames:   6,     // 4-6 (INTENSITY-UP: a beat longer)
+    freezeFrames:   7,     // INTENSITY-UP×2: a longer dramatic hold
     silhouetteFrames: 2,
     invertFrames:   2,
-    burstLines:     18,
-    zoomIn:         1.55,  // punch-in scale (INTENSITY-UP)
+    burstLines:     24,
+    zoomIn:         1.70,  // punch-in scale (INTENSITY-UP×2)
     maxFlashesPerSec: 3,   // photosensitivity clamp
   },
 

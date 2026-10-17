@@ -32,6 +32,9 @@ async function boot(p1="goku"){
   await page.goto(`${base}/index.html?harness=1&p1=${p1}&p2=${p1}`,{waitUntil:"load"})
   await page.waitForFunction(()=>!!window.__harness); await page.mouse.click(640,360)
   await page.evaluate(()=>window.__harness.boot()); await page.evaluate(()=>window.__harness.skipToBattle())
+  // Isolate the near-white speed-line measurement from the atmosphere layer (the moody grade + vignette
+  // dim the additive white streaks below the >226 near-white threshold; the lines themselves still render).
+  await page.evaluate(async()=>{ try { const m = await import("./juiceSettings.js"); m.juiceSettings.setAtmosphere(false) } catch(_){} })
   try{await page.waitForFunction(()=>window.__harness.spriteReady("p1")?.ready===true,null,{timeout:15000,polling:50})}catch(_){}
   await page.evaluate(()=>window.__harness.setDummyBehavior?.("stand")); await wf(4)
 }

@@ -1657,6 +1657,179 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 7 — GODS & MONSTERS (Dragon Ball) ──────────────────────────────────────────────────────
+  // frieza · cell · piccolo · beerus · goku_black · goku_rose
+
+  // FRIEZA — Death Beam: a thin, casual finger-beam punched straight through the skull.
+  frieza: {
+    banner: "DEATH BEAM", bannerRgb: "190,90,230", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 166, rgb: "8,2,14", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.42, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 112, zoom: 1.6, cx: 0.5, cy: 0.4, ease: 0.08 },
+      { fx: "kiBeam", t0: 60, t1: 112, headY: 0.18, color: "#c060ff", wide: 0.16 },
+      { fx: "whiteSpike", t0: 92, t1: 102 },
+      { fx: "bloodGush", t0: 94, t1: 166, x: 0.5, y: 0.2, amount: 8 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.1, cx: 0.5, cy: 0.3, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 114, t1: 144, headY: 0.16 },
+      { fx: "bloodGush", t0: 114, t1: 166, x: 0.5, y: 0.18, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.45 },
+      { t: 60,  id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 112, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // CELL — Absorption: his tail opens over the target and drinks them down to a husk.
+  cell: {
+    banner: "ABSORPTION", bannerRgb: "120,220,120", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "4,12,6", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 146, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.07 },
+      { fx: "maw",   t0: 50, t1: 144, color: "#58c858" },
+      { fx: "cam",   t0: 144, t1: 168, zoom: 2.3, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 144, t1: 156 },
+      { fx: "headPop", t0: 146, t1: 168, headY: 0.3 },
+      { fx: "bloodGush", t0: 148, t1: 180, x: 0.5, y: 0.46, amount: 28 },
+      { fx: "cam",   t0: 168, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 168, t1: 180, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 168, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 170, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 50,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 144, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 150, id: "rumble_tail_01",         gain: 0.55 },
+    ],
+  },
+
+  // PICCOLO — Makankosappo: the Special Beam Cannon, a spiralling drill of ki that bores clean through.
+  piccolo: {
+    banner: "MAKANKOSAPPO", bannerRgb: "210,80,200", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 168, rgb: "10,2,12", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 112, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 60, t1: 112, headY: 0.45, color: "#d850c8", wide: 0.2 },
+      { fx: "whiteSpike", t0: 92, t1: 102 },
+      { fx: "bloodGush", t0: 94, t1: 168, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 112, t1: 144, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "rasengan", t0: 112, t1: 140, headY: 0.45, size: 0.4, color: "#e060d0" },
+      { fx: "headPop", t0: 116, t1: 144, headY: 0.45 },
+      { fx: "bloodGush", t0: 116, t1: 168, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 168 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 60,  id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 112, id: "boom_huge_01",    gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01",  gain: 0.5 },
+    ],
+  },
+
+  // BEERUS — Hakai: the God of Destruction speaks the word, and the target is simply erased from existence.
+  beerus: {
+    banner: "HAKAI", bannerRgb: "200,80,240", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 168, rgb: "8,2,12", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 168, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 116, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 52, t1: 60 },
+      { fx: "incinerate", t0: 56, t1: 164, color: "#c040f0", black: true },
+      { fx: "cam",   t0: 118, t1: 160, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 118, t1: 128 },
+      { fx: "banner", t0: 148, t1: 168 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.5 },
+      { t: 52,  id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 118, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 124, id: "rumble_tail_01",    gain: 0.5 },
+    ],
+  },
+
+  // GOKU BLACK — a Kamehameha wreathed in dark God-ki; the same wave, drained of all mercy.
+  goku_black: {
+    banner: "KAMEHAMEHA", bannerRgb: "210,60,90", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "14,2,6", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#e03a5a" },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 180, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 120, t1: 158, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 134 },
+      { fx: "headPop", t0: 124, t1: 158, headY: 0.45 },
+      { fx: "bloodGush", t0: 124, t1: 180, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 158, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.55 },
+      { t: 78,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",    gain: 0.55 },
+    ],
+  },
+
+  // GOKU BLACK (ROSÉ) — the God Split Cut: a blade of rose-coloured God-ki forms and cleaves the target in two.
+  goku_rose: {
+    banner: "GOD SPLIT CUT", bannerRgb: "255,130,190", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 166, rgb: "16,4,12", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 100, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 96, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 100, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 66, t1: 100, x: 0.52, y: 0.46, len: 0.42, angle: -2.4, sweep: 3.0, color: "rgba(255,150,200,0.95)" },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "cam",   t0: 100, t1: 144, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "soulSplit", t0: 100, t1: 158 },
+      { fx: "bloodGush", t0: 104, t1: 166, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam",   t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise", gain: 0.5 },
+      { t: 66,  id: "swish_fast_01",   gain: 0.6 },
+      { t: 100, id: "boom_medium_02",  gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 106, id: "rumble_tail_01",  gain: 0.45 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

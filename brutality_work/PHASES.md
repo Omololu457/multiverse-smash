@@ -55,7 +55,8 @@ gaara · onoki · pain · six_paths_pain · isshiki · boruto · kiba · hinata 
 Batch 6A DONE: goku(Kamehameha blue)/vegeta(Final Flash gold)/gohan(Masenko amber)/gogeta(Stardust Breaker cyan). New FX: kiBeam (charge→fire horizontal beam, color+wide params). Batch 6B DONE: vegeta_dark(Big Bang)/bardock(Riot Javelin)/vegito(Spirit Sword)/gotenks(Ghost Kamikaze). No new FX. ★50 concepts total (phases 1-6). Next: Phase 7 Gods & Monsters.
 goku · vegeta · vegeta_dark · gohan · bardock · gogeta · vegito · gotenks
 
-## Phase 7 — Gods & Monsters (DB)   ☐
+## Phase 7 — Gods & Monsters (DB)   ☑ DONE
+frieza(Death Beam thin)/cell(Absorption maw)/piccolo(Makankosappo drill)/beerus(Hakai erase)/goku_black(dark Kamehameha)/goku_rose(God Split Cut). No new FX (reuse). ★56 concepts total (phases 1-7). Next: Phase 8 Nen (HxH).
 frieza · cell · piccolo · beerus · goku_black · goku_rose
 
 ## Phase 8 — Nen (HxH)   ☐

@@ -16,9 +16,9 @@ const st = () => page.evaluate(() => window.__harness.state());
 async function wf(n) { const s = (await st()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }).catch(() => {}); }
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log("  ✓", m); } else { fail++; console.log("  ✗", m); } };
 
-const WINNERS = ["superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52"];
+const WINNERS = ["batman", "dark_knight", "flash", "green_lantern", "deathstroke", "brainiac"];
 const VICTIM = "sasuke";
-const SHOT_AT = { superman: 84, superman_classic: 116, superman_dcuc: 84, superman_fighter: 116, superman_new52: 84 };
+const SHOT_AT = { batman: 130, dark_knight: 115, flash: 130, green_lantern: 130, deathstroke: 120, brainiac: 128 };
 
 for (const w of WINNERS) {
   console.log(`\n── ${w} vs ${VICTIM} ──`);

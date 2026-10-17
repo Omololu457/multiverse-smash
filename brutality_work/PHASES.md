@@ -71,8 +71,8 @@ ichigo · byakuya · zaraki · zaraki_shikai · mayuri · yamamoto
 nezuko(Blood Demon Art pink-flame)/inosuke(Beast Breathing shred)/rengoku(Flame Breathing)/shinobu(Insect Breathing poison)/zenitsu(Thunderclap lightning-bisect). No new FX. ★76 concepts total (phases 1-10). Next: Phase 11 DC.
 nezuko · inosuke · rengoku · shinobu · zenitsu
 
-## Phase 11 — Truth & Justice (DC)   ◐ IN PROGRESS
-Batch 11A DONE: the 5 Supermen — heat-vision (superman/superman_dcuc/superman_new52 = kiBeam red headY0.3) + Kryptonian-Might super-punch (superman_classic/superman_fighter = flickerIn+headPop+shockRing). No new FX. Pending 11B (batman/dark_knight/flash/green_lantern/deathstroke/brainiac).
+## Phase 11 — Truth & Justice (DC)   ☑ DONE
+Batch 11A DONE: the 5 Supermen — heat-vision (superman/superman_dcuc/superman_new52 = kiBeam red headY0.3) + Kryptonian-Might super-punch (superman_classic/superman_fighter = flickerIn+headPop+shockRing). No new FX. Batch 11B DONE: batman(Dark Knight batarangs)/dark_knight(beatdown)/flash(Speed Force)/green_lantern(Willpower construct)/deathstroke(Promethium Cleave)/brainiac(Assimilation dataFlood green). No new FX. ★87 concepts total (phases 1-11). Next: Phase 12 Marvel/Invincible.
 superman · superman_classic · superman_dcuc · superman_fighter · superman_new52 · batman · dark_knight · flash · green_lantern · deathstroke · brainiac
 
 ## Phase 12 — With Great Power (Marvel/Invincible)   ☐

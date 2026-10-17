@@ -1995,6 +1995,126 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 8B "Troupe & Hunters": hisoka · chrollo · kurapika · shizuku
+
+  // HISOKA — Bungee Gum: his elastic Nen wraps the target, then snaps taut and tears them apart. "Bungee Gum
+  // possesses the properties of both rubber and gum."
+  hisoka: {
+    banner: "BUNGEE GUM", bannerRgb: "230,60,150", base: "hurt", choreographed: true, total: 174,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 174, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 174, rgb: "14,2,10", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 116, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "strings", t0: 52, t1: 116, color: "rgba(240,80,170,0.8)" },
+      { fx: "bloodGush", t0: 70, t1: 174, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam", t0: 116, t1: 158, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 128 },
+      { fx: "shatter", t0: 120, t1: 168, cols: 5, rows: 7, spread: 1.3 },
+      { fx: "bloodGush", t0: 122, t1: 174, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 158, t1: 174, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 174, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 174 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 52, id: "warp_wobble_01", gain: 0.5 },
+      { t: 116, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 122, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // CHROLLO — Sun and Moon: the Black Voice tattoos a sun and a moon; when they touch, the target detonates.
+  chrollo: {
+    banner: "SUN AND MOON", bannerRgb: "200,120,255", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "8,4,14", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 114, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "shockRing", t0: 56, t1: 114, count: 3, color: "rgba(200,120,255,0.5)" },
+      { fx: "bloodGush", t0: 70, t1: 170, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 128 },
+      { fx: "shockRing", t0: 114, t1: 146, count: 5, color: "rgba(210,130,255,0.7)" },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.42 },
+      { fx: "bloodGush", t0: 118, t1: 170, x: 0.5, y: 0.46, amount: 32 },
+      { fx: "cam", t0: 146, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 56, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 120, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // KURAPIKA — Chain Jail & Judgment: golden chains bind the target, then the heart-stopping stake drives home.
+  kurapika: {
+    banner: "CHAIN JAIL", bannerRgb: "230,60,60", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 172, rgb: "14,8,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "strings", t0: 52, t1: 114, color: "rgba(240,200,80,0.85)" },
+      { fx: "impale", t0: 72, t1: 114, color: "#e0c050", headY: 0.45 },
+      { fx: "bloodGush", t0: 66, t1: 172, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.45 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 52, id: "warp_wobble_01", gain: 0.5 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // SHIZUKU — Blinky: her vacuum Nen beast opens wide and sucks the target down to nothing.
+  shizuku: {
+    banner: "BLINKY", bannerRgb: "120,200,220", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 176, rgb: "4,10,14", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 144, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.07 },
+      { fx: "maw", t0: 50, t1: 144, color: "#50b8c8" },
+      { fx: "cam", t0: 144, t1: 168, zoom: 2.25, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 144, t1: 156 },
+      { fx: "headPop", t0: 146, t1: 168, headY: 0.3 },
+      { fx: "bloodGush", t0: 148, t1: 176, x: 0.5, y: 0.46, amount: 28 },
+      { fx: "cam", t0: 168, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 168, t1: 176, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 168, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 170, t1: 176 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 50, id: "warp_wobble_01", gain: 0.5 },
+      { t: 144, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 150, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

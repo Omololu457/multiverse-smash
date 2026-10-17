@@ -87,5 +87,6 @@ saitama · genos · ben10 · vilgax · baki · ippo
 Batch 14A DONE: rick(Plasma kiBeam green)/rickprime(Portal kamuiSpiral; ★KEY LOWERCASED — engine lowercases rosterKey for lookup, camelCase rickPrime needs key 'rickprime')/morty+evilMorty(data-only, NOT playable manifest=0)/light(Death Note red dataFlood)/l_ryuuzaki(capoeira flickerRush). No new FX. Batch 14B DONE: red_ranger_mmpr(Power Sword)/gold_samurai_ranger(Barracuda Blade)/samurai_red_ranger(Fire Smasher)/green_samurai_ranger(Forest Spear)/omega_ranger(Omega Blast). No new FX. ★114 concepts total (phases 1-14; 112 playable). Next: Phase 15 Wildcards (FINAL).
 rick · rickPrime · morty · evilMorty · red_ranger_mmpr · samurai_red_ranger · gold_samurai_ranger · green_samurai_ranger · omega_ranger · light · l_ryuuzaki
 
-## Phase 15 — Wildcards (horror/originals)   ☐
+## Phase 15 — Wildcards (horror/originals)   ☑ DONE ★★★ ALL 15 PHASES COMPLETE — 124 BRUTALITIES (ENTIRE ROSTER)
+jason(Machete decap)/ghostface(knife frenzy)/ghostface_billy(gutting lunge)/ghostface_exe(red-binary .exe glitch)/omololu(shuriken+kamui flurry)/jesus(Divine Judgment holy beam)/saiki(Psychokinesis crush)/handler=Megumi(Ten Shadows maw)/albedo(Ultimatrix)/miwa=Kasumi(New Shadow Style katana bisect). No new FX.
 jason · ghostface · ghostface_billy · ghostface_exe · omololu · jesus · saiki · handler · albedo · miwa

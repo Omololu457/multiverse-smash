@@ -37,47 +37,47 @@ export const HIT_TIERS = Object.freeze({
 
 export const HITFEEL = {
   // ── PHASE A: PUNCHY HIT ──────────────────────────────────────────────────
-  // 1 FLASH — target white-tint duration (frames) per tier (via _impactFlash phase:"white").
-  flashFrames: { light: 2, medium: 3, heavy: 4, finisher: 4 },
-  // 2 SOUND — sampled pack clip + gain per tier, on the impact frame (±4% deterministic pitch).
+  // 1 FLASH — target white-tint duration (frames) per tier (via _impactFlash phase:"white"). INTENSITY-UP.
+  flashFrames: { light: 3, medium: 4, heavy: 5, finisher: 6 },
+  // 2 SOUND — sampled pack clip + gain per tier, on the impact frame (±4% deterministic pitch). INTENSITY-UP.
   sound: {
-    light:    { clip: "impact_crack_01",   gain: 0.40 },
-    medium:   { clip: "hit_flurry_01",      gain: 0.55 },
-    heavy:    { clip: "hit_heavy_boom_01",  gain: 0.80 },
-    finisher: { clip: "hit_heavy_boom_01",  gain: 0.90 },
+    light:    { clip: "impact_crack_01",   gain: 0.52 },
+    medium:   { clip: "hit_flurry_01",      gain: 0.70 },
+    heavy:    { clip: "hit_heavy_boom_01",  gain: 0.95 },
+    finisher: { clip: "hit_heavy_boom_01",  gain: 1.00 },
   },
-  // 3 PARTICLES — directional arced spark burst (gravity, never straight). Counts per tier.
-  sparkCount: { light: 4, medium: 8, heavy: 14, finisher: 18 },
-  sparkSpeed: { light: 2.6, medium: 3.6, heavy: 4.8, finisher: 5.6 },
+  // 3 PARTICLES — directional arced spark burst (gravity, never straight). Counts per tier. INTENSITY-UP.
+  sparkCount: { light: 7, medium: 13, heavy: 22, finisher: 30 },
+  sparkSpeed: { light: 3.3, medium: 4.5, heavy: 6.0, finisher: 6.8 },
   // 4 KNOCKBACK FEEL — target sprite offset a few px past its sim position, eased back (visual only);
-  //   attacker recoils a touch on HEAVY/FINISHER. NEVER moves hitboxes.
-  kbOffset:        { light: 3, medium: 5, heavy: 9, finisher: 12 },   // px the TARGET sprite is nudged
-  kbEase:          0.35,                                              // per-frame ease-back toward 0
-  attackerRecoil:  { heavy: 2, finisher: 2 },                         // px the ATTACKER sprite bounces back
-  // 5 SHAKE — tiny camera kick scaled by tier (respects the Screen Shake setting inside camera.shake).
-  shake: { light: 0, medium: 2, heavy: 4, finisher: 7 },
-  // 6 DAMAGE NUMBERS — arc drift + 0.6s fade; HEAVY/FINISHER bigger + different colour; combo total.
+  //   attacker recoils a touch on HEAVY/FINISHER. NEVER moves hitboxes. INTENSITY-UP.
+  kbOffset:        { light: 4, medium: 8, heavy: 14, finisher: 20 },  // px the TARGET sprite is nudged
+  kbEase:          0.32,                                              // per-frame ease-back toward 0 (snappier recoil)
+  attackerRecoil:  { heavy: 3, finisher: 5 },                         // px the ATTACKER sprite bounces back
+  // 5 SHAKE — camera kick scaled by tier (respects the Screen Shake setting + the 14-cap inside camera.shake). INTENSITY-UP.
+  shake: { light: 2, medium: 5, heavy: 9, finisher: 13 },
+  // 6 DAMAGE NUMBERS — arc drift + 0.6s fade; HEAVY/FINISHER bigger + different colour; combo total. INTENSITY-UP (punchier size).
   dmg: {
     fadeFrames: 36,                                                  // ~0.6s @60fps (was 45)
-    size:  { light: 20, medium: 26, heavy: 32, finisher: 38 },
+    size:  { light: 23, medium: 30, heavy: 38, finisher: 46 },
     color: { light: "#ffffff", medium: "#ffe08a", heavy: "#ff8a3a", finisher: "#ff4d4d" },
-    arcVX: 1.1,                                                      // horizontal drift seed (deterministic sign)
-    riseVY: -1.5, gravity: 0.06,                                     // arc: rise then settle
+    arcVX: 1.3,                                                      // horizontal drift seed (deterministic sign)
+    riseVY: -1.7, gravity: 0.06,                                     // arc: rise then settle
     comboTotalColor: "#ffd24a",
   },
   // 7 KO POP — burst of coloured pieces on the final hit (ash dissolve handled by elements/FIRE).
-  //   NOT applied to Brutality finishes (they keep their own system).
-  koPiecePool: 60,                                                   // pooled pieces (reuses juiceFx budget)
-  koPieces:    28,
+  //   NOT applied to Brutality finishes (they keep their own system). INTENSITY-UP.
+  koPiecePool: 80,                                                   // pooled pieces (reuses juiceFx budget)
+  koPieces:    44,
 
   // ── PHASE C: ANIME FINISHER (built in Phase C; values pre-declared for the config report) ──
   finisher: {
     cooldownFrames: 150,   // once per 2.5s max
-    freezeFrames:   5,     // 4-6
+    freezeFrames:   6,     // 4-6 (INTENSITY-UP: a beat longer)
     silhouetteFrames: 2,
     invertFrames:   2,
-    burstLines:     14,
-    zoomIn:         1.45,  // punch-in scale
+    burstLines:     18,
+    zoomIn:         1.55,  // punch-in scale (INTENSITY-UP)
     maxFlashesPerSec: 3,   // photosensitivity clamp
   },
 

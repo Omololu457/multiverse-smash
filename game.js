@@ -2291,8 +2291,8 @@ function _fireHitFeel(spark) {
 
 // DISNEY (Phase B): target hit-squash timeline — scaleX 1.08 / scaleY 0.9 for 3f, ease to 1,1 by ~8f.
 function _hitSquashAt(t) {
-  if (t < 3) return { sx: 1.08, sy: 0.90 }
-  if (t < 8) { const k = (t - 3) / 5; return { sx: 1.08 + (1 - 1.08) * k, sy: 0.90 + (1 - 0.90) * k } }
+  if (t < 3) return { sx: 1.13, sy: 0.85 }                                              // INTENSITY-UP: bigger pop
+  if (t < 9) { const k = (t - 3) / 6; return { sx: 1.13 + (1 - 1.13) * k, sy: 0.85 + (1 - 0.85) * k } }
   return null
 }
 

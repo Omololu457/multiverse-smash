@@ -1,0 +1,24 @@
+@@OLD@@
+import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
+@@NEW@@
+import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
+import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
+@@END@@
+@@OLD@@
+  if (isYujiUltimateCinematicActive()) {
+    updateYujiUltimateCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+@@NEW@@
+  if (isShisuiFallenFatalityActive()) {
+    updateShisuiFallenFatalityCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  if (isYujiUltimateCinematicActive()) {
+    updateYujiUltimateCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+@@END@@
+@@OLD@@
+  drawYujiUltimateCinematic(ctx, canvas)   // fullscreen "Black Flash" buildup overlay (cyan cursed-energy vignette → red/black flash burst)
+@@NEW@@
+  drawYujiUltimateCinematic(ctx, canvas)   // fullscreen "Black Flash" buildup overlay (cyan cursed-energy vignette → red/black flash burst)
+  drawShisuiFallenFatalityCinematic(ctx, canvas)   // Shisui (Fallen) ULT FATALITY cutaway
+@@END@@

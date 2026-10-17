@@ -3273,6 +3273,179 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 14 — INFINITE TIMELINES (Rick & Morty / Power Rangers / Death Note) ─────────────────────
+  // Batch 14A "The Ricks & Death Note": rick · rickPrime · morty · evilMorty · light · l_ryuuzaki
+
+  // RICK — a plasma bolt from some gun he built in a drunken afternoon. Vaporised, no ceremony.
+  rick: {
+    banner: "PLASMA", bannerRgb: "120,240,120", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "4,14,8", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#60e060", wide: 0.5 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.45 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // RICK PRIME — a portal opens, and the target is simply removed from the timeline. Cold, surgical, final.
+  rickprime: {
+    banner: "RICK PRIME", bannerRgb: "150,90,210", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 176, rgb: "6,10,8", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 118, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kamuiSpiral", t0: 54, t1: 150 },
+      { fx: "cam", t0: 118, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 142, t1: 152 },
+      { fx: "cam", t0: 152, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 176 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 54, id: "warp_wobble_01", gain: 0.6 },
+      { t: 118, id: "warp_wobble_01", gain: 0.5 },
+      { t: 142, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+    ],
+  },
+
+  // MORTY — (not currently playable; future-proof) a panicked portal that still gets the job done.
+  morty: {
+    banner: "AW GEEZ", bannerRgb: "230,200,90", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "8,10,6", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 118, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kamuiSpiral", t0: 54, t1: 150 },
+      { fx: "cam", t0: 118, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 142, t1: 152 },
+      { fx: "cam", t0: 152, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 54, id: "warp_wobble_01", gain: 0.55 },
+      { t: 142, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 148, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // EVIL MORTY — (not currently playable; future-proof) no wasted motion. One shot, straight through.
+  evilMorty: {
+    banner: "EVIL MORTY", bannerRgb: "230,180,60", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "10,8,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 112, zoom: 1.6, cx: 0.5, cy: 0.42, ease: 0.08 },
+      { fx: "kiBeam", t0: 60, t1: 112, headY: 0.2, color: "#ffd24a", wide: 0.16 },
+      { fx: "whiteSpike", t0: 92, t1: 102 },
+      { fx: "bloodGush", t0: 94, t1: 166, x: 0.5, y: 0.2, amount: 8 },
+      { fx: "cam", t0: 112, t1: 144, zoom: 2.1, cx: 0.5, cy: 0.3, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 114, t1: 144, headY: 0.16 },
+      { fx: "bloodGush", t0: 114, t1: 166, x: 0.5, y: 0.18, amount: 30 },
+      { fx: "cam", t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 60, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // LIGHT (KIRA) — Death Note: the name is written, the pages blur past, and the heart simply stops.
+  light: {
+    banner: "DEATH NOTE", bannerRgb: "200,40,60", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 172, rgb: "10,2,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 114, zoom: 1.6, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "dataFlood", t0: 54, t1: 150, glyphs: "mix", color: "#c82030" },
+      { fx: "bloodGush", t0: 90, t1: 172, x: 0.5, y: 0.46, amount: 4 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.45 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 22 },
+      { fx: "cam", t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.4 },
+      { t: 54, id: "warp_wobble_01", gain: 0.45 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // L — a sudden flurry of capoeira kicks from the world's greatest detective; justice, delivered heel-first.
+  l_ryuuzaki: {
+    banner: "JUSTICE", bannerRgb: "200,210,225", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "6,6,8", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 112, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 112, action: "run", around: 0.5, aroundY: 0.48, count: 8, radX: 0.3, radY: 0.15, color: "#aab4c4" },
+      { fx: "actor", t0: 50, t1: 112, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "bloodGush", t0: 60, t1: 166, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 112, t1: 146, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 116, t1: 146, headY: 0.4 },
+      { fx: "shockRing", t0: 116, t1: 146, count: 3, color: "rgba(170,180,200,0.6)" },
+      { fx: "bloodGush", t0: 116, t1: 166, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 146, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

@@ -83,7 +83,8 @@ spiderman · spiderman_mci · spiderman_raimi · spiderman_ssf2 · miles · gwen
 saitama(Serious Punch 7-ring shockwave)/genos(Incineration)/ben10(Omnitrix)/vilgax(Conqueror impale)/baki(Demon Rush)/ippo(Dempsey Roll). No new FX. ★103 concepts total (phases 1-13). Next: Phase 14 Infinite Timelines.
 saitama · genos · ben10 · vilgax · baki · ippo
 
-## Phase 14 — Infinite Timelines (R&M/Rangers/Death Note)   ☐
+## Phase 14 — Infinite Timelines (R&M/Rangers/Death Note)   ◐ IN PROGRESS
+Batch 14A DONE: rick(Plasma kiBeam green)/rickprime(Portal kamuiSpiral; ★KEY LOWERCASED — engine lowercases rosterKey for lookup, camelCase rickPrime needs key 'rickprime')/morty+evilMorty(data-only, NOT playable manifest=0)/light(Death Note red dataFlood)/l_ryuuzaki(capoeira flickerRush). No new FX. Pending 14B (5 rangers).
 rick · rickPrime · morty · evilMorty · red_ranger_mmpr · samurai_red_ranger · gold_samurai_ranger · green_samurai_ranger · omega_ranger · light · l_ryuuzaki
 
 ## Phase 15 — Wildcards (horror/originals)   ☐

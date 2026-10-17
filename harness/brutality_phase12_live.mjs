@@ -16,9 +16,9 @@ const st = () => page.evaluate(() => window.__harness.state());
 async function wf(n) { const s = (await st()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }).catch(() => {}); }
 let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log("  ✓", m); } else { fail++; console.log("  ✗", m); } };
 
-const WINNERS = ["spiderman", "spiderman_mci", "spiderman_raimi", "spiderman_ssf2", "miles", "gwen"];
+const WINNERS = ["iron_man", "iron_man_2", "iron_man_3", "omniman"];
 const VICTIM = "sasuke";
-const SHOT_AT = { spiderman: 90, spiderman_mci: 90, spiderman_raimi: 90, spiderman_ssf2: 90, miles: 90, gwen: 90 };
+const SHOT_AT = { iron_man: 84, iron_man_2: 84, iron_man_3: 84, omniman: 80 };
 
 for (const w of WINNERS) {
   console.log(`\n── ${w} vs ${VICTIM} ──`);

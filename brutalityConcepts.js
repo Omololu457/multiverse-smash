@@ -2964,6 +2964,133 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // Batch 12B "Iron & Viltrum": iron_man x3 + omniman
+
+  // IRON MAN — Unibeam: the arc-reactor chest beam fires and burns clean through.
+  iron_man: {
+    banner: "UNIBEAM", bannerRgb: "120,220,255", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "4,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#60d0ff", wide: 0.5 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.45 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // IRON MAN (MARK II) — Repulsor Barrage: a volley of palm-blasts, capped by a point-blank unibeam.
+  iron_man_2: {
+    banner: "REPULSOR", bannerRgb: "120,220,255", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "4,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 50, t1: 92, count: 14, color: "#80d8ff" },
+      { fx: "kiBeam", t0: 74, t1: 150, headY: 0.45, color: "#60d0ff", wide: 0.5 },
+      { fx: "whiteSpike", t0: 98, t1: 108 },
+      { fx: "bloodGush", t0: 60, t1: 170, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.45 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 50, id: "crack_sizzle_bright", gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // IRON MAN (MARK III) — Unibeam (gold-core variant).
+  iron_man_3: {
+    banner: "UNIBEAM", bannerRgb: "255,200,90", base: "hurt", choreographed: true, total: 170,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 170, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 170, rgb: "12,8,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 146, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 118, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 116, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#ffcc50", wide: 0.5 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 170, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.45 },
+      { fx: "bloodGush", t0: 120, t1: 170, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 150, t1: 170, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 170, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 170, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 170 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 54, id: "crack_sizzle_bright", gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // OMNI-MAN — Viltrumite: he drives a fist straight through the body. "Think, Mark. THINK."
+  omniman: {
+    banner: "VILTRUMITE", bannerRgb: "230,40,50", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 168, rgb: "10,2,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(120,160,230,0.5)" },
+      { fx: "cam", t0: 44, t1: 112, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 46, t1: 144, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "impale", t0: 52, t1: 112, color: "#d02030", headY: 0.45 },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 58, t1: 168, x: 0.5, y: 0.46, amount: 14 },
+      { fx: "cam", t0: 112, t1: 146, zoom: 2.15, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "headPop", t0: 116, t1: 146, headY: 0.45 },
+      { fx: "shockRing", t0: 116, t1: 146, count: 3, color: "rgba(200,40,50,0.6)" },
+      { fx: "bloodGush", t0: 116, t1: 168, x: 0.5, y: 0.46, amount: 40 },
+      { fx: "cam", t0: 146, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 168 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 52, id: "impact_hit_01", gain: 0.8 },
+      { t: 112, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 118, id: "rumble_tail_01", gain: 0.6 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

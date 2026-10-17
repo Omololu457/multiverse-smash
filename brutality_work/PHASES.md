@@ -51,7 +51,8 @@ naruto · naruto_hokage · naruto_seventh · minato · hashirama · tobirama · 
 Batch 5A DONE: gaara(Sand Coffin)/onoki(Dust Release cube)/pain(Shinra Tensei)/six_paths_pain(Chibaku Tensei). New FX: sandCrush, dustRelease, shockRing. Batch 5B DONE: isshiki(Black Rods)/boruto(Vanishing Rasengan teal)/kiba(Fang Over Fang shred)/hinata(Sixty-Four Palms)/sakura(Cherry Blossom Impact/SHANNARO). No new FX (reuse). ★42 concepts total (phases 1-5). Next: Phase 6 Saiyan Blood.
 gaara · onoki · pain · six_paths_pain · isshiki · boruto · kiba · hinata · sakura
 
-## Phase 6 — Saiyan Blood (DB)   ☐
+## Phase 6 — Saiyan Blood (DB)   ◐ IN PROGRESS
+Batch 6A DONE: goku(Kamehameha blue)/vegeta(Final Flash gold)/gohan(Masenko amber)/gogeta(Stardust Breaker cyan). New FX: kiBeam (charge→fire horizontal beam, color+wide params). Pending 6B (vegeta_dark/bardock/vegito/gotenks).
 goku · vegeta · vegeta_dark · gohan · bardock · gogeta · vegito · gotenks
 
 ## Phase 7 — Gods & Monsters (DB)   ☐

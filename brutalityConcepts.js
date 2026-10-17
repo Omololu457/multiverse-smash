@@ -1417,6 +1417,126 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 6 — SAIYAN BLOOD (Dragon Ball) ─────────────────────────────────────────────────────────
+  // Batch 6A "Ki Beams": goku · vegeta · gohan · gogeta
+
+  // GOKU — Kamehameha: the turtle-school wave fires and vaporises everything it touches.
+  goku: {
+    banner: "KAMEHAMEHA", bannerRgb: "90,180,255", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "4,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#5ab4ff", wide: 1 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 180, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 120, t1: 158, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 134 },
+      { fx: "headPop", t0: 124, t1: 158, headY: 0.45 },
+      { fx: "bloodGush", t0: 124, t1: 180, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 158, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.55 },
+      { t: 78,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",  gain: 0.55 },
+    ],
+  },
+
+  // VEGETA — Final Flash: both palms level and unleash a pillar of golden ki.
+  vegeta: {
+    banner: "FINAL FLASH", bannerRgb: "255,230,90", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "14,12,2", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#ffe85a", wide: 1 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 180, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 120, t1: 158, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 134 },
+      { fx: "headPop", t0: 124, t1: 158, headY: 0.45 },
+      { fx: "bloodGush", t0: 124, t1: 180, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 158, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.55 },
+      { t: 78,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",  gain: 0.55 },
+    ],
+  },
+
+  // GOHAN — Masenko: the two-hand forehead beam, burning amber.
+  gohan: {
+    banner: "MASENKO", bannerRgb: "255,190,90", base: "hurt", choreographed: true, total: 180,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 180, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 180, rgb: "16,10,2", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#ffc040", wide: 1 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 180, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 120, t1: 158, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 120, t1: 134 },
+      { fx: "headPop", t0: 124, t1: 158, headY: 0.45 },
+      { fx: "bloodGush", t0: 124, t1: 180, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 158, t1: 180, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 160, t1: 180, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 162, t1: 180 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.55 },
+      { t: 78,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01",  gain: 0.55 },
+    ],
+  },
+
+  // GOGETA — Stardust Breaker: a torrent of fused ki that erases the target.
+  gogeta: {
+    banner: "STARDUST BREAKER", bannerRgb: "150,220,255", base: "hurt", choreographed: true, total: 184,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 184, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 184, rgb: "6,10,18", max: 0.97, ramp: 8 },
+      { fx: "cam",   t0: 0,  t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0,  t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "kiBeam", t0: 54, t1: 150, headY: 0.45, color: "#9adcff", wide: 1.3 },
+      { fx: "whiteSpike", t0: 92, t1: 104 },
+      { fx: "bloodGush", t0: 96, t1: 184, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam",   t0: 124, t1: 162, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 124, t1: 138 },
+      { fx: "headPop", t0: 128, t1: 162, headY: 0.45 },
+      { fx: "bloodGush", t0: 128, t1: 184, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam",   t0: 162, t1: 184, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 164, t1: 184, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 166, t1: 184 },
+    ],
+    sound: [
+      { t: 1,   id: "charge_hum_rise",   gain: 0.55 },
+      { t: 78,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 124, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 130, id: "rumble_tail_01",  gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

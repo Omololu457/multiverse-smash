@@ -725,6 +725,27 @@ const PRIM = {
     for (let i = 0; i < n; i++) { const rp = (((f - beat.t0) * 0.03 + i / n) % 1), rad = rp * (r ? r.w : 200) * 2.2; c.strokeStyle = col; c.globalAlpha = (1 - rp) * 0.8; c.lineWidth = (1 - rp) * 5 + 1; c.beginPath(); c.arc(cx, cy, rad, 0, 7); c.stroke() }
     c.restore()
   },
+
+  // ── PHASE 6 — SAIYAN BLOOD (Dragon Ball) ─────────────────────────────────────────────────────────
+
+  // GOKU & co — a ki BEAM: charge an orb at the attacker side, then fire a thick horizontal beam across the frame
+  kiBeam(c, W, H, p, beat, S, f) {
+    const r = S.rect; const ty = r ? r.y + r.h * (beat.headY ?? 0.45) : H / 2, col = beat.color || "#50a8ff", e = ease(p)
+    const fire = Math.max(0, (e - 0.25) / 0.75)
+    c.save()
+    if (fire <= 0) {
+      const ox = W * 0.82, cr = (r ? r.h : 200) * 0.3 * e
+      const g = c.createRadialGradient(ox, ty, 2, ox, ty, cr); g.addColorStop(0, "#ffffff"); g.addColorStop(0.5, col); g.addColorStop(1, "rgba(255,255,255,0)")
+      c.fillStyle = g; c.beginPath(); c.arc(ox, ty, cr, 0, 7); c.fill()
+    } else {
+      const thick = (r ? r.h : 200) * 0.45 * (0.6 + 0.4 * fire) * (beat.wide || 1)
+      const g = c.createLinearGradient(0, ty - thick, 0, ty + thick); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, col); g.addColorStop(1, "rgba(255,255,255,0)")
+      c.globalAlpha = 0.92; c.fillStyle = g; c.fillRect(0, ty - thick, W, thick * 2)
+      c.globalAlpha = 0.9; c.strokeStyle = "#ffffff"; c.lineWidth = thick * 0.5; c.beginPath(); c.moveTo(0, ty); c.lineTo(W, ty); c.stroke()
+      c.globalAlpha = 0.6; for (let i = 0; i < 20; i++) { const bx = rnd(i, f >> 1) * W; c.fillStyle = col; c.beginPath(); c.arc(bx, ty + (rnd(i, f) - 0.5) * thick * 1.6, 2, 0, 7); c.fill() }
+    }
+    c.restore()
+  },
 }
 
 export default { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus }

@@ -15,7 +15,7 @@ cam (eased zoom/focus) · actor (draw a fighter's action frame, supports fallbac
 flickerIn (dash-in w/ after-images) · flickerRush (blitz around victim, multiple directions) · swordSlash
 (arc) · bloodGush (pours, accumulates) · speedLines. Flagship: shisui_fallen "FLICKER MASSACRE" (zoom→flicker-
 in strike→blitz rush→sword→blood+collapse). Old flat concepts (gojo + 8 JJK) still render (backward-compat) —
-TO RETROFIT → ROLLOUT A1 DONE: gojo/sukuna/alt_sukuna/yuta retrofitted to choreographed cinematic (letterbox+cuts+extreme-CU+HUD-hidden). actor primitive now publishes victim rect → signature FX (headPop/shatter/incinerate/maw) target the staged victim. A2 pending: yuji/toji/maki/naoya/aoi_todo. See brutality_shisui_cine.mjs.
+TO RETROFIT → ROLLOUT A1 DONE: gojo/sukuna/alt_sukuna/yuta retrofitted to choreographed cinematic (letterbox+cuts+extreme-CU+HUD-hidden). actor primitive now publishes victim rect → signature FX (headPop/shatter/incinerate/maw) target the staged victim. A2 DONE: yuji(Black Flash)/toji(Inverted Spear)/maki(Split Soul)/naoya(Projection Sorcery)/aoi_todo(Boogie Woogie) all choreographed. ALL Phase 1+2 now cinematic. Next: Phase 3 Sharingan at this bar. See brutality_shisui_cine.mjs.
 ★★MK-CINEMATIC POLISH (user ref: MK1 fatalities video — letterbox/hard-cuts/extreme-CU/HUD-hidden). Added:
 `letterbox` primitive (bars slide-in + vignette), cam `cut:true` (hard snap vs ease) + per-shot `ease`, and a
 game.js HUD-hide guard (_cineHidesHud → skip drawBattleHud + training overlay during any finisher cutaway; added

@@ -33,22 +33,36 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
   gojo: {
     banner: "UNLIMITED VOID",
     bannerRgb: "28,40,66",
-    base: "idle",                       // user's call: zoom in on the victim's clean idle, THEN overload them
-    total: 142,
+    base: "idle",
+    choreographed: true,
+    total: 196,
     beats: [
-      { fx: "whiteSpike", t0: 0,   t1: 13 },                                   // the domain "clap" flash
-      { fx: "voidInvert", t0: 5,   t1: 142 },                                  // reality inverts to the pale Void
-      { fx: "sprite",     t0: 13,  t1: 142, from: 0.72, to: 1.12, anchor: 0.56, tremble: 3 },  // push in on victim, trembling
-      { fx: "dataFlood",  t0: 34,  t1: 104, glyphs: "void", color: "#bfefff" },// infinite information pours in
-      { fx: "whiteSpike", t0: 98,  t1: 111 },                                  // overload peak
-      { fx: "headPop",    t0: 104, t1: 134, headY: 0.17 },                     // the mind breaks → head bursts
-      { fx: "banner",     t0: 112, t1: 142 },
+      { fx: "letterbox", t0: 0, t1: 196, in: 14, h: 0.13 },
+      { fx: "whiteSpike", t0: 0, t1: 12 },                                      // the domain "clap"
+      { fx: "voidInvert", t0: 4, t1: 196 },                                     // reality inverts to the pale Void
+      // SHOT 1 — establish on the victim, Gojo at the edge of frame
+      { fx: "cam",   t0: 0,  t1: 46, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.09 },
+      { fx: "actor", t0: 8,  t1: 178, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 150, who: "atk", action: "idle", x: 0.82, y: 0.52, frame: "anim:12", facing: -1 },   // Gojo, hand raised
+      // SHOT 2 — push in; infinite information floods the victim
+      { fx: "cam",   t0: 46, t1: 150, zoom: 1.72, cx: 0.5, cy: 0.46, ease: 0.07 },
+      { fx: "dataFlood", t0: 38, t1: 150, glyphs: "void", color: "#15284f" },
+      // SHOT 3 — EXTREME close-up: overload → the mind breaks, head bursts
+      { fx: "cam",   t0: 150, t1: 178, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 150, t1: 162 },
+      { fx: "headPop", t0: 152, t1: 178, headY: 0.16 },
+      { fx: "bloodGush", t0: 156, t1: 196, x: 0.5, y: 0.42, amount: 26 },
+      // SHOT 4 — pull back: the victim collapses, Gojo lowers his hand → banner
+      { fx: "cam",   t0: 178, t1: 196, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 178, t1: 196, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 178, t1: 196, who: "atk", action: "idle", x: 0.74, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 182, t1: 196 },
     ],
     sound: [
       { t: 1,   id: "boom_anticipation_suck", gain: 0.5 },
-      { t: 34,  id: "charge_hum_rise",        gain: 0.62 },
-      { t: 98,  id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.6 },
-      { t: 105, id: "rumble_tail_01",         gain: 0.55, delay: 0.06 },
+      { t: 38,  id: "charge_hum_rise",        gain: 0.62 },
+      { t: 150, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 157, id: "rumble_tail_01",         gain: 0.55, delay: 0.06 },
     ],
   },
 
@@ -121,21 +135,34 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     banner: "MALEVOLENT SHRINE",
     bannerRgb: "235,32,38",
     base: "hurt",
-    total: 140,
+    choreographed: true,
+    total: 188,
     beats: [
-      { fx: "darken",     t0: 0,  t1: 140, rgb: "20,2,6", max: 0.97, ramp: 10 },
-      { fx: "shrineBg",   t0: 6,  t1: 140 },
-      { fx: "sprite",     t0: 10, t1: 71, from: 0.98, to: 1.0, anchor: 0.56 },
-      { fx: "slashCross", t0: 40, t1: 78, count: 16, color: "#ff2b36" },
-      { fx: "whiteSpike", t0: 68, t1: 80 },
-      { fx: "shatter",    t0: 72, t1: 134, cols: 5, rows: 7, spread: 1.0 },
-      { fx: "banner",     t0: 104, t1: 140 },
+      { fx: "letterbox", t0: 0, t1: 188, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 188, rgb: "20,2,6", max: 0.97, ramp: 10 },
+      { fx: "shrineBg",  t0: 6, t1: 188 },
+      // SHOT 1 — establish; Sukuna looms, contemptuous
+      { fx: "cam",   t0: 0,  t1: 46, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.09 },
+      { fx: "actor", t0: 6,  t1: 120, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 16, t1: 120, who: "atk", action: "idle", x: 0.82, y: 0.52, frame: "anim:12", facing: -1 },
+      // SHOT 2 — the shrine's slashes flay the victim
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.55, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "slashCross", t0: 50, t1: 118, count: 20, color: "#ff2b36" },
+      { fx: "bloodGush", t0: 60, t1: 188, x: 0.5, y: 0.46, amount: 10 },
+      // SHOT 3 — HARD CUT, EXTREME close-up → DICED apart
+      { fx: "cam",   t0: 118, t1: 160, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 118, t1: 130 },
+      { fx: "shatter", t0: 122, t1: 170, cols: 5, rows: 7, spread: 1.0 },
+      // SHOT 4 — pull back: Sukuna stands over the remains → banner
+      { fx: "cam",   t0: 160, t1: 188, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 162, t1: 188, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 166, t1: 188 },
     ],
     sound: [
-      { t: 1,  id: "boom_anticipation_suck", gain: 0.5 },
-      { t: 40, id: "crack_sizzle_bright",    gain: 0.5 },
-      { t: 68, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
-      { t: 74, id: "rumble_tail_01",         gain: 0.5 },
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 50,  id: "crack_sizzle_bright",    gain: 0.5 },
+      { t: 118, id: "boom_huge_01",           gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 124, id: "rumble_tail_01",         gain: 0.5 },
     ],
   },
 
@@ -146,20 +173,32 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     banner: "FLAME ARROW",
     bannerRgb: "255,140,40",
     base: "hurt",
-    total: 136,
+    choreographed: true,
+    total: 184,
     beats: [
-      { fx: "darken",     t0: 0,  t1: 136, rgb: "24,6,2", max: 0.97, ramp: 10 },
-      { fx: "sprite",     t0: 8,  t1: 136, from: 0.96, to: 1.02, anchor: 0.56 },
-      { fx: "flameBeam",  t0: 30, t1: 70, color: "#ff7a1e" },
-      { fx: "whiteSpike", t0: 56, t1: 70 },
-      { fx: "incinerate", t0: 60, t1: 126, color: "#ff7a1e" },
-      { fx: "banner",     t0: 98, t1: 136 },
+      { fx: "letterbox", t0: 0, t1: 184, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 184, rgb: "24,6,2", max: 0.97, ramp: 10 },
+      // SHOT 1 — establish; the Disgraced One raises a hand
+      { fx: "cam",   t0: 0,  t1: 46, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.09 },
+      { fx: "actor", t0: 6,  t1: 184, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 16, t1: 122, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      // SHOT 2 — the flame arrow lances in
+      { fx: "cam",   t0: 46, t1: 118, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "flameBeam", t0: 60, t1: 122, color: "#ff7a1e" },
+      // SHOT 3 — HARD CUT, EXTREME close-up → incinerated to ash
+      { fx: "cam",   t0: 120, t1: 162, zoom: 2.2, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 118, t1: 130 },
+      { fx: "incinerate", t0: 122, t1: 176, color: "#ff7a1e" },
+      // SHOT 4 — pull back → banner
+      { fx: "cam",   t0: 162, t1: 184, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 164, t1: 184, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 166, t1: 184 },
     ],
     sound: [
-      { t: 1,  id: "charge_hum_rise",        gain: 0.55 },
-      { t: 30, id: "boom_anticipation_suck", gain: 0.4 },
-      { t: 56, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
-      { t: 62, id: "rumble_tail_01",         gain: 0.5 },
+      { t: 1,   id: "charge_hum_rise",        gain: 0.55 },
+      { t: 60,  id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 118, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 124, id: "rumble_tail_01",         gain: 0.5 },
     ],
   },
 
@@ -169,20 +208,34 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     banner: "RIKA",
     bannerRgb: "186,46,228",
     base: "hurt",
-    total: 140,
+    choreographed: true,
+    total: 188,
     beats: [
-      { fx: "darken",     t0: 0,  t1: 140, rgb: "10,2,16", max: 0.97, ramp: 10 },
-      { fx: "sprite",     t0: 8,  t1: 96, from: 1.0, to: 1.0, anchor: 0.58 },
-      { fx: "maw",        t0: 30, t1: 100, color: "#b42edc" },
-      { fx: "whiteSpike", t0: 86, t1: 96 },
-      { fx: "headPop",    t0: 90, t1: 128, headY: 0.45 },
-      { fx: "banner",     t0: 104, t1: 140 },
+      { fx: "letterbox", t0: 0, t1: 188, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 188, rgb: "10,2,16", max: 0.97, ramp: 10 },
+      // SHOT 1 — establish; Yuta steps up
+      { fx: "cam",   t0: 0,  t1: 46, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.09 },
+      { fx: "actor", t0: 6,  t1: 176, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 16, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      // SHOT 2 — Rika's maw descends & snaps shut over the victim
+      { fx: "cam",   t0: 46, t1: 150, zoom: 1.58, cx: 0.5, cy: 0.46, ease: 0.07 },
+      { fx: "maw",   t0: 50, t1: 150, color: "#b42edc" },
+      // SHOT 3 — HARD CUT, EXTREME close-up → devoured
+      { fx: "cam",   t0: 150, t1: 176, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 150, t1: 162 },
+      { fx: "headPop", t0: 152, t1: 176, headY: 0.26 },
+      { fx: "bloodGush", t0: 156, t1: 188, x: 0.5, y: 0.46, amount: 30 },
+      // SHOT 4 — pull back: collapse, Yuta stands → banner
+      { fx: "cam",   t0: 176, t1: 188, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 176, t1: 188, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 176, t1: 188, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 180, t1: 188 },
     ],
     sound: [
-      { t: 1,  id: "boom_anticipation_suck", gain: 0.5 },
-      { t: 30, id: "warp_wobble_01",         gain: 0.5 },
-      { t: 86, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
-      { t: 92, id: "rumble_tail_01",         gain: 0.6 },
+      { t: 1,   id: "boom_anticipation_suck", gain: 0.5 },
+      { t: 50,  id: "warp_wobble_01",         gain: 0.5 },
+      { t: 150, id: "boom_huge_02_roar",      gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 156, id: "rumble_tail_01",         gain: 0.6 },
     ],
   },
 

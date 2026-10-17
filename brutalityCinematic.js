@@ -187,7 +187,7 @@ function _drawActor(c, S, who, action, wx, wy, opts = {}) {
   c.translate(wx, wy); if (opts.rot) c.rotate(opts.rot); c.scale(facing, 1)
   try { c.drawImage(rec.img, sx, 0, fw, fh, -dw / 2, -dh / 2, dw, dh) } catch (_) {}
   c.restore()
-  return { x: wx, y: wy, w: dw, h: dh }
+  return { x: wx - dw / 2, y: wy - dh / 2, w: dw, h: dh, cx: wx, cy: wy }   // top-left rect (matches flat `sprite`)
 }
 
 // ── FX PRIMITIVE LIBRARY ──────────────────────────────────────────────────────────────────────────
@@ -489,8 +489,10 @@ const PRIM = {
   actor(c, W, H, p, beat, S) {
     const who = beat.who || "vic"
     const action = Array.isArray(beat.action) ? _firstAction(who === "atk" ? S.atk : S.vic, beat.action) : (beat.action || "idle")
-    _drawActor(c, S, who, action, (beat.x ?? 0.5) * W, (beat.y ?? 0.5) * H,
+    const rect = _drawActor(c, S, who, action, (beat.x ?? 0.5) * W, (beat.y ?? 0.5) * H,
       { frame: beat.frame, facing: beat.facing || 1, scale: beat.scale || 1, hFrac: beat.hFrac || 0.42, t0: beat.t0, alpha: beat.alpha ?? 1, rot: beat.rot || 0 })
+    // publish the victim's on-screen rect so signature FX primitives (headPop/shatter/maw/…) can target it
+    if (who === "vic" && rect) S.rect = rect
   },
 
   // attacker FLICKERS in from fromX→toX with fading after-images (Body Flicker approach + speed streak)

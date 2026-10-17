@@ -18,7 +18,7 @@ let pass = 0, fail = 0; const ok = (c, m) => { if (c) { pass++; console.log("  �
 
 const WINNERS = ["sukuna", "alt_sukuna", "yuta", "yuji", "toji", "maki", "naoya", "aoi_todo", "gojo"];
 const VICTIM = "sasuke";
-const SHOT_AT = { sukuna: 95, alt_sukuna: 95, yuta: 92, yuji: 90, toji: 80, maki: 90, naoya: 80, aoi_todo: 100, gojo: 120 };   // payoff beat per concept
+const SHOT_AT = { sukuna: 138, alt_sukuna: 142, yuta: 164, yuji: 90, toji: 80, maki: 90, naoya: 80, aoi_todo: 100, gojo: 162 };   // payoff beat per concept
 
 for (const w of WINNERS) {
   console.log(`\n── ${w} vs ${VICTIM} ──`);

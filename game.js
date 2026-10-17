@@ -2351,23 +2351,23 @@ function _drawFireBurn(c, fighter) {
 // snap back with a colour flash. The FREEZE is a deterministic frame-step (LAN-safe; runs before
 // _replayFrame++). Never during KO / Domain / Rick Prime rewind / Brutality (reuses _juiceSlowmoBlocked),
 // and not in FFA (a 4-player match shouldn't stall). Reduce Flashing → soft dim, no invert/strobing.
-function _triggerAnimFinisher(x, y, player) {
+function _triggerAnimFinisher(x, y, player, opts = {}) {
   if (!juiceSettings.hitEffectsOn() || !juiceSettings.animFinisher) return
   if (gameState === GAME_STATES.FFA_BATTLE) return
   if (_animFin || _animFinFreeze > 0 || _animFinCd > 0) return
   if (_juiceSlowmoBlocked()) return
   const reduce = !!juiceSettings.reduceFlashing
-  _animFin = { t: 0, x, y, player, reduce }
-  _animFinFreeze = HITFEEL.finisher.freezeFrames
+  const stretch = Math.max(1, opts.stretch | 0 || 1)   // demo/capture: hold each beat `stretch`× longer
+  _animFin = { t: 0, _sub: 0, x, y, player, reduce, stretch, color: opts.color || [255, 90, 60] }
+  _animFinFreeze = HITFEEL.finisher.freezeFrames * stretch
   _animFinCd = HITFEEL.finisher.cooldownFrames
   _juiceSlowmoTimer = 0                      // the finisher REPLACES the ult slow-mo (no double cinematic)
   if (!reduce) {                             // black silhouettes for the silhouette beat (reuse the flash marker)
-    if (p1) _stampImpactFlash(p1, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
-    if (p2) _stampImpactFlash(p2, 3, HITFEEL.finisher.freezeFrames + 2, "ultimate", 0, 0)
+    if (p1) _stampImpactFlash(p1, 3, HITFEEL.finisher.freezeFrames * stretch + 2, "ultimate", 0, 0)
+    if (p2) _stampImpactFlash(p2, 3, HITFEEL.finisher.freezeFrames * stretch + 2, "ultimate", 0, 0)
   }
   // PUNCH-IN: hard zoom toward the hit point; the normal two-shot reframe eases it back out after the freeze.
   camera.targetZoom = Math.min(camera.maxZoom || 2.6, (camera.targetZoom || camera.zoom || 1) * HITFEEL.finisher.zoomIn)
-  if (camera.focusOnFighter && (p1 || p2)) { /* keep focus on the clash; two-shot resumes after */ }
   sound.playJuiceSfx?.("impact_crack_01", { gain: 0.9, pitch: juicePitch(globalFrameCount, player) })
   sound.playJuiceSfx?.("boom_huge_01", { gain: 0.9, delay: 2 / 60, ultBoom: true })
   sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6, delay: HITFEEL.finisher.freezeFrames / 60 })
@@ -2381,31 +2381,61 @@ function _tickAnimFinisher() {
 function _drawAnimFinisher() {
   if (!_animFin) return
   const f = _animFin, t = f.t, w = canvas.width, h = canvas.height, F = HITFEEL.finisher
+  const sp = _worldToScreen(f.x, f.y)
+  const col = f.color || [255, 90, 60]
   ctx.save()
+  // ── FULL-SCREEN BEATS: 2 silhouette → 3 invert → 5 snap-back colour ──
   if (f.reduce) {
     const env = Math.max(0, 1 - t / (F.freezeFrames + 8))                 // photosensitivity: steady soft dim, no strobe/invert
     ctx.fillStyle = `rgba(0,0,0,${(0.32 * env).toFixed(3)})`; ctx.fillRect(0, 0, w, h)
   } else {
-    if (t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.fillRect(0, 0, w, h) }                 // SILHOUETTE: bright flash
+    if (t < F.silhouetteFrames) { ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(0, 0, w, h) }                 // SILHOUETTE: bright flash (fighters read black)
     else if (t < F.silhouetteFrames + F.invertFrames) { ctx.globalCompositeOperation = "difference"; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = "source-over" }   // INVERT (negative)
-    else if (t >= F.freezeFrames + 5 && t < F.freezeFrames + 8) { ctx.fillStyle = "rgba(255,90,60,0.22)"; ctx.fillRect(0, 0, w, h) }   // snap-back colour flash
+    else if (t >= F.freezeFrames + 5 && t < F.freezeFrames + 9) { ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.26)`; ctx.fillRect(0, 0, w, h) }   // PUNCH-IN snap-back colour flash
   }
-  // BURST LINES: sharp radial spikes from the hit point (fade over the sequence).
-  if (t < F.freezeFrames + 8) {
-    const sp = _worldToScreen(f.x, f.y), env = Math.max(0, 1 - t / (F.freezeFrames + 8))
-    ctx.strokeStyle = f.reduce ? `rgba(200,210,230,${(0.5 * env).toFixed(3)})` : `rgba(255,250,235,${(0.95 * env).toFixed(3)})`
-    ctx.lineWidth = 2 + 2 * env; ctx.lineCap = "round"
-    const maxLen = Math.max(w, h) * (0.5 + 0.35 * env)
-    for (let i = 0; i < F.burstLines; i++) {
-      const ang = (i / F.burstLines) * Math.PI * 2 + (f.player ? 0.12 : 0)
-      const r1 = maxLen * (0.55 + 0.45 * (((i * 2654435761) >>> 0) % 100 / 100))
-      ctx.beginPath(); ctx.moveTo(sp.x + Math.cos(ang) * 42, sp.y + Math.sin(ang) * 42); ctx.lineTo(sp.x + Math.cos(ang) * r1, sp.y + Math.sin(ang) * r1); ctx.stroke()
+  // ── EXPANDING IMPACT RING from the hit point (classic anime shockwave) ──
+  if (t < F.freezeFrames + 6) {
+    const rt = t / (F.freezeFrames + 6), rr = Math.max(w, h) * (0.03 + rt * 0.52)
+    ctx.globalCompositeOperation = "lighter"
+    ctx.strokeStyle = `rgba(255,255,255,${(0.6 * (1 - rt)).toFixed(3)})`; ctx.lineWidth = 12 * (1 - rt) + 2
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, rr, 0, Math.PI * 2); ctx.stroke()
+    ctx.globalCompositeOperation = "source-over"
+  }
+  // ── BURST: tapered radial SPIKES (wide base → point) with a glow fill + white core, spark dots, and a
+  //    finer secondary spike between each — the detailed "sharp spikes from the hit point" of the recipe. ──
+  if (t < F.freezeFrames + 8 && !f.reduce) {
+    const env = Math.max(0, 1 - t / (F.freezeFrames + 8)), n = F.burstLines, r0 = 36
+    const maxLen = Math.max(w, h) * (0.45 + 0.42 * env)
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2 + (f.player ? 0.12 : 0)
+      const hr = ((i * 2654435761) >>> 0) % 100 / 100
+      const len = maxLen * (0.5 + 0.5 * hr), baseW = (6 + 7 * hr) * env
+      const ca = Math.cos(ang), sa = Math.sin(ang), px = -sa, py = ca
+      const bx = sp.x + ca * r0, by = sp.y + sa * r0, tx = sp.x + ca * (r0 + len), ty = sp.y + sa * (r0 + len)
+      // outer warm glow spike
+      ctx.fillStyle = `rgba(255,246,214,${(0.55 * env).toFixed(3)})`
+      ctx.beginPath(); ctx.moveTo(bx + px * baseW, by + py * baseW); ctx.lineTo(tx, ty); ctx.lineTo(bx - px * baseW, by - py * baseW); ctx.closePath(); ctx.fill()
+      // white-hot core spike (thinner)
+      ctx.fillStyle = `rgba(255,255,255,${(0.95 * env).toFixed(3)})`
+      ctx.beginPath(); ctx.moveTo(bx + px * baseW * 0.4, by + py * baseW * 0.4); ctx.lineTo(tx, ty); ctx.lineTo(bx - px * baseW * 0.4, by - py * baseW * 0.4); ctx.closePath(); ctx.fill()
+      // spark dot at the tip
+      ctx.fillStyle = `rgba(255,255,255,${(0.85 * env).toFixed(3)})`
+      ctx.beginPath(); ctx.arc(tx, ty, 1.5 + 2.2 * env, 0, Math.PI * 2); ctx.fill()
+      // finer secondary spike offset between the main ones
+      const a2 = ang + Math.PI / n
+      ctx.strokeStyle = `rgba(255,240,206,${(0.42 * env).toFixed(3)})`; ctx.lineWidth = 1.6
+      ctx.beginPath(); ctx.moveTo(sp.x + Math.cos(a2) * r0, sp.y + Math.sin(a2) * r0); ctx.lineTo(sp.x + Math.cos(a2) * (r0 + len * 0.62), sp.y + Math.sin(a2) * (r0 + len * 0.62)); ctx.stroke()
     }
+    ctx.globalCompositeOperation = "source-over"
   }
   ctx.restore()
-  // Advance the sequence here (the draw runs EVERY frame, incl. the freeze frames where the sim update is
-  // skipped) so the silhouette→invert→burst beats play on time. Render-only; not sim state.
-  if (gameState !== GAME_STATES.PAUSED) { _animFin.t++; if (_animFin.t >= F.freezeFrames + 12) _animFin = null }
+  // Advance the sequence (draw runs EVERY frame, incl. the freeze). `stretch` holds each beat longer for
+  // frame-exact capture; default 1. Render-only; not sim state.
+  if (gameState !== GAME_STATES.PAUSED) {
+    f._sub = (f._sub || 0) + 1
+    if (f._sub >= (f.stretch || 1)) { f._sub = 0; f.t++; if (f.t >= F.freezeFrames + 12) _animFin = null }
+  }
 }
 
 // ══ JUICE DASHES (Phase 3) — presentation-only: wind-up/squash-stretch + afterimages + dust + camera lead ══
@@ -24268,7 +24298,7 @@ gameLoop()
       projTrailLen: () => (window.__hfTestProj && window.__hfTestProj._jtrail) ? window.__hfTestProj._jtrail.length : 0,   // DISNEY (Phase B): projectile trail ring-buffer length
       // ── Phase C (anime finisher) ──
       setAnimFinisher: (on) => { juiceSettings.setAnimFinisher(on); return juiceSettings.animFinisher },
-      triggerFinisher: () => { const f = p1 || p2; const x = f ? (f.x || 0) + (f.w || 60) / 2 : canvas.width / 2, y = f ? (f.y || 0) + (f.h || 100) * 0.42 : canvas.height / 2; _triggerAnimFinisher(x, y, 0); return { active: !!_animFin, freeze: _animFinFreeze, cooldown: _animFinCd } },
+      triggerFinisher: (opts = {}) => { const who = opts.who === "p2" ? p2 : (opts.who === "p1" ? p1 : null); const f = who || p1 || p2; const x = (opts.x != null) ? opts.x : (f ? (f.x || 0) + (f.w || 60) / 2 : canvas.width / 2), y = (opts.y != null) ? opts.y : (f ? (f.y || 0) + (f.h || 100) * 0.42 : canvas.height / 2); _triggerAnimFinisher(x, y, 0, { stretch: opts.stretch || 1, color: opts.color || null }); return { active: !!_animFin, freeze: _animFinFreeze, cooldown: _animFinCd, stretch: _animFin ? _animFin.stretch : 1 } },
       finisherState: () => ({ active: !!_animFin, t: _animFin ? _animFin.t : -1, reduce: _animFin ? _animFin.reduce : null, freeze: _animFinFreeze, cooldown: _animFinCd }),
       // ── Phase D (elements) ──
       elementOf: (key, move = null, isUlt = false, variant = null) => elementFor(key, { currentMove: move, isUltimate: isUlt, ultVariant: variant }),

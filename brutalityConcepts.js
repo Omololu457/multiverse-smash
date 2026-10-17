@@ -2283,6 +2283,154 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 10 — TOTAL CONCENTRATION (Demon Slayer) ────────────────────────────────────────────────
+  // nezuko · inosuke · rengoku · shinobu · zenitsu
+
+  // NEZUKO — Blood Demon Art: her crimson blood ignites into pink demon-flames that burn only her enemy.
+  nezuko: {
+    banner: "BLOOD DEMON ART", bannerRgb: "240,80,140", base: "hurt", choreographed: true, total: 176,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 176, rgb: "14,2,8", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 176, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 120, who: "atk", action: "idle", x: 0.84, y: 0.52, frame: "anim:12", facing: -1 },
+      { fx: "cam", t0: 46, t1: 118, zoom: 1.62, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "whiteSpike", t0: 56, t1: 64 },
+      { fx: "flameBeam", t0: 60, t1: 120, color: "#ff5aa0" },
+      { fx: "incinerate", t0: 60, t1: 172, color: "#ff5aa0", black: true },
+      { fx: "cam", t0: 120, t1: 162, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "banner", t0: 148, t1: 176 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 56, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 120, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 126, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // INOSUKE — Beast Breathing: a feral storm of dual serrated blades hacks the target apart.
+  inosuke: {
+    banner: "BEAST BREATHING", bannerRgb: "120,160,220", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 168, rgb: "6,8,12", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 112, zoom: 1.4, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 112, action: "run", around: 0.5, aroundY: 0.48, count: 9, radX: 0.3, radY: 0.14, color: "#90b0e0" },
+      { fx: "actor", t0: 50, t1: 112, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 52, t1: 112, count: 20, color: "#b8d0f0" },
+      { fx: "bloodGush", t0: 60, t1: 168, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 112, t1: 154, zoom: 1.95, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 124 },
+      { fx: "shatter", t0: 116, t1: 162, cols: 6, rows: 8, spread: 1.3 },
+      { fx: "bloodGush", t0: 118, t1: 168, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 154, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 156, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 158, t1: 168 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // RENGOKU — Flame Breathing: the blazing Flame Tiger rips through in a wave of fire.
+  rengoku: {
+    banner: "FLAME BREATHING", bannerRgb: "255,150,40", base: "hurt", choreographed: true, total: 168,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 168, rgb: "16,8,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "actor", t0: 14, t1: 116, who: "atk", action: "heavy", x: 0.84, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "cam", t0: 46, t1: 112, zoom: 1.7, cx: 0.5, cy: 0.46, ease: 0.08 },
+      { fx: "swordSlash", t0: 66, t1: 112, x: 0.52, y: 0.44, len: 0.5, angle: -2.2, sweep: 3.0, color: "rgba(255,150,40,0.95)" },
+      { fx: "whiteSpike", t0: 100, t1: 112 },
+      { fx: "bloodGush", t0: 72, t1: 168, x: 0.5, y: 0.46, amount: 8 },
+      { fx: "cam", t0: 112, t1: 144, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "incinerate", t0: 112, t1: 158, color: "#ff7a1e" },
+      { fx: "headPop", t0: 116, t1: 144, headY: 0.42 },
+      { fx: "bloodGush", t0: 116, t1: 168, x: 0.5, y: 0.46, amount: 28 },
+      { fx: "cam", t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 168, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 168 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.55 },
+      { t: 66, id: "swish_fast_01", gain: 0.6 },
+      { t: 112, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 118, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // SHINOBU — Insect Breathing: a blur of poison-tipped thrusts; the wisteria toxin does the rest.
+  shinobu: {
+    banner: "INSECT BREATHING", bannerRgb: "180,120,230", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 172, rgb: "8,4,14", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 114, zoom: 1.45, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 114, action: "run", around: 0.5, aroundY: 0.48, count: 11, radX: 0.28, radY: 0.13, color: "#b080e0" },
+      { fx: "actor", t0: 50, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 52, t1: 114, count: 18, color: "#c89aec" },
+      { fx: "impale", t0: 74, t1: 114, color: "#b080e0", headY: 0.45 },
+      { fx: "bloodGush", t0: 60, t1: 172, x: 0.5, y: 0.5, amount: 6 },
+      { fx: "cam", t0: 114, t1: 146, zoom: 2.0, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      { fx: "headPop", t0: 118, t1: 146, headY: 0.45 },
+      { fx: "bloodGush", t0: 118, t1: 172, x: 0.5, y: 0.46, amount: 28 },
+      { fx: "cam", t0: 146, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 148, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 152, t1: 172 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.45 },
+      { t: 48, id: "swish_fast_01", gain: 0.55 },
+      { t: 114, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 120, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // ZENITSU — Thunderclap and Flash: one blinding, instantaneous step-slash splits the target before it registers.
+  zenitsu: {
+    banner: "THUNDERCLAP", bannerRgb: "255,225,90", base: "hurt", choreographed: true, total: 162,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 162, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 162, rgb: "12,10,2", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 36, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 96, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 24, t1: 42, action: "run", fromX: 0.92, toX: 0.58, y: 0.52, facing: -1, color: "rgba(255,225,90,0.6)" },
+      { fx: "cam", t0: 40, t1: 96, zoom: 1.8, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 40, t1: 68, who: "atk", action: "heavy", x: 0.6, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "swordSlash", t0: 46, t1: 72, x: 0.52, y: 0.47, len: 0.32, angle: -2.2, sweep: 2.8, color: "rgba(255,235,120,0.98)" },
+      { fx: "lightning", t0: 46, t1: 96, headY: 0.47, color: "#ffe85a" },
+      { fx: "whiteSpike", t0: 62, t1: 74 },
+      { fx: "cam", t0: 96, t1: 140, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "lightning", t0: 96, t1: 130, headY: 0.47, color: "#fff080" },
+      { fx: "soulSplit", t0: 96, t1: 154 },
+      { fx: "bloodGush", t0: 100, t1: 162, x: 0.5, y: 0.5, amount: 16 },
+      { fx: "cam", t0: 140, t1: 162, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 142, t1: 162, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 146, t1: 162 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 46, id: "crack_sizzle_bright", gain: 0.65 },
+      { t: 96, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 102, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

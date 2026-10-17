@@ -67,7 +67,8 @@ killua · zoldyck · gon · hisoka · chrollo · kurapika · netero · meruem ·
 ichigo(Getsuga Tensho)/byakuya(Senbonzakura shred)/zaraki(Kendo cleave)/zaraki_shikai(Nozarashi)/mayuri(Ashisogi Jizo vivisect)/yamamoto(Ryujin Jakka fire). No new FX (reuse). ★71 concepts total (phases 1-9). Next: Phase 10 Total Concentration (Demon Slayer).
 ichigo · byakuya · zaraki · zaraki_shikai · mayuri · yamamoto
 
-## Phase 10 — Total Concentration (Demon Slayer)   ☐
+## Phase 10 — Total Concentration (Demon Slayer)   ☑ DONE
+nezuko(Blood Demon Art pink-flame)/inosuke(Beast Breathing shred)/rengoku(Flame Breathing)/shinobu(Insect Breathing poison)/zenitsu(Thunderclap lightning-bisect). No new FX. ★76 concepts total (phases 1-10). Next: Phase 11 DC.
 nezuko · inosuke · rengoku · shinobu · zenitsu
 
 ## Phase 11 — Truth & Justice (DC)   ☐

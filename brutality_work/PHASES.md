@@ -59,7 +59,8 @@ goku · vegeta · vegeta_dark · gohan · bardock · gogeta · vegito · gotenks
 frieza(Death Beam thin)/cell(Absorption maw)/piccolo(Makankosappo drill)/beerus(Hakai erase)/goku_black(dark Kamehameha)/goku_rose(God Split Cut). No new FX (reuse). ★56 concepts total (phases 1-7). Next: Phase 8 Nen (HxH).
 frieza · cell · piccolo · beerus · goku_black · goku_rose
 
-## Phase 8 — Nen (HxH)   ☐
+## Phase 8 — Nen (HxH)   ◐ IN PROGRESS
+Batch 8A DONE: killua(Godspeed lightning-blitz)/zoldyck(Thunderbolt)/gon(Jajanken)/meruem(The King)/netero(100-Type Guanyin). No new FX (reuse). Pending 8B (hisoka/chrollo/kurapika/shizuku).
 killua · zoldyck · gon · hisoka · chrollo · kurapika · netero · meruem · shizuku
 
 ## Phase 9 — Soul Reapers (Bleach)   ☐

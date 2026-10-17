@@ -1830,6 +1830,171 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+
+  // ── PHASE 8 — NEN (Hunter x Hunter) ──────────────────────────────────────────────────────────────
+  // Batch 8A "Zoldycks & Powerhouses": killua · zoldyck · gon · meruem · netero
+
+  // KILLUA — Godspeed: electrified to light-speed, he blitzes from every angle in a storm of lightning.
+  killua: {
+    banner: "GODSPEED", bannerRgb: "126,216,255", base: "hurt", choreographed: true, total: 172,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 172, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 172, rgb: "2,10,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 116, zoom: 1.4, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 116, action: "run", around: 0.5, aroundY: 0.48, count: 10, radX: 0.3, radY: 0.14, color: "#7ed8ff" },
+      { fx: "actor", t0: 50, t1: 116, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "lightning", t0: 54, t1: 116, headY: 0.45, color: "#8ae0ff" },
+      { fx: "bloodGush", t0: 60, t1: 172, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 126 },
+      { fx: "lightning", t0: 116, t1: 148, headY: 0.45, color: "#aef0ff" },
+      { fx: "headPop", t0: 120, t1: 148, headY: 0.45 },
+      { fx: "bloodGush", t0: 120, t1: 172, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 150, t1: 172, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 172, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 150, t1: 172, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 154, t1: 172 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 116, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 122, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // ZOLDYCK (Killua) — Narukami: a single colossal thunderbolt spears the target through.
+  zoldyck: {
+    banner: "THUNDERBOLT", bannerRgb: "140,200,255", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "6,8,16", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 144, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 46, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(140,200,255,0.5)" },
+      { fx: "cam", t0: 44, t1: 112, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 44, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 48, t1: 144, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "impale", t0: 50, t1: 112, color: "#cfe8ff", headY: 0.45 },
+      { fx: "lightning", t0: 50, t1: 144, headY: 0.45, color: "#8ac8ff" },
+      { fx: "whiteSpike", t0: 52, t1: 62 },
+      { fx: "bloodGush", t0: 58, t1: 166, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam", t0: 112, t1: 144, zoom: 2.15, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 112, t1: 122 },
+      { fx: "lightning", t0: 112, t1: 140, headY: 0.45, color: "#aed8ff" },
+      { fx: "headPop", t0: 116, t1: 144, headY: 0.45 },
+      { fx: "bloodGush", t0: 116, t1: 166, x: 0.5, y: 0.46, amount: 30 },
+      { fx: "cam", t0: 144, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 144, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 146, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 150, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 50, id: "crack_sizzle_bright", gain: 0.6 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 118, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+
+  // GON — Jajanken: "First comes rock!" A fist charged with his entire aura lands like a wrecking ball.
+  gon: {
+    banner: "JAJANKEN", bannerRgb: "90,220,140", base: "hurt", choreographed: true, total: 164,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 164, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 164, rgb: "6,14,8", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(90,220,140,0.5)" },
+      { fx: "cam", t0: 42, t1: 96, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 44, t1: 140, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "whiteSpike", t0: 70, t1: 82 },
+      { fx: "bloodGush", t0: 72, t1: 164, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam", t0: 96, t1: 138, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 96, t1: 106 },
+      { fx: "headPop", t0: 98, t1: 138, headY: 0.4 },
+      { fx: "shockRing", t0: 98, t1: 138, count: 3, color: "rgba(120,230,160,0.7)" },
+      { fx: "bloodGush", t0: 98, t1: 164, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam", t0: 138, t1: 164, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 138, t1: 164, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 140, t1: 164, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 144, t1: 164 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.55 },
+      { t: 42, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 96, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 102, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // MERUEM — the Chimera Ant King: one disdainful blow carries more force than an army; the body simply folds.
+  meruem: {
+    banner: "THE KING", bannerRgb: "150,220,160", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "8,12,6", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerIn", t0: 26, t1: 44, action: "run", fromX: 0.92, toX: 0.6, y: 0.52, facing: -1, color: "rgba(150,220,160,0.5)" },
+      { fx: "cam", t0: 42, t1: 96, zoom: 1.85, cx: 0.52, cy: 0.46, cut: true },
+      { fx: "actor", t0: 42, t1: 72, who: "atk", action: "heavy", x: 0.64, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "actor", t0: 44, t1: 140, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "shockRing", t0: 70, t1: 110, count: 3, color: "rgba(160,230,170,0.6)" },
+      { fx: "whiteSpike", t0: 70, t1: 82 },
+      { fx: "bloodGush", t0: 72, t1: 166, x: 0.5, y: 0.46, amount: 10 },
+      { fx: "cam", t0: 96, t1: 138, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 96, t1: 106 },
+      { fx: "headPop", t0: 98, t1: 138, headY: 0.4 },
+      { fx: "shockRing", t0: 98, t1: 138, count: 4, color: "rgba(170,235,180,0.7)" },
+      { fx: "bloodGush", t0: 98, t1: 166, x: 0.5, y: 0.46, amount: 34 },
+      { fx: "cam", t0: 138, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 138, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 140, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 144, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.55 },
+      { t: 42, id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 96, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 102, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
+  // NETERO — 100-Type Guanyin Bodhisattva: prayer-fast strikes rain down by the hundred, then one final palm.
+  netero: {
+    banner: "100-TYPE GUANYIN", bannerRgb: "230,200,120", base: "hurt", choreographed: true, total: 174,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 174, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 174, rgb: "12,10,4", max: 0.97, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "cam", t0: 44, t1: 116, zoom: 1.45, cx: 0.5, cy: 0.47, ease: 0.08 },
+      { fx: "flickerRush", t0: 48, t1: 116, action: "run", around: 0.5, aroundY: 0.48, count: 11, radX: 0.3, radY: 0.14, color: "#e0c070" },
+      { fx: "actor", t0: 50, t1: 116, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "shockRing", t0: 56, t1: 116, count: 4, color: "rgba(230,200,120,0.55)" },
+      { fx: "bloodGush", t0: 62, t1: 174, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "cam", t0: 116, t1: 150, zoom: 2.05, cx: 0.5, cy: 0.46, cut: true },
+      { fx: "whiteSpike", t0: 116, t1: 130 },
+      { fx: "shockRing", t0: 116, t1: 150, count: 5, color: "rgba(240,210,130,0.7)" },
+      { fx: "headPop", t0: 120, t1: 150, headY: 0.42 },
+      { fx: "bloodGush", t0: 120, t1: 174, x: 0.5, y: 0.46, amount: 32 },
+      { fx: "cam", t0: 150, t1: 174, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 150, t1: 174, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "actor", t0: 152, t1: 174, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 174 },
+    ],
+    sound: [
+      { t: 1, id: "charge_hum_rise", gain: 0.5 },
+      { t: 48, id: "warp_wobble_01", gain: 0.5 },
+      { t: 116, id: "boom_huge_02_roar", gain: 1.0, ultBoom: true, duckSec: 0.6 },
+      { t: 122, id: "rumble_tail_01", gain: 0.55 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

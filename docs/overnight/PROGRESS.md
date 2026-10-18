@@ -39,7 +39,7 @@ git checkout main && git merge --ff-only feat/overnight-polish
 
 | # | Phase | Status | Commit | Notes |
 |---|-------|--------|--------|-------|
-| 0 | Audit (read-only → AUDIT.md) | **DONE** | `c9fd60a0` | docs/overnight/AUDIT.md — full map + per-phase build pointers |
+| 0 | Audit (read-only → AUDIT.md) | **DONE** | `38fed4e1` | docs/overnight/AUDIT.md — full map + per-phase build pointers |
 | 1 | Performance preset + settings | TODO | — | |
 | 2 | Accessibility | TODO | — | |
 | 3 | Version check + error log + safety net | TODO | — | |
@@ -79,6 +79,36 @@ _(none yet)_
   working tree is dirty with foreign edits; (4) if a shared file is too entangled to separate safely,
   mark the phase PARTIAL/SKIPPED and report, rather than clobbering concurrent work. Ideally resume when
   the other sessions have settled.
+
+## ISOLATED WORKFLOW — REQUIRED while concurrent sessions are active on this checkout
+
+A concurrent autonomous session is live: it switched HEAD mid-run (my Phase-0 commits first landed on
+`feat/feel-timing-weather` as `c9fd60a0`/`c181143e` — strays; this branch was rebuilt cleanly via plumbing
+to `38fed4e1`), and it keeps FOREIGN uncommitted edits in the shared working tree (`game.js`,
+`juiceSettings.js`, `sprite.js`). So: **do NOT edit the working tree, do NOT rely on `git checkout`.** Use:
+
+1. **EDIT on temp copies from the branch tip** (never touch the shared working tree):
+   `git show feat/overnight-polish:<file> > /tmp/ovn/<file>`  then edit `/tmp/ovn/<file>`.
+2. **COMMIT via private-index plumbing** (immune to branch switches + foreign working-tree):
+   ```
+   export GIT_INDEX_FILE=/tmp/ovn.index; rm -f $GIT_INDEX_FILE
+   git read-tree feat/overnight-polish
+   B=$(git hash-object -w /tmp/ovn/<file>); git update-index --add --cacheinfo 100644,$B,<file>   # repeat per file
+   TREE=$(git write-tree); C=$(git commit-tree $TREE -p feat/overnight-polish -m "phaseN(overnight): ...")
+   git update-ref refs/heads/feat/overnight-polish $C; unset GIT_INDEX_FILE
+   ```
+3. **TEST via archive** (NOT a worktree — a plain file export; immune to working-tree pollution):
+   ```
+   rm -rf /tmp/ovn_test && mkdir -p /tmp/ovn_test && git archive feat/overnight-polish | tar -x -C /tmp/ovn_test
+   ```
+   Run gates + `harness/overnight_render_check.mjs` with ROOT pointed at `/tmp/ovn_test` (copy the harness to
+   serve from there, or adapt its ROOT). Phase is DONE only if determinism 14/0, roster ✅, combo ≤9 fail,
+   render ✅ — all against the ARCHIVE of the branch, not the dirty working tree.
+4. **PUSH**: `git push origin feat/overnight-polish:feat/overnight-polish`
+
+**STRONGLY PREFERRED:** stop the other autonomous session first so this checkout is exclusive — then the
+normal fast workflow (edit working tree → `git add <explicit path>` → test → commit → push) works and all
+this plumbing is unnecessary. The plumbing path is a fallback for the hostile shared checkout.
 
 ## RESUME: phase 1
 

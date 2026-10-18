@@ -317,7 +317,7 @@ import {
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
   selectCardAnim, selectCardAdvance, drawSelectCardFrame,   // shared select-card hover/confirm animation (char-select → skin-select)
-  drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
+  drawTrainingCollisionBoxes, drawTrainingOverlay, drawBrutalityReelOverlay, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawAiVsAiSetupScreen, getAiVsAiSetupRects, drawAiVsAiSummaryScreen, getAiVsAiSummaryRects,
   drawTowerSelectScreen, getTowerSelectRects,
@@ -336,7 +336,7 @@ import {
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
-  drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
+  drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, getAcademyWatchBrutButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons, getMoveListViewport,
@@ -6146,21 +6146,23 @@ function _restoreBrutalityCamera() {
 // untouched — identical to the harness trigger path, just scoped to the Academy + auto-reverted.
 let _academyBrutPreview = null     // { p2Health, trait, fxWas, name } while a previewed finisher plays
 let _academyBrutCursor  = 0        // cycles through the fighter's finisher entries on repeated B presses
+let _brutReel = null               // GALLERY reel: { keys:[entries], idx, wait } — auto-plays every finisher on a loop
 function _academyBrutEntries(wKey) {
   const perChar = BRUTALITY_FINISHERS[(wKey || "").toLowerCase()]
   if (!perChar) return []
   return Object.keys(perChar).map(k => ({ key: k, fin: perChar[k] })).filter(e => e.fin && e.fin.name)
 }
-// true if the Academy's current fighter has any gore finisher to preview (gates the B hint + handler).
+// true if the Academy's current fighter has any gore finisher to preview (gates the B hint + Watch button).
 function _academyCanPreviewBrut() {
   const k = (p1?.rosterKey || academyCharKey || "").toLowerCase()
   return BRUTALITY_ELIGIBLE.has(k) && _academyBrutEntries(k).length > 0
 }
-function _academyPreviewBrutality() {
+// Play ONE finisher over the dummy. entry = a {key,fin} from _academyBrutEntries; omit to cycle via the cursor.
+function _academyPreviewBrutality(entry) {
   if (!academySession || !p1 || !p2 || _academyBrutPreview) return false
   const wKey = (p1.rosterKey || "").toLowerCase()
   const entries = _academyBrutEntries(wKey); if (!entries.length) return false
-  const e = entries[_academyBrutCursor % entries.length]; _academyBrutCursor++
+  const e = entry || entries[_academyBrutCursor++ % entries.length]
   const traitKey = e.fin.trait || null                                 // trait finishers resolve off an active-power flag (e.g. Edo-Tensei)
   if (traitKey) p1[traitKey] = true
   p1._killingBlowMove = e.key   // trait entries resolve off the flag regardless of move; blow entries resolve by this key
@@ -6178,7 +6180,27 @@ function _academyEndBrutPreview() {
   brutalityFx = pv.fxWas
   if (p2) { p2.health = pv.p2Health || p2.maxHealth || 1; p2._forceAction = null }   // revive the dummy + drop the lose pose
   if (p1) { p1._forceAction = null; if (pv.trait) p1[pv.trait] = false }             // drop the winner's win pose + clear the forced trait
+  if (_brutReel) { _brutReel.idx = (_brutReel.idx + 1) % _brutReel.keys.length; _brutReel.wait = 34 }   // GALLERY: queue the next clip
 }
+// BRUTALITY GALLERY — "watch the recordings". Starts a clean drill for the current Academy fighter and auto-plays
+// every finisher back-to-back on a loop (the training HUD is hidden while the reel runs). ◀/▶ jump, Esc exits.
+function startBrutalityReel() {
+  const key = (academyCharKey || "").toLowerCase()
+  const entries = _academyBrutEntries(key); if (!entries.length) return false
+  const L = _academyLessons(); const lesson = L.flat && L.flat[0]; if (!lesson) return false
+  startAcademyDrill(lesson, "free")                                    // p1=char vs dummy, live BATTLE scene
+  _brutReel = { keys: entries, idx: 0, wait: 8 }
+  return true
+}
+function _reelJump(d) {   // ◀/▶ — skip to the prev/next clip immediately (abort any playing one)
+  if (!_brutReel) return
+  const len = _brutReel.keys.length, playing = !!_academyBrutPreview
+  if (playing) { brutalityState.timer = 0; updateBrutality() }   // force-end the current clip → the end-hook already advances idx by +1
+  const delta = playing ? (d > 0 ? 0 : -2) : (d > 0 ? 1 : -1)    // net move = +1 (next) / -1 (prev), accounting for the hook's +1 when playing
+  _brutReel.idx = ((_brutReel.idx + delta) % len + len) % len
+  _brutReel.wait = 2
+}
+function _exitBrutalityReel() { _brutReel = null; if (_academyBrutPreview) { brutalityState.timer = 0; updateBrutality() }; exitAcademyDrill() }
 // SPRITE-BISECTION render. Capture the loser's CURRENT sprite frame into an offscreen canvas ONCE, so the
 // finisher can draw it as two clipped halves that separate. NO new art — this is the loser's own existing frame.
 // ★ We must NOT size the canvas from the pre-draw _lastDraw* rect: at match-over the loser is often force-posed
@@ -7512,6 +7534,12 @@ function handlePauseInput(key) {
   // CHARACTER ACADEMY drill owns Esc during a lesson — exit back to the fighter's lesson page (never the pause menu).
   // FREE PRACTICE / SHOW ME / TRY IT all return here; other keys pass through so TRY IT still reads the player's inputs.
   if (academySession && (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK)) {
+    if (_brutReel) {   // GALLERY reel owns the controls: arrows skip clips, Esc backs out to the lesson page
+      if (key === "escape") { _exitBrutalityReel(); return }
+      if (key === "arrowright" || key === "d") { _reelJump(1);  return }
+      if (key === "arrowleft"  || key === "a") { _reelJump(-1); return }
+      return
+    }
     if (key === "escape") { exitAcademyDrill(); return }
     if (key === "b" && _academyCanPreviewBrut()) { _academyPreviewBrutality(); return }   // preview the next finisher over the dummy (cycles)
     if (academySession.mode === "showme" && (key === "r")) { startAcademyDrill(academySession.lesson, "showme"); return }   // replay the demo
@@ -19833,6 +19861,13 @@ function drawBattleHud() {
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
 
   if (!trainingState.enabled) return
+  // BRUTALITY GALLERY: hide ALL training chrome while the reel plays — just a clean name banner + controls.
+  if (_brutReel) {
+    const e = _brutReel.keys[_brutReel.idx % _brutReel.keys.length]
+    drawBrutalityReelOverlay(ctx, canvas, { name: _brutReel.wait > 0 ? null : (academySession?._brutName || e?.fin?.name || ""),
+      index: _brutReel.idx + 1, total: _brutReel.keys.length, charName: characters[academyCharKey]?.name || academyCharKey })
+    return
+  }
   const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
   drawTrainingOverlay(ctx, canvas, {
     combo:     Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
@@ -19854,7 +19889,7 @@ function drawBattleHud() {
   if (comboTrials.isArmed()) drawComboTrialHud(ctx, canvas, comboTrials.activeInfo(), { retryLabel: "F2" })
   // FIRST-BOOT TUTORIAL: draw the current-step objective + progress + skip hint.
   if (tutorial.isActive()) drawTutorialHud(ctx, canvas, tutorial.activeInfo())
-  if (academySession) { const info = academyDrillOverlayInfo(); if (info) drawAcademyDrillOverlay(ctx, canvas, info) }   // CHARACTER ACADEMY drill overlay (SHOW ME / TRY IT)
+  if (academySession && !_brutReel) { const info = academyDrillOverlayInfo(); if (info) drawAcademyDrillOverlay(ctx, canvas, info) }   // CHARACTER ACADEMY drill overlay (SHOW ME / TRY IT; hidden during the gallery reel)
 }
 
 // FIRST-BOOT TUTORIAL HUD — a top-center objective card (current step + hint), a
@@ -20937,6 +20972,7 @@ let academySearch     = ""
 let academyUniverse   = "All"
 let academyHoverKey   = null
 let academyBackHover  = false
+let academyWatchBrutHover = false
 let academyCharKey    = null          // the fighter whose lesson page is open
 let academyCharScroll = 0
 let academyLessonsCache = null        // { key, groups, flat } for academyCharKey
@@ -21153,6 +21189,10 @@ function academyTick() {
   if (!s || gameState !== GAME_STATES.BATTLE) return
   // ACADEMY brutality preview armed from the lesson list (B there) — fire once the drill is live.
   if (s._brutAutoPreview && !brutalityState.active && !_academyBrutPreview) { s._brutAutoPreview = false; _academyPreviewBrutality() }
+  // GALLERY reel: once the current clip finishes (+ a short gap), auto-play the next finisher on a loop.
+  if (_brutReel && !brutalityState.active && !_academyBrutPreview) {
+    if (_brutReel.wait > 0) { _brutReel.wait-- } else { _academyPreviewBrutality(_brutReel.keys[_brutReel.idx]) }
+  }
   // incoming_projectile scenario — make the dummy fire its neutral special on a loop (so reflects/redirects
   // have something to answer). Pure key writes into the Academy's own match (infinite resources on).
   if (s._p2Fire && p2 && p2.controls) { try { writeRawControls(p2, { special: (globalFrameCount % 70) < 3 }) } catch (_) {} }
@@ -21431,7 +21471,7 @@ function renderCurrentState() {
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
     case GAME_STATES.ACADEMY:         drawAcademyGridScreen(ctx, canvas, { roster: getAcademyFilteredRoster(), filters: academyUniverses(), universe: academyUniverse, search: academySearch, searchFocus: true, scroll: academyScroll, hoverKey: academyHoverKey, backHover: academyBackHover, progressFor: academyProgressFor }); break
-    case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id), canPreviewBrut: _academyCanPreviewBrut() }); break }
+    case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id), canPreviewBrut: _academyCanPreviewBrut(), watchBrutHover: academyWatchBrutHover }); break }
     case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
     case GAME_STATES.COMBO_TRIALS:    drawComboTrialsScreen(ctx, canvas, _comboTrialsData()); break
     case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
@@ -21738,7 +21778,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.ACADEMY)          { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); const card = L.cards.find(r => r.y >= L.gridY - 6 && r.y <= L.gridY + L.gridH && pointInRect(mouse.x, mouse.y, r)); academyHoverKey = card ? card.key : null; return }
-  if (gameState === GAME_STATES.ACADEMY_CHAR)     { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); return }
+  if (gameState === GAME_STATES.ACADEMY_CHAR)     { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); academyWatchBrutHover = pointInRect(mouse.x, mouse.y, getAcademyWatchBrutButton(canvas)); return }
   if (gameState === GAME_STATES.CONTROLS_HELP)    { controlsHelpBackHover = pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas)); return }
   if (gameState === GAME_STATES.COMBO_TRIALS)     {
     const rr = getComboTrialsRects(canvas, _comboTrialsData())
@@ -21837,6 +21877,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.ACADEMY_CHAR: {
       if (pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas))) { openAcademy(screenReturnState || GAME_STATES.MAIN_MENU); break }
+      if (_academyCanPreviewBrut() && pointInRect(mouse.x, mouse.y, getAcademyWatchBrutButton(canvas))) { startBrutalityReel(); break }   // ☠ gallery
       const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
       for (const r of L.rows) {
         if (r.type !== "row" || r.y < L.listY - 6 || r.y > L.listY + L.listH) continue
@@ -22300,6 +22341,7 @@ function _padMenuRects() {
       const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
       const btns = []
       for (const r of L.rows) { if (r.type !== "row" || r.y < L.listY - 2 || r.y > L.listY + L.listH + 2) continue; if (r.showRect) btns.push(r.showRect); if (r.tryRect) btns.push(r.tryRect); if (r.freeRect) btns.push(r.freeRect) }
+      if (_academyCanPreviewBrut()) btns.push(getAcademyWatchBrutButton(canvas))
       return [...btns, getAcademyBackButton(canvas)]
     }
     default: return null
@@ -22986,7 +23028,7 @@ window.addEventListener("keydown", e => {
   }
   if (gameState === GAME_STATES.ACADEMY_CHAR) {
     if (key === "escape" || key === "backspace") { e.preventDefault(); openAcademy(screenReturnState || GAME_STATES.MAIN_MENU); return }
-    if (key === "b" && _academyCanPreviewBrut()) { e.preventDefault(); const L = _academyLessons(); const lesson = L.flat && L.flat[0]; if (lesson) { startAcademyDrill(lesson, "free"); if (academySession) academySession._brutAutoPreview = true } return }   // jump into a practice drill + auto-play the first finisher (press B again to cycle)
+    if (key === "b" && _academyCanPreviewBrut()) { e.preventDefault(); startBrutalityReel(); return }   // open the BRUTALITY GALLERY — auto-plays every finisher on a loop (◀/▶ to jump)
     if (key === "arrowdown" || key === "arrowup") { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + (key === "arrowdown" ? 60 : -60))); return }
     return
   }
@@ -25369,6 +25411,10 @@ gameLoop()
       exit:     () => { exitAcademyDrill(); return { state: gameState } },
       previewBrut: () => { const ok = _academyPreviewBrutality(); return { ok, active: brutalityState.active, name: brutalityState.finisher?.name || null, gore: brutalityState.finisher?.gore || null, canPreview: _academyCanPreviewBrut(), inPreview: !!_academyBrutPreview } },
       brutState:   () => ({ active: brutalityState.active, inPreview: !!_academyBrutPreview, name: academySession?._brutName || null, p2Hp: Math.round(p2?.health || 0), state: gameState }),
+      startReel:   () => { const ok = startBrutalityReel(); return { ok, reel: !!_brutReel, total: _brutReel?.keys.length || 0, state: gameState } },
+      reelState:   () => _brutReel ? { idx: _brutReel.idx, total: _brutReel.keys.length, wait: _brutReel.wait, playing: brutalityState.active, name: academySession?._brutName || null } : null,
+      reelJump:    (d = 1) => { _reelJump(d); return _brutReel ? { idx: _brutReel.idx } : null },
+      reelExit:    () => { _exitBrutalityReel(); return { reel: !!_brutReel, state: gameState } },
     },
     shisuiFallenArm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const A = f._shiArm; return { active: !!A, grabbed: A ? !!A.grabbed : false, resolved: A ? !!A.resolved : false, throwDmg: f._grabThrowDmg || 0 } },   // Susanoo Arm Grab state
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).

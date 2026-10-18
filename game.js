@@ -753,10 +753,10 @@ const BRUTALITY_FINISHERS = {
   // SUKUNA — the King of Curses. CINEMATIC gore set (opt-in routing): a decapitating cleave, a Dismantle flurry
   // that falls the body into a pile, Fuga flame-arrow incineration, and the Malevolent Shrine domain barrage.
   sukuna: {
-    cleave:     { name: "CLEAVE",            gore: "decap",       palette: GORE_RED,   flash: "#8a0018" },  // one slash → the HEAD is chopped off
-    dismantle:  { name: "DISMANTLE",         gore: "slashstorm",  palette: GORE_RED,   flash: "#8a0018" },  // 解 — a flurry of cuts, then the body falls apart into a pile
-    flameArrow: { name: "FUGA",              gore: "firearrow",   palette: GORE_EMBER, flash: "#ff7a1a" },  // 開 — a flaming arrow pierces → incinerate
-    domain:     { name: "MALEVOLENT SHRINE", gore: "domainslash", palette: GORE_RED,   flash: "#6e0016" },  // 伏魔御廚子 — domain opens → a barrage of slashes dismembers them
+    cleave:     { name: "CLEAVE",            gore: "decap",       palette: GORE_RED,   flash: "#8a0018", live: true, winAction: "cleave",           loseAction: "hurt" },  // LIVE: slash → head wound + geyser
+    dismantle:  { name: "DISMANTLE",         gore: "slashstorm",  palette: GORE_RED,   flash: "#8a0018", live: true, winAction: "dismantle",        loseAction: "hurt" },  // LIVE: flurry of cuts across the live body
+    flameArrow: { name: "FUGA",              gore: "firearrow",   palette: GORE_EMBER, flash: "#ff7a1a", live: true, winAction: "flame_arrow_fire",  loseAction: "hurt" },  // LIVE: flame arrow → the victim ignites
+    domain:     { name: "MALEVOLENT SHRINE", gore: "domainslash", palette: GORE_RED,   flash: "#6e0016", live: true, winAction: "domain",           loseAction: "hurt" },  // LIVE: domain opens → slash barrage
   },
   // TOJI — the Sorcerer Killer's arsenal. CINEMATIC gore set (opt-in routing), each keyed to a real weapon + its
   // sprite: the gun headshot, the Inverted-Spear impale, the rapid-slash dice, the Playful-Cloud bludgeon, a
@@ -796,14 +796,14 @@ const BRUTALITY_FINISHERS = {
   // MADARA — war-god annihilation. Full CINEMATIC gore set (opt-in routing): Tengai Shinsei meteor, a Susano'o
   // ethereal-hand GRIP (squish) + a pick-up-and-SLAM to mush, and Katon Great Fireball incineration.
   madara: {
-    madaraTengaiMeteor: { name: "TENGAI SHINSEI", gore: "meteor",      palette: GORE_PURPLE, flash: "#9a5ae6" },  // 天碍震星 — a meteor falls from the sky and flattens them in a crater
-    ultimate:           { name: "TENGAI SHINSEI", gore: "meteor",      palette: GORE_PURPLE, flash: "#9a5ae6" },
-    madaraSusanooPunch: { name: "SUSANO'O GRIP",  gore: "susanoograb", palette: GORE_PURPLE, flash: "#3a1a7a" },  // a giant ethereal hand grabs + SQUEEZES them to pulp
-    heavy:              { name: "SUSANO'O SLAM",  gore: "susanooslam", palette: GORE_PURPLE, flash: "#3a1a7a" },  // the hand lifts them high then SLAMS them into the ground → a pile of mush
-    madaraFireball:     { name: "GREAT FIREBALL", gore: "fireball",    palette: GORE_EMBER,  flash: "#ff7a1a" },  // 豪火球 — engulfed in flame → charred → skeleton → ash
+    madaraTengaiMeteor: { name: "TENGAI SHINSEI", gore: "meteor",      palette: GORE_PURPLE, flash: "#9a5ae6", live: true, winAction: "madaraTengaiCast",   loseAction: "hurt" },  // LIVE: 天碍震星 meteor falls + flattens them
+    ultimate:           { name: "TENGAI SHINSEI", gore: "meteor",      palette: GORE_PURPLE, flash: "#9a5ae6", live: true, winAction: "madaraTengaiCast",   loseAction: "hurt" },
+    madaraSusanooPunch: { name: "SUSANO'O GRIP",  gore: "susanoograb", palette: GORE_PURPLE, flash: "#3a1a7a", live: true, winAction: "madaraSusanooPunch", loseAction: "hurt" },  // LIVE: Susano'o fist crushes them
+    heavy:              { name: "SUSANO'O SLAM",  gore: "susanooslam", palette: GORE_PURPLE, flash: "#3a1a7a", live: true, winAction: "heavy",             loseAction: "hurt" },  // LIVE: Susano'o slams them down
+    madaraFireball:     { name: "GREAT FIREBALL", gore: "fireball",    palette: GORE_EMBER,  flash: "#ff7a1a", live: true, winAction: "madaraFireballCast",  loseAction: "hurt" },  // LIVE: 豪火球 engulfs → chars
     // TRAIT: while in the Complete/Perfect Susano'o giant form (_madaraComplete), ANY killing blow → the avatar
     // brings its giant sword DOWN and cleaves the victim. Uses the real Complete-Susano'o sword-swing sprite.
-    __trait_susanoo:    { name: "PERFECT SUSANO'O", gore: "susanooblade", palette: GORE_LIGHTNING, flash: "#3aa0ff", trait: "_madaraComplete" },
+    __trait_susanoo:    { name: "PERFECT SUSANO'O", gore: "susanooblade", palette: GORE_LIGHTNING, flash: "#3aa0ff", trait: "_madaraComplete", live: true, winAction: "madaraSusanooPunch", loseAction: "hurt" },
   },
   // JASON — the slasher. (heavy machete chop, Relentless Slash special, fallback ult massacre)
   jason: {
@@ -897,9 +897,9 @@ const BRUTALITY_FINISHERS = {
   // per direction: Back=Pull, Neutral=Push, Down=Super Push). All reuse the proven sprite-bisection +
   // wound-core(bone) + blood engine (no new primitives). Steel palette for the originals, red for gravity.
   pain: {
-    painAlmightyPush: { name: "ALMIGHTY PUSH",  gore: "squish", palette: GORE_RED,   flash: "#c81028" },  // 神羅天征 — a repulsion wave SLAMS them flat into a pancake/pool
-    painAlmightyPull: { name: "ALMIGHTY PULL",  gore: "pull",   palette: GORE_RED,   flash: "#c81028" },  // 万象天引 — YANKED across the map INTO Pain → bursts into a pool of blood on impact
-    ultimate:         { name: "CHIBAKU TENSEI", gore: "meteor", palette: GORE_STEEL, flash: "#2a3450" },  // 地爆天星 — a black planetoid drops and crushes them in a crater
+    painAlmightyPush: { name: "ALMIGHTY PUSH",  gore: "squish", palette: GORE_RED,   flash: "#c81028", live: true, winAction: "painAlmightyPushCast", loseAction: "hurt" },  // LIVE: 神羅天征 repulsion wave → blood burst
+    painAlmightyPull: { name: "ALMIGHTY PULL",  gore: "pull",   palette: GORE_RED,   flash: "#c81028", live: true, winAction: "painAlmightyPullCast", loseAction: "hurt" },  // LIVE: 万象天引 → bursts into a pool of blood
+    ultimate:         { name: "CHIBAKU TENSEI", gore: "meteor", palette: GORE_STEEL, flash: "#2a3450", live: true, winAction: "painChibakuCast",      loseAction: "hurt" },  // LIVE: 地爆天星 planetoid drops + crushes
   },
   // BYAKUYA — Senbonzakura's thousand petal-blades. (light thrust, heavy cleave, byakuyaPetal scatter special)
   byakuya: {
@@ -917,21 +917,21 @@ const BRUTALITY_FINISHERS = {
   // 3 BLOW (keyed to the killing move) + 1 TRAIT (fires while Edo Tensei is active, via `trait`). His
   // CINEMATIC (brutalityConcepts.js) covers any other killing move on the FINISH-window timeout.
   tobirama: {
-    heavy:           { name: "FLYING THUNDER GOD", gore: "bisect",   palette: GORE_WATER, flash: "#2a6ad0", preFx: "flicker" },  // Hiraishin flicker-slash → cyan blink-streaks → clean vertical split
-    tobiWaterSlash:  { name: "FLOWING WATER SLASH",gore: "watercut", palette: GORE_WATER, flash: "#2a6ad0" },  // 流水斬 — a high-pressure water blade, diagonal slice
-    tobiWaterDragon: { name: "WATER DRAGON JUTSU", gore: "crush",    palette: GORE_WATER, flash: "#2a6ad0" },  // 水龍弾 — the dragon engulfs + crushes/drowns inward
+    heavy:           { name: "FLYING THUNDER GOD", gore: "bisect",   palette: GORE_WATER, flash: "#2a6ad0", preFx: "flicker", live: true, winAction: "heavy",          loseAction: "hurt" },  // LIVE: Hiraishin flicker-slash
+    tobiWaterSlash:  { name: "FLOWING WATER SLASH",gore: "watercut", palette: GORE_WATER, flash: "#2a6ad0", live: true, winAction: "tobiWaterSlash",  loseAction: "hurt" },  // LIVE: 流水斬 water blade
+    tobiWaterDragon: { name: "WATER DRAGON JUTSU", gore: "crush",    palette: GORE_WATER, flash: "#2a6ad0", live: true, winAction: "tobiWaterDragon", loseAction: "hurt" },  // LIVE: 水龍弾 water dragon
     // TRAIT (active-power): while reanimated via Edo Tensei (fighter._edoActive), ANY killing blow drags the
     // victim down into a sealing-husk instead — ashen, bloodless (a reanimation, not a cut). Falls back to the
     // per-move BLOW above when Edo Tensei is NOT active.
-    __trait_edo:     { name: "REANIMATION", gore: "drag", palette: GORE_DARK, flash: "#2a1a3a", trait: "_edoActive" },
+    __trait_edo:     { name: "REANIMATION", gore: "drag", palette: GORE_DARK, flash: "#2a1a3a", trait: "_edoActive", live: true, winAction: "tobiEdoCast", loseAction: "hurt" },
   },
   // GOJO SATORU — Limitless. Each cursed technique warps space around the body in a signature way. 4 BLOW; the
   // CINEMATIC (brutalityConcepts.js "UNLIMITED VOID") covers a domain / any other killing move on the timeout.
   gojo: {
-    blue:         { name: "CURSED TECHNIQUE: BLUE", gore: "implode",    palette: GORE_CURSE_BLUE, flash: "#2a6ad0" },  // 蒼 — attraction: a singularity drags the body inward to a point, then collapses
-    red:          { name: "REVERSAL: RED",          gore: "repulse",    palette: GORE_RED,        flash: "#d03020" },  // 赫 — repulsion: a point-blank blast blows the body apart outward
-    hollowPurple: { name: "HOLLOW PURPLE",          gore: "annihilate", palette: GORE_PURPLE,     flash: "#7a3ad0" },  // 虚式「茈」 — imaginary mass: the beam ERASES the body (progressive disintegration)
-    heavy:        { name: "LIMITLESS",              gore: "bisect",     palette: GORE_CURSE_BLUE, flash: "#2a6ad0", preFx: "infinity" },  // Infinity convergence planes close in → clean space-fold split
+    blue:         { name: "CURSED TECHNIQUE: BLUE", gore: "implode",    palette: GORE_CURSE_BLUE, flash: "#2a6ad0", live: true, winAction: "blue_cast",         loseAction: "hurt" },  // LIVE: 蒼 attraction singularity
+    red:          { name: "REVERSAL: RED",          gore: "repulse",    palette: GORE_RED,        flash: "#d03020", live: true, winAction: "red_cast",          loseAction: "hurt" },  // LIVE: 赫 repulsion blast
+    hollowPurple: { name: "HOLLOW PURPLE",          gore: "annihilate", palette: GORE_PURPLE,     flash: "#7a3ad0", live: true, winAction: "hollow_purple_cast", loseAction: "hurt" },  // LIVE: 虚式「茈」 imaginary mass
+    heavy:        { name: "LIMITLESS",              gore: "bisect",     palette: GORE_CURSE_BLUE, flash: "#2a6ad0", preFx: "infinity", live: true, winAction: "heavy", loseAction: "hurt" },  // LIVE: Infinity space-fold
   },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
@@ -6491,8 +6491,14 @@ function updateBrutality() {
   if (b.live && b._cam0 && b.winRef && b.loseRef) {
     const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
-    if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x }   // remember the resting spot (restored on exit)
+    if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x }   // remember resting spots (restored on exit)
     if (g === "flyheads") { const tp = Math.min(1, Math.max(0, (t - 0.4) / 0.4)); lf.y = b._liveLoseY0 - tp * tp * lh * 8 }   // HURL the live loser into the sky
+    // WINNER STEP-IN — close the distance so the live move actually reaches the victim (melee especially). Ranged
+    // finishers (gun/meteor) keep more space.
+    { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
+      const gap = (g === "gunshot" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
+      const target = loseCx - (b.dir || 1) * gap
+      wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }
     const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2, lcell = Math.max(3, lw / 14)
     if (camera.focusBetween) { const z = (b._cam0.zoom || 1) + ((b._cam0.zoom || 1) * 0.72) * (1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3))
       camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z }   // frame both; follows the loser UP for flyheads
@@ -6507,7 +6513,8 @@ function updateBrutality() {
     b.parts = b.parts.filter(p => p.settled || p.life > 0)
     if (--b.timer <= 0) { b.active = false; b.parts = []
       if (b._liveLoseX0 != null) { lf.x = b._liveLoseX0; lf.y = b._liveLoseY0 }   // restore the loser's position (throw/knock)
-      b._liveLoseY0 = null; b._liveLoseX0 = null
+      if (b._liveWinX0 != null) wf.x = b._liveWinX0                                // restore the winner's position (step-in)
+      b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null
       if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
       b.loseRef = null; b.winRef = null; b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
       if (_academyBrutPreview) _academyEndBrutPreview(); else _enterVictoryScreen() }

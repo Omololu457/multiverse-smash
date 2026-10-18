@@ -35,7 +35,7 @@ const TABLE = {
   omniman:  { omComboFin:{n:"VILTRUMITE FURY",g:"pulp"}, omSkewer:{n:"SKEWER",g:"dismember"}, ultimate:{n:"OBLITERATE",g:"pulp"} },
   zaraki:   { heavy:{n:"KENDO CLEAVE",g:"bisect"}, zarakiHollowStrike:{n:"HOLLOW STRIKE",g:"dismember"}, zarakiBankai:{n:"NOZARASHI",g:"shred"} },
   mayuri:   { mayuriCmd2:{n:"VIVISECTION",g:"dismember"}, mayuriPoison:{n:"NEUROTOXIN",g:"melt"}, ultimate:{n:"ASHISOGI JIZŌ",g:"crush"} },
-  madara:   { madaraSusanooPunch:{n:"SUSANOO SMASH",g:"pulp"}, heavy:{n:"SUSANOO BLADE",g:"bisect"}, ultimate:{n:"TENGAI SHINSEI",g:"shred"} },
+  madara:   { madaraTengaiMeteor:{n:"TENGAI SHINSEI",g:"meteor"}, ultimate:{n:"TENGAI SHINSEI",g:"meteor"}, madaraSusanooPunch:{n:"SUSANO'O GRIP",g:"susanoograb"}, heavy:{n:"SUSANO'O SLAM",g:"susanooslam"}, madaraFireball:{n:"GREAT FIREBALL",g:"fireball"} },   // cinematic gore set (opt-in routing)
   jason:    { heavy:{n:"MACHETE CHOP",g:"decap"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, ultimate:{n:"MASSACRE",g:"pulp"} },
   naoya:    { naoyaCombo:{n:"PROJECTION",g:"dismember"}, naoyaDart:{n:"CURSED DART",g:"beam"}, ultimate:{n:"FRAME TRAP",g:"dice"} },
   hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"dismember"}, hisoka_card:{n:"CARD THROW",g:"beam"} },
@@ -51,7 +51,7 @@ const TABLE = {
   sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
   itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
   vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
-  pain:     { painAlmightyPull:{n:"TORN ASUNDER",g:"bisect"}, painAlmightyPush:{n:"CRUSHED",g:"crush"}, painSuperPushGround:{n:"SHATTERED FRAME",g:"dice"} },   // gravity finishers: Pull / Push / Super Push
+  pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + meteor
   byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
 };

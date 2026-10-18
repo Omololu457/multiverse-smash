@@ -794,6 +794,9 @@ const BRUTALITY_FINISHERS = {
     madaraSusanooPunch: { name: "SUSANO'O GRIP",  gore: "susanoograb", palette: GORE_PURPLE, flash: "#3a1a7a" },  // a giant ethereal hand grabs + SQUEEZES them to pulp
     heavy:              { name: "SUSANO'O SLAM",  gore: "susanooslam", palette: GORE_PURPLE, flash: "#3a1a7a" },  // the hand lifts them high then SLAMS them into the ground → a pile of mush
     madaraFireball:     { name: "GREAT FIREBALL", gore: "fireball",    palette: GORE_EMBER,  flash: "#ff7a1a" },  // 豪火球 — engulfed in flame → charred → skeleton → ash
+    // TRAIT: while in the Complete/Perfect Susano'o giant form (_madaraComplete), ANY killing blow → the avatar
+    // brings its giant sword DOWN and cleaves the victim. Uses the real Complete-Susano'o sword-swing sprite.
+    __trait_susanoo:    { name: "PERFECT SUSANO'O", gore: "susanooblade", palette: GORE_LIGHTNING, flash: "#3aa0ff", trait: "_madaraComplete" },
   },
   // JASON — the slasher. (heavy machete chop, Relentless Slash special, fallback ult massacre)
   jason: {
@@ -6472,6 +6475,7 @@ function updateBrutality() {
       ly -= spH * 1.2 * liftP * (1 - slamP) }
     else if (g === "susanoograb") { ZT = 1.55; ly -= spH * 0.3 }                               // show the hand coming down from above
     else if (g === "squish") { ZT = 1.12 }                                                     // WIDE — see the victim blasted across the map, camera follows to the wall (lx already = far spot)
+    else if (g === "susanooblade") { ZT = 1.3; ly -= spH * 0.55 }                              // pull up/out to frame the towering avatar + its sword
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
     camera.targetX = camera.x; camera.targetY = camera.y
@@ -6486,7 +6490,7 @@ function updateBrutality() {
   // the knockback lead-in): 0 for a strike, ~0.5 for crush (dragon engulf) / implode (singularity collapse).
   const _gg = b.finisher?.gore
   const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball"   // these draw their own (ash/mist/erase) — no chunk/pool spawn
-  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam"])   // kill lands mid-beat (~t=0.5), not at frame 0
+  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade"])   // kill lands mid-beat (~t=0.5), not at frame 0
   if (!_noStdBlood && sp) {
     const killT = _lateKill.has(_gg) ? 0.5 : 0.0
     const k = Math.round((_brutLead(b) + killT * (1 - _brutLead(b))) * b.maxTimer)   // kill-moment RAW frame (lead-in offset baked in)
@@ -6854,6 +6858,33 @@ function _drawGoreSusanoo(b, sp, t, slam) {
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }
+// PERFECT SUSANO'O — the giant Complete-Susano'o avatar (real sprite, windup → swing) brings its sword DOWN and
+// cleaves the victim. Towering avatar on the winner side + a bright sword-slash arc at impact → cleave + gore.
+function _drawGoreSusanooBlade(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), impact = 0.5
+  // the victim, visible until the sword lands
+  if (t < impact) { ctx.save(); const sway = Math.sin(t * 20) * sp.w * 0.02; ctx.drawImage(sp.canvas, sp.x + sway, sp.y, sp.w, sp.h); ctx.restore() }
+  // the giant avatar at the winner side (frame 0 windup → frame 1 swing); falls back to nothing (slash still reads)
+  const af = t < impact - 0.06 ? 0 : 1, avatarH = sp.h * 3.6, avX = cx - dir * sp.w * 1.0
+  const avAlpha = Math.min(1, t < 0.1 ? t / 0.1 : (t > 0.92 ? Math.max(0, 1 - (t - 0.92) / 0.08) : 1))
+  _brutSheetFrame(ctx, "./madara_complete_atk1_uniform.png", 2, af, avX, gy - avatarH * 0.42, avatarH, dir, avAlpha, 0.42)
+  // the SWORD SLASH arc sweeping down through the victim at impact
+  if (t > impact - 0.12 && t < impact + 0.12) { const sw = 1 - Math.abs(t - impact) / 0.12
+    ctx.save(); ctx.lineCap = "round"
+    ctx.strokeStyle = `rgba(120,200,255,${sw * 0.95})`; ctx.lineWidth = 8 + sw * 22
+    ctx.beginPath(); ctx.moveTo(cx - dir * sp.w * 1.3, cy - sp.h * 1.3); ctx.lineTo(cx + dir * sp.w * 0.5, cy + sp.h * 0.7); ctx.stroke()
+    ctx.strokeStyle = `rgba(235,248,255,${sw})`; ctx.lineWidth = 3 + sw * 7
+    ctx.beginPath(); ctx.moveTo(cx - dir * sp.w * 1.3, cy - sp.h * 1.3); ctx.lineTo(cx + dir * sp.w * 0.5, cy + sp.h * 0.7); ctx.stroke(); ctx.restore() }
+  // impact → cleave the victim: gore burst + viscera + a brief bone, pool on the ground
+  if (t >= impact) { const bt = Math.min(1, (t - impact) / 0.18)
+    _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - impact) / 0.5) * 0.9 + 0.15)
+    _drawBloodSplat(ctx, cx, cy, Math.min(230, sp.w * 1.0), Math.max(0, 1 - (t - impact) / 0.5))
+    _drawViscera(ctx, cx, cy + sp.h * 0.08, sp.w * 0.42, sp.h * 0.42, Math.min(1, bt), seed)
+    if (t < impact + 0.42) _drawBone(ctx, cx, cy, Math.min(120, sp.h * 0.42), Math.min(1, bt) * Math.max(0, 1 - (t - impact) / 0.42)) }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
 // KATON GREAT FIREBALL — the victim is engulfed in flame → charred black → a skeleton shows through → crumbles
 // to rising ash, leaving a scorch mark. Fire-driven, bloodless (own effects, no chunk/pool spawn).
 function _drawGoreFireball(b, sp, t) {
@@ -6963,7 +6994,7 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "meteor", "susanoograb", "susanooslam", "fireball"])
+  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade"])
   if (sp && sp.canvas && _NEWG.has(_g)) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
@@ -6975,6 +7006,7 @@ function _drawBrutality() {
     else if (_g === "susanoograb") _drawGoreSusanoo(b, sp, t, false)  // Madara SUSANO'O GRIP — ethereal hand squeeze
     else if (_g === "susanooslam") _drawGoreSusanoo(b, sp, t, true)   // Madara SUSANO'O SLAM — lift + slam to mush
     else if (_g === "fireball") _drawGoreFireball(b, sp, t)      // Katon Great Fireball — incinerate to ash
+    else if (_g === "susanooblade") _drawGoreSusanooBlade(b, sp, t)   // Perfect Susano'o — giant sword cleave
     else _drawGoreDrag(b, sp, t)
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
@@ -21336,7 +21368,7 @@ function _academyLessons() {
       const GORE_DESC = { bisect: "Clean vertical split", watercut: "Diagonal water-blade slice", crush: "Engulfed + crushed",
         drag: "Dragged into a sealing husk", implode: "Imploded to a singularity", repulse: "Blasted apart outward", annihilate: "Erased by the beam",
         squish: "Slammed flat into a pancake", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
-        susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", generic: "Gore burst" }
+        susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })
@@ -24527,6 +24559,7 @@ gameLoop()
       // per-move + trait resolution end-to-end (finisherFor() can't see the fighter, so it skips traits).
       activeFinisher: () => brutalityState.active ? { name: brutalityState.finisher?.name, gore: brutalityState.finisher?.gore, move: brutalityState.move, wKey: brutalityState.wKey } : null,
       setEdoActive: (on, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoActive = !!on; return !!(f && f._edoActive) },
+      setTrait: (field, val, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f[field] = val; return !!(f && f[field]) },   // set a LIVE trait field (p1() is a snapshot) — e.g. _madaraComplete for the Perfect Susano'o finisher
       setIntensity: (v) => { setBrutalityIntensity(v); return brutalityIntensity },
       intensity: () => brutalityIntensity,
       // Snapshot the gore particles (for a determinism check: same seed → identical spawn).

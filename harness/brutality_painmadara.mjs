@@ -48,6 +48,19 @@ try {
       await page.evaluate(() => window.__harness.skipToBattle?.()); await wf(2)
       await page.evaluate(() => { const p2 = window.__harness.p2(); if (p2) p2.health = p2.maxHealth })
     }
+    if (CH === "madara") {   // PERFECT SUSANO'O trait — fires on ANY kill while Complete Susano'o is active
+      console.log("── TRAIT: Perfect Susano'o (sword cleave) ──")
+      await page.evaluate(() => window.__harness.brutality.setTrait("_madaraComplete", 120, "p1"))
+      const before = errs.length
+      const started = await page.evaluate(() => window.__harness.brutality.trigger("p1", true, "light"))
+      await wf(2)
+      const af = await page.evaluate(() => window.__harness.brutality.activeFinisher())
+      ok(started && af && af.name === "PERFECT SUSANO'O" && af.gore === "susanooblade", `_madaraComplete + any kill → PERFECT SUSANO'O (susanooblade)  [got ${af?.name}/${af?.gore}]`)
+      await wf(72); await page.screenshot({ path: path.join(SHOTS, "madara_susanooblade.png") })
+      await page.waitForFunction(() => !window.__harness.brutality.activeFinisher(), null, { timeout: 9000, polling: 16 }).catch(() => {})
+      ok(errs.length === before, `susanooblade: 0 page errors  [${errs.slice(before, before + 1).join(" | ")}]`)
+      await page.evaluate(() => window.__harness.brutality.setTrait("_madaraComplete", 0, "p1"))
+    }
   }
   ok(errs.length === 0, `no page JS errors overall  [${errs.slice(0, 2).join(" | ")}]`)
 } catch (e) { console.error("EXCEPTION", e); FAIL++ }

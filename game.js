@@ -6123,6 +6123,7 @@ function _tryStartBrutality(winner) {
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
+  if (brutalityState.finisher?.gore === "susanoograb" || brutalityState.finisher?.gore === "susanooslam") { try { _susanoImg("./sasuke_susanoo_grab.png") } catch (_) {} }   // kick off the real Susano'o sprite load
   // Capture the loser in their HURT pose (recoiling from the blow) if they have one — reads as "getting hit"
   // far better than an idle frame for the knockback lead-in. Falls back to whatever pose they're in.
   if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
@@ -6796,6 +6797,18 @@ function _drawSusanooHand(c, cx, palmY, w, h, close, alpha) {
 }
 // MADARA SUSANO'O — the ethereal hand GRIPs (slam=false: squeeze to pulp in place) or LIFTs + SLAMs the victim
 // into the ground (slam=true: → a pile of mush). Either way it ends in brain + guts + a wide splat.
+// Draw ONE frame of the REAL Susano'o grab sheet (sasuke_susanoo_grab.png — 3 frames: form → reach → grip),
+// placed so the HAND (≈78% along the arm on the facing side) lands at (handX, handY). Returns false if the image
+// isn't loaded yet (caller falls back to the code-drawn hand). This is what makes it read as a real cutscene.
+function _drawSusanooGrabFrame(c, frameIdx, handX, handY, targetH, face, alpha) {
+  const img = _susanoImg("./sasuke_susanoo_grab.png")
+  if (!img || !img.complete || !img.naturalWidth) return false
+  const fw = img.naturalWidth / 3, fh = img.naturalHeight, f = Math.max(0, Math.min(2, frameIdx | 0))
+  const dh = targetH, dw = dh * (fw / fh), handFrac = 0.78
+  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(handX, handY); if (face < 0) c.scale(-1, 1)
+  c.drawImage(img, f * fw, 0, fw, fh, -handFrac * dw, -dh / 2, dw, dh)   // hand at x=0, arm extends back toward the winner
+  c.restore(); return true
+}
 function _drawGoreSusanoo(b, sp, t, slam) {
   const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
   const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
@@ -6819,8 +6832,14 @@ function _drawGoreSusanoo(b, sp, t, slam) {
     _drawBloodSplat(ctx, cx, gyMush - cell, Math.min(210, sp.w * (0.7 + mushP * 0.7)), Math.min(1, mushP))
     _drawBrain(ctx, cx + sp.w * 0.12, gyMush - sp.h * 0.08, Math.max(10, sp.w * 0.22), Math.min(1, mushP))
     _drawViscera(ctx, cx - sp.w * 0.18, gyMush - sp.h * 0.12, sp.w * 0.3, sp.h * 0.2, Math.min(1, mushP), seed); ctx.restore() }
-  // the grasping hand on top
-  _drawSusanooHand(ctx, cx, (slam ? handY : handY), sp.w * 1.5, sp.h * 1.1, close, Math.min(1, t < 0.1 ? t / 0.1 : (t > 0.9 ? Math.max(0, 1 - (t - 0.9) / 0.1) : 1)) * 0.95)
+  // THE SUSANO'O ARM on top — the REAL grab sprite, animated through its frames like a cutscene (form → reach →
+  // grip), following the body as it's squeezed / lifted / slammed. Falls back to the code-drawn hand if unloaded.
+  const gf = t < 0.1 ? 0 : (t < 0.28 ? 1 : 2)                        // form → reach → grip
+  const recoil = (slam && t > 0.6) ? (t - 0.6) * sp.h * 4 : 0         // after the slam the arm snaps back up
+  const handRefY = (slam ? bodyY : cy) - sp.h * 0.05 - recoil
+  const armAlpha = Math.min(1, t < 0.08 ? t / 0.08 : (t > 0.92 ? Math.max(0, 1 - (t - 0.92) / 0.08) : 1))
+  const drewReal = _drawSusanooGrabFrame(ctx, gf, cx, handRefY, sp.h * 1.95, b.dir || 1, armAlpha)
+  if (!drewReal) _drawSusanooHand(ctx, cx, handRefY - sp.h * 0.4, sp.w * 1.5, sp.h * 1.1, close, armAlpha * 0.95)
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }

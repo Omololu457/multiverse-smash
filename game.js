@@ -6294,6 +6294,46 @@ function _drawBone(c, cx, cy, len, alpha) {
   c.beginPath(); c.ellipse(cx, cy - half, knobR * 1.15, knobR * 0.5, 0, 0, Math.PI * 2); c.fill()
   c.restore()
 }
+// CARTOON VISCERA — coiled intestines + a glistening organ blob spilling from a wound. Deterministic layout
+// (seeded, no per-frame flicker). Still stylized (bold shapes, no photoreal detail) but clearly "guts pouring out".
+function _drawViscera(c, cx, cy, span, drop, alpha, seed) {
+  c.save(); c.globalAlpha = alpha; c.lineCap = "round"; c.lineJoin = "round"
+  const h = (a, b) => _brutHash(seed || 1, a, b)
+  // a glistening ORGAN (stomach/liver) bulging at the top of the wound
+  const orR = span * 0.5
+  c.fillStyle = "#5e0f1f"; c.beginPath(); c.ellipse(cx, cy, orR * 1.08, orR * 0.82, 0, 0, Math.PI * 2); c.fill()         // dark base
+  c.fillStyle = "#7c1a2c"; c.beginPath(); c.ellipse(cx - orR * 0.12, cy - orR * 0.08, orR * 0.8, orR * 0.6, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = "rgba(230,120,140,0.55)"; c.beginPath(); c.ellipse(cx - orR * 0.3, cy - orR * 0.28, orR * 0.3, orR * 0.2, 0, 0, Math.PI * 2); c.fill()  // wet highlight
+  // 2–3 INTESTINE coils dangling down from the wound (thick tube = wide stroke + lighter core + dark outline)
+  const tubeW = Math.max(5, span * 0.26)
+  for (let k = 0; k < 3; k++) {
+    const ox = cx + (k - 1) * span * 0.34 + (h(k, 1) * 2 - 1) * span * 0.1
+    const path = (yTop) => { c.beginPath(); c.moveTo(ox, cy + yTop)
+      const segs = 4, amp = span * (0.28 + h(k, 2) * 0.22)       // coil: quadratic weave swinging side-to-side as it drops
+      let px = ox, py = cy + yTop
+      for (let s = 1; s <= segs; s++) { const ny = cy + yTop + (drop / segs) * s, nx = ox + ((s % 2) ? 1 : -1) * amp * (0.4 + 0.6 * s / segs)
+        c.quadraticCurveTo(px + ((s % 2) ? 1 : -1) * amp, (py + ny) / 2, nx, ny); px = nx; py = ny } }
+    c.strokeStyle = "#4a0a14"; c.lineWidth = tubeW + 4; path(orR * 0.2); c.stroke()        // dark outline
+    c.strokeStyle = "#b04a5a"; c.lineWidth = tubeW;     path(orR * 0.2); c.stroke()        // gut body
+    c.strokeStyle = "rgba(235,150,165,0.6)"; c.lineWidth = tubeW * 0.34; path(orR * 0.2); c.stroke()  // highlight
+  }
+  c.restore()
+}
+// CARTOON BRAIN — a pink lobed blob with a central fissure + a couple of wrinkle squiggles (for head-pops / mush).
+function _drawBrain(c, cx, cy, r, alpha) {
+  c.save(); c.globalAlpha = alpha; c.lineCap = "round"
+  c.fillStyle = "#7a3540"; c.beginPath(); c.ellipse(cx, cy, r * 1.06, r * 0.9, 0, 0, Math.PI * 2); c.fill()          // dark underside
+  c.fillStyle = "#e3909c"; c.beginPath(); c.ellipse(cx, cy - r * 0.06, r * 0.96, r * 0.8, 0, 0, Math.PI * 2); c.fill()  // pink body
+  c.strokeStyle = "#a85663"; c.lineWidth = Math.max(2, r * 0.12)
+  c.beginPath(); c.moveTo(cx, cy - r * 0.8); c.lineTo(cx, cy + r * 0.78); c.stroke()                                  // central fissure
+  for (const sgn of [-1, 1]) for (let i = 0; i < 2; i++) {   // wrinkle squiggles on each hemisphere
+    const yy = cy - r * 0.3 + i * r * 0.5
+    c.beginPath(); c.moveTo(cx + sgn * r * 0.14, yy)
+    c.quadraticCurveTo(cx + sgn * r * 0.5, yy - r * 0.18, cx + sgn * r * 0.44, yy + r * 0.12)
+    c.quadraticCurveTo(cx + sgn * r * 0.38, yy + r * 0.3, cx + sgn * r * 0.7, yy + r * 0.22); c.stroke() }
+  c.fillStyle = "rgba(255,200,210,0.5)"; c.beginPath(); c.ellipse(cx - r * 0.3, cy - r * 0.4, r * 0.24, r * 0.16, 0, 0, Math.PI * 2); c.fill()  // sheen
+  c.restore()
+}
 // ONE bold irregular red SPLAT (ink-blot) at the cut point — a single dense mark, not a scatter. Fixed radius
 // factors so the silhouette is stable (no per-frame flicker). Dark blob + brighter core + a few spike dots.
 const _SPLAT_R = [1.0, 0.86, 1.06, 0.78, 0.95, 1.02, 0.82, 0.9, 1.07, 0.74, 0.98, 0.88, 1.0, 0.8, 0.96, 0.84]
@@ -6795,8 +6835,10 @@ function _drawBrutality() {
     const cutX = sp.x + sp.w / 2, cutY = sp.y + sp.h * 0.45 + fall
     const splatA = t < 0.12 ? 1 : Math.max(0, 1 - (t - 0.12) / 0.33)   // brief IMPACT burst → fades fast so the split/wound/bone/pool read (a lingering splat hides the bisection)
     if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(172, Math.max(58, sp.w * 0.62)), splatA)
-    // BONE — big, simple, bold; centred in the daylight between the halves (revealed as the gap opens).
+    // BONE (severed spine stub) — big, simple, bold; centred in the daylight between the halves.
     if (boneA > 0.02) _drawBone(ctx, seamX, cy + fall, Math.min(150, Math.max(46, sp.h * 0.42)), boneA)
+    // VISCERA — guts spilling from the wound, hanging into the gap in FRONT of the spine (anatomy, cartoonish).
+    if (woundA > 0.02) _drawViscera(ctx, seamX, cy + fall + sp.h * 0.1, Math.max(26, sp.w * 0.42), sp.h * 0.5, Math.min(1, woundA * 1.1), b.seed || 1)
     // A FEW BIG DRIPS on top (bold blobs, world-space).
     for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
     ctx.globalAlpha = 1

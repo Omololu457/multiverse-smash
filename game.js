@@ -6378,12 +6378,23 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
-  // MK1-style finish framing: PUSH the camera in on the kill, keeping both fighters framed. Combat is frozen so
-  // the normal camera tick is skipped — we set the target (focusBetween) + tick the SAME smoothing pass
-  // (advance) the domain cinematic uses, so the push-in eases in (and stays clamped to the world) each frame.
-  if (b._cam0 && camera.focusBetween && b.winRef && b.loseRef) {
-    camera.focusBetween(b.winRef, b.loseRef, (b._cam0.zoom || 1) * 1.5)
-    if (typeof camera.advance === "function") camera.advance(canvas)
+  // MK1-style finish framing: PUSH the camera HARD in on the kill. The normal maxZoom clamp (1.15) is way too
+  // wide for a finish, so — exactly like the impact-hit / ultimate crops — we set camera.zoom DIRECTLY past that
+  // clamp (NOT via advance(), which would clamp it back). Centre eases onto the loser (where the gore is), with
+  // a soft world-clamp so the tight view never reveals past the arena edges. Combat is frozen → we own the cam.
+  if (b._cam0 && b.loseRef) {
+    const base = b._cam0.zoom || 1, ZT = 1.9                       // hard cinematic target (impact-hit uses ~1.8)
+    const pt = Math.min(1, elapsed / (b.maxTimer * 0.26))          // push in over the first ~quarter, then hold
+    const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
+    const lx = (b.loseRef.x || 0) + (b.loseRef.width || b.loseRef.w || 60) / 2
+    const ly = (b.loseRef.y || 0) + (b.loseRef.height || b.loseRef.h || 100) * 0.42
+    camera.x += (lx - camera.x) * 0.22; camera.y += (ly - camera.y) * 0.22
+    camera.targetX = camera.x; camera.targetY = camera.y
+    camera.zoom = z; camera.targetZoom = z                         // pin past the maxZoom clamp
+    if (camera.worldWidth && canvas) { const halfVW = (canvas.width / z) / 2
+      if (camera.worldWidth > halfVW * 2) camera.x = Math.max(halfVW, Math.min(camera.worldWidth - halfVW, camera.x))
+      const halfVH = (canvas.height / z) / 2
+      if (camera.worldHeight > halfVH * 2) camera.y = Math.max((camera.minY || 0) + halfVH, Math.min(camera.worldHeight - halfVH, camera.y)) }
   }
   // HIGH-GORE waves (deterministic). "drag" (Edo-Tensei) + "annihilate" (Hollow Purple erase) draw their OWN
   // sparse mist in-renderer → no standard chunk/pool spawn. "crush" (dragon) and "implode" (Blue singularity)

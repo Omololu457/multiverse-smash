@@ -5513,7 +5513,8 @@ export function drawAcademyCharScreen(ctx, canvas, opts = {}) {
   ctx.restore()
   if (L.contentH > L.listH) drawCenteredText(ctx, "scroll ↕", w / 2, L.listY + L.listH + 14, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
   drawMkButton(ctx, getAcademyBackButton(canvas), { label: "BACK", active: opts.backHover, id: "acadcharback", cut: 10 })
-  drawFooterHint(ctx, canvas, `Device: ${device}  ·  SHOW ME = watch · TRY IT = do it · PRACTICE = free training  ·  Esc to go back`)
+  const brut = opts.canPreviewBrut ? "  ·  B = preview FINISHER" : ""
+  drawFooterHint(ctx, canvas, `Device: ${device}  ·  SHOW ME = watch · TRY IT = do it · PRACTICE = free training${brut}  ·  Esc to go back`)
 }
 
 // DRILL overlay — drawn over the live Academy match (SHOW ME / TRY IT). info = { mode, moveName, inputLabel,
@@ -5552,7 +5553,10 @@ export function drawAcademyDrillOverlay(ctx, canvas, info = {}) {
     _bevelPath(ctx, hx, hy, hw, 40, 9); ctx.fillStyle = "rgba(60,40,10,0.85)"; ctx.fill(); ctx.strokeStyle = "rgba(255,200,90,0.6)"; ctx.lineWidth = 1; ctx.stroke()
     drawCenteredText(ctx, "💡 " + info.hint, w / 2, hy + 20, { font: "700 13px Arial", fill: "#ffe8b0" })
   }
-  drawCenteredText(ctx, info.mode === "showme" ? "Esc: back   ·   watch the inputs" : "Esc: back   ·   do the move   ·   it retries automatically", w / 2, h - 30, { font: "600 12px Arial", fill: "rgba(200,214,240,0.7)" })
+  const foot = info.mode === "showme" ? "Esc: back   ·   watch the inputs" : "Esc: back   ·   do the move   ·   it retries automatically"
+  drawCenteredText(ctx, info.brutHint ? foot + "   ·   " + info.brutHint : foot, w / 2, h - 30, { font: "600 12px Arial", fill: "rgba(200,214,240,0.7)" })
+  // which finisher the preview is playing (B)
+  if (info.brutName) drawCenteredText(ctx, "☠ " + info.brutName, w / 2, by + 100, { font: "900 16px Arial", fill: "rgba(255,120,120,0.95)", shadowBlur: 10, shadowColor: "#5a0000" })
   ctx.restore()
 }
 

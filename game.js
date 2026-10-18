@@ -902,7 +902,7 @@ const BRUTALITY_FINISHERS = {
   // 3 BLOW (keyed to the killing move) + 1 TRAIT (fires while Edo Tensei is active, via `trait`). His
   // CINEMATIC (brutalityConcepts.js) covers any other killing move on the FINISH-window timeout.
   tobirama: {
-    heavy:           { name: "FLYING THUNDER GOD", gore: "bisect",   palette: GORE_WATER, flash: "#2a6ad0" },  // Hiraishin flicker-slash → clean vertical split
+    heavy:           { name: "FLYING THUNDER GOD", gore: "bisect",   palette: GORE_WATER, flash: "#2a6ad0", preFx: "flicker" },  // Hiraishin flicker-slash → cyan blink-streaks → clean vertical split
     tobiWaterSlash:  { name: "FLOWING WATER SLASH",gore: "watercut", palette: GORE_WATER, flash: "#2a6ad0" },  // 流水斬 — a high-pressure water blade, diagonal slice
     tobiWaterDragon: { name: "WATER DRAGON JUTSU", gore: "crush",    palette: GORE_WATER, flash: "#2a6ad0" },  // 水龍弾 — the dragon engulfs + crushes/drowns inward
     // TRAIT (active-power): while reanimated via Edo Tensei (fighter._edoActive), ANY killing blow drags the
@@ -6117,6 +6117,46 @@ function _tryStartBrutality(winner) {
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   return true
 }
+// ── ACADEMY brutality PREVIEW ───────────────────────────────────────────────────────────────────────────
+// Lets the player WATCH each of the studied fighter's finishers on demand from the Academy (press B) instead
+// of having to win a whole match to see one. Forces the real deterministic brutality over the live dummy,
+// then RESTORES the dummy + resumes the drill (never the victory screen). Pure presentation; the sim stays
+// untouched — identical to the harness trigger path, just scoped to the Academy + auto-reverted.
+let _academyBrutPreview = null     // { p2Health, trait, fxWas, name } while a previewed finisher plays
+let _academyBrutCursor  = 0        // cycles through the fighter's finisher entries on repeated B presses
+function _academyBrutEntries(wKey) {
+  const perChar = BRUTALITY_FINISHERS[(wKey || "").toLowerCase()]
+  if (!perChar) return []
+  return Object.keys(perChar).map(k => ({ key: k, fin: perChar[k] })).filter(e => e.fin && e.fin.name)
+}
+// true if the Academy's current fighter has any gore finisher to preview (gates the B hint + handler).
+function _academyCanPreviewBrut() {
+  const k = (p1?.rosterKey || academyCharKey || "").toLowerCase()
+  return BRUTALITY_ELIGIBLE.has(k) && _academyBrutEntries(k).length > 0
+}
+function _academyPreviewBrutality() {
+  if (!academySession || !p1 || !p2 || _academyBrutPreview) return false
+  const wKey = (p1.rosterKey || "").toLowerCase()
+  const entries = _academyBrutEntries(wKey); if (!entries.length) return false
+  const e = entries[_academyBrutCursor % entries.length]; _academyBrutCursor++
+  const traitKey = e.fin.trait || null                                 // trait finishers resolve off an active-power flag (e.g. Edo-Tensei)
+  if (traitKey) p1[traitKey] = true
+  p1._killingBlowMove = e.key   // trait entries resolve off the flag regardless of move; blow entries resolve by this key
+  const p2Health = p2.health, fxWas = brutalityFx
+  if (!brutalityFx) brutalityFx = true                                 // force the opt-in FX on just for the preview
+  p2.health = 0; victoryState.active = false
+  const started = _tryStartBrutality("p1")
+  if (!started) { p2.health = p2Health; brutalityFx = fxWas; if (traitKey) p1[traitKey] = false; return false }
+  _academyBrutPreview = { p2Health, trait: traitKey, fxWas, name: e.fin.name }
+  if (academySession) academySession._brutName = e.fin.name
+  return true
+}
+function _academyEndBrutPreview() {
+  const pv = _academyBrutPreview; _academyBrutPreview = null; if (!pv) return
+  brutalityFx = pv.fxWas
+  if (p2) { p2.health = pv.p2Health || p2.maxHealth || 1; p2._forceAction = null }   // revive the dummy + drop the lose pose
+  if (p1) { p1._forceAction = null; if (pv.trait) p1[pv.trait] = false }             // drop the winner's win pose + clear the forced trait
+}
 // SPRITE-BISECTION render. Capture the loser's CURRENT sprite frame into an offscreen canvas ONCE, so the
 // finisher can draw it as two clipped halves that separate. NO new art — this is the loser's own existing frame.
 // ★ We must NOT size the canvas from the pre-draw _lastDraw* rect: at match-over the loser is often force-posed
@@ -6333,23 +6373,40 @@ function updateBrutality() {
     p.life--
   }
   b.parts = b.parts.filter(p => p.settled || p.life > 0)       // settled chunks persist as ground gore
-  if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.finisher = null; b.move = null; _enterVictoryScreen() }
+  if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.finisher = null; b.move = null
+    if (_academyBrutPreview) _academyEndBrutPreview()   // ACADEMY preview → revive the dummy + stay in the drill (never the victory screen)
+    else _enterVictoryScreen() }
 }
 // FEEL/BRUTALITY roll-out — distinct gore EFFECTS (drawn inside the camera transform, like the bisection).
 // WATERCUT (流水斬): a DIAGONAL water-blade slice — the two halves part perpendicular to the cut, a bright
 // blue blade-sweep flashes across it, blood + water spray on top.
 function _drawGoreWaterCut(b, sp, t, sepEase, woundA) {
-  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, hw = sp.w / 2
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, hw = sp.w / 2, seed = b.seed || 1
   const ang = -0.52, gap = sepEase * Math.max(90, sp.w * 0.6), fall = (t * t) * Math.max(sp.h * 0.12, 22)
   _drawGroundPool(ctx, cx, sp.groundY, cell, t)
   ctx.save(); ctx.translate(cx, cy + fall); ctx.rotate(ang)   // work in CUT space → a vertical split reads as the diagonal
   ctx.save(); ctx.translate(-gap / 2, 0); ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw, -sp.h / 2, hw, sp.h); if (woundA > 0.02) _drawWoundCore(ctx, 0, 0, sp.h, 1, cell, woundA); ctx.restore()
   ctx.save(); ctx.translate(gap / 2, 0); ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, 0, -sp.h / 2, hw, sp.h); if (woundA > 0.02) _drawWoundCore(ctx, 0, 0, sp.h, -1, cell, woundA); ctx.restore()
-  if (t < 0.42) { const sw = 1 - t / 0.42; ctx.globalAlpha = sw * 0.9; ctx.strokeStyle = "rgba(160,225,255,0.95)"; ctx.lineWidth = 5 + sw * 12; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(0, -sp.h * 0.72); ctx.lineTo(0, sp.h * 0.72); ctx.stroke(); ctx.globalAlpha = 1 }
+  // the WATER-FANG blade — a big curved blue crescent that sweeps DOWN through the cut (bright core + foam
+  // edge + a trailing water ribbon), tracing out as the slice lands, then streaming off.
+  const blade = t < 0.5 ? Math.min(1, t / 0.18) : Math.max(0, 1 - (t - 0.5) / 0.22)
+  if (blade > 0.02) {
+    const prog = Math.min(1, t / 0.28), H = sp.h * 0.85, W = sp.w * 0.5
+    ctx.save(); ctx.globalAlpha = blade
+    ctx.strokeStyle = "rgba(60,150,210,0.85)"; ctx.lineWidth = 16 + W * 0.3; ctx.lineCap = "round"; ctx.lineJoin = "round"
+    ctx.beginPath(); ctx.moveTo(-W * 0.5, -H * 0.6); ctx.quadraticCurveTo(W * 0.7, -H * 0.1, -W * 0.3, (-0.6 + 1.3 * prog) * H); ctx.stroke()   // deep water body
+    ctx.strokeStyle = "rgba(180,235,255,0.98)"; ctx.lineWidth = 6 + W * 0.12
+    ctx.beginPath(); ctx.moveTo(-W * 0.5, -H * 0.6); ctx.quadraticCurveTo(W * 0.7, -H * 0.1, -W * 0.3, (-0.6 + 1.3 * prog) * H); ctx.stroke()   // bright blade core
+    ctx.restore()
+  }
   ctx.restore()
+  // WATER SPRAY droplets along the cut (blue), mixed with the blood parts
+  if (t < 0.5) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.5) * 0.8; ctx.fillStyle = "rgba(170,225,250,0.9)"
+    for (let i = 0; i < 14; i++) { const h = (k) => _brutHash(seed, 700 + i, k); const a = h(1) * 6.28, rr = sp.w * (0.1 + t * 1.6) * (0.4 + h(2))
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + fall + Math.sin(a) * rr * 0.9, Math.max(2, cell * (0.6 + h(3) * 1.2)), 0, 6.28); ctx.fill() }
+    ctx.restore() }
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
-  // a BRIEFER, smaller impact splat than the bisection's — so the diagonal slice + wound read through it fast
   const splatA = t < 0.06 ? 1 : Math.max(0, 1 - (t - 0.06) / 0.16); if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy + fall, Math.min(120, Math.max(44, sp.w * 0.44)), splatA)
 }
 // CRUSH (水龍弾): a water dragon engulfs + crushes inward — the body shrinks/squashes as blue rings close in,
@@ -6416,11 +6473,26 @@ function _drawGoreDrag(b, sp, t) {
   ctx.strokeStyle = "rgba(154,134,176,0.85)"; ctx.lineWidth = 3
   for (let i = 0; i < 6; i++) { const a = i / 6 * 6.28 + t * 2, rr = sp.w * 0.5 * seal; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, gy + Math.sin(a) * rr * 0.32, 5, 0, 6.28); ctx.stroke() }
   ctx.restore()
-  const sink = (t * t) * sp.h * 1.05
+  const sink = (t * t) * sp.h * 1.05, seed = b.seed || 1
+  const bx = cx - sp.w / 2, by = cy - sp.h / 2 + sink
   ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t * 0.92)
-  ctx.drawImage(sp.canvas, cx - sp.w / 2, cy - sp.h / 2 + sink, sp.w, sp.h)
+  ctx.drawImage(sp.canvas, bx, by, sp.w, sp.h)
   ctx.globalCompositeOperation = "source-atop"; ctx.fillStyle = `rgba(120,110,124,${Math.min(0.82, t)})`   // ash desaturation on the body's own pixels
-  ctx.fillRect(cx - sp.w / 2, cy - sp.h / 2 + sink, sp.w, sp.h)
+  ctx.fillRect(bx, by, sp.w, sp.h)
+  // EDO TENSEI signature: cracked-skin fissures spidering across the body as it greys out (the reanimation look)
+  if (t > 0.12) { ctx.globalCompositeOperation = "source-atop"; const cr = Math.min(1, (t - 0.12) / 0.4)
+    ctx.strokeStyle = `rgba(40,30,46,${0.85 * cr})`; ctx.lineWidth = Math.max(1, sp.w * 0.018); ctx.lineCap = "round"
+    for (let i = 0; i < 7; i++) { const h = (k) => _brutHash(seed, 900 + i, k), ox = bx + h(1) * sp.w, oy = by + h(2) * sp.h
+      ctx.beginPath(); ctx.moveTo(ox, oy); let px = ox, py = oy
+      for (let s = 0; s < 3; s++) { px += (h(3 + s) * 2 - 1) * sp.w * 0.22 * cr; py += (h(6 + s) * 2 - 1) * sp.h * 0.2 * cr; ctx.lineTo(px, py) } ctx.stroke() } }
+  ctx.restore()
+  // rising paper-tag / ash motes drifting UP off the dissolving body (reanimation release)
+  ctx.save(); ctx.globalCompositeOperation = "source-over"
+  for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 950 + i, k), rise = ((t + h(1)) % 1)
+    const mx = bx + h(2) * sp.w, my = cy - rise * sp.h * 1.3 + h(3) * sp.h * 0.3
+    ctx.globalAlpha = Math.max(0, 1 - rise) * 0.7 * Math.min(1, t * 2)
+    ctx.fillStyle = h(4) > 0.5 ? "rgba(170,150,185,0.9)" : "rgba(210,205,195,0.85)"
+    const sz = Math.max(2, sp.w * (0.02 + h(5) * 0.03)); ctx.fillRect(mx, my, sz, sz * 1.6) }
   ctx.restore()
 }
 function _drawBrutality() {
@@ -6454,6 +6526,13 @@ function _drawBrutality() {
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
     const cell = sp.px || 4
+    // FLYING THUNDER GOD pre-FX: cyan Hiraishin blink-streaks criss-cross the victim just before the cut.
+    if (fin?.preFx === "flicker" && t < 0.34) { const seed = b.seed || 1, fl = Math.max(0, 1 - t / 0.34)
+      ctx.save(); ctx.globalAlpha = fl * 0.92; ctx.strokeStyle = "rgba(120,210,255,0.95)"; ctx.lineWidth = 3 + fl * 4; ctx.lineCap = "round"
+      for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 800 + i, k), a = h(1) * 6.28, L = sp.w * (1.1 + h(2))
+        const mx = seamX + (h(3) * 2 - 1) * sp.w * 0.3, my = cy + (h(4) * 2 - 1) * sp.h * 0.35
+        ctx.beginPath(); ctx.moveTo(mx - Math.cos(a) * L, my - Math.sin(a) * L * 0.5); ctx.lineTo(mx + Math.cos(a) * L, my + Math.sin(a) * L * 0.5); ctx.stroke() }
+      ctx.restore() }
     const gap  = sepEase * Math.max(96, sp.w * 0.62)              // DAYLIGHT between the inner edges (big min + big frac)
     // The vertical FALL carries the halves DOWN to the real floor over the beat (accelerating). On an AIRBORNE
     // KO this drops the halves + bone + blood onto the ground where the pool forms, so the pool is always part
@@ -7275,6 +7354,7 @@ function handlePauseInput(key) {
   // FREE PRACTICE / SHOW ME / TRY IT all return here; other keys pass through so TRY IT still reads the player's inputs.
   if (academySession && (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK)) {
     if (key === "escape") { exitAcademyDrill(); return }
+    if (key === "b" && _academyCanPreviewBrut()) { _academyPreviewBrutality(); return }   // preview the next finisher over the dummy (cycles)
     if (academySession.mode === "showme" && (key === "r")) { startAcademyDrill(academySession.lesson, "showme"); return }   // replay the demo
     return
   }
@@ -20912,6 +20992,8 @@ function _academyStartSlowDemo(s) {   // after 4 misses, auto-play a ½-speed SH
 function academyTick() {
   const s = academySession
   if (!s || gameState !== GAME_STATES.BATTLE) return
+  // ACADEMY brutality preview armed from the lesson list (B there) — fire once the drill is live.
+  if (s._brutAutoPreview && !brutalityState.active && !_academyBrutPreview) { s._brutAutoPreview = false; _academyPreviewBrutality() }
   // incoming_projectile scenario — make the dummy fire its neutral special on a loop (so reflects/redirects
   // have something to answer). Pure key writes into the Academy's own match (infinite resources on).
   if (s._p2Fire && p2 && p2.controls) { try { writeRawControls(p2, { special: (globalFrameCount % 70) < 3 }) } catch (_) {} }
@@ -20952,7 +21034,8 @@ function academyDrillOverlayInfo() {
   return { mode: s.mode, moveName: s.lesson.name, inputLabel: academyDeviceLabel(s.lesson), inputs,
            state: s.state, flash: s.flash, hint: s.hint || note, demoSpeed: s.demoSpeed,
            stepLabel: multi ? `Step ${s.stepIdx + 1} / ${s.steps.length}` : null,
-           parentName: (s.parent && s.parent.cat === "guided") ? s.parent.name : null }
+           parentName: (s.parent && s.parent.cat === "guided") ? s.parent.name : null,
+           brutHint: _academyCanPreviewBrut() ? "Press B — preview FINISHER" : null, brutName: s._brutName || null }
 }
 // PHASE 3 — per-fighter COVERAGE: lessons generated, fireable count, undetectable (passive) list, weak-detect
 // moves, and moves whose prose implies a scenario tag they're missing. Pure analysis over every roster fighter.
@@ -21189,7 +21272,7 @@ function renderCurrentState() {
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
     case GAME_STATES.ACADEMY:         drawAcademyGridScreen(ctx, canvas, { roster: getAcademyFilteredRoster(), filters: academyUniverses(), universe: academyUniverse, search: academySearch, searchFocus: true, scroll: academyScroll, hoverKey: academyHoverKey, backHover: academyBackHover, progressFor: academyProgressFor }); break
-    case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id) }); break }
+    case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id), canPreviewBrut: _academyCanPreviewBrut() }); break }
     case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
     case GAME_STATES.COMBO_TRIALS:    drawComboTrialsScreen(ctx, canvas, _comboTrialsData()); break
     case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
@@ -22744,6 +22827,7 @@ window.addEventListener("keydown", e => {
   }
   if (gameState === GAME_STATES.ACADEMY_CHAR) {
     if (key === "escape" || key === "backspace") { e.preventDefault(); openAcademy(screenReturnState || GAME_STATES.MAIN_MENU); return }
+    if (key === "b" && _academyCanPreviewBrut()) { e.preventDefault(); const L = _academyLessons(); const lesson = L.flat && L.flat[0]; if (lesson) { startAcademyDrill(lesson, "free"); if (academySession) academySession._brutAutoPreview = true } return }   // jump into a practice drill + auto-play the first finisher (press B again to cycle)
     if (key === "arrowdown" || key === "arrowup") { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + (key === "arrowdown" ? 60 : -60))); return }
     return
   }
@@ -25124,6 +25208,8 @@ gameLoop()
       snap:     () => p1 ? academySnapshot(p1) : null,
       progress: () => ({ ...academyProgress }),
       exit:     () => { exitAcademyDrill(); return { state: gameState } },
+      previewBrut: () => { const ok = _academyPreviewBrutality(); return { ok, active: brutalityState.active, name: brutalityState.finisher?.name || null, gore: brutalityState.finisher?.gore || null, canPreview: _academyCanPreviewBrut(), inPreview: !!_academyBrutPreview } },
+      brutState:   () => ({ active: brutalityState.active, inPreview: !!_academyBrutPreview, name: academySession?._brutName || null, p2Hp: Math.round(p2?.health || 0), state: gameState }),
     },
     shisuiFallenArm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const A = f._shiArm; return { active: !!A, grabbed: A ? !!A.grabbed : false, resolved: A ? !!A.resolved : false, throwDmg: f._grabThrowDmg || 0 } },   // Susanoo Arm Grab state
     // GAARA Phase 4 — Shukaku summon test harness (snapshot omits custom _fields, so expose them here).

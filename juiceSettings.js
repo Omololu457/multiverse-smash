@@ -29,6 +29,7 @@ const LS_KEYS = {
   hitSoundP1: "ms_hitsound_p1",          // "sparking" | "classic"  (default "sparking")
   hitSoundP2: "ms_hitsound_p2",          // "sparking" | "classic"  (default "sparking")
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
+  perfOverlay: "ms_perf_overlay",        // "1" (show FPS / frame-time / counts overlay) | "0" — default OFF
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -110,6 +111,55 @@ export const juiceSettings = {
   setAtmosphere(on) { this.atmosphere = !!on; _set(LS_KEYS.atmosphere, this.atmosphere ? "1" : "0") },
   toggleAtmosphere() { this.setAtmosphere(!this.atmosphere) },
   atmosphereOn() { return !!this.atmosphere },
+
+  // ── GRAPHICS PRESETS (Phase 1: Low / Standard / Full) ───────────────────────────────────────
+  // One control that sets all the effect options at once. LOW = cheapest; STANDARD = full effects
+  // minus the heavy atmosphere fog (the biggest per-frame cost); FULL = everything on. Applying a
+  // preset just calls the existing per-setting setters (each still round-trips individually), and
+  // the ACTIVE preset is DERIVED from the current values — so tweaking any one setting reads back as
+  // "custom", there's no stored-label desync, and the OLD per-setting behaviour is fully restorable.
+  // Covers only settings present on this build: particles, shake, atmosphere(=weather), hit effects,
+  // anime finisher, slow-mo. (Reduce Flashing / Damage Numbers / Hit Sounds are owned elsewhere —
+  // accessibility / preference — and are intentionally NOT swept by a graphics preset.) Battle Damage
+  // and decals are a separate concurrent feature not on this base; wire them in here when they land.
+  // Presentation-only; no sim/balance/determinism effect.
+  GRAPHICS_PRESETS: {
+    low:      { particles: "low",  screenShake: "low",  atmosphere: false, hitEffects: "low",  animFinisher: false, slowMo: false },
+    standard: { particles: "full", screenShake: "full", atmosphere: false, hitEffects: "full", animFinisher: true,  slowMo: true  },
+    full:     { particles: "full", screenShake: "full", atmosphere: true,  hitEffects: "full", animFinisher: true,  slowMo: true  },
+  },
+  applyGraphicsPreset(name) {
+    const p = this.GRAPHICS_PRESETS[name]; if (!p) return false
+    this.setParticles(p.particles)
+    this.setScreenShake(p.screenShake)
+    this.setAtmosphere(p.atmosphere)
+    this.setHitEffects(p.hitEffects)
+    this.setAnimFinisher(p.animFinisher)
+    this.setSlowMo(p.slowMo)
+    return true
+  },
+  // Which preset the CURRENT settings exactly match, or "custom" once any one is tweaked.
+  detectGraphicsPreset() {
+    for (const name of ["low", "standard", "full"]) {
+      const p = this.GRAPHICS_PRESETS[name]
+      if (this.particles === p.particles && this.screenShake === p.screenShake &&
+          this.atmosphere === p.atmosphere && this.hitEffects === p.hitEffects &&
+          this.animFinisher === p.animFinisher && this.slowMo === p.slowMo) return name
+    }
+    return "custom"
+  },
+  // Cycle Low → Standard → Full → Low (a "custom" state jumps to Low). Returns the new active preset.
+  cycleGraphicsPreset() {
+    const order = ["low", "standard", "full"]
+    const i = order.indexOf(this.detectGraphicsPreset())
+    this.applyGraphicsPreset(order[(i + 1) % order.length])
+    return this.detectGraphicsPreset()
+  },
+
+  // ── Performance Overlay (Off / On) — a tiny FPS / frame-time / counts readout. Default OFF; toggle with F8. ──
+  perfOverlay: _get(LS_KEYS.perfOverlay, "0") === "1",
+  setPerfOverlay(on) { this.perfOverlay = !!on; _set(LS_KEYS.perfOverlay, this.perfOverlay ? "1" : "0") },
+  togglePerfOverlay() { this.setPerfOverlay(!this.perfOverlay) },
 }
 
 export default juiceSettings

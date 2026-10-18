@@ -40,7 +40,7 @@ git checkout main && git merge --ff-only feat/overnight-polish
 | # | Phase | Status | Commit | Notes |
 |---|-------|--------|--------|-------|
 | 0 | Audit (read-only → AUDIT.md) | **DONE** | `38fed4e1` | docs/overnight/AUDIT.md — full map + per-phase build pointers |
-| 1 | Performance preset + settings | TODO | — | |
+| 1 | Performance preset + settings | **PARTIAL** | _(latest)_ | preset LOGIC + PERF OVERLAY (F8) done+tested; Options preset-row + auto-suggest chip + Options grouping REMAIN |
 | 2 | Accessibility | TODO | — | |
 | 3 | Version check + error log + safety net | TODO | — | |
 | 4 | Input buffering & leniency (SIM) | TODO | — | may SKIP if combo/det shift |
@@ -58,7 +58,15 @@ git checkout main && git merge --ff-only feat/overnight-polish
 
 ## NEW SETTINGS (running list)
 
-_(none yet)_
+- **Graphics Preset** (`juiceSettings.applyGraphicsPreset` / `detectGraphicsPreset` / `cycleGraphicsPreset`):
+  Low / Standard / Full, DERIVED (not stored) → reads "custom" once any effect setting is tweaked, so the
+  old per-setting behaviour is fully restorable. Sweeps particles/shake/atmosphere/hitEffects/animFinisher/
+  slowMo. No new localStorage key (derived from the existing ones). Default = whatever the current settings
+  are (i.e. "custom"/"full" on a fresh install — unchanged from before).
+- **Perf Overlay** (`juiceSettings.perfOverlay`, key `ms_perf_overlay`, default **OFF**): toggle with **F8**
+  in-game. Shows FPS, frame-time (avg/max over 120f), draw calls, projectiles/summons/fx/dmg#, pool stats,
+  and now the juiceFX particle count (`particles N / cap`). Extends the pre-existing `?debug` overlay
+  (which still works + forces it on); adds the persisted setting + key toggle + particle line.
 
 ## DECISIONS LOG
 
@@ -110,10 +118,29 @@ to `38fed4e1`), and it keeps FOREIGN uncommitted edits in the shared working tre
 normal fast workflow (edit working tree → `git add <explicit path>` → test → commit → push) works and all
 this plumbing is unnecessary. The plumbing path is a fallback for the hostile shared checkout.
 
+### Phase 1 — Performance preset + settings — PARTIAL
+
+- **DONE (this commit):** `GRAPHICS_PRESETS` + `applyGraphicsPreset(name)` + `detectGraphicsPreset()` +
+  `cycleGraphicsPreset()` in `juiceSettings.js`. Low=cheapest, Standard=full minus the heavy atmosphere fog,
+  Full=everything. Self-contained, additive, derived active-preset (no desync, old behaviour restorable).
+  Unit-tested (apply/detect/custom/cycle). Gate on branch archive: determinism 14/0, roster ✅, combo 225/9,
+  render ✅.
+- **DONE (this commit):** PERF OVERLAY — `F8` toggles the existing FPS/frame-time/counts overlay (was `?debug`
+  only); now a persisted `perfOverlay` setting (default OFF) + a juiceFX particle-count line. Render-only.
+- **REMAINING (next context — ideally on an EXCLUSIVE checkout so game.js can be edited normally):**
+  (1) surface Low/Standard/Full at the TOP of the Options screen (`drawSettingsScreen`, game.js ~21025);
+  (3) auto-suggest chip: FPS<50 for 5s in a match → non-blocking "Low graphics?" chip
+  (never auto-switch); (4) group Options into Gameplay / Video / Audio / Accessibility / Controls. These all
+  touch the 24k-line game.js, which is impractical to edit safely via the isolated temp-copy workflow — do
+  them with normal targeted edits once the checkout is exclusive.
+- **Decision:** battle-damage/decals are a concurrent feel-session feature NOT on this base → preset omits
+  them for now (wire in when they reach main). Logged.
+
 ## RESUME: phase 1
 
 Phase 0 is committed + pushed. To continue: `/clear`, then say
-**"continue from docs/overnight/PROGRESS.md"**. Start at **Phase 1 (Performance preset + settings)**.
+**"continue from docs/overnight/PROGRESS.md"**. Phase 1 is PARTIAL — the preset LOGIC is committed; FINISH Phase 1's UI wiring (presets row in
+Options, perf overlay, auto-suggest chip, Options grouping — all in game.js) then proceed to Phase 2.
 Build pointers are in `docs/overnight/AUDIT.md` §2 (settings) + §1 (screens) + §6/§7 (effect toggles to
 bundle into the Low preset). Re-run baseline gates first; heed the concurrency warning above.
 

@@ -22291,8 +22291,8 @@ let _loopLast  = null
 // FPS, frame time (avg/max over 120 frames), draw-call count, live projectile/summon/effect
 // counts, and the loaded-image count. Zero cost when off. Draw calls are counted by wrapping
 // ctx.drawImage ONCE (below) — the counter resets each frame.
-let _debugOverlay = false
-try { _debugOverlay = new URLSearchParams(window.location.search).has("debug") } catch (_) {}
+let _debugOverlay = juiceSettings.perfOverlay   // persisted user Perf Overlay setting (default OFF)
+try { if (new URLSearchParams(window.location.search).has("debug")) _debugOverlay = true } catch (_) {}
 // PERSONALITY inspector — off by default; shown via ?personality URL flag or Shift+P toggle.
 let _showPersonality = false
 try { _showPersonality = new URLSearchParams(window.location.search).has("personality") } catch (_) {}
@@ -22375,11 +22375,13 @@ function _drawDebugOverlay() {
   const avg = _frameMsFilled ? sum / _frameMsFilled : 0
   const summons = (typeof activeSummons !== "undefined" ? activeSummons.length : 0)
   const ps = poolStats()._totals
+  const jfx = juiceFxStatus() || {}
   const lines = [
     `FPS ${_fps.toFixed(0)}   frame ${avg.toFixed(2)}ms avg / ${max.toFixed(2)}ms max (120f)`,
     `draw calls ${_drawCallsShown}   images ${loadedSheetCount()}`,
     `projectiles ${activeProjectiles.length}   summons ${summons}   fx ${hitSparks.length}   dmg# ${damageNumbers.length}`,
-    `pool: ${ps.reuses} reused / ${ps.allocs} alloc   free ${ps.free}   (Stage 22C)`
+    `pool: ${ps.reuses} reused / ${ps.allocs} alloc   free ${ps.free}   (Stage 22C)`,
+    `juiceFX particles ${jfx.particles | 0} / ${jfx.cap | 0} cap   bolts ${jfx.bolts | 0}`
   ]
   ctx.save()
   ctx.font = "12px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top"
@@ -22521,6 +22523,10 @@ window.addEventListener("keydown", e => {
   // every screen; placed AFTER the text-entry captures (devcode/rebind/account) so typing an "f" there is
   // never hijacked. "f" is not a gameplay/rebindable key (ALLOWED_KEYS excludes it), so reserving it is safe.
   if (key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); toggleFullscreen(); return }
+
+  // PERFORMANCE OVERLAY — "F8" toggles the FPS / frame-time / counts readout (default OFF, persisted). Global,
+  // placed with the other global shortcuts after the text-entry captures so typing an 8 is never hijacked.
+  if (key === "f8") { e.preventDefault(); _debugOverlay = !_debugOverlay; juiceSettings.setPerfOverlay(_debugOverlay); return }
 
   // PERSONALITY inspector toggle — Shift+P (Shift keeps it clear of any plain gameplay key).
   if (key === "p" && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); _showPersonality = !_showPersonality; return }

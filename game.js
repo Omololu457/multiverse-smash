@@ -6493,6 +6493,7 @@ function updateBrutality() {
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
     if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x }   // remember resting spots (restored on exit)
     if (g === "flyheads") { const tp = Math.min(1, Math.max(0, (t - 0.4) / 0.4)); lf.y = b._liveLoseY0 - tp * tp * lh * 8 }   // HURL the live loser into the sky
+    else if (g === "susanooslam") { const liftP = Math.min(1, Math.max(0, (t - 0.22) / 0.26)), slamP = Math.min(1, Math.max(0, (t - 0.48) / 0.12)); lf.y = b._liveLoseY0 - lh * 1.5 * liftP * (1 - slamP) }   // Susano'o LIFTS then SLAMS the live loser
     // WINNER STEP-IN — close the distance so the live move actually reaches the victim (melee especially). Ranged
     // finishers (gun/meteor) keep more space.
     { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
@@ -7313,8 +7314,14 @@ function _drawLiveGore(b) {
     if (t < impact) { const ap = t / impact; ctx.save(); ctx.globalAlpha = 0.3 + ap * 0.5; ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * (0.3 + ap * 0.9), lw * 0.18 * (0.3 + ap * 0.9), 0, 0, 6.28); ctx.fill(); ctx.restore() }
     if (t < impact + 0.04) { const ap = Math.min(1, t / impact), mS = lw * (0.9 + ap * 1.8), my = (ly - lh * 5) + (gy - lh * 0.5 - (ly - lh * 5)) * ap
       _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, Math.floor(t * 40) % 2, cx, my, mS, 1, 0.98, 0.5) }
-    if (t >= impact) { const bt = Math.min(1, (t - impact) / 0.18)
-      if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const rg = ctx.createRadialGradient(cx, gy, 0, cx, gy, lw * (1.2 + bt * 1.6)); rg.addColorStop(0, "rgba(255,245,220,0.95)"); rg.addColorStop(0.5, `rgba(${_hexToRgb(pal[2]).r},${_hexToRgb(pal[2]).g},${_hexToRgb(pal[2]).b},0.6)`); rg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, gy, lw * (1.2 + bt * 1.6), 0, 6.28); ctx.fill(); ctx.restore() }
+    if (t >= impact) { const bt = Math.min(1, (t - impact) / 0.18), prgb = _hexToRgb(pal[2])
+      // CRATER — a dark ground depression + glowing radial cracks + debris flung out at impact (drawn under the rock)
+      ctx.save(); ctx.fillStyle = "rgba(10,8,14,0.72)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * (1.2 + bt * 0.5), lw * 0.3 * (0.6 + bt * 0.4), 0, 0, 6.28); ctx.fill()
+      ctx.strokeStyle = `rgba(${prgb.r},${prgb.g},${prgb.b},${0.55 * (1 - bt * 0.5)})`; ctx.lineWidth = Math.max(2, cell * 0.6); ctx.lineCap = "round"
+      for (let i = 0; i < 8; i++) { const a = _brutHash(seed, 700 + i, 1) * 6.28, cl = lw * (0.7 + _brutHash(seed, 700 + i, 2) * 1.0); ctx.beginPath(); ctx.moveTo(cx, gy); ctx.lineTo(cx + Math.cos(a) * cl, gy + Math.sin(a) * cl * 0.35); ctx.stroke() }
+      if (bt < 1) { ctx.fillStyle = "#2a2230"; for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 710 + i, k), a = Math.PI + h(1) * Math.PI, rr = lw * (0.5 + bt * 2.6) * (0.5 + h(2)); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, gy + Math.sin(a) * rr * 0.6 - (1 - bt) * lh * 0.4, Math.max(2, cell * (0.6 + h(3) * 0.9)), 0, 6.28); ctx.fill() } }
+      ctx.restore()
+      if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const rg = ctx.createRadialGradient(cx, gy, 0, cx, gy, lw * (1.2 + bt * 1.6)); rg.addColorStop(0, "rgba(255,245,220,0.95)"); rg.addColorStop(0.5, `rgba(${prgb.r},${prgb.g},${prgb.b},0.6)`); rg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, gy, lw * (1.2 + bt * 1.6), 0, 6.28); ctx.fill(); ctx.restore() }
       _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, 1, cx, gy - lh * 0.6, lh * 2.6, 1, 1, 0.5)
       if (t > impact + 0.02) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 2.2, 240), Math.max(0, 1 - (t - impact) / 0.5)) }
   } else if (g === "bludgeon") {
@@ -7356,8 +7363,16 @@ function _drawLiveGore(b) {
         ctx.globalAlpha = (1 - rise) * 0.7; ctx.fillStyle = h(4) > 0.5 ? `rgb(${rgb.r},${rgb.g},${rgb.b})` : "rgba(200,190,230,0.9)"; const s = Math.max(2, cell * (0.5 + h(5)))
         ctx.fillRect(cx + (h(2) * 2 - 1) * lw * 0.4, cy - rise * lh * 0.8 + (h(3) * 2 - 1) * lh * 0.3, s, s) } ctx.restore() }
     if (t > 0.3) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.6, 180), Math.max(0, 1 - (t - 0.3) / 0.5) * 0.5)
+  } else if (g === "susanoograb" || g === "susanooslam") {
+    // MADARA SUSANO'O — the REAL grab sprite (Madara + ribcage + ethereal arm) grips the LIVE victim. GRIP squeezes
+    // in place → pulp; SLAM lifts them (moved up in updateBrutality) then slams → mush. Hand follows the live body.
+    const gf = t < 0.24 ? 0 : 1, armA = Math.min(1, t < 0.08 ? t / 0.08 : (t > 0.9 ? Math.max(0, 1 - (t - 0.9) / 0.1) : 1))
+    const handY = (g === "susanooslam" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.4 - ((t > 0.6) ? (t - 0.6) * lh * 4 : 0)) : cy - lh * 0.05)
+    _brutSheetFrame(ctx, "./madara2_susanoo_grab_air_uniform.png", 2, gf, cx, handY, lh * 2.5, dir, armA, 0.85)
+    const crushP = g === "susanooslam" ? Math.min(1, Math.max(0, (t - 0.58) / 0.12)) : Math.min(1, Math.max(0, (t - 0.42) / 0.18))
+    if (crushP > 0.05) { const by = g === "susanooslam" ? gy - cell : cy; ctx.save(); ctx.globalAlpha = Math.min(1, crushP * 1.3); _drawBloodSplat(ctx, cx, by, Math.min(lw * 1.8, 210), Math.min(1, crushP)); ctx.restore() }
   } else {
-    // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/susanoo*/drag:
+    // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
     if (g === "flashgrab" && t < 0.3) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.3) * 0.85; ctx.strokeStyle = "rgba(230,235,245,0.85)"; ctx.lineWidth = 3; ctx.lineCap = "round"
       for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 500 + i, k), yy = cy + (h(1) * 2 - 1) * lh * 0.5; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 2.2, yy); ctx.lineTo(cx + dir * lw * 2.2, yy); ctx.stroke() } ctx.restore() }

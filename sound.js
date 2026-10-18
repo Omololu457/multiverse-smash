@@ -210,6 +210,13 @@ export const JUICE_STANDINS = {
   balloon_pop_STANDIN:        { src: "impact_crack_01",     rate: 1.5,  filter: { type: "highpass", freq: 2600 }, offset: 0, duration: 0.09, gain: 0.6 },
   // FEEL PASS (Phase 1) — BLOCK cue: a duller, low-passed thud (guarded hit = muffled impact, no sharp crack).
   block_thud_STANDIN:         { src: "impact_hit_01",       rate: 0.78, filter: { type: "lowpass",  freq: 1100 }, offset: 0, duration: 0.12, gain: 0.5 },
+  // FEEL PASS (Phase 3) — WEATHER gaps (no real clips yet): filtered-noise stand-ins over existing pack
+  // buffers. The rain/wind "loops" are short textures RE-TRIGGERED each ~N frames by game.js while active.
+  weather_rain_STANDIN:       { src: "swish_fast_02",       rate: 0.5,  filter: { type: "lowpass",  freq: 600  }, offset: 0, duration: 0.5,  gain: 0.3 },
+  weather_wind_STANDIN:       { src: "whoosh_medium_01",    rate: 0.6,  filter: { type: "lowpass",  freq: 820  }, offset: 0, duration: 0.6,  gain: 0.35 },
+  weather_snow_STANDIN:       { src: "swish_fast_03",       rate: 0.4,  filter: { type: "lowpass",  freq: 420  }, offset: 0, duration: 0.5,  gain: 0.12 },
+  hail_clack_STANDIN:         { src: "impact_crack_01",     rate: 1.3,  filter: { type: "highpass", freq: 2800 }, offset: 0, duration: 0.05, gain: 0.2 },
+  thunder_STANDIN:            { src: "boom_huge_01",        rate: 0.6,  filter: { type: "lowpass",  freq: 220  }, offset: 0, duration: 0.8,  gain: 0.7 },
 }
 
 export const JUICE_VOICE_CAP = 12                 // max simultaneous juice SFX (audio voice cap)

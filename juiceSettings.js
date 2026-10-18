@@ -31,6 +31,8 @@ const LS_KEYS = {
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
   hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "scaled")
   battleDamage: "ms_battle_damage",      // "off" | "marks" | "full"  (FEEL PASS Phase 2; default "marks")
+  weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; default OFF)
+  weatherIntensity: "ms_weather_intensity",   // "low" | "full"  (FEEL PASS Phase 3; default "full")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -134,6 +136,18 @@ export const juiceSettings = {
   cycleBattleDamage() { const o = ["off", "marks", "full"]; this.setBattleDamage(o[(o.indexOf(this.battleDamage) + 1) % o.length]) },
   battleDamageOn() { return this.battleDamage !== "off" },
   battleDamageBlood() { return this.battleDamage === "full" },   // blood STILL additionally gated on bloodFx + eligibility at the call site
+
+  // ── Weather (Off / On) + Intensity (Low / Full) — FEEL PASS Phase 3. COSMETIC ONLY (rain/snow/fog/…
+  // overlay; no gameplay effect). Default OFF. Weather TYPE/source is decided in Phase 4 (real-world /
+  // random / manual, host-authoritative in LAN); this is the master enable + the particle budget. Lightning
+  // flash respects Reduce Flashing; Reduce Particles (this.particles) also scales the budget.
+  weather: _get(LS_KEYS.weather, "0") === "1",
+  setWeather(on) { this.weather = !!on; _set(LS_KEYS.weather, this.weather ? "1" : "0") },
+  toggleWeather() { this.setWeather(!this.weather) },
+  weatherOn() { return !!this.weather },
+  weatherIntensity: (() => { const v = _get(LS_KEYS.weatherIntensity, "full"); return (v === "low" || v === "full") ? v : "full" })(),
+  setWeatherIntensity(v) { if (v !== "low" && v !== "full") return; this.weatherIntensity = v; _set(LS_KEYS.weatherIntensity, v) },
+  cycleWeatherIntensity() { this.setWeatherIntensity(this.weatherIntensity === "full" ? "low" : "full") },
 }
 
 export default juiceSettings

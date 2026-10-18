@@ -6123,7 +6123,8 @@ function _tryStartBrutality(winner) {
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
-  if (brutalityState.finisher?.gore === "susanoograb" || brutalityState.finisher?.gore === "susanooslam") { try { _susanoImg("./sasuke_susanoo_grab.png") } catch (_) {} }   // kick off the real Susano'o sprite load
+  { const _pg = brutalityState.finisher?.gore, _ps = _pg === "meteor" ? "./madara_tengai_meteor_uniform.png" : (_pg === "susanoograb" || _pg === "susanooslam") ? "./madara2_susanoo_grab_air_uniform.png" : (_pg === "susanooblade") ? "./madara_complete_atk1_uniform.png" : null
+    if (_ps) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load
   // Capture the loser in their HURT pose (recoiling from the blow) if they have one — reads as "getting hit"
   // far better than an idle frame for the knockback lead-in. Falls back to whatever pose they're in.
   if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
@@ -6753,12 +6754,15 @@ function _drawGoreMeteor(b, sp, t) {
     ctx.save(); ctx.globalAlpha = 0.85
     for (let i = 0; i < 6; i++) { const tt = i / 6; ctx.fillStyle = i % 2 ? "rgba(255,140,40,0.5)" : "rgba(255,90,20,0.4)"
       ctx.beginPath(); ctx.arc(mx - (mx - cx) * tt * 0.3, my - mSize * (0.8 + tt * 2.2), mSize * (0.5 - tt * 0.38), 0, 6.28); ctx.fill() }
-    ctx.fillStyle = "#2a2230"; ctx.beginPath(); const NR = 9
-    for (let i = 0; i < NR; i++) { const a = i / NR * 6.28, r = mSize * (0.4 + 0.12 * _brutHash(seed, i, 1)); const x = mx + Math.cos(a) * r, y = my + Math.sin(a) * r; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }
-    ctx.closePath(); ctx.fill()
-    ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.9)`; ctx.lineWidth = Math.max(2, mSize * 0.05)
-    for (let i = 0; i < 4; i++) { const a = _brutHash(seed, i, 2) * 6.28; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + Math.cos(a) * mSize * 0.35, my + Math.sin(a) * mSize * 0.35); ctx.stroke() }
     ctx.restore()
+    // the REAL meteor planetoid (madara_tengai_meteor), tumbling between its 2 frames; fall back to a code rock.
+    const drewRock = _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, Math.floor(t * 40) % 2, mx, my, mSize * 2.3, 1, 0.98, 0.5)
+    if (!drewRock) { ctx.save(); ctx.fillStyle = "#2a2230"; ctx.beginPath(); const NR = 9
+      for (let i = 0; i < NR; i++) { const a = i / NR * 6.28, r = mSize * (0.4 + 0.12 * _brutHash(seed, i, 1)); const x = mx + Math.cos(a) * r, y = my + Math.sin(a) * r; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }
+      ctx.closePath(); ctx.fill()
+      ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.9)`; ctx.lineWidth = Math.max(2, mSize * 0.05)
+      for (let i = 0; i < 4; i++) { const a = _brutHash(seed, i, 2) * 6.28; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + Math.cos(a) * mSize * 0.35, my + Math.sin(a) * mSize * 0.35); ctx.stroke() }
+      ctx.restore() }
   }
   if (t >= impact) {   // IMPACT: flash + crater + the settled rock over the flattened body + gore
     const bt = Math.min(1, (t - impact) / 0.18)
@@ -6769,12 +6773,14 @@ function _drawGoreMeteor(b, sp, t) {
     if (t > impact + 0.02) { _drawBloodSplat(ctx, cx, gy - cell, Math.min(240, sp.w * 1.1), Math.max(0, 1 - (t - impact) / 0.5))
       _drawViscera(ctx, cx + sp.w * 0.5, gy - sp.h * 0.05, sp.w * 0.28, sp.h * 0.15, Math.min(1, bt), seed)
       _drawViscera(ctx, cx - sp.w * 0.5, gy - sp.h * 0.05, sp.w * 0.28, sp.h * 0.15, Math.min(1, bt), seed + 3) }
-    ctx.save(); ctx.fillStyle = "#241d2a"; const rs = sp.w * 1.3; ctx.beginPath(); const NR = 10   // settled meteor in the crater
-    for (let i = 0; i < NR; i++) { const a = i / NR * 6.28, r = rs * (0.42 + 0.12 * _brutHash(seed, i, 3)); const x = cx + Math.cos(a) * r, y = gy - rs * 0.2 + Math.sin(a) * r * 0.7; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }
-    ctx.closePath(); ctx.fill()
-    ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`; ctx.lineWidth = 3
-    for (let i = 0; i < 5; i++) { const a = _brutHash(seed, i, 4) * 6.28; ctx.beginPath(); ctx.moveTo(cx, gy - rs * 0.2); ctx.lineTo(cx + Math.cos(a) * rs * 0.35, gy - rs * 0.2 + Math.sin(a) * rs * 0.3); ctx.stroke() }
-    ctx.restore()
+    const rs = sp.w * 1.3                                                // the settled meteor sitting in the crater (REAL sprite; fallback polygon)
+    const drewSettled = _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, 1, cx, gy - rs * 0.35, rs * 2.3, 1, 1, 0.5)
+    if (!drewSettled) { ctx.save(); ctx.fillStyle = "#241d2a"; ctx.beginPath(); const NR = 10
+      for (let i = 0; i < NR; i++) { const a = i / NR * 6.28, r = rs * (0.42 + 0.12 * _brutHash(seed, i, 3)); const x = cx + Math.cos(a) * r, y = gy - rs * 0.2 + Math.sin(a) * r * 0.7; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y) }
+      ctx.closePath(); ctx.fill()
+      ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`; ctx.lineWidth = 3
+      for (let i = 0; i < 5; i++) { const a = _brutHash(seed, i, 4) * 6.28; ctx.beginPath(); ctx.moveTo(cx, gy - rs * 0.2); ctx.lineTo(cx + Math.cos(a) * rs * 0.35, gy - rs * 0.2 + Math.sin(a) * rs * 0.3); ctx.stroke() }
+      ctx.restore() }
   }
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
@@ -6797,16 +6803,16 @@ function _drawSusanooHand(c, cx, palmY, w, h, close, alpha) {
 }
 // MADARA SUSANO'O — the ethereal hand GRIPs (slam=false: squeeze to pulp in place) or LIFTs + SLAMs the victim
 // into the ground (slam=true: → a pile of mush). Either way it ends in brain + guts + a wide splat.
-// Draw ONE frame of the REAL Susano'o grab sheet (sasuke_susanoo_grab.png — 3 frames: form → reach → grip),
-// placed so the HAND (≈78% along the arm on the facing side) lands at (handX, handY). Returns false if the image
-// isn't loaded yet (caller falls back to the code-drawn hand). This is what makes it read as a real cutscene.
-function _drawSusanooGrabFrame(c, frameIdx, handX, handY, targetH, face, alpha) {
-  const img = _susanoImg("./sasuke_susanoo_grab.png")
+// Draw ONE frame of a horizontal sprite SHEET (real art) in world space, placing the `anchorFrac` x-point of the
+// frame at (cx,cy). Reuses the _susanoImg cache (generic Image loader). Returns false if not loaded yet (caller
+// falls back to a code-drawn effect). This is what makes finishers use REAL art, animated like a cutscene.
+function _brutSheetFrame(c, src, frames, frameIdx, cx, cy, targetH, face, alpha, anchorFrac) {
+  const img = _susanoImg(src)
   if (!img || !img.complete || !img.naturalWidth) return false
-  const fw = img.naturalWidth / 3, fh = img.naturalHeight, f = Math.max(0, Math.min(2, frameIdx | 0))
-  const dh = targetH, dw = dh * (fw / fh), handFrac = 0.78
-  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(handX, handY); if (face < 0) c.scale(-1, 1)
-  c.drawImage(img, f * fw, 0, fw, fh, -handFrac * dw, -dh / 2, dw, dh)   // hand at x=0, arm extends back toward the winner
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, f = Math.max(0, Math.min(frames - 1, frameIdx | 0))
+  const dh = targetH, dw = dh * (fw / fh), ax = (anchorFrac == null ? 0.5 : anchorFrac)
+  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(cx, cy); if (face < 0) c.scale(-1, 1)
+  c.drawImage(img, f * fw, 0, fw, fh, -ax * dw, -dh / 2, dw, dh)
   c.restore(); return true
 }
 function _drawGoreSusanoo(b, sp, t, slam) {
@@ -6832,13 +6838,14 @@ function _drawGoreSusanoo(b, sp, t, slam) {
     _drawBloodSplat(ctx, cx, gyMush - cell, Math.min(210, sp.w * (0.7 + mushP * 0.7)), Math.min(1, mushP))
     _drawBrain(ctx, cx + sp.w * 0.12, gyMush - sp.h * 0.08, Math.max(10, sp.w * 0.22), Math.min(1, mushP))
     _drawViscera(ctx, cx - sp.w * 0.18, gyMush - sp.h * 0.12, sp.w * 0.3, sp.h * 0.2, Math.min(1, mushP), seed); ctx.restore() }
-  // THE SUSANO'O ARM on top — the REAL grab sprite, animated through its frames like a cutscene (form → reach →
-  // grip), following the body as it's squeezed / lifted / slammed. Falls back to the code-drawn hand if unloaded.
-  const gf = t < 0.1 ? 0 : (t < 0.28 ? 1 : 2)                        // form → reach → grip
+  // THE SUSANO'O on top — Madara's OWN partial-Susano'o grab sprite (madara2_susanoo_grab_air): Madara + ribcage
+  // + the grabbing arm. Frame 0 = reaching, frame 1 = gripped. The hand (≈85% along the sheet) lands on the body;
+  // the sprite follows as it's squeezed / lifted / slammed. Falls back to the code-drawn hand if unloaded.
+  const gf = t < 0.24 ? 0 : 1                                        // reach → grip
   const recoil = (slam && t > 0.6) ? (t - 0.6) * sp.h * 4 : 0         // after the slam the arm snaps back up
   const handRefY = (slam ? bodyY : cy) - sp.h * 0.05 - recoil
   const armAlpha = Math.min(1, t < 0.08 ? t / 0.08 : (t > 0.92 ? Math.max(0, 1 - (t - 0.92) / 0.08) : 1))
-  const drewReal = _drawSusanooGrabFrame(ctx, gf, cx, handRefY, sp.h * 1.95, b.dir || 1, armAlpha)
+  const drewReal = _brutSheetFrame(ctx, "./madara2_susanoo_grab_air_uniform.png", 2, gf, cx, handRefY, sp.h * 2.5, b.dir || 1, armAlpha, 0.85)
   if (!drewReal) _drawSusanooHand(ctx, cx, handRefY - sp.h * 0.4, sp.w * 1.5, sp.h * 1.1, close, armAlpha * 0.95)
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1

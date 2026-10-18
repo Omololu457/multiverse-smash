@@ -20,6 +20,7 @@ let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c
 const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
   "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
   "sasuke","itachi","vegeta","pain","byakuya","yamamoto",
+  "tobirama",   // brutality roll-out — Second Hokage (Suiton / Hiraishin / Edo Tensei); full gore table (opt-in routing)
   "obito"];
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];

@@ -718,6 +718,9 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // Sasuke's Chidori/blade, Itachi's Amaterasu/Susanoo blade, Vegeta's ki beams, Pain's black rods/gravity,
   // Byakuya's Senbonzakura petal-blades, Yamamoto's Ryūjin Jakka flame.
   "sasuke", "itachi", "vegeta", "pain", "byakuya", "yamamoto",
+  // Brutality roll-out (per-character, opt-in routing — see GORE_ROUTING_CHARS): the Second Hokage, an adult
+  // battlefield killer (Suiton mastery + Flying Thunder God blade + Edo Tensei). Full gore table below.
+  "tobirama",
   "obito"])   // ★ IMPACT HIT PROTOTYPE ONLY — obito has NO gore finisher table (IMPACT_HIT_STANDALONE gates KLASSIC off)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
@@ -729,6 +732,8 @@ const GORE_TOXIC   = ["#7a0016", "#3a7a1a", "#57e07a", "#20340f"]   // Mayuri �
 const GORE_EMBER   = ["#a11026", "#6e0016", "#ff9a2a", "#3a000a"]   // Zaraki / Baki / Naoya — spark-ember
 const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka / Byakuya — pink (Bungee-Gum / Senbonzakura petals)
 const GORE_LIGHTNING = ["#a11026", "#6e0016", "#6ad0ff", "#3a000a"] // Sasuke — Chidori electric-blue arc
+const GORE_WATER   = ["#a11026", "#6e0016", "#5ab4e6", "#06131f"]   // Tobirama — blood + water-blue (Suiton)
+const GORE_DARK    = ["#8a7a66", "#2e2430", "#9a86b0", "#0a0610"]   // Tobirama Edo Tensei — ashen husk + reanimation-violet (NO fresh blood: a reanimated drag-down)
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -887,18 +892,39 @@ const BRUTALITY_FINISHERS = {
     yamamotoBeam: { name: "RYUJIN JAKKA",  gore: "melt",   palette: GORE_EMBER, flash: "#c0500f" },
     heavy:        { name: "ENNETSU JIGOKU",gore: "crush",  palette: GORE_EMBER, flash: "#c0500f" },
   },
+  // TOBIRAMA — the Second Hokage, "Storm Master". Suiton mastery + Flying Thunder God blade + Edo Tensei.
+  // 3 BLOW (keyed to the killing move) + 1 TRAIT (fires while Edo Tensei is active, via `trait`). His
+  // CINEMATIC (brutalityConcepts.js) covers any other killing move on the FINISH-window timeout.
+  tobirama: {
+    heavy:           { name: "FLYING THUNDER GOD", gore: "bisect",   palette: GORE_WATER, flash: "#2a6ad0" },  // Hiraishin flicker-slash → clean vertical split
+    tobiWaterSlash:  { name: "FLOWING WATER SLASH",gore: "watercut", palette: GORE_WATER, flash: "#2a6ad0" },  // 流水斬 — a high-pressure water blade, diagonal slice
+    tobiWaterDragon: { name: "WATER DRAGON JUTSU", gore: "crush",    palette: GORE_WATER, flash: "#2a6ad0" },  // 水龍弾 — the dragon engulfs + crushes/drowns inward
+    // TRAIT (active-power): while reanimated via Edo Tensei (fighter._edoActive), ANY killing blow drags the
+    // victim down into a sealing-husk instead — ashen, bloodless (a reanimation, not a cut). Falls back to the
+    // per-move BLOW above when Edo Tensei is NOT active.
+    __trait_edo:     { name: "REANIMATION", gore: "drag", palette: GORE_DARK, flash: "#2a1a3a", trait: "_edoActive" },
+  },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
 // finisher — a simple bright gore burst, never silence.
 const BRUTALITY_KLASSIC = { name: "BRUTALITY", gore: "generic", palette: GORE_RED, flash: "#8a0018" }
 // Resolve the finisher for a winner + the move that landed the KO. zaraki_shikai shares zaraki's table.
 // Strict per-move match (Stage 4: NO fuzzy matching) → that entry; otherwise → KLASSIC. Never null.
-function _resolveBrutalityFinisher(wKey, move) {
+function _resolveBrutalityFinisher(wKey, move, fighter) {
   const tblKey  = wKey === "zaraki_shikai" ? "zaraki" : wKey
   const perChar = BRUTALITY_FINISHERS[tblKey]
-  const entry   = (perChar && move && perChar[move]) ? perChar[move] : null
+  if (!perChar) return BRUTALITY_KLASSIC
+  // TRAIT (active-power) first: an entry flagged `trait: "<field>"` wins whenever the winner currently has
+  // that power active (e.g. Tobirama's "_edoActive" Edo Tensei form). Falls through to the per-move BLOW.
+  if (fighter) for (const k in perChar) { const e = perChar[k]; if (e && e.trait && fighter[e.trait]) return e }
+  const entry = (move && perChar[move]) ? perChar[move] : null
   return entry || BRUTALITY_KLASSIC
 }
+// A real BLOW/TRAIT entry exists for this (winner, move/trait)? Used by the opt-in routing to decide gore now.
+function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
+// Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
+// Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
+const GORE_ROUTING_CHARS = new Set(["tobirama"])
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6071,7 +6097,7 @@ function _tryStartBrutality(winner) {
   brutalityState.x = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
-  brutalityState.finisher = _resolveBrutalityFinisher(wKey, move)   // per-CHARACTER, per-MOVE signature (KLASSIC if no match)
+  brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
   // Capture the loser's CURRENT (KO-instant) frame BEFORE forcing the lose pose — the sprite-bisection uses it.
   brutalityState.sprite  = _captureLoserSprite(loseF)
   // Loser state at capture — read by the harness captureProbe() so a test can assert the airborne-KO capture
@@ -6279,6 +6305,55 @@ function updateBrutality() {
   b.parts = b.parts.filter(p => p.settled || p.life > 0)       // settled chunks persist as ground gore
   if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.finisher = null; b.move = null; _enterVictoryScreen() }
 }
+// FEEL/BRUTALITY roll-out — distinct gore EFFECTS (drawn inside the camera transform, like the bisection).
+// WATERCUT (流水斬): a DIAGONAL water-blade slice — the two halves part perpendicular to the cut, a bright
+// blue blade-sweep flashes across it, blood + water spray on top.
+function _drawGoreWaterCut(b, sp, t, sepEase, woundA) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, hw = sp.w / 2
+  const ang = -0.52, gap = sepEase * Math.max(90, sp.w * 0.6), fall = (t * t) * Math.max(sp.h * 0.12, 22)
+  _drawGroundPool(ctx, cx, sp.groundY, cell, t)
+  ctx.save(); ctx.translate(cx, cy + fall); ctx.rotate(ang)   // work in CUT space → a vertical split reads as the diagonal
+  ctx.save(); ctx.translate(-gap / 2, 0); ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw, -sp.h / 2, hw, sp.h); if (woundA > 0.02) _drawWoundCore(ctx, 0, 0, sp.h, 1, cell, woundA); ctx.restore()
+  ctx.save(); ctx.translate(gap / 2, 0); ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, 0, -sp.h / 2, hw, sp.h); if (woundA > 0.02) _drawWoundCore(ctx, 0, 0, sp.h, -1, cell, woundA); ctx.restore()
+  if (t < 0.42) { const sw = 1 - t / 0.42; ctx.globalAlpha = sw * 0.9; ctx.strokeStyle = "rgba(160,225,255,0.95)"; ctx.lineWidth = 5 + sw * 12; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(0, -sp.h * 0.72); ctx.lineTo(0, sp.h * 0.72); ctx.stroke(); ctx.globalAlpha = 1 }
+  ctx.restore()
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+  const splatA = t < 0.12 ? 1 : Math.max(0, 1 - (t - 0.12) / 0.33); if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy + fall, Math.min(166, Math.max(56, sp.w * 0.62)), splatA)
+}
+// CRUSH (水龍弾): a water dragon engulfs + crushes inward — the body shrinks/squashes as blue rings close in,
+// then bursts into a pulp of blood + water at the implosion point.
+function _drawGoreCrush(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4
+  _drawGroundPool(ctx, cx, sp.groundY, cell, t)
+  ctx.save(); ctx.globalAlpha = Math.min(0.75, t * 1.6) * (t < 0.85 ? 1 : Math.max(0, 1 - (t - 0.85) / 0.15))
+  for (let i = 0; i < 4; i++) { const rr = (sp.w * 0.95) * (1 - t * 0.72) + i * 9; ctx.strokeStyle = `rgba(90,180,230,${0.5 - i * 0.1})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(2, rr), Math.max(2, rr * 0.82), t * 3 + i, 0, 6.28); ctx.stroke() }
+  ctx.restore()
+  if (t < 0.72) { const crush = 1 - Math.min(0.56, t * 0.92), sqz = 1 - Math.min(0.4, t * 0.7)
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(crush, crush * sqz); ctx.drawImage(sp.canvas, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore() }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+  const splatA = t > 0.5 ? Math.min(1, (t - 0.5) / 0.14) * (t < 0.92 ? 1 : Math.max(0, 1 - (t - 0.92) / 0.08)) : 0
+  if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy, Math.min(210, Math.max(70, sp.w * 0.95)), splatA)
+}
+// DRAG (Edo Tensei): the body is dragged DOWN into a dark sealing circle, desaturating to ash — a reanimation,
+// not a cut. BLOODLESS (no red): dark-violet glyphs orbit, the husk sinks + fades grey.
+function _drawGoreDrag(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
+  ctx.save()
+  const seal = Math.min(1, t * 1.5)
+  ctx.globalAlpha = Math.min(0.85, t * 1.7); ctx.fillStyle = "rgba(16,8,26,0.72)"
+  ctx.beginPath(); ctx.ellipse(cx, gy, sp.w * 0.72 * seal, sp.w * 0.22 * seal, 0, 0, 6.28); ctx.fill()
+  ctx.strokeStyle = "rgba(154,134,176,0.85)"; ctx.lineWidth = 3
+  for (let i = 0; i < 6; i++) { const a = i / 6 * 6.28 + t * 2, rr = sp.w * 0.5 * seal; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, gy + Math.sin(a) * rr * 0.32, 5, 0, 6.28); ctx.stroke() }
+  ctx.restore()
+  const sink = (t * t) * sp.h * 1.05
+  ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t * 0.92)
+  ctx.drawImage(sp.canvas, cx - sp.w / 2, cy - sp.h / 2 + sink, sp.w, sp.h)
+  ctx.globalCompositeOperation = "source-atop"; ctx.fillStyle = `rgba(120,110,124,${Math.min(0.82, t)})`   // ash desaturation on the body's own pixels
+  ctx.fillRect(cx - sp.w / 2, cy - sp.h / 2 + sink, sp.w, sp.h)
+  ctx.restore()
+}
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
   const cw = canvas.width, ch = canvas.height
@@ -6300,7 +6375,14 @@ function _drawBrutality() {
   const sepEase = 1 - Math.pow(1 - t, 3)                          // easeOutCubic — HARD front-loaded pop, then settle
   const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 4)   // fades in fast, holds, fades only in the last ~25%
   const woundA  = Math.min(1, sepEase * 3) * Math.min(1, (1 - t) * 4)   // wound core: revealed as the gap opens, holds, fades late
-  if (sp && sp.canvas) {
+  // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
+  // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
+  const _g = fin?.gore
+  if (sp && sp.canvas && (_g === "watercut" || _g === "crush" || _g === "drag")) {
+    if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
+    else if (_g === "crush") _drawGoreCrush(b, sp, t)
+    else _drawGoreDrag(b, sp, t)
+  } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
     const cell = sp.px || 4
     const gap  = sepEase * Math.max(96, sp.w * 0.62)              // DAYLIGHT between the inner edges (big min + big frac)
@@ -6883,7 +6965,17 @@ function _checkMatchOver() {
     // first; it calls _enterVictoryScreen() itself when done. Otherwise go straight to the victory screen.
     // IMPACT HIT (obito prototype) plays FIRST as a lead-in beat; when it ends it either hands off to Brutality
     // (if the move has a real entry) or resolves to victory itself. Otherwise the normal Brutality/victory flow.
-    if (!_tryStartImpactHit(winner) && !startFinishWindow(winner === "p1" ? p1 : p2, winner === "p1" ? p2 : p1) && !_tryStartBrutality(winner)) _enterVictoryScreen()
+    // FEEL/BRUTALITY roll-out (opt-in): for a GORE_ROUTING_CHARS winner whose killing blow has a BLOW/TRAIT
+    // gore entry, play that gore finisher IMMEDIATELY (no FINISH window). Everyone else — and that same winner
+    // on a move WITHOUT an entry — keeps the existing flow: FINISH window → Ultimate = Fatality / timeout =
+    // Cinematic, then the legacy brutality fallback, then victory.
+    const _wF = winner === "p1" ? p1 : p2, _wKey = (_wF?.rosterKey || "").toLowerCase(), _wMove = _wF?._killingBlowMove || null
+    const _goreNow = GORE_ROUTING_CHARS.has(_wKey) && _hasBlowOrTraitEntry(_wKey, _wMove, _wF)
+    if (_tryStartImpactHit(winner)) { /* obito lead-in; hands off itself */ }
+    else if (_goreNow && _tryStartBrutality(winner)) { /* opt-in: BLOW/TRAIT gore finisher plays now */ }
+    else if (startFinishWindow(winner === "p1" ? p1 : p2, winner === "p1" ? p2 : p1)) { /* FINISH window → fatality / cinematic */ }
+    else if (_tryStartBrutality(winner)) { /* legacy gore fallback */ }
+    else _enterVictoryScreen()
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
@@ -23782,7 +23874,11 @@ gameLoop()
       // Start Brutality from the LIVE killing-blow stamp WITHOUT overriding it — so a finisher produced by a
       // real in-combat KO (e.g. the Pain below-threshold EXECUTION on Almighty Push/Pull) renders from its OWN
       // stamp. (training suppresses the auto round-end→brutality flow; this runs the same _tryStartBrutality gate.)
-      startLive:    (winner = "p1") => { victoryState.active = false; return _tryStartBrutality(winner) }
+      startLive:    (winner = "p1") => { victoryState.active = false; return _tryStartBrutality(winner) },
+      // The resolved finisher on the LIVE brutality (reflects the active-power TRAIT path). For verifying the
+      // per-move + trait resolution end-to-end (finisherFor() can't see the fighter, so it skips traits).
+      activeFinisher: () => brutalityState.active ? { name: brutalityState.finisher?.name, gore: brutalityState.finisher?.gore, move: brutalityState.move, wKey: brutalityState.wKey } : null,
+      setEdoActive: (on, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoActive = !!on; return !!(f && f._edoActive) }
     },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.

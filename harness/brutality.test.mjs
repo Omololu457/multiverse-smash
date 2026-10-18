@@ -21,6 +21,7 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
   "sasuke","itachi","vegeta","pain","byakuya","yamamoto",
   "tobirama",   // brutality roll-out — Second Hokage (Suiton / Hiraishin / Edo Tensei); full gore table (opt-in routing)
+  "gojo",       // brutality roll-out — Gojo Satoru (Blue implode / Red repulse / Hollow Purple annihilate / Limitless); full gore table (opt-in routing)
   "obito"];
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];

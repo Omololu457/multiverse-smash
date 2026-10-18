@@ -727,6 +727,9 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // Brutality roll-out (per-character, opt-in routing — see GORE_ROUTING_CHARS): the Second Hokage, an adult
   // battlefield killer (Suiton mastery + Flying Thunder God blade + Edo Tensei). Full gore table below.
   "tobirama",
+  // Gojo Satoru — the strongest sorcerer. Limitless cursed techniques literally bend space around the kill:
+  // Blue attracts (implode), Red repels (gib-blast), Hollow Purple annihilates (erase). Full gore table below.
+  "gojo",
   "obito"])   // ★ IMPACT HIT PROTOTYPE ONLY — obito has NO gore finisher table (IMPACT_HIT_STANDALONE gates KLASSIC off)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
@@ -740,6 +743,7 @@ const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka / 
 const GORE_LIGHTNING = ["#a11026", "#6e0016", "#6ad0ff", "#3a000a"] // Sasuke — Chidori electric-blue arc
 const GORE_WATER   = ["#a11026", "#6e0016", "#5ab4e6", "#06131f"]   // Tobirama — blood + water-blue (Suiton)
 const GORE_DARK    = ["#8a7a66", "#2e2430", "#9a86b0", "#0a0610"]   // Tobirama Edo Tensei — ashen husk + reanimation-violet (NO fresh blood: a reanimated drag-down)
+const GORE_CURSE_BLUE = ["#a11026", "#6e0016", "#4aa3ff", "#0a1830"]   // Gojo — blood + Limitless electric-blue (Cursed Technique: Blue attraction)
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -910,6 +914,14 @@ const BRUTALITY_FINISHERS = {
     // per-move BLOW above when Edo Tensei is NOT active.
     __trait_edo:     { name: "REANIMATION", gore: "drag", palette: GORE_DARK, flash: "#2a1a3a", trait: "_edoActive" },
   },
+  // GOJO SATORU — Limitless. Each cursed technique warps space around the body in a signature way. 4 BLOW; the
+  // CINEMATIC (brutalityConcepts.js "UNLIMITED VOID") covers a domain / any other killing move on the timeout.
+  gojo: {
+    blue:         { name: "CURSED TECHNIQUE: BLUE", gore: "implode",    palette: GORE_CURSE_BLUE, flash: "#2a6ad0" },  // 蒼 — attraction: a singularity drags the body inward to a point, then collapses
+    red:          { name: "REVERSAL: RED",          gore: "repulse",    palette: GORE_RED,        flash: "#d03020" },  // 赫 — repulsion: a point-blank blast blows the body apart outward
+    hollowPurple: { name: "HOLLOW PURPLE",          gore: "annihilate", palette: GORE_PURPLE,     flash: "#7a3ad0" },  // 虚式「茈」 — imaginary mass: the beam ERASES the body (progressive disintegration)
+    heavy:        { name: "LIMITLESS",              gore: "bisect",     palette: GORE_CURSE_BLUE, flash: "#2a6ad0", preFx: "infinity" },  // Infinity convergence planes close in → clean space-fold split
+  },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
 // finisher — a simple bright gore burst, never silence.
@@ -930,7 +942,7 @@ function _resolveBrutalityFinisher(wKey, move, fighter) {
 function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
-const GORE_ROUTING_CHARS = new Set(["tobirama"])
+const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo"])
 const BRUTALITY_FRAMES = 120   // ~2s — HIGH-GORE: a fast kill (separation front-loaded by ~0.3) then a ~90-frame aftermath hold where the wound/pool/chunks linger before the victory screen
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6356,10 +6368,12 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
-  // HIGH-GORE waves (deterministic). The Edo-Tensei "drag" is a BLOODLESS reanimation → no spray/pool. The
-  // "crush" kill lands when the water dragon ENGULFS (~t=0.5), so its blood bursts then, not at frame 0.
-  if (b.finisher?.gore !== "drag" && sp) {
-    const k = b.finisher?.gore === "crush" ? Math.round(b.maxTimer * 0.5) : 0   // kill-moment frame
+  // HIGH-GORE waves (deterministic). "drag" (Edo-Tensei) + "annihilate" (Hollow Purple erase) draw their OWN
+  // sparse mist in-renderer → no standard chunk/pool spawn. "crush" (dragon) and "implode" (Blue singularity)
+  // land their kill ~t=0.5, so blood bursts THEN, not at frame 0.
+  const _gg = b.finisher?.gore
+  if (_gg !== "drag" && _gg !== "annihilate" && sp) {
+    const k = (_gg === "crush" || _gg === "implode") ? Math.round(b.maxTimer * 0.5) : 0   // kill-moment frame
     if (elapsed === k)      _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
     if (elapsed === k + 10) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
     if (elapsed === k + 26) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
@@ -6495,6 +6509,99 @@ function _drawGoreDrag(b, sp, t) {
     const sz = Math.max(2, sp.w * (0.02 + h(5) * 0.03)); ctx.fillRect(mx, my, sz, sz * 1.6) }
   ctx.restore()
 }
+// GOJO cursed-energy ORB finisher (shared). sign=+1 IMPLODE (Cursed Technique: Blue — attraction): a singularity
+// drags the body inward to a point, compresses, then collapses in a gore-burst (~t=0.5). sign=-1 REPULSE
+// (Reversal: Red — repulsion): the orb detonates point-blank (~t=0.1) and a shockwave blows the body apart.
+function _drawGoreOrb(b, sp, t, sign) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const pal = b.finisher?.palette || GORE_CURSE_BLUE, rgb = _hexToRgb(pal[2])
+  const col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+  const ox = cx, oy = cy - sp.h * 0.08                  // orb centre (chest height)
+  if (sign > 0) {
+    // ── IMPLODE (BLUE) ── body pulled IN to the singularity, then collapses
+    const prog = Math.min(1, t / 0.5)
+    _drawGroundPool(ctx, cx, sp.groundY, cell, Math.max(0, (t - 0.5) / 0.5) * 0.85 + (t > 0.5 ? 0.12 : 0))
+    if (t < 0.52) {                                     // body shrinks + slides toward the orb point
+      const s = 1 - 0.82 * prog, bxc = cx + (ox - cx) * prog, byc = cy + (oy - cy) * prog
+      ctx.save(); ctx.globalAlpha = 1 - prog * 0.25; ctx.translate(bxc, byc); ctx.scale(s, s)
+      ctx.drawImage(sp.canvas, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore()
+    }
+    // matter being sucked IN — streak lines converging to the orb
+    if (t < 0.5) { ctx.save(); ctx.globalAlpha = (1 - t / 0.5) * 0.85; ctx.strokeStyle = col(0.9); ctx.lineWidth = 2
+      for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 1000 + i, k), a = h(1) * 6.28
+        const r0 = sp.w * (0.5 + h(2) * 0.6) * (1 - prog * 0.7), r1 = r0 * 0.3
+        ctx.beginPath(); ctx.moveTo(ox + Math.cos(a) * r0, oy + Math.sin(a) * r0 * 0.9); ctx.lineTo(ox + Math.cos(a) * r1, oy + Math.sin(a) * r1 * 0.9); ctx.stroke() }
+      ctx.restore() }
+    // the singularity orb — grows to t=0.5 then flashes on collapse
+    const orbR = sp.w * (0.08 + prog * 0.28), flash = t >= 0.46 && t < 0.62 ? 1 - (t - 0.46) / 0.16 : 0
+    ctx.save(); ctx.globalAlpha = 0.9
+    const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, orbR * (1 + flash * 2.5))
+    g.addColorStop(0, "rgba(235,248,255,0.95)"); g.addColorStop(0.5, col(0.8)); g.addColorStop(1, col(0))
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ox, oy, orbR * (1 + flash * 2.6), 0, 6.28); ctx.fill(); ctx.restore()
+  } else {
+    // ── REPULSE (RED) ── point-blank detonation blows the body apart OUTWARD
+    const bt = Math.max(0, (t - 0.08) / 0.4)
+    _drawGroundPool(ctx, cx, sp.groundY, cell, Math.max(0, (t - 0.14) / 0.5) * 0.85)
+    if (t < 0.12) { ctx.save(); ctx.globalAlpha = 1; ctx.drawImage(sp.canvas, cx - sp.w / 2, cy - sp.h / 2, sp.w, sp.h); ctx.restore() }
+    // expanding shockwave ring + core flash
+    if (t > 0.05 && t < 0.62) { const rr = sp.w * 0.25 + bt * sp.w * 3.6
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt) * 0.9; ctx.strokeStyle = col(0.95); ctx.lineWidth = 6 + (1 - bt) * 22
+      ctx.beginPath(); ctx.arc(ox, oy, rr, 0, 6.28); ctx.stroke(); ctx.restore() }
+    const cf = t < 0.2 ? 1 - t / 0.2 : 0
+    if (cf > 0) { ctx.save(); ctx.globalAlpha = cf; const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, sp.w * (0.5 + (1 - cf)))
+      g.addColorStop(0, "rgba(255,245,235,0.95)"); g.addColorStop(0.5, col(0.85)); g.addColorStop(1, col(0))
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ox, oy, sp.w * (0.5 + (1 - cf)), 0, 6.28); ctx.fill(); ctx.restore() }
+    // extra gib motes flung OUTWARD (on top of the radial blood parts)
+    if (t > 0.08 && t < 0.5) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt) * 0.9
+      for (let i = 0; i < 14; i++) { const h = (k) => _brutHash(seed, 1100 + i, k), a = h(1) * 6.28, rr = sp.w * (0.3 + bt * 2.8) * (0.5 + h(2))
+        ctx.fillStyle = i % 3 ? pal[0] : col(0.8); ctx.beginPath(); ctx.arc(ox + Math.cos(a) * rr, oy + Math.sin(a) * rr * 0.85, Math.max(2, cell * (0.7 + h(3))), 0, 6.28); ctx.fill() }
+      ctx.restore() }
+  }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// GOJO HOLLOW PURPLE finisher — imaginary mass ERASES the body. A purple beam (Blue+Red twined) sweeps across;
+// everything behind the erase-front is gone, dissolving into violet motes, leaving only a thin blood mist.
+function _drawGoreAnnihilate(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const dir = b.dir || 1, pal = b.finisher?.palette || GORE_PURPLE, rgb = _hexToRgb(pal[2])
+  const bx = cx - sp.w / 2, topY = cy - sp.h / 2
+  const ef = Math.min(1, Math.max(0, (t - 0.1) / 0.6))     // erase-front: 0 none → 1 fully gone
+  const frontX = dir > 0 ? bx + sp.w * ef : bx + sp.w * (1 - ef)   // where the erasure currently reaches
+  // 1) the body — only the NOT-yet-erased band is drawn (clip out the erased side)
+  if (ef < 1) { ctx.save(); ctx.beginPath()
+    if (dir > 0) ctx.rect(frontX, topY - 6, sp.w, sp.h + 12); else ctx.rect(bx - 4, topY - 6, (frontX - bx) + 4, sp.h + 12)
+    ctx.clip(); ctx.drawImage(sp.canvas, bx, topY, sp.w, sp.h); ctx.restore() }
+  // 2) the BEAM — a thick purple bar along the body axis, cyan+red filaments twined (Blue+Red = Purple)
+  if (t > 0.04 && t < 0.82) { const beamA = t < 0.1 ? t / 0.1 : (t < 0.7 ? 1 : Math.max(0, 1 - (t - 0.7) / 0.12))
+    const originX = dir > 0 ? bx - sp.w * 0.6 : bx + sp.w * 1.6
+    ctx.save(); ctx.globalAlpha = beamA; ctx.lineCap = "round"
+    ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`; ctx.lineWidth = sp.h * 0.7
+    ctx.beginPath(); ctx.moveTo(originX, cy); ctx.lineTo(frontX, cy); ctx.stroke()
+    ctx.strokeStyle = "rgba(235,230,255,0.95)"; ctx.lineWidth = sp.h * 0.22
+    ctx.beginPath(); ctx.moveTo(originX, cy); ctx.lineTo(frontX, cy); ctx.stroke()
+    // cyan + red filaments sine-twining along the beam
+    for (const [fr, fg, fb, ph] of [[90, 170, 255, 0], [255, 70, 60, 3.14]]) { ctx.strokeStyle = `rgba(${fr},${fg},${fb},0.8)`; ctx.lineWidth = 3
+      ctx.beginPath(); for (let x = 0; x <= 1; x += 0.08) { const px = originX + (frontX - originX) * x, py = cy + Math.sin(x * 18 + ph + t * 10) * sp.h * 0.18; x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py) } ctx.stroke() }
+    ctx.restore() }
+  // 3) the erase-front flash disc + violet disintegration motes streaming off it
+  if (ef > 0 && ef < 1) { ctx.save()
+    ctx.globalAlpha = 0.8; const g = ctx.createRadialGradient(frontX, cy, 0, frontX, cy, sp.h * 0.5)
+    g.addColorStop(0, "rgba(245,240,255,0.95)"); g.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`); g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`)
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(frontX, cy, sp.h * 0.5, 0, 6.28); ctx.fill()
+    ctx.globalCompositeOperation = "source-over"
+    for (let i = 0; i < 18; i++) { const h = (k) => _brutHash(seed, 1200 + i, k), rise = h(1), a = h(2) * 6.28
+      const mx = frontX + Math.cos(a) * sp.w * 0.12 - dir * ef * sp.w * 0.1, my = cy + (h(3) * 2 - 1) * sp.h * 0.5 - rise * sp.h * 0.4
+      ctx.globalAlpha = (1 - rise) * 0.8; ctx.fillStyle = h(4) > 0.5 ? `rgb(${rgb.r},${rgb.g},${rgb.b})` : "rgba(200,190,230,0.9)"
+      const sz = Math.max(2, cell * (0.5 + h(5))); ctx.fillRect(mx, my, sz, sz) }
+    ctx.restore() }
+  // 4) thin blood mist at the front (annihilation leaves little — just a red haze)
+  if (ef > 0.1) { ctx.save(); ctx.globalAlpha = Math.min(0.5, ef) * 0.6; ctx.fillStyle = pal[0]
+    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 1300 + i, k); ctx.beginPath()
+      ctx.arc(frontX + (h(1) * 2 - 1) * sp.w * 0.2, cy + (h(2) * 2 - 1) * sp.h * 0.45, Math.max(2, cell * (0.6 + h(3))), 0, 6.28); ctx.fill() }
+    ctx.restore() }
+  ctx.globalAlpha = 1
+}
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
   const cw = canvas.width, ch = canvas.height
@@ -6519,9 +6626,12 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  if (sp && sp.canvas && (_g === "watercut" || _g === "crush" || _g === "drag")) {
+  if (sp && sp.canvas && (_g === "watercut" || _g === "crush" || _g === "drag" || _g === "implode" || _g === "repulse" || _g === "annihilate")) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
+    else if (_g === "implode") _drawGoreOrb(b, sp, t, +1)   // Gojo BLUE — attraction: body dragged inward to a singularity
+    else if (_g === "repulse") _drawGoreOrb(b, sp, t, -1)   // Gojo RED — repulsion: body blasted apart outward
+    else if (_g === "annihilate") _drawGoreAnnihilate(b, sp, t)   // Gojo HOLLOW PURPLE — the beam erases the body
     else _drawGoreDrag(b, sp, t)
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
@@ -6532,6 +6642,12 @@ function _drawBrutality() {
       for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 800 + i, k), a = h(1) * 6.28, L = sp.w * (1.1 + h(2))
         const mx = seamX + (h(3) * 2 - 1) * sp.w * 0.3, my = cy + (h(4) * 2 - 1) * sp.h * 0.35
         ctx.beginPath(); ctx.moveTo(mx - Math.cos(a) * L, my - Math.sin(a) * L * 0.5); ctx.lineTo(mx + Math.cos(a) * L, my + Math.sin(a) * L * 0.5); ctx.stroke() }
+      ctx.restore() }
+    // LIMITLESS pre-FX: Infinity convergence planes — blue rings close IN on the victim right before the split.
+    if (fin?.preFx === "infinity" && t < 0.4) { const cv = 1 - t / 0.4
+      ctx.save(); ctx.strokeStyle = `rgba(90,170,255,${0.85 * cv})`; ctx.lineWidth = 2.5; ctx.globalAlpha = cv
+      for (let i = 0; i < 4; i++) { const rr = (sp.w * 1.3) * (0.25 + 0.75 * (((i / 4) + t) % 1))   // rings shrinking toward the body
+        ctx.beginPath(); ctx.ellipse(seamX, cy, rr, rr * 1.15, 0, 0, 6.28); ctx.stroke() }
       ctx.restore() }
     const gap  = sepEase * Math.max(96, sp.w * 0.62)              // DAYLIGHT between the inner edges (big min + big frac)
     // The vertical FALL carries the halves DOWN to the real floor over the beat (accelerating). On an AIRBORNE

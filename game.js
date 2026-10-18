@@ -943,7 +943,12 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo"])
-const BRUTALITY_FRAMES = 120   // ~2s — HIGH-GORE: a fast kill (separation front-loaded by ~0.3) then a ~90-frame aftermath hold where the wound/pool/chunks linger before the victory screen
+const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-pose slide) + the finisher kill + aftermath hold before the victory screen
+// Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
+// finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
+// time `t` is REMAPPED to 0..1 over the post-lead-in portion, so each gore renderer plays its full arc.
+function _brutLead(b) { return b?.finisher?.gore === "crush" ? 0.24 : 0.16 }
+function _brutTat(b, elapsed) { const tr = Math.min(1, elapsed / b.maxTimer), L = _brutLead(b); return L < 1 ? Math.max(0, (tr - L) / (1 - L)) : tr }
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -6118,7 +6123,9 @@ function _tryStartBrutality(winner) {
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
-  // Capture the loser's CURRENT (KO-instant) frame BEFORE forcing the lose pose — the sprite-bisection uses it.
+  // Capture the loser in their HURT pose (recoiling from the blow) if they have one — reads as "getting hit"
+  // far better than an idle frame for the knockback lead-in. Falls back to whatever pose they're in.
+  if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
   brutalityState.sprite  = _captureLoserSprite(loseF)
   // Loser state at capture — read by the harness captureProbe() so a test can assert the airborne-KO capture
   // actually contains the body (regression guard for the "missing sprite halves on an airborne KO" bug).
@@ -6126,6 +6133,7 @@ function _tryStartBrutality(winner) {
     action: loseF.spriteHandler?.currentAction || loseF.currentAction, grounded: loseF.grounded ?? loseF.onGround, vy: loseF.vy, hasSprites: !!loseF.hasSprites }
   brutalityState.loseRef = loseF                                 // hide the live loser body — the two split halves replace it
   brutalityState.winRef = winF                                   // winner ref — kept framed by the camera push-in
+  brutalityState.kbX = brutalityState.dir * ((brutalityState.sprite?.w || 90) * 1.15)   // how far the knockback slides the victim (away from the winner)
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   // MK1-style finish framing: remember the camera so the push-in (updateBrutality) can be restored on exit.
@@ -6406,11 +6414,16 @@ function updateBrutality() {
   // a soft world-clamp so the tight view never reveals past the arena edges. Combat is frozen → we own the cam.
   if (b._cam0 && b.loseRef) {
     const base = b._cam0.zoom || 1, ZT = 1.9                       // hard cinematic target (impact-hit uses ~1.8)
-    const pt = Math.min(1, elapsed / (b.maxTimer * 0.26))          // push in over the first ~quarter, then hold
+    const pt = Math.min(1, elapsed / (b.maxTimer * 0.42))          // push in through the lead-in + approach, then hold tight
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
-    const lx = (b.loseRef.x || 0) + (b.loseRef.width || b.loseRef.w || 60) / 2
+    const spW = b.sprite?.w || 80
+    let lx = (b.loseRef.x || 0) + (b.loseRef.width || b.loseRef.w || 60) / 2 + (b.kbX || 0)   // follow the knocked-back resting spot
     const ly = (b.loseRef.y || 0) + (b.loseRef.height || b.loseRef.h || 100) * 0.42
-    camera.x += (lx - camera.x) * 0.22; camera.y += (ly - camera.y) * 0.22
+    // WATER DRAGON: during the approach, pan the camera toward where the dragon flies IN from, then sweep onto
+    // the victim as it strikes — so the shot "follows the dragon" before the kill.
+    if (b.finisher?.gore === "crush") { const ft = _brutTat(b, elapsed)
+      if (ft < 0.5) lx -= (b.dir || 1) * spW * 2.6 * (1 - ft / 0.5) }
+    camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.2
     camera.targetX = camera.x; camera.targetY = camera.y
     camera.zoom = z; camera.targetZoom = z                         // pin past the maxZoom clamp
     if (camera.worldWidth && canvas) { const halfVW = (canvas.width / z) / 2
@@ -6419,14 +6432,16 @@ function updateBrutality() {
       if (camera.worldHeight > halfVH * 2) camera.y = Math.max((camera.minY || 0) + halfVH, Math.min(camera.worldHeight - halfVH, camera.y)) }
   }
   // HIGH-GORE waves (deterministic). "drag" (Edo-Tensei) + "annihilate" (Hollow Purple erase) draw their OWN
-  // sparse mist in-renderer → no standard chunk/pool spawn. "crush" (dragon) and "implode" (Blue singularity)
-  // land their kill ~t=0.5, so blood bursts THEN, not at frame 0.
+  // sparse mist in-renderer → no standard chunk/pool spawn. The kill moment is in REMAPPED finisher time (after
+  // the knockback lead-in): 0 for a strike, ~0.5 for crush (dragon engulf) / implode (singularity collapse).
   const _gg = b.finisher?.gore
   if (_gg !== "drag" && _gg !== "annihilate" && sp) {
-    const k = (_gg === "crush" || _gg === "implode") ? Math.round(b.maxTimer * 0.5) : 0   // kill-moment frame
-    if (elapsed === k)      _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
-    if (elapsed === k + 10) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
-    if (elapsed === k + 26) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
+    const killT = (_gg === "crush" || _gg === "implode") ? 0.5 : 0.0
+    const k = Math.round((_brutLead(b) + killT * (1 - _brutLead(b))) * b.maxTimer)   // kill-moment RAW frame (lead-in offset baked in)
+    const bx = sp.x + sp.w / 2
+    if (elapsed === k)      _spawnBrutalityBlood(b, bx, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
+    if (elapsed === k + 10) _spawnBrutalityBlood(b, bx, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
+    if (elapsed === k + 26) _spawnBrutalityBlood(b, bx, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
   }
   const groundY = sp ? sp.groundY : (b.y + 60)
   for (const p of b.parts) {
@@ -6653,6 +6668,33 @@ function _drawGoreAnnihilate(b, sp, t) {
     ctx.restore() }
   ctx.globalAlpha = 1
 }
+// KNOCKBACK reaction lead-in — the victim (captured in their HURT pose) recoils, leans back, and streaks away
+// from the winner with speed-lines + a white hit-flash. Sells the "you got HIT" beat before the finisher lands.
+function _drawBrutalityKnockback(b, sp, leadP) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, dir = b.dir || 1, seed = b.seed || 1
+  // motion-blur ghosts trailing back toward the winner (fade as the victim settles)
+  const ghost = Math.max(0, 1 - leadP * 1.3)
+  if (ghost > 0.02) for (let i = 1; i <= 3; i++) {
+    ctx.save(); ctx.globalAlpha = ghost * 0.22 * (1 - i / 4); ctx.drawImage(sp.canvas, sp.x - dir * sp.w * 0.22 * i, sp.y, sp.w, sp.h); ctx.restore()
+  }
+  // the body, leaning back from the blow (recoil eases out as it stops)
+  const lean = -dir * 0.22 * (1 - leadP)
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(lean); ctx.translate(-cx, -cy)
+  ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+  const hf = Math.max(0, 1 - leadP * 2.4)                        // white impact-flash on the body at the instant of the hit
+  if (hf > 0.02) { ctx.globalCompositeOperation = "source-atop"; ctx.globalAlpha = hf * 0.9; ctx.fillStyle = "#ffffff"; ctx.fillRect(sp.x, sp.y, sp.w, sp.h); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1 }
+  ctx.restore()
+  // speed lines behind the victim (pointing back at the winner)
+  ctx.save(); ctx.globalAlpha = (1 - leadP) * 0.8; ctx.strokeStyle = "rgba(240,248,255,0.75)"; ctx.lineWidth = 2; ctx.lineCap = "round"
+  for (let i = 0; i < 7; i++) { const h = (k) => _brutHash(seed, 1400 + i, k), yy = sp.y + h(1) * sp.h, len = sp.w * (0.5 + h(2) * 1.4) * (1 - leadP)
+    ctx.beginPath(); ctx.moveTo(cx - dir * sp.w * 0.35, yy); ctx.lineTo(cx - dir * (sp.w * 0.35 + len), yy); ctx.stroke() }
+  ctx.restore()
+  // a quick impact spark where the blow landed (front of the body), only at the very start
+  const sk = Math.max(0, 1 - leadP * 3)
+  if (sk > 0.04) { ctx.save(); ctx.globalAlpha = sk; const fx = cx + dir * sp.w * 0.2
+    const g = ctx.createRadialGradient(fx, cy, 0, fx, cy, sp.w * 0.7); g.addColorStop(0, "rgba(255,250,235,0.95)"); g.addColorStop(1, "rgba(255,230,180,0)")
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx, cy, sp.w * 0.7, 0, 6.28); ctx.fill(); ctx.restore() }
+}
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
   const cw = canvas.width, ch = canvas.height
@@ -6684,7 +6726,17 @@ function _drawBrutality() {
   const hasT = typeof camera.applyTransform === "function"
   ctx.save(); if (hasT) camera.applyTransform(ctx, canvas)
   const sp = b.sprite
-  const t       = Math.min(1, elapsed / b.maxTimer)
+  const tRaw  = Math.min(1, elapsed / b.maxTimer)
+  const LEAD  = _brutLead(b)
+  // KNOCKBACK lead-in: the victim is struck → slides back (away from the winner), decelerating to a stop; the
+  // finisher proper then lands at that resting spot. The whole beat is translated so the gore plays where they
+  // stopped (not snapping back to origin). During the lead-in we draw ONLY the reaction, then the gore takes over.
+  const leadP = Math.min(1, LEAD > 0 ? tRaw / LEAD : 1)
+  const kb    = (b.kbX || 0) * (1 - Math.pow(1 - leadP, 2))
+  const arc   = tRaw < LEAD ? -Math.sin(leadP * Math.PI) * (sp ? sp.h * 0.16 : 18) : 0
+  ctx.translate(kb, arc)
+  if (sp && sp.canvas && tRaw < LEAD) { _drawBrutalityKnockback(b, sp, leadP); ctx.restore(); return }
+  const t       = _brutTat(b, elapsed)                           // finisher time, REMAPPED to 0..1 over the post-lead-in portion
   const sepEase = Math.min(1, (1 - Math.pow(1 - t, 3)) / 0.5)     // front-loaded: full separation by ~t=0.32, then HOLD apart through the aftermath
   const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 7)   // in fast, HOLD, fade only in the last ~14%
   const woundA  = Math.min(1, sepEase * 3) * Math.min(1, (1 - t) * 7)   // wound core: revealed as the gap opens, holds through the aftermath, fades late

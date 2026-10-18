@@ -6125,9 +6125,19 @@ function _tryStartBrutality(winner) {
   brutalityState._diag = { loseY: loseF.y, groundY: loseF.groundY, lastDrawY: loseF._lastDrawY, lastDrawH: loseF._lastDrawH,
     action: loseF.spriteHandler?.currentAction || loseF.currentAction, grounded: loseF.grounded ?? loseF.onGround, vy: loseF.vy, hasSprites: !!loseF.hasSprites }
   brutalityState.loseRef = loseF                                 // hide the live loser body — the two split halves replace it
+  brutalityState.winRef = winF                                   // winner ref — kept framed by the camera push-in
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
+  // MK1-style finish framing: remember the camera so the push-in (updateBrutality) can be restored on exit.
+  brutalityState._cam0 = { zoom: camera.zoom || 1, targetZoom: camera.targetZoom || camera.zoom || 1, x: camera.x, y: camera.y }
   return true
+}
+// Restore the camera the finish push-in borrowed (victory screen re-frames anyway; the Academy preview needs this).
+function _restoreBrutalityCamera() {
+  const c0 = brutalityState._cam0; if (!c0) return
+  camera.zoom = c0.zoom; camera.targetZoom = c0.targetZoom
+  if (c0.x != null) camera.x = c0.x; if (c0.y != null) camera.y = c0.y
+  brutalityState._cam0 = null
 }
 // ── ACADEMY brutality PREVIEW ───────────────────────────────────────────────────────────────────────────
 // Lets the player WATCH each of the studied fighter's finishers on demand from the Academy (press B) instead
@@ -6368,6 +6378,13 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
+  // MK1-style finish framing: PUSH the camera in on the kill, keeping both fighters framed. Combat is frozen so
+  // the normal camera tick is skipped — we set the target (focusBetween) + tick the SAME smoothing pass
+  // (advance) the domain cinematic uses, so the push-in eases in (and stays clamped to the world) each frame.
+  if (b._cam0 && camera.focusBetween && b.winRef && b.loseRef) {
+    camera.focusBetween(b.winRef, b.loseRef, (b._cam0.zoom || 1) * 1.5)
+    if (typeof camera.advance === "function") camera.advance(canvas)
+  }
   // HIGH-GORE waves (deterministic). "drag" (Edo-Tensei) + "annihilate" (Hollow Purple erase) draw their OWN
   // sparse mist in-renderer → no standard chunk/pool spawn. "crush" (dragon) and "implode" (Blue singularity)
   // land their kill ~t=0.5, so blood bursts THEN, not at frame 0.
@@ -6387,7 +6404,8 @@ function updateBrutality() {
     p.life--
   }
   b.parts = b.parts.filter(p => p.settled || p.life > 0)       // settled chunks persist as ground gore
-  if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.finisher = null; b.move = null
+  if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.winRef = null; b.finisher = null; b.move = null
+    _restoreBrutalityCamera()                          // hand the camera back (victory re-frames; Academy needs it)
     if (_academyBrutPreview) _academyEndBrutPreview()   // ACADEMY preview → revive the dummy + stay in the drill (never the victory screen)
     else _enterVictoryScreen() }
 }
@@ -6607,6 +6625,20 @@ function _drawBrutality() {
   const cw = canvas.width, ch = canvas.height
   const elapsed = b.maxTimer - b.timer
   const fin = b.finisher
+  const _t0 = Math.min(1, elapsed / b.maxTimer)
+  // MK1-style finish framing: DARKEN the arena to a spotlight on the kill — the background drops to near-black
+  // (cool tint) while the centre (where the fighters are framed by the push-in) stays lit. Ramps in fast, holds,
+  // lifts at the very end. Screen-space, BEFORE the world-space gore so the gore/flash still pop on top.
+  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1)
+  if (darkA > 0.01) {
+    ctx.save(); const sx = cw * 0.5, sy = ch * 0.52
+    // 1) global mood DIP — the whole arena drops toward night-black (cool tint)
+    ctx.fillStyle = `rgba(4,6,13,${darkA * 0.5})`; ctx.fillRect(0, 0, cw, ch)
+    // 2) tight SPOTLIGHT vignette — centre (fighters) stays readable, everything past it crushes to black
+    const g = ctx.createRadialGradient(sx, sy, Math.min(cw, ch) * 0.08, sx, sy, Math.max(cw, ch) * 0.52)
+    g.addColorStop(0, "rgba(4,6,13,0)"); g.addColorStop(0.55, `rgba(3,4,9,${darkA * 0.35})`); g.addColorStop(1, `rgba(1,2,5,${darkA * 0.92})`)
+    ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  }
   // Impact flash — signature tint per finisher (default red), strong at the hit, fades fast.
   const flash = Math.max(0, 1 - elapsed / 16)
   if (flash > 0.01) {

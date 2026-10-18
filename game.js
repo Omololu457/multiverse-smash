@@ -947,7 +947,7 @@ const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-p
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
 // time `t` is REMAPPED to 0..1 over the post-lead-in portion, so each gore renderer plays its full arc.
-function _brutLead(b) { const g = b?.finisher?.gore; return (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
+function _brutLead(b) { const g = b?.finisher?.gore; return g === "squish" ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
 function _brutTat(b, elapsed) { const tr = Math.min(1, elapsed / b.maxTimer), L = _brutLead(b); return L < 1 ? Math.max(0, (tr - L) / (1 - L)) : tr }
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6135,7 +6135,10 @@ function _tryStartBrutality(winner) {
     action: loseF.spriteHandler?.currentAction || loseF.currentAction, grounded: loseF.grounded ?? loseF.onGround, vy: loseF.vy, hasSprites: !!loseF.hasSprites }
   brutalityState.loseRef = loseF                                 // hide the live loser body — the two split halves replace it
   brutalityState.winRef = winF                                   // winner ref — kept framed by the camera push-in
-  brutalityState.kbX = brutalityState.dir * ((brutalityState.sprite?.w || 90) * 1.15)   // how far the knockback slides the victim (away from the winner)
+  // How far the knockback slides the victim (away from the winner). PAIN's ALMIGHTY PUSH (squish) blasts them ALL
+  // the way across the map to the far wall, so its knockback is huge — the generic lead-in flies them there (in
+  // their hit pose) and the squish then flattens them into a pool at the wall.
+  brutalityState.kbX = brutalityState.dir * ((brutalityState.sprite?.w || 90) * (brutalityState.finisher?.gore === "squish" ? 6.0 : 1.15))
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   // MK1-style finish framing: remember the camera so the push-in (updateBrutality) can be restored on exit.
@@ -6468,6 +6471,7 @@ function updateBrutality() {
       const liftP = Math.min(1, Math.max(0, (ft - 0.22) / 0.24)), slamP = Math.min(1, Math.max(0, (ft - 0.46) / 0.12))
       ly -= spH * 1.2 * liftP * (1 - slamP) }
     else if (g === "susanoograb") { ZT = 1.55; ly -= spH * 0.3 }                               // show the hand coming down from above
+    else if (g === "squish") { ZT = 1.12 }                                                     // WIDE — see the victim blasted across the map, camera follows to the wall (lx already = far spot)
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
     camera.targetX = camera.x; camera.targetY = camera.y

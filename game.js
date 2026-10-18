@@ -7363,6 +7363,32 @@ function _drawLiveGore(b) {
         ctx.globalAlpha = (1 - rise) * 0.7; ctx.fillStyle = h(4) > 0.5 ? `rgb(${rgb.r},${rgb.g},${rgb.b})` : "rgba(200,190,230,0.9)"; const s = Math.max(2, cell * (0.5 + h(5)))
         ctx.fillRect(cx + (h(2) * 2 - 1) * lw * 0.4, cy - rise * lh * 0.8 + (h(3) * 2 - 1) * lh * 0.3, s, s) } ctx.restore() }
     if (t > 0.3) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.6, 180), Math.max(0, 1 - (t - 0.3) / 0.5) * 0.5)
+  } else if (g === "implode") {
+    // GOJO BLUE — the singularity orb forms at the LIVE victim, matter streaking IN to the point, then collapses.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_CURSE_BLUE)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`, ox = cx, oy = cy - lh * 0.08, prog = Math.min(1, t / 0.5)
+    if (t < 0.5) { ctx.save(); ctx.globalAlpha = (1 - t / 0.5) * 0.85; ctx.strokeStyle = col(0.9); ctx.lineWidth = 2
+      for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 1000 + i, k), a = h(1) * 6.28, r0 = lw * (0.5 + h(2) * 0.6) * (1 - prog * 0.7), r1 = r0 * 0.3
+        ctx.beginPath(); ctx.moveTo(ox + Math.cos(a) * r0, oy + Math.sin(a) * r0 * 0.9); ctx.lineTo(ox + Math.cos(a) * r1, oy + Math.sin(a) * r1 * 0.9); ctx.stroke() } ctx.restore() }
+    const orbR = lw * (0.08 + prog * 0.28), flash = t >= 0.46 && t < 0.62 ? 1 - (t - 0.46) / 0.16 : 0
+    ctx.save(); ctx.globalAlpha = 0.9; const og = ctx.createRadialGradient(ox, oy, 0, ox, oy, orbR * (1 + flash * 2.6)); og.addColorStop(0, "rgba(235,248,255,0.95)"); og.addColorStop(0.5, col(0.8)); og.addColorStop(1, col(0)); ctx.fillStyle = og; ctx.beginPath(); ctx.arc(ox, oy, orbR * (1 + flash * 2.6), 0, 6.28); ctx.fill(); ctx.restore()
+    if (t > 0.5) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.8, 200), Math.max(0, 1 - (t - 0.52) / 0.42))
+  } else if (g === "repulse") {
+    // GOJO RED — a point-blank detonation on the LIVE victim: shockwave ring + core flash + outward gib motes.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_RED)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`, pal = b.finisher?.palette || GORE_RED, ox = cx, oy = cy - lh * 0.08, bt = Math.max(0, (t - 0.08) / 0.4)
+    if (t > 0.05 && t < 0.62) { const rr = lw * 0.25 + bt * lw * 3.6; ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt) * 0.9; ctx.strokeStyle = col(0.95); ctx.lineWidth = 6 + (1 - bt) * 22; ctx.beginPath(); ctx.arc(ox, oy, rr, 0, 6.28); ctx.stroke(); ctx.restore() }
+    const cf = t < 0.2 ? 1 - t / 0.2 : 0
+    if (cf > 0) { ctx.save(); ctx.globalAlpha = cf; const g2 = ctx.createRadialGradient(ox, oy, 0, ox, oy, lw * (0.5 + (1 - cf))); g2.addColorStop(0, "rgba(255,245,235,0.95)"); g2.addColorStop(0.5, col(0.85)); g2.addColorStop(1, col(0)); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(ox, oy, lw * (0.5 + (1 - cf)), 0, 6.28); ctx.fill(); ctx.restore() }
+    if (t > 0.08 && t < 0.5) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt) * 0.9; for (let i = 0; i < 14; i++) { const h = (k) => _brutHash(seed, 1100 + i, k), a = h(1) * 6.28, rr = lw * (0.3 + bt * 2.8) * (0.5 + h(2)); ctx.fillStyle = i % 3 ? pal[0] : col(0.8); ctx.beginPath(); ctx.arc(ox + Math.cos(a) * rr, oy + Math.sin(a) * rr * 0.85, Math.max(2, cell * (0.7 + h(3))), 0, 6.28); ctx.fill() } ctx.restore() }
+    if (t > 0.15) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.8, 200), Math.max(0, 1 - (t - 0.2) / 0.5))
+  } else if (g === "susanooblade") {
+    // MADARA PERFECT SUSANO'O — the giant avatar (real Complete-Susano'o sprite) swings its sword DOWN through the
+    // LIVE victim: a bright slash arc + blood. The avatar looms on Madara's side (windup → swing frames).
+    const dir2 = b.dir || 1, avatarH = lh * 3.6, avX = cx - dir2 * lw * 1.1, af = t < 0.44 ? 0 : 1, avAlpha = Math.min(1, t < 0.1 ? t / 0.1 : (t > 0.92 ? Math.max(0, 1 - (t - 0.92) / 0.08) : 1))
+    _brutSheetFrame(ctx, "./madara_complete_atk1_uniform.png", 2, af, avX, gy - avatarH * 0.42, avatarH, dir2, avAlpha, 0.42)
+    if (t > 0.38 && t < 0.62) { const sw = 1 - Math.abs(t - 0.5) / 0.12; if (sw > 0) { ctx.save(); ctx.lineCap = "round"
+      ctx.strokeStyle = `rgba(120,200,255,${sw * 0.95})`; ctx.lineWidth = 8 + sw * 22; ctx.beginPath(); ctx.moveTo(cx - dir2 * lw * 1.3, cy - lh * 1.3); ctx.lineTo(cx + dir2 * lw * 0.5, cy + lh * 0.7); ctx.stroke()
+      ctx.strokeStyle = `rgba(235,248,255,${sw})`; ctx.lineWidth = 3 + sw * 7; ctx.beginPath(); ctx.moveTo(cx - dir2 * lw * 1.3, cy - lh * 1.3); ctx.lineTo(cx + dir2 * lw * 0.5, cy + lh * 0.7); ctx.stroke(); ctx.restore() } }
+    if (t > 0.5) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 2, 210), Math.max(0, 1 - (t - 0.5) / 0.5))
   } else if (g === "susanoograb" || g === "susanooslam") {
     // MADARA SUSANO'O — the REAL grab sprite (Madara + ribcage + ethereal arm) grips the LIVE victim. GRIP squeezes
     // in place → pulp; SLAM lifts them (moved up in updateBrutality) then slams → mush. Hand follows the live body.

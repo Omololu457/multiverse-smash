@@ -5602,6 +5602,12 @@ export function academyCharLayout(canvas, groups = [], scroll = 0) {
   for (const g of groups) {
     rows.push({ type: "header", label: g.section, x: listX, y: cy, w: listW, h: 26 }); cy += 30
     for (const l of g.lessons) {
+      if (l.cat === "brutality") {   // a single WATCH button (opens the gallery reel at this finisher)
+        const ww = 140, wx = listX + listW - ww - 12
+        rows.push({ type: "row", lesson: l, x: listX, y: cy, w: listW, h: rowH, brutality: true,
+          watchRect: { id: "watch", x: wx, y: cy + (rowH - btnH) / 2, w: ww, h: btnH } })
+        cy += rowH + 6; continue
+      }
       const bx = listX + listW - (btnW * 3 + 24)
       const row = { type: "row", lesson: l, x: listX, y: cy, w: listW, h: rowH,
         showRect: l.cat === "passive" ? null : { id: "show", x: bx, y: cy + (rowH - btnH) / 2, w: btnW, h: btnH },
@@ -5635,7 +5641,15 @@ export function drawAcademyCharScreen(ctx, canvas, opts = {}) {
       ctx.strokeStyle = _withAlpha(accent, 0.25); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x + 6, r.y + 24); ctx.lineTo(r.x + r.w - 6, r.y + 24); ctx.stroke()
       continue
     }
-    const l = r.lesson, done = opts.isDone ? opts.isDone(l.id) : false
+    const l = r.lesson, done = (!r.brutality && opts.isDone) ? opts.isDone(l.id) : false
+    if (r.brutality) {   // a finisher entry — ☠ styling + a single WATCH button
+      _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = "rgba(40,14,20,0.6)"; ctx.fill(); ctx.strokeStyle = "rgba(255,90,90,0.4)"; ctx.lineWidth = 1; ctx.stroke()
+      drawCenteredText(ctx, "☠", r.x + 16, r.y + r.h / 2, { font: "800 18px Arial", fill: "#ff6a6a" })
+      drawCenteredText(ctx, l.name, r.x + 34, r.y + 18, { font: "900 15px Arial", fill: "#ffd7d7", align: "left", maxWidth: r.w * 0.6 })
+      drawCenteredText(ctx, l.desc || "", r.x + 34, r.y + 37, { font: "700 12px Arial", fill: "rgba(255,170,170,0.8)", align: "left", maxWidth: r.w * 0.6 })
+      if (r.watchRect) drawMkButton(ctx, r.watchRect, { label: "▶ WATCH", active: false, id: "w" + l.id, cut: 7, small: true })
+      continue
+    }
     _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = done ? "rgba(40,90,60,0.35)" : "rgba(16,20,36,0.6)"; ctx.fill()
     if (done) { ctx.strokeStyle = "rgba(120,255,170,0.5)"; ctx.lineWidth = 1; ctx.stroke(); drawCenteredText(ctx, "✓", r.x + 16, r.y + r.h / 2, { font: "800 18px Arial", fill: "#9effc0" }) }
     drawCenteredText(ctx, l.name, r.x + 34, r.y + 18, { font: "800 15px Arial", fill: "#f1f5f9", align: "left", maxWidth: r.w * 0.44 })

@@ -6184,12 +6184,12 @@ function _academyEndBrutPreview() {
 }
 // BRUTALITY GALLERY — "watch the recordings". Starts a clean drill for the current Academy fighter and auto-plays
 // every finisher back-to-back on a loop (the training HUD is hidden while the reel runs). ◀/▶ jump, Esc exits.
-function startBrutalityReel() {
+function startBrutalityReel(startIdx = 0) {
   const key = (academyCharKey || "").toLowerCase()
   const entries = _academyBrutEntries(key); if (!entries.length) return false
   const L = _academyLessons(); const lesson = L.flat && L.flat[0]; if (!lesson) return false
   startAcademyDrill(lesson, "free")                                    // p1=char vs dummy, live BATTLE scene
-  _brutReel = { keys: entries, idx: 0, wait: 8 }
+  _brutReel = { keys: entries, idx: ((startIdx % entries.length) + entries.length) % entries.length, wait: 8 }
   return true
 }
 function _reelJump(d) {   // ◀/▶ — skip to the prev/next clip immediately (abort any playing one)
@@ -21048,7 +21048,18 @@ function _academyFlatLessons(key) {
 function _academyLessons() {
   if (!academyLessonsCache || academyLessonsCache.key !== academyCharKey) {
     const flat = _academyFlatLessons(academyCharKey)
-    academyLessonsCache = { key: academyCharKey, flat, groups: academy.groupLessons(flat) }
+    const groups = academy.groupLessons(flat)
+    // BRUTALITIES section (display-only — NOT in `flat`, so it never affects lesson progress). One WATCH row per
+    // finisher; clicking opens the gallery reel at that clip. Only for gore-enabled fighters.
+    const be = _academyBrutEntries(academyCharKey)
+    if (be.length && BRUTALITY_ELIGIBLE.has((academyCharKey || "").toLowerCase())) {
+      const GORE_DESC = { bisect: "Clean vertical split", watercut: "Diagonal water-blade slice", crush: "Engulfed + crushed",
+        drag: "Dragged into a sealing husk", implode: "Imploded to a singularity", repulse: "Blasted apart outward", annihilate: "Erased by the beam", generic: "Gore burst" }
+      groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
+        id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
+        input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })
+    }
+    academyLessonsCache = { key: academyCharKey, flat, groups }
   }
   return academyLessonsCache
 }
@@ -21881,6 +21892,7 @@ function handleMenuClicks() {
       const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
       for (const r of L.rows) {
         if (r.type !== "row" || r.y < L.listY - 6 || r.y > L.listY + L.listH) continue
+        if (r.watchRect && pointInRect(mouse.x, mouse.y, r.watchRect)) { startBrutalityReel(r.lesson._brutIdx || 0); break }   // ☠ open the gallery at this finisher
         if (r.showRect && pointInRect(mouse.x, mouse.y, r.showRect)) { startAcademyDrill(r.lesson, "showme"); break }
         if (r.tryRect  && pointInRect(mouse.x, mouse.y, r.tryRect))  { startAcademyDrill(r.lesson, "tryit");  break }
         if (r.freeRect && pointInRect(mouse.x, mouse.y, r.freeRect)) { startAcademyDrill(r.lesson, "free");   break }
@@ -22340,7 +22352,7 @@ function _padMenuRects() {
     case GAME_STATES.ACADEMY_CHAR: {
       const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)
       const btns = []
-      for (const r of L.rows) { if (r.type !== "row" || r.y < L.listY - 2 || r.y > L.listY + L.listH + 2) continue; if (r.showRect) btns.push(r.showRect); if (r.tryRect) btns.push(r.tryRect); if (r.freeRect) btns.push(r.freeRect) }
+      for (const r of L.rows) { if (r.type !== "row" || r.y < L.listY - 2 || r.y > L.listY + L.listH + 2) continue; if (r.watchRect) btns.push(r.watchRect); if (r.showRect) btns.push(r.showRect); if (r.tryRect) btns.push(r.tryRect); if (r.freeRect) btns.push(r.freeRect) }
       if (_academyCanPreviewBrut()) btns.push(getAcademyWatchBrutButton(canvas))
       return [...btns, getAcademyBackButton(canvas)]
     }

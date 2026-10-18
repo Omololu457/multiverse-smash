@@ -6316,11 +6316,13 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
-  // HIGH-GORE waves (deterministic). The Edo-Tensei "drag" is a BLOODLESS reanimation → no spray/pool.
+  // HIGH-GORE waves (deterministic). The Edo-Tensei "drag" is a BLOODLESS reanimation → no spray/pool. The
+  // "crush" kill lands when the water dragon ENGULFS (~t=0.5), so its blood bursts then, not at frame 0.
   if (b.finisher?.gore !== "drag" && sp) {
-    if (elapsed === 0)  _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
-    if (elapsed === 10) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
-    if (elapsed === 26) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
+    const k = b.finisher?.gore === "crush" ? Math.round(b.maxTimer * 0.5) : 0   // kill-moment frame
+    if (elapsed === k)      _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
+    if (elapsed === k + 10) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
+    if (elapsed === k + 26) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
   }
   const groundY = sp ? sp.groundY : (b.y + 60)
   for (const p of b.parts) {
@@ -6352,17 +6354,55 @@ function _drawGoreWaterCut(b, sp, t, sepEase, woundA) {
 }
 // CRUSH (水龍弾): a water dragon engulfs + crushes inward — the body shrinks/squashes as blue rings close in,
 // then bursts into a pulp of blood + water at the implosion point.
+// A CODE-DRAWN water dragon: an undulating blue serpent (overlapping water-blobs, foam highlights, taper)
+// with a jawed dragon head + whiskers + glowing eye. headX/headY = the mouth; the body trails back along
+// (bx,by) with a sine undulation; phase animates the writhe. There is no dragon sprite in the kit (it's
+// code-drawn), so this is the actual serpent the brief asked for — not rings.
+function _drawWaterSerpent(c, hx, hy, bx, by, bodyLen, girth, phase, alpha) {
+  const d = Math.hypot(bx, by) || 1; bx /= d; by /= d; const px = -by, py = bx
+  const SEG = 30, pts = []
+  for (let i = 0; i <= SEG; i++) { const s = i / SEG
+    const wob = Math.sin(phase + s * 7.5) * girth * 1.7 * (0.28 + s * 0.72)   // undulation grows toward the tail
+    pts.push({ x: hx + bx * s * bodyLen + px * wob, y: hy + by * s * bodyLen + py * wob, r: Math.max(1, girth * (1 - s * 0.82)) })
+  }
+  c.save(); c.globalAlpha = alpha
+  c.fillStyle = "rgba(38,108,168,0.55)"; for (let i = SEG; i >= 0; i--) { const p = pts[i]; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.28); c.fill() }      // deep water body
+  c.fillStyle = "rgba(120,200,240,0.6)";  for (let i = SEG; i >= 0; i--) { const p = pts[i]; c.beginPath(); c.arc(p.x, p.y, p.r * 0.58, 0, 6.28); c.fill() }  // bright core
+  c.fillStyle = "rgba(235,250,255,0.6)";  for (let i = 0; i < SEG; i += 3) { const p = pts[i]; c.beginPath(); c.arc(p.x - p.r * 0.3, p.y - p.r * 0.3, p.r * 0.24, 0, 6.28); c.fill() }  // foam crests
+  // HEAD (snout facing forward = opposite the body trail)
+  c.save(); c.translate(hx, hy); c.rotate(Math.atan2(-by, -bx)); const g = girth * 1.55
+  c.fillStyle = "rgba(48,128,188,0.8)"
+  c.beginPath(); c.moveTo(g * 1.5, 0); c.quadraticCurveTo(g * 0.6, -g, -g * 0.7, -g * 0.7); c.quadraticCurveTo(-g * 1.05, 0, -g * 0.7, g * 0.7); c.quadraticCurveTo(g * 0.6, g, g * 1.5, 0); c.fill()
+  c.fillStyle = "rgba(26,86,134,0.9)"; c.beginPath(); c.moveTo(g * 1.5, g * 0.12); c.lineTo(g * 0.1, g * 0.55); c.lineTo(g * 0.2, g); c.lineTo(g * 1.3, g * 0.5); c.closePath(); c.fill()   // open jaw
+  c.fillStyle = "rgba(210,245,255,0.98)"; c.beginPath(); c.arc(-g * 0.05, -g * 0.32, g * 0.17, 0, 6.28); c.fill()   // glowing eye
+  c.strokeStyle = "rgba(175,222,250,0.6)"; c.lineWidth = Math.max(1.5, g * 0.08)
+  c.beginPath(); c.moveTo(g * 0.9, -g * 0.4); c.quadraticCurveTo(g * 2.1, -g * 1.3, g * 2.7, -g * 0.6); c.stroke()   // whisker
+  c.beginPath(); c.moveTo(g * 0.9, g * 0.2); c.quadraticCurveTo(g * 2.1, g * 1.0, g * 2.7, g * 0.4); c.stroke()
+  c.restore(); c.restore()
+}
 function _drawGoreCrush(b, sp, t) {
   const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4
-  _drawGroundPool(ctx, cx, sp.groundY, cell, t)
-  ctx.save(); ctx.globalAlpha = Math.min(0.75, t * 1.6) * (t < 0.85 ? 1 : Math.max(0, 1 - (t - 0.85) / 0.15))
-  for (let i = 0; i < 4; i++) { const rr = (sp.w * 0.95) * (1 - t * 0.72) + i * 9; ctx.strokeStyle = `rgba(90,180,230,${0.5 - i * 0.1})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(2, rr), Math.max(2, rr * 0.82), t * 3 + i, 0, 6.28); ctx.stroke() }
-  ctx.restore()
-  if (t < 0.72) { const crush = 1 - Math.min(0.56, t * 0.92), sqz = 1 - Math.min(0.4, t * 0.7)
-    ctx.save(); ctx.translate(cx, cy); ctx.scale(crush, crush * sqz); ctx.drawImage(sp.canvas, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore() }
+  const dir = b.dir || 1, seed = b.seed || 1
+  _drawGroundPool(ctx, cx, sp.groundY, cell, Math.max(0, (t - 0.48) / 0.52) * 0.9 + (t > 0.48 ? 0.15 : 0))   // pool only AFTER the dragon engulfs
+  // 1) SURGE (t 0→0.5): the dragon rushes in from the winner's side; the body streams behind off-screen.
+  const surge = Math.min(1, t / 0.5), ease = 1 - Math.pow(1 - surge, 2)
+  const startX = cx - dir * (sp.w * 11 + 420)
+  const hx = startX + (cx - startX) * ease, hy = cy - sp.h * 0.5 * (1 - ease) - sp.h * 0.08
+  const girth = Math.max(10, sp.w * 0.5), bodyLen = sp.w * 9 + 300
+  const serpentA = t < 0.86 ? Math.min(1, t * 4) : Math.max(0, 1 - (t - 0.86) / 0.14)
+  if (serpentA > 0.02) _drawWaterSerpent(ctx, hx, hy, -dir, -0.12, bodyLen, girth, (t * 60) * 0.5, serpentA * 0.92)
+  // 2) the victim — still standing as the dragon arrives, then CRUSHED/engulfed as the jaws hit (t>0.5)
+  if (t < 0.5) { ctx.save(); ctx.globalAlpha = 1; ctx.drawImage(sp.canvas, cx - sp.w / 2, cy - sp.h / 2, sp.w, sp.h); ctx.restore() }
+  else if (t < 0.78) { const ct = (t - 0.5) / 0.28, crush = 1 - 0.7 * ct, sqz = 1 - 0.5 * ct
+    ctx.save(); ctx.translate(cx, cy + sp.h * 0.1 * ct); ctx.scale(crush, crush * sqz); ctx.globalAlpha = 1 - ct * 0.5; ctx.drawImage(sp.canvas, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore() }
+  // 3) IMPACT + water burst at the engulf (t≈0.5)
+  if (t >= 0.46 && t < 0.72) { const bt = (t - 0.46) / 0.26; ctx.save(); ctx.globalAlpha = (1 - bt) * 0.9
+    for (let i = 0; i < 16; i++) { const h = _brutHash(seed, 900 + i, 1), a = h * 6.28, rr = girth * (0.6 + bt * 3.2)
+      ctx.fillStyle = i % 3 ? "rgba(140,210,245,0.7)" : "rgba(235,250,255,0.8)"; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.8, girth * (0.18 + _brutHash(seed, 900 + i, 2) * 0.22), 0, 6.28); ctx.fill() }
+    ctx.restore() }
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
-  const splatA = t > 0.5 ? Math.min(1, (t - 0.5) / 0.14) * (t < 0.92 ? 1 : Math.max(0, 1 - (t - 0.92) / 0.08)) : 0
+  const splatA = t > 0.52 ? Math.min(1, (t - 0.52) / 0.12) * (t < 0.92 ? 1 : Math.max(0, 1 - (t - 0.92) / 0.08)) : 0
   if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy, Math.min(210, Math.max(70, sp.w * 0.95)), splatA)
 }
 // DRAG (Edo Tensei): the body is dragged DOWN into a dark sealing circle, desaturating to ash — a reanimation,

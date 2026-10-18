@@ -39,7 +39,7 @@ git checkout main && git merge --ff-only feat/overnight-polish
 
 | # | Phase | Status | Commit | Notes |
 |---|-------|--------|--------|-------|
-| 0 | Audit (read-only → AUDIT.md) | **DONE** | _(see git)_ | docs/overnight/AUDIT.md — full map + per-phase build pointers |
+| 0 | Audit (read-only → AUDIT.md) | **DONE** | `c9fd60a0` | docs/overnight/AUDIT.md — full map + per-phase build pointers |
 | 1 | Performance preset + settings | TODO | — | |
 | 2 | Accessibility | TODO | — | |
 | 3 | Version check + error log + safety net | TODO | — | |
@@ -69,6 +69,23 @@ _(none yet)_
 ## KNOWN ISSUES
 
 - combo-standard 225/9 is pre-existing (not caused by this run).
+- **⚠ ACTIVE CONCURRENT SESSIONS on this shared checkout.** During Phase 0, `game.js` and
+  `juiceSettings.js` appeared as foreign uncommitted working-tree changes that I did NOT make
+  (another autonomous session is editing shared files live). Phase 0 was docs-only so explicit-path
+  staging kept them out of my commit — but **Phase 1+ edit game.js / juiceSettings.js / ui.js**, which
+  will collide with those live edits. **The resumer MUST:** (1) re-check `git status` before each edit/
+  commit; (2) stage ONLY by explicit path; (3) before committing a shared file, verify the staged diff
+  contains ONLY this-run's changes (no foreign hunks) — use the mine-only/private-index technique if the
+  working tree is dirty with foreign edits; (4) if a shared file is too entangled to separate safely,
+  mark the phase PARTIAL/SKIPPED and report, rather than clobbering concurrent work. Ideally resume when
+  the other sessions have settled.
+
+## RESUME: phase 1
+
+Phase 0 is committed + pushed. To continue: `/clear`, then say
+**"continue from docs/overnight/PROGRESS.md"**. Start at **Phase 1 (Performance preset + settings)**.
+Build pointers are in `docs/overnight/AUDIT.md` §2 (settings) + §1 (screens) + §6/§7 (effect toggles to
+bundle into the Low preset). Re-run baseline gates first; heed the concurrency warning above.
 
 ---
 

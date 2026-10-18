@@ -30,6 +30,7 @@ const LS_KEYS = {
   hitSoundP2: "ms_hitsound_p2",          // "sparking" | "classic"  (default "sparking")
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
   hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "scaled")
+  battleDamage: "ms_battle_damage",      // "off" | "marks" | "full"  (FEEL PASS Phase 2; default "marks")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -122,6 +123,17 @@ export const juiceSettings = {
   hitstopStyle: (() => { const v = _get(LS_KEYS.hitstop, "scaled"); return (v === "classic" || v === "scaled") ? v : "scaled" })(),
   setHitstopStyle(v) { if (v !== "classic" && v !== "scaled") return; this.hitstopStyle = v; _set(LS_KEYS.hitstop, v) },
   cycleHitstopStyle() { this.setHitstopStyle(this.hitstopStyle === "scaled" ? "classic" : "scaled") },
+
+  // ── Battle Damage (Off / Marks Only / Full) — FEEL PASS Phase 2. RENDER-LAYER ONLY (persistent scuffs/
+  // scorch/frost marks on fighters + floor decals; never part of GAME_STATE / replays / determinism).
+  // "Marks Only" (default) = non-blood marks + decals. "Full" additionally shows BLOOD, but ONLY where the
+  // EXISTING Brutality eligibility rule allows AND the blood setting (bloodFx) is ON. "Off" restores the
+  // exact old look. Reduce Particles (this.particles) scales the mark/decal/drip budget.
+  battleDamage: (() => { const v = _get(LS_KEYS.battleDamage, "marks"); return (v === "off" || v === "marks" || v === "full") ? v : "marks" })(),
+  setBattleDamage(v) { if (v !== "off" && v !== "marks" && v !== "full") return; this.battleDamage = v; _set(LS_KEYS.battleDamage, v) },
+  cycleBattleDamage() { const o = ["off", "marks", "full"]; this.setBattleDamage(o[(o.indexOf(this.battleDamage) + 1) % o.length]) },
+  battleDamageOn() { return this.battleDamage !== "off" },
+  battleDamageBlood() { return this.battleDamage === "full" },   // blood STILL additionally gated on bloodFx + eligibility at the call site
 }
 
 export default juiceSettings

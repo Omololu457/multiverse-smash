@@ -555,6 +555,7 @@ import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE 
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
+import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
@@ -2202,6 +2203,8 @@ function _fireJuiceDetonation(spark) {
   if (f) { if ((f._juiceDetCd || 0) > 0) return; f._juiceDetCd = JUICE_DET_COOLDOWN }
   const player = (side === "p2" || side === "p4") ? 1 : 0   // deterministic variation seed (parity by side)
   _applyJuiceTreatment(tier, spark.x, spark.y, player, gameState === GAME_STATES.FFA_BATTLE)
+  // FEEL PASS (Phase 2): an explosion leaves a persistent SCORCH decal on the floor below it.
+  if (juiceSettings.battleDamageOn()) bdFloorDecal({ type: "scorch", x: spark.x, y: groundY, r: 28 + (tier === "large" ? 14 : 0) })
 }
 
 // ANTICIPATION (startup ≥ 8f charge moves, from JUICE_ANTICIPATES): on the rising edge of a fighter
@@ -2358,6 +2361,16 @@ function _playHitFeelSound(tier, frame, player, spark) {
   }
 }
 
+// FEEL PASS (Phase 2) helpers — render-layer only.
+// Stable per-slot id for the battle-damage record (1v1 side, or the FFA slot).
+function _bdSlot(f) { return f.side || ("p" + (((f.ffaSlot | 0)) + 1)) }
+// Blood eligibility = the EXISTING Brutality rule: adults/canonically-brutal fighters only. Children and
+// every brutality-excluded character never bleed; obito is eligible-for-impact but has NO gore → excluded.
+function _bloodEligible(rosterKey) { const k = (rosterKey || "").toLowerCase(); return BRUTALITY_ELIGIBLE.has(k) && !IMPACT_HIT_STANDALONE.has(k) }
+// Is BLOOD allowed to draw right now? "Full" setting AND the global blood toggle on. Per-fighter eligibility
+// is checked separately (stored on the record). Keeps blood strictly within the existing rules.
+function _bdBloodAllowed() { return juiceSettings.battleDamageBlood() && bloodFx }
+
 function _fireHitFeel(spark) {
   if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
   const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
@@ -2381,6 +2394,14 @@ function _fireHitFeel(spark) {
   const x = spark.x, y = spark.y
   // ELEMENT (Phase D) — the attacker's move element drives spark colour + aftermath (fire burn / lightning).
   const el = attacker ? elementFor(attacker.rosterKey || attacker.id, { currentMove: spark.moveName || attacker.currentMove, isUltimate: spark.category === "ultimate", ultVariant: attacker._ultVariant, form: attacker._form }) : ELEMENT.KI
+
+  // FEEL PASS (Phase 2): accumulate persistent BATTLE DAMAGE on the struck fighter (render-layer only).
+  // Element picks the mark family (fire → scorch, ice → frost, else scuff). Blood eligibility reuses the
+  // EXISTING Brutality rule (adults/brutal; children + obito-standalone excluded) — the texture only draws
+  // blood when the Battle Damage setting is "Full" AND bloodFx is on (resolved in _bdBloodAllowed).
+  if (target && juiceSettings.battleDamageOn() && (spark.damage || 0) > 0) {
+    bdRecordHit({ slot: _bdSlot(target), dmg: spark.damage || 0, maxHp: target.maxHealth || target.maxHp || 1000, element: el, big: (tier === HIT_TIER.FINISHER || tier === HIT_TIER.HEAVY) && el === ELEMENT.FIRE ? "explosion" : null, eligible: _bloodEligible(target.rosterKey) })
+  }
 
   // SOUND — Classic (prior pack) or Sparking Zero pack per the ATTACKER's per-player setting.
   _playHitFeelSound(tier, frame, player, spark)
@@ -2449,6 +2470,18 @@ function _drawWhiffOpenTint(c, fighter) {
 // Ease every fighter's visual knockback offset back toward 0 (called each sim frame per fighter).
 function _tickHitFeel(f) {
   if (!f) return
+  // FEEL PASS (Phase 2): keep the battle-damage mark texture current for the sprite layer, and shed an
+  // occasional pooled drip at damage level 2+. Render-layer only; _bdMarkTex is read by sprite.js.
+  if (juiceSettings.battleDamageOn()) {
+    const slot = _bdSlot(f)
+    f._bdMarkTex = bdMarkTex(slot, _bdBloodAllowed())
+    const gy = (f.groundY != null) ? f.groundY : ((f.y || 0) + (f.h || 100))
+    bdMaybeDrip(slot, (f.x || 0) + (f.w || 60) / 2, (f.y || 0) + (f.h || 100) * 0.55, gy, globalFrameCount, _bdBloodAllowed())
+    // HEAVY SLAM → a crack decal at the feet on the rising edge of a knockdown or wall-splat.
+    const slammed = !!f.knockdownState || (f._wallSplat || 0) > 0
+    if (slammed && !f._bdPrevSlam) bdFloorDecal({ type: "crack", x: (f.x || 0) + (f.w || 60) / 2, y: gy, r: 26, rot: ((((globalFrameCount * 2654435761) >>> 0) / 4294967296) * 1.5) })
+    f._bdPrevSlam = slammed
+  } else if (f._bdMarkTex) { f._bdMarkTex = null }
   if (f._hitKbOffset) { f._hitKbOffset *= (1 - HITFEEL.kbEase); if (Math.abs(f._hitKbOffset) < 0.2) f._hitKbOffset = 0 }
   if (f._hitSquash) { f._hitSquash.t++; if (f._hitSquash.t > 8) f._hitSquash = null }   // DISNEY (Phase B): advance target hit-squash
   if (f._fireBurn) { f._fireBurn.t++; if (f._fireBurn.t >= f._fireBurn.max) f._fireBurn = null }   // ELEMENT (Phase D): fire burn fades out
@@ -3795,6 +3828,7 @@ function updateFFAEffects(live) {
   updateDamageNumbers()
   // JUICE (Phase 2+3) + HIT FEEL (Phase A): per-attacker detonation cooldown + dash FX + kb ease + FX advance (FFA path).
   for (const f of live) { if (!f) continue; if (f._juiceDetCd > 0) f._juiceDetCd--; _tickJuiceDash(f, (f.ffaSlot | 0) % 2); _tickHitFeel(f) }
+  if (juiceSettings.battleDamageOn()) bdTickDrips()   // FEEL PASS (Phase 2): FFA path — advance drips → floor stamp
   updateJuiceFx()
 }
 
@@ -5366,6 +5400,7 @@ function startMatch() {
   matchConfig.seed = _matchSeed
   reseedRng(_matchSeed)
   _pushHitstopStyle()   // FEEL PASS (Phase 1): tell the sim the agreed Hitstop Style (local, or the host's in LAN) before any hit lands
+  bdSetSeed(_matchSeed); bdReset()   // FEEL PASS (Phase 2): fresh battle-damage records + deterministic mark/decal seed (LAN-identical) for the new match
   _roundEndAudioStopped = false
   // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
   // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
@@ -6122,7 +6157,7 @@ function _victoryFlavor(key) {
 // draw/double-KO, or a non-final round. A short procedural beat (bright saturated-red cartoon gore burst
 // over the loser's EXISTING sprite + red impact flash + a "BRUTALITY!" stamp), then the victory screen.
 // No new/realistic art: reuses the same visual language as the blood hit-effect, brightened.
-function _enterVictoryScreen() { sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }
+function _enterVictoryScreen() { bdReset(); sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }   // FEEL PASS (Phase 2): battle damage is removed at match end (never carries to the next match)
 function _tryStartBrutality(winner) {
   if (!brutalityFx) return false
   if (winner !== "p1" && winner !== "p2") return false           // no finisher on a draw / double-KO
@@ -16474,6 +16509,7 @@ function updateEffectsAndDomains() {
   if (p2 && p2._juiceDetCd > 0) p2._juiceDetCd--
   _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
   _tickHitFeel(p1); _tickHitFeel(p2)             // HIT FEEL (Phase A): ease the visual knockback offset back
+  if (juiceSettings.battleDamageOn()) bdTickDrips()   // FEEL PASS (Phase 2): advance falling drips → stamp floor on landing
   _tickAnimFinisher()                            // HIT FEEL (Phase C): advance the anime-finisher sequence + cooldown
   updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
 }
@@ -19403,6 +19439,7 @@ function drawBattleScene() {
   drawDomains(ctx)
   drawStageHazards(ctx)   // STAGE INTERACTABLES pilot — draw hazards behind the fighters (world space)
   drawPlatforms(ctx)      // Wood Release climbable terrain — draw platforms behind the fighters (world space; Stage 1 procedural rect = collision box)
+  if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): persistent floor decals + falling drips (world space, behind fighters)
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
@@ -20027,6 +20064,7 @@ function drawFFAScene() {
   drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   if (hasTransform) camera.applyTransform(ctx, canvas)
+  if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): FFA — persistent floor decals + drips behind fighters
   drawProjectiles(ctx, activeProjectiles, camera)
   for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
   drawHitSparksEnhanced()
@@ -20181,6 +20219,8 @@ const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody sta
 const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
 // HITSTOP STYLE toggle — Scaled (power-scaled impact freeze, default) / Classic (exact old values). x set by _layoutSettings.
 const hitstopStyleRect  = { x: 0, y: 828, w: 190, h: 30 }
+// BATTLE DAMAGE toggle — Off / Marks Only / Full (persistent marks + floor decals; blood only where eligible). x set by _layoutSettings.
+const battleDmgRect     = { x: 0, y: 864, w: 190, h: 30 }
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -20251,6 +20291,7 @@ function _layoutSettings() {
   hitSndP2Rect.x      = rx + 98
   atmosphereRect.x    = rx
   hitstopStyleRect.x  = rx
+  battleDmgRect.x     = rx
 }
 
 function drawSettingsScreen() {
@@ -20382,11 +20423,15 @@ function drawSettingsScreen() {
     fxBox(hudStyleToggleRect, `HUD: ${hudThemed ? "THEMED" : "CLASSIC"}`, hudThemed, "#38bdf8")
     // FEEL PASS (Phase 1): Hitstop Style — Scaled (power-scaled impact freeze, default) / Classic (exact old values).
     fxBox(hitstopStyleRect, `Hitstop: ${juiceSettings.hitstopStyle === "scaled" ? "SCALED" : "CLASSIC"}`, juiceSettings.hitstopStyle === "scaled", "#f59e0b")
+    // FEEL PASS (Phase 2): Battle Damage — Off / Marks Only / Full (blood only where eligible + Blood on).
+    const _bdLbl = juiceSettings.battleDamage === "off" ? "OFF" : juiceSettings.battleDamage === "full" ? "FULL" : "MARKS"
+    fxBox(battleDmgRect, `Battle Damage: ${_bdLbl}`, juiceSettings.battleDamageOn(), "#c0564a")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
     ctx.fillText("Hitstop: Scaled = weightier impact freeze / Classic = exact old (saved)", hitstopStyleRect.x, hitstopStyleRect.y + hitstopStyleRect.h + 13)
+    ctx.fillText("Battle Damage: persistent scuffs/scorch/decals · Full adds blood (eligible + Blood on)", battleDmgRect.x, battleDmgRect.y + battleDmgRect.h + 13)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21615,6 +21660,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, hitstopStyleRect)) { juiceSettings.cycleHitstopStyle(); _pushHitstopStyle(); break }   // FEEL PASS (Phase 1): Scaled ↔ Classic (re-push so a live match picks it up when not net-locked)
+      if (pointInRect(mouse.x, _smy, battleDmgRect)) { juiceSettings.cycleBattleDamage(); break }   // FEEL PASS (Phase 2): Off → Marks Only → Full
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -24559,6 +24605,17 @@ gameLoop()
       hitstopStyle:    () => ({ setting: juiceSettings.hitstopStyle, effective: _pushHitstopStyle(), netFlag: _hitstopStyleNetFlag }),
       setHitstopStyle: (v) => { juiceSettings.setHitstopStyle(v); return _pushHitstopStyle() },
       setNetHitstopStyle: (v) => { _hitstopStyleNetFlag = (v === "classic" || v === "scaled") ? v : null; return _pushHitstopStyle() },
+      // FEEL PASS (Phase 2): Battle Damage hooks — read the live record, set the setting, or inject damage
+      // on a slot to exercise the mark/decal pipeline deterministically in tests.
+      battleDamage:    () => bdStatus(),
+      setBattleDamage: (v) => { juiceSettings.setBattleDamage(v); return juiceSettings.battleDamage },
+      bdApply: (slot = "p2", dmg = 300, element = "ki", eligible = true, maxHp = 1000) => { bdRecordHit({ slot, dmg, maxHp, element, big: null, eligible }); return bdStatus() },
+      bdEligibleFor: (key) => _bloodEligible(key),   // the REAL existing-rule check (adults bleed; children/obito don't)
+      bdBloodAllowed: () => _bdBloodAllowed(),
+      bdRoundReset: () => { resetRound(); return bdStatus() },   // drive a real round reset (battle damage must PERSIST through it)
+      // fraction of the mark texture that is actually painted (opaque) — proves marks EXIST to composite.
+      bdTexAlpha: (slot = "p1") => { const cv = bdMarkTex(slot, _bdBloodAllowed()); if (!cv) return 0; const c = cv.getContext("2d", { willReadFrequently: true }); const d = c.getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 8) n++; return n / (cv.width * cv.height) },
+      bdDecal: (type = "scorch", x = 640, y = 600) => { bdFloorDecal({ type, x, y, r: 26 }); return bdStatus() },
       anticipate: (tier = "medium") => { const f = p1 || p2; const cx = (f?.x || 0) + (f?.w || 60) / 2, cy = (f?.y || 0) + (f?.h || 100) * 0.42; fireJuiceAnticipation(cx, cy, tier); fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player: 0, tier }); return juiceFxStatus() },   // DISNEY (Phase B): swell + charge-in
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash
       spawnTestProjectile: () => { const f = p1 || p2; const proj = { x: (f?.x || 400), y: (f?.y || 300) - 170, vx: 6, vy: 0, radius: 18, isSpecial: true, name: "testProj", owner: f, ownerId: f?.side || "p1", lifetime: 300, damage: 0 }; activeProjectiles.push(proj); window.__hfTestProj = proj; return { pushed: true, n: activeProjectiles.length } },

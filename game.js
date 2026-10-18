@@ -750,11 +750,13 @@ const GORE_CURSE_BLUE = ["#a11026", "#6e0016", "#4aa3ff", "#0a1830"]   // Gojo �
 // cuts · beam = clean puncture · pulp/crush = brute implosion · shred = domain onslaught · gut = disembowel ·
 // melt = toxic dissolution). `name` is the technique stamped under "BRUTALITY!". No per-move match → KLASSIC.
 const BRUTALITY_FINISHERS = {
-  // SUKUNA — cursed slashes literally bisect / dice, domain shreds. (cleave normal-special, dismantle proj, domain ult)
+  // SUKUNA — the King of Curses. CINEMATIC gore set (opt-in routing): a decapitating cleave, a Dismantle flurry
+  // that falls the body into a pile, Fuga flame-arrow incineration, and the Malevolent Shrine domain barrage.
   sukuna: {
-    cleave:    { name: "CLEAVE",            gore: "bisect",    palette: GORE_RED,   flash: "#8a0018" },
-    dismantle: { name: "DISMANTLE",         gore: "dice",      palette: GORE_RED,   flash: "#8a0018" },
-    domain:    { name: "MALEVOLENT SHRINE", gore: "shred",     palette: GORE_RED,   flash: "#6e0016" },
+    cleave:     { name: "CLEAVE",            gore: "decap",       palette: GORE_RED,   flash: "#8a0018" },  // one slash → the HEAD is chopped off
+    dismantle:  { name: "DISMANTLE",         gore: "slashstorm",  palette: GORE_RED,   flash: "#8a0018" },  // 解 — a flurry of cuts, then the body falls apart into a pile
+    flameArrow: { name: "FUGA",              gore: "firearrow",   palette: GORE_EMBER, flash: "#ff7a1a" },  // 開 — a flaming arrow pierces → incinerate
+    domain:     { name: "MALEVOLENT SHRINE", gore: "domainslash", palette: GORE_RED,   flash: "#6e0016" },  // 伏魔御廚子 — domain opens → a barrage of slashes dismembers them
   },
   // TOJI — the Sorcerer Killer's blades. (tojiG4 ground rekka, tojiSword2 Split Soul special, tojiRapidSlash — no damaging ult)
   toji: {
@@ -946,7 +948,7 @@ function _resolveBrutalityFinisher(wKey, move, fighter) {
 function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
-const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara"])
+const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna"])
 const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-pose slide) + the finisher kill + aftermath hold before the victory screen
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
@@ -6481,6 +6483,7 @@ function updateBrutality() {
     else if (g === "susanoograb") { ZT = 1.55; ly -= spH * 0.3 }                               // show the hand coming down from above
     else if (g === "squish" || g === "pull") { ZT = 1.12 }                                      // WIDE — follow the victim blasted/yanked across the map (lx already = the landing spot)
     else if (g === "susanooblade") { ZT = 1.3; ly -= spH * 0.55 }                              // pull up/out to frame the towering avatar + its sword
+    else if (g === "decap") { ZT = 2.0; ly -= spH * 0.28 }                                     // tight on the head/neck for the chop
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
     camera.targetX = camera.x; camera.targetY = camera.y
@@ -6494,8 +6497,8 @@ function updateBrutality() {
   // sparse mist in-renderer → no standard chunk/pool spawn. The kill moment is in REMAPPED finisher time (after
   // the knockback lead-in): 0 for a strike, ~0.5 for crush (dragon engulf) / implode (singularity collapse).
   const _gg = b.finisher?.gore
-  const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball"   // these draw their own (ash/mist/erase) — no chunk/pool spawn
-  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade"])   // kill lands mid-beat (~t=0.5), not at frame 0
+  const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball" || _gg === "firearrow"   // these draw their own (ash/mist/erase/fire) — no chunk/pool spawn
+  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade", "slashstorm", "domainslash"])   // kill lands mid-beat (~t=0.5), not at frame 0
   if (!_noStdBlood && sp) {
     const killT = _lateKill.has(_gg) ? 0.5 : 0.0
     const k = Math.round((_brutLead(b) + killT * (1 - _brutLead(b))) * b.maxTimer)   // kill-moment RAW frame (lead-in offset baked in)
@@ -6902,6 +6905,116 @@ function _drawGoreSusanooBlade(b, sp, t) {
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }
+// A flurry of CUT lines across a body (deterministic). `prog` 0→1 reveals them one-by-one (the "zing zing"); the
+// freshest cut flashes brightest. White core + a colored edge. Used by Dismantle + the Malevolent Shrine barrage.
+function _drawSlashLines(c, cx, cy, w, h, n, seed, color, prog) {
+  const shown = Math.ceil(n * Math.min(1, Math.max(0, prog)))
+  c.save(); c.lineCap = "round"
+  for (let i = 0; i < shown; i++) { const hh = (k) => _brutHash(seed, 2000 + i, k), a = (hh(1) - 0.5) * Math.PI * 1.5, len = w * (0.9 + hh(2) * 0.9)
+    const mx = cx + (hh(3) * 2 - 1) * w * 0.42, my = cy + (hh(4) * 2 - 1) * h * 0.42, dx = Math.cos(a) * len, dy = Math.sin(a) * len
+    const fresh = (i === shown - 1) ? 1 : 0.45
+    c.strokeStyle = `rgba(255,255,255,${0.45 + fresh * 0.55})`; c.lineWidth = 2 + fresh * 5
+    c.beginPath(); c.moveTo(mx - dx / 2, my - dy / 2); c.lineTo(mx + dx / 2, my + dy / 2); c.stroke()
+    c.strokeStyle = color; c.lineWidth = Math.max(1.5, (2 + fresh * 5) * 0.45)
+    c.beginPath(); c.moveTo(mx - dx / 2, my - dy / 2); c.lineTo(mx + dx / 2, my + dy / 2); c.stroke() }
+  c.restore()
+}
+// SHATTER the captured sprite into a cols×rows grid of pieces. `fall` 0→1 drops/scatters each piece into a pile
+// at the feet (lower rows fall less) — "the body falls apart into a pile with a few sprite pieces left".
+function _shatterSprite(c, sp, cols, rows, fall, alpha, seed) {
+  const cw = sp.w / cols, ch = sp.h / rows, f2 = fall * fall
+  for (let r = 0; r < rows; r++) for (let cl = 0; cl < cols; cl++) {
+    const h = (k) => _brutHash(seed, r * cols + cl, k)
+    const srcX = cl * cw, srcY = r * ch
+    const drop = (sp.h * 0.85) * ((rows - r) / rows) + h(2) * sp.h * 0.2
+    const dx = (h(1) * 2 - 1) * sp.w * 0.4 * fall, dy = f2 * drop, rot = (h(3) * 2 - 1) * fall * 1.4
+    c.save(); c.globalAlpha = alpha; c.translate(sp.x + srcX + cw / 2 + dx, sp.y + srcY + ch / 2 + dy); c.rotate(rot)
+    c.drawImage(sp.canvas, srcX, srcY, cw, ch, -cw / 2, -ch / 2, cw, ch); c.restore()
+  }
+}
+// SUKUNA — CLEAVE: one slash across the neck → the HEAD is chopped off and tumbles away, a blood geyser erupting
+// from the stump. Camera is tight on the head/neck (set in updateBrutality).
+function _drawGoreDecap(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), headH = sp.h * 0.24, neckY = sp.y + headH
+  const cut = Math.min(1, Math.max(0, (t - 0.16) / 0.12))          // the slash lands over t 0.16→0.28
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.28) / 0.6) * 0.75)
+  // the slash line across the neck
+  if (t > 0.1 && t < 0.36) { const sw = 1 - Math.abs(t - 0.22) / 0.14; if (sw > 0) { ctx.save(); ctx.globalAlpha = sw; ctx.strokeStyle = "rgba(255,255,255,0.97)"; ctx.lineWidth = 4 + sw * 9; ctx.lineCap = "round"
+    ctx.beginPath(); ctx.moveTo(cx - sp.w, neckY + sp.h * 0.03); ctx.lineTo(cx + sp.w, neckY - sp.h * 0.03); ctx.stroke(); ctx.restore() } }
+  // the BODY (below the neck) stays put
+  ctx.drawImage(sp.canvas, 0, headH, sp.w, sp.h - headH, sp.x, neckY, sp.w, sp.h - headH)
+  // blood GEYSER from the neck stump
+  if (cut > 0) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - (t - 0.22) / 0.6) * 0.9; ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, i, k), gh = sp.h * (0.3 + h(1) * 0.55) * cut
+      ctx.beginPath(); ctx.ellipse(cx + (h(2) * 2 - 1) * sp.w * 0.22, neckY - gh * 0.5, sp.w * 0.07, gh * 0.5, 0, 0, 6.28); ctx.fill() }
+    ctx.restore() }
+  // the HEAD (above the neck) chops off → arcs away + tumbles down
+  if (cut > 0) { const hp = cut, hx = cx + dir * sp.w * 0.5 * hp, hy = (sp.y + headH * 0.5) - sp.h * 0.08 + hp * hp * sp.h * 0.95, rot = dir * hp * 2.4
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(rot); ctx.drawImage(sp.canvas, 0, 0, sp.w, headH, -sp.w / 2, -headH / 2, sp.w, headH); ctx.restore() }
+  else ctx.drawImage(sp.canvas, 0, 0, sp.w, headH, sp.x, sp.y, sp.w, headH)
+  if (cut > 0.02) _drawBloodSplat(ctx, cx, neckY, Math.min(140, sp.w * 0.7), Math.max(0, 1 - (t - 0.22) / 0.5))
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// SUKUNA — DISMANTLE (slashstorm) / MALEVOLENT SHRINE (domain=true): a FLURRY of exaggerated cuts rains onto the
+// frozen victim (zing-zing-zing), then the body FALLS APART into a pile of pieces. The domain variant opens with
+// a dark shrine establishing beat before the barrage (the cuts then read as the domain's sure-hit assault).
+function _drawGoreSlashStorm(b, sp, t, domain) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
+  if (domain) { ctx.save(); ctx.globalAlpha = Math.min(0.72, t * 2.4) * (t > 0.85 ? Math.max(0, 1 - (t - 0.85) / 0.15) : 1)   // the domain void establishing
+    ctx.fillStyle = "rgba(16,2,6,0.92)"; ctx.fillRect(sp.x - sp.w * 3, sp.y - sp.h * 2, sp.w * 7, sp.h * 5)
+    ctx.strokeStyle = "rgba(180,20,28,0.5)"; ctx.lineWidth = 2
+    for (let i = 0; i < 5; i++) { const yy = sp.y - sp.h + i * sp.h * 0.7; ctx.beginPath(); ctx.moveTo(sp.x - sp.w * 3, yy); ctx.lineTo(sp.x + sp.w * 4, yy + sp.h * 0.3); ctx.stroke() }
+    ctx.restore() }
+  const slashStart = domain ? 0.3 : 0.06, slashEnd = 0.52
+  const prog = Math.min(1, Math.max(0, (t - slashStart) / (slashEnd - slashStart)))
+  if (t < 0.56) {   // the victim, frozen + flashing as the cuts accumulate
+    ctx.save(); ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+    if (prog > 0 && prog < 1 && (Math.floor(t * 34) % 2)) { ctx.globalCompositeOperation = "source-atop"; ctx.fillStyle = "rgba(255,255,255,0.45)"; ctx.fillRect(sp.x, sp.y, sp.w, sp.h) }
+    ctx.restore()
+    if (prog > 0) _drawSlashLines(ctx, cx, cy, sp.w, sp.h, 18, seed, "#ff2b36", prog)
+  } else {   // FALL APART — the body shatters into a pile + a wide pool
+    const fall = Math.min(1, (t - 0.56) / 0.4)
+    _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.56) / 0.4) * 0.9 + 0.15)
+    _drawBloodSplat(ctx, cx, gy - cell, Math.min(230, sp.w * (0.7 + fall * 0.6)), Math.min(1, fall))
+    _shatterSprite(ctx, sp, 5, 7, fall, 1, seed)
+  }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// SUKUNA — FUGA: a flaming arrow streaks in from the winner side, pierces through the victim, then they ignite in
+// a fire burst and char away. Fire-driven (no standard blood spawn).
+function _drawGoreFireArrow(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), pierce = Math.min(1, t / 0.3)
+  if (t < 0.34) {   // the victim visible until the arrow passes through
+    ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+    const ax = (cx - dir * sp.w * 4.5) + dir * sp.w * 5.2 * pierce
+    ctx.save()
+    for (let i = 0; i < 9; i++) { const tt = i / 9; ctx.globalAlpha = (1 - tt) * 0.85; ctx.fillStyle = i % 2 ? "rgba(255,140,30,0.6)" : "rgba(255,90,20,0.5)"
+      ctx.beginPath(); ctx.arc(ax - dir * sp.w * 0.6 * i * 0.14, cy, sp.w * (0.2 - tt * 0.15), 0, 6.28); ctx.fill() }
+    ctx.globalAlpha = 1; ctx.fillStyle = "rgba(255,238,160,0.97)"; ctx.beginPath(); ctx.arc(ax, cy, sp.w * 0.11, 0, 6.28); ctx.fill(); ctx.restore()
+  } else {   // ignite + fire burst + char away
+    const bt = Math.min(1, (t - 0.3) / 0.2), fl = Math.max(0, 1 - (t - 0.3) / 0.6), ash = Math.min(1, Math.max(0, (t - 0.55) / 0.45))
+    if (t > 0.5) { ctx.save(); ctx.globalAlpha = Math.min(0.6, t - 0.5); ctx.fillStyle = "rgba(18,10,8,0.85)"; ctx.beginPath(); ctx.ellipse(cx, gy, sp.w * 0.7, sp.w * 0.2, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+    if (ash < 1) { ctx.save(); ctx.globalAlpha = (1 - ash); ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+      ctx.globalCompositeOperation = "source-atop"; ctx.fillStyle = `rgba(12,9,9,${Math.min(0.92, bt + 0.3)})`; ctx.fillRect(sp.x, sp.y, sp.w, sp.h); ctx.restore() }
+    if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, sp.w * (1 + bt * 1.6))
+      g.addColorStop(0, "rgba(255,245,200,0.95)"); g.addColorStop(0.5, "rgba(255,120,30,0.6)"); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g
+      ctx.beginPath(); ctx.arc(cx, cy, sp.w * (1 + bt * 1.6), 0, 6.28); ctx.fill(); ctx.restore() }
+    if (fl > 0.02) { ctx.save()
+      for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 1700 + i, k), fx = cx + (h(1) * 2 - 1) * sp.w * 0.5, fh = sp.h * (0.4 + h(3) * 0.7) * (0.7 + 0.3 * Math.sin(t * 8 + h(2) * 6.28))
+        ctx.fillStyle = (h(4) < 0.5 ? "rgba(255,140,30," : "rgba(255,90,20,") + (0.6 * fl) + ")"
+        ctx.beginPath(); ctx.moveTo(fx - sp.w * 0.12, gy); ctx.quadraticCurveTo(fx, gy - fh, fx, gy - fh); ctx.quadraticCurveTo(fx + sp.w * 0.12, gy - fh * 0.6, fx + sp.w * 0.12, gy); ctx.closePath(); ctx.fill() }
+      ctx.restore() }
+    if (ash > 0.02) { ctx.save(); for (let i = 0; i < 14; i++) { const h = (k) => _brutHash(seed, 1800 + i, k), rise = ((ash + h(1)) % 1)
+      ctx.globalAlpha = (1 - rise) * 0.7 * ash; ctx.fillStyle = h(3) < 0.4 ? "rgba(255,120,40,0.9)" : "rgba(92,82,80,0.85)"
+      const s = Math.max(2, cell * (0.5 + h(4))); ctx.fillRect(cx + (h(2) * 2 - 1) * sp.w * 0.4, gy - rise * sp.h * 1.4, s, s) } ctx.restore() }
+  }
+  ctx.globalAlpha = 1
+}
 // KATON GREAT FIREBALL — the victim is engulfed in flame → charred black → a skeleton shows through → crumbles
 // to rising ash, leaving a scorch mark. Fire-driven, bloodless (own effects, no chunk/pool spawn).
 function _drawGoreFireball(b, sp, t) {
@@ -7011,7 +7124,7 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade"])
+  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade", "decap", "slashstorm", "domainslash", "firearrow"])
   if (sp && sp.canvas && _NEWG.has(_g)) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
@@ -7025,6 +7138,10 @@ function _drawBrutality() {
     else if (_g === "susanooslam") _drawGoreSusanoo(b, sp, t, true)   // Madara SUSANO'O SLAM — lift + slam to mush
     else if (_g === "fireball") _drawGoreFireball(b, sp, t)      // Katon Great Fireball — incinerate to ash
     else if (_g === "susanooblade") _drawGoreSusanooBlade(b, sp, t)   // Perfect Susano'o — giant sword cleave
+    else if (_g === "decap") _drawGoreDecap(b, sp, t)                // Sukuna CLEAVE — head chopped off
+    else if (_g === "slashstorm") _drawGoreSlashStorm(b, sp, t, false)   // Sukuna DISMANTLE — cut flurry → fall apart
+    else if (_g === "domainslash") _drawGoreSlashStorm(b, sp, t, true)   // Sukuna MALEVOLENT SHRINE — domain → barrage → dismember
+    else if (_g === "firearrow") _drawGoreFireArrow(b, sp, t)        // Sukuna FUGA — flame arrow → incinerate
     else _drawGoreDrag(b, sp, t)
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
@@ -21384,7 +21501,8 @@ function _academyLessons() {
       const GORE_DESC = { bisect: "Clean vertical split", watercut: "Diagonal water-blade slice", crush: "Engulfed + crushed",
         drag: "Dragged into a sealing husk", implode: "Imploded to a singularity", repulse: "Blasted apart outward", annihilate: "Erased by the beam",
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
-        susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword", generic: "Gore burst" }
+        susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
+        decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

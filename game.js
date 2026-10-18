@@ -7329,8 +7329,35 @@ function _drawLiveGore(b) {
       _brutSheetFrame(ctx, "./toji_fly_head_uniform.png", 3, Math.floor(t * 20 + i) % 3, cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad * 0.8 - throwP * lh * 2 * h(5), cell * 8 * (0.7 + h(6) * 0.6), (Math.cos(ang) > 0 ? 1 : -1), swarm * 0.95, 0.5) }
     if (throwP > 0.05) { ctx.save(); ctx.fillStyle = BLOOD_REDS[0]; for (let i = 0; i < 8; i++) { const yy = cy - (throwP * (i / 8)) * throwP * lh * 8; ctx.globalAlpha = (1 - i / 8) * 0.5 * throwP; ctx.beginPath(); ctx.arc(cx + Math.sin(i) * cell * 2, yy, cell * (1.5 - i / 8), 0, 6.28); ctx.fill() } ctx.restore() }
     if (throwP > 0.1) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.1, 160), Math.min(1, throwP) * Math.max(0, 1 - (t - 0.5) / 0.5))
+  } else if (g === "crush") {
+    // WATER DRAGON (Tobirama) — the real code-drawn serpent surges in from the winner side and ENGULFS the live
+    // victim (~t=0.5), with a water burst + blood. The dragon FX layers over the live body (no snapshot needed).
+    const surge = Math.min(1, t / 0.5), ease = 1 - Math.pow(1 - surge, 2)
+    const startX = cx - dir * (lw * 11 + 420), hx = startX + (cx - startX) * ease, hy = cy - lh * 0.5 * (1 - ease) - lh * 0.08
+    const girth = Math.max(10, lw * 0.55), bodyLen = lw * 9 + 300, serpentA = t < 0.86 ? Math.min(1, t * 4) : Math.max(0, 1 - (t - 0.86) / 0.14)
+    if (serpentA > 0.02) _drawWaterSerpent(ctx, hx, hy, -dir, -0.12, bodyLen, girth, (t * 60) * 0.5, serpentA * 0.92)
+    if (t >= 0.46 && t < 0.72) { const bt = (t - 0.46) / 0.26; ctx.save(); ctx.globalAlpha = (1 - bt) * 0.9
+      for (let i = 0; i < 16; i++) { const h = _brutHash(seed, 900 + i, 1), a = h * 6.28, rr = girth * (0.6 + bt * 3.2)
+        ctx.fillStyle = i % 3 ? "rgba(140,210,245,0.7)" : "rgba(235,250,255,0.8)"; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.8, girth * (0.18 + _brutHash(seed, 900 + i, 2) * 0.22), 0, 6.28); ctx.fill() } ctx.restore() }
+    if (t > 0.5) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 2, 210), Math.max(0, 1 - (t - 0.52) / 0.42))
+  } else if (g === "annihilate") {
+    // HOLLOW PURPLE (Gojo) — the Blue+Red twined beam fires THROUGH the live victim → purple detonation + violet
+    // disintegration motes. Layers over the live body (the erase was snapshot-only; here it's a beam + burst).
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_PURPLE)[2]), originX = cx - dir * lw * 4.5, frontX = cx + dir * lw * 1.3
+    const beamA = t < 0.1 ? t / 0.1 : (t < 0.7 ? 1 : Math.max(0, 1 - (t - 0.7) / 0.12))
+    if (beamA > 0.02) { ctx.save(); ctx.globalAlpha = beamA; ctx.lineCap = "round"
+      ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`; ctx.lineWidth = lh * 0.7; ctx.beginPath(); ctx.moveTo(originX, cy); ctx.lineTo(frontX, cy); ctx.stroke()
+      ctx.strokeStyle = "rgba(235,230,255,0.95)"; ctx.lineWidth = lh * 0.22; ctx.beginPath(); ctx.moveTo(originX, cy); ctx.lineTo(frontX, cy); ctx.stroke()
+      for (const [fr, fg, fb, ph] of [[90, 170, 255, 0], [255, 70, 60, 3.14]]) { ctx.strokeStyle = `rgba(${fr},${fg},${fb},0.8)`; ctx.lineWidth = 3
+        ctx.beginPath(); for (let x = 0; x <= 1; x += 0.08) { const px = originX + (frontX - originX) * x, py = cy + Math.sin(x * 18 + ph + t * 10) * lh * 0.18; x === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py) } ctx.stroke() } ctx.restore() }
+    if (t > 0.2) { const bt = Math.min(1, (t - 0.2) / 0.2)
+      if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bt * 1.5)); rg.addColorStop(0, "rgba(245,240,255,0.95)"); rg.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`); rg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bt * 1.5), 0, 6.28); ctx.fill(); ctx.restore() }
+      ctx.save(); for (let i = 0; i < 18; i++) { const h = (k) => _brutHash(seed, 1200 + i, k), rise = ((t + h(1)) % 1)
+        ctx.globalAlpha = (1 - rise) * 0.7; ctx.fillStyle = h(4) > 0.5 ? `rgb(${rgb.r},${rgb.g},${rgb.b})` : "rgba(200,190,230,0.9)"; const s = Math.max(2, cell * (0.5 + h(5)))
+        ctx.fillRect(cx + (h(2) * 2 - 1) * lw * 0.4, cy - rise * lh * 0.8 + (h(3) * 2 - 1) * lh * 0.3, s, s) } ctx.restore() }
+    if (t > 0.3) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.6, 180), Math.max(0, 1 - (t - 0.3) / 0.5) * 0.5)
   } else {
-    // DEFAULT — bisect/watercut/crush/implode/repulse/decap/spearrun/flashgrab/squish/pull/susanoo*/annihilate/drag:
+    // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/susanoo*/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
     if (g === "flashgrab" && t < 0.3) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.3) * 0.85; ctx.strokeStyle = "rgba(230,235,245,0.85)"; ctx.lineWidth = 3; ctx.lineCap = "round"
       for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 500 + i, k), yy = cy + (h(1) * 2 - 1) * lh * 0.5; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 2.2, yy); ctx.lineTo(cx + dir * lw * 2.2, yy); ctx.stroke() } ctx.restore() }

@@ -930,31 +930,43 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
 
   // TOBIRAMA — Flying Raijin + Water: teleport-strikes close in from every angle, finished by a clean water-blade
   // cut that splits the target in two.
+  // STORM MASTER — the Second Hokage's Suiton + Flying Thunder God: a gathering storm (lightning), a FTG
+  // flicker-rush, a flurry of water-fang blades, then the cataclysm gives. Fires on any killing move that
+  // has no BLOW/TRAIT gore entry (see game.js GORE_ROUTING_CHARS / BRUTALITY_FINISHERS.tobirama).
   tobirama: {
-    banner: "WATER FANG", bannerRgb: "90,180,230", base: "hurt", choreographed: true, total: 168,
+    banner: "STORM MASTER", bannerRgb: "110,200,235", base: "hurt", choreographed: true, total: 176,
     beats: [
-      { fx: "letterbox", t0: 0, t1: 168, in: 14, h: 0.13 },
-      { fx: "darken",    t0: 0, t1: 168, rgb: "4,12,20", max: 0.97, ramp: 8 },
+      { fx: "letterbox", t0: 0, t1: 176, in: 14, h: 0.13 },
+      { fx: "darken",    t0: 0, t1: 176, rgb: "4,12,24", max: 0.96, ramp: 8 },
       { fx: "cam",   t0: 0,  t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
-      { fx: "actor", t0: 0,  t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
-      { fx: "cam",   t0: 44, t1: 100, zoom: 1.4, cx: 0.5, cy: 0.47, ease: 0.08 },
-      { fx: "flickerRush", t0: 48, t1: 100, action: "run", around: 0.5, aroundY: 0.48, count: 8, radX: 0.28, radY: 0.13, color: "#5ab4e6" },
-      { fx: "actor", t0: 50, t1: 100, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
-      { fx: "swordSlash", t0: 76, t1: 100, x: 0.52, y: 0.47, len: 0.32, angle: -2.3, sweep: 2.8, color: "rgba(140,210,245,0.95)" },
-      { fx: "whiteSpike", t0: 94, t1: 104 },
-      { fx: "bloodGush", t0: 60, t1: 168, x: 0.5, y: 0.5, amount: 6 },
-      { fx: "cam",   t0: 100, t1: 144, zoom: 2.0, cx: 0.5, cy: 0.47, cut: true },
-      { fx: "soulSplit", t0: 100, t1: 158 },
-      { fx: "bloodGush", t0: 104, t1: 168, x: 0.5, y: 0.5, amount: 16 },
-      { fx: "cam",   t0: 144, t1: 168, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
-      { fx: "actor", t0: 146, t1: 168, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
-      { fx: "banner", t0: 150, t1: 168 },
+      { fx: "actor", t0: 0,  t1: 52, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      // the storm gathers — lightning forks in the dark
+      { fx: "lightning", t0: 18, t1: 58, hx: 0.5, headY: 0.3, color: "#7ec8ff" },
+      { fx: "cam",   t0: 44, t1: 96, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
+      // Flying Thunder God — flicker-rush around the frozen victim
+      { fx: "flickerRush", t0: 48, t1: 102, action: "run", around: 0.5, aroundY: 0.48, count: 10, radX: 0.3, radY: 0.14, color: "#5ab4e6" },
+      { fx: "actor", t0: 52, t1: 116, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      // a flurry of WATER-FANG blades (crossing slashes)
+      { fx: "swordSlash", t0: 72, t1: 92,  x: 0.5,  y: 0.46, len: 0.30, angle: -2.3, sweep: 2.6,  color: "rgba(150,215,245,0.95)" },
+      { fx: "swordSlash", t0: 84, t1: 104, x: 0.52, y: 0.50, len: 0.30, angle: 0.5,  sweep: -2.6, color: "rgba(150,215,245,0.95)" },
+      { fx: "swordSlash", t0: 98, t1: 118, x: 0.5,  y: 0.48, len: 0.34, angle: -1.2, sweep: 3.0,  color: "rgba(185,235,255,0.98)" },
+      { fx: "bloodGush", t0: 76, t1: 176, x: 0.5, y: 0.5, amount: 8 },
+      { fx: "whiteSpike", t0: 114, t1: 124 },
+      // the cataclysm — hard punch-in + a lightning storm as the body gives
+      { fx: "cam",   t0: 116, t1: 150, zoom: 2.05, cx: 0.5, cy: 0.47, cut: true },
+      { fx: "lightning", t0: 114, t1: 152, hx: 0.5, headY: 0.4, color: "#aee0ff" },
+      { fx: "soulSplit", t0: 116, t1: 170 },
+      { fx: "bloodGush", t0: 120, t1: 176, x: 0.5, y: 0.5, amount: 18 },
+      { fx: "cam",   t0: 150, t1: 176, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 152, t1: 176, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 156, t1: 176 },
     ],
     sound: [
       { t: 1,   id: "boom_anticipation_suck", gain: 0.45 },
+      { t: 18,  id: "rumble_tail_01",         gain: 0.35 },
       { t: 48,  id: "warp_wobble_01",         gain: 0.55 },
-      { t: 100, id: "boom_medium_02",         gain: 1.0, ultBoom: true, duckSec: 0.45 },
-      { t: 106, id: "rumble_tail_01",         gain: 0.45 },
+      { t: 116, id: "boom_medium_02",         gain: 1.0, ultBoom: true, duckSec: 0.45 },
+      { t: 122, id: "rumble_tail_01",         gain: 0.5 },
     ],
   },
 

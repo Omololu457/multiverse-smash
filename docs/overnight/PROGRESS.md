@@ -157,6 +157,40 @@ this plumbing is unnecessary. The plumbing path is a fallback for the hostile sh
   keyboard/gamepad nav before editing. Budget real context for it. The preset system itself is already
   usable (via the auto-suggest chip / applyGraphicsPreset) — this is pure menu-surfacing.
 
+## OPTIONS GROUPING — READY-TO-EXECUTE REWRITE PLAN (investigation complete; needs fresh context + visual iteration)
+
+`drawSettingsScreen` (game.js:20179) is a dense HAND-DRAWN page with MIXED control styles — this is a
+~150-line rewrite, NOT a rect-move. Mechanics learned:
+- Each control's label/box/description ALL position off its rect (rect.x, rect.y ±) → they auto-follow if you
+  move the rect. BUT controls have DIFFERENT footprints: devices 48px (in-box text), fxBox grid cells 36px
+  (in-box label, shared descriptions), labeled toggles (Blood/Brutality/Oiroke/Colorblind/Touch) ~64px
+  (label@y-10 + box + desc@y+h+13), UI-scale a 3-part stepper (minus/value/plus) ~64px.
+- HARDCODED (do NOT auto-follow): title "INPUT SETTINGS" (y120), "Two Keyboards — coming soon" placeholder
+  `tk={x:cx-200,y:254,w400,h44}`. SAVE DATA panel is at x=20 (sidebar) and auto-follows its rects.
+- `fxBox(r,label,on,accent)` is a LOCAL const inside the VISUAL FX block (:20287). Click handler is all
+  `pointInRect(mouse.x, _smy, RECT)` (:21506-21560) — auto-follows rects, _smy = mouse.y+settingsScroll.
+- Scroll extent: `SETTINGS_CONTENT_BOTTOM` const (:20115, currently 886).
+
+PLAN:
+1. HOIST `fxBox` to a drawSettingsScreen-scope const (top of the fn) so every control can use it.
+2. CONVERT the 5 labeled toggles (bloodToggleRect/brutalityToggleRect/n7OirokeToggleRect/colorblindToggleRect/
+   touchToggleRect) to single `fxBox(...)` calls (drop the above-label + below-description) → uniform 36px rows.
+   (UI-scale stepper + devices stay their own styles.)
+3. SINGLE CENTER COLUMN: CL=440 (full w400 / left-of-pair w185), CR=645 (right-of-pair w185). Headers at x=440.
+   Category order + members:
+     CONTROLS: p1Device(full), p2Device(full), Two-Keyboards placeholder(full), touch(full)
+     AUDIO:    SFX|Music (pair), HitSndP1|HitSndP2 (pair)
+     VIDEO:    gfxPreset(full), Shake|Particles, Slow-Mo|HitFX, Atmosphere|HUD, Blood|Brutality
+     ACCESSIBILITY: UI-scale stepper(full-ish), Reduce-Flashing|Colorblind
+     GAMEPLAY: Damage-Numbers|Oiroke
+   Assign y sequentially: header 20px + its rows (devices 48, pairs 36). Keep SAVE DATA at x=20 sidebar.
+4. Reassign every rect's y (declarations :20072-20110) + w (185/400) ; set x in `_layoutSettings` (:20148) to
+   CL/CR. Move the Two-Keyboards `tk.y` into the CONTROLS block. Move title up, back button to the new bottom.
+5. Bump `SETTINGS_CONTENT_BOTTOM` to the new last-row bottom (+~24).
+6. TEST: harness `ui.goto("SETTINGS")`, scroll through all bands, SCREENSHOT each band and VISUALLY confirm no
+   overlap/crowding; then programmatically click EACH control's rect (compute screen y = rect.y - scroll) and
+   assert its setting changed. Render/det/roster/combo baseline. Push only if visually clean.
+
 ## RESUME: phase 1
 
 Phase 0 is committed + pushed. To continue: `/clear`, then say

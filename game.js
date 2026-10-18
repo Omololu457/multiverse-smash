@@ -763,11 +763,11 @@ const BRUTALITY_FINISHERS = {
   // flash-step grab-burst, and the fly-head swarm throw.
   toji: {
     tojiBullet:       { name: "POINT BLANK",    gore: "gunshot",    palette: GORE_STEEL, flash: "#8a1020", live: true, winAction: "tojiGun", loseAction: "idle" },  // LIVE: Toji animates firing; victim stays live/frozen on idle; wounds layer on → HEADSHOT
-    tojiChain5:       { name: "INVERTED SPEAR", gore: "spearrun",   palette: GORE_STEEL, flash: "#8a1020" },  // dash in → impale through them with the chain spear
-    tojiRapidSlash:   { name: "THOUSAND CUTS",  gore: "slashdance", palette: GORE_STEEL, flash: "#8a1020" },  // dash → zoom → a slash-dance dices the body apart
-    tojiPlayfulCloud: { name: "PLAYFUL CLOUD",  gore: "bludgeon",   palette: GORE_STEEL, flash: "#6a3a1a" },  // staff bash → BLUNT bruising pulp (no cutting)
-    grab:             { name: "FLASH STEP",     gore: "flashgrab",  palette: GORE_RED,   flash: "#c81028" },  // flash-step in, grab, run through → burst into blood
-    tojiFlyHeads:     { name: "CURSED ARSENAL", gore: "flyheads",   palette: GORE_STEEL, flash: "#6a7a2a" },  // fly-head swarm covers all → grab → hurled into the stratosphere
+    tojiChain5:       { name: "INVERTED SPEAR", gore: "spearrun",   palette: GORE_STEEL, flash: "#8a1020", live: true, winAction: "tojiChain5",      loseAction: "hurt" },  // LIVE: Toji thrusts the chain spear through them
+    tojiRapidSlash:   { name: "THOUSAND CUTS",  gore: "slashdance", palette: GORE_STEEL, flash: "#8a1020", live: true, winAction: "tojiRapidSlash",  loseAction: "hurt" },  // LIVE: Toji's rapid-slash flurry dices them
+    tojiPlayfulCloud: { name: "PLAYFUL CLOUD",  gore: "bludgeon",   palette: GORE_STEEL, flash: "#6a3a1a", live: true, winAction: "tojiPlayfulCloud",loseAction: "hurt" },  // LIVE: blunt staff bash → bruise/pulp (no cutting)
+    grab:             { name: "FLASH STEP",     gore: "flashgrab",  palette: GORE_RED,   flash: "#c81028", live: true, winAction: "grab",            loseAction: "hurt" },  // LIVE: flash-step grab → burst into blood
+    tojiFlyHeads:     { name: "CURSED ARSENAL", gore: "flyheads",   palette: GORE_STEEL, flash: "#6a7a2a", live: true, winAction: "tojiFlyHeads",     loseAction: "hurt" },  // LIVE: fly-head swarm → hurled into the stratosphere
   },
   // FRIEZA — surgical beams + brutal spheres. (Death Beam proj precise, Death Ball proj obliterates, Rush cmd — no ult)
   frieza: {
@@ -6489,21 +6489,27 @@ function updateBrutality() {
   // ── LIVE finisher: frame BOTH live fighters (focusBetween) + push in; spawn blood at the live loser's rect at
   // the kill beat. The fighters themselves animate via the normal draw loop (winAction / loseAction). ──
   if (b.live && b._cam0 && b.winRef && b.loseRef) {
-    const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer)
+    const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
-    const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2
-    const lcell = Math.max(3, lw / 14)
+    if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x }   // remember the resting spot (restored on exit)
+    if (g === "flyheads") { const tp = Math.min(1, Math.max(0, (t - 0.4) / 0.4)); lf.y = b._liveLoseY0 - tp * tp * lh * 8 }   // HURL the live loser into the sky
+    const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2, lcell = Math.max(3, lw / 14)
     if (camera.focusBetween) { const z = (b._cam0.zoom || 1) + ((b._cam0.zoom || 1) * 0.72) * (1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3))
-      camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z }
-    if (b.finisher?.gore === "gunshot") { const k = Math.round(0.52 * b.maxTimer)   // blood waves at the headshot
-      if (elapsed === k) _spawnBrutalityBlood(b, lcx, (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14, lcell, 1)
-      if (elapsed === k + 12) _spawnBrutalityBlood(b, lcx, lcy, lcell, 2) }
-    const groundY = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh
+      camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z }   // frame both; follows the loser UP for flyheads
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate"
+    if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
+      const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
+      if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
+      if (elapsed === kf + 12) _spawnBrutalityBlood(b, lcx, lcy, lcell, 2)
+      if (elapsed === kf + 26) _spawnBrutalityBlood(b, lcx, lcy + lh * 0.1, lcell, 3) }
+    const groundY = lf.groundY != null ? lf.groundY : ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh)
     for (const p of b.parts) { if (p.settled) continue; p.x += p.vx; p.y += p.vy; p.vy += (p.g || 0.45); p.vx *= 0.98; if (p.vr) p.rot = (p.rot || 0) + p.vr; if (p.y >= groundY) { p.y = groundY; p.settled = true; p.vx = 0; p.vy = 0; if (p.kind === "arc") p.kind = "drip" } p.life-- }
     b.parts = b.parts.filter(p => p.settled || p.life > 0)
-    if (--b.timer <= 0) { b.active = false; b.parts = []; b.loseRef = null; b.winRef = null
+    if (--b.timer <= 0) { b.active = false; b.parts = []
+      if (b._liveLoseX0 != null) { lf.x = b._liveLoseX0; lf.y = b._liveLoseY0 }   // restore the loser's position (throw/knock)
+      b._liveLoseY0 = null; b._liveLoseX0 = null
       if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
-      b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
+      b.loseRef = null; b.winRef = null; b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
       if (_academyBrutPreview) _academyEndBrutPreview(); else _enterVictoryScreen() }
     return
   }
@@ -7257,15 +7263,79 @@ function _drawLiveGunshot(b) {
   for (const s of shots) if (t >= s) { landed++; if (t < s + 0.05) jerk = 1 - (t - s) / 0.05 }
   const gunx = wf ? ((wf._lastDrawX != null ? wf._lastDrawX : wf.x || 0) + (dir > 0 ? (wf._lastDrawW || 40) : 0)) : cx - lw * 2
   const guny = wf ? ((wf._lastDrawY != null ? wf._lastDrawY : wf.y || 0) + (wf._lastDrawH || 80) * 0.35) : cy
-  _drawGroundPool(ctx, cx, ly + lh, cell, Math.max(0, (t - head) / 0.5) * 0.7)
+  const gy = lf.groundY != null ? lf.groundY : (ly + lh)           // anchor the pool to the real ground (feet), not the rect bottom
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - head) / 0.5) * 0.7)
   for (let i = 0; i < landed && i < shots.length; i++) { const h = (k) => _brutHash(seed, i, k), wx = cx + (h(1) * 2 - 1) * lw * 0.2, wy = cy + (h(2) * 2 - 1) * lh * 0.2
     ctx.save(); ctx.fillStyle = "#6e0016"; ctx.beginPath(); ctx.arc(wx, wy, cell * 1.2, 0, 6.28); ctx.fill()
     const st = t - shots[i]; if (st < 0.3) { ctx.globalAlpha = Math.max(0, 1 - st / 0.3) * 0.8; ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.ellipse(wx + dir * cell * 2, wy, cell * 3, cell * 0.8, 0, 0, 6.28); ctx.fill() } ctx.restore() }
   if (headHit) { const ht = t - head; ctx.save(); ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.arc(cx, headY, cell * 1.6, 0, 6.28); ctx.fill()
     ctx.globalAlpha = Math.max(0, 1 - ht / 0.6) * 0.95; ctx.fillStyle = BLOOD_REDS[0]
     for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 100 + i, k), gh = lh * (0.3 + h(1) * 0.5) * Math.min(1, ht * 4); ctx.beginPath(); ctx.ellipse(cx + (h(2) * 2 - 1) * lw * 0.15, headY - gh * 0.5, cell * 1.5, gh * 0.5, 0, 0, 6.28); ctx.fill() } ctx.restore() }
-  if (jerk > 0 || (headHit && (t - head) < 0.06)) { ctx.save(); ctx.globalAlpha = 0.95; ctx.fillStyle = "rgba(255,240,170,0.95)"; ctx.beginPath(); ctx.arc(gunx, guny, lw * 0.22, 0, 6.28); ctx.fill()
+  if (jerk > 0 || (headHit && (t - head) < 0.06)) { ctx.save(); ctx.globalAlpha = 0.95; ctx.fillStyle = "rgba(255,240,170,0.95)"; ctx.beginPath(); ctx.arc(gunx, guny, lw * 0.18, 0, 6.28); ctx.fill()
     ctx.globalAlpha = 0.85; ctx.strokeStyle = "rgba(255,240,180,0.9)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(gunx, guny); ctx.lineTo(cx, headHit ? headY : cy); ctx.stroke(); ctx.restore() }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// GENERIC LIVE GORE — the fighters are the real animated sprites (winner performs winAction, loser holds loseAction/
+// is knocked into hurt). Here we ONLY layer the gore FX, anchored to the loser's DRAWN rect: ground pool + a
+// per-gore flavor overlay (slashes / flames / bruises / swarm / meteor) + a blood burst at the kill. The weapon
+// itself is carried by the winner's live animation, so no weapon-sprite puppet is needed.
+function _drawLiveGore(b) {
+  const g = b.finisher?.gore
+  if (g === "gunshot") { _drawLiveGunshot(b); return }
+  const lf = b.loseRef, wf = b.winRef; if (!lf) return
+  const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+  const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
+  const cx = lx + lw / 2, cy = ly + lh / 2, gy = lf.groundY != null ? lf.groundY : (ly + lh), cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
+  const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), kill = 0.45
+  if (g !== "flyheads") _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
+  if (g === "slashstorm" || g === "domainslash" || g === "slashdance") {
+    if (g === "domainslash") { const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
+      ctx.save(); ctx.globalAlpha = estA * 0.85; ctx.fillStyle = "rgba(12,2,5,0.92)"; ctx.fillRect(lx - lw * 4, ly - lh * 3, lw * 9, lh * 6); ctx.restore()
+      _brutSheetFrame(ctx, "./alt_sukuna_domain3.png", 1, 0, cx, gy - lh * 1.6, lh * 3.2, 1, estA * 0.9, 0.5) }
+    const prog = Math.min(1, (t - (g === "domainslash" ? 0.2 : 0.05)) / 0.4)
+    if (prog > 0) _drawSlashLines(ctx, cx, cy, lw, lh, 18, seed, (g === "slashdance" ? "#e0e8f0" : "#ff2b36"), prog)
+    if (t > kill) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 2.2, 220), Math.max(0, 1 - (t - kill) / 0.5))
+  } else if (g === "firearrow" || g === "fireball") {
+    const fl = Math.max(0, 1 - (t - 0.3) / 0.6) * Math.min(1, t / 0.14)
+    if (fl > 0.02) { ctx.save(); for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 1700 + i, k), fx = cx + (h(1) * 2 - 1) * lw * 0.5, fh = lh * (0.5 + h(3) * 0.8) * (0.7 + 0.3 * Math.sin(t * 8 + h(2) * 6.28))
+      ctx.fillStyle = (h(4) < 0.5 ? "rgba(255,140,30," : "rgba(255,90,20,") + (0.6 * fl) + ")"; ctx.beginPath(); ctx.moveTo(fx - lw * 0.1, gy); ctx.quadraticCurveTo(fx, gy - fh * 0.5, fx, gy - fh); ctx.quadraticCurveTo(fx + lw * 0.1, gy - fh * 0.5, fx + lw * 0.1, gy); ctx.closePath(); ctx.fill() } ctx.restore() }
+    if (t > 0.6) { ctx.save(); ctx.globalAlpha = Math.min(0.5, t - 0.6); ctx.fillStyle = "rgba(18,10,8,0.7)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.7, lw * 0.2, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  } else if (g === "meteor") {
+    const impact = 0.5, pal = b.finisher?.palette || GORE_PURPLE
+    if (t < impact) { const ap = t / impact; ctx.save(); ctx.globalAlpha = 0.3 + ap * 0.5; ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * (0.3 + ap * 0.9), lw * 0.18 * (0.3 + ap * 0.9), 0, 0, 6.28); ctx.fill(); ctx.restore() }
+    if (t < impact + 0.04) { const ap = Math.min(1, t / impact), mS = lw * (0.9 + ap * 1.8), my = (ly - lh * 5) + (gy - lh * 0.5 - (ly - lh * 5)) * ap
+      _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, Math.floor(t * 40) % 2, cx, my, mS, 1, 0.98, 0.5) }
+    if (t >= impact) { const bt = Math.min(1, (t - impact) / 0.18)
+      if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const rg = ctx.createRadialGradient(cx, gy, 0, cx, gy, lw * (1.2 + bt * 1.6)); rg.addColorStop(0, "rgba(255,245,220,0.95)"); rg.addColorStop(0.5, `rgba(${_hexToRgb(pal[2]).r},${_hexToRgb(pal[2]).g},${_hexToRgb(pal[2]).b},0.6)`); rg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, gy, lw * (1.2 + bt * 1.6), 0, 6.28); ctx.fill(); ctx.restore() }
+      _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, 1, cx, gy - lh * 0.6, lh * 2.6, 1, 1, 0.5)
+      if (t > impact + 0.02) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 2.2, 240), Math.max(0, 1 - (t - impact) / 0.5)) }
+  } else if (g === "bludgeon") {
+    const bash = Math.min(1, Math.max(0, (t - 0.4) / 0.18))
+    if (bash > 0 && bash < 1) { ctx.save(); ctx.globalAlpha = (1 - bash); const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (0.8 + bash)); rg.addColorStop(0, "rgba(255,245,220,0.9)"); rg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, cy, lw * (0.8 + bash), 0, 6.28); ctx.fill()
+      ctx.strokeStyle = `rgba(230,235,245,${1 - bash})`; ctx.lineWidth = 4 + (1 - bash) * 8; ctx.beginPath(); ctx.arc(cx, cy, lw * (0.5 + bash * 1.6), 0, 6.28); ctx.stroke(); ctx.restore() }
+    if (bash > 0) { ctx.save(); for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, i, k); ctx.globalAlpha = bash * 0.55 * (0.5 + h(3)); ctx.fillStyle = h(4) < 0.5 ? "rgba(60,20,70,0.8)" : "rgba(40,10,30,0.8)"; ctx.beginPath(); ctx.arc(lx + h(1) * lw, ly + lh * (0.2 + h(2) * 0.6), cell * (2 + h(5) * 3) * bash, 0, 6.28); ctx.fill() } ctx.restore() }
+    if (bash > 0.5) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.2, 160), (bash - 0.5) * 2 * Math.max(0, 1 - (t - 0.4) / 0.5))
+  } else if (g === "flyheads") {
+    const throwP = Math.min(1, Math.max(0, (t - 0.4) / 0.4)), swarm = Math.min(1, t * 2) * (t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.2) : 1)
+    if (swarm > 0.02) for (let i = 0; i < 22; i++) { const h = (k) => _brutHash(seed, 300 + i, k), ang = h(1) * 6.28 + t * (1 + h(2) * 3), rad = lw * (0.5 + h(3) * 3) * (0.6 + 0.4 * Math.sin(t * 4 + h(4) * 6))
+      _brutSheetFrame(ctx, "./toji_fly_head_uniform.png", 3, Math.floor(t * 20 + i) % 3, cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad * 0.8 - throwP * lh * 2 * h(5), cell * 8 * (0.7 + h(6) * 0.6), (Math.cos(ang) > 0 ? 1 : -1), swarm * 0.95, 0.5) }
+    if (throwP > 0.05) { ctx.save(); ctx.fillStyle = BLOOD_REDS[0]; for (let i = 0; i < 8; i++) { const yy = cy - (throwP * (i / 8)) * throwP * lh * 8; ctx.globalAlpha = (1 - i / 8) * 0.5 * throwP; ctx.beginPath(); ctx.arc(cx + Math.sin(i) * cell * 2, yy, cell * (1.5 - i / 8), 0, 6.28); ctx.fill() } ctx.restore() }
+    if (throwP > 0.1) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.1, 160), Math.min(1, throwP) * Math.max(0, 1 - (t - 0.5) / 0.5))
+  } else {
+    // DEFAULT — bisect/watercut/crush/implode/repulse/decap/spearrun/flashgrab/squish/pull/susanoo*/annihilate/drag:
+    // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
+    if (g === "flashgrab" && t < 0.3) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.3) * 0.85; ctx.strokeStyle = "rgba(230,235,245,0.85)"; ctx.lineWidth = 3; ctx.lineCap = "round"
+      for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 500 + i, k), yy = cy + (h(1) * 2 - 1) * lh * 0.5; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 2.2, yy); ctx.lineTo(cx + dir * lw * 2.2, yy); ctx.stroke() } ctx.restore() }
+    const decapY = ly + lh * 0.14
+    if (t >= kill) { const wt = t - kill, wy = (g === "decap") ? decapY : cy
+      ctx.save(); ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.arc(cx, wy, cell * 2, 0, 6.28); ctx.fill()
+      ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.9; ctx.fillStyle = BLOOD_REDS[0]
+      const up = (g === "decap") ? 1 : 0
+      for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, i, k), gh = lh * (0.3 + h(1) * 0.5) * Math.min(1, wt * 4) * up
+        ctx.beginPath(); ctx.ellipse(cx + (h(1) * 2 - 1) * lw * (up ? 0.15 : 0.4), wy - gh * 0.5 + (up ? 0 : (h(2) * 2 - 1) * lh * 0.3), cell * (up ? 1.5 : 2.5), (up ? gh * 0.5 : cell * 0.9), 0, 0, 6.28); ctx.fill() }
+      ctx.restore(); _drawBloodSplat(ctx, cx, wy, Math.min(lw * 2.2, 210), Math.max(0, 1 - wt / 0.5)) }
+  }
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }
@@ -7298,7 +7368,7 @@ function _drawBrutality() {
   // the gore FX in world space, anchored to their drawn rects. No snapshot-puppet.
   if (b.live) {
     ctx.save(); if (typeof camera.applyTransform === "function") camera.applyTransform(ctx, canvas)
-    if (b.finisher?.gore === "gunshot") _drawLiveGunshot(b)
+    _drawLiveGore(b)
     ctx.restore(); return
   }
   // SPRITE-BISECTION — WORLD space (inside the camera transform, like the fighters). Two clipped halves of

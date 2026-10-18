@@ -730,7 +730,9 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // Gojo Satoru — the strongest sorcerer. Limitless cursed techniques literally bend space around the kill:
   // Blue attracts (implode), Red repels (gib-blast), Hollow Purple annihilates (erase). Full gore table below.
   "gojo",
-  "obito"])   // ★ IMPACT HIT PROTOTYPE ONLY — obito has NO gore finisher table (IMPACT_HIT_STANDALONE gates KLASSIC off)
+  // Obito (Kamui rift / Ten-Tails / phase-through) — the obitoKamuiDimension Impact-Hit cascade now HANDS OFF into
+  // his KAMUI rift finisher (real table below). Rick & Rick Prime (portal gore) and Flash (Speed Force run). Full tables below.
+  "obito", "rick", "rickprime", "flash"])   // ★ rickprime LOWERCASE — the engine lowercases rosterKey ("rickPrime") before every brutality lookup
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -744,6 +746,12 @@ const GORE_LIGHTNING = ["#a11026", "#6e0016", "#6ad0ff", "#3a000a"] // Sasuke �
 const GORE_WATER   = ["#a11026", "#6e0016", "#5ab4e6", "#06131f"]   // Tobirama — blood + water-blue (Suiton)
 const GORE_DARK    = ["#8a7a66", "#2e2430", "#9a86b0", "#0a0610"]   // Tobirama Edo Tensei — ashen husk + reanimation-violet (NO fresh blood: a reanimated drag-down)
 const GORE_CURSE_BLUE = ["#a11026", "#6e0016", "#4aa3ff", "#0a1830"]   // Gojo — blood + Limitless electric-blue (Cursed Technique: Blue attraction)
+const GORE_KAMUI   = ["#a11026", "#6e0016", "#7b4cff", "#140a2a"]   // Obito — blood + Kamui space-time violet (portal rift)
+const GORE_JUUBI   = ["#a11026", "#6e0016", "#b0a070", "#140f08"]   // Obito Ten-Tails — blood + pale Juubi tan/ash + dark bijūdama core
+const GORE_PORTAL  = ["#a11026", "#6e0016", "#39ff6a", "#06240f"]   // Rick — blood + portal-gun acid-green
+const GORE_PRIME   = ["#a11026", "#6e0016", "#39d0ff", "#06202a"]   // Rick Prime — blood + multiverse cyan
+const GORE_TIME    = ["#a11026", "#6e0016", "#ffcf4a", "#2a1e06"]   // Rick Prime rewind — blood + chrono-amber (temporal ambush)
+const GORE_SPEED   = ["#a11026", "#6e0016", "#ffe14a", "#2a1a06"]   // Flash — blood + Speed Force yellow + red lightning
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -933,6 +941,34 @@ const BRUTALITY_FINISHERS = {
     hollowPurple: { name: "HOLLOW PURPLE",          gore: "annihilate", palette: GORE_PURPLE,     flash: "#7a3ad0", live: true, winAction: "hollow_purple_cast", loseAction: "hurt" },  // LIVE: 虚式「茈」 imaginary mass
     heavy:        { name: "LIMITLESS",              gore: "bisect",     palette: GORE_CURSE_BLUE, flash: "#2a6ad0", preFx: "infinity", live: true, winAction: "heavy", loseAction: "hurt" },  // LIVE: Infinity space-fold
   },
+  // OBITO — Kamui space-time ninjutsu. 3 CINEMATIC finishers: a Kamui RIFT (portal sucks the foe into the pocket
+  // dimension → a second portal rains their blood back onto the ground), the TEN-TAILS Jinchūriki point-blank
+  // Bijūdama, and a dash-born PHASE EXECUTION (Kamui intangibility — he phases THROUGH then co-materializes).
+  // obitoKamuiDimension is the Impact-Hit lead-in move: the black→red→white cascade hands off INTO this rift.
+  obito: {
+    obitoKamuiDimension: { name: "KAMUI",           gore: "kamuivacuum", palette: GORE_KAMUI, flash: "#5a2ad0", live: true, winAction: "obitoKamuiActivate", loseAction: "hurt" },  // LIVE: rift sucks them in → blood-portal rains
+    ultimate:            { name: "TEN-TAILS",       gore: "juubi",       palette: GORE_JUUBI, flash: "#c8b888", live: true, winAction: "win",                 loseAction: "hurt" },  // LIVE: Juubi looms → point-blank Bijūdama
+    heavy:               { name: "PHASE EXECUTION", gore: "phasekill",   palette: GORE_KAMUI, flash: "#5a2ad0", live: true, winAction: "dash",                loseAction: "hurt" },  // LIVE: Kamui phase-through → co-materialize burst
+  },
+  // RICK (C-137) — portal-gun sci-fi gore. PORTAL VACUUM (green rift sucks them through → a second portal spits the
+  // remains to the floor) + PORTAL GUILLOTINE (a portal opens THROUGH the body and snaps shut → clean bisect).
+  rick: {
+    portalLaser: { name: "PORTAL VACUUM",     gore: "portalvacuum",     palette: GORE_PORTAL, flash: "#2ad060", live: true, winAction: "portalTravel", loseAction: "hurt" },  // LIVE: green rift → suck in → blood-portal
+    heavy:       { name: "PORTAL GUILLOTINE", gore: "portalguillotine", palette: GORE_PORTAL, flash: "#2ad060", live: true, winAction: "heavy",        loseAction: "hurt" },  // LIVE: portal opens mid-body → snaps → bisect
+  },
+  // RICK PRIME — the multiverse's worst. Both of Rick's portal finishers (cyan-themed) PLUS a TEMPORAL AMBUSH: a
+  // TRAIT that fires after his rewind ult (_primeRewoundThisRound) — the foe rewinds backward onto a pre-planted
+  // blade he set at the spot he KNEW they'd land. (His rewind sets the flag; any following kill plays the stab.)
+  rickprime: {   // ★ LOWERCASE key — rosterKey "rickPrime" is lowercased before the table lookup
+    primePortalBlast: { name: "PORTAL VACUUM",     gore: "portalvacuum",     palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "portalTravel", loseAction: "hurt" },
+    heavy:            { name: "PORTAL GUILLOTINE", gore: "portalguillotine", palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "heavy",        loseAction: "hurt" },
+    __trait_rewind:   { name: "TEMPORAL AMBUSH",   gore: "temporalstab",     palette: GORE_TIME,  flash: "#ffcf4a", trait: "_primeRewoundThisRound", live: true, winAction: "portalTravel", loseAction: "hurt" },
+  },
+  // FLASH — the Scarlet Speedster. SPEED FORCE run: he grabs the foe and tears through the stage AND several OTHER
+  // maps (the backdrop blurs through them) while the foe's body parts shear off in the slipstream.
+  flash: {
+    grab: { name: "SPEED FORCE", gore: "speedrun", palette: GORE_SPEED, flash: "#ffe14a", live: true, winAction: "run", loseAction: "hurt" },
+  },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
 // finisher — a simple bright gore burst, never silence.
@@ -953,7 +989,7 @@ function _resolveBrutalityFinisher(wKey, move, fighter) {
 function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
-const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji"])
+const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash"])
 const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-pose slide) + the finisher kill + aftermath hold before the victory screen
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
@@ -1192,7 +1228,9 @@ function updateRewind() {
   }
 
   s.timer++
-  if (!s.restored && s.timer >= REWIND_PLAYBACK_END) { _applyRewindSnapshot(s.snap || rewindBuffer[s.snapIndex]); s.restored = true }
+  if (!s.restored && s.timer >= REWIND_PLAYBACK_END) { _applyRewindSnapshot(s.snap || rewindBuffer[s.snapIndex]); s.restored = true
+    const _caster = s.casterSide === "p1" ? p1 : p2   // TEMPORAL AMBUSH setup: mark the rewind so a FOLLOWING kill plays the pre-planted-blade finisher (presentation-only; read by _resolveBrutalityFinisher)
+    if (_caster && (_caster.rosterKey || "").toLowerCase() === "rickprime") _caster._primeRewoundThisRound = true }
   if (s.timer >= REWIND_TOTAL_FRAMES) { s.active = false; s.phase = "idle"; _resetRewindBuffer() }   // fresh buffer builds from the restored state
 }
 
@@ -6494,16 +6532,46 @@ function updateBrutality() {
     if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x }   // remember resting spots (restored on exit)
     if (g === "flyheads") { const tp = Math.min(1, Math.max(0, (t - 0.4) / 0.4)); lf.y = b._liveLoseY0 - tp * tp * lh * 8 }   // HURL the live loser into the sky
     else if (g === "susanooslam") { const liftP = Math.min(1, Math.max(0, (t - 0.22) / 0.26)), slamP = Math.min(1, Math.max(0, (t - 0.48) / 0.12)); lf.y = b._liveLoseY0 - lh * 1.5 * liftP * (1 - slamP) }   // Susano'o LIFTS then SLAMS the live loser
-    // WINNER STEP-IN — close the distance so the live move actually reaches the victim (melee especially). Ranged
-    // finishers (gun/meteor) keep more space.
-    { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
+    else if (g === "kamuivacuum" || g === "portalvacuum") {   // PORTAL SUCK-IN: drift toward the rift, then VANISH into the pocket dimension (hidden; a 2nd portal rains blood in the draw)
+      if (b._portalWX == null) { b._portalWX = b._liveLoseX0 + lw / 2; b._portalGY = (lf.groundY != null ? lf.groundY : (b._liveLoseY0 + lh)) }
+      const pull = Math.min(1, t / 0.42); lf.x = b._liveLoseX0 + ((b.dir || 1) * lw * 0.15) * pull
+      lf._brutHidden = (t >= 0.42) }   // swallowed → the renderer skips the live loser past this beat
+    else if (g === "temporalstab") { const back = Math.min(1, t / 0.5); lf.x = b._liveLoseX0 + (b.dir || 1) * lw * 1.4 * (1 - back) }   // REWIND: dragged BACKWARD onto the pre-planted blade
+    else if (g === "speedrun") { lf.x = wf.x + (b.dir || 1) * lw * 0.5; lf.y = b._liveLoseY0 }   // CARRIED: the foe is locked just ahead of the Flash as he runs
+    // WINNER STEP-IN — close the distance so the live move reaches the victim (melee especially). Ranged finishers
+    // (gun/meteor) keep more space; vacuum/juubi/temporal keep the winner planted; PHASE dashes clean through.
+    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "speedrun") { /* winner planted / carried */ }
+    else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
+      const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
+    else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
       const gap = (g === "gunshot" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
       const target = loseCx - (b.dir || 1) * gap
       wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }
     const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2, lcell = Math.max(3, lw / 14)
-    if (camera.focusBetween) { const z = (b._cam0.zoom || 1) + ((b._cam0.zoom || 1) * 0.72) * (1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3))
-      camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z }   // frame both; follows the loser UP for flyheads
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate"
+    if (camera.focusBetween) {
+      const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
+      // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
+      // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine"
+      if (foeCentered) {
+        const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
+        let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
+        if (g === "kamuivacuum" || g === "portalvacuum") { ax = b._portalWX != null ? b._portalWX : lcx; ay = (b._portalGY != null ? b._portalGY : gndY) - lh * 1.1; ZT = 1.45 }
+        else if (g === "juubi") { ax = lcx - (b.dir || 1) * lw * 0.7; ay = gndY - lh * 1.2; ZT = 1.5 }
+        else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
+        const zt = base + (ZT - base) * pin
+        camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
+        camera.targetX = camera.x; camera.targetY = camera.y; camera.zoom = zt; camera.targetZoom = zt   // pin zoom past the maxZoom clamp
+        if (camera.worldWidth && canvas) { const halfVW = (canvas.width / zt) / 2
+          if (camera.worldWidth > halfVW * 2) camera.x = Math.max(halfVW, Math.min(camera.worldWidth - halfVW, camera.x))
+          const halfVH = (canvas.height / zt) / 2
+          if (camera.worldHeight > halfVH * 2) camera.y = Math.max((camera.minY || 0) + halfVH, Math.min(camera.worldHeight - halfVH, camera.y)) }
+      } else {
+        const z = (base + base * 0.72 * pin) * (g === "speedrun" ? 0.72 : 1)
+        camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
+      }
+    }
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "speedrun"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -6515,7 +6583,8 @@ function updateBrutality() {
     if (--b.timer <= 0) { b.active = false; b.parts = []
       if (b._liveLoseX0 != null) { lf.x = b._liveLoseX0; lf.y = b._liveLoseY0 }   // restore the loser's position (throw/knock)
       if (b._liveWinX0 != null) wf.x = b._liveWinX0                                // restore the winner's position (step-in)
-      b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null
+      b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null; b._portalWX = null; b._portalGY = null
+      if (lf) lf._brutHidden = false                                             // un-hide the swallowed loser (vacuum finishers)
       if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
       b.loseRef = null; b.winRef = null; b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
       if (_academyBrutPreview) _academyEndBrutPreview(); else _enterVictoryScreen() }
@@ -7257,6 +7326,26 @@ function _drawBrutalityKnockback(b, sp, leadP) {
     const g = ctx.createRadialGradient(fx, cy, 0, fx, cy, sp.w * 0.7); g.addColorStop(0, "rgba(255,250,235,0.95)"); g.addColorStop(1, "rgba(255,230,180,0)")
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx, cy, sp.w * 0.7, 0, 6.28); ctx.fill(); ctx.restore() }
 }
+// CODE-DRAWN DIMENSIONAL RIFT — a swirling elliptical portal: dark event-horizon core, a glowing themed rim, and
+// several spiral arcs that rotate by `phase`. Used by Obito's Kamui rift + Rick's portal-gun gore (hue via rgb).
+// `spin` scales the swirl speed; alpha fades the whole thing. Deterministic (phase is passed in, no RNG).
+function _drawBrutRift(c, cx, cy, rx, ry, phase, rgb, alpha) {
+  if (alpha <= 0.01 || rx <= 0.5) return
+  const col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+  c.save(); c.globalAlpha = Math.max(0, Math.min(1, alpha)); c.translate(cx, cy)
+  // event-horizon core (near-black, faint themed tint toward the rim)
+  const cg = c.createRadialGradient(0, 0, 0, 0, 0, rx); cg.addColorStop(0, "rgba(4,3,10,0.96)"); cg.addColorStop(0.72, "rgba(6,4,14,0.9)"); cg.addColorStop(1, col(0.0))
+  c.beginPath(); c.ellipse(0, 0, rx, ry, 0, 0, 6.28); c.fillStyle = cg; c.fill()
+  // glowing themed rim
+  c.lineWidth = Math.max(2, rx * 0.12); c.strokeStyle = col(0.95); c.beginPath(); c.ellipse(0, 0, rx, ry, 0, 0, 6.28); c.stroke()
+  c.lineWidth = Math.max(1, rx * 0.05); c.strokeStyle = "rgba(240,255,245,0.85)"; c.beginPath(); c.ellipse(0, 0, rx * 0.96, ry * 0.96, 0, 0, 6.28); c.stroke()
+  // spiral arcs winding inward
+  c.lineWidth = Math.max(1.5, rx * 0.07); c.strokeStyle = col(0.7)
+  for (let s = 0; s < 4; s++) { const a0 = phase + s * 1.571; c.beginPath()
+    for (let u = 0; u <= 1; u += 0.1) { const rr = rx * (1 - u * 0.86), a = a0 + u * 5.2, px = Math.cos(a) * rr, py = Math.sin(a) * rr * (ry / rx); u === 0 ? c.moveTo(px, py) : c.lineTo(px, py) }
+    c.stroke() }
+  c.restore()
+}
 // LIVE POINT BLANK FX — layered on the LIVE fighters (Toji animating tojiGun, victim frozen on their real idle
 // sprite). Anchored to the loser's DRAWN rect (_lastDraw*). Draws the wounds, head geyser, muzzle flash + tracer
 // from Toji's gun — the bodies are the real animated sprites, this is only the gore on top.
@@ -7296,7 +7385,8 @@ function _drawLiveGore(b) {
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
   const cx = lx + lw / 2, cy = ly + lh / 2, gy = lf.groundY != null ? lf.groundY : (ly + lh), cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
   const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), kill = 0.45
-  if (g !== "flyheads") _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
+  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || g === "speedrun" || g === "temporalstab" || g === "juubi"   // moving / airborne / own-ground gores skip the static under-foot pool
+  if (!_noGround) _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
   if (g === "slashstorm" || g === "domainslash" || g === "slashdance") {
     if (g === "domainslash") { const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
       ctx.save(); ctx.globalAlpha = estA * 0.85; ctx.fillStyle = "rgba(12,2,5,0.92)"; ctx.fillRect(lx - lw * 4, ly - lh * 3, lw * 9, lh * 6); ctx.restore()
@@ -7397,6 +7487,103 @@ function _drawLiveGore(b) {
     _brutSheetFrame(ctx, "./madara2_susanoo_grab_air_uniform.png", 2, gf, cx, handY, lh * 2.5, dir, armA, 0.85)
     const crushP = g === "susanooslam" ? Math.min(1, Math.max(0, (t - 0.58) / 0.12)) : Math.min(1, Math.max(0, (t - 0.42) / 0.18))
     if (crushP > 0.05) { const by = g === "susanooslam" ? gy - cell : cy; ctx.save(); ctx.globalAlpha = Math.min(1, crushP * 1.3); _drawBloodSplat(ctx, cx, by, Math.min(lw * 1.8, 210), Math.min(1, crushP)); ctx.restore() }
+  } else if (g === "kamuivacuum" || g === "portalvacuum") {
+    // OBITO KAMUI RIFT / RICK PORTAL VACUUM — an entry rift spirals open beside the foe (sucked in → hidden by the
+    // renderer at t≥0.42), then a SECOND rift tears open above and the foe's blood pours out onto the ground.
+    const isKamui = g === "kamuivacuum", rgb = _hexToRgb((b.finisher?.palette || GORE_KAMUI)[2])
+    const px = b._portalWX != null ? b._portalWX : cx, pgy = b._portalGY != null ? b._portalGY : gy, pcy = pgy - lh * 0.55
+    const open1 = Math.min(1, t / 0.18) * (t < 0.5 ? 1 : Math.max(0, 1 - (t - 0.5) / 0.14)), r1 = lw * (0.72 + 0.22 * Math.sin(t * 20)) * open1
+    if (open1 > 0.02) { _drawBrutRift(ctx, px, pcy, r1, r1 * 1.15, t * 6, rgb, open1)
+      if (isKamui) _brutSheetFrame(ctx, "./obito_portalfx.png", 1, 0, px, pcy, r1 * 2.3, 1, open1 * 0.85, 0.5)
+      ctx.save(); ctx.globalAlpha = open1 * 0.6; ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`; ctx.lineWidth = 2   // suction streaks dragging inward
+      for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 2100 + i, k), a = h(1) * 6.28, far = r1 * (1.6 + h(2) * 1.4), pull = (t * (1.5 + h(4))) % 1, rr = far * (1 - pull * 0.6)
+        ctx.beginPath(); ctx.moveTo(px + Math.cos(a) * rr, pcy + Math.sin(a) * rr * 0.9); ctx.lineTo(px + Math.cos(a) * (rr - r1 * 0.3), pcy + Math.sin(a) * (rr - r1 * 0.3) * 0.9); ctx.stroke() } ctx.restore() }
+    if (t >= 0.5) { const op2 = Math.min(1, (t - 0.5) / 0.12) * (t > 0.92 ? Math.max(0, 1 - (t - 0.92) / 0.08) : 1)
+      const tx = px, ty = pcy - lh * 1.5, r2 = lw * 0.85 * op2, fall = Math.min(1, (t - 0.52) / 0.3)
+      _drawBrutRift(ctx, tx, ty, r2, r2 * 0.6, -t * 7, rgb, op2)
+      ctx.save(); ctx.fillStyle = BLOOD_REDS[0]   // blood streams falling from the upper rift to the ground
+      for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 2200 + i, k), sx = tx + (h(1) * 2 - 1) * r2 * 0.9, drop = ((t * (1 + h(2) * 1.5) + h(3)) % 1), yTop = ty + r2 * 0.4, yy = yTop + (pgy - yTop) * drop
+        ctx.globalAlpha = 0.85 * op2 * fall; ctx.beginPath(); ctx.ellipse(sx, yy, cell * 0.9, cell * 2.4, 0, 0, 6.28); ctx.fill() }
+      ctx.restore(); _drawGroundPool(ctx, tx, pgy, cell, fall * 0.9)
+      if (t > 0.58) _drawBloodSplat(ctx, tx, pgy - cell, Math.min(lw * 1.1, 130), fall * Math.max(0, 1 - (t - 0.58) / 0.4)) }
+  } else if (g === "juubi") {
+    // OBITO TEN-TAILS — the Juubi RISES behind Obito (real sprite), charges a Bijūdama at its maw, then FIRES it
+    // point-blank through the foe (~t=0.5): a beam + detonation flash → red mist + scorch.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_JUUBI)[2])
+    const rise = Math.min(1, t / 0.4), beastH = lh * 3.4 * rise, beastX = cx - dir * lw * 1.5, beastCY = gy - beastH * 0.42   // anchored to the FOE (behind, on the caster side) so it stays in the tight frame
+    const bA = Math.min(1, t < 0.1 ? t / 0.1 : (t > 0.9 ? Math.max(0, 1 - (t - 0.9) / 0.1) : 1)), bFrame = Math.floor(t * 8) % 4
+    _brutSheetFrame(ctx, "./obito_juubi_uniform.png", 4, bFrame, beastX, beastCY, beastH, dir, bA * 0.96, 0.5)
+    const mawX = beastX + dir * beastH * 0.22, mawY = beastCY - beastH * 0.12, charge = Math.min(1, Math.max(0, (t - 0.2) / 0.3)), fired = t >= 0.5
+    if (charge > 0 && !fired) { const orbR = lh * 0.5 * charge; ctx.save(); const og = ctx.createRadialGradient(mawX, mawY, 0, mawX, mawY, orbR); og.addColorStop(0, "rgba(40,20,60,0.98)"); og.addColorStop(0.6, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`); og.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = og; ctx.beginPath(); ctx.arc(mawX, mawY, orbR, 0, 6.28); ctx.fill(); ctx.restore() }
+    if (fired) { const bt = Math.min(1, (t - 0.5) / 0.18)
+      if (bt < 1) { ctx.save(); ctx.globalAlpha = 1 - bt; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(60,30,90,0.9)"; ctx.lineWidth = lh * 0.8 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx, cy); ctx.stroke()
+        ctx.strokeStyle = "rgba(235,225,255,0.95)"; ctx.lineWidth = lh * 0.22 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx, cy); ctx.stroke(); ctx.restore()
+        ctx.save(); ctx.globalAlpha = 1 - bt; const dg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bt * 2)); dg.addColorStop(0, "rgba(245,240,255,0.95)"); dg.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`); dg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bt * 2), 0, 6.28); ctx.fill(); ctx.restore() }
+      ctx.save(); ctx.globalAlpha = Math.min(0.6, t - 0.5); ctx.fillStyle = "rgba(16,10,8,0.7)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.8, lw * 0.22, 0, 0, 6.28); ctx.fill(); ctx.restore()
+      _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.3, 150), Math.max(0, 1 - (t - 0.5) / 0.5)) }
+  } else if (g === "phasekill") {
+    // OBITO PHASE EXECUTION — Kamui intangibility swirl warps across the foe as Obito dashes THROUGH; a dash
+    // after-image streak crosses the body, then a co-materialization burst (~t=0.5). Standard blood also spawns.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_KAMUI)[2]), pass = Math.min(1, t / 0.5)
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - Math.abs(t - 0.5) / 0.35) * 0.8
+    for (let i = 0; i < 5; i++) { const a0 = t * 8 + i * 1.256, rr = lw * (0.5 + i * 0.18); ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.6 - i * 0.1})`; ctx.lineWidth = 3; ctx.beginPath()
+      for (let u = 0; u <= 1; u += 0.12) { const a = a0 + u * 4.5, qx = cx + Math.cos(a) * rr * (1 - u * 0.7), qy = cy + Math.sin(a) * rr * (1 - u * 0.7) * 1.1; u === 0 ? ctx.moveTo(qx, qy) : ctx.lineTo(qx, qy) } ctx.stroke() }
+    ctx.restore()
+    ctx.save(); ctx.globalAlpha = (1 - pass) * 0.5; ctx.lineCap = "round"; ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`; ctx.lineWidth = lh * 0.5; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 1.5, cy); ctx.lineTo(cx + dir * lw * 1.5, cy); ctx.stroke(); ctx.restore()
+    if (t >= 0.48) { const bt = t - 0.48; ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt / 0.2); const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.4); fg.addColorStop(0, "rgba(245,240,255,0.9)"); fg.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`); fg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.4, 0, 6.28); ctx.fill(); ctx.restore()
+      _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.4, 160), Math.max(0, 1 - bt / 0.5)) }
+  } else if (g === "portalguillotine") {
+    // RICK/PRIME PORTAL GUILLOTINE — a portal opens through the waist (twin above), then SNAPS shut → a slice
+    // flash + gush at the cut line. Standard blood also spawns at the kill beat.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_PORTAL)[2]), cutY = cy + lh * 0.05
+    const open = Math.min(1, t / 0.3) * (t < 0.5 ? 1 : Math.max(0, 1 - (t - 0.5) / 0.1)), snap = t >= 0.46 && t < 0.56
+    const rx = lw * (0.7 + 0.2 * Math.sin(t * 16)) * open * (snap ? Math.max(0.1, 1 - (t - 0.46) / 0.1) : 1)
+    if (open > 0.02) { _drawBrutRift(ctx, cx, cutY, rx, lh * 0.1 * open, t * 7, rgb, open); _drawBrutRift(ctx, cx, cutY - lh * 0.5, rx * 0.9, lh * 0.09 * open, -t * 7, rgb, open * 0.85) }
+    if (t >= 0.46) { const bt = t - 0.46; ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt / 0.12); ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.95)`; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(cx - lw, cutY); ctx.lineTo(cx + lw, cutY); ctx.stroke()
+      ctx.strokeStyle = "rgba(240,255,245,0.95)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - lw, cutY); ctx.lineTo(cx + lw, cutY); ctx.stroke(); ctx.restore()
+      _drawBloodSplat(ctx, cx, cutY, Math.min(lw * 1.4, 160), Math.max(0, 1 - bt / 0.5)) }
+  } else if (g === "temporalstab") {
+    // RICK PRIME TEMPORAL AMBUSH — a steel SWORD (blade + crossguard + hilt) waits planted point-up at the ambush
+    // spot; rewind clock-rings + backward ghost-images trail the foe as it is dragged BACKWARD onto it → impaled.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_TIME)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+    const bladeX = b._liveLoseX0 != null ? (b._liveLoseX0 + lw / 2) : cx, tipY = cy - lh * 0.35, guardY = gy - lh * 0.25, hiltBot = gy + lh * 0.05, bw = lw * 0.11
+    // rewind clock-rings + backward ghost-images (pre-impact)
+    if (t < 0.62) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.62) * 0.85; ctx.strokeStyle = col(0.9); ctx.lineWidth = 3
+      for (let i = 0; i < 3; i++) { const rr = lw * (0.7 + i * 0.6) * (1 - ((t * 1.4 + i * 0.3) % 1)); ctx.beginPath(); ctx.arc(cx, cy, Math.max(2, rr), -t * 6, -t * 6 + 4.6); ctx.stroke() }
+      ctx.globalAlpha = Math.max(0, 1 - t / 0.62) * 0.28; ctx.fillStyle = col(0.5)
+      for (let i = 1; i <= 3; i++) ctx.fillRect(cx + dir * lw * 0.5 * i, ly + lh * 0.2, lw * 0.5, lh * 0.7); ctx.restore() }
+    const drawBlade = () => { ctx.save(); ctx.globalAlpha = Math.min(1, t < 0.1 ? t / 0.1 : 1)
+      ctx.fillStyle = "rgba(200,210,224,0.96)"; ctx.beginPath(); ctx.moveTo(bladeX, tipY); ctx.lineTo(bladeX - bw, guardY); ctx.lineTo(bladeX + bw, guardY); ctx.closePath(); ctx.fill()   // blade
+      ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.fillRect(bladeX - 1.5, tipY, 3, guardY - tipY)                                                                                     // edge glint
+      ctx.fillStyle = "rgba(150,120,70,0.95)"; ctx.fillRect(bladeX - lw * 0.28, guardY - 2, lw * 0.56, 5)                                                                             // crossguard
+      ctx.fillStyle = "rgba(90,70,45,0.95)"; ctx.fillRect(bladeX - bw * 0.7, guardY + 3, bw * 1.4, hiltBot - guardY - 3)                                                              // hilt
+      ctx.fillStyle = col(0.95); ctx.beginPath(); ctx.arc(bladeX, tipY, lw * 0.055, 0, 6.28); ctx.fill(); ctx.restore() }   // amber glint at the tip
+    drawBlade()
+    if (t >= 0.5) { const bt = t - 0.5; ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt / 0.15)
+      const fg = ctx.createRadialGradient(bladeX, tipY, 0, bladeX, tipY, lw * 0.9); fg.addColorStop(0, "rgba(255,250,235,0.9)"); fg.addColorStop(0.5, col(0.5)); fg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(bladeX, tipY, lw * 0.9, 0, 6.28); ctx.fill(); ctx.restore()
+      _drawBloodSplat(ctx, bladeX, tipY, Math.min(lw * 0.85, 100), Math.max(0, 1 - bt / 0.5))
+      // blood runs DOWN the blade from the impale point
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt / 0.5) * 0.9; ctx.fillStyle = BLOOD_REDS[0]; ctx.fillRect(bladeX - bw * 0.6, tipY, bw * 1.2, (guardY - tipY) * Math.min(1, bt * 3)); ctx.restore()
+      drawBlade() }   // re-draw the blade ON TOP so it pokes through the blood
+  } else if (g === "speedrun") {
+    // FLASH SPEED FORCE — Speed-Force streaks whip past, red lightning crackles on the foe, and the foe's body
+    // parts shear off and tumble BACKWARD in the slipstream. The scrolling multi-stage backdrop is in _drawBrutality.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_SPEED)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+    ctx.save(); ctx.lineCap = "round"
+    for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 2600 + i, k), yy = ly - lh * 0.3 + h(1) * lh * 1.6, len = lw * (1.5 + h(2) * 3), off = ((t * (6 + h(3) * 8) + h(4)) % 1), x1 = cx + dir * lw * 2 - dir * off * lw * 6
+      ctx.globalAlpha = 0.5 * (0.4 + h(2) * 0.6); ctx.strokeStyle = h(5) < 0.3 ? col(0.8) : "rgba(255,255,255,0.7)"; ctx.lineWidth = Math.max(1, cell * (0.4 + h(2))); ctx.beginPath(); ctx.moveTo(x1, yy); ctx.lineTo(x1 - dir * len, yy); ctx.stroke() }
+    ctx.restore()
+    if (t > 0.15) { ctx.save(); ctx.globalAlpha = 0.6 + 0.3 * Math.sin(t * 40); ctx.strokeStyle = "rgba(255,70,50,0.8)"; ctx.lineWidth = 2
+      for (let i = 0; i < 4; i++) { const h = (k) => _brutHash(seed, 2700 + i, k); ctx.beginPath(); let qx = cx + (h(1) * 2 - 1) * lw * 0.4, qy = ly
+        for (let s = 0; s < 4; s++) { ctx.lineTo(qx, qy); qx += (h(s + 2) * 2 - 1) * lw * 0.3; qy += lh / 4 } ctx.stroke() } ctx.restore() }
+    const shedParts = [["arm", 0.3], ["arm", 0.45], ["leg", 0.6], ["leg", 0.72], ["head", 0.85]]
+    for (let i = 0; i < shedParts.length; i++) { const [kind, ti] = shedParts[i]; if (t < ti) continue
+      const age = t - ti, h = (k) => _brutHash(seed, 2800 + i, k), fx = cx - dir * age * lw * 14 * (1 + h(1)), fy = ly + lh * (0.2 + h(2) * 0.6) - Math.sin(age * 10) * lh * 0.3 + age * age * lh * 2
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.6); ctx.translate(fx, fy); ctx.rotate(age * 14 * (h(3) < 0.5 ? 1 : -1))
+      const pw = kind === "head" ? lw * 0.4 : (kind === "arm" ? lw * 0.18 : lw * 0.22), ph = kind === "head" ? lw * 0.4 : lw * (kind === "arm" ? 0.5 : 0.6)
+      ctx.fillStyle = "#6e0016"; if (kind === "head") { ctx.beginPath(); ctx.arc(0, 0, pw, 0, 6.28); ctx.fill() } else ctx.fillRect(-pw / 2, -ph / 2, pw, ph)
+      ctx.fillStyle = "#3a000a"; ctx.fillRect(-pw / 2, -ph / 2, pw, Math.max(2, ph * 0.2)); ctx.restore()
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.5) * 0.6; ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 1.2; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(cx, ly + lh * 0.4); ctx.stroke(); ctx.restore() }
   } else {
     // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
@@ -7423,7 +7610,7 @@ function _drawBrutality() {
   // MK1-style finish framing: DARKEN the arena to a spotlight on the kill — the background drops to near-black
   // (cool tint) while the centre (where the fighters are framed by the push-in) stays lit. Ramps in fast, holds,
   // lifts at the very end. Screen-space, BEFORE the world-space gore so the gore/flash still pop on top.
-  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1)
+  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1) * (b.live && fin?.gore === "speedrun" ? 0.3 : 1)   // speedrun keeps the scrolling multi-stage backdrop vivid (only a light vignette)
   if (darkA > 0.01) {
     ctx.save(); const sx = cw * 0.5, sy = ch * 0.52
     // 1) global mood DIP — the whole arena drops toward night-black (cool tint)
@@ -7626,6 +7813,36 @@ function _drawKamuiDimensionBg(ctx, canvas) {
   ctx.globalAlpha = a * 0.5; ctx.strokeStyle = "#3c3c5e"; ctx.lineWidth = 2
   for (const r of KAMUI_VOID_RECTS) ctx.strokeRect(r.fx * cw, r.fy * ch, r.fw * cw, r.fh * ch)   // faint slab edges (depth)
   ctx.restore()
+}
+// FLASH SPEED FORCE backdrop — during the speedrun brutality, the stage blurs through a SEQUENCE of other maps
+// (real stage backgrounds + tinted procedural panels) scrolling fast past the running pair. SCREEN space, drawn
+// right after the stage bg (under the fighters) — same precedent as the Kamui-dimension void above. Deterministic.
+const SPEEDRUN_PANELS = [
+  { img: "./valley_of_the_end_bg.png" }, { grad: ["#1a2a4a", "#0a1020"] },
+  { img: "./shibuya_incident_bg.png" },  { grad: ["#3a1020", "#140408"] },
+  { img: "./mugen_train_bg.png" },       { grad: ["#0a2a1a", "#041008"] },
+  { img: "./test_map_bg.png" },          { grad: ["#2a1a3a", "#0a0614"] },
+]
+function _drawSpeedRunBackdrop(c, cv) {
+  const b = brutalityState; if (!b.active || !b.live || b.finisher?.gore !== "speedrun") return
+  const cw = cv.width, ch = cv.height, elapsed = b.maxTimer - b.timer, dir = b.dir || 1
+  const panelW = cw, n = SPEEDRUN_PANELS.length
+  let scroll = elapsed * cw * 0.12; if (dir < 0) scroll = -scroll
+  const first = Math.floor(scroll / panelW), offset = ((scroll % panelW) + panelW) % panelW
+  c.save()
+  for (let s = -1; s <= Math.ceil(cw / panelW) + 1; s++) {
+    const slot = first + s, pi = ((slot % n) + n) % n, p = SPEEDRUN_PANELS[pi], x = s * panelW - offset
+    const img = p.img ? _susanoImg(p.img) : null
+    if (img && img.complete && img.naturalWidth) c.drawImage(img, x, 0, panelW, ch)
+    else { const grad = p.grad || ["#141022", "#05030a"]; const g = c.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, grad[0]); g.addColorStop(1, grad[1]); c.fillStyle = g; c.fillRect(x, 0, panelW + 1, ch)
+      c.fillStyle = "rgba(0,0,0,0.3)"; c.fillRect(x, ch * 0.72, panelW + 1, ch * 0.28) }   // faux horizon/floor band
+  }
+  // horizontal motion-blur streaks + a slight desaturating wash sell the velocity
+  c.globalAlpha = 0.25; c.strokeStyle = "rgba(255,255,255,0.5)"; c.lineWidth = 2; c.lineCap = "round"
+  for (let i = 0; i < 20; i++) { const h = _brutHash(b.seed || 1, 3000 + i, 1), yy = h * ch, len = cw * (0.3 + _brutHash(b.seed || 1, 3000 + i, 2) * 0.5)
+    const sx = (cw - ((elapsed * cw * 0.5 + h * cw * 3) % (cw + len))); c.beginPath(); c.moveTo(sx, yy); c.lineTo(sx - dir * len, yy); c.stroke() }
+  c.globalAlpha = 1; c.fillStyle = "rgba(255,220,90,0.06)"; c.fillRect(0, 0, cw, ch)   // faint Speed-Force amber wash
+  c.restore()
 }
 
 function _checkMatchOver() {
@@ -18820,6 +19037,7 @@ function renderHybridFighter(fighter) {
   // BRUTALITY sprite-bisection: hide the live loser body during the finisher beat — the two separating split
   // halves (drawn in _drawBrutality) stand in for it. Winner still renders normally (posed win).
   if (brutalityState.active && !brutalityState.live && brutalityState.loseRef === fighter) return   // snapshot finishers hide the live loser (the split halves stand in); LIVE finishers keep it drawn
+  if (brutalityState.active && brutalityState.live && brutalityState.loseRef === fighter && fighter._brutHidden) return   // vacuum finishers: the foe was sucked into the pocket dimension → stop drawing them live
   // Cinematic hide: the Minato Kurama ultimate hides the REAL caster and draws its own transforming
   // Minato + fox overlay, so the real frozen body doesn't double-render next to the overlay (the
   // "second Minato" bug). minatoKurama sets/clears this flag.
@@ -20542,6 +20760,7 @@ function drawBattleScene() {
   // Obito "Kamui Dimension" — the stage swaps to a dark Kamui void (render-only; reverts the instant the
   // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
   _drawKamuiDimensionBg(ctx, canvas)
+  _drawSpeedRunBackdrop(ctx, canvas)   // Flash SPEED FORCE finisher — other maps blur past, under the fighters
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE

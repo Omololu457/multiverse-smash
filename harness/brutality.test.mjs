@@ -14,15 +14,16 @@ let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c
 // The 23 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
 // Tier 2: deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
 // Tier 3 (2026-09-17): sasuke, itachi, vegeta, pain, byakuya, yamamoto.
-// obito: added ONLY for the Impact Hit prototype — he has NO per-move gore table and IMPACT_HIT_STANDALONE
-// gates the KLASSIC fallback OFF, so he never plays a Brutality (verified in impact_hit_live.mjs). Eligible flag
-// only, so _tryStartImpactHit's "obito lands the kill" branch is reachable through the shared eligibility gate.
+// obito: the obitoKamuiDimension Impact-Hit cascade now HANDS OFF into his KAMUI rift finisher (full gore table
+// below) — plus Ten-Tails + phase-through. rick / rickPrime (portal gore) + flash (Speed Force run) round out the roster.
 const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
   "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
   "sasuke","itachi","vegeta","pain","byakuya","yamamoto",
   "tobirama",   // brutality roll-out — Second Hokage (Suiton / Hiraishin / Edo Tensei); full gore table (opt-in routing)
   "gojo",       // brutality roll-out — Gojo Satoru (Blue implode / Red repulse / Hollow Purple annihilate / Limitless); full gore table (opt-in routing)
-  "obito"];
+  "obito",      // Kamui rift / Ten-Tails / phase-through — full gore table (opt-in routing)
+  "rick","rickprime",   // portal-gun vacuum + guillotine (Prime adds temporal-ambush trait) — LOWERCASE (engine lowercases rosterKey)
+  "flash"];     // Speed Force run — grabs + tears through multiple maps
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
@@ -54,6 +55,12 @@ const TABLE = {
   pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, painAlmightyPull:{n:"ALMIGHTY PULL",g:"pull"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + pull + meteor
   byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
+  // ── Brutality roll-out (2026-10-18): Obito / Rick / Rick Prime / Flash. Move-keyed entries only (Rick Prime's
+  //    TEMPORAL AMBUSH is a trait, tested in brutality_rick.mjs via setTrait). ──
+  obito:    { obitoKamuiDimension:{n:"KAMUI",g:"kamuivacuum"}, ultimate:{n:"TEN-TAILS",g:"juubi"}, heavy:{n:"PHASE EXECUTION",g:"phasekill"} },   // cinematic Kamui set (opt-in routing)
+  rick:     { portalLaser:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"} },   // portal-gun gore (opt-in routing)
+  rickprime:{ primePortalBlast:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"} },   // LOWERCASE table key; (+ __trait_rewind TEMPORAL AMBUSH, tested separately)
+  flash:    { grab:{n:"SPEED FORCE",g:"speedrun"} },   // Speed Force run (opt-in routing)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 
@@ -120,7 +127,7 @@ try {
 
   // ── LIVE finisher render per CHARACTER + per MOVE (real _tryStartBrutality + gore particles) ──────
   async function liveChar(ch) {
-    await boot(ch === "zaraki_shikai" ? "zaraki" : ch, "goku");
+    await boot(ch === "zaraki_shikai" ? "zaraki" : ch === "rickprime" ? "rickPrime" : ch, "goku");   // brutality table keys are lowercase; the character registry key for Rick Prime is camelCase "rickPrime"
     await page.evaluate(() => window.__harness.brutality.setBrutality(true));
     await page.evaluate(() => { window.__harness.start({ mode:"vs", difficulty:"easy" }); window.__harness.skipToBattle(); });
     await page.waitForTimeout(350);
@@ -133,7 +140,7 @@ try {
       const snapOK = s.live ? true : (s.split === true && s.captured === true);   // LIVE finishers animate the real fighters → no snapshot capture expected
       if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && snapOK) good++;
       else bad.push(`${mv}:${JSON.stringify(s)}`);
-      if (mv === moves[1][0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
+      if (mv === (moves[1] || moves[0])[0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
     }
     check(`LIVE ${ch}: all ${moves.length} per-move finishers fire (correct signature + sprite-bisection captured)`, bad.length === 0, bad.length ? bad.slice(0,2).join(" | ") : `${good}/${moves.length}`);
   }

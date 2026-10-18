@@ -557,6 +557,7 @@ import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitS
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
 import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
+import { mapOpenMeteo, resolveLive, getLocation, setLocation, geocodeCity, cacheGet as _wxCacheGet } from "./weatherLive.js"   // FEEL PASS (Phase 4): real-world weather (Open-Meteo), host-authoritative in LAN
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
@@ -1943,19 +1944,75 @@ function _pushHitstopStyle() {
   return eff
 }
 
-// ── FEEL PASS (Phase 3) — WEATHER driver (render-layer only; deterministic, LAN-identical) ────────────
+// ── FEEL PASS (Phase 3/4) — WEATHER driver (render-layer only; deterministic / host-authoritative) ────
 let _weatherLoopCd = 0   // re-trigger timer for the rain/wind loop stand-ins (no native looping SFX)
-// Choose this match's weather. Phase 3 default: when Weather is ON, pick a deterministic type from the
-// stage's allowed list (seeded) and resolve it against the stage. Phase 4 (Weather Source) overrides this.
+let _weatherChip = null  // { type, src } small readable label shown during the match ("Weather: Rain (live)")
+let _weatherNetType = null   // LAN: the HOST's resolved weather type, adopted verbatim by clients (null = standalone/host)
+let _weatherFetchToken = 0   // guards async live results against a newer match starting first
+const _weatherOpts = () => ({ w: canvas.width, h: canvas.height, intensity: juiceSettings.weatherIntensity, particleScale: juiceSettings.particleScale() })
+
+function _setWeatherChip(type, src) { _weatherChip = (type && type !== WEATHER.CLEAR) ? { type, src } : null }
+
+// The SYNCHRONOUS weather type for a match (never touches the network): off→clear, random→seeded stage
+// pick, manual→the manual type, local→fresh 30-min cache or a Random fallback. Shared by the match-start
+// driver AND the LAN host's MATCH_SETUP, so what the host SENDS is exactly what the host RENDERS.
+function _weatherResolveSync(stage, seed, src) {
+  if (src === "off") return WEATHER.CLEAR
+  if (src === "manual") return resolveWeather(stage, juiceSettings.manualWeather)
+  if (src === "local") {
+    try { const now = (Date && Date.now) ? Date.now() : 0; const c = _wxCacheGet(now); if (c) return resolveWeather(stage, c.type) } catch (_) {}
+    return resolveWeather(stage, weatherPickForStage(stage, seed))   // no fresh cache → Random (the live fetch warms it for next time)
+  }
+  return resolveWeather(stage, weatherPickForStage(stage, seed))   // random
+}
+
+// Decide + apply this match's weather. Never blocks. In LAN, clients adopt the host's type verbatim; the
+// host + standalone resolve synchronously, and ONLY standalone "My Local Weather" then upgrades to the live
+// fetch in the background (so host & client stay visually identical; the fetch still warms the cache).
 function _weatherStartForMatch(seed) {
   weatherSetSeed(seed)
   weatherReset()
-  _weatherLoopCd = 0
-  if (!juiceSettings.weatherOn()) return
+  _weatherLoopCd = 0; _weatherChip = null
+  const token = ++_weatherFetchToken
   const stage = getStageTheme()
-  const picked = resolveWeather(stage, weatherPickForStage(stage, seed))
-  weatherSet(picked, { w: canvas.width, h: canvas.height, intensity: juiceSettings.weatherIntensity, particleScale: juiceSettings.particleScale() })
+
+  // LAN CLIENT: use the host's type verbatim (replicated via MATCH_SETUP). Never fetch.
+  if (netMatch.isActive() && _weatherNetType != null) {
+    const t = resolveWeather(stage, _weatherNetType)
+    if (t !== WEATHER.CLEAR) { weatherSet(t, _weatherOpts()); _setWeatherChip(t, "host") }
+    return
+  }
+
+  const src = juiceSettings.weatherSource
+  const sync = _weatherResolveSync(stage, seed, src)
+  if (sync !== WEATHER.CLEAR) { weatherSet(sync, _weatherOpts()); _setWeatherChip(sync, src === "local" ? "random" : src) }
+  if (src !== "local") return
+
+  // "My Local Weather", STANDALONE only (never in LAN — the host already committed a type to MATCH_SETUP):
+  // try the live fetch in the background and crossfade it in when it lands. Also warms the 30-min cache.
+  if (netMatch.isActive()) return
+  try {
+    const now = (Date && Date.now) ? Date.now() : 0   // wall-clock ms for the 30-min cache (I/O bookkeeping; NOT sim/visual randomness → determinism-safe)
+    resolveLive({ now, useGeolocation: true })
+      .then(res => { if (token !== _weatherFetchToken) return; const t = resolveWeather(stage, res.type); if (t !== WEATHER.CLEAR) weatherSet(t, _weatherOpts()); _setWeatherChip(t, "live") })
+      .catch(() => { if (token === _weatherFetchToken) _setWeatherChip(sync, "offline") })
+  } catch (_) { _setWeatherChip(sync, "offline") }
 }
+// Ask CLEARLY before using location (a confirm), then browser geolocation; on deny/unavailable, fall back
+// to a typed city. The choice (lat/lon or city) is stored ONLY in localStorage and sent ONLY to Open-Meteo.
+function _weatherSetupLocation() {
+  const useGeo = (typeof confirm === "function") ? confirm("Use your device location to fetch your local weather?\n(You can type a city name instead.)") : false
+  if (useGeo && typeof navigator !== "undefined" && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      p => { setLocation({ lat: p.coords.latitude, lon: p.coords.longitude, name: "My Location" }); _weatherFetchToken++ },
+      _ => _weatherPromptCity()
+    )
+  } else _weatherPromptCity()
+}
+function _weatherPromptCity() {
+  try { const c = (typeof prompt === "function") ? prompt("Enter a city for local weather (e.g. London):") : null; if (c && c.trim()) { setLocation({ city: c.trim() }); _weatherFetchToken++ } } catch (_) {}
+}
+
 // Per-frame weather advance + looped ambience. Called from the battle update. Sound is audio-only (not
 // LAN-synced); the deterministic one-shots (thunder/hail) fire from inside weatherTick via the sfx cb.
 function _tickWeather() {
@@ -1981,6 +2038,18 @@ function _tickWeather() {
 function _drawWeather() {
   if (!juiceSettings.weatherOn() && weatherCurrent() === WEATHER.CLEAR) return
   weatherDraw(ctx, canvas, { groundY, intensity: juiceSettings.weatherIntensity, reduceFlashing: juiceSettings.reduceFlashing })
+  _drawWeatherChip()
+}
+// Small readable chip: "Weather: Rain (live)" / "(random)" / "(manual)" / "(offline)" / "(host)". Sits
+// just under the round timer (top-centre empty band) so it never covers the HUD bars.
+function _drawWeatherChip() {
+  if (!_weatherChip) return
+  const label = `Weather: ${_weatherChip.type.charAt(0).toUpperCase() + _weatherChip.type.slice(1)} (${_weatherChip.src})`
+  ctx.save(); ctx.font = "600 12px Arial"; ctx.textAlign = "center"
+  const tw = ctx.measureText(label).width, cx = canvas.width / 2, y = 62
+  ctx.fillStyle = "rgba(8,14,26,0.6)"; _rrectFill(ctx, cx - tw / 2 - 10, y - 13, tw + 20, 20, 6)
+  ctx.fillStyle = _weatherChip.src === "offline" ? "#f0a24a" : _weatherChip.src === "live" ? "#4ade80" : "#9fd0e8"
+  ctx.fillText(label, cx, y + 2); ctx.restore()
 }
 // HIT FEEL Phase C — ANIME FINISHER (FINISHER hits only, once per 2.5s). A deterministic freeze (LAN-safe,
 // before _replayFrame++) → black silhouettes on a bright flash → negative INVERT → radial burst lines →
@@ -5941,9 +6010,11 @@ function startOnlineHostMatch() {
     stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
     slowMo: !!juiceSettings.slowMo,   // JUICE (Phase 2): host-authoritative Slow-Mo → both peers decide identically (LAN-safe)
     hitstopStyle: juiceSettings.hitstopStyle,   // FEEL PASS (Phase 1): host-authoritative Hitstop Style → identical sim freeze on both peers
+    weather: _weatherResolveSync(matchConfig.selectedStage || stages[0], seed, juiceSettings.weatherSource),   // FEEL PASS (Phase 4): ONLY the host decides weather (sync: cache/random/manual) → client renders the identical sky, never fetches
   })
   _juiceSlowmoNetFlag = !!juiceSettings.slowMo   // host uses its own setting
   _hitstopStyleNetFlag = juiceSettings.hitstopStyle   // host uses its own Hitstop Style
+  _weatherNetType = null   // the HOST is authoritative via its own source; clients set this from MATCH_SETUP
   netMatch.begin(online.getSession(), { localSide: "p1" })
   _forcedSeed = seed
   startMatch()
@@ -5959,6 +6030,7 @@ function applyOnlineSetup(m) {
   matchConfig.selectedStage = stages.find(s => s.name === m.stage) || stages[0]
   _juiceSlowmoNetFlag = (typeof m.slowMo === "boolean") ? m.slowMo : null   // JUICE (Phase 2): adopt the host's Slow-Mo decision
   _hitstopStyleNetFlag = (m.hitstopStyle === "classic" || m.hitstopStyle === "scaled") ? m.hitstopStyle : null   // FEEL PASS (Phase 1): adopt the host's Hitstop Style
+  _weatherNetType = (typeof m.weather === "string") ? m.weather : null   // FEEL PASS (Phase 4): adopt the host's weather type verbatim (client NEVER fetches)
   netMatch.begin(online.getSession(), { localSide: "p2" })
   _forcedSeed = (m.seed >>> 0)
   startMatch()
@@ -5971,6 +6043,7 @@ function leaveOnline(reason = null) {
   matchConfig.online = null
   _juiceSlowmoNetFlag = null   // JUICE (Phase 2): back to the local Slow-Mo setting outside a LAN match
   _hitstopStyleNetFlag = null  // FEEL PASS (Phase 1): back to the local Hitstop Style outside a LAN match
+  _weatherNetType = null       // FEEL PASS (Phase 4): back to the local Weather Source outside a LAN match
   _pushHitstopStyle()
 }
 
@@ -20276,9 +20349,11 @@ const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
 const hitstopStyleRect  = { x: 0, y: 828, w: 190, h: 30 }
 // BATTLE DAMAGE toggle — Off / Marks Only / Full (persistent marks + floor decals; blood only where eligible). x set by _layoutSettings.
 const battleDmgRect     = { x: 0, y: 864, w: 190, h: 30 }
-// WEATHER toggles — On/Off + Intensity (Low/Full). Cosmetic overlay. x set by _layoutSettings.
+// WEATHER — Source (Off/Random/Manual/Live) + Intensity (Low/Full) + a context control (manual type /
+// set-location). Cosmetic overlay. x set by _layoutSettings.
 const weatherRect       = { x: 0, y: 900, w: 92, h: 30 }
 const weatherIntensRect = { x: 0, y: 900, w: 92, h: 30 }
+const weatherCfgRect    = { x: 0, y: 936, w: 190, h: 30 }
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -20352,6 +20427,7 @@ function _layoutSettings() {
   battleDmgRect.x     = rx
   weatherRect.x       = rx
   weatherIntensRect.x = rx + 98
+  weatherCfgRect.x    = rx
 }
 
 function drawSettingsScreen() {
@@ -20486,16 +20562,20 @@ function drawSettingsScreen() {
     // FEEL PASS (Phase 2): Battle Damage — Off / Marks Only / Full (blood only where eligible + Blood on).
     const _bdLbl = juiceSettings.battleDamage === "off" ? "OFF" : juiceSettings.battleDamage === "full" ? "FULL" : "MARKS"
     fxBox(battleDmgRect, `Battle Damage: ${_bdLbl}`, juiceSettings.battleDamageOn(), "#c0564a")
-    // FEEL PASS (Phase 3): Weather On/Off + Intensity (cosmetic overlay).
-    fxBox(weatherRect, `Weather: ${juiceSettings.weatherOn() ? "ON" : "OFF"}`, juiceSettings.weatherOn(), "#06b6d4")
+    // FEEL PASS (Phase 3/4): Weather Source + Intensity + a context control (manual type / set location).
+    const _wsrc = juiceSettings.weatherSource
+    const _wsLbl = _wsrc === "off" ? "OFF" : _wsrc === "random" ? "RANDOM" : _wsrc === "manual" ? "MANUAL" : "LIVE"
+    fxBox(weatherRect, `Weather: ${_wsLbl}`, juiceSettings.weatherOn(), "#06b6d4")
     fxBox(weatherIntensRect, `Intensity: ${juiceSettings.weatherIntensity === "low" ? "LOW" : "FULL"}`, juiceSettings.weatherIntensity === "full", "#06b6d4")
+    if (_wsrc === "manual") fxBox(weatherCfgRect, `Manual Wx: ${juiceSettings.manualWeather.toUpperCase()}`, true, "#06b6d4")
+    else if (_wsrc === "local") { const _loc = getLocation(); fxBox(weatherCfgRect, `Location: ${_loc ? (_loc.name || _loc.city || "set") : "TAP TO SET"}`, !!_loc, "#06b6d4") }
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
     ctx.fillText("Hitstop: Scaled = weightier impact freeze / Classic = exact old (saved)", hitstopStyleRect.x, hitstopStyleRect.y + hitstopStyleRect.h + 13)
     ctx.fillText("Battle Damage: persistent scuffs/scorch/decals · Full adds blood (eligible + Blood on)", battleDmgRect.x, battleDmgRect.y + battleDmgRect.h + 13)
-    ctx.fillText("Weather: cosmetic rain/snow/fog/… overlay (Training: F8 cycles types)", weatherRect.x, weatherRect.y + weatherRect.h + 13)
+    ctx.fillText("Weather: Off/Random/Manual/Live(real-world) · Training: F8 cycles types", weatherRect.x, weatherRect.y + weatherRect.h + 13)
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
@@ -21725,8 +21805,13 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, hitstopStyleRect)) { juiceSettings.cycleHitstopStyle(); _pushHitstopStyle(); break }   // FEEL PASS (Phase 1): Scaled ↔ Classic (re-push so a live match picks it up when not net-locked)
       if (pointInRect(mouse.x, _smy, battleDmgRect)) { juiceSettings.cycleBattleDamage(); break }   // FEEL PASS (Phase 2): Off → Marks Only → Full
-      if (pointInRect(mouse.x, _smy, weatherRect)) { juiceSettings.toggleWeather(); if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE) _weatherStartForMatch(matchConfig.seed >>> 0); break }   // FEEL PASS (Phase 3): Weather On/Off (apply live)
+      if (pointInRect(mouse.x, _smy, weatherRect)) { juiceSettings.cycleWeatherSource(); if (juiceSettings.weatherSource === "local" && !getLocation()) _weatherSetupLocation(); if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE) _weatherStartForMatch(matchConfig.seed >>> 0); break }   // FEEL PASS (Phase 4): Off → Random → Manual → Live
       if (pointInRect(mouse.x, _smy, weatherIntensRect)) { juiceSettings.cycleWeatherIntensity(); break }   // FEEL PASS (Phase 3): Low ↔ Full
+      if (pointInRect(mouse.x, _smy, weatherCfgRect)) {   // FEEL PASS (Phase 4): context control — cycle manual type, or set the live-weather location
+        if (juiceSettings.weatherSource === "manual") { const list = WEATHER_TYPES.filter(t => t !== WEATHER.CLEAR); const i = list.indexOf(juiceSettings.manualWeather); juiceSettings.setManualWeather(list[(i + 1) % list.length]); if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE) _weatherStartForMatch(matchConfig.seed >>> 0) }
+        else if (juiceSettings.weatherSource === "local") _weatherSetupLocation()
+        break
+      }
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
@@ -24690,6 +24775,35 @@ gameLoop()
       weatherStep: (n = 1) => { for (let i = 0; i < n; i++) weatherTick((globalFrameCount + i) | 0, { intensity: juiceSettings.weatherIntensity, particleScale: juiceSettings.particleScale(), reduceFlashing: juiceSettings.reduceFlashing }); return weatherStatus() },
       setWeather: (on) => { juiceSettings.setWeather(!!on); if (!on) weatherSet(WEATHER.CLEAR, { w: canvas.width, h: canvas.height }); return juiceSettings.weatherOn() },
       setWeatherIntensity: (v) => { juiceSettings.setWeatherIntensity(v); return juiceSettings.weatherIntensity },
+      // FEEL PASS (Phase 4): real-world + LAN hooks.
+      weatherSource: () => juiceSettings.weatherSource,
+      setWeatherSource: (v) => { juiceSettings.setWeatherSource(v); return juiceSettings.weatherSource },
+      setManualWeather: (t) => { juiceSettings.setManualWeather(t); return juiceSettings.manualWeather },
+      weatherChip: () => (_weatherChip ? { ..._weatherChip } : null),
+      weatherMap: (code, wind, temp) => mapOpenMeteo(code, wind, temp),   // WMO code+wind+temp → our type (mocked-data mapping test)
+      // Resolve live weather with a MOCKED Open-Meteo response (current conditions). Exercises the full
+      // map→cache→apply path without touching the network. { code, wind, temp } → applied weather type.
+      weatherLiveMock: async ({ code = 61, wind = 5, temp = 12, lat = 51.5, lon = -0.12 } = {}) => {
+        const mock = (url) => Promise.resolve({ current: { weather_code: code, wind_speed_10m: wind, temperature_2m: temp } })
+        const res = await resolveLive({ now: Date.now() + 9e9, useGeolocation: false, location: { lat, lon, name: "mock" }, fetchJson: mock })
+        const t = resolveWeather(getStageTheme(), res.type); if (t !== WEATHER.CLEAR) weatherSet(t, _weatherOpts()); _setWeatherChip(t, "live")
+        return { mapped: res.type, applied: t, chip: _weatherChip }
+      },
+      // Resolve live with a mock that always FAILS → proves the offline fallback never throws/blocks.
+      weatherLiveFail: async () => {
+        try { await resolveLive({ now: Date.now() + 1e10, useGeolocation: false, location: { lat: 1, lon: 1 }, fetchJson: () => Promise.reject(new Error("mock offline")) }); return { threw: false } }
+        catch (e) { return { threw: true, msg: String(e.message || e) } }
+      },
+      // Geolocation DENIED path: no stored location + a rejecting geolocate → resolveLive rejects → the game
+      // falls back to Random + an "(offline)" chip (never blocks/throws up the stack).
+      weatherGeoDenied: async () => {
+        try { await resolveLive({ now: Date.now() + 2e10, useGeolocation: true, location: null, fetchJson: () => Promise.resolve({}), geolocate: () => Promise.reject(new Error("denied")) }); return { threw: false } }
+        catch (e) { return { threw: true, msg: String(e.message || e) } }
+      },
+      // LAN: what the host would SEND (sync resolve), and simulate a client ADOPTING a host type then applying it.
+      weatherNetSend: () => _weatherResolveSync(getStageTheme(), (matchConfig.seed >>> 0) || 1, juiceSettings.weatherSource),
+      weatherNetAdopt: (type) => { _weatherNetType = type; return _weatherNetType },
+      weatherSetLocation: (loc) => { setLocation(loc); return getLocation() },
       bdDecal: (type = "scorch", x = 640, y = 600) => { bdFloorDecal({ type, x, y, r: 26 }); return bdStatus() },
       anticipate: (tier = "medium") => { const f = p1 || p2; const cx = (f?.x || 0) + (f?.w || 60) / 2, cy = (f?.y || 0) + (f?.h || 100) * 0.42; fireJuiceAnticipation(cx, cy, tier); fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player: 0, tier }); return juiceFxStatus() },   // DISNEY (Phase B): swell + charge-in
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash

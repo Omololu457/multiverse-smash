@@ -31,8 +31,10 @@ const LS_KEYS = {
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
   hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "scaled")
   battleDamage: "ms_battle_damage",      // "off" | "marks" | "full"  (FEEL PASS Phase 2; default "marks")
-  weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; default OFF)
+  weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; legacy — superseded by weatherSource)
   weatherIntensity: "ms_weather_intensity",   // "low" | "full"  (FEEL PASS Phase 3; default "full")
+  weatherSource: "ms_weather_source",    // "off" | "random" | "manual" | "local"  (FEEL PASS Phase 4; default "off")
+  manualWeather: "ms_weather_manual",    // a weather TYPE string for Manual source  (FEEL PASS Phase 4; default "rain")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -141,10 +143,17 @@ export const juiceSettings = {
   // overlay; no gameplay effect). Default OFF. Weather TYPE/source is decided in Phase 4 (real-world /
   // random / manual, host-authoritative in LAN); this is the master enable + the particle budget. Lightning
   // flash respects Reduce Flashing; Reduce Particles (this.particles) also scales the budget.
-  weather: _get(LS_KEYS.weather, "0") === "1",
-  setWeather(on) { this.weather = !!on; _set(LS_KEYS.weather, this.weather ? "1" : "0") },
-  toggleWeather() { this.setWeather(!this.weather) },
-  weatherOn() { return !!this.weather },
+  // Weather SOURCE (Phase 4) is the authority: off / random / manual / local("My Local Weather"). The
+  // Phase-3 on/off toggle maps onto it (setWeather(true) → random). weatherOn() = source is not off.
+  weatherSource: (() => { const v = _get(LS_KEYS.weatherSource, _get(LS_KEYS.weather, "0") === "1" ? "random" : "off"); return ["off", "random", "manual", "local"].includes(v) ? v : "off" })(),
+  setWeatherSource(v) { if (!["off", "random", "manual", "local"].includes(v)) return; this.weatherSource = v; _set(LS_KEYS.weatherSource, v) },
+  cycleWeatherSource() { const o = ["off", "random", "manual", "local"]; this.setWeatherSource(o[(o.indexOf(this.weatherSource) + 1) % o.length]) },
+  weatherOn() { return this.weatherSource !== "off" },
+  setWeather(on) { this.setWeatherSource(on ? (this.weatherSource === "off" ? "random" : this.weatherSource) : "off") },   // Phase-3 compat
+  toggleWeather() { this.setWeather(!this.weatherOn()) },
+  // Manual weather TYPE (used when source === "manual").
+  manualWeather: (() => { const v = _get(LS_KEYS.manualWeather, "rain"); return v || "rain" })(),
+  setManualWeather(type) { if (!type) return; this.manualWeather = type; _set(LS_KEYS.manualWeather, type) },
   weatherIntensity: (() => { const v = _get(LS_KEYS.weatherIntensity, "full"); return (v === "low" || v === "full") ? v : "full" })(),
   setWeatherIntensity(v) { if (v !== "low" && v !== "full") return; this.weatherIntensity = v; _set(LS_KEYS.weatherIntensity, v) },
   cycleWeatherIntensity() { this.setWeatherIntensity(this.weatherIntensity === "full" ? "low" : "full") },

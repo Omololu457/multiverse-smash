@@ -30,7 +30,7 @@ const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
 const TABLE = {
   sukuna:   { cleave:{n:"CLEAVE",g:"decap"}, dismantle:{n:"DISMANTLE",g:"slashstorm"}, flameArrow:{n:"FUGA",g:"firearrow"}, domain:{n:"MALEVOLENT SHRINE",g:"domainslash"} },   // cinematic gore set (opt-in routing)
-  toji:     { tojiG4:{n:"INVERTED SPEAR",g:"dismember"}, tojiSword2:{n:"SPLIT SOUL",g:"bisect"}, tojiRapidSlash:{n:"THOUSAND CUTS",g:"dice"} },
+  toji:     { tojiBullet:{n:"POINT BLANK",g:"gunshot"}, tojiChain5:{n:"INVERTED SPEAR",g:"spearrun"}, tojiRapidSlash:{n:"THOUSAND CUTS",g:"slashdance"}, tojiPlayfulCloud:{n:"PLAYFUL CLOUD",g:"bludgeon"}, grab:{n:"FLASH STEP",g:"flashgrab"}, tojiFlyHeads:{n:"CURSED ARSENAL",g:"flyheads"} },   // cinematic weapon set (opt-in routing)
   frieza:   { friezaDeathBeam:{n:"DEATH BEAM",g:"beam"}, friezaDeathBall:{n:"DEATH BALL",g:"crush"}, friezaRush3:{n:"TYRANT'S END",g:"dismember"} },
   omniman:  { omComboFin:{n:"VILTRUMITE FURY",g:"pulp"}, omSkewer:{n:"SKEWER",g:"dismember"}, ultimate:{n:"OBLITERATE",g:"pulp"} },
   zaraki:   { heavy:{n:"KENDO CLEAVE",g:"bisect"}, zarakiHollowStrike:{n:"HOLLOW STRIKE",g:"dismember"}, zarakiBankai:{n:"NOZARASHI",g:"shred"} },

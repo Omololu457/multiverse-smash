@@ -758,11 +758,16 @@ const BRUTALITY_FINISHERS = {
     flameArrow: { name: "FUGA",              gore: "firearrow",   palette: GORE_EMBER, flash: "#ff7a1a" },  // 開 — a flaming arrow pierces → incinerate
     domain:     { name: "MALEVOLENT SHRINE", gore: "domainslash", palette: GORE_RED,   flash: "#6e0016" },  // 伏魔御廚子 — domain opens → a barrage of slashes dismembers them
   },
-  // TOJI — the Sorcerer Killer's blades. (tojiG4 ground rekka, tojiSword2 Split Soul special, tojiRapidSlash — no damaging ult)
+  // TOJI — the Sorcerer Killer's arsenal. CINEMATIC gore set (opt-in routing), each keyed to a real weapon + its
+  // sprite: the gun headshot, the Inverted-Spear impale, the rapid-slash dice, the Playful-Cloud bludgeon, a
+  // flash-step grab-burst, and the fly-head swarm throw.
   toji: {
-    tojiG4:        { name: "INVERTED SPEAR", gore: "dismember", palette: GORE_STEEL, flash: "#8a1020" },
-    tojiSword2:    { name: "SPLIT SOUL",     gore: "bisect",    palette: GORE_STEEL, flash: "#8a1020" },
-    tojiRapidSlash:{ name: "THOUSAND CUTS",  gore: "dice",      palette: GORE_STEEL, flash: "#8a1020" },
+    tojiBullet:       { name: "POINT BLANK",    gore: "gunshot",    palette: GORE_STEEL, flash: "#8a1020" },  // gun → body shots → HEADSHOT, victim frozen on idle, blood from the wound
+    tojiChain5:       { name: "INVERTED SPEAR", gore: "spearrun",   palette: GORE_STEEL, flash: "#8a1020" },  // dash in → impale through them with the chain spear
+    tojiRapidSlash:   { name: "THOUSAND CUTS",  gore: "slashdance", palette: GORE_STEEL, flash: "#8a1020" },  // dash → zoom → a slash-dance dices the body apart
+    tojiPlayfulCloud: { name: "PLAYFUL CLOUD",  gore: "bludgeon",   palette: GORE_STEEL, flash: "#6a3a1a" },  // staff bash → BLUNT bruising pulp (no cutting)
+    grab:             { name: "FLASH STEP",     gore: "flashgrab",  palette: GORE_RED,   flash: "#c81028" },  // flash-step in, grab, run through → burst into blood
+    tojiFlyHeads:     { name: "CURSED ARSENAL", gore: "flyheads",   palette: GORE_STEEL, flash: "#6a7a2a" },  // fly-head swarm covers all → grab → hurled into the stratosphere
   },
   // FRIEZA — surgical beams + brutal spheres. (Death Beam proj precise, Death Ball proj obliterates, Rush cmd — no ult)
   frieza: {
@@ -948,12 +953,12 @@ function _resolveBrutalityFinisher(wKey, move, fighter) {
 function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
-const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna"])
+const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji"])
 const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-pose slide) + the finisher kill + aftermath hold before the victory screen
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
 // time `t` is REMAPPED to 0..1 over the post-lead-in portion, so each gore renderer plays its full arc.
-function _brutLead(b) { const g = b?.finisher?.gore; return (g === "squish" || g === "pull") ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
+function _brutLead(b) { const g = b?.finisher?.gore; return g === "gunshot" ? 0.03 : (g === "squish" || g === "pull") ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
 function _brutTat(b, elapsed) { const tr = Math.min(1, elapsed / b.maxTimer), L = _brutLead(b); return L < 1 ? Math.max(0, (tr - L) / (1 - L)) : tr }
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6130,11 +6135,15 @@ function _tryStartBrutality(winner) {
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
   { const _pm = { meteor: ["./madara_tengai_meteor_uniform.png"], susanoograb: ["./madara2_susanoo_grab_air_uniform.png"], susanooslam: ["./madara2_susanoo_grab_air_uniform.png"],
-      susanooblade: ["./madara_complete_atk1_uniform.png"], firearrow: ["./sukuna_firearrow_fire_sheet.png"], domainslash: ["./alt_sukuna_domain3.png"] }
+      susanooblade: ["./madara_complete_atk1_uniform.png"], firearrow: ["./sukuna_firearrow_fire_sheet.png"], domainslash: ["./alt_sukuna_domain3.png"],
+      gunshot: ["./toji_gun_uniform.png"], spearrun: ["./toji_chain_attack_5_uniform.png"], slashdance: ["./toji_rapid_sword_slashes_uniform.png"],
+      bludgeon: ["./toji_playful_cloud_dash_attack_uniform.png"], flyheads: ["./toji_fly_head_uniform.png"] }
     for (const _ps of (_pm[brutalityState.finisher?.gore] || [])) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load(s)
-  // Capture the loser in their HURT pose (recoiling from the blow) if they have one — reads as "getting hit"
-  // far better than an idle frame for the knockback lead-in. Falls back to whatever pose they're in.
-  if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
+  // Capture the loser in their HURT pose (recoiling) if they have one — reads as "getting hit" better than idle
+  // for the knockback lead-in. EXCEPTION: Toji's POINT BLANK wants them frozen on their IDLE frame (shot where
+  // they stand). Falls back to whatever pose they're in.
+  if (brutalityState.finisher?.gore === "gunshot") { if (loseF.animationData?.idle) loseF._forceAction = "idle" }
+  else if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
   brutalityState.sprite  = _captureLoserSprite(loseF)
   // Loser state at capture — read by the harness captureProbe() so a test can assert the airborne-KO capture
   // actually contains the body (regression guard for the "missing sprite halves on an airborne KO" bug).
@@ -6149,7 +6158,8 @@ function _tryStartBrutality(winner) {
     if (_gg === "pull") {   // ALMIGHTY PULL — yank the victim ALL the way INTO the winner (Pain); burst happens on contact
       const wx = (winF.x || 0) + (winF.width || winF.w || 60) / 2, lxc = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
       brutalityState.kbX = (wx - lxc)
-    } else brutalityState.kbX = brutalityState.dir * (_spw * (_gg === "squish" ? 6.0 : 1.15)) }
+    } else if (_gg === "gunshot" || _gg === "spearrun" || _gg === "slashdance" || _gg === "flyheads" || _gg === "flashgrab") brutalityState.kbX = 0   // victim stays put (shot/impaled/grabbed where they stand)
+    else brutalityState.kbX = brutalityState.dir * (_spw * (_gg === "squish" ? 6.0 : 1.15)) }
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   // MK1-style finish framing: remember the camera so the push-in (updateBrutality) can be restored on exit.
@@ -6486,6 +6496,9 @@ function updateBrutality() {
     else if (g === "susanooblade") { ZT = 1.3; ly -= spH * 0.55 }                              // pull up/out to frame the towering avatar + its sword
     else if (g === "decap") { ZT = 2.0; ly -= spH * 0.28 }                                     // tight on the head/neck for the chop
     else if (g === "firearrow") { ZT = 1.4; if (ft < 0.34) lx -= (b.dir || 1) * spW * 0.95 }   // frame Sukuna casting Fuga + the victim
+    else if (g === "gunshot") { ZT = 1.75; if (ft > 0.5) ly -= spH * 0.3 }                     // frame the shooter + victim, snap up to the head on the kill shot
+    else if (g === "slashdance") { ZT = 1.85 }                                                 // tight for the slash-dance
+    else if (g === "flyheads") { ZT = 1.2; if (ft > 0.55) ly -= spH * 1.1 }                    // widen, then follow them hurled UP into the sky
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
     camera.targetX = camera.x; camera.targetY = camera.y
@@ -6499,8 +6512,8 @@ function updateBrutality() {
   // sparse mist in-renderer → no standard chunk/pool spawn. The kill moment is in REMAPPED finisher time (after
   // the knockback lead-in): 0 for a strike, ~0.5 for crush (dragon engulf) / implode (singularity collapse).
   const _gg = b.finisher?.gore
-  const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball" || _gg === "firearrow"   // these draw their own (ash/mist/erase/fire) — no chunk/pool spawn
-  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade", "slashstorm", "domainslash"])   // kill lands mid-beat (~t=0.5), not at frame 0
+  const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball" || _gg === "firearrow" || _gg === "flyheads"   // these draw their own — no chunk/pool spawn
+  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade", "slashstorm", "domainslash", "gunshot", "spearrun", "slashdance", "bludgeon"])   // kill lands mid-beat (~t=0.5), not at frame 0
   if (!_noStdBlood && sp) {
     const killT = _lateKill.has(_gg) ? 0.5 : 0.0
     const k = Math.round((_brutLead(b) + killT * (1 - _brutLead(b))) * b.maxTimer)   // kill-moment RAW frame (lead-in offset baked in)
@@ -7022,6 +7035,120 @@ function _drawGoreFireArrow(b, sp, t) {
   }
   ctx.globalAlpha = 1
 }
+// TOJI — POINT BLANK: the victim is frozen on their IDLE frame while Toji (real gun sprite) pumps rounds into
+// them — a few body shots (jerk + spurt per hit), then the kill shot to the HEAD with blood pouring from the wound.
+function _drawGoreGunshot(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), headY = sp.y + sp.h * 0.16
+  const shots = [0.12, 0.22, 0.32, 0.42], head = 0.52, headHit = t >= head
+  let jerk = 0, landed = 0
+  for (const s of shots) if (t >= s) { landed++; if (t < s + 0.05) jerk = 1 - (t - s) / 0.05 }
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - head) / 0.5) * 0.7)
+  ctx.save(); ctx.translate(dir * jerk * cell * 2, headHit ? Math.min(sp.h * 0.1, (t - head) * sp.h * 0.4) : 0)   // tiny jerk per shot; slump after the headshot
+  ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+  if (jerk > 0) { ctx.globalCompositeOperation = "source-atop"; ctx.globalAlpha = jerk * 0.5; ctx.fillStyle = "#fff"; ctx.fillRect(sp.x, sp.y, sp.w, sp.h); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1 }
+  ctx.restore()
+  for (let i = 0; i < landed && i < shots.length; i++) { const h = (k) => _brutHash(seed, i, k), wx = cx + (h(1) * 2 - 1) * sp.w * 0.2, wy = cy + (h(2) * 2 - 1) * sp.h * 0.2
+    ctx.save(); ctx.fillStyle = "#6e0016"; ctx.beginPath(); ctx.arc(wx, wy, cell * 1.2, 0, 6.28); ctx.fill()
+    const st = t - shots[i]; if (st < 0.3) { ctx.globalAlpha = Math.max(0, 1 - st / 0.3) * 0.8; ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.ellipse(wx + dir * cell * 2, wy, cell * 3, cell * 0.8, 0, 0, 6.28); ctx.fill() } ctx.restore() }
+  if (headHit) { const ht = t - head; ctx.save()
+    ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.arc(cx, headY, cell * 1.6, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = Math.max(0, 1 - ht / 0.6) * 0.95; ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 100 + i, k), gh = sp.h * (0.3 + h(1) * 0.5) * Math.min(1, ht * 4)
+      ctx.beginPath(); ctx.ellipse(cx + (h(2) * 2 - 1) * sp.w * 0.15, headY - gh * 0.5, cell * 1.5, gh * 0.5, 0, 0, 6.28); ctx.fill() }
+    if (ht < 0.08) { ctx.globalAlpha = 1 - ht / 0.08; ctx.fillStyle = "rgba(255,240,180,0.95)"; ctx.beginPath(); ctx.arc(cx - dir * sp.w * 1.4, headY, sp.w * 0.3, 0, 6.28); ctx.fill() } ctx.restore() }
+  const gf = headHit ? 5 : Math.min(5, 1 + landed)
+  _brutSheetFrame(ctx, "./toji_gun_uniform.png", 6, gf, cx - dir * sp.w * 1.6, cy, sp.h * 1.1, dir, Math.min(1, t * 6), 0.5)
+  if (jerk > 0 || (headHit && (t - head) < 0.06)) { ctx.save(); ctx.globalAlpha = 0.9; ctx.strokeStyle = "rgba(255,240,180,0.9)"; ctx.lineWidth = 2
+    ctx.beginPath(); ctx.moveTo(cx - dir * sp.w * 1.4, cy - sp.h * 0.1); ctx.lineTo(cx, headHit ? headY : cy); ctx.stroke(); ctx.restore() }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// TOJI — INVERTED SPEAR: Toji dashes in (afterimages) and runs the Inverted Spear of Heaven THROUGH the victim;
+// a wound opens with a blood gush. Uses his real chain-spear thrust sprite.
+function _drawGoreSpearRun(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), thrust = Math.min(1, t / 0.4)
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.4) / 0.5) * 0.8)
+  ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+  if (thrust >= 1) { ctx.save(); ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.arc(cx, cy, cell * 2, 0, 6.28); ctx.fill()
+    const wt = t - 0.4; ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.9; ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, i, k); ctx.beginPath(); ctx.ellipse(cx + dir * (cell * 3 + h(1) * sp.w * 0.3), cy + (h(2) * 2 - 1) * sp.h * 0.2, cell * 2.5, cell * 0.9, 0, 0, 6.28); ctx.fill() } ctx.restore() }
+  const sf = Math.min(3, Math.floor(thrust * 4)), tojiX = (cx - dir * sp.w * 3.5) + dir * sp.w * 2 * thrust
+  if (thrust < 1) for (let i = 1; i <= 3; i++) _brutSheetFrame(ctx, "./toji_chain_attack_5_uniform.png", 4, sf, tojiX - dir * sp.w * 0.5 * i, cy, sp.h * 1.5, dir, 0.18 * (1 - i / 4), 0.2)
+  _brutSheetFrame(ctx, "./toji_chain_attack_5_uniform.png", 4, sf, tojiX, cy, sp.h * 1.5, dir, Math.min(1, t * 6), 0.2)
+  if (thrust >= 1) _drawBloodSplat(ctx, cx, cy, Math.min(180, sp.w * 0.8), Math.max(0, 1 - (t - 0.4) / 0.5))
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// TOJI — THOUSAND CUTS: a blur of rapid slashes (his real rapid-slash sprite flickering around + slash lines)
+// dices the victim, who then falls apart into a fine pile.
+function _drawGoreSlashDance(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), prog = Math.min(1, t / 0.5)
+  if (t < 0.55) {
+    ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+    if (Math.floor(t * 40) % 2) { ctx.save(); ctx.globalCompositeOperation = "source-atop"; ctx.globalAlpha = 0.4; ctx.fillStyle = "#fff"; ctx.fillRect(sp.x, sp.y, sp.w, sp.h); ctx.restore() }
+    _drawSlashLines(ctx, cx, cy, sp.w, sp.h, 20, seed, "#e0e8f0", prog)
+    const rf = Math.floor(t * 40) % 21, swingX = Math.sin(t * 22) * sp.w * 0.85
+    _brutSheetFrame(ctx, "./toji_rapid_sword_slashes_uniform.png", 21, rf, cx + swingX, cy, sp.h * 1.3, (Math.cos(t * 22) > 0 ? 1 : -1), 0.9, 0.5)
+  } else { const fall = Math.min(1, (t - 0.55) / 0.4)
+    _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.55) / 0.4) * 0.9 + 0.15)
+    _drawBloodSplat(ctx, cx, gy - cell, Math.min(230, sp.w * (0.7 + fall * 0.6)), Math.min(1, fall))
+    _shatterSprite(ctx, sp, 6, 8, fall, 1, seed) }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// TOJI — PLAYFUL CLOUD: a BLUNT staff bash (real Playful-Cloud sprite). No cutting — the body CAVES/squashes, dark
+// bruises bloom, impact shockwave. You feel the weight. Some blood (blunt trauma), but it's a pulping, not a slice.
+function _drawGoreBludgeon(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), hit = 0.4, bash = Math.min(1, Math.max(0, (t - hit) / 0.18))
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - hit) / 0.5) * 0.55)
+  const sq = 1 - 0.45 * bash, sx2 = 1 + 0.3 * bash
+  ctx.save(); ctx.translate(cx + dir * bash * cell * 3, gy); ctx.scale(sx2, sq); ctx.translate(-cx, -gy)
+  ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+  if (bash > 0) { ctx.globalCompositeOperation = "source-atop"
+    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, i, k); ctx.globalAlpha = bash * 0.6 * (0.5 + h(3)); ctx.fillStyle = h(4) < 0.5 ? "rgba(60,20,70,0.8)" : "rgba(40,10,30,0.8)"
+      ctx.beginPath(); ctx.arc(sp.x + h(1) * sp.w, sp.y + sp.h * (0.2 + h(2) * 0.6), cell * (2 + h(5) * 3) * bash, 0, 6.28); ctx.fill() }
+    ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1 }
+  ctx.restore()
+  if (bash > 0 && bash < 1) { ctx.save(); ctx.globalAlpha = (1 - bash)
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, sp.w * (0.6 + bash)); g.addColorStop(0, "rgba(255,245,220,0.9)"); g.addColorStop(1, "rgba(0,0,0,0)")
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, sp.w * (0.6 + bash), 0, 6.28); ctx.fill()
+    ctx.strokeStyle = `rgba(230,235,245,${1 - bash})`; ctx.lineWidth = 4 + (1 - bash) * 8; ctx.beginPath(); ctx.arc(cx, cy, sp.w * (0.4 + bash * 1.5), 0, 6.28); ctx.stroke(); ctx.restore() }
+  const pf = Math.min(5, Math.floor(Math.min(1, t / hit) * 6)), tojiX = (cx - dir * sp.w * 3) + dir * sp.w * 1.6 * Math.min(1, t / hit)
+  _brutSheetFrame(ctx, "./toji_playful_cloud_dash_attack_uniform.png", 6, pf, tojiX, cy, sp.h * 1.4, dir, Math.min(1, t * 6), 0.3)
+  if (bash > 0.5) _drawBloodSplat(ctx, cx, gy - cell, Math.min(160, sp.w * 0.6), (bash - 0.5) * 2 * Math.max(0, 1 - (t - hit) / 0.5))
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// TOJI — FLASH STEP: flash-step speed-streaks across the victim, then (reusing the pull burst) they rupture into
+// a pool of blood where they stood.
+function _drawGoreFlashGrab(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, seed = b.seed || 1, dir = b.dir || 1
+  if (t < 0.3) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t / 0.3) * 0.85; ctx.strokeStyle = "rgba(230,235,245,0.85)"; ctx.lineWidth = 3; ctx.lineCap = "round"
+    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 500 + i, k), yy = cy + (h(1) * 2 - 1) * sp.h * 0.5; ctx.beginPath(); ctx.moveTo(cx - dir * sp.w * 2.2, yy); ctx.lineTo(cx + dir * sp.w * 2.2, yy); ctx.stroke() }
+    ctx.restore() }
+  _drawGorePull(b, sp, t)   // same yank-burst into a pool
+}
+// TOJI — CURSED ARSENAL: the fly-head curses (his real fly-head sprite) SWARM and cover everything, then the
+// victim is grabbed and HURLED into the stratosphere (rockets up, shrinks, blood trail), leaving a pool.
+function _drawGoreFlyHeads(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), throwP = Math.min(1, Math.max(0, (t - 0.4) / 0.4))
+  const vy = cy - throwP * throwP * sp.h * 8, vs = 1 - throwP * 0.7
+  if (vs > 0.1) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - (throwP - 0.85) / 0.15); ctx.translate(cx, vy); ctx.scale(vs, vs); ctx.translate(-cx, -vy); ctx.drawImage(sp.canvas, sp.x, vy - sp.h / 2, sp.w, sp.h); ctx.restore() }
+  if (throwP > 0.05) { ctx.save(); ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 10; i++) { const tt = i / 10, yy = cy - (throwP * tt) * throwP * sp.h * 8; ctx.globalAlpha = (1 - tt) * 0.5 * throwP; ctx.beginPath(); ctx.arc(cx + Math.sin(i) * cell * 2, yy, cell * (1.5 - tt), 0, 6.28); ctx.fill() } ctx.restore() }
+  const swarm = Math.min(1, t * 2) * (t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.2) : 1)
+  if (swarm > 0.02) for (let i = 0; i < 22; i++) { const h = (k) => _brutHash(seed, 300 + i, k)
+    const ang = h(1) * 6.28 + t * (1 + h(2) * 3), rad = sp.w * (0.5 + h(3) * 3) * (0.6 + 0.4 * Math.sin(t * 4 + h(4) * 6))
+    const fx = cx + Math.cos(ang) * rad, fy = cy + Math.sin(ang) * rad * 0.8 - throwP * sp.h * 2 * h(5)
+    _brutSheetFrame(ctx, "./toji_fly_head_uniform.png", 3, Math.floor(t * 20 + i) % 3, fx, fy, cell * 8 * (0.7 + h(6) * 0.6), (Math.cos(ang) > 0 ? 1 : -1), swarm * 0.95, 0.5) }
+  if (throwP > 0.1) _drawBloodSplat(ctx, cx, gy - cell, Math.min(160, sp.w * 0.6), Math.min(1, throwP) * Math.max(0, 1 - (t - 0.5) / 0.5))
+  ctx.globalAlpha = 1
+}
 // KATON GREAT FIREBALL — the victim is engulfed in flame → charred black → a skeleton shows through → crumbles
 // to rising ash, leaving a scorch mark. Fire-driven, bloodless (own effects, no chunk/pool spawn).
 function _drawGoreFireball(b, sp, t) {
@@ -7131,7 +7258,7 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade", "decap", "slashstorm", "domainslash", "firearrow"])
+  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade", "decap", "slashstorm", "domainslash", "firearrow", "gunshot", "spearrun", "slashdance", "bludgeon", "flashgrab", "flyheads"])
   if (sp && sp.canvas && _NEWG.has(_g)) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
@@ -7149,6 +7276,12 @@ function _drawBrutality() {
     else if (_g === "slashstorm") _drawGoreSlashStorm(b, sp, t, false)   // Sukuna DISMANTLE — cut flurry → fall apart
     else if (_g === "domainslash") _drawGoreSlashStorm(b, sp, t, true)   // Sukuna MALEVOLENT SHRINE — domain → barrage → dismember
     else if (_g === "firearrow") _drawGoreFireArrow(b, sp, t)        // Sukuna FUGA — flame arrow → incinerate
+    else if (_g === "gunshot") _drawGoreGunshot(b, sp, t)           // Toji POINT BLANK — body shots → headshot
+    else if (_g === "spearrun") _drawGoreSpearRun(b, sp, t)         // Toji INVERTED SPEAR — dash impale
+    else if (_g === "slashdance") _drawGoreSlashDance(b, sp, t)     // Toji THOUSAND CUTS — slash-dance dice
+    else if (_g === "bludgeon") _drawGoreBludgeon(b, sp, t)         // Toji PLAYFUL CLOUD — blunt bruising pulp
+    else if (_g === "flashgrab") _drawGoreFlashGrab(b, sp, t)       // Toji FLASH STEP — grab run-through → blood burst
+    else if (_g === "flyheads") _drawGoreFlyHeads(b, sp, t)         // Toji CURSED ARSENAL — swarm → throw to the sky
     else _drawGoreDrag(b, sp, t)
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
@@ -21509,7 +21642,8 @@ function _academyLessons() {
         drag: "Dragged into a sealing husk", implode: "Imploded to a singularity", repulse: "Blasted apart outward", annihilate: "Erased by the beam",
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
-        decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow", generic: "Gore burst" }
+        decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
+        gunshot: "Shot → headshot", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

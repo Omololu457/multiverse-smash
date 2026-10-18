@@ -687,6 +687,12 @@ function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_f
 // (someone can want basic hit-sparks but not finishers, or vice-versa). Default OFF. Persisted separately.
 let brutalityFx = (() => { try { return localStorage.getItem("ms_brutality_fx") === "1" } catch (_) { return false } })()
 function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms_brutality_fx", brutalityFx ? "1" : "0") } catch (_) {} }
+// BRUTALITY INTENSITY — "low" | "normal" | "max" (default "normal"). The higher Tier-3 particle caps are
+// OPT-IN via "max". Scales the gore burst/pool/chunk counts ONLY (fixed per tier → LAN lockstep stays stable).
+let brutalityIntensity = (() => { try { const v = localStorage.getItem("ms_brutality_intensity"); return (v === "low" || v === "normal" || v === "max") ? v : "normal" } catch (_) { return "normal" } })()
+function setBrutalityIntensity(v) { if (v !== "low" && v !== "normal" && v !== "max") return; brutalityIntensity = v; try { localStorage.setItem("ms_brutality_intensity", v) } catch (_) {} }
+function cycleBrutalityIntensity() { const o = ["low", "normal", "max"]; setBrutalityIntensity(o[(o.indexOf(brutalityIntensity) + 1) % o.length]) }
+function _brutIntensityFor() { return brutalityIntensity === "low" ? 0.55 : brutalityIntensity === "max" ? 1.85 : 1 }
 
 // ACCESSIBILITY — COLORBLIND-SAFE HUD (COSMETIC, opt-in). Default OFF → the stock blue(P1)/red(P2)
 // palette is untouched. When ON, the two player-side HUD identity colors become a blue/ORANGE pair
@@ -925,7 +931,7 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama"])
-const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
+const BRUTALITY_FRAMES = 120   // ~2s — HIGH-GORE: a fast kill (separation front-loaded by ~0.3) then a ~90-frame aftermath hold where the wound/pool/chunks linger before the victory screen
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -6094,6 +6100,8 @@ function _tryStartBrutality(winner) {
   brutalityState.winnerSide = winner; brutalityState.wKey = wKey
   brutalityState.dir  = winner === "p1" ? 1 : -1
   brutalityState.move = move
+  brutalityState.seed = (((matchConfig?.seed || 1) >>> 0) ^ ((globalFrameCount * 2654435761) >>> 0)) >>> 0   // deterministic gore seed (match-stamped; LAN/replay-identical)
+  _brutIntensityMul = _brutIntensityFor()
   brutalityState.x = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
@@ -6239,6 +6247,17 @@ function _drawWoundCore(c, edgeX, cyLocal, bodyH, inward, cell, alpha) {
 // One BIG blood DRIP — a bold round blob (reads individually) with a small teardrop tail while it falls.
 function _drawBloodDrip(c, p) {
   c.fillStyle = p.color
+  if (p.kind === "chunk") {                                       // CHUNK fragment — an irregular dark gib that tumbles
+    c.save(); c.translate(p.x, p.y); c.rotate(p.rot || 0)
+    c.beginPath(); c.moveTo(-p.r, -p.r * 0.5); c.lineTo(p.r * 0.6, -p.r); c.lineTo(p.r, p.r * 0.4); c.lineTo(-p.r * 0.3, p.r); c.closePath(); c.fill()
+    c.fillStyle = "#4a0810"; c.beginPath(); c.arc(0, 0, p.r * 0.35, 0, Math.PI * 2); c.fill()   // dark marrow/clot core
+    c.restore(); return
+  }
+  if (p.kind === "arc" && !p.settled) {                           // ARTERIAL arc — a thin streak along its travel
+    c.strokeStyle = p.color; c.lineWidth = p.r * 0.9; c.lineCap = "round"
+    c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.vx * 1.6, p.y - p.vy * 1.6); c.stroke()
+    c.beginPath(); c.arc(p.x, p.y, p.r * 0.7, 0, Math.PI * 2); c.fill(); return
+  }
   c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI * 2); c.fill()
   if (!p.settled && (p.vy || 0) > 1) {                           // travelling → trailing teardrop points back up
     c.beginPath(); c.moveTo(p.x - p.r * 0.55, p.y); c.lineTo(p.x, p.y - p.r * 1.9); c.lineTo(p.x + p.r * 0.55, p.y); c.closePath(); c.fill()
@@ -6247,22 +6266,30 @@ function _drawBloodDrip(c, p) {
 // Spawn a big gush of drips falling from the cut — SIZE-VARIED (fat globs + smaller drips) so it reads as real
 // volume, not a uniform spray. World-space (they do NOT follow the halves). `wave` 1 = the initial cut gush;
 // `wave` 2 = a later secondary trickle (spawned partway through the beat) so the floor keeps filling in.
+// Deterministic hash → [0,1) for ALL brutality-gore variation (match-seed-stamped at start). NEVER
+// Math.random/Date/gameRng → replays + LAN lockstep + companion screens render the identical gore.
+function _brutHash(seed, a, b = 0) { let x = ((seed >>> 0) ^ (a * 0x9e3779b1) ^ (b * 0x85ebca77)) >>> 0; x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296 }
+let _brutIntensityMul = 1   // scaled by the Brutality Intensity setting (low 0.5 / normal 1 / max 1.85)
+const BRUTALITY_PART_CAP = 300   // Tier-3 cap — fixed per intensity so LAN lockstep timing stays stable
+// HIGH-GORE deterministic burst: blood drips + solid CHUNK fragments (burst up, tumble) + ARTERIAL arcs.
 function _spawnBrutalityBlood(b, sx, sy, cell, wave = 1) {
-  const n = wave === 1 ? (9 + ((Math.random() * 4) | 0))        // ~9–12 on impact (roughly double the old 4–6)…
-                       : (5 + ((Math.random() * 4) | 0))        // …plus a 5–8 secondary gush later in the beat
+  const seed = b.seed || 1, off = wave * 1009
+  const base = wave === 1 ? 20 : wave === 2 ? 14 : 10
+  const n = Math.min(BRUTALITY_PART_CAP - b.parts.length, Math.round(base * _brutIntensityMul))
   for (let i = 0; i < n; i++) {
-    // Drip DOWN-and-slightly-out from the splat (sideways spread, gentle downward push) so they read as blood
-    // dripping off the cut — NOT an upward burst that scatters like debris. Gravity carries them to the floor.
-    const big = Math.random() < 0.4                              // ~40% are fat globs, the rest smaller drips
-    b.parts.push({
-      x: sx + (Math.random() * 2 - 1) * cell * 5, y: sy + (Math.random() * 2 - 1) * cell * 2.5,
-      vx: (Math.random() * 2 - 1) * 2.8, vy: 0.5 + Math.random() * 2.0,
-      g: 0.5 + Math.random() * 0.22, life: 46 + ((Math.random() * 36) | 0),
-      r: Math.max(4, cell * (big ? (3.2 + Math.random() * 2.2)  // BIG globs (world-px radius)…
-                                  : (1.5 + Math.random() * 1.6))), // …and smaller drips — VARIED sizes
-      color: Math.random() < 0.5 ? BLOOD_REDS[0] : BLOOD_REDS[1]
-    })
+    const h = (k) => _brutHash(seed, off + i, k)
+    const chunk = h(2) < 0.3, big = h(1) < 0.42
+    b.parts.push({ kind: chunk ? "chunk" : "drip",
+      x: sx + (h(3) * 2 - 1) * cell * 6, y: sy + (h(4) * 2 - 1) * cell * 3,
+      vx: (h(5) * 2 - 1) * (chunk ? 5.5 : 3.2), vy: chunk ? -(1.4 + h(6) * 4.2) : (0.4 + h(6) * 2.2),   // chunks burst UP then tumble; drips run DOWN
+      g: 0.5 + h(7) * 0.25, life: 64 + ((h(8) * 54) | 0), rot: h(10) * 6.28, vr: (h(12) * 2 - 1) * 0.3,
+      r: Math.max(4, cell * (chunk ? (3.6 + h(9) * 3.2) : (big ? (3.2 + h(9) * 2.2) : (1.5 + h(9) * 1.6)))),
+      color: chunk ? "#7a0d16" : (h(11) < 0.5 ? BLOOD_REDS[0] : BLOOD_REDS[1]) })
   }
+  // ARTERIAL SPRAY arcs — a few fast high arcs from the wound that rain back down (Tier-3 signature).
+  const arcs = Math.min(BRUTALITY_PART_CAP - b.parts.length, Math.round((wave === 1 ? 5 : 3) * _brutIntensityMul))
+  for (let i = 0; i < arcs; i++) { const h = (k) => _brutHash(seed, off + 601 + i, k)
+    b.parts.push({ kind: "arc", x: sx, y: sy - cell * 2, vx: (h(1) * 2 - 1) * 7.5, vy: -(5.5 + h(2) * 5.5), g: 0.55, life: 44 + ((h(3) * 26) | 0), r: Math.max(3, cell * 1.3), color: BLOOD_REDS[0] }) }
 }
 // BOLD ground POOL — a solid, saturated red blob (overlapping ellipses, irregular), not a faint outline.
 // Grows over the beat. cx/groundY world; cell scales it to the character.
@@ -6271,7 +6298,7 @@ function _drawGroundPool(c, cx, groundY, cell, t) {
   // Spread across almost the WHOLE beat (not done by t=0.7) and to a much bigger max, so the pool visibly keeps
   // pooling out over the freeze — reading as real spilled volume accumulating, not a static mark stamped down.
   const grow = Math.min(1, (t - 0.15) / 0.75)
-  const rx = (20 + 66 * grow) * (cell / 3), ry = rx * 0.32
+  const rx = (24 + 82 * grow) * (cell / 3) * _brutIntensityMul, ry = rx * 0.32   // HIGH-GORE: bigger pool, scaled by intensity
   c.save(); c.globalAlpha = 0.96
   c.fillStyle = "#b3111c"
   c.beginPath(); c.ellipse(cx, groundY, rx, ry, 0, 0, Math.PI * 2); c.fill()                          // main pool
@@ -6289,17 +6316,18 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
-  // At the CUT INSTANT, burst blood at the ORIGINAL split point (centre of the captured frame). World-space
-  // particles — they do NOT follow the separating halves, so the splatter reads as the moment of impact.
-  if (elapsed === 0 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)
-  // Secondary gush a beat later, as the halves part and the wound opens — keeps the floor filling in so the
-  // spill reads as an accumulating volume, not a single one-frame burst.
-  if (elapsed === 10 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)
+  // HIGH-GORE waves (deterministic). The Edo-Tensei "drag" is a BLOODLESS reanimation → no spray/pool.
+  if (b.finisher?.gore !== "drag" && sp) {
+    if (elapsed === 0)  _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)   // impact burst + arterial arcs + chunks
+    if (elapsed === 10) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)   // the wound opens — secondary gush
+    if (elapsed === 26) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.5,  cell, 3)   // accumulating spill over the aftermath
+  }
   const groundY = sp ? sp.groundY : (b.y + 60)
   for (const p of b.parts) {
     if (p.settled) continue
     p.x += p.vx; p.y += p.vy; p.vy += (p.g || 0.45); p.vx *= 0.98
-    if (p.y >= groundY) { p.y = groundY; p.settled = true; p.vx = 0; p.vy = 0 }   // landed → sits as ground splatter
+    if (p.vr) p.rot = (p.rot || 0) + p.vr                                          // chunk fragments tumble
+    if (p.y >= groundY) { p.y = groundY; p.settled = true; p.vx = 0; p.vy = 0; if (p.kind === "arc") p.kind = "drip" }   // landed → ground splatter (arcs flatten to blots)
     p.life--
   }
   b.parts = b.parts.filter(p => p.settled || p.life > 0)       // settled chunks persist as ground gore
@@ -6319,7 +6347,8 @@ function _drawGoreWaterCut(b, sp, t, sepEase, woundA) {
   ctx.restore()
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
-  const splatA = t < 0.12 ? 1 : Math.max(0, 1 - (t - 0.12) / 0.33); if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy + fall, Math.min(166, Math.max(56, sp.w * 0.62)), splatA)
+  // a BRIEFER, smaller impact splat than the bisection's — so the diagonal slice + wound read through it fast
+  const splatA = t < 0.06 ? 1 : Math.max(0, 1 - (t - 0.06) / 0.16); if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy + fall, Math.min(120, Math.max(44, sp.w * 0.44)), splatA)
 }
 // CRUSH (水龍弾): a water dragon engulfs + crushes inward — the body shrinks/squashes as blue rings close in,
 // then bursts into a pulp of blood + water at the implosion point.
@@ -6372,9 +6401,9 @@ function _drawBrutality() {
   ctx.save(); if (hasT) camera.applyTransform(ctx, canvas)
   const sp = b.sprite
   const t       = Math.min(1, elapsed / b.maxTimer)
-  const sepEase = 1 - Math.pow(1 - t, 3)                          // easeOutCubic — HARD front-loaded pop, then settle
-  const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 4)   // fades in fast, holds, fades only in the last ~25%
-  const woundA  = Math.min(1, sepEase * 3) * Math.min(1, (1 - t) * 4)   // wound core: revealed as the gap opens, holds, fades late
+  const sepEase = Math.min(1, (1 - Math.pow(1 - t, 3)) / 0.5)     // front-loaded: full separation by ~t=0.32, then HOLD apart through the aftermath
+  const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 7)   // in fast, HOLD, fade only in the last ~14%
+  const woundA  = Math.min(1, sepEase * 3) * Math.min(1, (1 - t) * 7)   // wound core: revealed as the gap opens, holds through the aftermath, fades late
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
@@ -23878,7 +23907,12 @@ gameLoop()
       // The resolved finisher on the LIVE brutality (reflects the active-power TRAIT path). For verifying the
       // per-move + trait resolution end-to-end (finisherFor() can't see the fighter, so it skips traits).
       activeFinisher: () => brutalityState.active ? { name: brutalityState.finisher?.name, gore: brutalityState.finisher?.gore, move: brutalityState.move, wKey: brutalityState.wKey } : null,
-      setEdoActive: (on, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoActive = !!on; return !!(f && f._edoActive) }
+      setEdoActive: (on, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoActive = !!on; return !!(f && f._edoActive) },
+      setIntensity: (v) => { setBrutalityIntensity(v); return brutalityIntensity },
+      intensity: () => brutalityIntensity,
+      // Snapshot the gore particles (for a determinism check: same seed → identical spawn).
+      partsSnapshot: () => brutalityState.parts.map(p => ({ k: p.kind, x: Math.round(p.x), y: Math.round(p.y), r: Math.round(p.r * 10) })),
+      seedOf: () => brutalityState.seed || null
     },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.

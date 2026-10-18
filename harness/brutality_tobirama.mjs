@@ -41,7 +41,7 @@ try {
     await wf(2)
     const af = await page.evaluate(() => window.__harness.brutality.activeFinisher())
     ok(started && af && af.name === name && af.gore === gore, `${edo ? "EDO-active " : ""}${move} → ${name} (${gore})  [got ${af?.name}/${af?.gore}]`)
-    await wf(8); await page.screenshot({ path: path.join(SHOTS, `tobi_${gore}${edo ? "_trait" : ""}.png`) })
+    await wf(40); await page.screenshot({ path: path.join(SHOTS, `tobi_${gore}${edo ? "_trait" : ""}.png`) })
     await page.waitForFunction(() => { const s = window.__harness.brutality.activeFinisher(); return !s }, null, { timeout: 8000, polling: 16 }).catch(() => {})
     ok(errs.length === before, `${gore}: 0 page errors  [${errs.slice(before, 1).join(" | ")}]`)
     await page.evaluate(() => window.__harness.brutality.setEdoActive(false, "p1"))

@@ -556,8 +556,9 @@ import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // expl
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
-import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
+import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherTarget, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
 import { mapOpenMeteo, resolveLive, getLocation, setLocation, geocodeCity, cacheGet as _wxCacheGet } from "./weatherLive.js"   // FEEL PASS (Phase 4): real-world weather (Open-Meteo), host-authoritative in LAN
+import { weatherForAbility, WEATHER_ABILITY_HOLD_FRAMES, WEATHER_ABILITY_COOLDOWN_FRAMES, WEATHER_ABILITY_GAMEPLAY_EFFECTS } from "./weather_abilities.js"   // FEEL PASS (Phase 5): themed moves conjure weather (VISUAL ONLY)
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
@@ -1949,6 +1950,10 @@ let _weatherLoopCd = 0   // re-trigger timer for the rain/wind loop stand-ins (n
 let _weatherChip = null  // { type, src } small readable label shown during the match ("Weather: Rain (live)")
 let _weatherNetType = null   // LAN: the HOST's resolved weather type, adopted verbatim by clients (null = standalone/host)
 let _weatherFetchToken = 0   // guards async live results against a newer match starting first
+let _weatherMatchBase = WEATHER.CLEAR   // FEEL PASS (Phase 5): the match's BASE weather an ability-conjured one returns to
+let _weatherAbilityUntil = 0            // frame the conjured ability-weather expires (0 = none active)
+let _weatherAbilityCd = 0               // global cooldown frames between ability triggers
+let _weatherFxNet = null                // LAN: host's weather-enabled flag (so both peers trigger abilities identically)
 const _weatherOpts = () => ({ w: canvas.width, h: canvas.height, intensity: juiceSettings.weatherIntensity, particleScale: juiceSettings.particleScale() })
 
 function _setWeatherChip(type, src) { _weatherChip = (type && type !== WEATHER.CLEAR) ? { type, src } : null }
@@ -1973,18 +1978,21 @@ function _weatherStartForMatch(seed) {
   weatherSetSeed(seed)
   weatherReset()
   _weatherLoopCd = 0; _weatherChip = null
+  _weatherMatchBase = WEATHER.CLEAR; _weatherAbilityUntil = 0; _weatherAbilityCd = 0   // FEEL PASS (Phase 5): fresh ability state
   const token = ++_weatherFetchToken
   const stage = getStageTheme()
 
   // LAN CLIENT: use the host's type verbatim (replicated via MATCH_SETUP). Never fetch.
   if (netMatch.isActive() && _weatherNetType != null) {
     const t = resolveWeather(stage, _weatherNetType)
+    _weatherMatchBase = t
     if (t !== WEATHER.CLEAR) { weatherSet(t, _weatherOpts()); _setWeatherChip(t, "host") }
     return
   }
 
   const src = juiceSettings.weatherSource
   const sync = _weatherResolveSync(stage, seed, src)
+  _weatherMatchBase = sync
   if (sync !== WEATHER.CLEAR) { weatherSet(sync, _weatherOpts()); _setWeatherChip(sync, src === "local" ? "random" : src) }
   if (src !== "local") return
 
@@ -1994,9 +2002,37 @@ function _weatherStartForMatch(seed) {
   try {
     const now = (Date && Date.now) ? Date.now() : 0   // wall-clock ms for the 30-min cache (I/O bookkeeping; NOT sim/visual randomness → determinism-safe)
     resolveLive({ now, useGeolocation: true })
-      .then(res => { if (token !== _weatherFetchToken) return; const t = resolveWeather(stage, res.type); if (t !== WEATHER.CLEAR) weatherSet(t, _weatherOpts()); _setWeatherChip(t, "live") })
+      .then(res => { if (token !== _weatherFetchToken) return; const t = resolveWeather(stage, res.type); _weatherMatchBase = t; if (_weatherAbilityUntil <= 0 && t !== WEATHER.CLEAR) weatherSet(t, _weatherOpts()); _setWeatherChip(t, "live") })
       .catch(() => { if (token === _weatherFetchToken) _setWeatherChip(sync, "offline") })
   } catch (_) { _setWeatherChip(sync, "offline") }
+}
+
+// FEEL PASS (Phase 5): is weather ENABLED for this match? Governs whether abilities may conjure weather.
+// In LAN this follows the HOST's flag (replicated in MATCH_SETUP) so both peers trigger identically.
+function _weatherActiveThisMatch() { return netMatch.isActive() ? !!_weatherFxNet : juiceSettings.weatherOn() }
+
+// Try to conjure weather from a freshly-LANDED themed move. Deterministic (fires on the sim hit event, the
+// same frame on every peer) and render-layer. Rules: enabled this match; not during KO/Domain/rewind/
+// brutality; ≤1 trigger per character per round; 6s global cooldown; the stage's allowed list applies.
+// NEVER touches gameplay (WEATHER_ABILITY_GAMEPLAY_EFFECTS stays off).
+function _maybeWeatherAbility(spark) {
+  if (!_weatherActiveThisMatch() || !spark || spark.blocked) return
+  if (_juiceSlowmoBlocked()) return                 // reuses the KO / Domain / Rick-rewind / brutality guard
+  if (_weatherAbilityCd > 0) return
+  const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
+  const attacker = _juiceFighterFor(side)
+  if (!attacker || attacker._weatherAbilityUsedRound) return
+  const isUlt = spark.category === "ultimate"
+  const type = weatherForAbility(attacker.rosterKey, spark.moveName || attacker.currentMove, { isUltimate: isUlt, ultVariant: attacker._ultVariant, form: attacker._form })
+  if (!type) return
+  const resolved = resolveWeather(getStageTheme(), type)
+  // already heading to this weather → no visible change, but still consume the fighter's round-trigger + cd
+  if (resolved === WEATHER.CLEAR || resolved === weatherTarget()) { if (resolved === weatherTarget()) { attacker._weatherAbilityUsedRound = true; _weatherAbilityCd = WEATHER_ABILITY_COOLDOWN_FRAMES } return }
+  weatherSet(resolved, _weatherOpts())
+  _weatherAbilityUntil = globalFrameCount + WEATHER_ABILITY_HOLD_FRAMES
+  _weatherAbilityCd = WEATHER_ABILITY_COOLDOWN_FRAMES
+  attacker._weatherAbilityUsedRound = true
+  _setWeatherChip(resolved, "ability")
 }
 // Ask CLEARLY before using location (a confirm), then browser geolocation; on deny/unavailable, fall back
 // to a typed city. The choice (lat/lon or city) is stored ONLY in localStorage and sent ONLY to Open-Meteo.
@@ -2016,7 +2052,16 @@ function _weatherPromptCity() {
 // Per-frame weather advance + looped ambience. Called from the battle update. Sound is audio-only (not
 // LAN-synced); the deterministic one-shots (thunder/hail) fire from inside weatherTick via the sfx cb.
 function _tickWeather() {
-  if (!juiceSettings.weatherOn()) { if (weatherCurrent() !== WEATHER.CLEAR) weatherSet(WEATHER.CLEAR, { w: canvas.width, h: canvas.height }); return }
+  // Enabled by the LOCAL setting standalone, or the HOST's flag in LAN (so a client still renders the
+  // host's weather even if the client's own Weather Source is Off).
+  if (!_weatherActiveThisMatch()) { if (weatherCurrent() !== WEATHER.CLEAR) weatherSet(WEATHER.CLEAR, { w: canvas.width, h: canvas.height }); _weatherAbilityUntil = 0; return }
+  // FEEL PASS (Phase 5): a conjured ability-weather returns to the match's BASE weather after ~12s.
+  if (_weatherAbilityCd > 0) _weatherAbilityCd--
+  if (_weatherAbilityUntil > 0 && globalFrameCount >= _weatherAbilityUntil) {
+    _weatherAbilityUntil = 0
+    weatherSet(_weatherMatchBase, _weatherOpts())
+    _setWeatherChip(_weatherMatchBase, netMatch.isActive() ? "host" : juiceSettings.weatherSource)
+  }
   weatherTick(globalFrameCount, {
     intensity: juiceSettings.weatherIntensity,
     particleScale: juiceSettings.particleScale(),
@@ -3930,7 +3975,7 @@ function updateFFAEffects(live) {
   updateEnergyRegen(live)
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     const spark = hitSparks[i]
-    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); _fireHitFeel(spark); spark._fresh = false }   // JUICE (Phase 2) + HIT FEEL (Phase A): detonation + punchy-hit (FFA path)
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); _fireHitFeel(spark); _maybeWeatherAbility(spark); spark._fresh = false }   // JUICE (Phase 2) + HIT FEEL (Phase A) + FEEL PASS (Phase 5): detonation + punchy-hit + weather-ability (FFA path)
     spark.timer--
     const _pAlive = _tickSparkParticles(spark)   // FFA path: same debris burst as the 1v1 loop
     if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
@@ -4666,6 +4711,8 @@ function ensureTrainingOpponent() {
 
 function resetRound() {
   damageNumbers.length = 0
+  // FEEL PASS (Phase 5): each fighter gets ONE weather-ability trigger per round → re-arm them all now.
+  for (const f of [p1, p2, ...(ffaState?.fighters || [])]) if (f) f._weatherAbilityUsedRound = false
   clearNarutoChoreo()   // release any in-flight Uzumaki Barrage (unlocks the caster) on a fresh round
   clearAllChoreo()      // release any in-flight GENERIC clone-choreography run/formation (rest of the roster)
   sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
@@ -6011,10 +6058,12 @@ function startOnlineHostMatch() {
     slowMo: !!juiceSettings.slowMo,   // JUICE (Phase 2): host-authoritative Slow-Mo → both peers decide identically (LAN-safe)
     hitstopStyle: juiceSettings.hitstopStyle,   // FEEL PASS (Phase 1): host-authoritative Hitstop Style → identical sim freeze on both peers
     weather: _weatherResolveSync(matchConfig.selectedStage || stages[0], seed, juiceSettings.weatherSource),   // FEEL PASS (Phase 4): ONLY the host decides weather (sync: cache/random/manual) → client renders the identical sky, never fetches
+    weatherFx: juiceSettings.weatherOn(),   // FEEL PASS (Phase 5): whether weather (incl. ability-conjured) is enabled → both peers trigger abilities identically
   })
   _juiceSlowmoNetFlag = !!juiceSettings.slowMo   // host uses its own setting
   _hitstopStyleNetFlag = juiceSettings.hitstopStyle   // host uses its own Hitstop Style
   _weatherNetType = null   // the HOST is authoritative via its own source; clients set this from MATCH_SETUP
+  _weatherFxNet = juiceSettings.weatherOn()   // host uses its own weather-enabled flag
   netMatch.begin(online.getSession(), { localSide: "p1" })
   _forcedSeed = seed
   startMatch()
@@ -6031,6 +6080,7 @@ function applyOnlineSetup(m) {
   _juiceSlowmoNetFlag = (typeof m.slowMo === "boolean") ? m.slowMo : null   // JUICE (Phase 2): adopt the host's Slow-Mo decision
   _hitstopStyleNetFlag = (m.hitstopStyle === "classic" || m.hitstopStyle === "scaled") ? m.hitstopStyle : null   // FEEL PASS (Phase 1): adopt the host's Hitstop Style
   _weatherNetType = (typeof m.weather === "string") ? m.weather : null   // FEEL PASS (Phase 4): adopt the host's weather type verbatim (client NEVER fetches)
+  _weatherFxNet = (typeof m.weatherFx === "boolean") ? m.weatherFx : (m.weather != null)   // FEEL PASS (Phase 5): adopt the host's weather-enabled flag (fallback: on if a type was sent)
   netMatch.begin(online.getSession(), { localSide: "p2" })
   _forcedSeed = (m.seed >>> 0)
   startMatch()
@@ -6044,6 +6094,7 @@ function leaveOnline(reason = null) {
   _juiceSlowmoNetFlag = null   // JUICE (Phase 2): back to the local Slow-Mo setting outside a LAN match
   _hitstopStyleNetFlag = null  // FEEL PASS (Phase 1): back to the local Hitstop Style outside a LAN match
   _weatherNetType = null       // FEEL PASS (Phase 4): back to the local Weather Source outside a LAN match
+  _weatherFxNet = null         // FEEL PASS (Phase 5): back to the local weather-enabled flag outside a LAN match
   _pushHitstopStyle()
 }
 
@@ -16608,6 +16659,7 @@ function updateEffectsAndDomains() {
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
       _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
+      _maybeWeatherAbility(spark)   // FEEL PASS (Phase 5): a themed move conjures weather (visual only)
       spark._fresh = false
     }
     spark.timer--
@@ -24804,6 +24856,13 @@ gameLoop()
       weatherNetSend: () => _weatherResolveSync(getStageTheme(), (matchConfig.seed >>> 0) || 1, juiceSettings.weatherSource),
       weatherNetAdopt: (type) => { _weatherNetType = type; return _weatherNetType },
       weatherSetLocation: (loc) => { setLocation(loc); return getLocation() },
+      // FEEL PASS (Phase 5): weather-changing abilities (visual only).
+      weatherAbilityFor: (key, move, isUlt = false) => weatherForAbility(key, move, { isUltimate: !!isUlt }),
+      weatherAbilityState: () => ({ until: _weatherAbilityUntil, cd: _weatherAbilityCd, base: _weatherMatchBase, active: _weatherAbilityUntil > globalFrameCount, holdFrames: WEATHER_ABILITY_HOLD_FRAMES, cdFrames: WEATHER_ABILITY_COOLDOWN_FRAMES, gameplayEffects: WEATHER_ABILITY_GAMEPLAY_EFFECTS }),
+      // Fire the REAL trigger path with a synthesized hit from `who` using `move` — exercises the rules
+      // (enabled / cooldown / once-per-round / stage-allowed) + the conjure. Returns the weather status.
+      weatherAbilityTrigger: (who = "p1", move = "chidori", isUlt = false, force = false) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (force) { _weatherAbilityCd = 0; f._weatherAbilityUsedRound = false } _maybeWeatherAbility({ attackerSide: f.side, moveName: move, category: isUlt ? "ultimate" : "special", blocked: false, x: f.x, y: f.y }); return { ...weatherStatus(), abil: { until: _weatherAbilityUntil, cd: _weatherAbilityCd, usedRound: !!f._weatherAbilityUsedRound } } },
+      weatherAbilityExpire: () => { if (_weatherAbilityUntil > 0) { _weatherAbilityUntil = globalFrameCount; _tickWeather() } return weatherStatus() },   // fast-forward the ~12s hold to test the return-to-base
       bdDecal: (type = "scorch", x = 640, y = 600) => { bdFloorDecal({ type, x, y, r: 26 }); return bdStatus() },
       anticipate: (tier = "medium") => { const f = p1 || p2; const cx = (f?.x || 0) + (f?.w || 60) / 2, cy = (f?.y || 0) + (f?.h || 100) * 0.42; fireJuiceAnticipation(cx, cy, tier); fireJuiceChargeIn({ x: cx, y: cy, frame: globalFrameCount, player: 0, tier }); return juiceFxStatus() },   // DISNEY (Phase B): swell + charge-in
       squashState: (who = "p2") => { const f = who === "p2" ? p2 : p1; return (f && f._hitSquash) ? { t: f._hitSquash.t, applied: _hitSquashAt(f._hitSquash.t) } : null },   // DISNEY (Phase B): target hit-squash

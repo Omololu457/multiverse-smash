@@ -130,7 +130,8 @@ try {
       const ok = await page.evaluate(m => window.__harness.brutality.trigger("p1", true, m), mv);
       await page.waitForTimeout(140);   // let the sprite-bisection capture + halves begin separating
       const s = await page.evaluate(() => window.__harness.brutality.state());
-      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && s.split === true && s.captured === true) good++;
+      const snapOK = s.live ? true : (s.split === true && s.captured === true);   // LIVE finishers animate the real fighters → no snapshot capture expected
+      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && snapOK) good++;
       else bad.push(`${mv}:${JSON.stringify(s)}`);
       if (mv === moves[1][0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
     }

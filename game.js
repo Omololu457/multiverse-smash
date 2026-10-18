@@ -762,7 +762,7 @@ const BRUTALITY_FINISHERS = {
   // sprite: the gun headshot, the Inverted-Spear impale, the rapid-slash dice, the Playful-Cloud bludgeon, a
   // flash-step grab-burst, and the fly-head swarm throw.
   toji: {
-    tojiBullet:       { name: "POINT BLANK",    gore: "gunshot",    palette: GORE_STEEL, flash: "#8a1020" },  // gun → body shots → HEADSHOT, victim frozen on idle, blood from the wound
+    tojiBullet:       { name: "POINT BLANK",    gore: "gunshot",    palette: GORE_STEEL, flash: "#8a1020", live: true, winAction: "tojiGun", loseAction: "idle" },  // LIVE: Toji animates firing; victim stays live/frozen on idle; wounds layer on → HEADSHOT
     tojiChain5:       { name: "INVERTED SPEAR", gore: "spearrun",   palette: GORE_STEEL, flash: "#8a1020" },  // dash in → impale through them with the chain spear
     tojiRapidSlash:   { name: "THOUSAND CUTS",  gore: "slashdance", palette: GORE_STEEL, flash: "#8a1020" },  // dash → zoom → a slash-dance dices the body apart
     tojiPlayfulCloud: { name: "PLAYFUL CLOUD",  gore: "bludgeon",   palette: GORE_STEEL, flash: "#6a3a1a" },  // staff bash → BLUNT bruising pulp (no cutting)
@@ -6124,7 +6124,7 @@ function _tryStartBrutality(winner) {
   // Impact-Hit-standalone chars (obito) are in the eligible set for the Impact Hit infra, but have NO gore
   // finisher table → they must NOT fall through to a KLASSIC brutality. Impact Hit is their entire finisher.
   if (IMPACT_HIT_STANDALONE.has(wKey) && !_hasRealBrutalityEntry(wKey, move)) return false
-  brutalityState.active = true; brutalityState.timer = brutalityState.maxTimer = BRUTALITY_FRAMES
+  brutalityState.active = true; brutalityState.live = false; brutalityState.timer = brutalityState.maxTimer = BRUTALITY_FRAMES
   brutalityState.winnerSide = winner; brutalityState.wKey = wKey
   brutalityState.dir  = winner === "p1" ? 1 : -1
   brutalityState.move = move
@@ -6139,6 +6139,18 @@ function _tryStartBrutality(winner) {
       gunshot: ["./toji_gun_uniform.png"], spearrun: ["./toji_chain_attack_5_uniform.png"], slashdance: ["./toji_rapid_sword_slashes_uniform.png"],
       bludgeon: ["./toji_playful_cloud_dash_attack_uniform.png"], flyheads: ["./toji_fly_head_uniform.png"] }
     for (const _ps of (_pm[brutalityState.finisher?.gore] || [])) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load(s)
+  // ── LIVE finisher: NO snapshot-puppet. BOTH fighters stay LIVE on the stage — the winner performs the real move
+  // animation (winAction) and the loser holds its reaction pose (loseAction); only the gore FX layer on top. This
+  // reads as the move continuing out of the KO — part of the moveset — instead of a separate frozen cutout beat.
+  if (brutalityState.finisher?.live) {
+    brutalityState.live = true; brutalityState.winRef = winF; brutalityState.loseRef = loseF; brutalityState.kbX = 0; brutalityState.sprite = null
+    winF.facing = (loseF.x >= winF.x) ? 1 : -1                    // face the winner at the victim
+    const la = brutalityState.finisher.loseAction || "hurt"; if (loseF.animationData?.[la]) loseF._forceAction = la
+    const wa = brutalityState.finisher.winAction; if (wa && winF.animationData?.[wa]) { winF._forceAction = wa; if (winF.spriteHandler) { winF.spriteHandler.frameIndex = 0; winF.spriteHandler.frameTimer = 0 } }
+    else if (winF.animationData?.win) winF._forceAction = "win"
+    brutalityState._cam0 = { zoom: camera.zoom || 1, targetZoom: camera.targetZoom || camera.zoom || 1, x: camera.x, y: camera.y }
+    return true
+  }
   // Capture the loser in their HURT pose (recoiling) if they have one — reads as "getting hit" better than idle
   // for the knockback lead-in. EXCEPTION: Toji's POINT BLANK wants them frozen on their IDLE frame (shot where
   // they stand). Falls back to whatever pose they're in.
@@ -6474,6 +6486,27 @@ function updateBrutality() {
   const elapsed = b.maxTimer - b.timer
   const sp = b.sprite
   const cell = sp?.px || 4
+  // ── LIVE finisher: frame BOTH live fighters (focusBetween) + push in; spawn blood at the live loser's rect at
+  // the kill beat. The fighters themselves animate via the normal draw loop (winAction / loseAction). ──
+  if (b.live && b._cam0 && b.winRef && b.loseRef) {
+    const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer)
+    const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+    const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2
+    const lcell = Math.max(3, lw / 14)
+    if (camera.focusBetween) { const z = (b._cam0.zoom || 1) + ((b._cam0.zoom || 1) * 0.72) * (1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3))
+      camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z }
+    if (b.finisher?.gore === "gunshot") { const k = Math.round(0.52 * b.maxTimer)   // blood waves at the headshot
+      if (elapsed === k) _spawnBrutalityBlood(b, lcx, (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14, lcell, 1)
+      if (elapsed === k + 12) _spawnBrutalityBlood(b, lcx, lcy, lcell, 2) }
+    const groundY = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh
+    for (const p of b.parts) { if (p.settled) continue; p.x += p.vx; p.y += p.vy; p.vy += (p.g || 0.45); p.vx *= 0.98; if (p.vr) p.rot = (p.rot || 0) + p.vr; if (p.y >= groundY) { p.y = groundY; p.settled = true; p.vx = 0; p.vy = 0; if (p.kind === "arc") p.kind = "drip" } p.life-- }
+    b.parts = b.parts.filter(p => p.settled || p.life > 0)
+    if (--b.timer <= 0) { b.active = false; b.parts = []; b.loseRef = null; b.winRef = null
+      if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
+      b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
+      if (_academyBrutPreview) _academyEndBrutPreview(); else _enterVictoryScreen() }
+    return
+  }
   // MK1-style finish framing: PUSH the camera HARD in on the kill. The normal maxZoom clamp (1.15) is way too
   // wide for a finish, so — exactly like the impact-hit / ultimate crops — we set camera.zoom DIRECTLY past that
   // clamp (NOT via advance(), which would clamp it back). Centre eases onto the loser (where the gore is), with
@@ -7210,6 +7243,32 @@ function _drawBrutalityKnockback(b, sp, leadP) {
     const g = ctx.createRadialGradient(fx, cy, 0, fx, cy, sp.w * 0.7); g.addColorStop(0, "rgba(255,250,235,0.95)"); g.addColorStop(1, "rgba(255,230,180,0)")
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx, cy, sp.w * 0.7, 0, 6.28); ctx.fill(); ctx.restore() }
 }
+// LIVE POINT BLANK FX — layered on the LIVE fighters (Toji animating tojiGun, victim frozen on their real idle
+// sprite). Anchored to the loser's DRAWN rect (_lastDraw*). Draws the wounds, head geyser, muzzle flash + tracer
+// from Toji's gun — the bodies are the real animated sprites, this is only the gore on top.
+function _drawLiveGunshot(b) {
+  const lf = b.loseRef, wf = b.winRef; if (!lf) return
+  const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+  const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
+  const cx = lx + lw / 2, cy = ly + lh / 2, cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1, headY = ly + lh * 0.14
+  const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer)
+  const shots = [0.12, 0.22, 0.32, 0.42], head = 0.52, headHit = t >= head
+  let landed = 0, jerk = 0
+  for (const s of shots) if (t >= s) { landed++; if (t < s + 0.05) jerk = 1 - (t - s) / 0.05 }
+  const gunx = wf ? ((wf._lastDrawX != null ? wf._lastDrawX : wf.x || 0) + (dir > 0 ? (wf._lastDrawW || 40) : 0)) : cx - lw * 2
+  const guny = wf ? ((wf._lastDrawY != null ? wf._lastDrawY : wf.y || 0) + (wf._lastDrawH || 80) * 0.35) : cy
+  _drawGroundPool(ctx, cx, ly + lh, cell, Math.max(0, (t - head) / 0.5) * 0.7)
+  for (let i = 0; i < landed && i < shots.length; i++) { const h = (k) => _brutHash(seed, i, k), wx = cx + (h(1) * 2 - 1) * lw * 0.2, wy = cy + (h(2) * 2 - 1) * lh * 0.2
+    ctx.save(); ctx.fillStyle = "#6e0016"; ctx.beginPath(); ctx.arc(wx, wy, cell * 1.2, 0, 6.28); ctx.fill()
+    const st = t - shots[i]; if (st < 0.3) { ctx.globalAlpha = Math.max(0, 1 - st / 0.3) * 0.8; ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.ellipse(wx + dir * cell * 2, wy, cell * 3, cell * 0.8, 0, 0, 6.28); ctx.fill() } ctx.restore() }
+  if (headHit) { const ht = t - head; ctx.save(); ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.arc(cx, headY, cell * 1.6, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = Math.max(0, 1 - ht / 0.6) * 0.95; ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 100 + i, k), gh = lh * (0.3 + h(1) * 0.5) * Math.min(1, ht * 4); ctx.beginPath(); ctx.ellipse(cx + (h(2) * 2 - 1) * lw * 0.15, headY - gh * 0.5, cell * 1.5, gh * 0.5, 0, 0, 6.28); ctx.fill() } ctx.restore() }
+  if (jerk > 0 || (headHit && (t - head) < 0.06)) { ctx.save(); ctx.globalAlpha = 0.95; ctx.fillStyle = "rgba(255,240,170,0.95)"; ctx.beginPath(); ctx.arc(gunx, guny, lw * 0.22, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = 0.85; ctx.strokeStyle = "rgba(255,240,180,0.9)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(gunx, guny); ctx.lineTo(cx, headHit ? headY : cy); ctx.stroke(); ctx.restore() }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
   const cw = canvas.width, ch = canvas.height
@@ -7234,6 +7293,13 @@ function _drawBrutality() {
   if (flash > 0.01) {
     const rgb = _hexToRgb(fin?.flash || "#960000")
     ctx.save(); ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.55 * flash})`; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  }
+  // LIVE finisher: the fighters are drawn LIVE by the normal pipeline (winAction/loseAction); here we only layer
+  // the gore FX in world space, anchored to their drawn rects. No snapshot-puppet.
+  if (b.live) {
+    ctx.save(); if (typeof camera.applyTransform === "function") camera.applyTransform(ctx, canvas)
+    if (b.finisher?.gore === "gunshot") _drawLiveGunshot(b)
+    ctx.restore(); return
   }
   // SPRITE-BISECTION — WORLD space (inside the camera transform, like the fighters). Two clipped halves of
   // the captured frame topple apart over the freeze beat (cartoon Among-Us-ejection feel), with a procedural
@@ -18608,7 +18674,7 @@ function renderHybridFighter(fighter) {
   if (!fighter) return
   // BRUTALITY sprite-bisection: hide the live loser body during the finisher beat — the two separating split
   // halves (drawn in _drawBrutality) stand in for it. Winner still renders normally (posed win).
-  if (brutalityState.active && brutalityState.loseRef === fighter) return
+  if (brutalityState.active && !brutalityState.live && brutalityState.loseRef === fighter) return   // snapshot finishers hide the live loser (the split halves stand in); LIVE finishers keep it drawn
   // Cinematic hide: the Minato Kurama ultimate hides the REAL caster and draws its own transforming
   // Minato + fox overlay, so the real frozen body doesn't double-render next to the overlay (the
   // "second Minato" bug). minatoKurama sets/clears this flag.
@@ -24821,6 +24887,7 @@ gameLoop()
         // Sprite-bisection render: `split` = the effect is running; `captured` = the loser's frame was snapshotted
         // (else the colored-rect fallback draws); `spriteW`/`spriteH` = captured frame size (varies by char scale).
         split: brutalityState.active, captured: !!brutalityState.sprite, spriteW: brutalityState.sprite?.w || 0, spriteH: brutalityState.sprite?.h || 0,
+        live: !!brutalityState.live,   // LIVE finishers animate the real fighters (no snapshot) → no split/captured
         finisher: brutalityState.finisher ? { name: brutalityState.finisher.name, gore: brutalityState.finisher.gore } : null }),
       // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
       // leave them alive (time-over path). `move` stamps the winner's killing-blow move (as combat.js would),

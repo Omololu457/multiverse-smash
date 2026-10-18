@@ -20105,6 +20105,7 @@ const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
 const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody stage grade + fog + vignette
 // HUD STYLE toggle — Themed (portrait + per-character accent) / Classic (exact previous look). x set by _layoutSettings.
 const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
+const gfxPresetRect     = { x: 0, y: 828, w: 190, h: 30 }   // Phase 1: Low/Standard/Full graphics-preset master (below HUD Style, in the VISUAL FX column)
 // SPARKING ZERO hit sounds — PER-PLAYER pack toggle (P1 left / P2 right), audio-only, saved.
 const hitSndP1Rect      = { x: 0, y: 716, w: 92, h: 30 }
 const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
@@ -20112,7 +20113,7 @@ const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
 // short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
 // draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
 let settingsScroll = 0
-const SETTINGS_CONTENT_BOTTOM = 848   // lowest content row (HUD Style, below Atmosphere); maxScroll derives from the viewport
+const SETTINGS_CONTENT_BOTTOM = 886   // lowest content row (Graphics Preset, below HUD Style); maxScroll derives from the viewport
 function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
 function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
@@ -20174,6 +20175,7 @@ function _layoutSettings() {
   hitSndP1Rect.x      = rx
   hitSndP2Rect.x      = rx + 98
   atmosphereRect.x    = rx
+  gfxPresetRect.x     = rx
 }
 
 function drawSettingsScreen() {
@@ -20303,6 +20305,9 @@ function drawSettingsScreen() {
     fxBox(atmosphereRect, `Atmosphere: ${juiceSettings.atmosphere ? "ON" : "OFF"}`, juiceSettings.atmosphere, "#8b5cf6")
     // THEMED HUD style — Themed (portrait + per-character accent) / Classic (exact previous look).
     fxBox(hudStyleToggleRect, `HUD: ${hudThemed ? "THEMED" : "CLASSIC"}`, hudThemed, "#38bdf8")
+    // GRAPHICS PRESET (Phase 1) — a single click-to-cycle master over the VISUAL FX effect settings.
+    const _gp = juiceSettings.detectGraphicsPreset()
+    fxBox(gfxPresetRect, `Graphics: ${_gp.toUpperCase()}`, _gp !== "custom", "#fbbf24")
     ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
@@ -21533,6 +21538,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, hitSndP1Rect)) { juiceSettings.cycleHitSoundPack(0); break }   // SPARKING ZERO: Sparking ↔ Classic (P1)
       if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
       if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
+      if (pointInRect(mouse.x, _smy, gfxPresetRect)) { juiceSettings.cycleGraphicsPreset(); break }   // Phase 1: Low → Standard → Full
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       if (pointInRect(mouse.x, _smy, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
@@ -22291,8 +22297,9 @@ let _loopLast  = null
 // FPS, frame time (avg/max over 120 frames), draw-call count, live projectile/summon/effect
 // counts, and the loaded-image count. Zero cost when off. Draw calls are counted by wrapping
 // ctx.drawImage ONCE (below) — the counter resets each frame.
-let _debugOverlay = false
-try { _debugOverlay = new URLSearchParams(window.location.search).has("debug") } catch (_) {}
+let _debugOverlay = juiceSettings.perfOverlay   // persisted user Perf Overlay setting (default OFF)
+try { if (new URLSearchParams(window.location.search).has("debug")) _debugOverlay = true } catch (_) {}
+let _lowFpsFrames = 0, _lowGfxChip = false, _lowGfxChipDismissed = false   // FPS auto-suggest Low graphics (Phase 1; offers, never auto-switches)
 // PERSONALITY inspector — off by default; shown via ?personality URL flag or Shift+P toggle.
 let _showPersonality = false
 try { _showPersonality = new URLSearchParams(window.location.search).has("personality") } catch (_) {}
@@ -22375,11 +22382,13 @@ function _drawDebugOverlay() {
   const avg = _frameMsFilled ? sum / _frameMsFilled : 0
   const summons = (typeof activeSummons !== "undefined" ? activeSummons.length : 0)
   const ps = poolStats()._totals
+  const jfx = juiceFxStatus() || {}
   const lines = [
     `FPS ${_fps.toFixed(0)}   frame ${avg.toFixed(2)}ms avg / ${max.toFixed(2)}ms max (120f)`,
     `draw calls ${_drawCallsShown}   images ${loadedSheetCount()}`,
     `projectiles ${activeProjectiles.length}   summons ${summons}   fx ${hitSparks.length}   dmg# ${damageNumbers.length}`,
-    `pool: ${ps.reuses} reused / ${ps.allocs} alloc   free ${ps.free}   (Stage 22C)`
+    `pool: ${ps.reuses} reused / ${ps.allocs} alloc   free ${ps.free}   (Stage 22C)`,
+    `juiceFX particles ${jfx.particles | 0} / ${jfx.cap | 0} cap   bolts ${jfx.bolts | 0}`
   ]
   ctx.save()
   ctx.font = "12px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top"
@@ -22387,6 +22396,31 @@ function _drawDebugOverlay() {
   ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(8, 8, w, h)
   ctx.fillStyle = max > 20 ? "#fca5a5" : "#8ef5a8"   // red if any frame blew the ~16.7ms budget hard
   lines.forEach((ln, i) => ctx.fillText(ln, 16, 14 + i * 16))
+  ctx.restore()
+}
+
+// AUTO-SUGGEST LOW GRAPHICS (Phase 1) — if FPS stays under 50 for ~5s during a match, raise a small,
+// non-blocking chip OFFERING Low graphics. NEVER switches automatically: the player presses F9 to apply Low
+// or F10 to dismiss for the session. Gated by the autoSuggestLow setting, hidden once already on Low, reset
+// outside matches. Render-only; reads _fps.
+function _tickLowGfxSuggest() {
+  if (!juiceSettings.autoSuggestLow || _lowGfxChipDismissed || juiceSettings.detectGraphicsPreset() === "low") {
+    _lowFpsFrames = 0; _lowGfxChip = false; return
+  }
+  const inMatch = gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE
+  if (!inMatch) { _lowFpsFrames = 0; _lowGfxChip = false; return }
+  if (_fps > 0 && _fps < 50) _lowFpsFrames++
+  else _lowFpsFrames = Math.max(0, _lowFpsFrames - 2)   // recover if it bounces back
+  if (_lowFpsFrames >= 300) _lowGfxChip = true          // ~5s @60
+}
+function _drawLowGfxChip() {
+  const cw = canvas.width, w = 330, h = 40, x = (cw - w) / 2, y = canvas.height - h - 14
+  ctx.save()
+  ctx.fillStyle = "rgba(10,14,22,0.88)"; ctx.fillRect(x, y, w, h)
+  ctx.strokeStyle = "#ffd24a"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
+  ctx.textBaseline = "middle"; ctx.textAlign = "left"
+  ctx.fillStyle = "#ffe08a"; ctx.font = "700 13px Arial"; ctx.fillText("Low FPS detected", x + 12, y + 14)
+  ctx.fillStyle = "#e2e8f0"; ctx.font = "12px Arial";    ctx.fillText("F9 = Low graphics   \u00b7   F10 = dismiss", x + 12, y + 29)
   ctx.restore()
 }
 
@@ -22422,14 +22456,17 @@ function gameLoop(now) {
     for (let i = 1; i < aiVsAiState.speed; i++) { globalFrameCount++; updateCurrentState() }
   }
   renderCurrentState()
+  // FPS is tracked EVERY frame now (the perf overlay AND the low-fps auto-suggest both read _fps).
+  _fpsEma = _fpsEma * 0.9 + (elapsed > 0 ? Math.min(1000 / elapsed, 240) : _fpsEma) * 0.1
+  _fps = _fpsEma
   if (_debugOverlay) {
     const t1 = (typeof performance !== "undefined" ? performance.now() : 0)
     _pushFrameMs(t1 - _t0)                          // this pass's compute+render cost
     _drawCallsShown = _drawCalls; _drawCalls = 0    // draw.Image calls this frame (reset for next)
-    _fpsEma = _fpsEma * 0.9 + (elapsed > 0 ? Math.min(1000 / elapsed, 240) : _fpsEma) * 0.1
-    _fps = _fpsEma
     _drawDebugOverlay()                             // drawn ON TOP (its own drawImage calls aren't counted — text only)
   }
+  _tickLowGfxSuggest()                              // AUTO-SUGGEST LOW GRAPHICS (offers, never switches)
+  if (_lowGfxChip) _drawLowGfxChip()
   if (_showPersonality) { try { personality.drawPersonalityPanel(ctx, canvas) } catch (_) {} }
   endInputFrame()
 }
@@ -22521,6 +22558,16 @@ window.addEventListener("keydown", e => {
   // every screen; placed AFTER the text-entry captures (devcode/rebind/account) so typing an "f" there is
   // never hijacked. "f" is not a gameplay/rebindable key (ALLOWED_KEYS excludes it), so reserving it is safe.
   if (key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); toggleFullscreen(); return }
+
+  // PERFORMANCE OVERLAY — "F8" toggles the FPS / frame-time / counts readout (default OFF, persisted). Global,
+  // placed with the other global shortcuts after the text-entry captures so typing an 8 is never hijacked.
+  if (key === "f8") { e.preventDefault(); _debugOverlay = !_debugOverlay; juiceSettings.setPerfOverlay(_debugOverlay); return }
+
+  // LOW-GRAPHICS AUTO-SUGGEST chip response — F9 applies Low (never automatic), F10 dismisses for the session.
+  if (_lowGfxChip) {
+    if (key === "f9")  { e.preventDefault(); juiceSettings.applyGraphicsPreset("low"); _lowGfxChip = false; _lowFpsFrames = 0; return }
+    if (key === "f10") { e.preventDefault(); _lowGfxChip = false; _lowGfxChipDismissed = true; return }
+  }
 
   // PERSONALITY inspector toggle — Shift+P (Shift keeps it clear of any plain gameplay key).
   if (key === "p" && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); _showPersonality = !_showPersonality; return }
@@ -25156,6 +25203,8 @@ gameLoop()
     charUnlocked: (key) => isCharUnlocked(key),
     markTowerCleared: (tier = "tier2") => { setTowerTierCleared(tier); return getTowerCleared() },
     // ── PROFILING (Stage 22D) ─────────────────────────────────────────────────
+    lowGfxChip:      () => ({ shown: _lowGfxChip, lowFrames: _lowFpsFrames, dismissed: _lowGfxChipDismissed, preset: juiceSettings.detectGraphicsPreset() }),
+    forceLowGfxChip: () => { _lowGfxChip = true; return true },   // test-only: raise the auto-suggest chip
     perf: () => ({ debugOverlay: _debugOverlay, loadedImages: loadedSheetCount(),
       projectiles: activeProjectiles.length, summons: (typeof activeSummons !== "undefined" ? activeSummons.length : 0),
       fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown, pool: poolStats() }),

@@ -6129,8 +6129,9 @@ function _tryStartBrutality(winner) {
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move, winF)   // per-CHARACTER, per-MOVE signature + active-power TRAIT (KLASSIC if no match)
-  { const _pg = brutalityState.finisher?.gore, _ps = _pg === "meteor" ? "./madara_tengai_meteor_uniform.png" : (_pg === "susanoograb" || _pg === "susanooslam") ? "./madara2_susanoo_grab_air_uniform.png" : (_pg === "susanooblade") ? "./madara_complete_atk1_uniform.png" : null
-    if (_ps) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load
+  { const _pm = { meteor: ["./madara_tengai_meteor_uniform.png"], susanoograb: ["./madara2_susanoo_grab_air_uniform.png"], susanooslam: ["./madara2_susanoo_grab_air_uniform.png"],
+      susanooblade: ["./madara_complete_atk1_uniform.png"], firearrow: ["./sukuna_firearrow_fire_sheet.png"], domainslash: ["./alt_sukuna_domain3.png"] }
+    for (const _ps of (_pm[brutalityState.finisher?.gore] || [])) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load(s)
   // Capture the loser in their HURT pose (recoiling from the blow) if they have one — reads as "getting hit"
   // far better than an idle frame for the knockback lead-in. Falls back to whatever pose they're in.
   if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
@@ -6484,6 +6485,7 @@ function updateBrutality() {
     else if (g === "squish" || g === "pull") { ZT = 1.12 }                                      // WIDE — follow the victim blasted/yanked across the map (lx already = the landing spot)
     else if (g === "susanooblade") { ZT = 1.3; ly -= spH * 0.55 }                              // pull up/out to frame the towering avatar + its sword
     else if (g === "decap") { ZT = 2.0; ly -= spH * 0.28 }                                     // tight on the head/neck for the chop
+    else if (g === "firearrow") { ZT = 1.4; if (ft < 0.34) lx -= (b.dir || 1) * spW * 0.95 }   // frame Sukuna casting Fuga + the victim
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
     camera.targetX = camera.x; camera.targetY = camera.y
@@ -6963,11 +6965,14 @@ function _drawGoreDecap(b, sp, t) {
 function _drawGoreSlashStorm(b, sp, t, domain) {
   const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
   const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
-  if (domain) { ctx.save(); ctx.globalAlpha = Math.min(0.72, t * 2.4) * (t > 0.85 ? Math.max(0, 1 - (t - 0.85) / 0.15) : 1)   // the domain void establishing
-    ctx.fillStyle = "rgba(16,2,6,0.92)"; ctx.fillRect(sp.x - sp.w * 3, sp.y - sp.h * 2, sp.w * 7, sp.h * 5)
-    ctx.strokeStyle = "rgba(180,20,28,0.5)"; ctx.lineWidth = 2
-    for (let i = 0; i < 5; i++) { const yy = sp.y - sp.h + i * sp.h * 0.7; ctx.beginPath(); ctx.moveTo(sp.x - sp.w * 3, yy); ctx.lineTo(sp.x + sp.w * 4, yy + sp.h * 0.3); ctx.stroke() }
-    ctx.restore() }
+  if (domain) {   // MALEVOLENT SHRINE — the void establishes, then the REAL shrine backdrop looms behind the victim
+    const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
+    ctx.save(); ctx.globalAlpha = estA * 0.9; ctx.fillStyle = "rgba(12,2,5,0.96)"; ctx.fillRect(sp.x - sp.w * 4, sp.y - sp.h * 3, sp.w * 9, sp.h * 6); ctx.restore()
+    const shrineH = sp.h * 3.2
+    const drew = _brutSheetFrame(ctx, "./alt_sukuna_domain3.png", 1, 0, cx, gy - shrineH * 0.5, shrineH, 1, estA * 0.92, 0.5)
+    if (!drew) { ctx.save(); ctx.globalAlpha = estA * 0.5; ctx.strokeStyle = "rgba(180,20,28,0.5)"; ctx.lineWidth = 2   // fallback void lines
+      for (let i = 0; i < 5; i++) { const yy = sp.y - sp.h + i * sp.h * 0.7; ctx.beginPath(); ctx.moveTo(sp.x - sp.w * 3, yy); ctx.lineTo(sp.x + sp.w * 4, yy + sp.h * 0.3); ctx.stroke() } ctx.restore() }
+  }
   const slashStart = domain ? 0.3 : 0.06, slashEnd = 0.52
   const prog = Math.min(1, Math.max(0, (t - slashStart) / (slashEnd - slashStart)))
   if (t < 0.56) {   // the victim, frozen + flashing as the cuts accumulate
@@ -6989,13 +6994,15 @@ function _drawGoreSlashStorm(b, sp, t, domain) {
 function _drawGoreFireArrow(b, sp, t) {
   const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1, dir = b.dir || 1
   const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h), pierce = Math.min(1, t / 0.3)
-  if (t < 0.34) {   // the victim visible until the arrow passes through
+  if (t < 0.34) {   // SUKUNA casting Fuga — the REAL firearrow_fire sprite (4 frames) on the winner side, flame toward the victim
     ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
-    const ax = (cx - dir * sp.w * 4.5) + dir * sp.w * 5.2 * pierce
-    ctx.save()
-    for (let i = 0; i < 9; i++) { const tt = i / 9; ctx.globalAlpha = (1 - tt) * 0.85; ctx.fillStyle = i % 2 ? "rgba(255,140,30,0.6)" : "rgba(255,90,20,0.5)"
-      ctx.beginPath(); ctx.arc(ax - dir * sp.w * 0.6 * i * 0.14, cy, sp.w * (0.2 - tt * 0.15), 0, 6.28); ctx.fill() }
-    ctx.globalAlpha = 1; ctx.fillStyle = "rgba(255,238,160,0.97)"; ctx.beginPath(); ctx.arc(ax, cy, sp.w * 0.11, 0, 6.28); ctx.fill(); ctx.restore()
+    const castFrame = Math.min(3, Math.floor(pierce * 4)), castX = cx - dir * sp.w * 1.9
+    const drew = _brutSheetFrame(ctx, "./sukuna_firearrow_fire_sheet.png", 4, castFrame, castX, cy, sp.h * 1.7, dir, Math.min(1, t < 0.05 ? t / 0.05 : 1), 0.4)
+    if (!drew) {   // fallback: a code flame bolt streaking in
+      const ax = (cx - dir * sp.w * 4.5) + dir * sp.w * 5.2 * pierce; ctx.save()
+      for (let i = 0; i < 9; i++) { const tt = i / 9; ctx.globalAlpha = (1 - tt) * 0.85; ctx.fillStyle = i % 2 ? "rgba(255,140,30,0.6)" : "rgba(255,90,20,0.5)"
+        ctx.beginPath(); ctx.arc(ax - dir * sp.w * 0.6 * i * 0.14, cy, sp.w * (0.2 - tt * 0.15), 0, 6.28); ctx.fill() }
+      ctx.globalAlpha = 1; ctx.fillStyle = "rgba(255,238,160,0.97)"; ctx.beginPath(); ctx.arc(ax, cy, sp.w * 0.11, 0, 6.28); ctx.fill(); ctx.restore() }
   } else {   // ignite + fire burst + char away
     const bt = Math.min(1, (t - 0.3) / 0.2), fl = Math.max(0, 1 - (t - 0.3) / 0.6), ash = Math.min(1, Math.max(0, (t - 0.55) / 0.45))
     if (t > 0.5) { ctx.save(); ctx.globalAlpha = Math.min(0.6, t - 0.5); ctx.fillStyle = "rgba(18,10,8,0.85)"; ctx.beginPath(); ctx.ellipse(cx, gy, sp.w * 0.7, sp.w * 0.2, 0, 0, 6.28); ctx.fill(); ctx.restore() }

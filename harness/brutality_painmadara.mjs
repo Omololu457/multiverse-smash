@@ -15,7 +15,7 @@ let PASS = 0, FAIL = 0; const ok = (c, m) => { (c ? PASS++ : FAIL++); console.lo
 async function wf(n) { const s = (await page.evaluate(() => window.__harness.state())).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 
 const CASES = {
-  pain: [["painAlmightyPush", "ALMIGHTY PUSH", "squish"], ["ultimate", "CHIBAKU TENSEI", "meteor"]],
+  pain: [["painAlmightyPush", "ALMIGHTY PUSH", "squish"], ["painAlmightyPull", "ALMIGHTY PULL", "pull"], ["ultimate", "CHIBAKU TENSEI", "meteor"]],
   madara: [["madaraTengaiMeteor", "TENGAI SHINSEI", "meteor"], ["madaraSusanooPunch", "SUSANO'O GRIP", "susanoograb"],
            ["heavy", "SUSANO'O SLAM", "susanooslam"], ["madaraFireball", "GREAT FIREBALL", "fireball"]]
 }

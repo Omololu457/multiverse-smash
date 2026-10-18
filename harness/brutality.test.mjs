@@ -51,7 +51,7 @@ const TABLE = {
   sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
   itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
   vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
-  pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + meteor
+  pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, painAlmightyPull:{n:"ALMIGHTY PULL",g:"pull"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + pull + meteor
   byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
 };

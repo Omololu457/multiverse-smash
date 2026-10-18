@@ -891,6 +891,7 @@ const BRUTALITY_FINISHERS = {
   // wound-core(bone) + blood engine (no new primitives). Steel palette for the originals, red for gravity.
   pain: {
     painAlmightyPush: { name: "ALMIGHTY PUSH",  gore: "squish", palette: GORE_RED,   flash: "#c81028" },  // 神羅天征 — a repulsion wave SLAMS them flat into a pancake/pool
+    painAlmightyPull: { name: "ALMIGHTY PULL",  gore: "pull",   palette: GORE_RED,   flash: "#c81028" },  // 万象天引 — YANKED across the map INTO Pain → bursts into a pool of blood on impact
     ultimate:         { name: "CHIBAKU TENSEI", gore: "meteor", palette: GORE_STEEL, flash: "#2a3450" },  // 地爆天星 — a black planetoid drops and crushes them in a crater
   },
   // BYAKUYA — Senbonzakura's thousand petal-blades. (light thrust, heavy cleave, byakuyaPetal scatter special)
@@ -950,7 +951,7 @@ const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-p
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
 // time `t` is REMAPPED to 0..1 over the post-lead-in portion, so each gore renderer plays its full arc.
-function _brutLead(b) { const g = b?.finisher?.gore; return g === "squish" ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
+function _brutLead(b) { const g = b?.finisher?.gore; return (g === "squish" || g === "pull") ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
 function _brutTat(b, elapsed) { const tr = Math.min(1, elapsed / b.maxTimer), L = _brutLead(b); return L < 1 ? Math.max(0, (tr - L) / (1 - L)) : tr }
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6141,7 +6142,11 @@ function _tryStartBrutality(winner) {
   // How far the knockback slides the victim (away from the winner). PAIN's ALMIGHTY PUSH (squish) blasts them ALL
   // the way across the map to the far wall, so its knockback is huge — the generic lead-in flies them there (in
   // their hit pose) and the squish then flattens them into a pool at the wall.
-  brutalityState.kbX = brutalityState.dir * ((brutalityState.sprite?.w || 90) * (brutalityState.finisher?.gore === "squish" ? 6.0 : 1.15))
+  { const _gg = brutalityState.finisher?.gore, _spw = brutalityState.sprite?.w || 90
+    if (_gg === "pull") {   // ALMIGHTY PULL — yank the victim ALL the way INTO the winner (Pain); burst happens on contact
+      const wx = (winF.x || 0) + (winF.width || winF.w || 60) / 2, lxc = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
+      brutalityState.kbX = (wx - lxc)
+    } else brutalityState.kbX = brutalityState.dir * (_spw * (_gg === "squish" ? 6.0 : 1.15)) }
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   // MK1-style finish framing: remember the camera so the push-in (updateBrutality) can be restored on exit.
@@ -6474,7 +6479,7 @@ function updateBrutality() {
       const liftP = Math.min(1, Math.max(0, (ft - 0.22) / 0.24)), slamP = Math.min(1, Math.max(0, (ft - 0.46) / 0.12))
       ly -= spH * 1.2 * liftP * (1 - slamP) }
     else if (g === "susanoograb") { ZT = 1.55; ly -= spH * 0.3 }                               // show the hand coming down from above
-    else if (g === "squish") { ZT = 1.12 }                                                     // WIDE — see the victim blasted across the map, camera follows to the wall (lx already = far spot)
+    else if (g === "squish" || g === "pull") { ZT = 1.12 }                                      // WIDE — follow the victim blasted/yanked across the map (lx already = the landing spot)
     else if (g === "susanooblade") { ZT = 1.3; ly -= spH * 0.55 }                              // pull up/out to frame the towering avatar + its sword
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
     camera.x += (lx - camera.x) * 0.2; camera.y += (ly - camera.y) * 0.25
@@ -6739,9 +6744,26 @@ function _drawGoreSquish(b, sp, t) {
   _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.4) / 0.6) * 0.9 + (t > 0.4 ? 0.15 : 0))
   if (syy > 0.12) { ctx.save(); ctx.translate(cx, gy); ctx.scale(sxx, syy); ctx.translate(-cx, -gy); ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h); ctx.restore() }
   if (t >= 0.42) { const bt = Math.min(1, (t - 0.42) / 0.2); ctx.save(); ctx.globalAlpha = Math.min(1, bt * 1.4)
-    _drawBloodSplat(ctx, cx, gy - cell * 2, Math.min(230, sp.w * (0.9 + bt * 0.8)), Math.max(0, 1 - (t - 0.42) / 0.5))
-    _drawViscera(ctx, cx + dir * sp.w * 0.4, gy - sp.h * 0.1, sp.w * 0.32, sp.h * 0.2, Math.min(1, bt), seed)
-    _drawViscera(ctx, cx - dir * sp.w * 0.4, gy - sp.h * 0.1, sp.w * 0.32, sp.h * 0.2, Math.min(1, bt), seed + 7); ctx.restore() }
+    _drawBloodSplat(ctx, cx, gy - cell * 2, Math.min(230, sp.w * (0.9 + bt * 0.8)), Math.max(0, 1 - (t - 0.42) / 0.5)); ctx.restore() }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+}
+// PAIN — ALMIGHTY PULL (Bansho Ten'in): the victim is YANKED across the map into Pain (the generic lead-in flies
+// them in, hit-posed) and BURSTS into a pool of blood on contact — a radial blood explosion + spreading pool.
+function _drawGorePull(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, seed = b.seed || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
+  const burst = Math.min(1, Math.max(0, (t - 0.12) / 0.14))        // arrives → bursts over t 0.12→0.26
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - 0.12) / 0.5) * 0.95 + (t > 0.12 ? 0.15 : 0))
+  if (burst < 1) { const s = 1 - 0.3 * burst                       // the body on impact, crumpling then gone
+    ctx.save(); ctx.globalAlpha = 1 - burst; ctx.translate(cx, cy); ctx.scale(s, s); ctx.translate(-cx, -cy); ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h); ctx.restore() }
+  if (t > 0.1 && t < 0.42) { const bt = (t - 0.1) / 0.32          // the BURST — radial blood explosion outward
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt) * 0.95
+    for (let i = 0; i < 22; i++) { const h = (k) => _brutHash(seed, i, k), a = h(1) * 6.28, rr = sp.w * (0.3 + bt * 2.6) * (0.5 + h(2))
+      ctx.fillStyle = i % 2 ? BLOOD_REDS[0] : BLOOD_REDS[1]
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.85, Math.max(3, cell * (0.8 + h(3) * 1.6)), 0, 6.28); ctx.fill() }
+    ctx.restore() }
+  if (burst > 0.02) _drawBloodSplat(ctx, cx, cy, Math.min(240, sp.w * (0.9 + burst * 0.6)), burst * Math.max(0, 1 - (t - 0.26) / 0.6))
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }
@@ -6778,9 +6800,7 @@ function _drawGoreMeteor(b, sp, t) {
     if (bt < 1) { ctx.save(); ctx.globalAlpha = (1 - bt); const g = ctx.createRadialGradient(cx, gy, 0, cx, gy, sp.w * (1 + bt * 1.6))
       g.addColorStop(0, "rgba(255,245,220,0.95)"); g.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`); g.addColorStop(1, "rgba(0,0,0,0)")
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, gy, sp.w * (1 + bt * 1.6), 0, 6.28); ctx.fill(); ctx.restore() }
-    if (t > impact + 0.02) { _drawBloodSplat(ctx, cx, gy - cell, Math.min(240, sp.w * 1.1), Math.max(0, 1 - (t - impact) / 0.5))
-      _drawViscera(ctx, cx + sp.w * 0.5, gy - sp.h * 0.05, sp.w * 0.28, sp.h * 0.15, Math.min(1, bt), seed)
-      _drawViscera(ctx, cx - sp.w * 0.5, gy - sp.h * 0.05, sp.w * 0.28, sp.h * 0.15, Math.min(1, bt), seed + 3) }
+    if (t > impact + 0.02) _drawBloodSplat(ctx, cx, gy - cell, Math.min(240, sp.w * 1.1), Math.max(0, 1 - (t - impact) / 0.5))
     const rs = sp.w * 1.3                                                // the settled meteor sitting in the crater (REAL sprite; fallback polygon)
     const drewSettled = _brutSheetFrame(ctx, "./madara_tengai_meteor_uniform.png", 2, 1, cx, gy - rs * 0.35, rs * 2.3, 1, 1, 0.5)
     if (!drewSettled) { ctx.save(); ctx.fillStyle = "#241d2a"; ctx.beginPath(); const NR = 10
@@ -6843,9 +6863,7 @@ function _drawGoreSusanoo(b, sp, t, slam) {
   if (bodyS > 0.16) { ctx.save(); ctx.translate(cx, my); ctx.scale(bodyS, bodyS); ctx.translate(-cx, -my); ctx.drawImage(sp.canvas, sp.x, my - sp.h / 2, sp.w, sp.h); ctx.restore() }
   // blood squeezing out + the mush pile (brain + guts) once crushed
   if (mushP > 0.05) { const gyMush = slam ? gy : my + sp.h * 0.3; ctx.save(); ctx.globalAlpha = Math.min(1, mushP * 1.3)
-    _drawBloodSplat(ctx, cx, gyMush - cell, Math.min(210, sp.w * (0.7 + mushP * 0.7)), Math.min(1, mushP))
-    _drawBrain(ctx, cx + sp.w * 0.12, gyMush - sp.h * 0.08, Math.max(10, sp.w * 0.22), Math.min(1, mushP))
-    _drawViscera(ctx, cx - sp.w * 0.18, gyMush - sp.h * 0.12, sp.w * 0.3, sp.h * 0.2, Math.min(1, mushP), seed); ctx.restore() }
+    _drawBloodSplat(ctx, cx, gyMush - cell, Math.min(210, sp.w * (0.7 + mushP * 0.7)), Math.min(1, mushP)); ctx.restore() }
   // THE SUSANO'O on top — Madara's OWN partial-Susano'o grab sprite (madara2_susanoo_grab_air): Madara + ribcage
   // + the grabbing arm. Frame 0 = reaching, frame 1 = gripped. The hand (≈85% along the sheet) lands on the body;
   // the sprite follows as it's squeezed / lifted / slammed. Falls back to the code-drawn hand if unloaded.
@@ -6880,7 +6898,6 @@ function _drawGoreSusanooBlade(b, sp, t) {
   if (t >= impact) { const bt = Math.min(1, (t - impact) / 0.18)
     _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - impact) / 0.5) * 0.9 + 0.15)
     _drawBloodSplat(ctx, cx, cy, Math.min(230, sp.w * 1.0), Math.max(0, 1 - (t - impact) / 0.5))
-    _drawViscera(ctx, cx, cy + sp.h * 0.08, sp.w * 0.42, sp.h * 0.42, Math.min(1, bt), seed)
     if (t < impact + 0.42) _drawBone(ctx, cx, cy, Math.min(120, sp.h * 0.42), Math.min(1, bt) * Math.max(0, 1 - (t - impact) / 0.42)) }
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
@@ -6994,7 +7011,7 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade"])
+  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade"])
   if (sp && sp.canvas && _NEWG.has(_g)) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
@@ -7002,6 +7019,7 @@ function _drawBrutality() {
     else if (_g === "repulse") _drawGoreOrb(b, sp, t, -1)   // Gojo RED — repulsion: body blasted apart outward
     else if (_g === "annihilate") _drawGoreAnnihilate(b, sp, t)   // Gojo HOLLOW PURPLE — the beam erases the body
     else if (_g === "squish") _drawGoreSquish(b, sp, t)          // Pain ALMIGHTY PUSH — slammed flat into a pancake
+    else if (_g === "pull") _drawGorePull(b, sp, t)             // Pain ALMIGHTY PULL — yanked in → burst into a pool
     else if (_g === "meteor") _drawGoreMeteor(b, sp, t)          // Tengai Shinsei / Chibaku Tensei — meteor crush
     else if (_g === "susanoograb") _drawGoreSusanoo(b, sp, t, false)  // Madara SUSANO'O GRIP — ethereal hand squeeze
     else if (_g === "susanooslam") _drawGoreSusanoo(b, sp, t, true)   // Madara SUSANO'O SLAM — lift + slam to mush
@@ -7055,8 +7073,6 @@ function _drawBrutality() {
     if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(172, Math.max(58, sp.w * 0.62)), splatA)
     // BONE (severed spine stub) — big, simple, bold; centred in the daylight between the halves.
     if (boneA > 0.02) _drawBone(ctx, seamX, cy + fall, Math.min(150, Math.max(46, sp.h * 0.42)), boneA)
-    // VISCERA — guts spilling from the wound, hanging into the gap in FRONT of the spine (anatomy, cartoonish).
-    if (woundA > 0.02) _drawViscera(ctx, seamX, cy + fall + sp.h * 0.1, Math.max(26, sp.w * 0.42), sp.h * 0.5, Math.min(1, woundA * 1.1), b.seed || 1)
     // A FEW BIG DRIPS on top (bold blobs, world-space).
     for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
     ctx.globalAlpha = 1
@@ -21367,7 +21383,7 @@ function _academyLessons() {
     if (be.length && BRUTALITY_ELIGIBLE.has((academyCharKey || "").toLowerCase())) {
       const GORE_DESC = { bisect: "Clean vertical split", watercut: "Diagonal water-blade slice", crush: "Engulfed + crushed",
         drag: "Dragged into a sealing husk", implode: "Imploded to a singularity", repulse: "Blasted apart outward", annihilate: "Erased by the beam",
-        squish: "Slammed flat into a pancake", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
+        squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,

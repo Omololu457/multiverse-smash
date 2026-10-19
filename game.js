@@ -1090,18 +1090,18 @@ const BRUTALITY_FINISHERS = {
     up:         { name: "SUPERNOVA",     gore: "solarrun",     palette: GORE_SPEED, flash: "#ff8a2a", live: true, winAction: "run", loseAction: "hurt" },  // run into the SUN → incineration to ash
   },
   // DEMON SLAYER — canonical Breathing-Style finishers, each a BESPOKE live renderer:
-  //   Rengoku flametiger (Ninth-Form flame tiger → incinerate), Zenitsu thunderflash (one god-speed bolt-dash →
+  //   Rengoku flamecleave (leap up → flaming slam → vertical split), Zenitsu thunderdash (dash through → bolt split → cower),
   //   electrocute → split), Shinobu poisonmelt (stinger stabs → wisteria veins → dissolve), Inosuke beastmaul
   //   (dual-blade frenzy → torn to chunks), Nezuko bloodburst (claw → Exploding-Blood pink detonation).
   // Keyed off each one's RELIABLE createAttackFromMove move (cinematic ults can skip the _killingBlowMove stamp).
   rengoku: {
-    heavy:            { name: "FLAME BREATHING", gore: "flametiger", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "heavy",            loseAction: "hurt" },
-    rengokuSuperDown: { name: "FLAME BREATHING", gore: "flametiger", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "rengokuSuperDown", loseAction: "hurt" },
-    ultimate:         { name: "NINTH FORM: RENGOKU", gore: "flametiger", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "ultimate",     loseAction: "hurt" },
+    heavy:            { name: "FLAME BREATHING", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "heavy",            loseAction: "hurt" },
+    rengokuSuperDown: { name: "FLAME BREATHING", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "rengokuSuperDown", loseAction: "hurt" },
+    ultimate:         { name: "NINTH FORM: RENGOKU", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "ultimate",     loseAction: "hurt" },
   },
   zenitsu: {
-    zenUltimate:    { name: "THUNDER BREATHING",   gore: "thunderflash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenUltimate",    loseAction: "hurt" },
-    zenThunderclap: { name: "THUNDERCLAP & FLASH", gore: "thunderflash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenThunderclap", loseAction: "hurt" },
+    zenUltimate:    { name: "THUNDER BREATHING",   gore: "thunderdash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenUltimate",    loseAction: "hurt" },
+    zenThunderclap: { name: "THUNDERCLAP & FLASH", gore: "thunderdash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenThunderclap", loseAction: "hurt" },
   },
   shinobu: {
     shinobuPoison: { name: "INSECT BREATHING", gore: "poisonmelt", palette: GORE_INSECT, flash: "#e0c0ff", live: true, winAction: "shinobuPoison", loseAction: "hurt" },
@@ -6718,7 +6718,10 @@ function updateBrutality() {
   if (b.live && b._cam0 && b.winRef && b.loseRef) {
     const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
-    if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x }   // remember resting spots (restored on exit)
+    if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x; b._liveWinY0 = wf.y }   // remember resting spots (restored on exit)
+    if (g === "flamecleave" || g === "thunderdash") {   // choreographed SPLIT finishers: snapshot the foe (after idle renders) then hide it → the captured halves stand in so the body can actually cleave
+      if (!b._capSprite && elapsed >= 2) b._capSprite = _captureLoserSprite(lf)
+      if (b._capSprite) lf._brutHidden = true }
     if (b._narutoChoreo && isNarutoChoreoActive()) { updateNarutoChoreo(() => {})   // advance the REAL shadow-clone choreography (no-op fireHit — the foe is already KO'd); clones render via getNarutoChoreoBodies()
       wf.x = (b._liveWinX0 != null ? b._liveWinX0 : wf.x)                            // keep the real Naruto PLANTED in its finisher pose (physics is frozen → don't let the choreography's spike-teleport float him)
       const _wa = b.finisher?.winAction; wf._forceAction = (_wa && wf.animationData?.[_wa]) ? _wa : (wf.animationData?.win ? "win" : wf._forceAction) }
@@ -6741,6 +6744,18 @@ function updateBrutality() {
     if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "bodyflicker" || g === "shisuisusanoo" || g === "flickerslice" || g === "kotoamatsukami" || g === "bungeegum") { /* winner planted / carried (Hisoka stays put and reels the foe in) */ }
     else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
       const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
+    else if (g === "flamecleave") {   // RENGOKU: LEAP up out of frame → SLAM straight down onto the foe → land beside the body
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, sY = b._liveWinY0, apexX = sX - (b.dir || 1) * lw * 0.15, apexY = sY - lh * 3.6
+      if (t < 0.3) { const u = t / 0.3; wf.x = sX + (apexX - sX) * u; wf.y = sY - u * u * lh * 3.6; if (wf.animationData?.jump) wf._forceAction = "jump" }
+      else if (t < 0.44) { const d = (t - 0.3) / 0.14; wf.x = apexX + (foeCx - (b.dir || 1) * lw * 0.15 - apexX) * d; wf.y = apexY + (b._liveLoseY0 - apexY) * (d * d); if (wf.animationData?.heavy) wf._forceAction = "heavy" }
+      else { wf.x = foeCx - (b.dir || 1) * lw * 0.3; wf.y = b._liveLoseY0; if (wf.animationData?.heavy) wf._forceAction = "heavy" }
+      wf.facing = (b.dir || 1) }
+    else if (g === "thunderdash") {   // ZENITSU: crouch/charge → DASH through to the far side → COWER (tremble, facing the body; stays close enough to stay framed)
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, farX = foeCx + (b.dir || 1) * lw * 0.9, cowerX = foeCx + (b.dir || 1) * lw * 0.62
+      if (t < 0.25) { wf.x = sX; wf.facing = (b.dir || 1); if (wf.animationData?.zenUltimate) wf._forceAction = "zenUltimate" }
+      else if (t < 0.42) { const d = (t - 0.25) / 0.17; wf.x = sX + (farX - sX) * d; wf.facing = (b.dir || 1); if (wf.animationData?.dash) wf._forceAction = "dash" }
+      else { const back = Math.min(1, (t - 0.42) / 0.16); wf.x = farX + (cowerX - farX) * back + (t > 0.58 ? Math.sin(elapsed * 1.4) * lw * 0.04 : 0); wf.facing = -(b.dir || 1); if (t > 0.58 && wf.animationData?.guard) wf._forceAction = "guard" }
+      wf.y = b._liveWinY0 }
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
       const gap = (g === "gunshot" || g === "gundecap" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
       const target = loseCx - (b.dir || 1) * gap
@@ -6750,7 +6765,7 @@ function updateBrutality() {
       const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
       // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
       // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
-      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami"
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "flamecleave" || g === "thunderdash"
       if (foeCentered) {
         const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
         let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
@@ -6766,6 +6781,8 @@ function updateBrutality() {
         else if (g === "tbb") { ax = lcx - (b.dir || 1) * lw * 0.6; ay = lcy - lh * 0.6; ZT = 1.2 }   // frame Kurama + the blast
         else if (g === "shisuisusanoo") { ax = lcx - (b.dir || 1) * lw * 0.5; ay = lcy - lh * 0.8; ZT = 1.25 }   // frame the towering emerald avatar
         else if (g === "kotoamatsukami") { ay = lcy - lh * 0.9; ZT = 1.2 }      // frame the giant Mangekyō eye above the entranced foe
+        else if (g === "flamecleave") { ay = lcy - lh * 0.25; ZT = 1.35 }        // hold on the foe + room above for Rengoku to slam in from the top
+        else if (g === "thunderdash") { ax = lcx + (b.dir || 1) * lw * 0.4; ay = lcy - lh * 0.05; ZT = 1.12 }   // WIDE + shifted toward Zenitsu's landing side so the split AND his cower stay framed
         else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
         const zt = base + (ZT - base) * pin
         camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
@@ -6789,7 +6806,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flametiger" || g === "thunderflash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flamecleave" || g === "thunderdash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -6801,7 +6818,8 @@ function updateBrutality() {
     if (--b.timer <= 0) { b.active = false; b.parts = []
       if (b._liveLoseX0 != null) { lf.x = b._liveLoseX0; lf.y = b._liveLoseY0 }   // restore the loser's position (throw/knock)
       if (b._liveWinX0 != null) wf.x = b._liveWinX0                                // restore the winner's position (step-in)
-      b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null; b._portalWX = null; b._portalGY = null
+      if (b._liveWinY0 != null) wf.y = b._liveWinY0                                // restore the winner's Y (leap/slam choreography)
+      b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null; b._liveWinY0 = null; b._capSprite = null; b._portalWX = null; b._portalGY = null
       if (b._narutoChoreo) { clearNarutoChoreo(); b._narutoChoreo = false }       // release the shadow-clone run (unlocks the caster)
       if (lf) lf._brutHidden = false                                             // un-hide the swallowed loser (vacuum finishers)
       if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
@@ -7941,67 +7959,74 @@ function _brutLiveCtx(b) {
   const wy = wf ? ((wf._lastDrawY != null ? wf._lastDrawY : wf.y || 0) + (wf._lastDrawH || 80) * 0.4) : cy
   return { lf, wf, lw, lh, lx, ly, cx, cy, cell, seed, dir, gy, t, pal, acc, rgb, col, wx, wy }
 }
-// a code-drawn FLAMING TIGER silhouette (Rengoku's Ninth Form), facing +x, scaled to height h
-function _drawFlameTiger(c, x, y, dir, h, phase, alpha, seed) {
-  const w = h * 1.4
-  c.save(); c.translate(x, y); c.scale(dir > 0 ? 1 : -1, 1); c.globalAlpha = alpha
-  const grad = c.createLinearGradient(-w * 0.5, 0, w * 0.6, 0); grad.addColorStop(0, "rgba(255,80,20,0.85)"); grad.addColorStop(0.55, "rgba(255,150,40,0.92)"); grad.addColorStop(1, "rgba(255,235,150,0.96)")
-  c.fillStyle = grad
-  c.beginPath(); c.ellipse(-w * 0.05, 0, w * 0.42, h * 0.3, 0, 0, 6.28); c.fill()                       // torso
-  c.beginPath(); c.ellipse(w * 0.42, -h * 0.05, h * 0.27, h * 0.24, 0, 0, 6.28); c.fill()               // head
-  c.fillStyle = "rgba(255,245,190,0.95)"; c.beginPath(); c.moveTo(w * 0.6, h * 0.02); c.lineTo(w * 0.74, h * 0.15); c.lineTo(w * 0.5, h * 0.12); c.closePath(); c.fill()   // jaw/fang
-  c.strokeStyle = "rgba(255,120,30,0.82)"; c.lineWidth = h * 0.08; c.lineCap = "round"
-  for (const lxp of [-w * 0.3, -w * 0.1, w * 0.16, w * 0.33]) { c.beginPath(); c.moveTo(lxp, h * 0.2); c.lineTo(lxp + Math.sin(phase + lxp) * h * 0.06, h * 0.44); c.stroke() }   // legs
-  c.fillStyle = "rgba(255,205,90,0.85)"
-  for (let i = 0; i < 8; i++) { const fx = -w * 0.4 + i * w * 0.11, fh = h * (0.2 + 0.18 * Math.sin(phase * 0.3 + i)); c.beginPath(); c.moveTo(fx, -h * 0.2); c.quadraticCurveTo(fx + w * 0.03, -h * 0.2 - fh, fx + w * 0.06, -h * 0.2); c.closePath(); c.fill() }   // flame mane
-  c.fillStyle = "rgba(255,255,220,0.98)"; c.beginPath(); c.arc(w * 0.47, -h * 0.09, h * 0.045, 0, 6.28); c.fill()   // eye
-  c.restore()
+// Draw a captured loser sprite SPLIT vertically into two halves (one arm each side), parting by `sep` with a
+// downward `fall` and slight outward `tip`. Used by the choreographed cleave/dash finishers (live path: the real
+// foe is hidden and this captured canvas stands in so it can actually come apart).
+function _drawCapSplit(sp, sep, fall, tip, cutColor, cell) {
+  if (!sp || !sp.canvas) return
+  const hw = sp.w / 2, cxw = sp.x + sp.w / 2, cyw = sp.y + sp.h / 2
+  ctx.save(); ctx.translate(cxw - sep / 2, cyw + fall); ctx.rotate(-tip)
+  ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw, -sp.h / 2, hw, sp.h)
+  if (cutColor) { ctx.fillStyle = cutColor; ctx.fillRect(-Math.max(2, cell * 0.4), -sp.h * 0.32, Math.max(2, cell * 0.4), sp.h * 0.64) }
+  ctx.restore()
+  ctx.save(); ctx.translate(cxw + sep / 2, cyw + fall); ctx.rotate(tip)
+  ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, 0, -sp.h / 2, hw, sp.h)
+  if (cutColor) { ctx.fillStyle = cutColor; ctx.fillRect(0, -sp.h * 0.32, Math.max(2, cell * 0.4), sp.h * 0.64) }
+  ctx.restore()
 }
-// RENGOKU — FLAME BREATHING, NINTH FORM: a giant flame tiger erupts from the slash, rushes THROUGH the foe, and
-// incinerates them to a charred husk → ash + embers + smoke.
-function _drawLiveFlameTiger(b) {
+// RENGOKU — FLAME BREATHING: he LEAPS up out of frame, then SLAMS straight down with the flaming blade, cleaving
+// the foe head-to-groin (one arm on each side). The halves part over a flame-licked cut; a ground flame-burst on
+// impact. The winner's leap/slam is choreographed in updateBrutality (wf.y); the foe is the captured split sprite.
+function _drawLiveFlameCleave(b) {
   const c = _brutLiveCtx(b); if (!c.lf) return
-  const { cx, cy, cell, seed, dir, gy, t, lw, lh, wx, wy } = c
-  const LUNGE = 0.3, ENGULF = 0.42
-  if (t > ENGULF) { ctx.save(); ctx.globalAlpha = 0.6; ctx.fillStyle = "rgba(20,12,8,0.7)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.6, lw * 0.18, 0, 0, 6.28); ctx.fill(); ctx.restore() }
-  if (t < LUNGE) { const g = Math.min(1, t / LUNGE); ctx.save(); ctx.globalAlpha = g * 0.7; const fg = ctx.createRadialGradient(wx, wy, 0, wx, wy, lw * 0.5 * g); fg.addColorStop(0, "rgba(255,240,180,0.9)"); fg.addColorStop(0.5, "rgba(255,140,30,0.7)"); fg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(wx, wy, lw * 0.5 * g, 0, 6.28); ctx.fill(); ctx.restore() }
-  const rush = t >= LUNGE ? Math.min(1, (t - LUNGE) / 0.25) : 0
-  if (rush > 0 && t < 0.7) { const tx = wx + (cx - wx) * rush, ty = wy + (cy - wy) * rush, s = lh * (0.95 + rush * 0.6), fade = t > 0.58 ? Math.max(0, 1 - (t - 0.58) / 0.12) : 1
-    _drawFlameTiger(ctx, tx, ty, dir, s, t * 20, fade, seed) }
-  if (t >= ENGULF) { const e = Math.min(1, (t - ENGULF) / 0.2), rec = t > 0.62 ? Math.max(0, 1 - (t - 0.62) / 0.28) : 1
-    ctx.save(); ctx.globalAlpha = e * rec
-    for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 700 + i, k), fx = cx + (h(1) * 2 - 1) * lw * 0.5, fh = lh * (0.8 + h(3) * 1.0) * (0.7 + 0.3 * Math.sin(t * 10 + h(2) * 6.28))
-      ctx.fillStyle = h(4) < 0.4 ? "rgba(255,220,120,0.9)" : (h(4) < 0.75 ? "rgba(255,140,30,0.85)" : "rgba(200,40,10,0.8)")
-      ctx.beginPath(); ctx.moveTo(fx - lw * 0.08, gy); ctx.quadraticCurveTo(fx, gy - fh * 0.5, fx, gy - fh); ctx.quadraticCurveTo(fx + lw * 0.08, gy - fh * 0.5, fx + lw * 0.08, gy); ctx.closePath(); ctx.fill() }
-    ctx.globalAlpha = Math.min(0.85, e * 1.2) * rec; ctx.fillStyle = "rgba(12,6,4,0.9)"; ctx.beginPath(); ctx.ellipse(cx, cy, lw * 0.32, lh * 0.42, 0, 0, 6.28); ctx.fill(); ctx.restore() }
-  if (t > 0.7) { const a = (t - 0.7) / 0.3; ctx.save()
-    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 720 + i, k), ph = (a * 2 + h(1)) % 1; ctx.globalAlpha = (1 - ph) * 0.7; ctx.fillStyle = h(2) < 0.5 ? "rgba(255,160,40,0.9)" : "rgba(255,90,20,0.8)"; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.4, cy + lh * 0.2 - ph * lh * 1.1, cell * (0.6 - ph * 0.4), 0, 6.28); ctx.fill() }
-    ctx.globalAlpha = Math.min(0.4, a * 0.5); ctx.fillStyle = "rgba(40,30,26,0.6)"; for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 740 + i, k); ctx.beginPath(); ctx.arc(cx + (h(1) * 2 - 1) * lw * 0.3, cy - lh * 0.1 - a * lh * 0.6, lw * 0.18 * (0.6 + h(2)), 0, 6.28); ctx.fill() }
-    ctx.globalAlpha = Math.min(0.8, a); ctx.fillStyle = "rgba(30,24,22,0.85)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.4 * a, lw * 0.12 * a, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  const { cx, cy, cell, seed, dir, gy, t, lw, lh } = c, sp = b._capSprite
+  const SLAM = 0.42
+  if (t > SLAM) { const pg = Math.min(1, (t - SLAM) / 0.4), prx = cell * (3 + pg * 5); ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = "#9c1019"; ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  if (sp) { if (t < SLAM) { ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h) }
+    else { const prog = Math.min(1, (t - SLAM) / 0.4), sep = prog * Math.max(72, lw * 0.72), fall = Math.pow(Math.min(1, (t - SLAM) / 0.5), 2) * lh * 0.14, tip = prog * 0.22
+      _drawCapSplit(sp, sep, fall, tip, "#6e0016", cell)
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - prog / 0.7) * 0.9
+      for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 760 + i, k), fh = lh * (0.3 + h(1) * 0.5) * Math.max(0, 1 - prog * 0.6); ctx.fillStyle = h(2) < 0.5 ? "rgba(255,180,60,0.9)" : "rgba(255,90,20,0.85)"; ctx.beginPath(); ctx.moveTo(cx - cell, cy + fall + lh * 0.2 - i * lh * 0.04); ctx.quadraticCurveTo(cx, cy + fall - fh, cx + cell, cy + fall + lh * 0.2 - i * lh * 0.04); ctx.fill() } ctx.restore() } }
+  if (t >= SLAM - 0.08 && t < SLAM + 0.14) { const sw = 1 - Math.abs(t - SLAM) / 0.11; if (sw > 0) { ctx.save(); ctx.globalAlpha = sw; ctx.lineCap = "round"
+    ctx.strokeStyle = "rgba(255,200,80,0.9)"; ctx.lineWidth = cell * 2 + sw * cell * 3; ctx.beginPath(); ctx.moveTo(cx, cy - lh * 0.95); ctx.lineTo(cx, cy + lh * 0.5); ctx.stroke()
+    ctx.strokeStyle = "rgba(255,250,220,0.95)"; ctx.lineWidth = cell * 0.8; ctx.beginPath(); ctx.moveTo(cx, cy - lh * 0.95); ctx.lineTo(cx, cy + lh * 0.5); ctx.stroke(); ctx.restore() } }
+  if (t >= SLAM && t < SLAM + 0.1) { const f = 1 - (t - SLAM) / 0.1; ctx.save(); ctx.globalAlpha = f * 0.6; ctx.fillStyle = "#fff"; ctx.fillRect(cx - lw * 4, cy - lh * 4, lw * 8, lh * 8); ctx.restore() }
+  if (t >= SLAM) { const e = Math.min(1, (t - SLAM) / 0.15), rec = t > 0.6 ? Math.max(0, 1 - (t - 0.6) / 0.3) : 1
+    ctx.save(); ctx.globalAlpha = e * rec * 0.8
+    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 780 + i, k), fx = cx + (h(1) * 2 - 1) * lw * 0.6, fh = lh * (0.4 + h(3) * 0.6); ctx.fillStyle = h(4) < 0.5 ? "rgba(255,180,50,0.85)" : "rgba(255,100,20,0.8)"; ctx.beginPath(); ctx.moveTo(fx - lw * 0.07, gy); ctx.quadraticCurveTo(fx, gy - fh * 0.5, fx, gy - fh); ctx.quadraticCurveTo(fx + lw * 0.07, gy - fh * 0.5, fx + lw * 0.07, gy); ctx.closePath(); ctx.fill() } ctx.restore()
+    const wt = (t - SLAM) / (1 - SLAM); ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.7
+    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 790 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.3 * ph, cy + (h(4) * 2 - 1) * lh * 0.35 * ph, cell * (0.5 + h(6) * 0.5), 0, 6.28); ctx.fill() } ctx.restore() }
 }
-// ZENITSU — THUNDER BREATHING, GODSPEED: a blinding instant, ONE god-speed lightning dash straight THROUGH the foe,
-// who is left crackling with electricity → splits along the strike + bursts.
-function _drawLiveThunderFlash(b) {
+// ZENITSU — THUNDERCLAP & FLASH: he crouches, then DASHES as a bolt straight through the foe to the far side,
+// leaving a lightning trail + after-image forks; the foe is cleaved in half where he passed. Then — true to him —
+// he realises what he did and COWERS, trembling, sweating, a "!" over his head. Dash/tremble in updateBrutality.
+function _drawLiveThunderDash(b) {
   const c = _brutLiveCtx(b); if (!c.lf) return
-  const { cx, cy, cell, seed, dir, gy, t, lw, lh, lx, ly, wx, wy, col } = c
-  const FLASH = 0.3
-  if (t > 0.55) { const pg = Math.min(1, (t - 0.55) / 0.4), prx = cell * (3 + pg * 5); ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = "#9c1019"; ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill(); ctx.restore() }
-  if (t < FLASH) { const g = Math.min(1, t / FLASH); ctx.save(); ctx.globalAlpha = g * 0.6; const cg = ctx.createRadialGradient(wx, wy, 0, wx, wy, lw * 0.6 * g); cg.addColorStop(0, "rgba(255,246,180,0.9)"); cg.addColorStop(0.5, col(0.6)); cg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(wx, wy, lw * 0.6 * g, 0, 6.28); ctx.fill()
-    ctx.strokeStyle = col(0.8); ctx.lineWidth = 1.5; for (let i = 0; i < 4; i++) { const h = (k) => _brutHash(seed, 800 + i, k), a = h(1) * 6.28; ctx.globalAlpha = g * Math.abs(Math.sin(t * 40 + i)); ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * lw * 0.5, wy + Math.sin(a) * lw * 0.5); ctx.stroke() } ctx.restore() }
-  const fa = t - FLASH
-  if (fa >= 0 && fa < 0.12) { const f = 1 - fa / 0.12; ctx.save()
-    if (fa < 0.05) { ctx.globalAlpha = (1 - fa / 0.05) * 0.75; ctx.fillStyle = "#ffffff"; ctx.fillRect(lx - lw * 7, ly - lh * 7, lw * 16, lh * 16) }
-    const ex = cx + dir * lw * 2.2; ctx.globalAlpha = f; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(255,255,230,0.98)"; ctx.lineWidth = cell * 1.2
-    ctx.beginPath(); ctx.moveTo(wx, wy); for (let s = 1; s <= 7; s++) { const h = (k) => _brutHash(seed, 810 + s, k), u = s / 7; ctx.lineTo(wx + (ex - wx) * u, wy + (cy - wy) * u + (h(1) * 2 - 1) * lh * 0.1) } ctx.stroke()
-    ctx.strokeStyle = col(0.9); ctx.lineWidth = cell * 0.5; ctx.stroke(); ctx.restore() }
-  if (t >= FLASH + 0.04 && t < 0.68) { const e = Math.min(1, (t - FLASH) / 0.1) * (t > 0.55 ? Math.max(0, 1 - (t - 0.55) / 0.13) : 1)
-    ctx.save(); ctx.globalAlpha = e * (0.6 + 0.4 * Math.abs(Math.sin(t * 50))); ctx.strokeStyle = col(0.95); ctx.lineWidth = 2; ctx.lineCap = "round"
-    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 820 + i, k), a0 = h(1) * 6.28, a1 = h(2) * 6.28, r0 = lw * 0.1, r1 = lw * (0.3 + h(3) * 0.3); const mx = cx + Math.cos(a1) * r1, my = cy + Math.sin(a1) * r1 * 1.4; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a0) * r0, cy + Math.sin(a0) * r0 * 1.4); ctx.lineTo((cx + mx) / 2 + (h(4) * 2 - 1) * cell * 2, (cy + my) / 2); ctx.lineTo(mx, my); ctx.stroke() }
-    ctx.globalAlpha = e * 0.3 * Math.abs(Math.sin(t * 60)); ctx.fillStyle = "rgba(255,255,230,0.8)"; ctx.beginPath(); ctx.ellipse(cx, cy, lw * 0.3, lh * 0.4, 0, 0, 6.28); ctx.fill(); ctx.restore() }
-  if (t >= 0.5) { const wt = (t - 0.5) / 0.5
-    ctx.save(); ctx.globalAlpha = Math.min(1, wt * 2); ctx.lineCap = "round"; ctx.strokeStyle = "#3a000a"; ctx.lineWidth = cell * 1.1; ctx.beginPath(); ctx.moveTo(cx + dir * lw * 0.1, cy - lh * 0.4); ctx.lineTo(cx - dir * lw * 0.1, cy + lh * 0.4); ctx.stroke(); ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 0.4; ctx.stroke(); ctx.restore()
-    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.7) * 0.85; for (let i = 0; i < 9; i++) { const h = (k) => _brutHash(seed, 830 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.4 * ph, cy + (h(4) * 2 - 1) * lh * 0.35 * ph, cell * (0.5 + h(6) * 0.6), 0, 6.28); ctx.fill() } ctx.restore()
-    if (wt > 0.1) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.6, 76), Math.max(0, 1 - wt / 0.6) * 0.55) }
+  const { cx, cy, cell, seed, dir, gy, t, lw, lh, lx, ly, wx, wy, wf, col } = c, sp = b._capSprite
+  const CUT = 0.34
+  if (t > CUT) { const pg = Math.min(1, (t - CUT) / 0.4), prx = cell * (3 + pg * 5); ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = "#9c1019"; ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  if (sp) { if (t < CUT) { ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h) }
+    else { const prog = Math.min(1, (t - CUT) / 0.4), sep = prog * Math.max(70, lw * 0.7), fall = Math.pow(Math.min(1, (t - CUT) / 0.5), 2) * lh * 0.12, tip = prog * 0.18; _drawCapSplit(sp, sep, fall, tip, "#6e0016", cell) } }
+  if (t < 0.25) { const g = Math.min(1, t / 0.25); ctx.save(); ctx.globalAlpha = g * 0.6; const cg = ctx.createRadialGradient(wx, wy, 0, wx, wy, lw * 0.5 * g); cg.addColorStop(0, "rgba(255,246,180,0.9)"); cg.addColorStop(0.5, col(0.6)); cg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(wx, wy, lw * 0.5 * g, 0, 6.28); ctx.fill(); ctx.restore() }
+  if (t >= 0.25 && t < 0.5) { const dp = Math.min(1, (t - 0.25) / 0.17), fade = t > 0.42 ? Math.max(0, 1 - (t - 0.42) / 0.08) : 1
+    if (Math.abs(t - CUT) < 0.05) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - Math.abs(t - CUT) / 0.05) * 0.7; ctx.fillStyle = "#fff"; ctx.fillRect(lx - lw * 7, ly - lh * 7, lw * 16, lh * 16); ctx.restore() }
+    const startX = wx - dir * lw * 2.4 * dp
+    ctx.save(); ctx.globalAlpha = fade; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(255,255,230,0.95)"; ctx.lineWidth = cell * (1.1 - dp * 0.5)
+    ctx.beginPath(); ctx.moveTo(startX, cy); for (let s = 1; s <= 8; s++) { const h = (k) => _brutHash(seed, 810 + s, k), u = s / 8; ctx.lineTo(startX + (wx - startX) * u, cy + (h(1) * 2 - 1) * lh * 0.12) } ctx.stroke()
+    ctx.strokeStyle = col(0.9); ctx.lineWidth = cell * 0.4; ctx.stroke()
+    for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 820 + i, k), bx = startX + (wx - startX) * h(1); ctx.globalAlpha = fade * 0.5; ctx.strokeStyle = col(0.8); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(bx, cy); ctx.lineTo(bx + (h(2) * 2 - 1) * lw * 0.3, cy + (h(3) * 2 - 1) * lh * 0.4); ctx.stroke() }
+    ctx.restore() }
+  if (t >= CUT) { const wt = (t - CUT) / (1 - CUT); ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.8
+    for (let i = 0; i < 9; i++) { const h = (k) => _brutHash(seed, 830 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.3 * ph, cy + (h(4) * 2 - 1) * lh * 0.35 * ph, cell * (0.5 + h(6) * 0.6), 0, 6.28); ctx.fill() } ctx.restore()
+    if (wt > 0.1) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.5, 66), Math.max(0, 1 - wt / 0.6) * 0.5) }
+  // SCARED ZENITSU — the cowardice beat: sweat drop + shake lines + a "!" over his head (he's drawn cowering live)
+  if (t > 0.62 && wf) { const wcx = (wf._lastDrawX != null ? wf._lastDrawX : wf.x) + (wf._lastDrawW || lw) / 2, wcy = (wf._lastDrawY != null ? wf._lastDrawY : wf.y) + (wf._lastDrawH || lh) * 0.2
+    ctx.save()
+    ctx.globalAlpha = 0.9; ctx.fillStyle = "rgba(150,220,255,0.9)"; ctx.beginPath(); ctx.ellipse(wcx - dir * lw * 0.24, wcy, cell * 1.0, cell * 1.5, 0, 0, 6.28); ctx.fill()   // sweat drop
+    ctx.globalAlpha = 0.6; ctx.strokeStyle = "rgba(235,235,245,0.8)"; ctx.lineWidth = 1.5
+    for (const sgn of [-1, 1]) for (let i = 0; i < 2; i++) { ctx.beginPath(); ctx.moveTo(wcx + sgn * (lw * 0.3 + i * cell * 2), wcy - lh * 0.08); ctx.lineTo(wcx + sgn * (lw * 0.36 + i * cell * 2), wcy + lh * 0.06); ctx.stroke() }   // shake lines
+    ctx.globalAlpha = 0.95; ctx.fillStyle = "rgba(255,240,120,0.97)"; ctx.font = `bold ${Math.max(10, Math.round(lh * 0.34))}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.fillText("!", wcx, wcy - lh * 0.34)   // "!"
+    ctx.restore() }
 }
 // SHINOBU — INSECT BREATHING: a flurry of rapid stinger STABS pepper the foe → wisteria POISON veins crawl out →
 // the body CONVULSES and DISSOLVES, sloughing into a purple puddle (her signature; she can't cut deep — she melts).
@@ -8074,8 +8099,8 @@ function _drawLiveGore(b) {
   if (g === "gundecap") { _drawLiveGunDecap(b); return }
   if (g === "swordsmoke") { _drawLiveSwordSmoke(b); return }
   if (g === "bungeegum") { _drawLiveBungeeGum(b); return }
-  if (g === "flametiger") { _drawLiveFlameTiger(b); return }
-  if (g === "thunderflash") { _drawLiveThunderFlash(b); return }
+  if (g === "flamecleave") { _drawLiveFlameCleave(b); return }
+  if (g === "thunderdash") { _drawLiveThunderDash(b); return }
   if (g === "poisonmelt") { _drawLivePoisonMelt(b); return }
   if (g === "beastmaul") { _drawLiveBeastMaul(b); return }
   if (g === "bloodburst") { _drawLiveBloodDemon(b); return }
@@ -23156,7 +23181,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flametiger: "Incinerated by the Flame Tiger", thunderflash: "Godspeed bolt → electrocuted", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flamecleave: "Leap-slam → cleaved in half by the flaming blade", thunderdash: "Dashed through → cleaved in half by the bolt", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

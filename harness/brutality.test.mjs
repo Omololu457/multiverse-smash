@@ -77,8 +77,8 @@ const TABLE = {
   naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
   shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"}, shisuiFallenKotoamatsukami:{n:"KOTOAMATSUKAMI",g:"kotoamatsukami"} },   // Shisui (Fallen)
   omega_ranger: { omGunBolt:{n:"DELTA ENFORCER",g:"gundecap"}, ultimate:{n:"OMEGA SABER",g:"swordsmoke"}, omSword7:{n:"OMEGA SABER",g:"swordsmoke"} },   // Omega Ranger (S.P.D.) — one shot → head drops · saber barrage from the smoke
-  rengoku: { heavy:{n:"FLAME BREATHING",g:"flametiger"}, rengokuSuperDown:{n:"FLAME BREATHING",g:"flametiger"}, ultimate:{n:"NINTH FORM: RENGOKU",g:"flametiger"} },   // Flame tiger → incinerate
-  zenitsu: { zenUltimate:{n:"THUNDER BREATHING",g:"thunderflash"}, zenThunderclap:{n:"THUNDERCLAP & FLASH",g:"thunderflash"} },   // Godspeed bolt-dash
+  rengoku: { heavy:{n:"FLAME BREATHING",g:"flamecleave"}, rengokuSuperDown:{n:"FLAME BREATHING",g:"flamecleave"}, ultimate:{n:"NINTH FORM: RENGOKU",g:"flamecleave"} },   // Flame tiger → incinerate
+  zenitsu: { zenUltimate:{n:"THUNDER BREATHING",g:"thunderdash"}, zenThunderclap:{n:"THUNDERCLAP & FLASH",g:"thunderdash"} },   // Godspeed bolt-dash
   shinobu: { shinobuPoison:{n:"INSECT BREATHING",g:"poisonmelt"}, heavy:{n:"INSECT BREATHING",g:"poisonmelt"} },   // stabs → dissolve
   inosuke: { inosukeB5:{n:"BEAST BREATHING",g:"beastmaul"}, beastLunge:{n:"BEAST BREATHING",g:"beastmaul"}, beastSpin:{n:"BEAST BREATHING",g:"beastmaul"} },   // dual-blade → chunks
   nezuko: { nezukoCombo2:{n:"BLOOD DEMON ART",g:"bloodburst"}, nezukoUlt1a:{n:"EXPLODING BLOOD",g:"bloodburst"}, nezukoBite:{n:"BLOOD DEMON ART",g:"bloodburst"} },   // claw → pink detonation

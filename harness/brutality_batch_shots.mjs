@@ -33,6 +33,10 @@ const PLAN = [
   ["hisoka", [["hisoka_card", "hisoka_cards_stick", 66], ["hisoka_card", "hisoka_cards_topple", 120],
     ["bungeeGum", "hisoka_bungee_stick", 40], ["bungeeGum", "hisoka_bungee_burst", 98]]],
   ["jason", [["heavy", "jason_chop_raise", 48], ["heavy", "jason_chop_split", 112]]],
+  ["rengoku", [["heavy", "rengoku_flame_storm", 60], ["heavy", "rengoku_flame_after", 100]]],
+  ["zenitsu", [["zenUltimate", "zenitsu_thunder_storm", 60], ["zenUltimate", "zenitsu_thunder_after", 100]]],
+  ["shinobu", [["shinobuPoison", "shinobu_poison_storm", 60], ["shinobuPoison", "shinobu_poison_after", 100]]],
+  ["inosuke", [["inosukeB5", "inosuke_beast_storm", 60], ["inosukeB5", "inosuke_beast_after", 100]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

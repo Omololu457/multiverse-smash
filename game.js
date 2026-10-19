@@ -736,6 +736,8 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   "goku_rose", "sasuke_adult", "sasuke_sensei", "naruto_seventh", "shisui_fallen",
   // Omega Ranger (S.P.D. White Ranger) — a lawman with the Delta Enforcer sidearm. One clean shot → decapitation.
   "omega_ranger",
+  // Demon Slayer Hashira / slayers — canonical Breathing-Style finishers (adults; Nezuko the child is NOT here).
+  "rengoku", "zenitsu", "shinobu", "inosuke",
   "naruto"])   // ★ rickprime LOWERCASE; naruto (TEEN) age-gate lifted by owner request 2026-10-19 (NOT naruto_hokage the Adult-KCM one)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
@@ -769,6 +771,11 @@ const GORE_NARUTO  = ["#a11026", "#6e0016", "#ff9a2a", "#2a1606"]   // Naruto �
 const GORE_FALLEN  = ["#a11026", "#6e0016", "#e02038", "#1a0206"]   // Shisui (Fallen) — blood + crimson flicker-crackle
 const GORE_EMERALD = ["#a11026", "#6e0016", "#2ad07a", "#06241a"]   // Shisui (Fallen) Emerald Susanoo — blood + emerald chakra
 const GORE_SPD     = ["#a11026", "#6e0016", "#bfe0ff", "#0e1118"]   // Omega Ranger (S.P.D.) — blood + Delta-Enforcer white-blue
+// DEMON SLAYER — each Hashira/slayer's Breathing Style tints the slash FX (accent = index 2).
+const GORE_FLAME   = ["#a11026", "#6e0016", "#ff7a1a", "#2a0a00"]   // Rengoku — Flame Breathing (orange fire)
+const GORE_THUNDER = ["#a11026", "#6e0016", "#ffe24a", "#1a1600"]   // Zenitsu — Thunder Breathing (yellow lightning)
+const GORE_INSECT  = ["#a11026", "#6e0016", "#a96ad8", "#1a0a2a"]   // Shinobu — Insect Breathing (wisteria purple poison)
+const GORE_BEAST   = ["#a11026", "#6e0016", "#8fb4c8", "#10181e"]   // Inosuke — Beast Breathing (nichirin steel-blue)
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -1080,6 +1087,28 @@ const BRUTALITY_FINISHERS = {
     heavy:      { name: "DEAD SPACE",    gore: "spacevacuum",  palette: GORE_SPEED, flash: "#6ab4ff", live: true, winAction: "run", loseAction: "hurt" },  // Speed-Force portal → SPACE → decompression burst
     up:         { name: "SUPERNOVA",     gore: "solarrun",     palette: GORE_SPEED, flash: "#ff8a2a", live: true, winAction: "run", loseAction: "hurt" },  // run into the SUN → incineration to ash
   },
+  // DEMON SLAYER — canonical Breathing-Style finishers. One shared live renderer (_drawLiveBreathSlash) themed per
+  // element: Rengoku's Flame slashes incinerate, Zenitsu's Thunder bolts electrocute, Shinobu's Insect poison melts,
+  // Inosuke's Beast dual-blades carve. Keyed off each one's RELIABLE createAttackFromMove move (cinematic ults can
+  // skip the _killingBlowMove stamp), with the ult added too.
+  rengoku: {
+    heavy:            { name: "FLAME BREATHING", gore: "flameslash", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "heavy",            loseAction: "hurt" },
+    rengokuSuperDown: { name: "FLAME BREATHING", gore: "flameslash", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "rengokuSuperDown", loseAction: "hurt" },
+    ultimate:         { name: "FLAME EXPLOSION", gore: "flameslash", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "ultimate",         loseAction: "hurt" },
+  },
+  zenitsu: {
+    zenUltimate:    { name: "THUNDER BREATHING",   gore: "thunderslash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenUltimate",    loseAction: "hurt" },
+    zenThunderclap: { name: "THUNDERCLAP & FLASH", gore: "thunderslash", palette: GORE_THUNDER, flash: "#fff6c0", live: true, winAction: "zenThunderclap", loseAction: "hurt" },
+  },
+  shinobu: {
+    shinobuPoison: { name: "INSECT BREATHING", gore: "poisonslash", palette: GORE_INSECT, flash: "#e0c0ff", live: true, winAction: "shinobuPoison", loseAction: "hurt" },
+    heavy:         { name: "INSECT BREATHING", gore: "poisonslash", palette: GORE_INSECT, flash: "#e0c0ff", live: true, winAction: "heavy",         loseAction: "hurt" },
+  },
+  inosuke: {
+    inosukeB5:  { name: "BEAST BREATHING", gore: "beastslash", palette: GORE_BEAST, flash: "#cfe8f0", live: true, winAction: "inosukeB5", loseAction: "hurt" },
+    beastLunge: { name: "BEAST BREATHING", gore: "beastslash", palette: GORE_BEAST, flash: "#cfe8f0", live: true, winAction: "inosukeB5", loseAction: "hurt" },
+    beastSpin:  { name: "BEAST BREATHING", gore: "beastslash", palette: GORE_BEAST, flash: "#cfe8f0", live: true, winAction: "inosukeB5", loseAction: "hurt" },
+  },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
 // finisher — a simple bright gore burst, never silence.
@@ -1106,7 +1135,7 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash", "killua", "beerus",
-  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka", "jason"])
+  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka", "jason", "rengoku", "zenitsu", "shinobu", "inosuke"])
 // FLASH run-finisher family — grab → run → scrolling backdrop → shed, all share the live position/camera/blood
 // handling; only the destination backdrop + the finale (maps / eras / dimension / space-vacuum / sun) differ.
 const SPEEDRUN_GORES = new Set(["speedrun", "chronorun", "dimensionrun", "spacevacuum", "solarrun"])
@@ -6750,7 +6779,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flameslash" || g === "thunderslash" || g === "poisonslash" || g === "beastslash"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7888,6 +7917,83 @@ function _drawLiveBungeeGum(b) {
     if (bt > 0.1) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.7, 86), Math.max(0, 1 - bt / 0.6) * 0.6)
   }
 }
+// DEMON SLAYER — BREATHING-STYLE finisher (live, shared). The slayer holds their real breathing-form pose
+// (winAction); the foe recoils (loseAction "hurt"). One renderer, themed by gore string → element MODE:
+//   flameslash (Rengoku, fire), thunderslash (Zenitsu, lightning), poisonslash (Shinobu, wisteria), beastslash
+//   (Inosuke, dual nichirin). Beat: elemental aura gathers → a STORM of element-coloured slashes/bolts criss-cross
+//   the foe → an elemental BURST + white flash → slash wounds + element residue + blood. Deterministic, self-blood.
+function _drawLiveBreathSlash(b) {
+  const lf = b.loseRef, wf = b.winRef; if (!lf) return
+  const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+  const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
+  const cx = lx + lw / 2, cy = ly + lh / 2, cell = Math.max(3, lw / 14), seed = b.seed || 1
+  const gy = lf.groundY != null ? lf.groundY : (ly + lh)
+  const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer)
+  const g = b.finisher?.gore
+  const mode = g === "flameslash" ? "flame" : g === "thunderslash" ? "thunder" : g === "poisonslash" ? "poison" : "beast"
+  const pal = b.finisher?.palette || GORE_RED, acc = pal[2], rgb = _hexToRgb(acc), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+  const SLASH0 = 0.16, BURST = 0.52
+
+  if (t > BURST) { const pg = Math.min(1, (t - BURST) / 0.4), prx = cell * (3 + pg * 5)
+    ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = "#9c1019"; ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+
+  // wind-up aura
+  if (t < BURST) { const au = Math.min(1, t / SLASH0)
+    ctx.save(); ctx.globalAlpha = 0.3 * au; const ag = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.1); ag.addColorStop(0, col(0.5)); ag.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = ag; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.1, 0, 6.28); ctx.fill(); ctx.restore() }
+
+  // SLASH / BOLT STORM
+  if (t >= SLASH0 && t < BURST + 0.08) {
+    const prog = Math.min(1, (t - SLASH0) / (BURST - SLASH0))
+    if (mode === "thunder") { ctx.save(); ctx.lineCap = "round"; const n = Math.ceil(10 * prog)
+      for (let i = 0; i < n; i++) { const h = (k) => _brutHash(seed, 600 + i, k), a = h(1) * 6.28
+        const x0 = cx + Math.cos(a) * lw * 1.2, y0 = cy + Math.sin(a) * lh * 1.0
+        ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(t * 40 + i)); ctx.strokeStyle = col(0.9); ctx.lineWidth = 2.5
+        ctx.beginPath(); ctx.moveTo(x0, y0); for (let s = 1; s <= 5; s++) { const u = s / 5; ctx.lineTo(x0 + (cx - x0) * u + (h(s) * 2 - 1) * lw * 0.18, y0 + (cy - y0) * u + (h(s + 7) * 2 - 1) * lh * 0.12) } ctx.stroke()
+        ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1; ctx.stroke() }
+      ctx.restore()
+    } else { _drawSlashLines(ctx, cx, cy, lw, lh, mode === "poison" ? 9 : (mode === "beast" ? 18 : 13), seed, acc, prog) }
+    // element particles
+    ctx.save()
+    for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 640 + i, k), ph = (t * (1 + h(1)) + h(2)) % 1, r = cell * (0.4 + h(3) * 0.6)
+      let px, py
+      if (mode === "flame") { px = cx + (h(4) * 2 - 1) * lw * 0.5; py = cy + lh * 0.3 - ph * lh * 0.9; ctx.globalAlpha = (1 - ph) * 0.7; ctx.fillStyle = h(5) < 0.5 ? "rgba(255,170,40,0.9)" : col(0.8) }
+      else if (mode === "thunder") { px = cx + (h(4) * 2 - 1) * lw * 0.6; py = cy + (h(5) * 2 - 1) * lh * 0.5; ctx.globalAlpha = Math.abs(Math.sin(t * 50 + i)) * 0.8; ctx.fillStyle = col(0.9) }
+      else if (mode === "poison") { px = cx + (h(4) * 2 - 1) * lw * 0.5; py = cy + lh * 0.2 - ph * lh * 0.6; ctx.globalAlpha = (1 - ph) * 0.5; ctx.fillStyle = col(0.7) }
+      else { px = cx + (h(4) * 2 - 1) * lw * 0.6; py = cy + (h(5) * 2 - 1) * lh * 0.5; ctx.globalAlpha = (1 - ph) * 0.6; ctx.fillStyle = col(0.8) }
+      ctx.beginPath(); ctx.arc(px, py, r, 0, 6.28); ctx.fill() }
+    ctx.restore()
+  }
+
+  // BURST + flash
+  const ba = t - BURST
+  if (ba >= 0 && ba < 0.14) { const f = 1 - ba / 0.14
+    ctx.save()
+    if (ba < 0.05) { ctx.globalAlpha = (1 - ba / 0.05) * (mode === "thunder" ? 0.6 : 0.45); ctx.fillStyle = "#ffffff"; ctx.fillRect(lx - lw * 6, ly - lh * 6, lw * 14, lh * 14) }
+    ctx.globalAlpha = f * 0.9; const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.4); bg.addColorStop(0, "rgba(255,245,230,0.95)"); bg.addColorStop(0.45, col(0.6)); bg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.4, 0, 6.28); ctx.fill()
+    ctx.restore()
+  }
+
+  // aftermath — slash X wound + element residue + blood
+  if (t >= BURST) { const wt = (t - BURST) / (1 - BURST)
+    ctx.save(); ctx.globalAlpha = Math.min(1, wt * 2); ctx.lineCap = "round"
+    for (const sgn of [1, -1]) { ctx.strokeStyle = "#3a000a"; ctx.lineWidth = cell * 1.2; ctx.beginPath(); ctx.moveTo(cx - sgn * lw * 0.3, cy - lh * 0.26); ctx.lineTo(cx + sgn * lw * 0.3, cy + lh * 0.26); ctx.stroke()
+      ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 0.5; ctx.beginPath(); ctx.moveTo(cx - sgn * lw * 0.3, cy - lh * 0.26); ctx.lineTo(cx + sgn * lw * 0.3, cy + lh * 0.26); ctx.stroke() }
+    ctx.restore()
+    if (mode === "flame" && wt < 0.7) { ctx.save(); ctx.globalAlpha = (1 - wt) * 0.6; for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 680 + i, k), ph = (wt * 2 + h(1)) % 1; ctx.fillStyle = "rgba(255,150,30,0.8)"; ctx.beginPath(); ctx.arc(cx + (h(2) * 2 - 1) * lw * 0.4, cy + lh * 0.2 - ph * lh * 0.8, cell * (0.5 - ph * 0.3), 0, 6.28); ctx.fill() } ctx.restore() }
+    // blood (poison bleeds LESS — it melts): fewer, fainter drops in poison mode
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.7) * (mode === "poison" ? 0.5 : 0.85)
+    for (let i = 0; i < (mode === "poison" ? 5 : 9); i++) { const h = (k) => _brutHash(seed, 660 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = mode === "poison" ? col(0.7) : (h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]); ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.4 * ph, cy + (h(4) * 2 - 1) * lh * 0.35 * ph, cell * (0.5 + h(6) * 0.6), 0, 6.28); ctx.fill() }
+    ctx.restore()
+    if (wt > 0.1 && mode !== "poison") _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.6, 76), Math.max(0, 1 - wt / 0.6) * 0.55)
+    // POISON — a strong wisteria haze + rising dissolve motes, drawn LAST so the melt reads (not buried by blood)
+    if (mode === "poison") {
+      ctx.save(); ctx.globalAlpha = Math.min(0.72, 0.3 + wt * 0.6) * (1 - Math.max(0, wt - 0.75) * 2)
+      const pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.2); pg.addColorStop(0, col(0.75)); pg.addColorStop(0.5, col(0.4)); pg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.2, 0, 6.28); ctx.fill()
+      for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 690 + i, k), ph = (wt * (1.2 + h(1)) + h(2)) % 1; ctx.globalAlpha = (1 - ph) * 0.6; ctx.fillStyle = col(0.85); ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.45, cy + lh * 0.25 - ph * lh * 0.9, cell * (0.7 - ph * 0.4), 0, 6.28); ctx.fill() }
+      ctx.restore()
+    }
+  }
+}
 // GENERIC LIVE GORE — the fighters are the real animated sprites (winner performs winAction, loser holds loseAction/
 // is knocked into hurt). Here we ONLY layer the gore FX, anchored to the loser's DRAWN rect: ground pool + a
 // per-gore flavor overlay (slashes / flames / bruises / swarm / meteor) + a blood burst at the kill. The weapon
@@ -7898,6 +8004,7 @@ function _drawLiveGore(b) {
   if (g === "gundecap") { _drawLiveGunDecap(b); return }
   if (g === "swordsmoke") { _drawLiveSwordSmoke(b); return }
   if (g === "bungeegum") { _drawLiveBungeeGum(b); return }
+  if (g === "flameslash" || g === "thunderslash" || g === "poisonslash" || g === "beastslash") { _drawLiveBreathSlash(b); return }
   const lf = b.loseRef, wf = b.winRef; if (!lf) return
   const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
@@ -22975,7 +23082,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flameslash: "Incinerated by Flame Breathing", thunderslash: "Electrocuted by Thunder Breathing", poisonslash: "Melted by Insect Breathing poison", beastslash: "Carved apart by Beast Breathing", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

@@ -73,7 +73,7 @@ const TABLE = {
   sasuke_sensei: { ssChidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, ssAmaterasu:{n:"AMATERASU",g:"amaterasu"}, ssShinraTensei:{n:"RINNEGAN VOID",g:"implode"}, up:{n:"KIRIN",g:"kirin"} },
   naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"}, n7Bijuudama:{n:"TAILED BEAST BOMB",g:"tbb"}, n7Rasengan:{n:"RASENGAN",g:"rasengan"}, n7Rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"} },   // Naruto (Seventh Hokage, adult)
   naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
-  shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"} },   // Shisui (Fallen)
+  shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"}, shisuiFallenKotoamatsukami:{n:"KOTOAMATSUKAMI",g:"kotoamatsukami"} },   // Shisui (Fallen)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

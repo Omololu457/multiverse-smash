@@ -22855,6 +22855,7 @@ function shisuiFallenKotoamatsukami(fighter, context) {
       o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 14
       shisuiFallenImpact(o, null, true)
       applyScaledDamage(o, shisuiFallenDmg(fighter, o, K.dmg), { source: "shisui_fallen-kotoamatsukami" })
+      if ((o.health || 0) <= 0) fighter._killingBlowMove = "shisuiFallenKotoamatsukami"   // stamp so the KOTOAMATSUKAMI brutality fires (source-only damage carries no move). Presentation-only; no sim effect.
     })
   }
   try { focusCameraOnAction(context, fighter, opp, 1.08, 24); shakeCamera(context, 4, 12) } catch (_) {}

@@ -1042,6 +1042,7 @@ const BRUTALITY_FINISHERS = {
     shisuiFallenFlickerStrike: { name: "BODY FLICKER",   gore: "bodyflicker",  palette: GORE_FALLEN,  flash: "#e03048", live: true, winAction: "light", loseAction: "hurt" },  // after-image storm → killed from every angle
     heavy:                     { name: "FLICKER SLICE",  gore: "flickerslice", palette: GORE_FALLEN,  flash: "#e03048", live: true, winAction: "heavy", loseAction: "hurt" },  // flicker THROUGH → bisect
     up:                        { name: "EMERALD SUSANO'O", gore: "shisuisusanoo", palette: GORE_EMERALD, flash: "#3ae08a", live: true, winAction: "up", loseAction: "hurt" },  // the giant emerald avatar (self-contained sprite) cleaves
+    shisuiFallenKotoamatsukami:{ name: "KOTOAMATSUKAMI", gore: "kotoamatsukami", palette: GORE_FALLEN, flash: "#c81028", live: true, winAction: "win", loseAction: "idle" },  // supreme genjutsu — the foe stands UNAWARE while his mind is seized → shatters
   },
   naruto_seventh: {
     up:              { name: "UZUMAKI BARRAGE",   gore: "uzumakibarrage", palette: GORE_NARUTO, flash: "#ffb84a", live: true, winAction: "up",            loseAction: "hurt" },  // (default cloneSrc = naruto_seventh_aircombo)
@@ -6677,7 +6678,7 @@ function updateBrutality() {
     else if (g === "uzumakibarrage") { const liftP = Math.min(1, Math.max(0, (t - 0.06) / 0.26)), slamP = Math.min(1, Math.max(0, (t - 0.32) / 0.08)); lf.y = b._liveLoseY0 - lh * 1.9 * liftP * (1 - slamP) }   // clones juggle the foe UP → the REAL Naruto spikes it DOWN (choreography spike ~frame 52)
     // WINNER STEP-IN — close the distance so the live move reaches the victim (melee especially). Ranged finishers
     // (gun/meteor) keep more space; vacuum/juubi/temporal keep the winner planted; PHASE dashes clean through.
-    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "bodyflicker" || g === "shisuisusanoo" || g === "flickerslice") { /* winner planted / carried */ }
+    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "bodyflicker" || g === "shisuisusanoo" || g === "flickerslice" || g === "kotoamatsukami") { /* winner planted / carried */ }
     else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
       const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
@@ -6689,7 +6690,7 @@ function updateBrutality() {
       const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
       // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
       // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
-      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo"
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami"
       if (foeCentered) {
         const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
         let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
@@ -6704,6 +6705,7 @@ function updateBrutality() {
         else if (g === "uzumakibarrage") { ay = lcy; ZT = 1.3 }                 // wider + follow the foe launched UP (lcy tracks them)
         else if (g === "tbb") { ax = lcx - (b.dir || 1) * lw * 0.6; ay = lcy - lh * 0.6; ZT = 1.2 }   // frame Kurama + the blast
         else if (g === "shisuisusanoo") { ax = lcx - (b.dir || 1) * lw * 0.5; ay = lcy - lh * 0.8; ZT = 1.25 }   // frame the towering emerald avatar
+        else if (g === "kotoamatsukami") { ay = lcy - lh * 0.9; ZT = 1.2 }      // frame the giant Mangekyō eye above the entranced foe
         else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
         const zt = base + (ZT - base) * pin
         camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
@@ -6727,7 +6729,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7542,7 +7544,7 @@ function _drawLiveGore(b) {
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
   const cx = lx + lw / 2, cy = ly + lh / 2, gy = lf.groundY != null ? lf.groundY : (ly + lh), cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
   const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), kill = 0.45
-  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || SPEEDRUN_GORES.has(g) || g === "temporalstab" || g === "juubi" || g === "electrocute" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "uzumakibarrage" || g === "tbb" || g === "rasenshuriken" || g === "bodyflicker"   // moving / airborne / own-ground gores skip the static under-foot pool
+  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || SPEEDRUN_GORES.has(g) || g === "temporalstab" || g === "juubi" || g === "electrocute" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "uzumakibarrage" || g === "tbb" || g === "rasenshuriken" || g === "bodyflicker" || g === "kotoamatsukami"   // moving / airborne / own-ground gores skip the static under-foot pool
   if (!_noGround) _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
   if (g === "slashstorm" || g === "domainslash" || g === "slashdance") {
     if (g === "domainslash") { const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
@@ -8059,6 +8061,34 @@ function _drawLiveGore(b) {
     if (sw > 0) { ctx.save(); ctx.lineCap = "round"; ctx.strokeStyle = col(sw * 0.9); ctx.lineWidth = 10 + sw * 24; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 1.4, cy - lh * 1.4); ctx.lineTo(cx + dir * lw * 0.6, cy + lh * 0.8); ctx.stroke()
       ctx.strokeStyle = `rgba(230,255,240,${sw})`; ctx.lineWidth = 3 + sw * 8; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 1.4, cy - lh * 1.4); ctx.lineTo(cx + dir * lw * 0.6, cy + lh * 0.8); ctx.stroke(); ctx.restore() }   // emerald blade arc
     if (t > 0.5) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.1, 130), Math.max(0, 1 - (t - 0.5) / 0.5) * 0.8)
+  } else if (g === "kotoamatsukami") {
+    // SHISUI (FALLEN) KOTOAMATSUKAMI — supreme genjutsu. The foe stands UNAWARE (idle pose) as his crimson Mangekyō
+    // eye enters their mind (chakra threads to the head) and the world bends crimson; then the mind SHATTERS → they
+    // collapse. Subtle mind-seizure, not a strike. Crimson, bloodless until the shatter.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_FALLEN)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+    const enter = Math.min(1, t / 0.5), shatter = Math.max(0, (t - 0.6) / 0.3)
+    // genjutsu haze — a crimson vignette tightening around the victim (the world bending to his will)
+    ctx.save(); ctx.globalAlpha = enter * 0.55; const vg = ctx.createRadialGradient(cx, cy, lw * 0.4, cx, cy, lw * 4); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(0.55, col(0.12)); vg.addColorStop(1, col(0.55 * enter)); ctx.fillStyle = vg; ctx.fillRect(cx - lw * 4, cy - lw * 4, lw * 8, lw * 8); ctx.restore()
+    // the giant Kotoamatsukami Mangekyō eye materialising above the scene (code-drawn 4-blade crimson windmill)
+    const eyeX = cx - dir * lw * 0.2, eyeY = cy - lh * 1.9, eyeR = lw * 1.1 * enter, spin = t * 3
+    if (eyeR > 2) { ctx.save(); ctx.translate(eyeX, eyeY); ctx.globalAlpha = enter * (shatter > 0 ? Math.max(0, 1 - shatter) : 1)
+      ctx.fillStyle = "rgba(200,30,36,0.92)"; ctx.beginPath(); ctx.arc(0, 0, eyeR, 0, 6.28); ctx.fill()                                   // crimson iris
+      ctx.rotate(spin); ctx.fillStyle = "rgba(10,2,3,0.96)"
+      for (let i = 0; i < 4; i++) { ctx.rotate(1.5708); ctx.beginPath(); ctx.moveTo(eyeR * 0.26, 0); ctx.quadraticCurveTo(eyeR * 0.95, eyeR * 0.55, eyeR * 0.98, 0); ctx.quadraticCurveTo(eyeR * 0.9, -eyeR * 0.08, eyeR * 0.26, 0); ctx.fill() }   // 4-blade windmill (Shisui's pattern)
+      ctx.rotate(-spin); ctx.fillStyle = "rgba(6,1,2,0.98)"; ctx.beginPath(); ctx.arc(0, 0, eyeR * 0.22, 0, 6.28); ctx.fill()             // pupil
+      ctx.restore() }
+    // mind-threads from the eye to the victim's head (subtle — they don't notice)
+    ctx.save(); ctx.globalAlpha = enter * 0.55; ctx.strokeStyle = col(0.7); ctx.lineWidth = 1.5
+    for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 5700 + i, k), hx = cx + (h(1) * 2 - 1) * lw * 0.3, hy = ly + lh * 0.12 + (h(2) * 2 - 1) * lh * 0.08, mx = (eyeX + hx) / 2 + (h(3) * 2 - 1) * lw * 0.4
+      ctx.beginPath(); ctx.moveTo(eyeX, eyeY + eyeR * 0.3); ctx.quadraticCurveTo(mx, (eyeY + hy) / 2, hx, hy); ctx.stroke() } ctx.restore()
+    // the victim's eyes glow crimson — entranced, controlled, unaware
+    if (enter > 0.3 && shatter <= 0) { ctx.save(); ctx.globalAlpha = (enter - 0.3) * 0.9; ctx.fillStyle = "rgba(230,20,28,0.9)"; for (const ex of [-0.1, 0.12]) { ctx.beginPath(); ctx.arc(cx + ex * lw, ly + lh * 0.16, cell * 1.0, 0, 6.28); ctx.fill() } ctx.restore() }
+    // SHATTER — the mind breaks: crimson fracture-lines spread over the victim → collapse + a little blood
+    if (shatter > 0) { const sp = Math.min(1, shatter); ctx.save()
+      ctx.globalAlpha = sp * 0.9; ctx.strokeStyle = "rgba(240,30,40,0.95)"; ctx.lineWidth = 2
+      for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 5720 + i, k), a = h(1) * 6.28; ctx.beginPath(); ctx.moveTo(cx, cy); let px = cx, py = cy; for (let s = 0; s < 4; s++) { px += Math.cos(a) * lw * 0.25 + (h(s + 2) * 2 - 1) * lw * 0.15; py += Math.sin(a) * lh * 0.25; ctx.lineTo(px, py) } ctx.stroke() }   // mind-cracks
+      ctx.globalAlpha = (1 - sp); const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.5); fg.addColorStop(0, "rgba(255,210,215,0.9)"); fg.addColorStop(0.5, col(0.5)); fg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.5, 0, 6.28); ctx.fill(); ctx.restore()
+      _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.0, 110), Math.max(0, 1 - sp) * 0.65) }
   } else {
     // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.

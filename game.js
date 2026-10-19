@@ -1007,6 +1007,11 @@ const BRUTALITY_FINISHERS = {
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
 // finisher — a simple bright gore burst, never silence.
 const BRUTALITY_KLASSIC = { name: "BRUTALITY", gore: "generic", palette: GORE_RED, flash: "#8a0018" }
+// JESUS — no gore can touch him. Any finisher (brutality OR fatality) with Jesus as winner OR loser is REPLACED
+// by a heavenly ASCENSION: whoever would "die" poses in their jump sprite and is lifted into a golden light to
+// heaven (also when Jesus himself loses a match). Deterministic, wholesome, bloodless. Intercepted in the KO routing.
+const ASCENSION_FINISHER = { name: "ASCENSION", gore: "ascension", palette: ["#e8d48a", "#fff6d0", "#fff0b0", "#2a240f"], flash: "#fff6d0", live: true, winAction: "win", loseAction: "jump" }
+const ASCENSION_FRAMES = 180   // a touch longer than a brutality — the ascent should breathe
 // Resolve the finisher for a winner + the move that landed the KO. zaraki_shikai shares zaraki's table.
 // Strict per-move match (Stage 4: NO fuzzy matching) → that entry; otherwise → KLASSIC. Never null.
 function _resolveBrutalityFinisher(wKey, move, fighter) {
@@ -6253,6 +6258,30 @@ function _tryStartBrutality(winner) {
   brutalityState._cam0 = { zoom: camera.zoom || 1, targetZoom: camera.targetZoom || camera.zoom || 1, x: camera.x, y: camera.y }
   return true
 }
+// JESUS ASCENSION — the "you can't do anything to him" intercept. Plays on the LOSER (whoever would be finished):
+// Jesus wins → the opponent ascends; Jesus loses → Jesus ascends. Bypasses the brutality eligibility gate AND the
+// brutalityFx toggle (it is the finisher for ANY Jesus KO — brutality, fatality, or a plain match-ending loss).
+function _tryStartAscension(winner) {
+  if (winner !== "p1" && winner !== "p2") return false            // no ascension on a draw / double-KO
+  const winF = winner === "p1" ? p1 : p2, loseF = winner === "p1" ? p2 : p1
+  if (!winF || !loseF) return false
+  if ((loseF.health || 0) > 0) return false                       // KO finish only
+  brutalityState.active = true; brutalityState.live = true; brutalityState.timer = brutalityState.maxTimer = ASCENSION_FRAMES
+  brutalityState.winnerSide = winner; brutalityState.wKey = (winF.rosterKey || "").toLowerCase(); brutalityState.dir = winner === "p1" ? 1 : -1
+  brutalityState.move = winF._killingBlowMove || null; brutalityState.parts = []; brutalityState.sprite = null; brutalityState.kbX = 0
+  brutalityState.seed = (((matchConfig?.seed || 1) >>> 0) ^ ((globalFrameCount * 2654435761) >>> 0)) >>> 0
+  brutalityState.finisher = ASCENSION_FINISHER; brutalityState.winRef = winF; brutalityState.loseRef = loseF
+  // the one being taken up poses in their JUMP sprite (serene ascent) → idle fallback; the winner stands (win → idle)
+  const la = (loseF.animationData?.jump) ? "jump" : "idle"; if (loseF.animationData?.[la]) loseF._forceAction = la
+  winF._forceAction = (winF.animationData?.win) ? "win" : null
+  brutalityState._cam0 = { zoom: camera.zoom || 1, targetZoom: camera.targetZoom || camera.zoom || 1, x: camera.x, y: camera.y }
+  return true
+}
+// Either fighter is Jesus (divine universe) → the KO resolves to the ASCENSION, not gore.
+function _koInvolvesJesus(winner) {
+  const a = (p1?.rosterKey || "").toLowerCase(), b = (p2?.rosterKey || "").toLowerCase()
+  return a === "jesus" || b === "jesus"
+}
 // Restore the camera the finish push-in borrowed (victory screen re-frames anyway; the Academy preview needs this).
 function _restoreBrutalityCamera() {
   const c0 = brutalityState._cam0; if (!c0) return
@@ -6577,9 +6606,10 @@ function updateBrutality() {
     else if (SPEEDRUN_GORES.has(g)) { lf.x = wf.x + (b.dir || 1) * lw * 0.5; lf.y = b._liveLoseY0 }   // CARRIED: the foe is locked just ahead of the Flash as he runs
     else if (g === "hakai") { lf._brutHidden = (t >= 0.6) }        // ERASED from existence → stop drawing the live foe
     else if (g === "whisslam") { lf._brutHidden = (t >= 0.55) }    // SQUISHED flat → the flattened mass + blood stand in
+    else if (g === "ascension") { const upP = Math.min(1, Math.max(0, (t - 0.22) / 0.62)); lf.y = b._liveLoseY0 - upP * upP * lh * 5.5; lf._brutHidden = (t > 0.92) }   // TAKEN UP to heaven (accelerating rise → fades into the light)
     // WINNER STEP-IN — close the distance so the live move reaches the victim (melee especially). Ranged finishers
     // (gun/meteor) keep more space; vacuum/juubi/temporal keep the winner planted; PHASE dashes clean through.
-    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere") { /* winner planted / carried */ }
+    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere" || g === "ascension") { /* winner planted / carried */ }
     else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
       const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
@@ -6591,7 +6621,7 @@ function updateBrutality() {
       const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
       // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
       // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
-      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam"
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension"
       if (foeCentered) {
         const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
         let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
@@ -6600,6 +6630,7 @@ function updateBrutality() {
         else if (g === "gedomazo") { ax = lcx - (b.dir || 1) * lw * 0.6; ay = lcy - lh * 0.1; ZT = 1.5 }
         else if (g === "destructionsphere") { ay = lcy - lh * 0.8; ZT = 1.3 }   // frame the orb forming above + the foe
         else if (g === "whisslam") { ay = lcy - lh * 0.7; ZT = 1.35 }           // frame Whis descending above the foe
+        else if (g === "ascension") { ay = lcy - lh * 0.3; ZT = 1.2 }           // wider + follow the rising ascent (lcy tracks them up)
         else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
         const zt = base + (ZT - base) * pin
         camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
@@ -6623,7 +6654,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7437,7 +7468,7 @@ function _drawLiveGore(b) {
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
   const cx = lx + lw / 2, cy = ly + lh / 2, gy = lf.groundY != null ? lf.groundY : (ly + lh), cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
   const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), kill = 0.45
-  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || SPEEDRUN_GORES.has(g) || g === "temporalstab" || g === "juubi" || g === "electrocute" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam"   // moving / airborne / own-ground gores skip the static under-foot pool
+  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || SPEEDRUN_GORES.has(g) || g === "temporalstab" || g === "juubi" || g === "electrocute" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension"   // moving / airborne / own-ground gores skip the static under-foot pool
   if (!_noGround) _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
   if (g === "slashstorm" || g === "domainslash" || g === "slashdance") {
     if (g === "domainslash") { const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
@@ -7797,6 +7828,29 @@ function _drawLiveGore(b) {
       ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ip / 0.3); ctx.strokeStyle = "rgba(200,230,255,0.9)"; ctx.lineWidth = 4 + (1 - ip) * 14; ctx.beginPath(); ctx.ellipse(cx, gy, lw * (0.8 + ip * 3), lw * 0.3 * (0.8 + ip * 3), 0, 0, 6.28); ctx.stroke(); ctx.restore()   // ground shockwave
       ctx.save(); ctx.globalAlpha = Math.min(1, ip * 1.5); ctx.fillStyle = "rgba(20,14,20,0.82)"; ctx.beginPath(); ctx.ellipse(cx, gy - cell, lw * (0.9 + ip * 0.7), lh * 0.18 * (1 - ip * 0.3), 0, 0, 6.28); ctx.fill(); ctx.restore()   // flattened squished mass
       _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.9, 210), Math.min(1, ip * 1.3)) }
+  } else if (g === "ascension") {
+    // JESUS ASCENSION — no gore. The one who lost (drawn LIVE in their jump/idle pose, lifted by updateBrutality)
+    // is taken up in a golden HEAVENLY LIGHT: a beam from the sky, a radiant halo, rising motes → fades into the light.
+    const glow = Math.min(1, t / 0.3), beamW = lw * 1.4, skyY = (ly) - lh * 7
+    ctx.save()
+    // the light beam column from the sky down to the ground, widening at the base
+    const lgrad = ctx.createLinearGradient(cx, skyY, cx, gy); lgrad.addColorStop(0, "rgba(255,248,210,0)"); lgrad.addColorStop(0.3, `rgba(255,246,200,${0.5 * glow})`); lgrad.addColorStop(1, `rgba(255,240,180,${0.22 * glow})`)
+    ctx.fillStyle = lgrad; ctx.beginPath(); ctx.moveTo(cx - beamW * 0.32, skyY); ctx.lineTo(cx + beamW * 0.32, skyY); ctx.lineTo(cx + beamW * 0.72, gy); ctx.lineTo(cx - beamW * 0.72, gy); ctx.closePath(); ctx.fill()
+    // faint "god-ray" streaks inside the beam
+    ctx.globalAlpha = glow * 0.35; ctx.strokeStyle = "rgba(255,250,225,0.8)"; ctx.lineWidth = 2
+    for (let i = 0; i < 6; i++) { const h = _brutHash(seed, 4820 + i, 1), rx = cx + (h * 2 - 1) * beamW * 0.4; ctx.beginPath(); ctx.moveTo(rx * 0.5 + cx * 0.5, skyY); ctx.lineTo(rx, gy); ctx.stroke() }
+    // radiant core glow around the (risen) victim — cy already tracks the lift
+    ctx.globalAlpha = 1; const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 1.8); rg.addColorStop(0, `rgba(255,252,235,${0.75 * glow})`); rg.addColorStop(0.5, `rgba(255,240,180,${0.35 * glow})`); rg.addColorStop(1, "rgba(255,240,180,0)")
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, cy, lw * 1.8, 0, 6.28); ctx.fill()
+    // a soft halo ring above the victim's head
+    ctx.globalAlpha = glow * 0.9; ctx.strokeStyle = "rgba(255,246,205,0.95)"; ctx.lineWidth = Math.max(2, cell * 0.9); ctx.beginPath(); ctx.ellipse(cx, cy - lh * 0.62, lw * 0.42, lw * 0.15, 0, 0, 6.28); ctx.stroke()
+    // rising golden motes / sparkles drifting up the beam
+    for (let i = 0; i < 26; i++) { const h = (k) => _brutHash(seed, 4700 + i, k), rp = ((t * (0.55 + h(1)) + h(2)) % 1)
+      ctx.globalAlpha = (1 - rp) * 0.85 * glow; ctx.fillStyle = h(4) < 0.6 ? "rgba(255,246,200,0.95)" : "rgba(255,255,255,0.92)"
+      const mx = cx + (h(3) * 2 - 1) * beamW * 0.5, my = gy - rp * lh * 6, s = Math.max(1.5, cell * (0.4 + h(5))); ctx.fillRect(mx, my, s, s) }
+    ctx.restore()
+    // as they vanish into the light, a warm radiant bloom
+    if (t > 0.82) { ctx.save(); const fp = (t - 0.82) / 0.18; ctx.globalAlpha = fp * 0.7; const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * 4.5); fg.addColorStop(0, "rgba(255,253,242,0.9)"); fg.addColorStop(0.6, "rgba(255,248,220,0.4)"); fg.addColorStop(1, "rgba(255,248,220,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, cy, lw * 4.5, 0, 6.28); ctx.fill(); ctx.restore() }
   } else {
     // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
@@ -7823,7 +7877,7 @@ function _drawBrutality() {
   // MK1-style finish framing: DARKEN the arena to a spotlight on the kill — the background drops to near-black
   // (cool tint) while the centre (where the fighters are framed by the push-in) stays lit. Ramps in fast, holds,
   // lifts at the very end. Screen-space, BEFORE the world-space gore so the gore/flash still pop on top.
-  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1) * (b.live && SPEEDRUN_GORES.has(fin?.gore) ? 0.3 : 1)   // run finishers keep their scrolling backdrop vivid (only a light vignette)
+  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1) * (b.live && SPEEDRUN_GORES.has(fin?.gore) ? 0.3 : b.live && fin?.gore === "ascension" ? 0.12 : 1)   // run finishers + the (heavenly, bright) ascension keep the scene vivid
   if (darkA > 0.01) {
     ctx.save(); const sx = cw * 0.5, sy = ch * 0.52
     // 1) global mood DIP — the whole arena drops toward night-black (cool tint)
@@ -8559,7 +8613,10 @@ function _checkMatchOver() {
     // Cinematic, then the legacy brutality fallback, then victory.
     const _wF = winner === "p1" ? p1 : p2, _wKey = (_wF?.rosterKey || "").toLowerCase(), _wMove = _wF?._killingBlowMove || null
     const _goreNow = GORE_ROUTING_CHARS.has(_wKey) && _hasBlowOrTraitEntry(_wKey, _wMove, _wF)
-    if (_tryStartImpactHit(winner)) { /* obito lead-in; hands off itself */ }
+    // JESUS intercept — "you can't do anything to him". If either fighter is Jesus, NO gore/fatality/cinematic plays;
+    // whoever lost is taken up to heaven in a golden light (Jesus wins → opponent ascends; Jesus loses → Jesus ascends).
+    if (_koInvolvesJesus(winner) && _tryStartAscension(winner)) { /* heavenly ascension — bypasses every finisher */ }
+    else if (_tryStartImpactHit(winner)) { /* obito lead-in; hands off itself */ }
     else if (_goreNow && _tryStartBrutality(winner)) { /* opt-in: BLOW/TRAIT gore finisher plays now */ }
     else if (startFinishWindow(winner === "p1" ? p1 : p2, winner === "p1" ? p2 : p1)) { /* FINISH window → fatality / cinematic */ }
     else if (_tryStartBrutality(winner)) { /* legacy gore fallback */ }
@@ -25512,6 +25569,7 @@ gameLoop()
       activeFinisher: () => brutalityState.active ? { name: brutalityState.finisher?.name, gore: brutalityState.finisher?.gore, move: brutalityState.move, wKey: brutalityState.wKey } : null,
       setEdoActive: (on, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoActive = !!on; return !!(f && f._edoActive) },
       setTrait: (field, val, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f[field] = val; return !!(f && f[field]) },   // set a LIVE trait field (p1() is a snapshot) — e.g. _madaraComplete for the Perfect Susano'o finisher
+      ascension: (winner = "p1", ko = true) => { const loseF = winner === "p1" ? p2 : p1; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartAscension(winner) },   // test-only: Jesus heavenly-ascension finisher (plays on the loser; bypasses eligibility + the brutality toggle)
       setIntensity: (v) => { setBrutalityIntensity(v); return brutalityIntensity },
       intensity: () => brutalityIntensity,
       // Snapshot the gore particles (for a determinism check: same seed → identical spawn).

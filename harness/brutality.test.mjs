@@ -25,7 +25,8 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "rick","rickprime",   // portal-gun vacuum + guillotine (Prime adds temporal-ambush trait) — LOWERCASE (engine lowercases rosterKey)
   "flash",      // Speed Force run — grabs + tears through multiple maps / time / dimension / space / sun
   "killua",     // Killua — thunderhead / yo-yo / godspeed-flurry (trait)
-  "beerus"];    // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
+  "beerus",     // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
+  "goku_rose","sasuke_adult","sasuke_sensei","naruto_seventh"];   // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage)
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua removed: age-gate lifted by owner request 2026-10-18
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
@@ -51,7 +52,7 @@ const TABLE = {
   alt_sukuna:     { altSukunaCleave2:{n:"CLEAVE",g:"bisect"}, altSukunaBeam:{n:"FŪGA",g:"beam"}, altSukunaSpinkick:{n:"DISMANTLE",g:"dice"} },
   ghostface_billy:{ gfLunge:{n:"GUTTING LUNGE",g:"gut"}, gfLowCut:{n:"HAMSTRING",g:"dismember"}, ultimate:{n:"THE FINAL ACT",g:"dice"} },
   // ── Tier 3 (2026-09-17) ──
-  sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
+  sasuke:   { chidoriKoiten:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"LIONS FANG",g:"bladecut"}, susanooSword:{n:"SUSANO'O",g:"sasukesusanoo"}, up:{n:"KIRIN",g:"kirin"} },   // UPGRADED to LIVE set
   itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
   vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
   pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, painAlmightyPull:{n:"ALMIGHTY PULL",g:"pull"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + pull + meteor
@@ -65,6 +66,10 @@ const TABLE = {
   flash:    { grab:{n:"SPEED FORCE",g:"speedrun"}, spinAttack:{n:"CHRONO BREAK",g:"chronorun"}, tornado:{n:"DIMENSION RUN",g:"dimensionrun"}, heavy:{n:"DEAD SPACE",g:"spacevacuum"}, up:{n:"SUPERNOVA",g:"solarrun"} },   // Flash RUN family — maps/time/dimension/space/sun (opt-in routing)
   killua:   { lightningPalm:{n:"THUNDERHEAD",g:"electrocute"}, killua_yoyo:{n:"YO-YO",g:"yoyobisect"} },   // Killua — electrocution / yo-yo bisect (+ __trait_godspeed GODSPEED FLURRY, tested separately via setTrait)
   beerus:   { hakai:{n:"HAKAI",g:"hakai"}, ultimate:{n:"SPHERE OF DESTRUCTION",g:"destructionsphere"}, heavy:{n:"JUDGMENT OF WHIS",g:"whisslam"} },   // Beerus — erasure / god-ki orb / Whis slam (opt-in routing)
+  goku_rose:     { roseScythe:{n:"GOD SPLIT CUT",g:"bladecut"}, roseSword:{n:"SWORD OF LIGHT",g:"bladecut"}, roseKameha:{n:"BLACK KAMEHAMEHA",g:"annihilate"} },   // Goku Black (Rosé)
+  sasuke_adult:  { chidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, amaterasu:{n:"AMATERASU",g:"amaterasu"}, saChibakuTensei:{n:"CHIBAKU TENSEI",g:"implode"}, up:{n:"SUSANO'O",g:"sasukesusanoo"} },
+  sasuke_sensei: { ssChidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, ssAmaterasu:{n:"AMATERASU",g:"amaterasu"}, ssShinraTensei:{n:"RINNEGAN VOID",g:"implode"}, up:{n:"KIRIN",g:"kirin"} },
+  naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (Seventh Hokage, adult)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

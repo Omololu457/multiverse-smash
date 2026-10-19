@@ -36,6 +36,7 @@
     "test:brutality-killua": "node harness/brutality_killua.mjs",
     "test:brutality-beerus": "node harness/brutality_beerus.mjs",
     "test:brutality-jesus": "node harness/brutality_jesus.mjs",
+    "test:brutality-batch-shots": "node harness/brutality_batch_shots.mjs",
     "test:prereqs": "node harness/prereqs.test.mjs",
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",

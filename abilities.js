@@ -1362,6 +1362,7 @@ function executeBeerusSpecial(fighter, context) {
       }, context)
       shakeCamera(context, 10, 12)
       beerusApplyDirect(t, ex, ey, BEERUS_HAKAI.dmg, BEERUS_HAKAI.range, 8)
+      if (t && (t.health || 0) <= 0) fighter._killingBlowMove = "hakai"   // stamp so the HAKAI brutality fires (direct damage doesn't carry a move). Presentation-only; no sim effect.
     })
     return true
   }
@@ -1510,6 +1511,7 @@ function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
   applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
+  if ((opp.health || 0) <= 0) fighter._killingBlowMove = "ultimate"   // stamp so the SPHERE OF DESTRUCTION brutality fires (cinematic damage carries no move). Presentation-only; no sim effect.
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {

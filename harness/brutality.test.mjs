@@ -24,9 +24,10 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "obito",      // Kamui rift / Ten-Tails / phase-through — full gore table (opt-in routing)
   "rick","rickprime",   // portal-gun vacuum + guillotine (Prime adds temporal-ambush trait) — LOWERCASE (engine lowercases rosterKey)
   "flash",      // Speed Force run — grabs + tears through multiple maps / time / dimension / space / sun
-  "zoldyck"];   // Killua (Godspeed) — thunderhead / yo-yo / godspeed flurry
+  "killua",     // Killua — thunderhead / yo-yo / godspeed-flurry (trait)
+  "beerus"];    // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
 // Hard-exclusion list — must NEVER be eligible regardless of style.
-const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
+const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua removed: age-gate lifted by owner request 2026-10-18
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
 const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
@@ -62,7 +63,8 @@ const TABLE = {
   rick:     { portalLaser:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, rocket:{n:"ROCKET",g:"fireball"}, selfDestructBlast:{n:"NUKE",g:"repulse"} },   // portal-gun gore + rocket/nuke (opt-in routing)
   rickprime:{ primePortalBlast:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, up:{n:"MULTIVERSE COLLAPSE",g:"implode"}, air:{n:"PORTAL BEAM",g:"annihilate"} },   // LOWERCASE table key; (+ __trait_rewind TEMPORAL AMBUSH, tested separately)
   flash:    { grab:{n:"SPEED FORCE",g:"speedrun"}, spinAttack:{n:"CHRONO BREAK",g:"chronorun"}, tornado:{n:"DIMENSION RUN",g:"dimensionrun"}, heavy:{n:"DEAD SPACE",g:"spacevacuum"}, up:{n:"SUPERNOVA",g:"solarrun"} },   // Flash RUN family — maps/time/dimension/space/sun (opt-in routing)
-  zoldyck:  { zoldyck_bolt:{n:"THUNDERHEAD",g:"electrocute"}, heavy:{n:"YO-YO",g:"yoyobisect"}, zoldyckGsCrouch:{n:"GODSPEED FLURRY",g:"godspeedflurry"} },   // Killua (Godspeed) — electrocution / yo-yo bisect / slow-mo flurry (opt-in routing)
+  killua:   { lightningPalm:{n:"THUNDERHEAD",g:"electrocute"}, killua_yoyo:{n:"YO-YO",g:"yoyobisect"} },   // Killua — electrocution / yo-yo bisect (+ __trait_godspeed GODSPEED FLURRY, tested separately via setTrait)
+  beerus:   { hakai:{n:"HAKAI",g:"hakai"}, ultimate:{n:"SPHERE OF DESTRUCTION",g:"destructionsphere"}, heavy:{n:"JUDGMENT OF WHIS",g:"whisslam"} },   // Beerus — erasure / god-ki orb / Whis slam (opt-in routing)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

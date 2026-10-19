@@ -43,7 +43,7 @@ const TABLE = {
   zaraki:   { heavy:{n:"KENDO CLEAVE",g:"bisect"}, zarakiHollowStrike:{n:"HOLLOW STRIKE",g:"dismember"}, zarakiBankai:{n:"NOZARASHI",g:"shred"} },
   mayuri:   { mayuriCmd2:{n:"VIVISECTION",g:"dismember"}, mayuriPoison:{n:"NEUROTOXIN",g:"melt"}, ultimate:{n:"ASHISOGI JIZŌ",g:"crush"} },
   madara:   { madaraTengaiMeteor:{n:"TENGAI SHINSEI",g:"meteor"}, ultimate:{n:"TENGAI SHINSEI",g:"meteor"}, madaraSusanooPunch:{n:"SUSANO'O GRIP",g:"susanoograb"}, heavy:{n:"SUSANO'O SLAM",g:"susanooslam"}, madaraFireball:{n:"GREAT FIREBALL",g:"fireball"} },   // cinematic gore set (opt-in routing)
-  jason:    { heavy:{n:"MACHETE CHOP",g:"decap"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, ultimate:{n:"MASSACRE",g:"pulp"} },
+  jason:    { heavy:{n:"MACHETE CHOP",g:"machetechop"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, jasonMachete:{n:"MACHETE THROW",g:"decap"}, ultimate:{n:"MASSACRE",g:"pulp"} },
   naoya:    { naoyaCombo:{n:"PROJECTION",g:"dismember"}, naoyaDart:{n:"CURSED DART",g:"beam"}, ultimate:{n:"FRAME TRAP",g:"dice"} },
   hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"bungeegum"}, hisoka_card:{n:"CARD STORM",g:"cardstorm"} },   // bungeegum LIVE · cardstorm snapshot (topples)
   ghostface:{ ghostfaceCombo3:{n:"FRENZY",g:"dismember"}, gfLunge:{n:"GUTTING LUNGE",g:"gut"}, ultimate:{n:"THE FINAL ACT",g:"decap"} },

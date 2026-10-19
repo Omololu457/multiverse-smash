@@ -831,10 +831,13 @@ const BRUTALITY_FINISHERS = {
     __trait_susanoo:    { name: "PERFECT SUSANO'O", gore: "susanooblade", palette: GORE_LIGHTNING, flash: "#3aa0ff", trait: "_madaraComplete", live: true, winAction: "madaraSusanooPunch", loseAction: "hurt" },
   },
   // JASON — the slasher. (heavy machete chop, Relentless Slash special, fallback ult massacre)
+  // JASON — the machete. The overhead chop splits the victim head-to-groin (signature); the Relentless Slash
+  // dismembers; the thrown blade buries itself to the hilt (MACHETE CHOP routes immediately — see GORE_ROUTING).
   jason: {
-    heavy:       { name: "MACHETE CHOP",    gore: "decap",     palette: GORE_RED, flash: "#6e0016" },
-    jRelentless: { name: "RELENTLESS SLASH",gore: "dismember", palette: GORE_RED, flash: "#6e0016" },
-    ultimate:    { name: "MASSACRE",        gore: "pulp",      palette: GORE_RED, flash: "#6e0016" },
+    heavy:        { name: "MACHETE CHOP",     gore: "machetechop", palette: GORE_RED, flash: "#f0f0f4" },  // overhead → vertical split
+    jRelentless:  { name: "RELENTLESS SLASH", gore: "dismember",   palette: GORE_RED, flash: "#6e0016" },
+    jasonMachete: { name: "MACHETE THROW",    gore: "decap",       palette: GORE_RED, flash: "#6e0016" },  // the thrown blade takes the head
+    ultimate:     { name: "MASSACRE",         gore: "pulp",        palette: GORE_RED, flash: "#6e0016" },
   },
   // NAOYA — the sadist's speed. (naoyaCombo cmd, Cursed Dart proj, Frame-Trap ult)
   naoya: {
@@ -1103,7 +1106,7 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash", "killua", "beerus",
-  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka"])
+  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka", "jason"])
 // FLASH run-finisher family — grab → run → scrolling backdrop → shed, all share the live position/camera/blood
 // handling; only the destination backdrop + the finale (maps / eras / dimension / space-vacuum / sun) differ.
 const SPEEDRUN_GORES = new Set(["speedrun", "chronorun", "dimensionrun", "spacevacuum", "solarrun"])
@@ -6316,7 +6319,7 @@ function _tryStartBrutality(winner) {
   // Capture the loser in their HURT pose (recoiling) if they have one — reads as "getting hit" better than idle
   // for the knockback lead-in. EXCEPTION: Toji's POINT BLANK wants them frozen on their IDLE frame (shot where
   // they stand). Falls back to whatever pose they're in.
-  if (brutalityState.finisher?.gore === "gunshot" || brutalityState.finisher?.gore === "cardstorm") { if (loseF.animationData?.idle) loseF._forceAction = "idle" }   // shot/carded where they STAND (upright) → the topple reads
+  if (brutalityState.finisher?.gore === "gunshot" || brutalityState.finisher?.gore === "cardstorm" || brutalityState.finisher?.gore === "machetechop") { if (loseF.animationData?.idle) loseF._forceAction = "idle" }   // shot/carded/split where they STAND (upright) → the effect reads
   else if (loseF.animationData?.hurt) loseF._forceAction = "hurt"
   brutalityState.sprite  = _captureLoserSprite(loseF)
   // Loser state at capture — read by the harness captureProbe() so a test can assert the airborne-KO capture
@@ -6332,7 +6335,7 @@ function _tryStartBrutality(winner) {
     if (_gg === "pull") {   // ALMIGHTY PULL — yank the victim ALL the way INTO the winner (Pain); burst happens on contact
       const wx = (winF.x || 0) + (winF.width || winF.w || 60) / 2, lxc = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
       brutalityState.kbX = (wx - lxc)
-    } else if (_gg === "gunshot" || _gg === "cardstorm" || _gg === "spearrun" || _gg === "slashdance" || _gg === "flyheads" || _gg === "flashgrab") brutalityState.kbX = 0   // victim stays put (shot/carded/impaled/grabbed where they stand)
+    } else if (_gg === "gunshot" || _gg === "cardstorm" || _gg === "machetechop" || _gg === "spearrun" || _gg === "slashdance" || _gg === "flyheads" || _gg === "flashgrab") brutalityState.kbX = 0   // victim stays put (shot/carded/split/impaled/grabbed where they stand)
     else brutalityState.kbX = brutalityState.dir * (_spw * (_gg === "squish" ? 6.0 : 1.15)) }
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
@@ -6791,6 +6794,7 @@ function updateBrutality() {
     else if (g === "firearrow") { ZT = 1.4; if (ft < 0.34) lx -= (b.dir || 1) * spW * 0.95 }   // frame Sukuna casting Fuga + the victim
     else if (g === "gunshot") { ZT = 1.75; if (ft > 0.5) ly -= spH * 0.3 }                     // frame the shooter + victim, snap up to the head on the kill shot
     else if (g === "cardstorm") { ZT = 1.5; ly -= spH * 0.12 }                                  // frame the whole body with room for the topple
+    else if (g === "machetechop") { ZT = 1.55; ly -= spH * 0.22 }                               // frame the raised machete above + the full split below
     else if (g === "slashdance") { ZT = 1.85 }                                                 // tight for the slash-dance
     else if (g === "flyheads") { ZT = 1.2; if (ft > 0.55) ly -= spH * 1.1 }                    // widen, then follow them hurled UP into the sky
     const z = base + (ZT - base) * (1 - Math.pow(1 - pt, 3))
@@ -6807,7 +6811,7 @@ function updateBrutality() {
   // the knockback lead-in): 0 for a strike, ~0.5 for crush (dragon engulf) / implode (singularity collapse).
   const _gg = b.finisher?.gore
   const _noStdBlood = _gg === "drag" || _gg === "annihilate" || _gg === "fireball" || _gg === "firearrow" || _gg === "flyheads"   // these draw their own — no chunk/pool spawn
-  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade", "slashstorm", "domainslash", "gunshot", "cardstorm", "spearrun", "slashdance", "bludgeon"])   // kill lands mid-beat (~t=0.5), not at frame 0
+  const _lateKill = new Set(["crush", "implode", "meteor", "squish", "susanoograb", "susanooslam", "susanooblade", "slashstorm", "domainslash", "gunshot", "cardstorm", "machetechop", "spearrun", "slashdance", "bludgeon"])   // kill lands mid-beat (~t=0.5), not at frame 0
   if (!_noStdBlood && sp) {
     const killT = _lateKill.has(_gg) ? 0.5 : 0.0
     const k = Math.round((_brutLead(b) + killT * (1 - _brutLead(b))) * b.maxTimer)   // kill-moment RAW frame (lead-in offset baked in)
@@ -7265,6 +7269,46 @@ function _drawGoreDecap(b, sp, t) {
   if (cut > 0.02) _drawBloodSplat(ctx, cx, neckY, Math.min(140, sp.w * 0.7), Math.max(0, 1 - (t - 0.22) / 0.5))
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
+}
+// JASON — MACHETE CHOP. The unstoppable stalker raises the machete slow... then brings it straight DOWN, splitting
+// the victim head-to-groin; the two halves slump apart over a blood geyser. Snapshot path (so the body cleaves).
+// The machete is code-drawn (no weapon sprite in the kit) so it swings on its own arc. Deterministic (hash, no RNG).
+function _drawGoreMacheteChop(b, sp, t) {
+  const cx = sp.x + sp.w / 2, cy = sp.y + sp.h / 2, cell = sp.px || 4, hw = sp.w / 2, seed = b.seed || 1, dir = b.dir || 1
+  const gy = sp.groundY != null ? sp.groundY : (sp.y + sp.h)
+  const CHOP = 0.42
+  const sep = Math.max(0, (t - CHOP) / 0.42), gap = sep * Math.max(72, sp.w * 0.72), fall = (sep * sep) * sp.h * 0.14, tip = sep * 0.2
+  _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - CHOP) / 0.6) * 0.7)
+  if (t < CHOP) {
+    ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)                                            // intact, standing
+  } else {
+    ctx.save(); ctx.translate(cx - gap / 2, cy + fall); ctx.rotate(-tip)                        // LEFT half tips/slides left
+    ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw, -sp.h / 2, hw, sp.h); _drawWoundCore(ctx, 0, 0, sp.h, 1, cell, Math.max(0, 1 - sep)); ctx.restore()
+    ctx.save(); ctx.translate(cx + gap / 2, cy + fall); ctx.rotate(tip)                         // RIGHT half tips/slides right
+    ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, 0, -sp.h / 2, hw, sp.h); _drawWoundCore(ctx, 0, 0, sp.h, -1, cell, Math.max(0, 1 - sep)); ctx.restore()
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - sep / 0.7) * 0.9; ctx.fillStyle = BLOOD_REDS[0]   // geyser up the cleft
+    for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 80 + i, k), gh = sp.h * (0.3 + h(1) * 0.5) * Math.min(1, sep * 3)
+      ctx.beginPath(); ctx.ellipse(cx + (h(2) * 2 - 1) * sp.w * 0.12, cy + fall - gh * 0.3, sp.w * 0.06, gh * 0.5, 0, 0, 6.28); ctx.fill() }
+    ctx.restore()
+  }
+  // THE MACHETE — a big code-drawn blade on its own arc: raised back pre-chop, straight DOWN through the cleft after
+  { const raise = Math.min(1, t / CHOP), swing = t < CHOP ? (1 - raise) : 0
+    const ang = (dir > 0 ? 1 : -1) * (swing * 1.25), bladeLen = sp.h * 0.95
+    const pivotX = cx, pivotY = cy - sp.h * 0.55 + (t >= CHOP ? Math.min(1, (t - CHOP) / 0.12) * sp.h * 0.12 : 0)
+    ctx.save(); ctx.translate(pivotX, pivotY); ctx.rotate(ang)
+    ctx.fillStyle = "#1a1510"; ctx.fillRect(-cell * 0.6, -cell * 2.4, cell * 1.2, cell * 2.6)                 // handle
+    ctx.fillStyle = "#3a3026"; ctx.fillRect(-cell * 1.4, -cell * 0.2, cell * 2.8, cell * 0.7)                 // guard
+    ctx.fillStyle = "#c8ccd2"; ctx.beginPath(); ctx.moveTo(-cell * 0.95, 0); ctx.lineTo(cell * 0.95, 0); ctx.lineTo(cell * 0.5, bladeLen); ctx.lineTo(-cell * 0.35, bladeLen * 0.98); ctx.closePath(); ctx.fill()   // blade (down +y)
+    ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-cell * 0.85, cell); ctx.lineTo(-cell * 0.2, bladeLen * 0.95); ctx.stroke()   // edge glint
+    if (t >= CHOP) { ctx.fillStyle = "rgba(140,10,20,0.75)"; ctx.fillRect(-cell * 0.6, bladeLen * 0.3, cell * 1.0, bladeLen * 0.6) }   // blood on the steel
+    ctx.restore()
+    if (t < CHOP && raise > 0.55) { ctx.save(); ctx.globalAlpha = (raise - 0.55) * 2 * (0.5 + 0.5 * Math.sin(t * 34)); ctx.fillStyle = "rgba(255,255,255,0.9)"   // glint at the apex
+      ctx.beginPath(); ctx.arc(pivotX - (dir > 0 ? 1 : -1) * bladeLen * 0.5, pivotY - bladeLen * 0.7, cell * 0.9, 0, 6.28); ctx.fill(); ctx.restore() }
+    if (t >= CHOP && t < CHOP + 0.06) { ctx.save(); ctx.globalAlpha = (1 - (t - CHOP) / 0.06) * 0.6; ctx.fillStyle = "#fff"; ctx.fillRect(sp.x - sp.w * 3, sp.y - sp.h * 3, sp.w * 7, sp.h * 7); ctx.restore() }   // chop flash
+  }
+  for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
+  ctx.globalAlpha = 1
+  const splatA = t >= CHOP && t < CHOP + 0.2 ? Math.max(0, 1 - (t - CHOP) / 0.2) : 0; if (splatA > 0.02) _drawBloodSplat(ctx, cx, cy + fall, Math.min(110, sp.w * 0.5), splatA)
 }
 // SUKUNA — DISMANTLE (slashstorm) / MALEVOLENT SHRINE (domain=true): a FLURRY of exaggerated cuts rains onto the
 // frozen victim (zing-zing-zing), then the body FALLS APART into a pile of pieces. The domain variant opens with
@@ -8476,7 +8520,7 @@ function _drawBrutality() {
   // FEEL/BRUTALITY roll-out: distinct EFFECTS per finisher. New gore types branch to their own renderer;
   // "bisect"/"generic"/every existing type fall through to the long-standing bisection below (NO regression).
   const _g = fin?.gore
-  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade", "decap", "slashstorm", "domainslash", "firearrow", "gunshot", "spearrun", "slashdance", "bludgeon", "flashgrab", "flyheads", "cardstorm"])
+  const _NEWG = new Set(["watercut", "crush", "drag", "implode", "repulse", "annihilate", "squish", "pull", "meteor", "susanoograb", "susanooslam", "fireball", "susanooblade", "decap", "slashstorm", "domainslash", "firearrow", "gunshot", "spearrun", "slashdance", "bludgeon", "flashgrab", "flyheads", "cardstorm", "machetechop"])
   if (sp && sp.canvas && _NEWG.has(_g)) {
     if (_g === "watercut") _drawGoreWaterCut(b, sp, t, sepEase, woundA)
     else if (_g === "crush") _drawGoreCrush(b, sp, t)
@@ -8501,6 +8545,7 @@ function _drawBrutality() {
     else if (_g === "flashgrab") _drawGoreFlashGrab(b, sp, t)       // Toji FLASH STEP — grab run-through → blood burst
     else if (_g === "flyheads") _drawGoreFlyHeads(b, sp, t)         // Toji CURSED ARSENAL — swarm → throw to the sky
     else if (_g === "cardstorm") _drawGoreCardStorm(b, sp, t)       // Hisoka CARD STORM — whole deck sticks in → body topples
+    else if (_g === "machetechop") _drawGoreMacheteChop(b, sp, t)   // Jason MACHETE CHOP — overhead → vertical head-to-groin split
     else _drawGoreDrag(b, sp, t)
   } else if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
@@ -22930,7 +22975,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

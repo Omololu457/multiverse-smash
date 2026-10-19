@@ -32,6 +32,7 @@ const PLAN = [
     ["ultimate", "omega_saber_barrage", 58], ["ultimate", "omega_saber_cut", 78], ["ultimate", "omega_saber_after", 112]]],
   ["hisoka", [["hisoka_card", "hisoka_cards_stick", 66], ["hisoka_card", "hisoka_cards_topple", 120],
     ["bungeeGum", "hisoka_bungee_stick", 40], ["bungeeGum", "hisoka_bungee_burst", 98]]],
+  ["jason", [["heavy", "jason_chop_raise", 48], ["heavy", "jason_chop_split", 112]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

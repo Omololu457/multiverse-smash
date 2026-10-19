@@ -45,7 +45,7 @@ const TABLE = {
   madara:   { madaraTengaiMeteor:{n:"TENGAI SHINSEI",g:"meteor"}, ultimate:{n:"TENGAI SHINSEI",g:"meteor"}, madaraSusanooPunch:{n:"SUSANO'O GRIP",g:"susanoograb"}, heavy:{n:"SUSANO'O SLAM",g:"susanooslam"}, madaraFireball:{n:"GREAT FIREBALL",g:"fireball"} },   // cinematic gore set (opt-in routing)
   jason:    { heavy:{n:"MACHETE CHOP",g:"decap"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, ultimate:{n:"MASSACRE",g:"pulp"} },
   naoya:    { naoyaCombo:{n:"PROJECTION",g:"dismember"}, naoyaDart:{n:"CURSED DART",g:"beam"}, ultimate:{n:"FRAME TRAP",g:"dice"} },
-  hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"dismember"}, hisoka_card:{n:"CARD THROW",g:"beam"} },
+  hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"bungeegum"}, hisoka_card:{n:"CARD STORM",g:"cardstorm"} },   // bungeegum LIVE · cardstorm snapshot (topples)
   ghostface:{ ghostfaceCombo3:{n:"FRENZY",g:"dismember"}, gfLunge:{n:"GUTTING LUNGE",g:"gut"}, ultimate:{n:"THE FINAL ACT",g:"decap"} },
   baki:     { bakiG2:{n:"GRAPPLE TEAR",g:"dismember"}, bakiRush:{n:"DEMON RUSH",g:"pulp"}, bakiRising:{n:"RISING FANG",g:"crush"} },
   // ── Tier 2 ──

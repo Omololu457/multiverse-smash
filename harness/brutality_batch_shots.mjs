@@ -30,6 +30,8 @@ const PLAN = [
   ["shisui_fallen", [["shisuiFallenFlickerStrike", "shisui_bodyflicker", 48], ["heavy", "shisui_flickerslice", 72], ["up", "shisui_susanoo", 78], ["shisuiFallenKotoamatsukami", "shisui_kotoamatsukami", 80]]],
   ["omega_ranger", [["omGunBolt", "omega_gundecap_aim", 30], ["omGunBolt", "omega_gundecap_fall", 88], ["omGunBolt", "omega_gundecap_land", 124],
     ["ultimate", "omega_saber_barrage", 58], ["ultimate", "omega_saber_cut", 78], ["ultimate", "omega_saber_after", 112]]],
+  ["hisoka", [["hisoka_card", "hisoka_cards_stick", 66], ["hisoka_card", "hisoka_cards_topple", 120],
+    ["bungeeGum", "hisoka_bungee_stick", 40], ["bungeeGum", "hisoka_bungee_burst", 98]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

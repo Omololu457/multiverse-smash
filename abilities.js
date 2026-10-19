@@ -22641,6 +22641,7 @@ function shisuiFallenFlickerStrike(fighter, context) {
     o.hitstun = Math.max(o.hitstun || 0, 24); o.vx = away * 8; o.vy = -4; o.colorFlash = 12
     shisuiFallenImpact(o, fighter, false)
     applyScaledDamage(o, shisuiFallenDmg(fighter, o, 52), { source: "shisui_fallen-flicker-strike" })
+    if ((o.health || 0) <= 0) fighter._killingBlowMove = "shisuiFallenFlickerStrike"   // stamp so the BODY FLICKER brutality fires (source-only damage carries no move). Presentation-only; no sim effect.
   })
   try { focusCameraOnAction(context, fighter, opp, 0.98, 10); shakeCamera(context, 5, 7) } catch (_) {}
   return true

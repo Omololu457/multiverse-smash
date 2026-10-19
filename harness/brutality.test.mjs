@@ -27,7 +27,8 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "killua",     // Killua — thunderhead / yo-yo / godspeed-flurry (trait)
   "beerus",     // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
   "goku_rose","sasuke_adult","sasuke_sensei","naruto_seventh",
-  "naruto"];   // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage + teen naruto)
+  "naruto",    // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage + teen naruto)
+  "shisui_fallen"];   // Shisui (Fallen) — Body Flicker / Flicker Slice / Emerald Susano'o (trait)
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua + naruto[teen] removed: age-gates lifted by owner request 2026-10-18/19
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
@@ -72,6 +73,7 @@ const TABLE = {
   sasuke_sensei: { ssChidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, ssAmaterasu:{n:"AMATERASU",g:"amaterasu"}, ssShinraTensei:{n:"RINNEGAN VOID",g:"implode"}, up:{n:"KIRIN",g:"kirin"} },
   naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"}, n7Bijuudama:{n:"TAILED BEAST BOMB",g:"tbb"}, n7Rasengan:{n:"RASENGAN",g:"rasengan"}, n7Rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"} },   // Naruto (Seventh Hokage, adult)
   naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
+  shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"} },   // Shisui (Fallen)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

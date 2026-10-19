@@ -27,6 +27,7 @@ const PLAN = [
   ["sasuke_adult", [["amaterasu", "sasukeadult_amaterasu", 85], ["saChibakuTensei", "sasukeadult_chibaku", 80]]],
   ["naruto_seventh", [["up", "naruto_uzumakibarrage_mid", 28], ["n7Bijuudama", "naruto7_tbb", 110], ["n7Rasengan", "naruto7_rasengan", 30], ["n7Rasenshuriken", "naruto7_rasenshuriken", 78]]],
   ["naruto", [["tbb", "naruto_teen_tbb", 30], ["up", "naruto_teen_barrage", 28]]],
+  ["shisui_fallen", [["shisuiFallenFlickerStrike", "shisui_bodyflicker", 48], ["heavy", "shisui_flickerslice", 72], ["up", "shisui_susanoo", 78]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

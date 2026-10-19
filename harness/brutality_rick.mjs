@@ -46,11 +46,11 @@ async function runCases(tblKey, tag, cases) {
 try {
   // ── RICK (C-137) ──
   await bootChar("rick")
-  await runCases("rick", "rick", [["portalLaser", "PORTAL VACUUM", "portalvacuum"], ["heavy", "PORTAL GUILLOTINE", "portalguillotine"]])
+  await runCases("rick", "rick", [["portalLaser", "PORTAL VACUUM", "portalvacuum"], ["heavy", "PORTAL GUILLOTINE", "portalguillotine"], ["rocket", "ROCKET", "fireball"], ["selfDestructBlast", "NUKE", "repulse"]])
 
   // ── RICK PRIME (camelCase roster key; lowercase brutality table key) ──
   await bootChar("rickPrime")
-  await runCases("rickprime", "rickprime", [["primePortalBlast", "PORTAL VACUUM", "portalvacuum"], ["heavy", "PORTAL GUILLOTINE", "portalguillotine"]])
+  await runCases("rickprime", "rickprime", [["primePortalBlast", "PORTAL VACUUM", "portalvacuum"], ["heavy", "PORTAL GUILLOTINE", "portalguillotine"], ["up", "MULTIVERSE COLLAPSE", "implode"], ["air", "PORTAL BEAM", "annihilate"]])
 
   // ── RICK PRIME — TEMPORAL AMBUSH trait (after rewind): set the flag → ANY kill plays temporalstab ──
   console.log("\n── rickprime: TEMPORAL AMBUSH trait ──")

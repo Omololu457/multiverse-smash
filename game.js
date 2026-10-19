@@ -732,7 +732,7 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   "gojo",
   // Obito (Kamui rift / Ten-Tails / phase-through) — the obitoKamuiDimension Impact-Hit cascade now HANDS OFF into
   // his KAMUI rift finisher (real table below). Rick & Rick Prime (portal gore) and Flash (Speed Force run). Full tables below.
-  "obito", "rick", "rickprime", "flash"])   // ★ rickprime LOWERCASE — the engine lowercases rosterKey ("rickPrime") before every brutality lookup
+  "obito", "rick", "rickprime", "flash", "zoldyck"])   // ★ rickprime LOWERCASE — the engine lowercases rosterKey ("rickPrime") before every brutality lookup
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -752,6 +752,9 @@ const GORE_PORTAL  = ["#a11026", "#6e0016", "#39ff6a", "#06240f"]   // Rick — 
 const GORE_PRIME   = ["#a11026", "#6e0016", "#39d0ff", "#06202a"]   // Rick Prime — blood + multiverse cyan
 const GORE_TIME    = ["#a11026", "#6e0016", "#ffcf4a", "#2a1e06"]   // Rick Prime rewind — blood + chrono-amber (temporal ambush)
 const GORE_SPEED   = ["#a11026", "#6e0016", "#ffe14a", "#2a1a06"]   // Flash — blood + Speed Force yellow + red lightning
+const GORE_WOOD    = ["#a11026", "#6e0016", "#8a5a2a", "#20140a"]   // Obito Mokuton — blood + wood-release bark brown
+const GORE_GEDO    = ["#a11026", "#6e0016", "#7a6a90", "#0a0a12"]   // Obito Gedo Mazo — blood + demonic-statue ashen violet-grey
+const GORE_VOLT    = ["#a11026", "#6e0016", "#5ad0ff", "#061826"]   // Killua (Godspeed) — blood + Volts electric cyan
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -949,12 +952,16 @@ const BRUTALITY_FINISHERS = {
     obitoKamuiDimension: { name: "KAMUI",           gore: "kamuivacuum", palette: GORE_KAMUI, flash: "#5a2ad0", live: true, winAction: "obitoKamuiActivate", loseAction: "hurt" },  // LIVE: rift sucks them in → blood-portal rains
     ultimate:            { name: "TEN-TAILS",       gore: "juubi",       palette: GORE_JUUBI, flash: "#c8b888", live: true, winAction: "win",                 loseAction: "hurt" },  // LIVE: Juubi looms → point-blank Bijūdama
     heavy:               { name: "PHASE EXECUTION", gore: "phasekill",   palette: GORE_KAMUI, flash: "#5a2ad0", live: true, winAction: "dash",                loseAction: "hurt" },  // LIVE: Kamui phase-through → co-materialize burst
+    up:                  { name: "GEDŌ MAZŌ",       gore: "gedomazo",    palette: GORE_GEDO,  flash: "#6a6a8a", live: true, winAction: "up",                  loseAction: "hurt" },  // LIVE: Demonic-Statue dragon-heads seize + devour
+    air:                 { name: "MOKUTON",         gore: "mokuton",     palette: GORE_WOOD,  flash: "#7a5a2a", live: true, winAction: "air",                 loseAction: "hurt" },  // LIVE: wood-release spikes erupt → impale
   },
   // RICK (C-137) — portal-gun sci-fi gore. PORTAL VACUUM (green rift sucks them through → a second portal spits the
   // remains to the floor) + PORTAL GUILLOTINE (a portal opens THROUGH the body and snaps shut → clean bisect).
   rick: {
     portalLaser: { name: "PORTAL VACUUM",     gore: "portalvacuum",     palette: GORE_PORTAL, flash: "#2ad060", live: true, winAction: "portalTravel", loseAction: "hurt" },  // LIVE: green rift → suck in → blood-portal
     heavy:       { name: "PORTAL GUILLOTINE", gore: "portalguillotine", palette: GORE_PORTAL, flash: "#2ad060", live: true, winAction: "heavy",        loseAction: "hurt" },  // LIVE: portal opens mid-body → snaps → bisect
+    rocket:            { name: "ROCKET",  gore: "fireball", palette: GORE_PORTAL, flash: "#ff8a2a", live: true, winAction: "rocket",       loseAction: "hurt" },  // LIVE: point-blank rocket → fireball + scorch
+    selfDestructBlast: { name: "NUKE",    gore: "repulse",  palette: GORE_PORTAL, flash: "#39ff6a", live: true, winAction: "selfDestruct", loseAction: "hurt" },  // LIVE: self-destruct AOE → green shockwave + gib
   },
   // RICK PRIME — the multiverse's worst. Both of Rick's portal finishers (cyan-themed) PLUS a TEMPORAL AMBUSH: a
   // TRAIT that fires after his rewind ult (_primeRewoundThisRound) — the foe rewinds backward onto a pre-planted
@@ -962,12 +969,29 @@ const BRUTALITY_FINISHERS = {
   rickprime: {   // ★ LOWERCASE key — rosterKey "rickPrime" is lowercased before the table lookup
     primePortalBlast: { name: "PORTAL VACUUM",     gore: "portalvacuum",     palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "portalTravel", loseAction: "hurt" },
     heavy:            { name: "PORTAL GUILLOTINE", gore: "portalguillotine", palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "heavy",        loseAction: "hurt" },
+    up:               { name: "MULTIVERSE COLLAPSE", gore: "implode",    palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "up",  loseAction: "hurt" },  // LIVE: cyan singularity implodes them
+    air:              { name: "PORTAL BEAM",         gore: "annihilate", palette: GORE_PRIME, flash: "#2ad0ff", live: true, winAction: "air", loseAction: "hurt" },  // LIVE: cyan multiverse beam through the body
     __trait_rewind:   { name: "TEMPORAL AMBUSH",   gore: "temporalstab",     palette: GORE_TIME,  flash: "#ffcf4a", trait: "_primeRewoundThisRound", live: true, winAction: "portalTravel", loseAction: "hurt" },
   },
   // FLASH — the Scarlet Speedster. SPEED FORCE run: he grabs the foe and tears through the stage AND several OTHER
   // maps (the backdrop blurs through them) while the foe's body parts shear off in the slipstream.
+  // KILLUA (Godspeed) — Nanika's lightning. THUNDERHEAD (electrocution → the body overloads and bursts), a YO-YO
+  // slice (the 50kg yo-yo's wire shears the body in half), and GODSPEED FLURRY (Speed-of-Lightning slow-mo: a storm
+  // of after-image strikes from every angle → the foe detonates). Electric-cyan Volts palette.
+  zoldyck: {
+    zoldyck_bolt:    { name: "THUNDERHEAD",    gore: "electrocute",   palette: GORE_VOLT,  flash: "#8adcff", live: true, winAction: "zoldyckThunderbolt", loseAction: "hurt" },  // LIVE: electricity floods in → overload burst
+    heavy:           { name: "YO-YO",          gore: "yoyobisect",    palette: GORE_STEEL, flash: "#bcd0e0", live: true, winAction: "zoldyckYoyo",        loseAction: "hurt" },  // LIVE: the yo-yo wire shears them in half
+    zoldyckGsCrouch: { name: "GODSPEED FLURRY", gore: "godspeedflurry", palette: GORE_VOLT, flash: "#8adcff", live: true, winAction: "zoldyckGsCrouch",   loseAction: "hurt" },  // LIVE: slow-mo after-image barrage → detonate
+  },
+  // FLASH — the Scarlet Speedster grabs the foe and RUNS. Each finisher tears through a different kind of distance:
+  // across many maps, across TIME (eras), into another DIMENSION, out into SPACE (decompression burst), or into
+  // the SUN. All share the grab→run→scrolling-backdrop→shed engine; the destination + finale differ per gore.
   flash: {
-    grab: { name: "SPEED FORCE", gore: "speedrun", palette: GORE_SPEED, flash: "#ffe14a", live: true, winAction: "run", loseAction: "hurt" },
+    grab:       { name: "SPEED FORCE",   gore: "speedrun",     palette: GORE_SPEED, flash: "#ffe14a", live: true, winAction: "run", loseAction: "hurt" },  // run through many MAPS → body parts shear off
+    spinAttack: { name: "CHRONO BREAK",  gore: "chronorun",    palette: GORE_SPEED, flash: "#ffd14a", live: true, winAction: "run", loseAction: "hurt" },  // run through TIME (eras) → the foe ages to dust
+    tornado:    { name: "DIMENSION RUN", gore: "dimensionrun", palette: GORE_SPEED, flash: "#c86aff", live: true, winAction: "run", loseAction: "hurt" },  // run into another DIMENSION → torn apart into rifts
+    heavy:      { name: "DEAD SPACE",    gore: "spacevacuum",  palette: GORE_SPEED, flash: "#6ab4ff", live: true, winAction: "run", loseAction: "hurt" },  // Speed-Force portal → SPACE → decompression burst
+    up:         { name: "SUPERNOVA",     gore: "solarrun",     palette: GORE_SPEED, flash: "#ff8a2a", live: true, winAction: "run", loseAction: "hurt" },  // run into the SUN → incineration to ash
   },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
@@ -989,7 +1013,10 @@ function _resolveBrutalityFinisher(wKey, move, fighter) {
 function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFinisher(wKey, move, fighter) !== BRUTALITY_KLASSIC }
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
-const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash"])
+const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash", "zoldyck"])
+// FLASH run-finisher family — grab → run → scrolling backdrop → shed, all share the live position/camera/blood
+// handling; only the destination backdrop + the finale (maps / eras / dimension / space-vacuum / sun) differ.
+const SPEEDRUN_GORES = new Set(["speedrun", "chronorun", "dimensionrun", "spacevacuum", "solarrun"])
 const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-pose slide) + the finisher kill + aftermath hold before the victory screen
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
@@ -6537,10 +6564,10 @@ function updateBrutality() {
       const pull = Math.min(1, t / 0.42); lf.x = b._liveLoseX0 + ((b.dir || 1) * lw * 0.15) * pull
       lf._brutHidden = (t >= 0.42) }   // swallowed → the renderer skips the live loser past this beat
     else if (g === "temporalstab") { const back = Math.min(1, t / 0.5); lf.x = b._liveLoseX0 + (b.dir || 1) * lw * 1.4 * (1 - back) }   // REWIND: dragged BACKWARD onto the pre-planted blade
-    else if (g === "speedrun") { lf.x = wf.x + (b.dir || 1) * lw * 0.5; lf.y = b._liveLoseY0 }   // CARRIED: the foe is locked just ahead of the Flash as he runs
+    else if (SPEEDRUN_GORES.has(g)) { lf.x = wf.x + (b.dir || 1) * lw * 0.5; lf.y = b._liveLoseY0 }   // CARRIED: the foe is locked just ahead of the Flash as he runs
     // WINNER STEP-IN — close the distance so the live move reaches the victim (melee especially). Ranged finishers
     // (gun/meteor) keep more space; vacuum/juubi/temporal keep the winner planted; PHASE dashes clean through.
-    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "speedrun") { /* winner planted / carried */ }
+    if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g)) { /* winner planted / carried */ }
     else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
       const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
@@ -6552,12 +6579,13 @@ function updateBrutality() {
       const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
       // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
       // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
-      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine"
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry"
       if (foeCentered) {
         const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
         let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
         if (g === "kamuivacuum" || g === "portalvacuum") { ax = b._portalWX != null ? b._portalWX : lcx; ay = (b._portalGY != null ? b._portalGY : gndY) - lh * 1.1; ZT = 1.45 }
         else if (g === "juubi") { ax = lcx - (b.dir || 1) * lw * 0.7; ay = gndY - lh * 1.2; ZT = 1.5 }
+        else if (g === "gedomazo") { ax = lcx - (b.dir || 1) * lw * 0.6; ay = lcy - lh * 0.1; ZT = 1.5 }
         else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
         const zt = base + (ZT - base) * pin
         camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
@@ -6566,12 +6594,22 @@ function updateBrutality() {
           if (camera.worldWidth > halfVW * 2) camera.x = Math.max(halfVW, Math.min(camera.worldWidth - halfVW, camera.x))
           const halfVH = (canvas.height / zt) / 2
           if (camera.worldHeight > halfVH * 2) camera.y = Math.max((camera.minY || 0) + halfVH, Math.min(camera.worldHeight - halfVH, camera.y)) }
+      } else if (SPEEDRUN_GORES.has(g)) {
+        // RUN FAMILY — centre on the running pair (winner + carried foe), set x/y DIRECTLY (advance() not run here).
+        const wcx = (wf._lastDrawX != null ? wf._lastDrawX : wf.x) + (wf._lastDrawW || lw) / 2
+        const ax = wcx + (b.dir || 1) * lw * 0.35, ay = (b._liveLoseY0 != null ? b._liveLoseY0 + lh * 0.4 : lcy), zt = (base + base * 0.72 * pin) * 0.78
+        camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25
+        camera.targetX = camera.x; camera.targetY = camera.y; camera.zoom = zt; camera.targetZoom = zt
+        if (camera.worldWidth && canvas) { const halfVW = (canvas.width / zt) / 2
+          if (camera.worldWidth > halfVW * 2) camera.x = Math.max(halfVW, Math.min(camera.worldWidth - halfVW, camera.x))
+          const halfVH = (canvas.height / zt) / 2
+          if (camera.worldHeight > halfVH * 2) camera.y = Math.max((camera.minY || 0) + halfVH, Math.min(camera.worldHeight - halfVH, camera.y)) }
       } else {
-        const z = (base + base * 0.72 * pin) * (g === "speedrun" ? 0.72 : 1)
+        const z = base + base * 0.72 * pin
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "speedrun"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7385,7 +7423,7 @@ function _drawLiveGore(b) {
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
   const cx = lx + lw / 2, cy = ly + lh / 2, gy = lf.groundY != null ? lf.groundY : (ly + lh), cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
   const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), kill = 0.45
-  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || g === "speedrun" || g === "temporalstab" || g === "juubi"   // moving / airborne / own-ground gores skip the static under-foot pool
+  const _noGround = g === "flyheads" || g === "kamuivacuum" || g === "portalvacuum" || SPEEDRUN_GORES.has(g) || g === "temporalstab" || g === "juubi" || g === "electrocute" || g === "godspeedflurry"   // moving / airborne / own-ground gores skip the static under-foot pool
   if (!_noGround) _drawGroundPool(ctx, cx, gy, cell, Math.max(0, (t - kill) / 0.5) * 0.85 + (t > kill ? 0.12 : 0))
   if (g === "slashstorm" || g === "domainslash" || g === "slashdance") {
     if (g === "domainslash") { const estA = Math.min(1, t * 2.4) * (t > 0.88 ? Math.max(0, 1 - (t - 0.88) / 0.12) : 1)
@@ -7507,20 +7545,32 @@ function _drawLiveGore(b) {
       ctx.restore(); _drawGroundPool(ctx, tx, pgy, cell, fall * 0.9)
       if (t > 0.58) _drawBloodSplat(ctx, tx, pgy - cell, Math.min(lw * 1.1, 130), fall * Math.max(0, 1 - (t - 0.58) / 0.4)) }
   } else if (g === "juubi") {
-    // OBITO TEN-TAILS — the Juubi RISES behind Obito (real sprite), charges a Bijūdama at its maw, then FIRES it
-    // point-blank through the foe (~t=0.5): a beam + detonation flash → red mist + scorch.
+    // OBITO TEN-TAILS — the Juubi RISES behind the foe (real sprite), charges a big Bijūdama at its maw, then FIRES
+    // it point-blank (~t=0.5): fat beam + detonation flash + shockwave ring → VAPORIZATION (rising violet motes +
+    // scorch), not a blood blob (a point-blank tailed-beast bomb erases, it doesn't just cut).
     const rgb = _hexToRgb((b.finisher?.palette || GORE_JUUBI)[2])
-    const rise = Math.min(1, t / 0.4), beastH = lh * 3.4 * rise, beastX = cx - dir * lw * 1.5, beastCY = gy - beastH * 0.42   // anchored to the FOE (behind, on the caster side) so it stays in the tight frame
+    const rise = 1 - Math.pow(1 - Math.min(1, t / 0.42), 2), beastH = lh * 3.1 * rise, beastX = cx - dir * lw * 1.5, beastCY = gy - beastH * 0.42
     const bA = Math.min(1, t < 0.1 ? t / 0.1 : (t > 0.9 ? Math.max(0, 1 - (t - 0.9) / 0.1) : 1)), bFrame = Math.floor(t * 8) % 4
     _brutSheetFrame(ctx, "./obito_juubi_uniform.png", 4, bFrame, beastX, beastCY, beastH, dir, bA * 0.96, 0.5)
-    const mawX = beastX + dir * beastH * 0.22, mawY = beastCY - beastH * 0.12, charge = Math.min(1, Math.max(0, (t - 0.2) / 0.3)), fired = t >= 0.5
-    if (charge > 0 && !fired) { const orbR = lh * 0.5 * charge; ctx.save(); const og = ctx.createRadialGradient(mawX, mawY, 0, mawX, mawY, orbR); og.addColorStop(0, "rgba(40,20,60,0.98)"); og.addColorStop(0.6, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`); og.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = og; ctx.beginPath(); ctx.arc(mawX, mawY, orbR, 0, 6.28); ctx.fill(); ctx.restore() }
-    if (fired) { const bt = Math.min(1, (t - 0.5) / 0.18)
-      if (bt < 1) { ctx.save(); ctx.globalAlpha = 1 - bt; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(60,30,90,0.9)"; ctx.lineWidth = lh * 0.8 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx, cy); ctx.stroke()
-        ctx.strokeStyle = "rgba(235,225,255,0.95)"; ctx.lineWidth = lh * 0.22 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx, cy); ctx.stroke(); ctx.restore()
-        ctx.save(); ctx.globalAlpha = 1 - bt; const dg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bt * 2)); dg.addColorStop(0, "rgba(245,240,255,0.95)"); dg.addColorStop(0.5, `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`); dg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bt * 2), 0, 6.28); ctx.fill(); ctx.restore() }
-      ctx.save(); ctx.globalAlpha = Math.min(0.6, t - 0.5); ctx.fillStyle = "rgba(16,10,8,0.7)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.8, lw * 0.22, 0, 0, 6.28); ctx.fill(); ctx.restore()
-      _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.3, 150), Math.max(0, 1 - (t - 0.5) / 0.5)) }
+    const mawX = beastX + dir * beastH * 0.3, mawY = beastCY - beastH * 0.1, charge = Math.min(1, Math.max(0, (t - 0.18) / 0.3)), fired = t >= 0.5
+    // CHARGE — a big dark-violet Bijūdama swells at the maw, with condensing energy ribbons pulled in + a bright core
+    if (charge > 0 && !fired) { const orbR = lh * 0.75 * charge; ctx.save()
+      ctx.globalAlpha = 0.6; ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`; ctx.lineWidth = 2
+      for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 1800 + i, k), a = h(1) * 6.28, far = orbR * (2.2 - charge * 1.2); ctx.beginPath(); ctx.moveTo(mawX + Math.cos(a) * far, mawY + Math.sin(a) * far); ctx.lineTo(mawX + Math.cos(a) * orbR, mawY + Math.sin(a) * orbR); ctx.stroke() }
+      const og = ctx.createRadialGradient(mawX, mawY, 0, mawX, mawY, orbR); og.addColorStop(0, "rgba(230,215,255,0.98)"); og.addColorStop(0.35, "rgba(70,35,110,0.95)"); og.addColorStop(0.75, `rgba(${rgb.r},${rgb.g},${rgb.b},0.55)`); og.addColorStop(1, "rgba(0,0,0,0)")
+      ctx.globalAlpha = 1; ctx.fillStyle = og; ctx.beginPath(); ctx.arc(mawX, mawY, orbR, 0, 6.28); ctx.fill(); ctx.restore() }
+    if (fired) { const bt = Math.min(1, (t - 0.5) / 0.2)
+      if (bt < 1) { ctx.save(); ctx.globalAlpha = 1 - bt; ctx.lineCap = "round"   // FAT beam from the maw through the foe
+        ctx.strokeStyle = "rgba(70,35,110,0.92)"; ctx.lineWidth = lh * 1.2 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx + dir * lw * 1.5, cy); ctx.stroke()
+        ctx.strokeStyle = "rgba(240,230,255,0.98)"; ctx.lineWidth = lh * 0.38 * (1 - bt * 0.4); ctx.beginPath(); ctx.moveTo(mawX, mawY); ctx.lineTo(cx + dir * lw * 1.5, cy); ctx.stroke(); ctx.restore()
+        ctx.save(); ctx.globalAlpha = 1 - bt; const dg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1.2 + bt * 2.4)); dg.addColorStop(0, "rgba(248,244,255,0.98)"); dg.addColorStop(0.45, `rgba(${rgb.r},${rgb.g},${rgb.b},0.6)`); dg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = dg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1.2 + bt * 2.4), 0, 6.28); ctx.fill()   // detonation flash
+        ctx.globalAlpha = (1 - bt) * 0.9; ctx.strokeStyle = "rgba(200,180,255,0.9)"; ctx.lineWidth = 4 + (1 - bt) * 14; ctx.beginPath(); ctx.arc(cx, cy, lw * (0.5 + bt * 2.6), 0, 6.28); ctx.stroke(); ctx.restore() }   // shockwave ring
+      // VAPORIZATION — rising violet disintegration motes + a scorch crater (no big blood blob)
+      ctx.save(); for (let i = 0; i < 20; i++) { const h = (k) => _brutHash(seed, 1850 + i, k), r2 = ((t - 0.5 + h(1) * 0.5) % 1)
+        if (r2 < 0) continue; ctx.globalAlpha = (1 - r2) * 0.75; ctx.fillStyle = h(4) > 0.5 ? `rgb(${rgb.r},${rgb.g},${rgb.b})` : "rgba(210,195,235,0.9)"; const s = Math.max(2, cell * (0.5 + h(5)))
+        ctx.fillRect(cx + (h(2) * 2 - 1) * lw * 0.6, cy - r2 * lh * 1.1 + (h(3) * 2 - 1) * lh * 0.2, s, s) } ctx.restore()
+      ctx.save(); ctx.globalAlpha = Math.min(0.7, t - 0.5); ctx.fillStyle = "rgba(14,8,10,0.75)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.9, lw * 0.24, 0, 0, 6.28); ctx.fill(); ctx.restore()   // scorch
+      _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 0.85, 95), Math.max(0, 1 - (t - 0.5) / 0.5) * 0.7) }
   } else if (g === "phasekill") {
     // OBITO PHASE EXECUTION — Kamui intangibility swirl warps across the foe as Obito dashes THROUGH; a dash
     // after-image streak crosses the body, then a co-materialization burst (~t=0.5). Standard blood also spawns.
@@ -7565,9 +7615,10 @@ function _drawLiveGore(b) {
       // blood runs DOWN the blade from the impale point
       ctx.save(); ctx.globalAlpha = Math.max(0, 1 - bt / 0.5) * 0.9; ctx.fillStyle = BLOOD_REDS[0]; ctx.fillRect(bladeX - bw * 0.6, tipY, bw * 1.2, (guardY - tipY) * Math.min(1, bt * 3)); ctx.restore()
       drawBlade() }   // re-draw the blade ON TOP so it pokes through the blood
-  } else if (g === "speedrun") {
-    // FLASH SPEED FORCE — Speed-Force streaks whip past, red lightning crackles on the foe, and the foe's body
-    // parts shear off and tumble BACKWARD in the slipstream. The scrolling multi-stage backdrop is in _drawBrutality.
+  } else if (SPEEDRUN_GORES.has(g)) {
+    // FLASH RUN FAMILY — shared Speed-Force streaks + red lightning on the foe; body parts shear off in the
+    // slipstream (except spacevacuum, where the death is decompression). Each destination adds a FINALE overlay.
+    // The scrolling destination backdrop (maps / eras / dimension / space / sun) is in _drawBrutality.
     const rgb = _hexToRgb((b.finisher?.palette || GORE_SPEED)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
     ctx.save(); ctx.lineCap = "round"
     for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 2600 + i, k), yy = ly - lh * 0.3 + h(1) * lh * 1.6, len = lw * (1.5 + h(2) * 3), off = ((t * (6 + h(3) * 8) + h(4)) % 1), x1 = cx + dir * lw * 2 - dir * off * lw * 6
@@ -7576,14 +7627,115 @@ function _drawLiveGore(b) {
     if (t > 0.15) { ctx.save(); ctx.globalAlpha = 0.6 + 0.3 * Math.sin(t * 40); ctx.strokeStyle = "rgba(255,70,50,0.8)"; ctx.lineWidth = 2
       for (let i = 0; i < 4; i++) { const h = (k) => _brutHash(seed, 2700 + i, k); ctx.beginPath(); let qx = cx + (h(1) * 2 - 1) * lw * 0.4, qy = ly
         for (let s = 0; s < 4; s++) { ctx.lineTo(qx, qy); qx += (h(s + 2) * 2 - 1) * lw * 0.3; qy += lh / 4 } ctx.stroke() } ctx.restore() }
-    const shedParts = [["arm", 0.3], ["arm", 0.45], ["leg", 0.6], ["leg", 0.72], ["head", 0.85]]
-    for (let i = 0; i < shedParts.length; i++) { const [kind, ti] = shedParts[i]; if (t < ti) continue
-      const age = t - ti, h = (k) => _brutHash(seed, 2800 + i, k), fx = cx - dir * age * lw * 14 * (1 + h(1)), fy = ly + lh * (0.2 + h(2) * 0.6) - Math.sin(age * 10) * lh * 0.3 + age * age * lh * 2
-      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.6); ctx.translate(fx, fy); ctx.rotate(age * 14 * (h(3) < 0.5 ? 1 : -1))
-      const pw = kind === "head" ? lw * 0.4 : (kind === "arm" ? lw * 0.18 : lw * 0.22), ph = kind === "head" ? lw * 0.4 : lw * (kind === "arm" ? 0.5 : 0.6)
-      ctx.fillStyle = "#6e0016"; if (kind === "head") { ctx.beginPath(); ctx.arc(0, 0, pw, 0, 6.28); ctx.fill() } else ctx.fillRect(-pw / 2, -ph / 2, pw, ph)
-      ctx.fillStyle = "#3a000a"; ctx.fillRect(-pw / 2, -ph / 2, pw, Math.max(2, ph * 0.2)); ctx.restore()
-      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.5) * 0.6; ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 1.2; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(cx, ly + lh * 0.4); ctx.stroke(); ctx.restore() }
+    // SHED body parts (not for spacevacuum — there the body stays whole until it bursts)
+    if (g !== "spacevacuum") { const shedParts = [["arm", 0.3], ["arm", 0.45], ["leg", 0.6], ["leg", 0.72], ["head", 0.85]]
+      for (let i = 0; i < shedParts.length; i++) { const [kind, ti] = shedParts[i]; if (t < ti) continue
+        const age = t - ti, h = (k) => _brutHash(seed, 2800 + i, k), fx = cx - dir * age * lw * 14 * (1 + h(1)), fy = ly + lh * (0.2 + h(2) * 0.6) - Math.sin(age * 10) * lh * 0.3 + age * age * lh * 2
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.6); ctx.translate(fx, fy); ctx.rotate(age * 14 * (h(3) < 0.5 ? 1 : -1))
+        const pw = kind === "head" ? lw * 0.4 : (kind === "arm" ? lw * 0.18 : lw * 0.22), ph = kind === "head" ? lw * 0.4 : lw * (kind === "arm" ? 0.5 : 0.6)
+        ctx.fillStyle = "#6e0016"; if (kind === "head") { ctx.beginPath(); ctx.arc(0, 0, pw, 0, 6.28); ctx.fill() } else ctx.fillRect(-pw / 2, -ph / 2, pw, ph)
+        ctx.fillStyle = "#3a000a"; ctx.fillRect(-pw / 2, -ph / 2, pw, Math.max(2, ph * 0.2)); ctx.restore()
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - age / 0.5) * 0.6; ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 1.2; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(cx, ly + lh * 0.4); ctx.stroke(); ctx.restore() } }
+    // ── per-destination FINALE ──
+    if (g === "chronorun") {   // TIME: the foe ages → sepia dust sheds off, a skeleton-white flash, crumble to dust
+      if (t > 0.35) { ctx.save(); ctx.globalAlpha = Math.min(0.5, (t - 0.35) * 1.2); ctx.fillStyle = "rgba(120,90,50,0.6)"; ctx.fillRect(lx, ly, lw, lh); ctx.restore() }   // sepia aging wash over the foe
+      if (t > 0.45) { ctx.save(); for (let i = 0; i < 24; i++) { const h = (k) => _brutHash(seed, 2900 + i, k), ageP = ((t - 0.45) * 1.5 + h(1)) % 1
+        ctx.globalAlpha = (1 - ageP) * 0.7; ctx.fillStyle = h(4) > 0.5 ? "rgba(180,150,100,0.8)" : "rgba(120,100,70,0.7)"; const s = Math.max(1.5, cell * (0.4 + h(2)))
+        ctx.fillRect(lx + h(3) * lw - dir * ageP * lw * 3, ly + h(2) * lh - ageP * lh * 0.5, s, s) } ctx.restore() }   // dust crumbling off, carried back
+      if (t > 0.8) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - (t - 0.8) / 0.12) * 0.8; ctx.fillStyle = "rgba(235,235,245,0.9)"; ctx.fillRect(lx + lw * 0.2, ly, lw * 0.6, lh); ctx.restore() }   // skeleton-white flash
+    } else if (g === "dimensionrun") {   // DIMENSION: the foe is torn into fragments sucked into little rifts
+      if (t > 0.5) { const rp = (t - 0.5) / 0.4; ctx.save()
+        for (let i = 0; i < 6; i++) { const h = (k) => _brutHash(seed, 2950 + i, k), rifX = lx + h(1) * lw, rifY = ly + h(2) * lh, hue = (i * 60) % 360
+          ctx.globalAlpha = Math.min(1, rp * 1.5) * 0.9; ctx.strokeStyle = `hsl(${hue},80%,60%)`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(rifX, rifY, lw * 0.18 * Math.min(1, rp * 2), lw * 0.28 * Math.min(1, rp * 2), h(3) * 3, 0, 6.28); ctx.stroke()
+          ctx.globalAlpha = (1 - rp) * 0.9; ctx.fillStyle = "#6e0016"; const fsz = lw * 0.12 * (1 - rp); ctx.fillRect(rifX - fsz / 2 + (h(4) * 2 - 1) * lw * 0.3 * (1 - rp), rifY - fsz / 2, fsz, fsz) } ctx.restore() }
+    } else if (g === "spacevacuum") {   // SPACE: the foe SWELLS then BURSTS from decompression (no air pressure)
+      const swell = Math.min(1, Math.max(0, (t - 0.45) / 0.2)), burst = Math.max(0, (t - 0.65) / 0.2)
+      if (swell > 0 && burst <= 0) { ctx.save(); ctx.globalAlpha = swell * 0.6; ctx.strokeStyle = "rgba(255,120,130,0.8)"; ctx.lineWidth = 3 + swell * 5; ctx.beginPath(); ctx.ellipse(cx, cy, lw * (0.4 + swell * 0.3), lh * (0.5 + swell * 0.25), 0, 0, 6.28); ctx.stroke()   // swelling outline
+        ctx.globalAlpha = swell * 0.3; ctx.fillStyle = "rgba(120,60,70,0.5)"; ctx.fill(); ctx.restore() }
+      if (burst > 0) { ctx.save(); const bp = Math.min(1, burst)   // decompression BURST — blood + gas vent radially, freezing to pink ice crystals in vacuum
+        for (let i = 0; i < 26; i++) { const h = (k) => _brutHash(seed, 3400 + i, k), a = h(1) * 6.28, rr = lw * (0.3 + bp * 3) * (0.4 + h(2))
+          ctx.globalAlpha = Math.max(0, 1 - bp) * 0.9; ctx.fillStyle = h(4) < 0.4 ? "rgba(255,180,200,0.9)" : BLOOD_REDS[0]; const s = Math.max(2, cell * (0.6 + h(3))); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, s, 0, 6.28); ctx.fill() }
+        ctx.globalAlpha = Math.max(0, 1 - bp); const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bp * 2)); fg.addColorStop(0, "rgba(255,230,235,0.9)"); fg.addColorStop(0.5, "rgba(255,90,110,0.4)"); fg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bp * 2), 0, 6.28); ctx.fill(); ctx.restore() }
+    } else if (g === "solarrun") {   // SUN: flames engulf the foe → char to ash
+      const burn = Math.max(0, (t - 0.55) / 0.35)
+      if (burn > 0) { ctx.save(); for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 3500 + i, k), fx2 = lx + h(1) * lw, fh = lh * (0.4 + h(2) * 0.8) * Math.min(1, burn * 1.5) * (0.7 + 0.3 * Math.sin(t * 10 + h(3) * 6))
+        ctx.globalAlpha = Math.min(1, burn * 1.5) * 0.8; ctx.fillStyle = h(4) < 0.5 ? "rgba(255,150,30,0.8)" : "rgba(255,90,20,0.8)"; ctx.beginPath(); ctx.moveTo(fx2 - lw * 0.08, ly + lh); ctx.quadraticCurveTo(fx2, ly + lh - fh * 0.6, fx2, ly + lh - fh); ctx.quadraticCurveTo(fx2 + lw * 0.08, ly + lh - fh * 0.6, fx2 + lw * 0.08, ly + lh); ctx.closePath(); ctx.fill() }
+        ctx.globalAlpha = Math.min(0.75, burn); ctx.fillStyle = "rgba(20,10,6,0.85)"; ctx.fillRect(lx, ly, lw, lh)   // char the body black
+        if (burn > 0.6) { ctx.globalAlpha = (burn - 0.6) * 2; ctx.fillStyle = "rgba(60,50,45,0.7)"; for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 3550 + i, k), ap = ((t - 0.6) * 1.5 + h(1)) % 1; ctx.fillRect(lx + h(2) * lw - dir * ap * lw * 2, ly + h(3) * lh - ap * lh, Math.max(1.5, cell * 0.6), Math.max(1.5, cell * 0.6)) } }   // ash flaking off
+        ctx.restore() }
+    }
+  } else if (g === "gedomazo") {
+    // OBITO GEDŌ MAZŌ — the Demonic Statue's ghostly dragon-heads erupt from a dark rift behind the foe on long
+    // necks and converge, jaws clamping → soul-wisps torn out. FX drawn OVER a small blood accent (not buried).
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_GEDO)[2]), rx = cx - dir * lw * 1.5, ry = gy - lh * 0.65, emerge = Math.min(1, t / 0.32)
+    _drawBrutRift(ctx, rx, ry, lw * 0.95 * emerge, lw * 1.15 * emerge, t * 4, rgb, emerge * 0.9)
+    const bite = Math.min(1, Math.max(0, (t - 0.4) / 0.2)), reach = Math.min(1, t / 0.5)
+    if (bite > 0) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.8, 90), bite * Math.max(0, 1 - (t - 0.5) / 0.5) * 0.8)   // small accent UNDER the heads
+    for (let i = 0; i < 3; i++) { const off = (i - 1) * lh * 0.45, hx = rx + (cx - rx) * reach, hy = (ry + off) + (cy - (ry + off)) * reach
+      ctx.save(); ctx.strokeStyle = "rgba(34,34,46,0.97)"; ctx.lineWidth = lw * (0.2 - bite * 0.04); ctx.lineCap = "round"
+      ctx.beginPath(); ctx.moveTo(rx, ry + off); ctx.quadraticCurveTo((rx + hx) / 2, ry + off - lh * 0.35, hx, hy); ctx.stroke()                                               // neck
+      ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.5)`; ctx.lineWidth = Math.max(1, lw * 0.03); ctx.stroke()                                                           // faint themed rim on the neck
+      ctx.fillStyle = "rgba(22,22,32,0.98)"; const hang = Math.atan2(hy - ry, hx - rx)                                                                                        // dragon head (bigger, open jaws on bite)
+      ctx.translate(hx, hy); ctx.rotate(hang); ctx.beginPath(); ctx.moveTo(lw * 0.34, 0); ctx.lineTo(-lw * 0.18, -lw * 0.2 - bite * lw * 0.12); ctx.lineTo(-lw * 0.26, 0); ctx.lineTo(-lw * 0.18, lw * 0.2 + bite * lw * 0.12); ctx.closePath(); ctx.fill()
+      ctx.fillStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`; ctx.beginPath(); ctx.arc(lw * 0.06, -lw * 0.05, Math.max(1.5, lw * 0.045), 0, 6.28); ctx.fill(); ctx.restore() }        // glowing eye
+    if (bite > 0) { ctx.save(); for (let i = 0; i < 12; i++) { const h = (k) => _brutHash(seed, 3100 + i, k), riseP = ((t + h(1)) % 1)
+      ctx.globalAlpha = (1 - riseP) * 0.7 * bite; ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.9)`; ctx.beginPath(); ctx.arc(cx + (h(2) * 2 - 1) * lw * 0.45, cy - riseP * lh * 0.95, Math.max(1.5, cell * (0.5 + h(3))), 0, 6.28); ctx.fill() } ctx.restore() }   // soul-wisps rise
+  } else if (g === "mokuton") {
+    // OBITO MOKUTON — wood-release spikes erupt from the ground THROUGH the foe → impaled, bark-brown, blood tips.
+    // Spikes are the hero: a small ground pool + per-spike blood, NO big central splat burying them.
+    const pierce = Math.min(1, Math.max(0, (t - 0.42) / 0.18))
+    if (t > 0.42) _drawGroundPool(ctx, cx, gy, cell, Math.min(0.8, (t - 0.42) * 1.6))
+    for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 3200 + i, k), sx = cx + (i - 2) * lw * 0.26 + (h(1) * 2 - 1) * lw * 0.06
+      const grow = Math.min(1, Math.max(0, (t - i * 0.04) / 0.3)), topY = gy - lh * (0.8 + h(2) * 0.9) * grow, baseW = lw * (0.12 + h(3) * 0.07)
+      ctx.save(); ctx.fillStyle = "#7a4e26"; ctx.beginPath(); ctx.moveTo(sx, topY); ctx.lineTo(sx - baseW, gy); ctx.lineTo(sx + baseW, gy); ctx.closePath(); ctx.fill()        // bark spike
+      ctx.fillStyle = "#5a3418"; ctx.beginPath(); ctx.moveTo(sx, topY); ctx.lineTo(sx - baseW * 0.35, gy); ctx.lineTo(sx + baseW * 0.1, gy); ctx.closePath(); ctx.fill()        // shaded side
+      ctx.strokeStyle = "#3a2410"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sx, topY + lh * 0.08); ctx.lineTo(sx, gy); ctx.stroke()                                     // bark seam
+      if (pierce > 0 && topY < cy) { ctx.fillStyle = "#6e0016"; ctx.beginPath(); ctx.arc(sx, topY + lh * 0.03, baseW * 1.0, 0, 6.28); ctx.fill()                                // blood collar at the pierce
+        ctx.globalAlpha = 0.85; ctx.fillStyle = BLOOD_REDS[0]; ctx.fillRect(sx - baseW * 0.4, topY, baseW * 0.8, (cy - topY) * Math.min(1, (t - 0.42) * 4)) }                   // blood runs down the shaft
+      ctx.restore() }
+  } else if (g === "electrocute") {
+    // KILLUA THUNDERHEAD — Godspeed lightning floods into the foe from all directions, builds, then the body
+    // OVERLOADS and bursts (electric flash + blood). Cyan Volts arcs.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_VOLT)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+    const flood = Math.min(1, t / 0.5), blast = Math.max(0, (t - 0.5) / 0.2)
+    ctx.save(); ctx.lineCap = "round"; const nb = 6 + Math.floor(flood * 8)   // converging jagged bolts, intensifying
+    for (let i = 0; i < nb; i++) { const h = (k) => _brutHash(seed, 4000 + i, k), a = h(1) * 6.28, far = lw * (2 + h(2) * 2)
+      ctx.globalAlpha = (0.5 + 0.5 * Math.sin(t * 50 + i)) * (0.5 + flood * 0.5); ctx.strokeStyle = h(5) < 0.4 ? col(0.9) : "rgba(235,250,255,0.9)"; ctx.lineWidth = Math.max(1.5, cell * (0.5 + h(3)))
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * far, cy + Math.sin(a) * far)
+      for (let s = 0; s < 5; s++) { const u = (s + 1) / 5; ctx.lineTo(cx + Math.cos(a) * far * (1 - u) + (h(s + 2) * 2 - 1) * lw * 0.3, cy + Math.sin(a) * far * (1 - u) + (h(s + 4) * 2 - 1) * lh * 0.3) } ctx.stroke() }
+    ctx.restore()
+    ctx.save(); ctx.globalAlpha = flood * 0.7; ctx.strokeStyle = col(0.8); ctx.lineWidth = 2 + flood * 4; ctx.beginPath(); ctx.ellipse(cx, cy, lw * (0.8 - flood * 0.3), lh * (0.6 - flood * 0.2), 0, 0, 6.28); ctx.stroke(); ctx.restore()   // tightening aura ring
+    if (blast > 0) { const bp = Math.min(1, blast); ctx.save()
+      ctx.globalAlpha = (1 - bp); const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bp * 2.5)); bg.addColorStop(0, "rgba(245,252,255,0.98)"); bg.addColorStop(0.4, col(0.7)); bg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bp * 2.5), 0, 6.28); ctx.fill()
+      ctx.globalAlpha = (1 - bp) * 0.9; ctx.strokeStyle = col(0.9); ctx.lineWidth = 4 + (1 - bp) * 12; ctx.beginPath(); ctx.arc(cx, cy, lw * (0.5 + bp * 2.4), 0, 6.28); ctx.stroke(); ctx.restore()
+      _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.9, 100), Math.max(0, 1 - bp) * 0.75) }
+  } else if (g === "yoyobisect") {
+    // KILLUA YO-YO — the heavy yo-yo whips out on its wire and shears across the waist → the top half slides off.
+    const cutY = cy - lh * 0.05, swing = Math.min(1, t / 0.45), cut = t >= 0.42
+    const yx = cx - dir * lw * 1.6 + dir * (lw * 3.2) * swing, yy = cutY + Math.sin(swing * 3.14) * lh * 0.1
+    ctx.save(); ctx.strokeStyle = "rgba(220,228,238,0.9)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 2.2, cy - lh * 0.4); ctx.quadraticCurveTo((cx - dir * lw * 2.2 + yx) / 2, cy - lh * 0.6, yx, yy); ctx.stroke()   // wire
+    ctx.fillStyle = "#3a4452"; ctx.beginPath(); ctx.arc(yx, yy, lw * 0.26, 0, 6.28); ctx.fill(); ctx.fillStyle = "#6a7686"; ctx.beginPath(); ctx.arc(yx, yy, lw * 0.16, 0, 6.28); ctx.fill()   // yo-yo disc
+    ctx.fillStyle = "rgba(220,235,255,0.7)"; ctx.beginPath(); ctx.arc(yx - lw * 0.06, yy - lw * 0.06, lw * 0.05, 0, 6.28); ctx.fill(); ctx.restore()
+    if (cut) { const ct = t - 0.42
+      _drawBloodSplat(ctx, cx, cutY, Math.min(lw * 0.95, 105), Math.max(0, 1 - ct / 0.5) * 0.85)   // blood UNDER the slice + sheared half
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ct / 0.12); ctx.strokeStyle = "rgba(240,248,255,0.95)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx - lw, cutY); ctx.lineTo(cx + lw, cutY); ctx.stroke(); ctx.restore()   // slice flash
+      ctx.save(); const slide = Math.min(1, ct / 0.4); ctx.globalAlpha = 0.92; ctx.translate(cx + dir * slide * lw * 0.7, cutY - lh * 0.25 + slide * lh * 0.35); ctx.rotate(dir * slide * 0.6)
+      ctx.fillStyle = "rgba(20,16,20,0.9)"; ctx.fillRect(-lw * 0.32, -lh * 0.26, lw * 0.64, lh * 0.32); ctx.fillStyle = "#6e0016"; ctx.fillRect(-lw * 0.32, lh * 0.04, lw * 0.64, lh * 0.05); ctx.restore() }   // sheared top half slides off, ON TOP
+  } else if (g === "godspeedflurry") {
+    // KILLUA GODSPEED FLURRY — Speed-of-Lightning slow-mo: after-image strikes rain from every angle, build, then
+    // the body DETONATES (electric + blood). Cyan Volts.
+    const rgb = _hexToRgb((b.finisher?.palette || GORE_VOLT)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
+    const flurry = Math.min(1, t / 0.55), blast = Math.max(0, (t - 0.55) / 0.2), nh = Math.floor(flurry * 10)
+    ctx.save()
+    for (let i = 0; i < nh; i++) { const h = (k) => _brutHash(seed, 4200 + i, k), a = h(1) * 6.28 + t * 6, r = lw * (1.2 + h(2) * 1.2), gx = cx + Math.cos(a) * r, gy2 = cy + Math.sin(a) * r * 0.8, appear = ((t * 8 + i) % 1)
+      ctx.globalAlpha = (1 - appear) * 0.5; ctx.fillStyle = col(0.5); ctx.fillRect(gx - lw * 0.12, gy2 - lh * 0.3, lw * 0.24, lh * 0.6)   // after-image silhouette
+      ctx.globalAlpha = (1 - appear) * 0.8; ctx.strokeStyle = "rgba(235,250,255,0.9)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(gx, gy2); ctx.lineTo(cx + (h(3) * 2 - 1) * lw * 0.3, cy + (h(4) * 2 - 1) * lh * 0.3); ctx.stroke() }   // strike slash
+    ctx.restore()
+    ctx.save(); for (let i = 0; i < 6; i++) { const h = (k) => _brutHash(seed, 4300 + i, k); if (((t * 10 + i) % 1) < 0.4) { ctx.globalAlpha = 0.7 * flurry; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.beginPath(); ctx.arc(cx + (h(1) * 2 - 1) * lw * 0.4, cy + (h(2) * 2 - 1) * lh * 0.4, cell * 1.5, 0, 6.28); ctx.fill() } } ctx.restore()   // hit flashes
+    if (blast > 0) { const bp = Math.min(1, blast); ctx.save()
+      ctx.globalAlpha = (1 - bp); const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, lw * (1 + bp * 2.5)); bg.addColorStop(0, "rgba(245,252,255,0.98)"); bg.addColorStop(0.4, col(0.7)); bg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(cx, cy, lw * (1 + bp * 2.5), 0, 6.28); ctx.fill()
+      for (let i = 0; i < 16; i++) { const h = (k) => _brutHash(seed, 4400 + i, k), a = h(1) * 6.28, rr = lw * (0.3 + bp * 3) * (0.4 + h(2)); ctx.globalAlpha = (1 - bp) * 0.9; ctx.fillStyle = i % 3 ? BLOOD_REDS[0] : col(0.8); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, Math.max(2, cell * (0.6 + h(3))), 0, 6.28); ctx.fill() }
+      ctx.restore(); _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.9, 100), Math.max(0, 1 - bp) * 0.75) }
   } else {
     // DEFAULT — bisect/implode/repulse/decap/spearrun/flashgrab/squish/pull/drag:
     // the winner's LIVE move carries the action; a wound + big blood burst reads the kill on the live body.
@@ -7610,7 +7762,7 @@ function _drawBrutality() {
   // MK1-style finish framing: DARKEN the arena to a spotlight on the kill — the background drops to near-black
   // (cool tint) while the centre (where the fighters are framed by the push-in) stays lit. Ramps in fast, holds,
   // lifts at the very end. Screen-space, BEFORE the world-space gore so the gore/flash still pop on top.
-  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1) * (b.live && fin?.gore === "speedrun" ? 0.3 : 1)   // speedrun keeps the scrolling multi-stage backdrop vivid (only a light vignette)
+  const darkA = Math.min(1, elapsed / 7) * (_t0 > 0.9 ? Math.max(0, 1 - (_t0 - 0.9) / 0.1) : 1) * (b.live && SPEEDRUN_GORES.has(fin?.gore) ? 0.3 : 1)   // run finishers keep their scrolling backdrop vivid (only a light vignette)
   if (darkA > 0.01) {
     ctx.save(); const sx = cw * 0.5, sy = ch * 0.52
     // 1) global mood DIP — the whole arena drops toward night-black (cool tint)
@@ -7814,34 +7966,67 @@ function _drawKamuiDimensionBg(ctx, canvas) {
   for (const r of KAMUI_VOID_RECTS) ctx.strokeRect(r.fx * cw, r.fy * ch, r.fw * cw, r.fh * ch)   // faint slab edges (depth)
   ctx.restore()
 }
-// FLASH SPEED FORCE backdrop — during the speedrun brutality, the stage blurs through a SEQUENCE of other maps
-// (real stage backgrounds + tinted procedural panels) scrolling fast past the running pair. SCREEN space, drawn
-// right after the stage bg (under the fighters) — same precedent as the Kamui-dimension void above. Deterministic.
-const SPEEDRUN_PANELS = [
+// FLASH RUN backdrops — during a run finisher, the backdrop blurs past the running pair. SCREEN space, drawn right
+// after the stage bg (under the fighters) — same precedent as the Kamui-dimension void above. Deterministic. The
+// panel SET (or space scene) + the wash colour vary per destination: MAPS / TIME ERAS / DIMENSION / SPACE / SUN.
+const SPEEDRUN_PANELS = [   // speedrun — real stage backgrounds + tinted filler
   { img: "./valley_of_the_end_bg.png" }, { grad: ["#1a2a4a", "#0a1020"] },
   { img: "./shibuya_incident_bg.png" },  { grad: ["#3a1020", "#140408"] },
   { img: "./mugen_train_bg.png" },       { grad: ["#0a2a1a", "#041008"] },
   { img: "./test_map_bg.png" },          { grad: ["#2a1a3a", "#0a0614"] },
 ]
-function _drawSpeedRunBackdrop(c, cv) {
-  const b = brutalityState; if (!b.active || !b.live || b.finisher?.gore !== "speedrun") return
-  const cw = cv.width, ch = cv.height, elapsed = b.maxTimer - b.timer, dir = b.dir || 1
-  const panelW = cw, n = SPEEDRUN_PANELS.length
-  let scroll = elapsed * cw * 0.12; if (dir < 0) scroll = -scroll
+const CHRONO_PANELS = [   // chronorun — eras: primordial lava → Jurassic → ice age → antiquity → modern → neon-future → white far-future
+  { grad: ["#5a1a08", "#1a0602"] }, { grad: ["#1e3a16", "#07140a"] }, { grad: ["#8aa8c8", "#3a5a7a"] }, { grad: ["#c8a85a", "#5a4420"] },
+  { grad: ["#2a3a5a", "#0a1324"] }, { grad: ["#1a0a3a", "#2a0a4a"] }, { grad: ["#0a3a4a", "#041a24"] }, { grad: ["#c8d4e8", "#7a8aa8"] },
+]
+function _drawRunPanels(c, cw, ch, elapsed, dir, panels, speed) {
+  const panelW = cw, n = panels.length
+  let scroll = elapsed * cw * speed; if (dir < 0) scroll = -scroll
   const first = Math.floor(scroll / panelW), offset = ((scroll % panelW) + panelW) % panelW
-  c.save()
   for (let s = -1; s <= Math.ceil(cw / panelW) + 1; s++) {
-    const slot = first + s, pi = ((slot % n) + n) % n, p = SPEEDRUN_PANELS[pi], x = s * panelW - offset
+    const slot = first + s, pi = ((slot % n) + n) % n, p = panels[pi], x = s * panelW - offset
     const img = p.img ? _susanoImg(p.img) : null
     if (img && img.complete && img.naturalWidth) c.drawImage(img, x, 0, panelW, ch)
-    else { const grad = p.grad || ["#141022", "#05030a"]; const g = c.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, grad[0]); g.addColorStop(1, grad[1]); c.fillStyle = g; c.fillRect(x, 0, panelW + 1, ch)
+    else { const grad = p.grad || ["#141022", "#05030a"], g = c.createLinearGradient(0, 0, 0, ch); g.addColorStop(0, grad[0]); g.addColorStop(1, grad[1]); c.fillStyle = g; c.fillRect(x, 0, panelW + 1, ch)
       c.fillStyle = "rgba(0,0,0,0.3)"; c.fillRect(x, ch * 0.72, panelW + 1, ch * 0.28) }   // faux horizon/floor band
   }
-  // horizontal motion-blur streaks + a slight desaturating wash sell the velocity
+}
+function _drawStarWarp(c, cw, ch, elapsed, seed, sunP) {
+  // deep-space warp: a black field + stars streaking outward from a vanishing point (hyper-speed), optional sun glow
+  c.fillStyle = "#03030a"; c.fillRect(0, 0, cw, ch)
+  const vx = cw * 0.5, vy = ch * 0.48
+  if (sunP > 0) { const sr = Math.max(cw, ch) * (0.05 + sunP * 0.9), sg = c.createRadialGradient(vx, vy, 0, vx, vy, sr); sg.addColorStop(0, "rgba(255,250,230,0.98)"); sg.addColorStop(0.4, `rgba(255,180,60,${0.9})`); sg.addColorStop(0.8, `rgba(200,60,10,${0.5})`); sg.addColorStop(1, "rgba(80,10,0,0)"); c.fillStyle = sg; c.beginPath(); c.arc(vx, vy, sr, 0, 6.28); c.fill() }
+  c.strokeStyle = "rgba(220,230,255,0.85)"; c.lineCap = "round"
+  for (let i = 0; i < 90; i++) { const h = (k) => _brutHash(seed, 3300 + i, k), a = h(1) * 6.28, rad = ((elapsed * (8 + h(2) * 20) + h(3) * 900) % 900)
+    const r0 = rad * 0.6, r1 = rad; c.globalAlpha = Math.min(1, rad / 200) * 0.9; c.lineWidth = Math.max(1, rad / 180)
+    c.beginPath(); c.moveTo(vx + Math.cos(a) * r0, vy + Math.sin(a) * r0 * 0.9); c.lineTo(vx + Math.cos(a) * r1, vy + Math.sin(a) * r1 * 0.9); c.stroke() }
+  c.globalAlpha = 1
+}
+function _drawSpeedRunBackdrop(c, cv) {
+  const b = brutalityState; if (!b.active || !b.live || !SPEEDRUN_GORES.has(b.finisher?.gore)) return
+  const g = b.finisher.gore, cw = cv.width, ch = cv.height, elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer), dir = b.dir || 1, seed = b.seed || 1
+  c.save()
+  if (g === "spacevacuum" || g === "solarrun") {
+    // a Speed-Force portal opens (~t<0.4) then they punch into SPACE: star-warp, + a growing SUN for solarrun.
+    const sunP = g === "solarrun" ? Math.max(0, (t - 0.45) / 0.45) : 0
+    _drawStarWarp(c, cw, ch, elapsed, seed, sunP)
+    const portalP = t < 0.4 ? Math.min(1, t / 0.2) * (1 - Math.max(0, (t - 0.25) / 0.15)) : 0   // the entry portal flashes early
+    if (portalP > 0.02) { const pr = Math.max(cw, ch) * 0.5 * portalP, pg = c.createRadialGradient(cw * 0.5, ch * 0.5, pr * 0.4, cw * 0.5, ch * 0.5, pr); pg.addColorStop(0, "rgba(0,0,0,0)"); pg.addColorStop(0.8, "rgba(255,70,50,0.5)"); pg.addColorStop(1, "rgba(255,220,90,0.9)"); c.globalAlpha = portalP; c.fillStyle = pg; c.fillRect(0, 0, cw, ch); c.globalAlpha = 1 }
+  } else {
+    const panels = g === "chronorun" ? CHRONO_PANELS : g === "dimensionrun" ? null : SPEEDRUN_PANELS
+    if (g === "dimensionrun") {   // DIMENSION — procedural hue-rotating void panels (trippy, no fixed art)
+      const panelW = cw; let scroll = elapsed * cw * 0.14; if (dir < 0) scroll = -scroll
+      const first = Math.floor(scroll / panelW), offset = ((scroll % panelW) + panelW) % panelW
+      for (let s = -1; s <= Math.ceil(cw / panelW) + 1; s++) { const slot = first + s, x = s * panelW - offset, hue = ((slot * 47) % 360 + 360) % 360
+        const gg = c.createLinearGradient(x, 0, x, ch); gg.addColorStop(0, `hsl(${hue},70%,22%)`); gg.addColorStop(0.5, `hsl(${(hue + 40) % 360},80%,38%)`); gg.addColorStop(1, `hsl(${(hue + 80) % 360},70%,14%)`); c.fillStyle = gg; c.fillRect(x, 0, panelW + 1, ch) }
+    } else _drawRunPanels(c, cw, ch, elapsed, dir, panels, 0.12)
+  }
+  // horizontal motion-blur streaks + a per-destination velocity wash
   c.globalAlpha = 0.25; c.strokeStyle = "rgba(255,255,255,0.5)"; c.lineWidth = 2; c.lineCap = "round"
-  for (let i = 0; i < 20; i++) { const h = _brutHash(b.seed || 1, 3000 + i, 1), yy = h * ch, len = cw * (0.3 + _brutHash(b.seed || 1, 3000 + i, 2) * 0.5)
+  for (let i = 0; i < 20; i++) { const h = _brutHash(seed, 3000 + i, 1), yy = h * ch, len = cw * (0.3 + _brutHash(seed, 3000 + i, 2) * 0.5)
     const sx = (cw - ((elapsed * cw * 0.5 + h * cw * 3) % (cw + len))); c.beginPath(); c.moveTo(sx, yy); c.lineTo(sx - dir * len, yy); c.stroke() }
-  c.globalAlpha = 1; c.fillStyle = "rgba(255,220,90,0.06)"; c.fillRect(0, 0, cw, ch)   // faint Speed-Force amber wash
+  const wash = g === "chronorun" ? "rgba(255,200,90,0.06)" : g === "dimensionrun" ? "rgba(180,90,255,0.07)" : g === "spacevacuum" ? "rgba(90,150,255,0.06)" : g === "solarrun" ? "rgba(255,140,40,0.08)" : "rgba(255,220,90,0.06)"
+  c.globalAlpha = 1; c.fillStyle = wash; c.fillRect(0, 0, cw, ch)
   c.restore()
 }
 

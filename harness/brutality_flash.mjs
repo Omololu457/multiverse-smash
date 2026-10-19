@@ -14,7 +14,7 @@ const errs = []; page.on("pageerror", e => errs.push(String(e)))
 let PASS = 0, FAIL = 0; const ok = (c, m) => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${m}`) }
 async function wf(n) { const s = (await page.evaluate(() => window.__harness.state())).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 
-const CASES = [["grab", "SPEED FORCE", "speedrun"]]
+const CASES = [["grab", "SPEED FORCE", "speedrun"], ["spinAttack", "CHRONO BREAK", "chronorun"], ["tornado", "DIMENSION RUN", "dimensionrun"], ["heavy", "DEAD SPACE", "spacevacuum"], ["up", "SUPERNOVA", "solarrun"]]
 try {
   await page.goto(`${base}/index.html?harness=1&p1=flash&p2=goku`, { waitUntil: "load" })
   await page.waitForFunction(() => !!window.__harness); await page.mouse.click(640, 360)
@@ -41,6 +41,8 @@ try {
     await wf(55); await page.screenshot({ path: path.join(SHOTS, `flash_${gore}_late.png`) })
     await page.waitForFunction(() => !window.__harness.brutality.activeFinisher(), null, { timeout: 9000, polling: 16 }).catch(() => {})
     ok(errs.length === before, `${gore}: 0 page errors  [${errs.slice(before, before + 1).join(" | ")}]`)
+    await page.evaluate(() => window.__harness.skipToBattle?.()); await wf(2)
+    await page.evaluate(() => { const p2 = window.__harness.p2(); if (p2) p2.health = p2.maxHealth })
   }
   ok(errs.length === 0, `no page JS errors overall  [${errs.slice(0, 2).join(" | ")}]`)
 } catch (e) { console.error("EXCEPTION", e); FAIL++ }

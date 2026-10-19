@@ -33,6 +33,7 @@
     "test:brutality-obito": "node harness/brutality_obito.mjs",
     "test:brutality-rick": "node harness/brutality_rick.mjs",
     "test:brutality-flash": "node harness/brutality_flash.mjs",
+    "test:brutality-zoldyck": "node harness/brutality_zoldyck.mjs",
     "test:prereqs": "node harness/prereqs.test.mjs",
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",

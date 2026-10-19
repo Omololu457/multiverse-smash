@@ -23,7 +23,8 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "gojo",       // brutality roll-out — Gojo Satoru (Blue implode / Red repulse / Hollow Purple annihilate / Limitless); full gore table (opt-in routing)
   "obito",      // Kamui rift / Ten-Tails / phase-through — full gore table (opt-in routing)
   "rick","rickprime",   // portal-gun vacuum + guillotine (Prime adds temporal-ambush trait) — LOWERCASE (engine lowercases rosterKey)
-  "flash"];     // Speed Force run — grabs + tears through multiple maps
+  "flash",      // Speed Force run — grabs + tears through multiple maps / time / dimension / space / sun
+  "zoldyck"];   // Killua (Godspeed) — thunderhead / yo-yo / godspeed flurry
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
@@ -57,10 +58,11 @@ const TABLE = {
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
   // ── Brutality roll-out (2026-10-18): Obito / Rick / Rick Prime / Flash. Move-keyed entries only (Rick Prime's
   //    TEMPORAL AMBUSH is a trait, tested in brutality_rick.mjs via setTrait). ──
-  obito:    { obitoKamuiDimension:{n:"KAMUI",g:"kamuivacuum"}, ultimate:{n:"TEN-TAILS",g:"juubi"}, heavy:{n:"PHASE EXECUTION",g:"phasekill"} },   // cinematic Kamui set (opt-in routing)
-  rick:     { portalLaser:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"} },   // portal-gun gore (opt-in routing)
-  rickprime:{ primePortalBlast:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"} },   // LOWERCASE table key; (+ __trait_rewind TEMPORAL AMBUSH, tested separately)
-  flash:    { grab:{n:"SPEED FORCE",g:"speedrun"} },   // Speed Force run (opt-in routing)
+  obito:    { obitoKamuiDimension:{n:"KAMUI",g:"kamuivacuum"}, ultimate:{n:"TEN-TAILS",g:"juubi"}, heavy:{n:"PHASE EXECUTION",g:"phasekill"}, up:{n:"GEDŌ MAZŌ",g:"gedomazo"}, air:{n:"MOKUTON",g:"mokuton"} },   // cinematic Kamui set (opt-in routing)
+  rick:     { portalLaser:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, rocket:{n:"ROCKET",g:"fireball"}, selfDestructBlast:{n:"NUKE",g:"repulse"} },   // portal-gun gore + rocket/nuke (opt-in routing)
+  rickprime:{ primePortalBlast:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, up:{n:"MULTIVERSE COLLAPSE",g:"implode"}, air:{n:"PORTAL BEAM",g:"annihilate"} },   // LOWERCASE table key; (+ __trait_rewind TEMPORAL AMBUSH, tested separately)
+  flash:    { grab:{n:"SPEED FORCE",g:"speedrun"}, spinAttack:{n:"CHRONO BREAK",g:"chronorun"}, tornado:{n:"DIMENSION RUN",g:"dimensionrun"}, heavy:{n:"DEAD SPACE",g:"spacevacuum"}, up:{n:"SUPERNOVA",g:"solarrun"} },   // Flash RUN family — maps/time/dimension/space/sun (opt-in routing)
+  zoldyck:  { zoldyck_bolt:{n:"THUNDERHEAD",g:"electrocute"}, heavy:{n:"YO-YO",g:"yoyobisect"}, zoldyckGsCrouch:{n:"GODSPEED FLURRY",g:"godspeedflurry"} },   // Killua (Godspeed) — electrocution / yo-yo bisect / slow-mo flurry (opt-in routing)
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

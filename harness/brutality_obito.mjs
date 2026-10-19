@@ -14,7 +14,7 @@ const errs = []; page.on("pageerror", e => errs.push(String(e)))
 let PASS = 0, FAIL = 0; const ok = (c, m) => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${m}`) }
 async function wf(n) { const s = (await page.evaluate(() => window.__harness.state())).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 
-const CASES = [["obitoKamuiDimension", "KAMUI", "kamuivacuum"], ["ultimate", "TEN-TAILS", "juubi"], ["heavy", "PHASE EXECUTION", "phasekill"]]
+const CASES = [["obitoKamuiDimension", "KAMUI", "kamuivacuum"], ["ultimate", "TEN-TAILS", "juubi"], ["heavy", "PHASE EXECUTION", "phasekill"], ["up", "GEDŌ MAZŌ", "gedomazo"], ["air", "MOKUTON", "mokuton"]]
 try {
   await page.goto(`${base}/index.html?harness=1&p1=obito&p2=goku`, { waitUntil: "load" })
   await page.waitForFunction(() => !!window.__harness); await page.mouse.click(640, 360)

@@ -734,6 +734,8 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // his KAMUI rift finisher (real table below). Rick & Rick Prime (portal gore) and Flash (Speed Force run). Full tables below.
   "obito", "rick", "rickprime", "flash", "killua", "beerus",
   "goku_rose", "sasuke_adult", "sasuke_sensei", "naruto_seventh", "shisui_fallen",
+  // Omega Ranger (S.P.D. White Ranger) — a lawman with the Delta Enforcer sidearm. One clean shot → decapitation.
+  "omega_ranger",
   "naruto"])   // ★ rickprime LOWERCASE; naruto (TEEN) age-gate lifted by owner request 2026-10-19 (NOT naruto_hokage the Adult-KCM one)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
@@ -766,6 +768,7 @@ const GORE_KIRIN   = ["#a11026", "#6e0016", "#dceaff", "#1a2238"]   // Sasuke Ki
 const GORE_NARUTO  = ["#a11026", "#6e0016", "#ff9a2a", "#2a1606"]   // Naruto — blood + Kurama-chakra orange-gold
 const GORE_FALLEN  = ["#a11026", "#6e0016", "#e02038", "#1a0206"]   // Shisui (Fallen) — blood + crimson flicker-crackle
 const GORE_EMERALD = ["#a11026", "#6e0016", "#2ad07a", "#06241a"]   // Shisui (Fallen) Emerald Susanoo — blood + emerald chakra
+const GORE_SPD     = ["#a11026", "#6e0016", "#bfe0ff", "#0e1118"]   // Omega Ranger (S.P.D.) — blood + Delta-Enforcer white-blue
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -1050,6 +1053,13 @@ const BRUTALITY_FINISHERS = {
     n7Rasengan:      { name: "RASENGAN",          gore: "rasengan",       palette: GORE_NARUTO, flash: "#5ab4ff", live: true, winAction: "n7Rasengan",     loseAction: "hurt" },
     n7Rasenshuriken: { name: "RASENSHURIKEN",     gore: "rasenshuriken",  palette: GORE_NARUTO, flash: "#8ad0ff", live: true, winAction: "n7Rsk",         loseAction: "hurt" },
   },
+  // OMEGA RANGER (S.P.D.) — the Delta Enforcer. One deliberate shot: aim → a single crack → a beat → the head
+  // drops clean off the shoulders. Keyed off the gun PROJECTILE (proj.name "omGunBolt" is what the collision path
+  // stamps as the killing-blow move). winAction "omGun" = his real Delta-Enforcer firing pose; loseAction "idle"
+  // = the foe stands at gunpoint, unaware, until the head falls.
+  omega_ranger: {
+    omGunBolt: { name: "DELTA ENFORCER", gore: "gundecap", palette: GORE_SPD, flash: "#eaf4ff", live: true, winAction: "omGun", loseAction: "idle" },
+  },
   // FLASH — the Scarlet Speedster grabs the foe and RUNS. Each finisher tears through a different kind of distance:
   // across many maps, across TIME (eras), into another DIMENSION, out into SPACE (decompression burst), or into
   // the SUN. All share the grab→run→scrolling-backdrop→shed engine; the destination + finale differ per gore.
@@ -1086,7 +1096,7 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash", "killua", "beerus",
-  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen"])
+  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger"])
 // FLASH run-finisher family — grab → run → scrolling backdrop → shed, all share the live position/camera/blood
 // handling; only the destination backdrop + the finale (maps / eras / dimension / space-vacuum / sun) differ.
 const SPEEDRUN_GORES = new Set(["speedrun", "chronorun", "dimensionrun", "spacevacuum", "solarrun"])
@@ -1094,7 +1104,7 @@ const BRUTALITY_FRAMES = 150   // ~2.5s — a KNOCKBACK reaction lead-in (hurt-p
 // Reaction lead-in: the fraction of the beat spent on the "struck → knocked back → stops" windup BEFORE the
 // finisher proper. crush (water dragon) gets a longer windup so the dragon's approach reads. The finisher's own
 // time `t` is REMAPPED to 0..1 over the post-lead-in portion, so each gore renderer plays its full arc.
-function _brutLead(b) { const g = b?.finisher?.gore; return g === "gunshot" ? 0.03 : (g === "squish" || g === "pull") ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
+function _brutLead(b) { const g = b?.finisher?.gore; return (g === "gunshot" || g === "gundecap") ? 0.03 : (g === "squish" || g === "pull") ? 0.32 : (g === "crush" || g === "meteor" || g === "susanooslam") ? 0.24 : 0.16 }
 function _brutTat(b, elapsed) { const tr = Math.min(1, elapsed / b.maxTimer), L = _brutLead(b); return L < 1 ? Math.max(0, (tr - L) / (1 - L)) : tr }
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
@@ -6682,7 +6692,7 @@ function updateBrutality() {
     else if (g === "phasekill") { const stepP = Math.min(1, t / 0.5), winW = wf._lastDrawW || wf.w || 60, loseCx = b._liveLoseX0 + lw / 2
       const target = loseCx + (b.dir || 1) * (winW * 0.5 + lw * 0.3); wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }   // DASH clean through to the far side
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
-      const gap = (g === "gunshot" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
+      const gap = (g === "gunshot" || g === "gundecap" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
       const target = loseCx - (b.dir || 1) * gap
       wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }
     const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2, lcell = Math.max(3, lw / 14)
@@ -6729,7 +6739,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7532,6 +7542,116 @@ function _drawLiveGunshot(b) {
   for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
   ctx.globalAlpha = 1
 }
+// OMEGA RANGER — DELTA ENFORCER (live). One deliberate shot, head falls off. The winner holds his real gun-firing
+// pose (winAction "omGun"); the loser stands on idle at gunpoint (loseAction "idle"). Beat: AIM (laser sight +
+// reticle, building charge) → the SHOT (single muzzle flash + white-hot tracer + screen flash) → a dead BEAT
+// (entry hole, a thin line opening at the neck) → the HEAD DROPS (neck stump masks the still-attached live head,
+// arterial fountain, the severed head pops/spins/arcs to the ground and settles in a pool). Deterministic (hash,
+// no RNG); self-draws all blood (in the _noB set). Distinct from Toji's multi-shot "gunshot".
+function _drawLiveGunDecap(b) {
+  const lf = b.loseRef, wf = b.winRef; if (!lf) return
+  const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+  const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
+  const cx = lx + lw / 2, cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
+  const headY = ly + lh * 0.14, neckY = ly + lh * 0.23, headR = cell * 3.0
+  const gy = lf.groundY != null ? lf.groundY : (ly + lh)
+  const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer)
+  const SHOT = 0.28, DETACH = 0.50
+  const gunx = wf ? ((wf._lastDrawX != null ? wf._lastDrawX : wf.x || 0) + (dir > 0 ? (wf._lastDrawW || 40) : 0)) : cx - lw * 2
+  const guny = wf ? ((wf._lastDrawY != null ? wf._lastDrawY : wf.y || 0) + (wf._lastDrawH || 80) * 0.35) : (ly + lh * 0.4)
+
+  // ── AIM: Delta Enforcer laser sight → pulsing reticle on the forehead, building muzzle charge. Foe unaware. ──
+  if (t < SHOT) {
+    const aim = Math.min(1, t / SHOT), wob = Math.sin(t * 40) * lw * 0.012
+    ctx.save()
+    ctx.globalAlpha = 0.3 + aim * 0.45; ctx.strokeStyle = "rgba(255,40,40,0.9)"; ctx.lineWidth = 1.2
+    ctx.beginPath(); ctx.moveTo(gunx, guny); ctx.lineTo(cx + wob, headY); ctx.stroke()
+    const rr = headR * 0.7
+    ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(t * 24)); ctx.strokeStyle = "rgba(255,60,60,0.95)"; ctx.lineWidth = 1.4
+    ctx.beginPath(); ctx.arc(cx + wob, headY, rr, 0, 6.28); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(cx + wob - rr * 1.5, headY); ctx.lineTo(cx + wob + rr * 1.5, headY); ctx.moveTo(cx + wob, headY - rr * 1.5); ctx.lineTo(cx + wob, headY + rr * 1.5); ctx.stroke()
+    ctx.fillStyle = "rgba(255,70,70,0.95)"; ctx.beginPath(); ctx.arc(cx + wob, headY, 1.8, 0, 6.28); ctx.fill()
+    const ch = aim * aim, cR = lw * 0.3 * ch
+    if (cR > 1) { const cg = ctx.createRadialGradient(gunx, guny, 0, gunx, guny, cR); cg.addColorStop(0, "rgba(190,224,255,0.9)"); cg.addColorStop(0.5, "rgba(90,160,255,0.5)"); cg.addColorStop(1, "rgba(0,0,0,0)")
+      ctx.globalAlpha = ch; ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(gunx, guny, cR, 0, 6.28); ctx.fill() }
+    ctx.restore()
+  }
+
+  // ── THE SHOT (single, sharp): white screen flash + muzzle flash + white-hot tracer gun→head + impact spark. ──
+  const shotAge = t - SHOT
+  if (shotAge >= 0 && shotAge < 0.10) {
+    const f = 1 - shotAge / 0.10
+    ctx.save()
+    if (shotAge < 0.035) { ctx.globalAlpha = (1 - shotAge / 0.035) * 0.5; ctx.fillStyle = "#ffffff"; ctx.fillRect(lx - lw * 6, ly - lh * 6, lw * 14, lh * 14) }
+    ctx.globalAlpha = f; const mg = ctx.createRadialGradient(gunx, guny, 0, gunx, guny, lw * 0.5); mg.addColorStop(0, "rgba(255,250,220,0.98)"); mg.addColorStop(0.4, "rgba(255,210,120,0.8)"); mg.addColorStop(1, "rgba(0,0,0,0)")
+    ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(gunx, guny, lw * 0.5, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = f * 0.95; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(255,255,240,0.95)"; ctx.lineWidth = 3 * f + 1
+    ctx.beginPath(); ctx.moveTo(gunx, guny); ctx.lineTo(cx, headY); ctx.stroke()
+    ctx.strokeStyle = "rgba(120,190,255,0.8)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(gunx, guny); ctx.lineTo(cx, headY); ctx.stroke()
+    ctx.globalAlpha = f; ctx.fillStyle = "rgba(255,240,200,0.95)"; ctx.beginPath(); ctx.arc(cx, headY, headR * 0.5 * f + 2, 0, 6.28); ctx.fill()
+    ctx.restore()
+  }
+
+  // a MODEST pool collects at the feet after the detach (a clean execution, not a lake — the shared _drawGroundPool
+  // helper is sized for wide carnage shots and swamps this tight frame, so draw a small controlled one)
+  if (t > DETACH) { const pg = Math.min(1, (t - DETACH) / 0.4), prx = cell * (2.5 + pg * 5)
+    ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = "#9c1019"
+    ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill()
+    ctx.beginPath(); ctx.ellipse(cx + prx * 0.7, gy, prx * 0.3, prx * 0.22, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+
+  // ── THE BEAT: dark entry hole + a thin crimson line opening at the neck. The body stands, not yet fallen. ──
+  if (t >= SHOT && t < DETACH) {
+    const bt = (t - SHOT) / (DETACH - SHOT)
+    ctx.save()
+    ctx.fillStyle = "#2a0208"; ctx.beginPath(); ctx.arc(cx + dir * headR * 0.1, headY - headR * 0.1, cell * 0.9, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = Math.min(1, bt * 1.4); ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = 1.5 + bt * 2
+    ctx.beginPath(); ctx.moveTo(cx - headR * 0.9, neckY); ctx.quadraticCurveTo(cx, neckY + cell * 0.8, cx + headR * 0.9, neckY); ctx.stroke()
+    ctx.globalAlpha = bt * 0.8; ctx.fillStyle = BLOOD_REDS[0]
+    for (let i = 0; i < 3; i++) { const h = _brutHash(seed, 40 + i, 1); ctx.fillRect(cx - headR * 0.6 + i * headR * 0.6, neckY, 1.6, cell * (1 + bt * 3) * (0.6 + h * 0.6)) }
+    ctx.restore()
+  }
+
+  // ── THE HEAD FALLS: neck stump (masks the live head) + a tight arterial spurt + the severed head tumbling down.
+  //    Blood is kept SMALL (splats ≤ lw*0.5) and the head is drawn LAST so it always reads on top, never buried. ──
+  if (t >= DETACH) {
+    const d = (t - DETACH) / (1 - DETACH), air = Math.min(1, d / 0.62), ease = 1 - Math.pow(1 - air, 2)
+    // a little textured spatter around the feet pool (kept small so it never buries the head)
+    if (d > 0.15) _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 0.22, 30), Math.max(0, 1 - (d - 0.15) / 0.7) * 0.4)
+    // NECK STUMP — a dark severed cross-section covering the FULL head region (hides the still-attached live head)
+    ctx.save()
+    ctx.fillStyle = "#15171d"; ctx.beginPath(); ctx.ellipse(cx, ly + lh * 0.05, headR * 1.35, lh * 0.22, 0, 0, 6.28); ctx.fill()
+    ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.ellipse(cx, neckY - cell * 0.4, headR * 0.72, cell * 1.1, 0, 0, 6.28); ctx.fill()        // open wound core
+    ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, neckY - cell * 0.4, headR * 0.72, cell * 1.1, 0, 0, 6.28); ctx.stroke()
+    ctx.restore()
+    // ARTERIAL SPURT — a short jet right at the cut + a few fine droplets; tight, not a geyser
+    const spurt = Math.max(0, 1 - d / 0.6)
+    ctx.save()
+    if (d < 0.22) { ctx.globalAlpha = (1 - d / 0.22) * 0.8; ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.ellipse(cx, neckY - lh * 0.08 * (d / 0.22), headR * 0.4, lh * 0.08, 0, 0, 6.28); ctx.fill() }
+    for (let i = 0; i < 9; i++) { const h = (k) => _brutHash(seed, 50 + i, k)
+      const ph = (d * (2 + h(1) * 2) + h(2)) % 1, vx0 = (h(3) * 2 - 1) * lw * 0.32, up = lh * (0.22 + h(4) * 0.3)
+      const px = cx + vx0 * ph, py = neckY - up * Math.sin(ph * Math.PI) * spurt + (ph * ph) * cell * 2
+      ctx.globalAlpha = spurt * (0.4 + h(6) * 0.5); ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]
+      ctx.beginPath(); ctx.arc(px, py, cell * (0.3 + h(7) * 0.4), 0, 6.28); ctx.fill() }
+    ctx.restore()
+    // trailing droplets streaming behind the flying head (drops mostly straight down, slight lean, stays in frame)
+    const hx = cx + dir * lw * 0.32 * ease
+    const apex = -lh * 0.16 * Math.sin(Math.min(1, air) * Math.PI)
+    const hy = Math.min(gy - headR * 0.8, headY + (gy - headR * 0.8 - headY) * ease + apex)
+    if (air < 1) { ctx.save(); for (let i = 0; i < 5; i++) { const h = (k) => _brutHash(seed, 80 + i, k), tp = Math.max(0, air - i * 0.07), te = 1 - Math.pow(1 - tp, 2)
+      const txp = cx + dir * lw * 0.32 * te, typ = headY + (gy - headR * 0.8 - headY) * te - lh * 0.16 * Math.sin(Math.min(1, tp) * Math.PI)
+      ctx.globalAlpha = (1 - i / 5) * 0.5 * (1 - air * 0.5); ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(txp + (h(1) * 2 - 1) * cell, typ + h(2) * cell * 1.5, cell * (0.6 - i * 0.08), 0, 6.28); ctx.fill() } ctx.restore() }
+    // small rest-pool under the head once it lands (drawn before the head so the head sits on top)
+    if (air >= 1) { ctx.save(); ctx.globalAlpha = 0.5; ctx.fillStyle = BLOOD_REDS[1]; ctx.beginPath(); ctx.ellipse(hx, gy, headR * 0.95, cell * 1.1, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+    // THE SEVERED HEAD — pops, spins, arcs to the ground; DRAWN LAST so it reads on top of all blood
+    const rot = (dir > 0 ? 1 : -1) * air * 6.28 * 1.4
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(rot)
+    ctx.fillStyle = "#14161c"; ctx.beginPath(); ctx.ellipse(0, 0, headR * 0.88, headR, 0, 0, 6.28); ctx.fill()                               // skull/helmet
+    ctx.fillStyle = "rgba(205,215,230,0.22)"; ctx.beginPath(); ctx.ellipse(-headR * 0.22, -headR * 0.28, headR * 0.4, headR * 0.5, 0, 0, 6.28); ctx.fill()   // sheen
+    ctx.fillStyle = "#3a000a"; ctx.beginPath(); ctx.ellipse(0, headR * 0.78, headR * 0.55, headR * 0.3, 0, 0, 6.28); ctx.fill()               // ragged neck base
+    ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.ellipse(0, headR * 0.72, headR * 0.4, headR * 0.18, 0, 0, 6.28); ctx.fill()
+    ctx.restore()
+  }
+}
 // GENERIC LIVE GORE — the fighters are the real animated sprites (winner performs winAction, loser holds loseAction/
 // is knocked into hurt). Here we ONLY layer the gore FX, anchored to the loser's DRAWN rect: ground pool + a
 // per-gore flavor overlay (slashes / flames / bruises / swarm / meteor) + a blood burst at the kill. The weapon
@@ -7539,6 +7659,7 @@ function _drawLiveGunshot(b) {
 function _drawLiveGore(b) {
   const g = b.finisher?.gore
   if (g === "gunshot") { _drawLiveGunshot(b); return }
+  if (g === "gundecap") { _drawLiveGunDecap(b); return }
   const lf = b.loseRef, wf = b.winRef; if (!lf) return
   const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
@@ -22614,7 +22735,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

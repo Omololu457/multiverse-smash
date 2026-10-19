@@ -6276,6 +6276,13 @@ function _tryStartBrutality(winner) {
     const la = brutalityState.finisher.loseAction || "hurt"; if (loseF.animationData?.[la]) loseF._forceAction = la
     const wa = brutalityState.finisher.winAction; if (wa && winF.animationData?.[wa]) { winF._forceAction = wa; if (winF.spriteHandler) { winF.spriteHandler.frameIndex = 0; winF.spriteHandler.frameTimer = 0 } }
     else if (winF.animationData?.win) winF._forceAction = "win"
+    // NARUTO — drive the REAL shadow-clone choreography (narutoChoreography.js ghost bodies, rendered through
+    // renderHybridFighter — pixel-identical to Naruto) so actual clones gang up, instead of code-drawn hologram
+    // sprites. The finisher FX (TBB / Rasengan / Rasenshuriken) still layers on top. Driven in updateBrutality.
+    const _ng = brutalityState.finisher?.gore
+    if ((_ng === "uzumakibarrage" || _ng === "tbb" || _ng === "rasengan" || _ng === "rasenshuriken") && !isNarutoChoreoActive()) {
+      startNarutoChoreo(winF, loseF, SEQUENCES.barrage); brutalityState._narutoChoreo = true
+    }
     brutalityState._cam0 = { zoom: camera.zoom || 1, targetZoom: camera.targetZoom || camera.zoom || 1, x: camera.x, y: camera.y }
     return true
   }
@@ -6644,6 +6651,9 @@ function updateBrutality() {
     const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
     if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x }   // remember resting spots (restored on exit)
+    if (b._narutoChoreo && isNarutoChoreoActive()) { updateNarutoChoreo(() => {})   // advance the REAL shadow-clone choreography (no-op fireHit — the foe is already KO'd); clones render via getNarutoChoreoBodies()
+      wf.x = (b._liveWinX0 != null ? b._liveWinX0 : wf.x)                            // keep the real Naruto PLANTED in its finisher pose (physics is frozen → don't let the choreography's spike-teleport float him)
+      const _wa = b.finisher?.winAction; wf._forceAction = (_wa && wf.animationData?.[_wa]) ? _wa : (wf.animationData?.win ? "win" : wf._forceAction) }
     if (g === "flyheads") { const tp = Math.min(1, Math.max(0, (t - 0.4) / 0.4)); lf.y = b._liveLoseY0 - tp * tp * lh * 8 }   // HURL the live loser into the sky
     else if (g === "susanooslam") { const liftP = Math.min(1, Math.max(0, (t - 0.22) / 0.26)), slamP = Math.min(1, Math.max(0, (t - 0.48) / 0.12)); lf.y = b._liveLoseY0 - lh * 1.5 * liftP * (1 - slamP) }   // Susano'o LIFTS then SLAMS the live loser
     else if (g === "kamuivacuum" || g === "portalvacuum") {   // PORTAL SUCK-IN: drift toward the rift, then VANISH into the pocket dimension (hidden; a 2nd portal rains blood in the draw)
@@ -6655,7 +6665,7 @@ function updateBrutality() {
     else if (g === "hakai") { lf._brutHidden = (t >= 0.6) }        // ERASED from existence → stop drawing the live foe
     else if (g === "whisslam") { lf._brutHidden = (t >= 0.55) }    // SQUISHED flat → the flattened mass + blood stand in
     else if (g === "ascension") { const upP = Math.min(1, Math.max(0, (t - 0.22) / 0.62)); lf.y = b._liveLoseY0 - upP * upP * lh * 5.5; lf._brutHidden = (t > 0.92) }   // TAKEN UP to heaven (accelerating rise → fades into the light)
-    else if (g === "uzumakibarrage") { const liftP = Math.min(1, Math.max(0, (t - 0.15) / 0.32)), slamP = Math.min(1, Math.max(0, (t - 0.72) / 0.12)); lf.y = b._liveLoseY0 - lh * 2.2 * liftP * (1 - slamP) }   // kicked UP by the clones → axe-kicked DOWN
+    else if (g === "uzumakibarrage") { const liftP = Math.min(1, Math.max(0, (t - 0.06) / 0.26)), slamP = Math.min(1, Math.max(0, (t - 0.32) / 0.08)); lf.y = b._liveLoseY0 - lh * 1.9 * liftP * (1 - slamP) }   // clones juggle the foe UP → the REAL Naruto spikes it DOWN (choreography spike ~frame 52)
     // WINNER STEP-IN — close the distance so the live move reaches the victim (melee especially). Ranged finishers
     // (gun/meteor) keep more space; vacuum/juubi/temporal keep the winner planted; PHASE dashes clean through.
     if (g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "hakai" || g === "whisslam" || g === "destructionsphere" || g === "ascension" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb") { /* winner planted / carried */ }
@@ -6720,6 +6730,7 @@ function updateBrutality() {
       if (b._liveLoseX0 != null) { lf.x = b._liveLoseX0; lf.y = b._liveLoseY0 }   // restore the loser's position (throw/knock)
       if (b._liveWinX0 != null) wf.x = b._liveWinX0                                // restore the winner's position (step-in)
       b._liveLoseY0 = null; b._liveLoseX0 = null; b._liveWinX0 = null; b._portalWX = null; b._portalGY = null
+      if (b._narutoChoreo) { clearNarutoChoreo(); b._narutoChoreo = false }       // release the shadow-clone run (unlocks the caster)
       if (lf) lf._brutHidden = false                                             // un-hide the swallowed loser (vacuum finishers)
       if (wf) wf._forceAction = null; if (lf && lf.animationData?.lose) lf._forceAction = "lose"   // drop the move pose; leave the loser defeated
       b.loseRef = null; b.winRef = null; b.finisher = null; b.move = null; b.live = false; _restoreBrutalityCamera()
@@ -7959,21 +7970,15 @@ function _drawLiveGore(b) {
       ctx.strokeStyle = `rgba(240,230,255,${sw})`; ctx.lineWidth = 3 + sw * 8; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 1.4, cy - lh * 1.4); ctx.lineTo(cx + dir * lw * 0.6, cy + lh * 0.8); ctx.stroke(); ctx.restore() }
     if (t > 0.5) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 1.0, 120), Math.max(0, 1 - (t - 0.5) / 0.5) * 0.8)
   } else if (g === "uzumakibarrage") {
-    // NARUTO UZUMAKI BARRAGE — shadow clones (REAL naruto_seventh sprites) swarm; the foe is launched UP (lift in
-    // updateBrutality), clones barrage it mid-air, then an axe-kick slams it DOWN → impact shockwave + blood.
+    // NARUTO UZUMAKI BARRAGE — the REAL shadow clones (narutoChoreography, rendered live via renderHybridFighter)
+    // juggle the foe up; the REAL Naruto spikes it down (choreography). Here we only add kick-impact flashes while
+    // they juggle + the ground shockwave + blood when the spike lands (~t=0.35). No code-drawn hologram clones.
     const rgb = _hexToRgb((b.finisher?.palette || GORE_NARUTO)[2]), col = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`
-    const cSrc = b.finisher?.cloneSrc || "./naruto_seventh_aircombo_uniform.png", cFrames = b.finisher?.cloneFrames || 9   // teen naruto uses its own kick sprite
-    const swarm = Math.min(1, t / 0.55), slam = Math.max(0, (t - 0.72) / 0.18), jf = Math.floor(t * 50)
-    if (slam <= 0) { const nc = 3 + Math.floor(swarm * 4)   // clones flashing in around the airborne foe, kicking
-      for (let i = 0; i < nc; i++) { const h = (k) => _brutHash(seed, 5100 + i, k), a = h(1) * 6.28 + t * (3 + h(2) * 4), r = lw * (1.3 + h(3) * 1.2)
-        const jx = (_brutHash(seed, 5130 + i, jf) * 2 - 1) * lw * 0.2, cx2 = cx + Math.cos(a) * r + jx, cy2 = cy + Math.sin(a) * r * 0.8, face = (Math.cos(a) > 0 ? -1 : 1)
-        const appear = ((t * 6 + i) % 1), alpha = (1 - appear) * 0.85
-        _brutSheetFrame(ctx, cSrc, cFrames, Math.floor(t * 40 + i * 2) % cFrames, cx2, cy2, lh * 1.05, face, alpha, 0.5)   // REAL clone sprite (per-variant)
-        ctx.save(); ctx.globalAlpha = alpha * 0.8; ctx.strokeStyle = "rgba(255,245,220,0.9)"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(cx2, cy2); ctx.lineTo(cx + (h(4) * 2 - 1) * lw * 0.3, cy + (h(5) * 2 - 1) * lh * 0.3); ctx.stroke(); ctx.restore() }   // kick streak
-      ctx.save(); for (let i = 0; i < 6; i++) { const h = (k) => _brutHash(seed, 5160 + i, k); if (((t * 14 + i) % 1) < 0.4) { ctx.globalAlpha = 0.7 * swarm; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.beginPath(); ctx.arc(cx + (h(1) * 2 - 1) * lw * 0.4, cy + (h(2) * 2 - 1) * lh * 0.4, cell * 1.5, 0, 6.28); ctx.fill() } } ctx.restore() }
-    if (slam > 0) { const sp = Math.min(1, slam)   // axe-kick SLAM to the ground → shockwave + blood
+    const juggle = t < 0.35, slam = Math.max(0, (t - 0.33) / 0.2)
+    if (juggle) { ctx.save(); for (let i = 0; i < 6; i++) { const h = (k) => _brutHash(seed, 5160 + i, k); if (((t * 16 + i) % 1) < 0.35) { ctx.globalAlpha = 0.7; ctx.fillStyle = "rgba(255,250,220,0.9)"; ctx.beginPath(); ctx.arc(cx + (h(1) * 2 - 1) * lw * 0.5, cy + (h(2) * 2 - 1) * lh * 0.6, cell * 1.6, 0, 6.28); ctx.fill() } } ctx.restore() }   // clone kick-impact sparks
+    if (slam > 0) { const sp = Math.min(1, slam)   // the spike lands → ground shockwave + blood
       ctx.save(); ctx.globalAlpha = Math.max(0, 1 - sp / 0.4); ctx.strokeStyle = col(0.9); ctx.lineWidth = 4 + (1 - sp) * 14; ctx.beginPath(); ctx.ellipse(cx, gy, lw * (0.8 + sp * 3), lw * 0.3 * (0.8 + sp * 3), 0, 0, 6.28); ctx.stroke(); ctx.restore()
-      _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.1, 130), Math.min(1, sp * 1.1)) }
+      _drawBloodSplat(ctx, cx, gy - cell, Math.min(lw * 1.1, 125), Math.min(1, sp * 1.1)) }
   } else if (g === "tbb") {
     // NARUTO TAILED BEAST BOMB — Kurama rears up behind, charges a black TBB sphere, then FIRES it into the foe →
     // a massive incineration blast (real Kurama-head + TBB-sphere + explosion sprites).

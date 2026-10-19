@@ -289,7 +289,10 @@ function applyKuramaDamage(ctx, snd) {
     })
   }
   snd?.play?.(blocked ? SFX.BLOCK : SFX.HIT_HEAVY)
-  if (opp.health <= 0) snd?.play?.(SFX.KO)
+  if (opp.health <= 0) { snd?.play?.(SFX.KO)
+    // Stamp the TBB as the killing-blow move so the TAILED BEAST BOMB brutality fires (the cinematic applies damage
+    // via applyScaledDamage with no move). Presentation-only field; read by the brutality resolver. No sim effect.
+    if (kuramaCine.caster) kuramaCine.caster._killingBlowMove = "tbb" }
 }
 
 function endKurama() {

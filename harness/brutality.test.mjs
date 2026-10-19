@@ -26,9 +26,10 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "flash",      // Speed Force run — grabs + tears through multiple maps / time / dimension / space / sun
   "killua",     // Killua — thunderhead / yo-yo / godspeed-flurry (trait)
   "beerus",     // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
-  "goku_rose","sasuke_adult","sasuke_sensei","naruto_seventh"];   // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage)
+  "goku_rose","sasuke_adult","sasuke_sensei","naruto_seventh",
+  "naruto"];   // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage + teen naruto)
 // Hard-exclusion list — must NEVER be eligible regardless of style.
-const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua removed: age-gate lifted by owner request 2026-10-18
+const EXCLUDED = ["boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua + naruto[teen] removed: age-gates lifted by owner request 2026-10-18/19
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
 const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
@@ -69,7 +70,8 @@ const TABLE = {
   goku_rose:     { roseScythe:{n:"GOD SPLIT CUT",g:"bladecut"}, roseSword:{n:"SWORD OF LIGHT",g:"bladecut"}, roseKameha:{n:"BLACK KAMEHAMEHA",g:"annihilate"} },   // Goku Black (Rosé)
   sasuke_adult:  { chidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, amaterasu:{n:"AMATERASU",g:"amaterasu"}, saChibakuTensei:{n:"CHIBAKU TENSEI",g:"implode"}, up:{n:"SUSANO'O",g:"sasukesusanoo"} },
   sasuke_sensei: { ssChidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, ssAmaterasu:{n:"AMATERASU",g:"amaterasu"}, ssShinraTensei:{n:"RINNEGAN VOID",g:"implode"}, up:{n:"KIRIN",g:"kirin"} },
-  naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (Seventh Hokage, adult)
+  naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"}, n7Bijuudama:{n:"TAILED BEAST BOMB",g:"tbb"}, n7Rasengan:{n:"RASENGAN",g:"rasengan"}, n7Rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"} },   // Naruto (Seventh Hokage, adult)
+  naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 
@@ -131,8 +133,8 @@ try {
   await page.evaluate(() => { window.__harness.brutality.setBrutality(true); window.__harness.brutality.setHp("p2", 500); });   // heal the dummy the OFF-trigger KO'd, so this is a genuine loser-alive case
   const timeOver = await page.evaluate(() => window.__harness.brutality.trigger("p1", false, "gfLunge"));
   check("time-over win (loser alive) → finisher does NOT trigger", timeOver === false);
-  const inelig = await page.evaluate(() => window.__harness.brutality.canTrigger("naruto"));
-  check("hard-excluded winner (Naruto) cannot trigger a finisher", inelig === false);
+  const inelig = await page.evaluate(() => window.__harness.brutality.canTrigger("gon"));   // naruto[teen]'s gate was lifted by owner request → use a still-excluded CHILD (Gon)
+  check("hard-excluded winner (Gon) cannot trigger a finisher", inelig === false);
 
   // ── LIVE finisher render per CHARACTER + per MOVE (real _tryStartBrutality + gore particles) ──────
   async function liveChar(ch) {

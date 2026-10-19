@@ -28,7 +28,8 @@ const PLAN = [
   ["naruto_seventh", [["up", "naruto_uzumakibarrage_mid", 28], ["n7Bijuudama", "naruto7_tbb", 110], ["n7Rasengan", "naruto7_rasengan", 30], ["n7Rasenshuriken", "naruto7_rasenshuriken", 78]]],
   ["naruto", [["tbb", "naruto_teen_tbb", 30], ["up", "naruto_teen_barrage", 28]]],
   ["shisui_fallen", [["shisuiFallenFlickerStrike", "shisui_bodyflicker", 48], ["heavy", "shisui_flickerslice", 72], ["up", "shisui_susanoo", 78], ["shisuiFallenKotoamatsukami", "shisui_kotoamatsukami", 80]]],
-  ["omega_ranger", [["omGunBolt", "omega_gundecap_aim", 30], ["omGunBolt", "omega_gundecap_fall", 88], ["omGunBolt", "omega_gundecap_land", 124]]],
+  ["omega_ranger", [["omGunBolt", "omega_gundecap_aim", 30], ["omGunBolt", "omega_gundecap_fall", 88], ["omGunBolt", "omega_gundecap_land", 124],
+    ["ultimate", "omega_saber_barrage", 58], ["ultimate", "omega_saber_cut", 78], ["ultimate", "omega_saber_after", 112]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

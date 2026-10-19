@@ -1059,6 +1059,12 @@ const BRUTALITY_FINISHERS = {
   // = the foe stands at gunpoint, unaware, until the head falls.
   omega_ranger: {
     omGunBolt: { name: "DELTA ENFORCER", gore: "gundecap", palette: GORE_SPD, flash: "#eaf4ff", live: true, winAction: "omGun", loseAction: "idle" },
+    // OMEGA SABER — an S.P.D. speed-blur saber barrage. Omega bursts in on a cloud of summon smoke (his intro
+    // smoke sprites), flickers around the foe with rapid saber afterimages, then a single bright finishing cut
+    // slices through — the smoke billows over the kill and clears to the aftermath. Keyed off the saber super
+    // ("ultimate" → Omega Saber: Final Strike) AND the sword-string finisher (omSword7).
+    ultimate: { name: "OMEGA SABER", gore: "swordsmoke", palette: GORE_SPD, flash: "#dff0ff", live: true, winAction: "ultimate", loseAction: "hurt" },
+    omSword7: { name: "OMEGA SABER", gore: "swordsmoke", palette: GORE_SPD, flash: "#dff0ff", live: true, winAction: "omSword7", loseAction: "hurt" },
   },
   // FLASH — the Scarlet Speedster grabs the foe and RUNS. Each finisher tears through a different kind of distance:
   // across many maps, across TIME (eras), into another DIMENSION, out into SPACE (decompression burst), or into
@@ -6739,7 +6745,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7652,6 +7658,74 @@ function _drawLiveGunDecap(b) {
     ctx.restore()
   }
 }
+// OMEGA RANGER — OMEGA SABER (live). An S.P.D. speed-blur saber barrage wreathed in his summon smoke. Omega holds
+// his real saber pose (winAction "ultimate"/"omSword7"); the foe recoils (loseAction "hurt"). Beat: SMOKE BURST
+// (the Omega Morpher speed-blur erupts on his intro smoke sprites) → SABER BARRAGE (slash lines criss-cross + real
+// sword-slash afterimages flicker around the foe) → the FINISHING CUT (one bright diagonal saber slash + white
+// flash) → smoke billows OVER the kill and clears to the slice wound + blood pool. Deterministic (hash, no RNG);
+// self-draws all blood (in the _noB set).
+function _drawLiveSwordSmoke(b) {
+  const lf = b.loseRef, wf = b.winRef; if (!lf) return
+  const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
+  const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
+  const cx = lx + lw / 2, cy = ly + lh / 2, cell = Math.max(3, lw / 14), seed = b.seed || 1, dir = b.dir || 1
+  const gy = lf.groundY != null ? lf.groundY : (ly + lh)
+  const elapsed = b.maxTimer - b.timer, t = Math.min(1, elapsed / b.maxTimer)
+  const SMOKE = "./omega_ranger_intro_2_part_1_uniform.png", blade = "#dff0ff", CUT = 0.48
+
+  // a MODEST feet-pool collects after the cut (small — not a lake)
+  if (t > CUT) { const pg = Math.min(1, (t - CUT) / 0.4), prx = cell * (3 + pg * 6)
+    ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = "#9c1019"
+    ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill()
+    ctx.beginPath(); ctx.ellipse(cx - prx * 0.7, gy, prx * 0.3, prx * 0.22, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+
+  // ── SABER BARRAGE — slash lines + real sword-slash afterimages flicker around the foe (t 0.14..CUT) ──
+  if (t >= 0.14 && t < CUT) {
+    const prog = Math.min(1, (t - 0.14) / 0.3)
+    _drawSlashLines(ctx, cx, cy, lw, lh, 16, seed, blade, prog)
+    const ai = Math.floor(t * 50) % 7, swing = Math.sin(t * 30) * lw * 0.7
+    _brutSheetFrame(ctx, "./omega_ranger_sword_slash_1_uniform.png", 7, ai, cx + swing, cy, lh * 1.1, (Math.cos(t * 30) > 0 ? 1 : -1), 0.55, 0.5)
+    ctx.save(); for (let i = 0; i < 6; i++) { const h = (k) => _brutHash(seed, 120 + i, k); if (h(1) < prog) { ctx.globalAlpha = 0.5 * prog; ctx.fillStyle = BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(2) * 2 - 1) * lw * 0.4, cy + (h(3) * 2 - 1) * lh * 0.4, cell * 0.7, 0, 6.28); ctx.fill() } } ctx.restore()
+  }
+
+  // ── THE FINISHING CUT — one bright diagonal saber slash + a brief white flash ──
+  const cutAge = t - CUT
+  if (cutAge >= 0 && cutAge < 0.12) {
+    const f = 1 - cutAge / 0.12
+    ctx.save()
+    if (cutAge < 0.04) { ctx.globalAlpha = (1 - cutAge / 0.04) * 0.45; ctx.fillStyle = "#ffffff"; ctx.fillRect(lx - lw * 5, ly - lh * 5, lw * 12, lh * 12) }
+    ctx.globalAlpha = f; ctx.lineCap = "round"; ctx.strokeStyle = blade; ctx.lineWidth = 4 * f + 2
+    ctx.beginPath(); ctx.moveTo(cx - dir * lw * 0.7, cy - lh * 0.5); ctx.lineTo(cx + dir * lw * 0.7, cy + lh * 0.5); ctx.stroke()
+    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 0.7, cy - lh * 0.5); ctx.lineTo(cx + dir * lw * 0.7, cy + lh * 0.5); ctx.stroke()
+    ctx.restore()
+  }
+
+  // ── SLICE WOUND + gush after the cut ──
+  if (t >= CUT) {
+    const wt = (t - CUT) / (1 - CUT)
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, wt * 2); ctx.lineCap = "round"; ctx.strokeStyle = "#3a000a"; ctx.lineWidth = cell * 1.4
+    ctx.beginPath(); ctx.moveTo(cx - dir * lw * 0.35, cy - lh * 0.28); ctx.lineTo(cx + dir * lw * 0.35, cy + lh * 0.28); ctx.stroke()
+    ctx.strokeStyle = BLOOD_REDS[0]; ctx.lineWidth = cell * 0.7; ctx.beginPath(); ctx.moveTo(cx - dir * lw * 0.35, cy - lh * 0.28); ctx.lineTo(cx + dir * lw * 0.35, cy + lh * 0.28); ctx.stroke()
+    ctx.globalAlpha = Math.max(0, 1 - wt / 0.7) * 0.85
+    for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 60 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1
+      const px = cx + (h(3) * 2 - 1) * lw * 0.3, py = cy + (h(4) * 2 - 1) * lh * 0.3 + ph * lh * 0.4
+      ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(px, py, cell * (0.5 + h(6) * 0.6), 0, 6.28); ctx.fill() }
+    ctx.restore()
+    if (wt > 0.1) _drawBloodSplat(ctx, cx, cy, Math.min(lw * 0.55, 72), Math.max(0, 1 - wt / 0.6) * 0.55)
+  }
+
+  // ── SMOKE — bursts at the entry (speed-blur) and billows OVER the finishing cut, then clears to reveal it ──
+  const smA1 = t < 0.32 ? Math.sin(Math.min(1, t / 0.32) * Math.PI) : 0
+  const smA2 = t >= CUT - 0.04 ? Math.sin(Math.min(1, (t - (CUT - 0.04)) / 0.5) * Math.PI) : 0
+  const smA = Math.max(smA1, smA2 * 0.95)
+  if (smA > 0.02) {
+    const fr = Math.floor(t * 24) % 7
+    for (let i = 0; i < 4; i++) { const h = (k) => _brutHash(seed, 200 + i, k)
+      const sx = cx + (h(1) * 2 - 1) * lw * 0.6, sy = cy + (h(2) * 2 - 1) * lh * 0.4 - lh * 0.1
+      _brutSheetFrame(ctx, SMOKE, 7, (fr + i) % 7, sx, sy, lh * (1.3 + h(3) * 0.8), (i % 2 ? 1 : -1), smA * (0.4 + h(4) * 0.4), 0.5) }
+  }
+}
 // GENERIC LIVE GORE — the fighters are the real animated sprites (winner performs winAction, loser holds loseAction/
 // is knocked into hurt). Here we ONLY layer the gore FX, anchored to the loser's DRAWN rect: ground pool + a
 // per-gore flavor overlay (slashes / flames / bruises / swarm / meteor) + a blood burst at the kill. The weapon
@@ -7660,6 +7734,7 @@ function _drawLiveGore(b) {
   const g = b.finisher?.gore
   if (g === "gunshot") { _drawLiveGunshot(b); return }
   if (g === "gundecap") { _drawLiveGunDecap(b); return }
+  if (g === "swordsmoke") { _drawLiveSwordSmoke(b); return }
   const lf = b.loseRef, wf = b.winRef; if (!lf) return
   const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
   const lx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x || 0), ly = (lf._lastDrawY != null ? lf._lastDrawY : lf.y || 0)
@@ -22735,7 +22810,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

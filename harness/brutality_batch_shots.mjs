@@ -33,10 +33,11 @@ const PLAN = [
   ["hisoka", [["hisoka_card", "hisoka_cards_stick", 66], ["hisoka_card", "hisoka_cards_topple", 120],
     ["bungeeGum", "hisoka_bungee_stick", 40], ["bungeeGum", "hisoka_bungee_burst", 98]]],
   ["jason", [["heavy", "jason_chop_raise", 48], ["heavy", "jason_chop_split", 112]]],
-  ["rengoku", [["heavy", "rengoku_flame_storm", 60], ["heavy", "rengoku_flame_after", 100]]],
-  ["zenitsu", [["zenUltimate", "zenitsu_thunder_storm", 60], ["zenUltimate", "zenitsu_thunder_after", 100]]],
-  ["shinobu", [["shinobuPoison", "shinobu_poison_storm", 60], ["shinobuPoison", "shinobu_poison_after", 100]]],
-  ["inosuke", [["inosukeB5", "inosuke_beast_storm", 60], ["inosukeB5", "inosuke_beast_after", 100]]],
+  ["rengoku", [["heavy", "rengoku_tiger_rush", 58], ["heavy", "rengoku_tiger_ash", 112]]],
+  ["zenitsu", [["zenUltimate", "zenitsu_flash", 50], ["zenUltimate", "zenitsu_electrocute", 80]]],
+  ["shinobu", [["shinobuPoison", "shinobu_stabs", 46], ["shinobuPoison", "shinobu_melt", 112]]],
+  ["inosuke", [["inosukeB5", "inosuke_maul", 60], ["inosukeB5", "inosuke_chunks", 100]]],
+  ["nezuko", [["nezukoBite", "nezuko_claw", 40], ["nezukoBite", "nezuko_bloodburst", 84]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

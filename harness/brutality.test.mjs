@@ -30,9 +30,9 @@ const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","m
   "naruto",    // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage + teen naruto)
   "shisui_fallen",   // Shisui (Fallen) — Body Flicker / Flicker Slice / Emerald Susano'o (trait)
   "omega_ranger",   // Omega Ranger (S.P.D.) — Delta Enforcer: one shot → decapitation (gundecap)
-  "rengoku","zenitsu","shinobu","inosuke"];   // Demon Slayer — canonical Breathing-Style finishers (Flame/Thunder/Insect/Beast)
+  "rengoku","zenitsu","shinobu","inosuke","nezuko"];   // Demon Slayer — canonical Breathing-Style finishers (Flame/Thunder/Insect/Beast/Blood-Demon; Nezuko by owner override)
 // Hard-exclusion list — must NEVER be eligible regardless of style.
-const EXCLUDED = ["boruto","kiba","gohan","gon","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua + naruto[teen] removed: age-gates lifted by owner request 2026-10-18/19
+const EXCLUDED = ["boruto","kiba","gohan","gon","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua + naruto[teen] + nezuko removed: age-gates lifted by owner request 2026-10-18/19
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
 const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
@@ -77,10 +77,11 @@ const TABLE = {
   naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
   shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"}, shisuiFallenKotoamatsukami:{n:"KOTOAMATSUKAMI",g:"kotoamatsukami"} },   // Shisui (Fallen)
   omega_ranger: { omGunBolt:{n:"DELTA ENFORCER",g:"gundecap"}, ultimate:{n:"OMEGA SABER",g:"swordsmoke"}, omSword7:{n:"OMEGA SABER",g:"swordsmoke"} },   // Omega Ranger (S.P.D.) — one shot → head drops · saber barrage from the smoke
-  rengoku: { heavy:{n:"FLAME BREATHING",g:"flameslash"}, rengokuSuperDown:{n:"FLAME BREATHING",g:"flameslash"}, ultimate:{n:"FLAME EXPLOSION",g:"flameslash"} },   // Demon Slayer — Flame
-  zenitsu: { zenUltimate:{n:"THUNDER BREATHING",g:"thunderslash"}, zenThunderclap:{n:"THUNDERCLAP & FLASH",g:"thunderslash"} },   // Thunder
-  shinobu: { shinobuPoison:{n:"INSECT BREATHING",g:"poisonslash"}, heavy:{n:"INSECT BREATHING",g:"poisonslash"} },   // Insect/poison
-  inosuke: { inosukeB5:{n:"BEAST BREATHING",g:"beastslash"}, beastLunge:{n:"BEAST BREATHING",g:"beastslash"}, beastSpin:{n:"BEAST BREATHING",g:"beastslash"} },   // Beast
+  rengoku: { heavy:{n:"FLAME BREATHING",g:"flametiger"}, rengokuSuperDown:{n:"FLAME BREATHING",g:"flametiger"}, ultimate:{n:"NINTH FORM: RENGOKU",g:"flametiger"} },   // Flame tiger → incinerate
+  zenitsu: { zenUltimate:{n:"THUNDER BREATHING",g:"thunderflash"}, zenThunderclap:{n:"THUNDERCLAP & FLASH",g:"thunderflash"} },   // Godspeed bolt-dash
+  shinobu: { shinobuPoison:{n:"INSECT BREATHING",g:"poisonmelt"}, heavy:{n:"INSECT BREATHING",g:"poisonmelt"} },   // stabs → dissolve
+  inosuke: { inosukeB5:{n:"BEAST BREATHING",g:"beastmaul"}, beastLunge:{n:"BEAST BREATHING",g:"beastmaul"}, beastSpin:{n:"BEAST BREATHING",g:"beastmaul"} },   // dual-blade → chunks
+  nezuko: { nezukoCombo2:{n:"BLOOD DEMON ART",g:"bloodburst"}, nezukoUlt1a:{n:"EXPLODING BLOOD",g:"bloodburst"}, nezukoBite:{n:"BLOOD DEMON ART",g:"bloodburst"} },   // claw → pink detonation
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

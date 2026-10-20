@@ -18276,7 +18276,9 @@ export const GHOSTFACE_CALLIN_POOLS = {
 // Ghostface with no valid identity — applySkin guarantees one, so this never falls back to a sampler).
 export function getGhostfaceCallInPool(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return []
-  return GHOSTFACE_CALLIN_POOLS[fighter.skinId] || []
+  // REBUILD: the Killer Swap always targets the two killer FORMS (Enforcer=Zaraki / Assassin=Chrollo),
+  // regardless of any forced identity skinId (the old 5-killer companion pools are retired for base ghostface).
+  return GHOSTFACE_KILLER_FORMS
 }
 // COMPANION SWAP is triggered by a MOTION + Special (the Transformation-Jutsu control model), NOT the old
 // Call-In. Each motion selects a pool slot; checked at the TOP of the Special dispatch (below), BEFORE the
@@ -18534,8 +18536,10 @@ function executeGhostfaceSpecial(fighter, context) {
   const dir  = fighter._specialHeldDir  || null
   // TWO swap triggers on the same modifier family: CHARGE = "Phone Call" AMBUSH swap (4-beat, second killer
   // strikes), GRAB = Backstage Pass swap (clean dash-out → single-character replacement). Motion picks the slot.
-  if (mods.charge)              return triggerGhostfaceAmbush(fighter, ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
-  if (mods.grab)                return triggerGhostfaceBackstagePass(fighter, "swap", ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
+  // KILLER SWAP (Scream×MK1): hold a shoulder + Special → vanish and become a tinted killer form for 12s.
+  //   CHARGE (L2) + Special = ASSASSIN (Chrollo, violet)  ·  GRAB (L1) + Special = ENFORCER (Zaraki, blue)
+  if (mods.charge)              return triggerGhostfaceBackstagePass(fighter, "swap", 1, context)   // L2 = Assassin (Chrollo)
+  if (mods.grab)                return triggerGhostfaceBackstagePass(fighter, "swap", 0, context)   // L1 = Enforcer (Zaraki)
   if (mods.attack)              return triggerGhostfaceBackstagePass(fighter, "fakeout", 0, context)
   // VOICE: knife-special cast bark ("STAB!" / "I'll gut you!" …) on the Gutting Lunge / Low Gut. Gated
   // by the shared _atkVoiceCd so it never stacks with the offense-connect bark. Swap/getaway/switch
@@ -18653,7 +18657,15 @@ function executeBillyGhostfaceUltimate(fighter, context) {
 //                  (spendEnergy/canSpendEnergy short-circuit on it) — prior value stashed + restored.
 //   (d) TARGET   = a COMPANION from the equipped skin's pool, NOT the opponent.
 const GF_SWAP_DURATION = 12 * 60   // 12s window (spec: 10-15s), fixed → auto-revert
-const GF_SWAP_COST     = 35        // modest Dread cost per activation (freely repeatable, energy-gated only)
+const GF_SWAP_COST     = 25        // 1 Dread bar per Killer Swap activation (energy-gated, freely repeatable)
+// KILLER SWAP (Scream×MK1 rebuild): the two timed killer FORMS Ghostface swaps into. slot0 = ENFORCER
+// (Zaraki sprites, blue steel — raw brute), slot1 = ASSASSIN (Chrollo sprites, violet — technical zoner).
+// Per-form flat silhouette tint (sprite.js reads fighter._killerTint) + swap-flash glow (_gfSwapCine.color).
+export const GHOSTFACE_KILLER_FORMS = ["zaraki", "chrollo"]
+const KILLER_FORM_FX = {
+  zaraki:  { name: "enforcer", tint: "#2f6fd0", glow: "#3f8cff" },
+  chrollo: { name: "assassin", tint: "#8a5bd0", glow: "#8a5bd0" },
+}
 
 // Slot table — a facing-relative MOTION + Special picks companion pool[i] of the equipped identity.
 // STRICT-matched (endsWithExact) + longest-first so the four motions never collide with each other or with
@@ -18751,6 +18763,7 @@ export function revertGhostfaceSwap(fighter) {
   fighter.infiniteEnergy = s.infiniteEnergy || false     // restore EXACT prior value (don't clobber a training toggle)
   _edoClearTransient(fighter)                            // clears own attack/cast (NOT hitstun/knockback → non-exploitable)
   fighter._gfSwapActive = false; fighter._gfSwapStash = null; fighter._gfSwapTarget = null; fighter._gfSwapTimer = 0
+  fighter._killerTint = null; fighter._killerForm = null; fighter._killerFlicker = false   // clear Killer-form render state
   fighter.energy = Math.min(s.energy || 0, fighter.maxEnergy || 0)   // restore the POST-COST Dread (no free refill → cost is real, gated by regen)
   clearInputBuffer(fighter)
   spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // TRANSFORM-OUT: Ghostface reappears through the same smoke poof (symmetric with swap-in)
@@ -18761,7 +18774,17 @@ export function revertGhostfaceSwap(fighter) {
 // Fixed-timer driver — counts the window down + auto-reverts (called every frame from game.js).
 export function updateGhostfaceSwap(fighter) {
   if (!fighter || !fighter._gfSwapActive) return
+  // ONE-HIT SHIELD (Killer forms): a clean hit vanishes the form — Ghostface runs back in with brief
+  // invuln and the opponent's combo DROPS (no full punish for touching the shell). Mirrors tickIdentitySwap.
+  if (fighter._killerForm && (fighter.hitstun || 0) > 0) {
+    revertGhostfaceSwap(fighter)
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 15)
+    fighter.hitstun = 0; fighter.blockstun = 0; fighter.comboCounter = 0
+    return
+  }
   if (fighter._gfSwapTimer > 0) fighter._gfSwapTimer--
+  // last-2s warning: flicker the knife/tint between the form colour and silver (read by sprite.js + HUD bar).
+  fighter._killerFlicker = (fighter._gfSwapTimer < 120 && (fighter._gfSwapTimer >> 2) % 2 === 0)
   if (fighter._gfSwapTimer <= 0) revertGhostfaceSwap(fighter)
 }
 export function isGhostfaceSwapActive(fighter) { return !!fighter?._gfSwapActive }
@@ -18780,8 +18803,11 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
   const cost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))   // ROMAN identity: cheaper swap
   if (!spendEnergy(fighter, cost)) return false
   // Capture the DESTINATION killer-identity color NOW (still real Ghostface, skinId intact) for the swap flash.
-  const swapFlashColor = ghostfaceIdentityColor(fighter)
+  let swapFlashColor = ghostfaceIdentityColor(fighter)
   if (!applyGhostfaceSwap(fighter, targetKey)) return false
+  // KILLER-FORM identity: flat silhouette tint (rendered in sprite.js while _gfSwapActive) + form glow.
+  const _kf = KILLER_FORM_FX[targetKey]
+  if (_kf) { fighter._killerTint = _kf.tint; fighter._killerForm = _kf.name; swapFlashColor = _kf.glow }
   // 3-beat transition (visual only): hold the new companion hidden through EXIT+FLASH, pulse the identity-tinted
   // flash, then materialise it in. The swap itself already fired above — window/cost/revert are unchanged.
   fighter._gfSwapCine = { t: 0, color: swapFlashColor }

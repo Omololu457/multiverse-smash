@@ -15270,6 +15270,25 @@ function drawIronMan3SuperNova(c, fighter) {
 // FURY aura (red/orange licks flaring up the bulked body — the berserker's rage), and (2) a "RAGE" countdown
 // bar above the head driven by the PUBLIC _dkRageTimer/Max. dark_knight-only; no-op otherwise. (The purple
 // energy-crackle transform pose plays on activation via _spriteCastMove = dkRageTransform.)
+// GHOSTFACE Killer Swap — over-head 12s form timer bar (ENFORCER blue / ASSASSIN violet), flickers silver
+// in the last 2s. Keyed on _gfSwapActive (set while swapped into the tinted Zaraki/Chrollo form), so it
+// draws regardless of the borrowed rosterKey. No-op for everyone else. Mirrors the Batman RAGE bar idiom.
+function drawGhostfaceSwapTimer(c, fighter) {
+  if (!c || !fighter?._gfSwapActive || !fighter._killerForm) return
+  const GF_SWAP_DUR = 12 * 60   // mirrors abilities.js GF_SWAP_DURATION
+  const x = fighter.x, y = fighter.y, w = fighter.w || 60, h = fighter.h || 100
+  const frac = Math.max(0, Math.min(1, (fighter._gfSwapTimer || 0) / GF_SWAP_DUR))
+  const form = fighter._killerForm === "assassin" ? { col: "#8a5bd0", label: "ASSASSIN" } : { col: "#3f8cff", label: "ENFORCER" }
+  const fill = fighter._killerFlicker ? "#c9ccd6" : form.col
+  const bw = w * 1.0, bh = Math.max(3, h * 0.035), bx = x + (w - bw) / 2, by = y - h * 0.22
+  c.save()
+  c.fillStyle = "rgba(0,0,0,0.6)"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";            c.fillRect(bx, by, bw, bh)
+  c.fillStyle = fill;              c.fillRect(bx, by, bw * frac, bh)
+  c.font = `bold ${Math.max(8, Math.round(h * 0.09))}px sans-serif`; c.textAlign = "center"; c.fillStyle = fill
+  c.fillText(form.label, x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
 function drawDarkKnightRageOverlay(c, fighter) {
   if (!c || !fighter?._dkRageActive) return
   const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
@@ -20346,6 +20365,7 @@ function renderHybridFighter(fighter) {
     drawIronMan3ChargeFX(c, fighter)         // Iron Man 3 — "Charging Shot" windup FX over the fist while the 3-tier charge is held (cyan→yellow ramp; iron_man_3 only)
     drawIronMan3SuperNova(c, fighter)        // Iron Man 3 — "Super Nova" ULTIMATE: screen-filling expanding-ring nova ("Kills all onscreen Enemies"); iron_man_3 only, _ironMan3NovaTimer
     drawDarkKnightRageOverlay(c, fighter)    // Batman (dark_knight) — Rage Mode: crimson fury aura + RAGE-countdown duration HUD (dark_knight only, _dkRageActive)
+    drawGhostfaceSwapTimer(c, fighter)       // Ghostface — Killer Swap: 12s ENFORCER/ASSASSIN form timer bar (only while _gfSwapActive)
     drawGoldenFriezaOverlay(c, fighter)      // Frieza — Golden Frieza: rising GOLD ki aura + GOLDEN-countdown HUD (red in the drop-off) (Frieza only, _goldenFriezaActive)
     drawBlackFriezaOverlay(c, fighter)       // Frieza — Black Frieza ult: dark violet-black burst rings during the cinematic (Frieza only, _blackFriezaActive)
     drawGenosVoidAuraOverlay(c, fighter)     // Genos — Void Sovereign skin: cybernetic circuit/data-line field + glowing yellow eyes (skinId gate)

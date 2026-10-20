@@ -1141,7 +1141,9 @@ export class SpriteHandler {
     // glance. Flat hex (masked via source-in on an offscreen canvas) → same recognisable colour on dark/saturated
     // borrows (Vilgax/Chrollo) as on light ones, unlike a hue-rotate. Fighter-gated → zero effect on anyone else.
     const idTint = (fighter._idSwapActive && fighter._idSwapTint) ? fighter._idSwapTint
-                 : (fighter._omoTfActive && fighter._omoTfTint) ? fighter._omoTfTint : null;   // OMOLOLU Transformation Jutsu — same source-in silhouette wash, own flags (ghostface_exe branch untouched)
+                 : (fighter._omoTfActive && fighter._omoTfTint) ? fighter._omoTfTint
+                 : (fighter._gfSwapActive && fighter._killerTint) ? (fighter._killerFlicker ? "#c9ccd6" : fighter._killerTint)   // GHOSTFACE Killer Swap — blue(Enforcer)/violet(Assassin) wash; flickers silver in the last 2s
+                 : null;
     let idTintCanvas = null;
     if (idTint && _sheetReady(sheet)) {
       const tc = this._idTintCanvas || (this._idTintCanvas = document.createElement("canvas"));

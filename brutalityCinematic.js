@@ -63,8 +63,17 @@ export function activateBrutalityCinematic(winner, victim, move) {
   if (_b || !winner || !victim) return false
   const wKey = (winner.rosterKey || winner.id || "").toLowerCase()
   const vKey = (victim.rosterKey || victim.id || "").toLowerCase()
-  const concept = BRUTALITY_CONCEPTS[wKey]
+  let concept = BRUTALITY_CONCEPTS[wKey]
   if (!concept) return false                                  // no concept for this winner → caller falls back
+  // VILGAX — three bespoke brutalities picked by the killing-blow move: eye-laser ult → CHIMERIAN ONSLAUGHT,
+  // big-energy kill (Dagon/Meteor/Seismic/drone) → TEN WORLDS FALL, else (sword normals/specials, default) →
+  // CONQUEROR'S EDGE. `move` comes from winF._killingBlowMove (passed by the game.js trigger).
+  if (wKey === "vilgax") {
+    const m = String(move || "").toLowerCase()
+    if (/ult|koma|chimerian|onslaught|eye|laser|beam/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax
+    else if (/dagon|meteor|seismic|slam|drone|bolt|blastx|burst/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax_fall || concept
+    else concept = BRUTALITY_CONCEPTS.vilgax_edge || concept
+  }
   const base = concept.base === "idle" ? "idle" : "hurt"
   const ad = victim.animationData || {}
   const def = ad[base] || ad.hurt || ad.idle || { width: 128, height: 128, frames: 1 }

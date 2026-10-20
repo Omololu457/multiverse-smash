@@ -16889,7 +16889,7 @@ function updateBattle() {
       const _perf = fatalityWasPerformed(), _fw = fatalityWinner()
       clearFatalityCinematic()
       // window expired with NO fatality input → the loser gets brutalized by the winner's canon signature (if any)
-      if (!_perf && _fw && activateBrutalityCinematic(_fw, _fw === p1 ? p2 : p1)) return
+      if (!_perf && _fw && activateBrutalityCinematic(_fw, _fw === p1 ? p2 : p1, _fw._killingBlowMove || null)) return
       _enterVictoryScreen()
     }
     return
@@ -23785,7 +23785,7 @@ gameLoop()
       // a frame-exact driver to activate/step/inspect it deterministically (used by brutality_cine_live harness).
       cineConcepts: () => Object.keys(BRUTALITY_CONCEPTS),
       cineStatus:   () => brutalityCinematicStatus(),
-      cineTrigger:  (winner = "p1") => { const w = winner === "p1" ? p1 : p2, v = winner === "p1" ? p2 : p1; clearBrutalityCinematic(); return { started: activateBrutalityCinematic(w, v), ...brutalityCinematicStatus() } },
+      cineTrigger:  (winner = "p1", move = null) => { const w = winner === "p1" ? p1 : p2, v = winner === "p1" ? p2 : p1; clearBrutalityCinematic(); return { started: activateBrutalityCinematic(w, v, move), ...brutalityCinematicStatus() } },
       cineStep:     (n = 1) => { for (let i = 0; i < n; i++) updateBrutalityCinematic({ sound }); return brutalityCinematicStatus() },
       // Read the killing-blow-move stamp combat.js records on a fighter (Stage 2 real-combat verification).
       killMove:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._killingBlowMove ?? null) : null },

@@ -3707,6 +3707,114 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
   },
 
 
+  // ═══ GHOSTFACE (Scream × MK1 rebuild) — 4 brutalities selected by the killing move (brutalityCinematic.js
+  // selector): knife normals → FOURTH WALL (throat slit + blood on camera) · gut specials → THE SEQUEL
+  // (knife opens the stomach) · ult/backstage → OUTNUMBERED (a 2nd Ghostface decapitates on the rise) ·
+  // anything else / timeout → LIGHTS OUT (screen cuts to black, phone rings, victim already on the floor).
+  // Knife colour defaults to steel; the active Killer-form tint glints on the impact frame (see cinematic).
+  ghostface: {
+    banner: "FOURTH WALL", bannerRgb: "#ff3040", base: "hurt", choreographed: true, total: 160,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 160, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 160, rgb: "40,6,10", max: 0.9, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 44, zoom: 1.5, cx: 0.52, cy: 0.44, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
+      { fx: "flickerRush", t0: 30, t1: 104, action: "run", around: 0.5, aroundY: 0.48, count: 10, radX: 0.3, radY: 0.14, color: "180,16,22" },
+      { fx: "cam", t0: 46, t1: 108, zoom: 1.7, cx: 0.5, cy: 0.42, cut: true },
+      { fx: "actor", t0: 44, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 48, t1: 108, count: 18, color: "#cfd8e6" },
+      { fx: "impale", t0: 70, t1: 108, color: "#cfd8e6", headY: 0.30 },
+      { fx: "whiteSpike", t0: 70, t1: 80 },
+      { fx: "bloodGush", t0: 72, t1: 160, x: 0.5, y: 0.30, amount: 30 },
+      { fx: "darken", t0: 108, t1: 120, rgb: "150,8,14", max: 0.6, ramp: 2 },
+      { fx: "cam", t0: 108, t1: 150, zoom: 1.4, cx: 0.5, cy: 0.52, ease: 0.1 },
+      { fx: "actor", t0: 120, t1: 160, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.3, hFrac: 0.42 },
+      { fx: "actor", t0: 124, t1: 160, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
+      { fx: "banner", t0: 136, t1: 160 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 48, id: "swish_fast_01", gain: 0.6 },
+      { t: 70, id: "impact_hit_01", gain: 0.8 },
+      { t: 108, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+    ],
+  },
+  // THE SEQUEL — gut specials (Gutting Lunge / Low Gut): the knife opens the stomach.
+  ghostface_sequel: {
+    banner: "THE SEQUEL", bannerRgb: "#ff3040", base: "hurt", choreographed: true, total: 156,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 156, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 156, rgb: "40,6,10", max: 0.92, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 48, zoom: 1.55, cx: 0.5, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "actor", t0: 28, t1: 64, who: "atk", action: "gfLunge", x: 0.66, y: 0.5, frame: "once:3", facing: -1 },
+      { fx: "cam", t0: 50, t1: 112, zoom: 1.85, cx: 0.5, cy: 0.54, cut: true },
+      { fx: "impale", t0: 54, t1: 112, color: "#cfd8e6", headY: 0.56 },
+      { fx: "whiteSpike", t0: 56, t1: 66 },
+      { fx: "bloodGush", t0: 62, t1: 156, x: 0.5, y: 0.56, amount: 34 },
+      { fx: "slashCross", t0: 64, t1: 104, count: 10, color: "#cfd8e6" },
+      { fx: "cam", t0: 112, t1: 150, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 116, t1: 156, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.3, hFrac: 0.42 },
+      { fx: "banner", t0: 132, t1: 156 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 54, id: "impact_hit_01", gain: 0.85 },
+      { t: 60, id: "crack_sizzle_bright", gain: 0.55 },
+      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+    ],
+  },
+  // OUTNUMBERED — ult / Backstage Pass: a SECOND Ghostface flickers in behind and decapitates on the rise.
+  ghostface_outnumbered: {
+    banner: "OUTNUMBERED", bannerRgb: "#ff3040", base: "hurt", choreographed: true, total: 162,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 162, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 162, rgb: "30,6,12", max: 0.92, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 46, zoom: 1.5, cx: 0.5, cy: 0.48, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 150, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "flickerIn", t0: 30, t1: 52, action: "run", fromX: 0.1, toX: 0.36, y: 0.52, facing: 1, color: "rgba(200,30,40,0.55)" },
+      { fx: "actor", t0: 48, t1: 120, who: "atk", action: "up", x: 0.34, y: 0.5, frame: "once:3", facing: 1 },
+      { fx: "cam", t0: 52, t1: 116, zoom: 1.9, cx: 0.5, cy: 0.42, cut: true },
+      { fx: "slashCross", t0: 58, t1: 112, count: 14, color: "#cfd8e6" },
+      { fx: "whiteSpike", t0: 110, t1: 120 },
+      { fx: "headPop", t0: 114, t1: 146, headY: 0.30 },
+      { fx: "bloodGush", t0: 114, t1: 162, x: 0.5, y: 0.30, amount: 34 },
+      { fx: "cam", t0: 146, t1: 162, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
+      { fx: "actor", t0: 146, t1: 162, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
+      { fx: "banner", t0: 150, t1: 162 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 30, id: "swish_fast_01", gain: 0.5 },
+      { t: 110, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 116, id: "rumble_tail_01", gain: 0.5 },
+    ],
+  },
+  // LIGHTS OUT — default / timeout: a slash as the lights cut to BLACK, the phone rings in the dark, then
+  // the screen returns on the victim already crumpled on the floor. (Phase 5 swaps the sound to a phone ring.)
+  ghostface_lightsout: {
+    banner: "LIGHTS OUT", bannerRgb: "#e8edf5", base: "hurt", choreographed: true, total: 150,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 150, in: 10, h: 0.16 },
+      { fx: "cam", t0: 0, t1: 24, zoom: 1.6, cx: 0.5, cy: 0.48, ease: 0.12 },
+      { fx: "actor", t0: 0, t1: 18, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
+      { fx: "slashCross", t0: 6, t1: 20, count: 8, color: "#cfd8e6" },
+      { fx: "whiteSpike", t0: 8, t1: 16 },
+      { fx: "darken", t0: 8, t1: 92, rgb: "0,0,0", max: 1.0, ramp: 5 },
+      { fx: "darken", t0: 93, t1: 150, rgb: "6,5,10", max: 0.9, ramp: 4 },
+      { fx: "cam", t0: 92, t1: 150, zoom: 1.7, cx: 0.5, cy: 0.6, cut: true },
+      { fx: "actor", t0: 94, t1: 150, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.5, y: 0.66, frame: "once:7", facing: -1, rot: 1.45, hFrac: 0.44 },
+      { fx: "bloodGush", t0: 98, t1: 150, x: 0.5, y: 0.6, amount: 12 },
+      { fx: "banner", t0: 120, t1: 150 },
+    ],
+    sound: [
+      { t: 2, id: "swish_fast_01", gain: 0.6 },
+      { t: 10, id: "impact_hit_01", gain: 0.7 },
+      { t: 24, id: "charge_hum_rise", gain: 0.5 },
+      { t: 96, id: "boom_medium_02", gain: 0.7 },
+    ],
+  },
+
   // BILLY GHOSTFACE — the original: a flash-in and a gutting lunge that opens the target up.
   ghostface_billy: {
     banner: "THE ORIGINAL", bannerRgb: "220,40,50", base: "hurt", choreographed: true, total: 166,

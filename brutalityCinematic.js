@@ -56,14 +56,18 @@ const GLYPHS = {
 
 export function isBrutalityCinematicActive() { return !!_b && !_b.done }
 export function brutalityCinematicDone() { return !!_b && _b.done }
-export function brutalityCinematicStatus() { return _b ? { active: !_b.done, t: _b.t, wKey: _b.wKey, done: _b.done } : { active: false } }
+export function brutalityCinematicStatus() { return _b ? { active: !_b.done, t: _b.t, wKey: _b.wKey, banner: _b.concept?.banner || null, done: _b.done } : { active: false } }
 export function clearBrutalityCinematic() { _b = null }
 
 export function activateBrutalityCinematic(winner, victim, move) {
   if (_b || !winner || !victim) return false
   const wKey = (winner.rosterKey || winner.id || "").toLowerCase()
   const vKey = (victim.rosterKey || victim.id || "").toLowerCase()
-  let concept = BRUTALITY_CONCEPTS[wKey]
+  // GHOSTFACE Killer Swap: a kill landed while swapped into Enforcer/Assassin still plays a GHOSTFACE
+  // brutality (the borrowed Zaraki/Chrollo identity doesn't hijack the finisher). Resolve against ghostface.
+  const gfForm = (winner._gfSwapActive && winner._killerForm) ? (winner._killerTint || true) : null
+  const effKey = gfForm ? "ghostface" : wKey
+  let concept = BRUTALITY_CONCEPTS[effKey]
   if (!concept) return false                                  // no concept for this winner → caller falls back
   // VILGAX — three bespoke brutalities picked by the killing-blow move: eye-laser ult → CHIMERIAN ONSLAUGHT,
   // big-energy kill (Dagon/Meteor/Seismic/drone) → TEN WORLDS FALL, else (sword normals/specials, default) →
@@ -73,6 +77,17 @@ export function activateBrutalityCinematic(winner, victim, move) {
     if (/ult|koma|chimerian|onslaught|eye|laser|beam/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax                 // ultimate → eye lasers
     else if (/dagon|meteor|seismic|slam|drone|bolt/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax_fall || concept   // big-energy → orbital
     else concept = BRUTALITY_CONCEPTS.vilgax_edge || concept   // sword (normals / crescents / thrown sword / slash / cyclone, default) → bisection
+  }
+  // GHOSTFACE — four brutalities by killing move: gut specials → THE SEQUEL, ult/Backstage → OUTNUMBERED,
+  // knife normals → FOURTH WALL (the base concept), anything else / timeout → LIGHTS OUT. A kill scored in a
+  // Killer form (gfForm) plays OUTNUMBERED — the "second killer" finisher.
+  if (effKey === "ghostface") {
+    const m = String(move || "").toLowerCase()
+    if (gfForm)                                                       concept = BRUTALITY_CONCEPTS.ghostface_outnumbered || concept
+    else if (/lunge|gflow|lowcut|gut/.test(m))                        concept = BRUTALITY_CONCEPTS.ghostface_sequel || concept
+    else if (/ult|final|gfult|backstage|\bbp\b|ambush|swap/.test(m)) concept = BRUTALITY_CONCEPTS.ghostface_outnumbered || concept
+    else if (/light|heavy|combo|slash|stab|jab|^up$|air|down/.test(m)) concept = BRUTALITY_CONCEPTS.ghostface   // knife normals → Fourth Wall
+    else                                                             concept = BRUTALITY_CONCEPTS.ghostface_lightsout || concept
   }
   const base = concept.base === "idle" ? "idle" : "hurt"
   const ad = victim.animationData || {}

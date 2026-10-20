@@ -9597,6 +9597,9 @@ export function updateVilgaxDrone(fighter, inputState, context) {
   const d = fighter._vilgaxDrone
   if (!d) return
   d.timer++; d.animClock++
+  if (d.fireFlash > 0) d.fireFlash--   // brief "firing" window after each bolt (draw shows the FIRE frames vs IDLE hover)
+  if (d.state === "death") { if (d.animClock > 22) fighter._vilgaxDrone = null; return }   // power-down anim then gone
+  if (d.timer >= VILGAX_DRONE.life) { d.state = "death"; d.animClock = 0; return }          // safety expiry
   const getOpp = getTargetResolver(context)
   const opp = getOpp ? getOpp(fighter) : null
   const sp = VILGAX_DRONE.speed
@@ -9604,27 +9607,21 @@ export function updateVilgaxDrone(fighter, inputState, context) {
     const tx = fighter.x + (fighter.w || 60) / 2 + d.facing * 78, ty = fighter.y - 54
     if (Math.abs(d.x - tx) > sp) d.x += Math.sign(tx - d.x) * sp; else d.x = tx
     if (Math.abs(d.y - ty) > 3)  d.y += Math.sign(ty - d.y) * 3;  else d.y = ty
-    d.frame = Math.floor(d.animClock / 5) % VILGAX_DRONE.fwdFrames
-    if (d.x === tx && d.y === ty) { d.state = "fire"; d.animClock = 0; d.frame = 0; d.boltCd = 10 }
+    if (d.x === tx && d.y === ty) { d.state = "fire"; d.animClock = 0; d.boltCd = 10 }
   } else if (d.state === "fire") {
-    d.y += Math.sin(d.animClock * 0.2) * 0.5
-    d.frame = Math.floor(d.animClock / 4) % VILGAX_DRONE.fireFrames
+    d.y += Math.sin(d.animClock * 0.2) * 0.5   // idle bob while hovering
     if (opp) d.facing = (opp.x >= d.x) ? 1 : -1
     if (d.boltCd > 0) d.boltCd--
     else if (d.shotsLeft > 0) {
-      d.shotsLeft--; d.boltCd = VILGAX_DRONE.boltGap
+      d.shotsLeft--; d.boltCd = VILGAX_DRONE.boltGap; d.fireFlash = 10
       spawnProjectile(fighter, "vilgaxDroneBolt", {
         damage: VILGAX_DRONE.boltDmg, w: 22, h: 10, speed: 15, lifetime: 72, hitstun: 14, knockbackX: 6, knockbackY: -1,
         isSpecial: true, color: "#ff5a2a", radius: 11, spawnX: d.x + d.facing * 24, spawnY: d.y + 8,
         aimAt: opp ? { x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 110) * 0.42 } : null, vx: opp ? null : d.facing * 15,
       }, context)
       try { shakeCamera(context, 2, 3) } catch (_) {}
-    } else if (d.boltCd <= 0) { d.state = "leave"; d.animClock = 0; d.frame = 0 }
-  } else {   // leave — peel off and fade
-    d.x += d.facing * (sp + 2); d.y -= 2
-    d.frame = Math.floor(d.animClock / 5) % VILGAX_DRONE.fwdFrames
+    } else { d.state = "death"; d.animClock = 0 }   // out of bolts — power down (plays the DEATH frames)
   }
-  if (d.timer >= VILGAX_DRONE.life || (d.state === "leave" && d.animClock > 46)) fighter._vilgaxDrone = null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

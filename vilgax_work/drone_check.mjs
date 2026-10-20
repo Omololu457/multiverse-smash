@@ -32,6 +32,7 @@ await page.screenshot({path:path.join(OUT,"02_fire.png")});
 await wf(18);
 await page.screenshot({path:path.join(OUT,"03_fire2.png")});
 
+await wf(40); await page.screenshot({path:path.join(OUT,"04_death.png")});
 ck("no JS page errors during summon", jsErrors.length===0, jsErrors.slice(0,3).join(" | "));
 console.log(`\n${FAIL===0?"✅":"❌"} VILGAX DRONE CHECK: ${PASS} passed, ${FAIL} failed`);
 await browser.close(); server.close(); process.exit(FAIL===0?0:1);

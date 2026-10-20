@@ -13192,19 +13192,31 @@ function drawDarkKnightVoidAuraOverlay(c, fighter) {
 // the FX pass (world space). No-op when no drone is active.
 const _vilgaxDroneImgs = {}
 function _vilgaxDroneImg(src) { if (!_vilgaxDroneImgs[src]) { const i = new Image(); i.src = src; _vilgaxDroneImgs[src] = i } return _vilgaxDroneImgs[src] }
-_vilgaxDroneImg("./vilgax_drone_fire_uniform.png"); _vilgaxDroneImg("./vilgax_drone_fwd_uniform.png")
+for (const s of ["idle", "fwd", "fire", "death"]) _vilgaxDroneImg(`./vilgax_drone_${s}_uniform.png`)
+// state → animation strip. flyin/leave=fwd · fire+recent-shot=fire · fire-hover=idle · end-of-life=death.
+const _VD_ANIM = { death: { s: "death", n: 4, sp: 5 }, fire: { s: "fire", n: 6, sp: 3 }, idle: { s: "idle", n: 4, sp: 7 }, fwd: { s: "fwd", n: 4, sp: 5 } }
 function drawVilgaxDrone(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "vilgax") return
   const d = fighter._vilgaxDrone
   if (!d) return
-  const firing = d.state === "fire"
-  const img = _vilgaxDroneImg(firing ? "./vilgax_drone_fire_uniform.png" : "./vilgax_drone_fwd_uniform.png")
-  const frames = firing ? 6 : 4
+  const key = d.state === "death" ? "death" : (d.state === "fire" ? (d.fireFlash > 0 ? "fire" : "idle") : "fwd")
+  const an = _VD_ANIM[key], img = _vilgaxDroneImg(`./vilgax_drone_${an.s}_uniform.png`)
   if (!img.complete || img.naturalWidth === 0) return
-  const fw = img.naturalWidth / frames, fh = img.naturalHeight, sc = 1.25
+  const fw = img.naturalWidth / an.n, fh = img.naturalHeight, sc = 1.25
   const dw = fw * sc, dh = fh * sc
-  const fi = Math.max(0, Math.min(frames - 1, d.frame || 0)), face = d.facing || 1
-  c.save()
+  const fi = Math.floor((d.animClock || 0) / an.sp) % an.n, face = d.facing || 1
+  const alpha = d.state === "death" ? Math.max(0, 1 - (d.animClock || 0) / 22) : 1   // fade out as it powers down
+  // THRUSTER GLOW — pulsing orange radial behind-and-under the drone (rear = -facing). Additive; brightens on fire.
+  const gx = d.x - face * dw * 0.30, gy = d.y + dh * 0.10
+  const pulse = 0.62 + 0.38 * Math.sin((d.animClock || 0) * 0.5)
+  const boost = d.fireFlash > 0 ? 1.35 : 1
+  c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = 0.5 * alpha * pulse * boost
+  const gr = dw * 0.36 * boost, g = c.createRadialGradient(gx, gy, 0, gx, gy, gr)
+  g.addColorStop(0, "#ffe6a0"); g.addColorStop(0.4, "#ff6a1a"); g.addColorStop(1, "rgba(255,70,0,0)")
+  c.fillStyle = g; c.beginPath(); c.arc(gx, gy, gr, 0, 6.283); c.fill()
+  c.restore()
+  // drone body
+  c.save(); c.globalAlpha = alpha
   if (face < 0) { c.translate(d.x, 0); c.scale(-1, 1); c.translate(-d.x, 0) }
   c.drawImage(img, fi * fw, 0, fw, fh, d.x - dw / 2, d.y - dh / 2, dw, dh)
   c.restore()

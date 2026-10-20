@@ -35,9 +35,10 @@ const PLAN = [
   ["jason", [["heavy", "jason_chop_raise", 48], ["heavy", "jason_chop_split", 112]]],
   ["rengoku", [["heavy", "rengoku_leap", 40], ["heavy", "rengoku_slam", 66], ["heavy", "rengoku_cleave", 104]]],
   ["zenitsu", [["zenUltimate", "zenitsu_dash", 52], ["zenUltimate", "zenitsu_split", 74], ["zenUltimate", "zenitsu_cower", 120]]],
-  ["shinobu", [["shinobuPoison", "shinobu_stabs", 46], ["shinobuPoison", "shinobu_melt", 112]]],
-  ["inosuke", [["inosukeB5", "inosuke_maul", 60], ["inosukeB5", "inosuke_chunks", 100]]],
-  ["nezuko", [["nezukoBite", "nezuko_claw", 40], ["nezukoBite", "nezuko_bloodburst", 84]]],
+  ["rengoku", [["rengokuSuperDown", "rengoku_rush_dash", 54], ["rengokuSuperDown", "rengoku_rush_bisect", 96]]],
+  ["shinobu", [["shinobuPoison", "shinobu_flit", 30], ["shinobuPoison", "shinobu_melt", 112]]],
+  ["inosuke", [["inosukeB5", "inosuke_pounce", 32], ["inosukeB5", "inosuke_chunks", 100]]],
+  ["nezuko", [["nezukoBite", "nezuko_lunge", 44], ["nezukoBite", "nezuko_bloodburst", 84]]],
 ]
 try {
   for (const [key, cases] of PLAN) {

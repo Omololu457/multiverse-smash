@@ -1096,7 +1096,7 @@ const BRUTALITY_FINISHERS = {
   // Keyed off each one's RELIABLE createAttackFromMove move (cinematic ults can skip the _killingBlowMove stamp).
   rengoku: {
     heavy:            { name: "FLAME BREATHING", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "heavy",            loseAction: "hurt" },
-    rengokuSuperDown: { name: "FLAME BREATHING", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "rengokuSuperDown", loseAction: "hurt" },
+    rengokuSuperDown: { name: "FLAME TIGER",     gore: "flamerush",  palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "rengokuSuperDown", loseAction: "hurt" },
     ultimate:         { name: "NINTH FORM: RENGOKU", gore: "flamecleave", palette: GORE_FLAME, flash: "#ffd1a0", live: true, winAction: "ultimate",     loseAction: "hurt" },
   },
   zenitsu: {
@@ -6719,7 +6719,7 @@ function updateBrutality() {
     const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
     if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x; b._liveWinY0 = wf.y }   // remember resting spots (restored on exit)
-    if (g === "flamecleave" || g === "thunderdash") {   // choreographed SPLIT finishers: snapshot the foe (after idle renders) then hide it → the captured halves stand in so the body can actually cleave
+    if (g === "flamecleave" || g === "thunderdash" || g === "flamerush") {   // choreographed SPLIT finishers: snapshot the foe (after idle renders) then hide it → the captured halves stand in so the body can actually cleave
       if (!b._capSprite && elapsed >= 2) b._capSprite = _captureLoserSprite(lf)
       if (b._capSprite) lf._brutHidden = true }
     if (b._narutoChoreo && isNarutoChoreoActive()) { updateNarutoChoreo(() => {})   // advance the REAL shadow-clone choreography (no-op fireHit — the foe is already KO'd); clones render via getNarutoChoreoBodies()
@@ -6756,6 +6756,29 @@ function updateBrutality() {
       else if (t < 0.42) { const d = (t - 0.25) / 0.17; wf.x = sX + (farX - sX) * d; wf.facing = (b.dir || 1); if (wf.animationData?.dash) wf._forceAction = "dash" }
       else { const back = Math.min(1, (t - 0.42) / 0.16); wf.x = farX + (cowerX - farX) * back + (t > 0.58 ? Math.sin(elapsed * 1.4) * lw * 0.04 : 0); wf.facing = -(b.dir || 1); if (t > 0.58 && wf.animationData?.guard) wf._forceAction = "guard" }
       wf.y = b._liveWinY0 }
+    else if (g === "poisonmelt") {   // SHINOBU: FLIT — snap around the foe to 4 stinger positions, then settle in front to watch it dissolve
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, winW = wf._lastDrawW || wf.w || 60, spots = [-lw * 1.0, lw * 1.0, -lw * 0.7, lw * 0.65]
+      if (t < 0.1) { wf.x = sX + ((foeCx - (b.dir || 1) * (winW * 0.5 + lw * 0.3)) - sX) * (t / 0.1); wf.facing = (b.dir || 1) }
+      else if (t < 0.42) { const idx = Math.min(spots.length - 1, Math.floor((t - 0.1) / 0.08)); wf.x = foeCx + spots[idx]; wf.facing = (foeCx >= wf.x ? 1 : -1); if (wf.animationData?.shinobuFlit) wf._forceAction = "shinobuFlit" }
+      else { wf.x = foeCx - (b.dir || 1) * (winW * 0.5 + lw * 0.4); wf.facing = (b.dir || 1) }
+      wf.y = b._liveWinY0; lf._brutHidden = (t >= 0.62) }
+    else if (g === "beastmaul") {   // INOSUKE: POUNCE in an arc onto the foe, then maul in place (foe hidden at the rend → chunks)
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, sY = b._liveWinY0, winW = wf._lastDrawW || wf.w || 60, onX = foeCx - (b.dir || 1) * (winW * 0.42)
+      if (t < 0.22) { const u = t / 0.22; wf.x = sX + (onX - sX) * u; wf.y = sY - Math.sin(u * Math.PI) * lh * 1.7; if (wf.animationData?.jump) wf._forceAction = "jump" }
+      else { wf.x = onX; wf.y = sY }
+      wf.facing = (b.dir || 1) }
+    else if (g === "bloodburst") {   // NEZUKO: LUNGE in to claw, then KICK OFF (recoil) as the Exploding Blood detonates
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, winW = wf._lastDrawW || wf.w || 60, inX = foeCx - (b.dir || 1) * (winW * 0.42)
+      if (t < 0.28) wf.x = sX + (inX - sX) * Math.min(1, t / 0.28)
+      else if (t < 0.46) wf.x = inX
+      else { const back = Math.min(1, (t - 0.46) / 0.22); wf.x = inX - (b.dir || 1) * lw * 0.85 * back }
+      wf.facing = (b.dir || 1) }
+    else if (g === "flamerush") {   // RENGOKU (variant): DASH horizontally THROUGH the foe → horizontal bisect + ignite
+      const foeCx = b._liveLoseX0 + lw / 2, sX = b._liveWinX0, farX = foeCx + (b.dir || 1) * lw * 1.15
+      if (t < 0.2) wf.x = sX
+      else if (t < 0.44) { wf.x = sX + (farX - sX) * Math.min(1, (t - 0.2) / 0.24); if (wf.animationData?.dash) wf._forceAction = "dash" }
+      else wf.x = farX
+      wf.facing = (b.dir || 1); wf.y = b._liveWinY0 }
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
       const gap = (g === "gunshot" || g === "gundecap" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
       const target = loseCx - (b.dir || 1) * gap
@@ -6765,7 +6788,7 @@ function updateBrutality() {
       const base = b._cam0.zoom || 1, pin = 1 - Math.pow(1 - Math.min(1, elapsed / (b.maxTimer * 0.4)), 3)
       // RANGED-CASTER finishers (portal rift / Ten-Tails / temporal blade) frame TIGHTLY on the ACTION point — NOT
       // the distant caster — so the FX read at body scale (a wide winner+foe frame makes the world-space gore huge).
-      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "flamecleave" || g === "thunderdash"
+      const foeCentered = g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || g === "phasekill" || g === "portalguillotine" || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "flamecleave" || g === "thunderdash" || g === "flamerush" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst"
       if (foeCentered) {
         const gndY = lf.groundY != null ? lf.groundY : (lcy + lh / 2)
         let ax = lcx, ay = lcy - lh * 0.1, ZT = 1.7
@@ -6783,6 +6806,9 @@ function updateBrutality() {
         else if (g === "kotoamatsukami") { ay = lcy - lh * 0.9; ZT = 1.2 }      // frame the giant Mangekyō eye above the entranced foe
         else if (g === "flamecleave") { ay = lcy - lh * 0.25; ZT = 1.35 }        // hold on the foe + room above for Rengoku to slam in from the top
         else if (g === "thunderdash") { ax = lcx + (b.dir || 1) * lw * 0.4; ay = lcy - lh * 0.05; ZT = 1.12 }   // WIDE + shifted toward Zenitsu's landing side so the split AND his cower stay framed
+        else if (g === "flamerush") { ax = lcx + (b.dir || 1) * lw * 0.3; ay = lcy - lh * 0.05; ZT = 1.18 }      // wide for the dash-through + horizontal bisect
+        else if (g === "poisonmelt" || g === "bloodburst") { ay = lcy - lh * 0.1; ZT = 1.3 }                    // hold on the foe (Shinobu flits around it / Nezuko lunges in)
+        else if (g === "beastmaul") { ay = lcy - lh * 0.2; ZT = 1.3 }                                           // hold on the foe with room above for the pounce
         else if (g === "temporalstab") { ax = (b._liveLoseX0 != null ? b._liveLoseX0 + lw / 2 : lcx); ay = lcy - lh * 0.1; ZT = 1.7 }
         const zt = base + (ZT - base) * pin
         camera.x += (ax - camera.x) * 0.25; camera.y += (ay - camera.y) * 0.25   // ease the centre onto the action (advance() is NOT run during brutality, so set x/y directly)
@@ -6806,7 +6832,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flamecleave" || g === "thunderdash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst"
+    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flamecleave" || g === "thunderdash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst" || g === "flamerush"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -7997,6 +8023,36 @@ function _drawLiveFlameCleave(b) {
     const wt = (t - SLAM) / (1 - SLAM); ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.7
     for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 790 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.3 * ph, cy + (h(4) * 2 - 1) * lh * 0.35 * ph, cell * (0.5 + h(6) * 0.5), 0, 6.28); ctx.fill() } ctx.restore() }
 }
+// Draw a captured loser sprite split HORIZONTALLY (top/bottom halves) — the top shears off up+sideways, the bottom
+// stays. Used by the dash-through bisect.
+function _drawCapSplitH(sp, sep, slideX, fallBottom, cutColor, cell) {
+  if (!sp || !sp.canvas) return
+  const hh = sp.h / 2, cxw = sp.x + sp.w / 2, cyw = sp.y + sp.h / 2
+  ctx.save(); ctx.drawImage(sp.canvas, 0, hh, sp.w, hh, cxw - sp.w / 2, cyw + fallBottom, sp.w, hh); ctx.restore()                              // BOTTOM (legs) — stays, small slump
+  ctx.save(); ctx.drawImage(sp.canvas, 0, 0, sp.w, hh, cxw - sp.w / 2 + slideX, cyw - sep, sp.w, hh); ctx.restore()                            // TOP (torso+arms+head) — shears up + sideways
+  if (cutColor) { ctx.save(); ctx.fillStyle = cutColor; ctx.fillRect(cxw - sp.w * 0.32, cyw - Math.max(2, cell * 0.4), sp.w * 0.64, Math.max(2, cell * 0.4)); ctx.restore() }
+}
+// RENGOKU (variant) — a horizontal dash-THROUGH: he rushes across in a flaming blur, slashing the foe clean across
+// the waist; the top half shears off as both halves ignite. Driven by wf.x in updateBrutality; captured split foe.
+function _drawLiveFlameRush(b) {
+  const c = _brutLiveCtx(b); if (!c.lf) return
+  const { cx, cy, cell, seed, dir, gy, t, lw, lh } = c, sp = b._capSprite
+  const CUT = 0.34
+  if (t > CUT) { const pg = Math.min(1, (t - CUT) / 0.4), prx = cell * (3 + pg * 5); ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = "#9c1019"; ctx.beginPath(); ctx.ellipse(cx, gy, prx, prx * 0.3, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  if (sp) { if (t < CUT) { ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h) }
+    else { const prog = Math.min(1, (t - CUT) / 0.45), sep = prog * lh * 0.5, slideX = (b.dir || 1) * prog * lw * 0.5, fallB = Math.pow(prog, 2) * lh * 0.1
+      _drawCapSplitH(sp, sep, slideX, fallB, "#6e0016", cell)
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - prog / 0.7) * 0.85
+      for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 740 + i, k), fw = lw * (0.3 + h(1) * 0.4); ctx.fillStyle = h(2) < 0.5 ? "rgba(255,180,60,0.9)" : "rgba(255,90,20,0.85)"; ctx.beginPath(); ctx.ellipse(cx + (h(3) * 2 - 1) * lw * 0.3, cy - sep * 0.5, fw, cell * (0.8 + h(4)), 0, 0, 6.28); ctx.fill() } ctx.restore() }   // flame along the cut
+  }
+  // the horizontal flaming slash sweep across the body at the cut
+  if (t >= CUT - 0.06 && t < CUT + 0.12) { const sw = 1 - Math.abs(t - CUT) / 0.09; if (sw > 0) { ctx.save(); ctx.globalAlpha = sw; ctx.lineCap = "round"
+    ctx.strokeStyle = "rgba(255,200,80,0.9)"; ctx.lineWidth = cell * 1.6 + sw * cell * 3; ctx.beginPath(); ctx.moveTo(cx - (b.dir || 1) * lw * 0.9, cy); ctx.lineTo(cx + (b.dir || 1) * lw * 0.9, cy); ctx.stroke()
+    ctx.strokeStyle = "rgba(255,250,220,0.95)"; ctx.lineWidth = cell * 0.7; ctx.beginPath(); ctx.moveTo(cx - (b.dir || 1) * lw * 0.9, cy); ctx.lineTo(cx + (b.dir || 1) * lw * 0.9, cy); ctx.stroke(); ctx.restore() } }
+  if (t >= CUT && t < CUT + 0.08) { const f = 1 - (t - CUT) / 0.08; ctx.save(); ctx.globalAlpha = f * 0.5; ctx.fillStyle = "#fff"; ctx.fillRect(cx - lw * 4, cy - lh * 4, lw * 8, lh * 8); ctx.restore() }
+  if (t >= CUT) { const wt = (t - CUT) / (1 - CUT); ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.6) * 0.7
+    for (let i = 0; i < 8; i++) { const h = (k) => _brutHash(seed, 750 + i, k), ph = (wt * (1.5 + h(1)) + h(2)) % 1; ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.35 * ph, cy + (h(4) * 2 - 1) * lh * 0.2 * ph, cell * (0.5 + h(6) * 0.5), 0, 6.28); ctx.fill() } ctx.restore() }
+}
 // ZENITSU — THUNDERCLAP & FLASH: he crouches, then DASHES as a bolt straight through the foe to the far side,
 // leaving a lightning trail + after-image forks; the foe is cleaved in half where he passed. Then — true to him —
 // he realises what he did and COWERS, trembling, sweating, a "!" over his head. Dash/tremble in updateBrutality.
@@ -8100,6 +8156,7 @@ function _drawLiveGore(b) {
   if (g === "swordsmoke") { _drawLiveSwordSmoke(b); return }
   if (g === "bungeegum") { _drawLiveBungeeGum(b); return }
   if (g === "flamecleave") { _drawLiveFlameCleave(b); return }
+  if (g === "flamerush") { _drawLiveFlameRush(b); return }
   if (g === "thunderdash") { _drawLiveThunderDash(b); return }
   if (g === "poisonmelt") { _drawLivePoisonMelt(b); return }
   if (g === "beastmaul") { _drawLiveBeastMaul(b); return }
@@ -23181,7 +23238,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flamecleave: "Leap-slam → cleaved in half by the flaming blade", thunderdash: "Dashed through → cleaved in half by the bolt", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flamecleave: "Leap-slam → cleaved in half by the flaming blade", flamerush: "Dashed through → bisected + ignited", thunderdash: "Dashed through → cleaved in half by the bolt", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

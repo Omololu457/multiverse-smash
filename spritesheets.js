@@ -832,6 +832,12 @@ export const SPRITE_MANIFEST = {
   // Ghostface .exe (Billy). GATES spritesReady() ONLY — decoding the idle strip flips ghostface_exe from the
   // procedural fallback BOX to the sprite path (this manifest entry was the missing piece that left it a box).
   // Per-action rendering reads characters.js → ghostface_exe.animationData (each action carries its own .sheet).
+  // Ghostface (universe: horror) — SCREAM×MK1 rebuild. GATES spritesReady() by decoding the idle strip
+  // → flips Ghostface from the procedural fallback BOX to the sprite path. Per-action rendering reads
+  // characters.js → ghostface.animationData (each action carries its own .sheet). See GHOSTFACE_ASSET_MAP.md.
+  ghostface: {
+    actions: { idle: "./ghostface_idle_uniform.png" }
+  },
   ghostface_exe: {
     actions: { idle: "./ghostface_exe_idle_uniform.png" }
   },

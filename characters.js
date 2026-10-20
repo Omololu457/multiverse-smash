@@ -5387,6 +5387,79 @@ const miwa = {
     ultimate: { frames: 8, width: 69, height: 48, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_super_ultimate_uniform.png" }
   }
 }
+// ─────────────────────────────────────────────────────────────────
+// GHOSTFACE  (rosterKey "ghostface", universe "horror") — SCREAM × MORTAL KOMBAT 1 REBUILD.
+// Fast, fragile GLASS-CANNON knife STALKER / rushdown mix-up specialist. Rekka knife string
+// (cancel-on-hit), gap-closing Gutting Lunge (BLEED DoT), Low Gut, Backstage-Pass teleport, and
+// "The Final Act" freeze-cinematic stab-flurry Ultimate (all wired in abilities.js, gated exact-
+// "ghostface"). REBUILT 2026-10-20 onto the new feet-aligned cvs master-sheet slices
+// (ghostface_*_uniform.png, uniform cell 135×128; see GHOSTFACE_ASSET_MAP.md). Replaces the
+// archived build (git tag archive/ghostface-old). The Killer Swap (Enforcer/Assassin forms) and
+// the new shared-special lineup follow in the swap phase. Billy/.exe are untouched.
+// ─────────────────────────────────────────────────────────────────
+const ghostface = {
+  rosterKey: "ghostface", name: "Ghostface", universe: "horror", color: "#1c2030",
+  portrait: "./ghostface_portrait.png",   // cropped from idle frame 0 (falls back cleanly if absent).
+  archetypes: ["rushdown", "technical"],
+  primary: "rushdown", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "dread", mobility: "high", scaling: "combo", animeMovement: false },
+  // GLASS-CANNON STALKER — low HP, low defense (a masked human), FAST, LONG dash. Fragile but relentless.
+  // vs roster: Killua HP1030/def78/spd95, Flash HP1020/spd99. Ghostface HP950 (roster-low glass cannon),
+  // def76 (fragile — launches easily), spd97 (fast), maxEnergy 100 = Dread (1 bar = 25; specials + Ult).
+  stats: { maxHealth: 950, maxEnergy: 100, attack: 85, defense: 76, speed: 97, maxJumps: 2, jumpPower: 32, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 28 },
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 35, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },                                   // quick knife stab (Surprise Sydney jab)
+    heavy:    { damage: 62, startup: 8, active: 3, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 110, rangeY: 48 },           // lunging knife thrust (long reach)
+    upAttack: { type: "launcher", damage: 60, startup: 5, active: 3, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // overhead leap launcher (Collar Bone)
+    airAttack:{ damage: 40, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },                                   // Leaping Slash (air)
+    downAir:  { damage: 48, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }                                    // Stake Driver (aerial down-stab)
+  },
+  // Real logic in abilities.js (executeGhostfaceSpecial) — direction-branched Special, Dread cost.
+  specials: {
+    guttingLunge: { cost: 25, damage: 50, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "Fwd — dashing knife lunge (gap-closer); leaves a BLEED DoT on a clean hit" },
+    lowGut:       { cost: 20, damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "Down — low sweeping gut-slash; trips (knockdown) on a clean hit" },
+    backstagePass:{ cost: 25, damage: 45, startup: 14, active: 3, recovery: 16, hitstun: 18, effect: "Back/neutral — Backstage Pass teleport: vanish and strike from behind (branches: switch / getaway / fakeout)" }
+  },
+  ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Ghostface stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%; clean hit leaves a lethal bleed)." },
+  hasSprites: true,
+  // new slices are uniform 135×128 cells (feet-aligned). spriteScale tuned so on-screen body sits in the
+  // human-roster band (~118px) — an imposing but human stalker. Verified via __harness.measureSprite.
+  spriteScale: 0.84,
+  animationData: {
+    // ── MOVEMENT / STATE (uniform 135×128 cells, feet-aligned, anchorY 0). ──
+    idle:  { frames: 3, width: 135, height: 128, speed: 8, anchorY: 0, sheet: "./ghostface_idle_uniform.png" },
+    walk:  { frames: 4, width: 135, height: 128, speed: 6, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },
+    run:   { frames: 4, width: 135, height: 128, speed: 4, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },
+    dash:  { frames: 4, width: 135, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_walk_uniform.png" },
+    jump:  { frames: 1, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },
+    fall:  { frames: 1, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },
+    guard: { frames: 1, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_crouch_uniform.png" },   // crouch-brace block (reuses crouch f0)
+    hurt:  { frames: 2, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_knockdown_uniform.png" },
+    crouch: { frames: 2, width: 135, height: 128, speed: 8, anchorY: 0, loop: true, sheet: "./ghostface_crouch_uniform.png" },
+    charge: { frames: 1, width: 135, height: 128, speed: 6, anchorY: 0, loop: true, sheet: "./ghostface_charge_uniform.png" },
+    taunt:  { frames: 2, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },
+    // ── NORMALS. Play once, hold last frame. ──
+    light:    { frames: 2, width: 135, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_light_uniform.png" },
+    heavy:    { frames: 2, width: 135, height: 128, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_heavy_uniform.png" },
+    up:       { frames: 2, width: 135, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform.png" },
+    air:      { frames: 2, width: 135, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_air_uniform.png" },
+    down_air: { frames: 1, width: 135, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_downair_uniform.png" },
+    // ── COMMAND-NORMAL REKKA ("Surprise Sydney", Down/Fwd+Heavy, cancel-on-hit). lowslash sheet, 3 stages. ──
+    ghostfaceCombo1: { frames: 1, width: 135, height: 128, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    ghostfaceCombo2: { frames: 1, width: 135, height: 128, speed: 3, anchorY: 0, sourceX: 135, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    ghostfaceCombo3: { frames: 1, width: 135, height: 128, speed: 3, anchorY: 0, sourceX: 270, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    // ── SPECIAL / ULT cast poses (selected via currentMove / _spriteCastMove). ──
+    gfLunge:  { frames: 2, width: 135, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_lunge_uniform.png" },     // Gutting Lunge dashing stab
+    gfLowCut: { frames: 3, width: 135, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },  // Low Gut sweeping slash
+    gfCallIn: { frames: 2, width: 135, height: 128, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },     // Call-In beckon pose
+    gfUlt:    { frames: 6, width: 135, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform.png" }       // The Final Act stab-flurry
+  },
+  introPool: ["idle"]
+}
+
+
 
 // ─────────────────────────────────────────────────────────────────
 // GHOSTFACE  (rosterKey "ghostface", universe "horror" — first horror-universe
@@ -11095,6 +11168,7 @@ export const characters = {
   superman_classic: supermanClassic,
   superman_fighter: supermanFighter,
   chrollo,
+  ghostface,
   ghostface_billy,
   jason,
   hiruzen,
@@ -11168,7 +11242,7 @@ const _WIPED_FOR_REDO = [
   "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
   "superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",
   "bardock", "frieza", "gogeta", "goku", "goku_rose", "gotenks", "piccolo", "gohan", "vegito",
-  "ghostface", "ghostface_billy", "ghostface_exe",
+  "ghostface_billy", "ghostface_exe",
   "gon", "zoldyck", "kurapika", "meruem", "shizuku",
   "omniman",
   "handler", "naoya",

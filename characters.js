@@ -9545,56 +9545,56 @@ const vilgax = {
   animationData: {
     // ── STAGE 1 movement/state (reslice_vilgax.py). loop:false + lockLastFrame holds the last pose. ──
     // Vilgax has a REAL intro on the sheet (rare): 4 walk-in (dark silhouette) → 2 red-flash → ready.
-    intro:     { frames: 7, width: 36, height: 39, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_intro_uniform.png" },
-    idle:      { frames: 4, width: 34, height: 46, speed: 8, anchorY: 0, sheet: "./vilgax_idle_uniform.png" },
+    intro: { frames: 5, width: 55, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_intro_uniform.png" },
+    idle: { frames: 4, width: 54, height: 69, speed: 8, anchorY: 0, sheet: "./vilgax_idle_uniform.png" },
     // GUARD = brace → barrier grows → FULL yellow energy barrier; lockLastFrame HOLDS the barrier up while blocking.
-    guard:     { frames: 3, width: 53, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_guard_uniform.png" },
+    guard: { frames: 3, width: 81, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_guard_uniform.png" },
     // No dedicated Walk on the sheet → walk REUSES the run stride at a slower speed (excludes the lunge pose).
-    walk:      { frames: 8, width: 36, height: 43, speed: 7, anchorY: 0, sheet: "./vilgax_walk_uniform.png" },
-    run:       { frames: 9, width: 46, height: 43, speed: 4, anchorY: 0, sheet: "./vilgax_run_uniform.png" },
+    walk: { frames: 8, width: 56, height: 63, speed: 7, anchorY: 0, sheet: "./vilgax_walk_uniform.png" },
+    run: { frames: 9, width: 71, height: 63, speed: 4, anchorY: 0, sheet: "./vilgax_run_uniform.png" },
     // No dedicated Dash → dash = the run's final LUNGE pose (frame idx 8, sourceX 8×46=368), held.
-    dash:      { frames: 1, width: 46, height: 43, speed: 4, anchorY: 0, sourceX: 368, loop: false, lockLastFrame: true, sheet: "./vilgax_run_uniform.png" },
+    dash: { frames: 1, width: 45, height: 63, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_dash_uniform.png" },
     // JUMP = 4-frame leap arc; play once + hold apex. fall = last cell (sourceX 3×31=93).
-    jump:      { frames: 4, width: 31, height: 51, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_jump_uniform.png" },
-    fall:      { frames: 1, width: 31, height: 51, speed: 6, anchorY: 0, sourceX: 93, loop: false, lockLastFrame: true, sheet: "./vilgax_jump_uniform.png" },
+    jump: { frames: 4, width: 47, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_jump_uniform.png" },
+    fall: { frames: 1, width: 47, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_fall_uniform.png" },
     // No Crouch on the sheet → crouch = idle frame 0 stopgap (held). Flagged (VILGAX_ASSET_MAP §6).
-    crouch:    { frames: 1, width: 34, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_crouch_uniform.png" },
+    crouch: { frames: 1, width: 47, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_crouch_uniform.png" },
     // HURT — 1-frame recoil flinch (combat.js colorFlash tints the hit on top).
-    hurt:      { frames: 1, width: 35, height: 45, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_hurt_uniform.png" },
+    hurt: { frames: 1, width: 53, height: 66, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_hurt_uniform.png" },
     // KNOCKDOWN — fall → flat(downed) → rise; lockLastFrame holds standing recovery. The flat frame
     //   (index 1, sourceX 48) is the LOSE/KO pose reuse (owner-locked stopgap; wired at Stage 6).
-    knockdown: { frames: 3, width: 48, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_knockdown_uniform.png" },
+    knockdown: { frames: 3, width: 58, height: 66, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_knockdown_uniform.png" },
     // ── STAGE 2 NORMALS (reslice_vilgax.py); ×0.60 via GLOBAL_DAMAGE_SCALE. loop:false + lockLastFrame
     //    holds the strike through recovery. The B row is a claw→tentacle-whip sequence → SPLIT into two
     //    REAL distinct poses (light=claw, heavy=tentacle-whip). No command chain (S3 = none).
     //    up REUSES heavy (upward tentacle arc = anti-air launcher); crouchLight REUSES light; air = REAL
     //    Aerial-B dive; down_air REUSES air. Only 2 ground + 1 aerial pose exist on this special-heavy sheet.
-    light:      { frames: 3, width: 37, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_light_uniform.png" },   // claw swipe (quick reach)
-    heavy:      { frames: 3, width: 45, height: 43, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_heavy_uniform.png" },   // green TENTACLE-WHIP arc (long reach)
-    up:         { frames: 3, width: 45, height: 43, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_heavy_uniform.png" },   // LAUNCHER — REUSE tentacle-whip (upward arc)
-    air:        { frames: 4, width: 52, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_air_uniform.png" },     // Aerial-B dive w/ tentacle-swipe trail
-    down_air:   { frames: 4, width: 52, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_air_uniform.png" },     // REUSE dive (no down-aerial art)
-    crouchLight:{ frames: 3, width: 37, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_light_uniform.png" },   // REUSE claw (no crouch-normal art; auto-swapped by _setCrouchVariant)
+    light: { frames: 3, width: 59, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_light_uniform.png" },   // claw swipe (quick reach)
+    heavy: { frames: 3, width: 55, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_heavy_uniform.png" },   // green TENTACLE-WHIP arc (long reach)
+    up: { frames: 3, width: 46, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_up_uniform.png" },   // LAUNCHER — REUSE tentacle-whip (upward arc)
+    air: { frames: 4, width: 80, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_air_uniform.png" },     // Aerial-B dive w/ tentacle-swipe trail
+    down_air: { frames: 4, width: 58, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_down_air_uniform.png" },     // REUSE dive (no down-aerial art)
+    crouchLight: { frames: 3, width: 59, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_light_uniform.png" },   // REUSE claw (no crouch-normal art; auto-swapped by _setCrouchVariant)
     // ── STAGE 4 SPECIAL cast poses (rendered via sprite.js identity fallback: _spriteCastMove key → same-
     //    named action). Real reslice frames. Projectiles (spinning sword / red plasma) draw via spawnProjectile.
     //    Slots (abilities.js executeVilgaxSpecial): N=Plasma Blast tiered / F=Slash / B=Thrown Sword / U=Teleport / air=Tumble.
-    vilgaxBlastCast:  { frames: 4, width: 87, height: 65, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_blastcast_uniform.png" },   // base plasma — braced charge (Down+Y)
-    vilgaxBlastXCast: { frames: 4, width: 80, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_blastxcast_uniform.png" },  // heavy plasma — bigger charge/burst (X)
-    vilgaxSlash:      { frames: 4, width: 62, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_slash_uniform.png" },       // Energy-Sword Slash (F) — draw → slash → lunge
-    vilgaxThrow:      { frames: 3, width: 49, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_throw_uniform.png" },       // Thrown Spinning Sword cast (B) — draw → windup → throw
-    vilgaxTumble:     { frames: 7, width: 44, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_tumble_uniform.png" },      // Aerial Tumble (air) — spinning tumble
-    vilgaxVanish:     { frames: 2, width: 45, height: 45, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_vanish_uniform.png" },      // Teleport (U) — stance → dissolving silhouette
+    vilgaxBlastCast: { frames: 4, width: 73, height: 83, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_blastcast_uniform.png" },   // base plasma — braced charge (Down+Y)
+    vilgaxBlastXCast: { frames: 4, width: 120, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_blastxcast_uniform.png" },  // heavy plasma — bigger charge/burst (X)
+    vilgaxSlash: { frames: 4, width: 94, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_slash_uniform.png" },       // Energy-Sword Slash (F) — draw → slash → lunge
+    vilgaxThrow: { frames: 3, width: 46, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_throw_uniform.png" },       // Thrown Spinning Sword cast (B) — draw → windup → throw
+    vilgaxTumble: { frames: 5, width: 74, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_tumble_uniform.png" },      // Aerial Tumble (air) — spinning tumble
+    vilgaxVanish: { frames: 2, width: 57, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_vanish_uniform.png" },      // Teleport (U) — stance → dissolving silhouette
     // ── STAGE 5 ULTIMATE "Koma Atakes" trigger pose — the ULT_ACTION green-energy charge (owner decision #3:
     //    the undocumented row = the ult activation pose). LIVE fighter holds it across the freeze-cinematic
     //    (abilities.js executeVilgaxUltimate). The converging red Koma beams (vilgax_komabeam) manifest at the
     //    foe via spawnProjectile, not here. speed 8 → the 3-frame charge spans ~24f then lockLastFrame holds.
-    vilgaxUltAction:  { frames: 3, width: 30, height: 53, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_ultaction_uniform.png" },
+    vilgaxUltAction: { frames: 3, width: 45, height: 78, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_ultaction_uniform.png" },
     // ── STAGE 6 win / lose. WIN = REAL art: 3-frame triumphant fist-raise (tentacle flourish) → 2
     //    shrinking-silhouette vanish-fade frames (reuses the Up+B / teleport vanish language, by design).
     //    LOSE = knockdown STOPGAP (owner decision #4 — the Lose slot is genuinely empty on the sheet):
     //    reuse the knockdown strip, holding the flat downed frame (index 1, sourceX 48) via frames:2 + lockLastFrame.
-    win:  { frames: 5, width: 30, height: 53, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_win_uniform.png" },
-    lose: { frames: 2, width: 48, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_knockdown_uniform.png" }   // REUSE knockdown → holds the flat downed pose (no dedicated lose art — flagged)
+    win: { frames: 3, width: 45, height: 78, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_win_uniform.png" },
+    lose: { frames: 2, width: 74, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vilgax_lose_uniform.png" }   // REUSE knockdown → holds the flat downed pose (no dedicated lose art — flagged)
   }
 }
 

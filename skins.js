@@ -403,24 +403,10 @@ export const SKINS = {
   // drawVilgaxVoidAuraOverlay — drifting dark tentacle-tendril motes) + Original Series armour homage (real
   // alternate-era design: black/red-brown armour + gloves, green cheek-sacs kept). Default entry MANDATORY.
   vilgax: [
-    { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.vilgax?.portrait,                        spriteScale: characters.vilgax?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "vilgaxAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("vilgax", "albedo"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "albedo"), recolorTag: "albedo" },
-    { id: "vilgaxValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vilgax", "valkyrie"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "valkyrie"), recolorTag: "valkyrie" },
-    { id: "vilgaxAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("vilgax", "alienx"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "alienx"), recolorTag: "alienx" },
-    // ── Group 1 ──
-    { id: "vilgaxCrimsonConqueror", name: "Crimson Conqueror", unlockLevel: 0, portrait: "./vilgax_portrait__crimsonconqueror.png", spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "crimsonconqueror"), recolorTag: "crimsonconqueror" },
-    { id: "vilgaxVerdantWarlord",   name: "Verdant Warlord",   unlockLevel: 0, portrait: "./vilgax_portrait__verdantwarlord.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "verdantwarlord"),   recolorTag: "verdantwarlord" },
-    { id: "vilgaxObsidianTyrant",   name: "Obsidian Tyrant",   unlockLevel: 0, portrait: "./vilgax_portrait__obsidiantyrant.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "obsidiantyrant"),   recolorTag: "obsidiantyrant" },
-    { id: "vilgaxGoldenConqueror",  name: "Golden Conqueror",  unlockLevel: 0, portrait: "./vilgax_portrait__goldenconqueror.png",  spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "goldenconqueror"),  recolorTag: "goldenconqueror" },
-    // ── Group 2 ──
-    { id: "vilgaxVioletWarlord",    name: "Violet Warlord",    unlockLevel: 0, portrait: "./vilgax_portrait__violetwarlord.png",    spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "violetwarlord"),    recolorTag: "violetwarlord" },
-    { id: "vilgaxEmberConqueror",   name: "Ember Conqueror",   unlockLevel: 0, portrait: "./vilgax_portrait__emberconqueror.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "emberconqueror"),   recolorTag: "emberconqueror" },
-    { id: "vilgaxFrostboundTyrant", name: "Frostbound Tyrant", unlockLevel: 0, portrait: "./vilgax_portrait__frostboundtyrant.png", spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "frostboundtyrant"), recolorTag: "frostboundtyrant" },
-    { id: "vilgaxAshenWarlord",     name: "Ashen Warlord",     unlockLevel: 0, portrait: "./vilgax_portrait__ashenwarlord.png",     spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "ashenwarlord"),     recolorTag: "ashenwarlord" },
-    // ── Specialty ──
-    { id: "vilgaxVoidSovereign",    name: "Void Sovereign",    unlockLevel: 0, portrait: "./vilgax_portrait__voidsovereign.png",    spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "voidsovereign"),    recolorTag: "voidsovereign" },
-    { id: "vilgaxOriginalSeries",   name: "Original Series",   unlockLevel: 0, portrait: "./vilgax_portrait__originalseries.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "originalseries"),   recolorTag: "originalseries" }             // HOMAGE OS armour: black/red-brown, green cheek-sacs
+    { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.vilgax?.portrait,                        spriteScale: characters.vilgax?.spriteScale, animationData: null }
+    // Skins DROPPED 2026-10-20: Vilgax was re-skinned onto the new regulardor8go JUS sheet. The old
+    // recolor skins were generated from the previous art and no longer match; their sheets were deleted.
+    // Regenerate from the new frames in a later pass if wanted (tools/gen_underskin_recolor.py).
   ],
 
   // Miles Morales — the RED web-pattern accent (webs/lenses/soles) recolored per theme; the BLACK suit base

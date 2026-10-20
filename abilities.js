@@ -9906,7 +9906,9 @@ function applyVilgaxUltHit(fighter, opp, context, raw, opts = {}) {
     opp.colorFlash = 12
     if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
   }
-  applyScaledDamage(opp, dmg, { source: "vilgax-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  // attacker+move stamp the killing-blow move on a fatal beat → the eye-laser ult KO routes to the CHIMERIAN
+  // ONSLAUGHT brutality (a cinematic ult using applyScaledDamage otherwise never stamps _killingBlowMove).
+  applyScaledDamage(opp, dmg, { source: "vilgax-ultimate", attacker: fighter, move: "ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
   try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
 }
 function spawnVilgaxKomaBeam(fighter, opp, context, scale, dy) {

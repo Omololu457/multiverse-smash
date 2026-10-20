@@ -70,9 +70,9 @@ export function activateBrutalityCinematic(winner, victim, move) {
   // CONQUEROR'S EDGE. `move` comes from winF._killingBlowMove (passed by the game.js trigger).
   if (wKey === "vilgax") {
     const m = String(move || "").toLowerCase()
-    if (/ult|koma|chimerian|onslaught|eye|laser|beam/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax
-    else if (/dagon|meteor|seismic|slam|drone|bolt|blastx|burst/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax_fall || concept
-    else concept = BRUTALITY_CONCEPTS.vilgax_edge || concept
+    if (/ult|koma|chimerian|onslaught|eye|laser|beam/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax                 // ultimate → eye lasers
+    else if (/dagon|meteor|seismic|slam|drone|bolt/.test(m)) concept = BRUTALITY_CONCEPTS.vilgax_fall || concept   // big-energy → orbital
+    else concept = BRUTALITY_CONCEPTS.vilgax_edge || concept   // sword (normals / crescents / thrown sword / slash / cyclone, default) → bisection
   }
   const base = concept.base === "idle" ? "idle" : "hurt"
   const ad = victim.animationData || {}

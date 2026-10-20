@@ -1,0 +1,1080 @@
+{
+  "rosterKey": "bardock",
+  "name": "Bardock",
+  "spriteScale": 1,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./bardock_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 108,
+        "h": 122
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 144
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./bardock_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 108,
+        "h": 122
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 144
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./bardock_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 108,
+        "h": 122
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 144
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 108,
+          "h": 122
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./bardock_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 88,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 93.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 79
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./bardock_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 113,
+        "h": 130
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.3,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 130
+        },
+        {
+          "x": 113,
+          "y": 0,
+          "w": 113,
+          "h": 130
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./bardock_fall_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 113,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.3,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 93
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./bardock_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 95.6,
+        "h": 103.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./bardock_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 108,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 115
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 115
+        }
+      ]
+    },
+    "guardHit": {
+      "sheet": "./bardock_guardhit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 122,
+        "h": 113
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 113
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 122,
+          "h": 113
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./bardock_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 92,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.6,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 118
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./bardock_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 157,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 185.3,
+        "h": 77.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        },
+        {
+          "x": 157,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        },
+        {
+          "x": 314,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./bardock_getup_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 102,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 119.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 102,
+          "h": 101
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 102,
+          "h": 101
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 102,
+          "h": 101
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./bardock_light_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 117,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 99.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 84
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./bardock_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 128,
+        "h": 134
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151,
+        "h": 158.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 134
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./bardock_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 103,
+        "h": 169
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.5,
+        "h": 199.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 169
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./bardock_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 114,
+        "h": 123
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 134.5,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 114,
+          "h": 123
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./bardock_downair_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 152,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 179.4,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 152,
+          "h": 90
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./bardock_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 134,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 158.1,
+        "h": 96.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 134,
+          "h": 82
+        }
+      ]
+    },
+    "bardockRush1": {
+      "sheet": "./bardock_rush1_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 119,
+        "h": 111
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.4,
+        "h": 131
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 111
+        }
+      ]
+    },
+    "bardockRush2": {
+      "sheet": "./bardock_rush2_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 72,
+        "h": 177
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 208.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 177
+        }
+      ]
+    },
+    "bardockRush3": {
+      "sheet": "./bardock_rush3_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 110,
+        "h": 156
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 184.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 110,
+          "h": 156
+        }
+      ]
+    },
+    "bardockRebellion": {
+      "sheet": "./bardock_rebellion_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 167,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 197.1,
+        "h": 79.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 167,
+          "h": 67
+        }
+      ]
+    },
+    "bardockKiCharge": {
+      "sheet": "./bardock_kicharge_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 105,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 123.9,
+        "h": 85
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 72
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 72
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./bardock_ssjflash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 107,
+        "h": 158
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 126.3,
+        "h": 186.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 107,
+          "h": 158
+        },
+        {
+          "x": 107,
+          "y": 0,
+          "w": 107,
+          "h": 158
+        },
+        {
+          "x": 214,
+          "y": 0,
+          "w": 107,
+          "h": 158
+        },
+        {
+          "x": 321,
+          "y": 0,
+          "w": 107,
+          "h": 158
+        },
+        {
+          "x": 428,
+          "y": 0,
+          "w": 107,
+          "h": 158
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./bardock_win_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 71,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.8,
+        "h": 173.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 147
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./bardock_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 157,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 185.3,
+        "h": 77.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        },
+        {
+          "x": 157,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        },
+        {
+          "x": 314,
+          "y": 0,
+          "w": 157,
+          "h": 66
+        }
+      ]
+    },
+    "bardockIntro": {
+      "sheet": "./bardock_intro_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 117,
+        "h": 142
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 167.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 142
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 142
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 117,
+          "h": 142
+        },
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 142
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 117,
+          "h": 142
+        }
+      ]
+    }
+  }
+}

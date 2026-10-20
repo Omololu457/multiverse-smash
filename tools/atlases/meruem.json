@@ -1,0 +1,1283 @@
+{
+  "rosterKey": "meruem",
+  "name": "Meruem",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 26,
+  "actions": {
+    "idle": {
+      "sheet": "./meruem_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 40,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.7,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 50
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./meruem_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 40
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 145.7,
+        "h": 89.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./meruem_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 40
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 145.7,
+        "h": 89.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 40
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./meruem_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.4,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 50
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./meruem_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./meruem_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 68
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./meruem_hurt_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.6,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 48
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 48
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 48
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 48
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./meruem_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 79,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.1,
+        "h": 105.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 47
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 47
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 47
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 47
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./meruem_getup_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./meruem_block_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 48,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 105.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 47
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 47
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 47
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./meruem_intro_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 47,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.4,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 49
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 49
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./meruem_win_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 88,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 197.3,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 49
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 49
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./meruem_lose_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 39,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 103.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 46
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./meruem_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 40,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.7,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 50
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./meruem_light_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 69,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.7,
+        "h": 96.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 43
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 43
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 43
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 43
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 43
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./meruem_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 114.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./meruem_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 56,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./meruem_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 60
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 60
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 60
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 60
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./meruem_downair_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 68,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.5,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 57
+        }
+      ]
+    },
+    "meruemAuraCast": {
+      "sheet": "./meruem_aura_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 40
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 89.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 40
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 40
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 40
+        }
+      ]
+    },
+    "meruemKingsLunge": {
+      "sheet": "./meruem_kings_lunge_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 73,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 163.7,
+        "h": 98.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 44
+        }
+      ]
+    },
+    "meruemTailRush": {
+      "sheet": "./meruem_tail_rush_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 98,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 219.7,
+        "h": 96.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 43
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 98,
+          "h": 43
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 98,
+          "h": 43
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 98,
+          "h": 43
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 98,
+          "h": 43
+        }
+      ]
+    },
+    "meruemAuraFlash": {
+      "sheet": "./meruem_aura_flash_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 68,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.5,
+        "h": 100.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 68,
+          "h": 45
+        }
+      ]
+    },
+    "meruemPhotonCharge": {
+      "sheet": "./meruem_photon_charge_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 48,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        }
+      ]
+    },
+    "meruemTailLance": {
+      "sheet": "./meruem_tail_lance_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 56,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        }
+      ]
+    },
+    "meruemTailSweep": {
+      "sheet": "./meruem_tail_sweep_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 59,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.3,
+        "h": 114.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        },
+        {
+          "x": 295,
+          "y": 0,
+          "w": 59,
+          "h": 51
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1548 @@
+{
+  "rosterKey": "yuta",
+  "name": "Yuta Okkotsu",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./yuta_idle_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 53,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.8,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 371,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 477,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./yuta_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 103,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 230.9,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 103,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 206,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 309,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 412,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./yuta_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 103,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 230.9,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 103,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 206,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 309,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 412,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./yuta_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 103,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 230.9,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 103,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 206,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 309,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        },
+        {
+          "x": 412,
+          "y": 0,
+          "w": 103,
+          "h": 54
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./yuta_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 57,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 100.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 45
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./yuta_idle_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 53,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 371,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 477,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./yuta_idle_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 53,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 371,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 477,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./yuta_guard_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.5,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./yuta_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 43,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.4,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 57
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 57
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./yuta_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 165.9,
+        "h": 69.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 31
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 31
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./yuta_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148,
+        "h": 96.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 43
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 43
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./yuta_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 49,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 56
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 56
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 56
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 56
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./yuta_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 57,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./yuta_up_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 129,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 289.2,
+        "h": 177.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        },
+        {
+          "x": 387,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        },
+        {
+          "x": 516,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        },
+        {
+          "x": 645,
+          "y": 0,
+          "w": 129,
+          "h": 79
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./yuta_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./yuta_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 56
+        }
+      ]
+    },
+    "yutaCombo1": {
+      "sheet": "./yuta_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 57,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 55
+        }
+      ]
+    },
+    "yutaCombo2": {
+      "sheet": "./yuta_combo2_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 82,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 183.8,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 54
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 54
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 54
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 54
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 54
+        }
+      ]
+    },
+    "yutaCombo3": {
+      "sheet": "./yuta_combo3_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 81,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.6,
+        "h": 116.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        }
+      ]
+    },
+    "yutaStrong": {
+      "sheet": "./yuta_strong_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 78,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 174.9,
+        "h": 226.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        },
+        {
+          "x": 546,
+          "y": 0,
+          "w": 78,
+          "h": 101
+        }
+      ]
+    },
+    "yutaKick4": {
+      "sheet": "./yuta_kick4_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 118,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 264.6,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 354,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 472,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 590,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        },
+        {
+          "x": 708,
+          "y": 0,
+          "w": 118,
+          "h": 61
+        }
+      ]
+    },
+    "yutaCem": {
+      "sheet": "./yuta_cem_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 63,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.2,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        }
+      ]
+    },
+    "yutaSpeech": {
+      "sheet": "./yuta_speech_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 65,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.7,
+        "h": 130
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 325,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        },
+        {
+          "x": 455,
+          "y": 0,
+          "w": 65,
+          "h": 58
+        }
+      ]
+    },
+    "yutaRct": {
+      "sheet": "./yuta_rct_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 105.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        }
+      ]
+    },
+    "yutaUltCast": {
+      "sheet": "./yuta_ultcast_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 69,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.7,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 483,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./yuta_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.5,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 56
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./yuta_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 165.9,
+        "h": 69.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 31
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 31
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2246 @@
+{
+  "rosterKey": "hashirama",
+  "name": "Hashirama Senju",
+  "spriteScale": 1.55,
+  "globalScale": 1.18,
+  "actionCount": 35,
+  "actions": {
+    "idle": {
+      "sheet": "./hashirama_idle_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 56,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 56,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 102.4,
+        "h": 128
+      },
+      "rects": [
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./hashirama_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 135.3,
+        "h": 120.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./hashirama_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 135.3,
+        "h": 120.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./hashirama_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 50,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 91.4,
+        "h": 140.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 77
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 77
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 77
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./hashirama_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 62,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.4,
+        "h": 177.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 97
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 97
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 97
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./hashirama_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 62,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 124,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.4,
+        "h": 177.4
+      },
+      "rects": [
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 97
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./hashirama_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.9,
+        "h": 135.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 74
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 74
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./hashirama_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.9,
+        "h": 135.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 74
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 74
+        }
+      ]
+    },
+    "handSigns": {
+      "sheet": "./hashirama_hand_signs_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./hashirama_foward_punch_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 76,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./hashirama_kick_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 79,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.5,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        },
+        {
+          "x": 395,
+          "y": 0,
+          "w": 79,
+          "h": 75
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./hashirama_up_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 71,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.9,
+        "h": 150
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 82
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 82
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 82
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 82
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 82
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./hashirama_air_combo_1_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 74,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.3,
+        "h": 150
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 444,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 518,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 592,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 666,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./hashirama_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 126,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 230.5,
+        "h": 128
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 70
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 70
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 126,
+          "h": 70
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 126,
+          "h": 70
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 126,
+          "h": 70
+        }
+      ]
+    },
+    "hashiComboA": {
+      "sheet": "./hashirama_punch_combo_1_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 73,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 135.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 511,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        },
+        {
+          "x": 584,
+          "y": 0,
+          "w": 73,
+          "h": 74
+        }
+      ]
+    },
+    "hashiComboB": {
+      "sheet": "./hashirama_air_combo_1_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 74,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.3,
+        "h": 150
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 444,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 518,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 592,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        },
+        {
+          "x": 666,
+          "y": 0,
+          "w": 74,
+          "h": 82
+        }
+      ]
+    },
+    "hashiComboFin": {
+      "sheet": "./hashirama_air_combo_2_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 154,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 281.7,
+        "h": 153.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 924,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 1078,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 1232,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        },
+        {
+          "x": 1386,
+          "y": 0,
+          "w": 154,
+          "h": 84
+        }
+      ]
+    },
+    "hashiWoodStraight": {
+      "sheet": "./hashirama_punch_2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 76,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 75
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 75
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 75
+        }
+      ]
+    },
+    "kunaiThrow": {
+      "sheet": "./hashirama_kunai_throw_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 68,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.4,
+        "h": 126.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 69
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 69
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 69
+        }
+      ]
+    },
+    "kunaiThrowAir": {
+      "sheet": "./hashirama_kunai_throw_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.6,
+        "h": 153.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 84
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 84
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 84
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./hashirama_hand_signs_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 100.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "woodPunch": {
+      "sheet": "./hashirama_wood_rellese_punch_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 210,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 384.1,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 630,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 840,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 1050,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        },
+        {
+          "x": 1260,
+          "y": 0,
+          "w": 210,
+          "h": 79
+        }
+      ]
+    },
+    "woodPunchSuper": {
+      "sheet": "./hashirama_wood_rellese_punch_super_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 185,
+        "h": 112
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 338.4,
+        "h": 204.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 185,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 555,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 740,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 925,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 1110,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        },
+        {
+          "x": 1295,
+          "y": 0,
+          "w": 185,
+          "h": 112
+        }
+      ]
+    },
+    "mokutonArm": {
+      "sheet": "./hashirama_mokuton_lul_4_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 57,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.3,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        },
+        {
+          "x": 399,
+          "y": 0,
+          "w": 57,
+          "h": 76
+        }
+      ]
+    },
+    "treeSummon1": {
+      "sheet": "./hashirama_treee_summon_1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 47,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86,
+        "h": 120.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 66
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 66
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 66
+        }
+      ]
+    },
+    "treeSummon2": {
+      "sheet": "./hashirama_treee_summon_2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 79
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 79
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 79
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 79
+        }
+      ]
+    },
+    "treeSummon3": {
+      "sheet": "./hashirama_tree_summon_level_2_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 69,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.2,
+        "h": 135.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        },
+        {
+          "x": 483,
+          "y": 0,
+          "w": 69,
+          "h": 74
+        }
+      ]
+    },
+    "treeSummon4": {
+      "sheet": "./hashirama_tree_level_3_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "woodGolemSummon": {
+      "sheet": "./hashirama_gaint_wood_statue_summon_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "gatesCaster": {
+      "sheet": "./hashirama_gracious_deity_gates_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "sealingCombo": {
+      "sheet": "./hashirama_combo_into_sealing_justu_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 76,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 380,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 456,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 532,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 608,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 684,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        },
+        {
+          "x": 760,
+          "y": 0,
+          "w": 76,
+          "h": 79
+        }
+      ]
+    },
+    "introPillarRise": {
+      "sheet": "./hashirama_intro_part_1_uniform.png",
+      "exists": true,
+      "frames": 24,
+      "cell": {
+        "w": 50,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.4,
+        "h": 182.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 500,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 550,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 600,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 650,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 700,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 750,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 800,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 850,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 900,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 950,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 1000,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 1050,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 1100,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        },
+        {
+          "x": 1150,
+          "y": 0,
+          "w": 50,
+          "h": 100
+        }
+      ]
+    },
+    "introPillarOpen": {
+      "sheet": "./hashirama_intro_part_2_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 56,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 179.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 560,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 56,
+          "h": 98
+        }
+      ]
+    },
+    "introShunshin": {
+      "sheet": "./hashirama_intro_2_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 79
+        }
+      ]
+    },
+    "woodCloneCast": {
+      "sheet": "./hashirama_wood_clone_intro_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 102,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 186.6,
+        "h": 148.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 306,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 510,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 612,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 714,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 816,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 918,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 1020,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        },
+        {
+          "x": 1122,
+          "y": 0,
+          "w": 102,
+          "h": 81
+        }
+      ]
+    }
+  }
+}

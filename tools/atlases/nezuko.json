@@ -1,0 +1,1678 @@
+{
+  "rosterKey": "nezuko",
+  "name": "Nezuko Kamado",
+  "spriteScale": 2,
+  "globalScale": 1.18,
+  "actionCount": 37,
+  "actions": {
+    "idle": {
+      "sheet": "./nezuko_idle.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./nezuko_run_tall.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 50,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118,
+        "h": 110.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./nezuko_run_tall.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 50,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118,
+        "h": 110.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 47
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./nezuko_run_tiny.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 50,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 9,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 9,
+          "y": 0,
+          "w": 50,
+          "h": 51
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 50,
+          "h": 51
+        },
+        {
+          "x": 109,
+          "y": 0,
+          "w": 50,
+          "h": 51
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 50,
+          "h": 51
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./nezuko_jump.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 49,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 58
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./nezuko_jump.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 49,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 58
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./nezuko_crouch.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 32,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.5,
+        "h": 108.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 46
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./nezuko_block.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.9,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./nezuko_hit.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 160.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 68
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 68
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./nezuko_hit_2.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 52,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 5,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 5,
+          "y": 0,
+          "w": 52,
+          "h": 62
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 52,
+          "h": 62
+        },
+        {
+          "x": 109,
+          "y": 0,
+          "w": 52,
+          "h": 62
+        },
+        {
+          "x": 161,
+          "y": 0,
+          "w": 52,
+          "h": 62
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 52,
+          "h": 62
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./nezuko_punch.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 60
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 60
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 60
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 60
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./nezuko_up_attack.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 62,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.3,
+        "h": 174.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 74
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 74
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./nezuko_air_attack_1.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.9,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 56
+        }
+      ]
+    },
+    "nezukoBallKick": {
+      "sheet": "./nezuko_ball_kick.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 53,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.1,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        }
+      ]
+    },
+    "nezukoDodge": {
+      "sheet": "./nezuko_dodge.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 52,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 144
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./nezuko_foward_punch.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 50,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 2,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 2,
+          "y": 0,
+          "w": 50,
+          "h": 49
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 50,
+          "h": 49
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 50,
+          "h": 49
+        }
+      ]
+    },
+    "air_heavy": {
+      "sheet": "./nezuko_air_attack_2.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 66
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 66
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 66
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 66
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./nezuko_air_down_attack.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        }
+      ]
+    },
+    "nezukoAngryPunch": {
+      "sheet": "./nezuko_angry_punch.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 51,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 151
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 64
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 64
+        }
+      ]
+    },
+    "nezukoSideKick": {
+      "sheet": "./nezuko_side_kick.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 6,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.1,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 6,
+          "y": 0,
+          "w": 53,
+          "h": 59
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 53,
+          "h": 59
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 53,
+          "h": 59
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 53,
+          "h": 59
+        }
+      ]
+    },
+    "nezukoAirSpecial": {
+      "sheet": "./nezuko_specail_air_to_kick_attack.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 179.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 76
+        }
+      ]
+    },
+    "nezukoSuperKick": {
+      "sheet": "./nezuko_super_kick.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.9,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 58
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 58
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 58
+        }
+      ]
+    },
+    "nezukoCombo1": {
+      "sheet": "./nezuko_combo_1.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 52
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 52
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 52
+        }
+      ]
+    },
+    "nezukoCombo2": {
+      "sheet": "./nezuko_combo_1.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 168,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 168,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 223,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 278,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 333,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        }
+      ]
+    },
+    "nezukoRunScratch": {
+      "sheet": "./nezuko_run_and_scratch.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 57
+        }
+      ]
+    },
+    "nezukoBite": {
+      "sheet": "./nezuko_bite.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 50,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 5,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118,
+        "h": 172.3
+      },
+      "rects": [
+        {
+          "x": 5,
+          "y": 0,
+          "w": 50,
+          "h": 73
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 50,
+          "h": 73
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 50,
+          "h": 73
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 50,
+          "h": 73
+        }
+      ]
+    },
+    "nezukoCounter": {
+      "sheet": "./nezuko_counter_attack.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 40,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 9,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.4,
+        "h": 110.9
+      },
+      "rects": [
+        {
+          "x": 9,
+          "y": 0,
+          "w": 40,
+          "h": 47
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 40,
+          "h": 47
+        }
+      ]
+    },
+    "nezukoSlumber": {
+      "sheet": "./nezuko_health_reset.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 132.2,
+        "h": 179.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 76
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 76
+        }
+      ]
+    },
+    "nezukoNutKick": {
+      "sheet": "./nezuko_nut_kick.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 46,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 3,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.6,
+        "h": 162.8
+      },
+      "rects": [
+        {
+          "x": 3,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        }
+      ]
+    },
+    "nezukoUlt1a": {
+      "sheet": "./nezuko_ultimate_punches.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 54,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 3,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 3,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        },
+        {
+          "x": 273,
+          "y": 0,
+          "w": 54,
+          "h": 54
+        }
+      ]
+    },
+    "nezukoUlt1b": {
+      "sheet": "./nezuko_ultimate_up_attack.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 52,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 3,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 3,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        }
+      ]
+    },
+    "nezukoTransform": {
+      "sheet": "./nezuko_transformation.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 54,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        },
+        {
+          "x": 486,
+          "y": 0,
+          "w": 54,
+          "h": 55
+        }
+      ]
+    },
+    "nezukoTransformIdle": {
+      "sheet": "./nezuko_transformation_idle.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 47,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 110.9,
+        "h": 177
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 75
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 75
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./nezuko_intro.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 56,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 165.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 56,
+          "h": 70
+        }
+      ]
+    },
+    "intro2": {
+      "sheet": "./nezuko_intro_2.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./nezuko_intro_3.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 10,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 132.2,
+        "h": 103.8
+      },
+      "rects": [
+        {
+          "x": 10,
+          "y": 0,
+          "w": 56,
+          "h": 44
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 56,
+          "h": 44
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./nezuko_intro_3.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 56,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 122,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 103.8
+      },
+      "rects": [
+        {
+          "x": 122,
+          "y": 0,
+          "w": 56,
+          "h": 44
+        }
+      ]
+    }
+  }
+}

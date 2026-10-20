@@ -1,0 +1,762 @@
+{
+  "rosterKey": "shisui_fallen",
+  "name": "Shisui (Fallen)",
+  "spriteScale": 1.3,
+  "globalScale": 1.18,
+  "actionCount": 15,
+  "actions": {
+    "idle": {
+      "sheet": "./shisui_fallen_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 44.5,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./shisui_fallen_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.2,
+        "h": 105.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./shisui_fallen_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.2,
+        "h": 105.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./shisui_fallen_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.2,
+        "h": 105.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./shisui_fallen_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.6,
+        "h": 125.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./shisui_fallen_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 61,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 183,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.6,
+        "h": 125.8
+      },
+      "rects": [
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./shisui_fallen_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.7,
+        "h": 127.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 83
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 83
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./shisui_fallen_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 59,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.5,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 81
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./shisui_fallen_knockdown_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 85,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130.4,
+        "h": 99.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./shisui_fallen_light_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 67,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.8,
+        "h": 130.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 335,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 469,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        },
+        {
+          "x": 536,
+          "y": 0,
+          "w": 67,
+          "h": 85
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./shisui_fallen_heavy_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 124,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190.2,
+        "h": 118.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 496,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 620,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        },
+        {
+          "x": 744,
+          "y": 0,
+          "w": 124,
+          "h": 77
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./shisui_fallen_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 70,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./shisui_fallen_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 76,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.6,
+        "h": 104.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 68
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 68
+        }
+      ]
+    },
+    "kunaiCast": {
+      "sheet": "./shisui_fallen_kunai_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.8,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 84
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 84
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 84
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./shisui_fallen_intro_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 41,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 62.9,
+        "h": 105.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 69
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 69
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 69
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 69
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 69
+        }
+      ]
+    }
+  }
+}

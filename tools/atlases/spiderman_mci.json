@@ -1,0 +1,547 @@
+{
+  "rosterKey": "spiderman_mci",
+  "name": "Spider-Man (Cosmic Invasion)",
+  "spriteScale": 1.8,
+  "globalScale": 1.18,
+  "actionCount": 16,
+  "actions": {
+    "idle": {
+      "sheet": "./mci_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 178.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 61
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./mci_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 99,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 210.3,
+        "h": 152.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 297,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./mci_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 99,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 210.3,
+        "h": 152.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        },
+        {
+          "x": 297,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./mci_walk_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 99,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 210.3,
+        "h": 152.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 72
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./mci_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 81,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 172,
+        "h": 199.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 94
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./mci_fall_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 64
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 64
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./mci_fall_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 74,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 64
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./mci_fall_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 74,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 74,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 64
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./mci_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 61
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./mci_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 61
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./mci_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 178.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 61
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./mci_light_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 99,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 210.3,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 65
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./mci_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 100,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 212.4,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 62
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./mci_kick_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 98,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 208.2,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 55
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./mci_light_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 99,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 210.3,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 65
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./mci_kick_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 98,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 208.2,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 55
+        }
+      ]
+    }
+  }
+}

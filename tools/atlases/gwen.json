@@ -1,0 +1,846 @@
+{
+  "rosterKey": "gwen",
+  "name": "Gwen",
+  "spriteScale": 2.25,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./gwen_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 30,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 79.6,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 50
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "w": 30,
+          "h": 50
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./gwen_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 25,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 66.4,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 50
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./gwen_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.2,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 49
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 49
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 49
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 49
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./gwen_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.2,
+        "h": 135.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 51
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 51
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 51
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 51
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./gwen_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.8,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 49
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./gwen_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 36,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./gwen_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 36,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 108,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./gwen_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 24,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 63.7,
+        "h": 156.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 59
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./gwen_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 51,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 87.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 33
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./gwen_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 45
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 45
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 45
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./gwen_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 38,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.9,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./gwen_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 52,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 45
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 45
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./gwen_up_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 50
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./gwen_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 38,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.9,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./gwen_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 38,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.9,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 50
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./gwen_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 36,
+        "h": 35
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 92.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 35
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 35
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 35
+        }
+      ]
+    },
+    "gwenCast": {
+      "sheet": "./gwen_cast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 151.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 57
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 57
+        }
+      ]
+    },
+    "gwenCrescent": {
+      "sheet": "./gwen_crescent_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 63,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 167.3,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 48
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 48
+        }
+      ]
+    },
+    "gwenBlade": {
+      "sheet": "./gwen_blade_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 47,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.8,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 52
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./gwen_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 30,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.6,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 45
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./gwen_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 61,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 45
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 45
+        }
+      ]
+    }
+  }
+}

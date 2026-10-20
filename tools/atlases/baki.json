@@ -1,0 +1,1383 @@
+{
+  "rosterKey": "baki",
+  "name": "Baki Hanma",
+  "spriteScale": 1.97,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./baki_idle_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 40,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 93,
+        "h": 130.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./baki_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 35,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 81.4,
+        "h": 146.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 175,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 35,
+          "h": 63
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./baki_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 47,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 109.3,
+        "h": 111.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 282,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        },
+        {
+          "x": 329,
+          "y": 0,
+          "w": 47,
+          "h": 48
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./baki_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.5,
+        "h": 90.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 39
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 39
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./baki_jump_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 45,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.6,
+        "h": 130.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./baki_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 45,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 180,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.6,
+        "h": 130.2
+      },
+      "rects": [
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./baki_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 40,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93,
+        "h": 130.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 56
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./baki_hit_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.6,
+        "h": 125.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./baki_knockdown_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 61,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.8,
+        "h": 125.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        },
+        {
+          "x": 305,
+          "y": 0,
+          "w": 61,
+          "h": 54
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./baki_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 39,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.7,
+        "h": 146.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./baki_lose_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 23,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 53.5,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 23,
+          "h": 59
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "w": 23,
+          "h": 59
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 23,
+          "h": 59
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./baki_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 39,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.7,
+        "h": 146.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 63
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./baki_light_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 61,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.8,
+        "h": 113.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 305,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        },
+        {
+          "x": 366,
+          "y": 0,
+          "w": 61,
+          "h": 49
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./baki_heavy_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 46,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.9,
+        "h": 109.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./baki_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 47,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.3,
+        "h": 125.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./baki_air_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 63,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.4,
+        "h": 127.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 63,
+          "h": 55
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./baki_downair_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 68,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 158.1,
+        "h": 139.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 60
+        }
+      ]
+    },
+    "bakiG1": {
+      "sheet": "./baki_g1_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 47,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.3,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 53
+        }
+      ]
+    },
+    "bakiG2": {
+      "sheet": "./baki_g2_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 53,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.2,
+        "h": 127.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        }
+      ]
+    },
+    "bakiBarrage": {
+      "sheet": "./baki_barrage_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 63,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.4,
+        "h": 141.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 63,
+          "h": 61
+        }
+      ]
+    },
+    "bakiRush": {
+      "sheet": "./baki_rush_uniform.png",
+      "exists": true,
+      "frames": 13,
+      "cell": {
+        "w": 88,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 204.6,
+        "h": 169.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 352,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 528,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 704,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 792,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 880,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 968,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        },
+        {
+          "x": 1056,
+          "y": 0,
+          "w": 88,
+          "h": 73
+        }
+      ]
+    },
+    "bakiRising": {
+      "sheet": "./baki_rising_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 53,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.2,
+        "h": 109.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        }
+      ]
+    },
+    "bakiShockwave": {
+      "sheet": "./baki_shockwave_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 148,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 344,
+        "h": 183.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 148,
+          "h": 79
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 148,
+          "h": 79
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 148,
+          "h": 79
+        },
+        {
+          "x": 444,
+          "y": 0,
+          "w": 148,
+          "h": 79
+        }
+      ]
+    },
+    "bakiDemonBack": {
+      "sheet": "./baki_demonback_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 134.8,
+        "h": 132.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 57
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 57
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 57
+        }
+      ]
+    }
+  }
+}

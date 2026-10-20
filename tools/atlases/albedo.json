@@ -1,0 +1,970 @@
+{
+  "rosterKey": "albedo",
+  "name": "Albedo",
+  "spriteScale": 2,
+  "globalScale": 1.18,
+  "actionCount": 19,
+  "actions": {
+    "idle": {
+      "sheet": "./ben10_idle_uniform__albedo.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 36,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 85,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./ben10_run_uniform__albedo.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 45,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./ben10_run_uniform__albedo.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 45,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./ben10_run_uniform__albedo.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 45,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 51
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./ben10_jump_uniform__albedo.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 46,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.6,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./ben10_jump_uniform__albedo.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 46,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.6,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./ben10_idle_uniform__albedo.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 36,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./ben10_idle_uniform__albedo.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 36,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 36,
+          "h": 52
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./ben10_up_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 47,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.9,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 65
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 65
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 65
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./ben10_down_air_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 46,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.6,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 65
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 65
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 65
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "benJab1": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "benJab2": {
+      "sheet": "./ben10_jab_uniform__albedo.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 44,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "benHover": {
+      "sheet": "./ben10_hoverboard_uniform__albedo.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 57,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 134.5,
+        "h": 167.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 71
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 71
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 71
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 71
+        }
+      ]
+    },
+    "transform": {
+      "sheet": "./ben10_transform_uniform__albedo.png",
+      "exists": true,
+      "frames": 16,
+      "cell": {
+        "w": 63,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 441,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 567,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 630,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 693,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 756,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 819,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 882,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 945,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./ben10_taunt_uniform__albedo.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 28,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 66.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 58
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "w": 28,
+          "h": 58
+        }
+      ]
+    }
+  }
+}

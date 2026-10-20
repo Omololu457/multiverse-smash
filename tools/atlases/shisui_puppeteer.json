@@ -1,0 +1,1178 @@
+{
+  "rosterKey": "shisui_puppeteer",
+  "name": "Shisui (Puppeteer)",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 23,
+  "actions": {
+    "idle": {
+      "sheet": "./shisui_puppeteer_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 27,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 60.5,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./shisui_puppeteer_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 123.3,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./shisui_puppeteer_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 123.3,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./shisui_puppeteer_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.3,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 54
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./shisui_puppeteer_jump_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 39,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 273,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./shisui_puppeteer_jump_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 39,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        },
+        {
+          "x": 273,
+          "y": 0,
+          "w": 39,
+          "h": 61
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./shisui_puppeteer_hurt_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 44,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 55
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 55
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 55
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 55
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./shisui_puppeteer_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 65,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.7,
+        "h": 87.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./shisui_puppeteer_lose_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 31,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 69.5,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 64
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 64
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 64
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 64
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./shisui_puppeteer_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 39,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 94.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./shisui_puppeteer_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 41,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.9,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./shisui_puppeteer_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 27,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 60.5,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./shisui_puppeteer_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 27,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 60.5,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./shisui_puppeteer_win_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 65,
+        "h": 141.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 63
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 63
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./shisui_puppeteer_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 27,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 60.5,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./shisui_puppeteer_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./shisui_puppeteer_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 79,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.1,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 55
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 55
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 55
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 55
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 55
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./shisui_puppeteer_up_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 67,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./shisui_puppeteer_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 36,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 80.7,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./shisui_puppeteer_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 36,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 80.7,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 61
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./shisui_puppeteer_crouchLight_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 163.7,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 49
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 49
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 49
+        }
+      ]
+    },
+    "puCast": {
+      "sheet": "./shisui_puppeteer_cast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 38,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.2,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        }
+      ]
+    },
+    "shiBackstab": {
+      "sheet": "./shisui_puppeteer_cast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 38,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.2,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        }
+      ]
+    }
+  }
+}

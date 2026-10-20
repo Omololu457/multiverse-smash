@@ -11224,6 +11224,48 @@ export const characters = {
   zoldyck                            // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ROSTER WIPE (2026-10-20, owner request) — these fighters were pulled from the
+// game so their spritesheets can be re-done (art not good enough). Their sprite
+// PNGs were deleted from disk; here each entry is DISABLED (hidden + art-less) so
+// it drops out of EVERY roster/pool (select, FFA, academy, AI pool, Edo-backup,
+// universe lists) while the entry OBJECT stays intact — key-lookups that other
+// fighters rely on (e.g. the ghostface_exe identity-swap table, voice/behaviour
+// guards keyed on rosterKey) keep resolving and never throw. To bring one back:
+// remove its key from this list and restore its sprite PNGs from git history.
+const _WIPED_FOR_REDO = [
+  "albedo", "ben10", "vilgax",
+  "yamamoto",
+  "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
+  "superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",
+  "bardock", "frieza", "gogeta", "goku", "goku_rose", "gotenks", "piccolo", "gohan", "vegito",
+  "ghostface", "ghostface_billy", "ghostface_exe",
+  "gon", "zoldyck", "kurapika", "meruem", "shizuku",
+  "omniman",
+  "handler", "naoya",
+  "iron_man", "iron_man_2", "iron_man_3", "miles",
+  "spiderman", "spiderman_mci", "spiderman_raimi", "spiderman_ssf2",
+  "boruto", "hiruzen", "kiba", "naruto_hokage", "onoki", "orochimaru",
+  "shisui_trinity", "shisui_itachi_kids",
+  // shisui_trinity's alt-identity sub-forms (already hidden in their own entries): their sprite files were
+  // deleted with the trinity wipe, so clear hasSprites here too or they'd leak into the Edo-backup pool.
+  "shisui_blade", "shisui_puppeteer",
+]
+for (const _k of _WIPED_FOR_REDO) {
+  const _c = characters[_k]
+  if (_c) { _c.hidden = true; _c.isPlayable = false; _c.hasSprites = false }
+}
+
+// ART-LESS PLACEHOLDERS removed (2026-10-20, owner request: "delete all the characters that
+// don't have sprites"). These never had sprite sheets — dev-only isPlayable:false stubs — so there
+// was nothing to wipe from disk; here they're hidden so they vanish from the dev view too. Entries
+// kept intact because comboStandard.js still lists these keys in its classification tables.
+const _ARTLESS_REMOVED = ["cell", "morty", "evilMorty"]
+for (const _k of _ARTLESS_REMOVED) {
+  const _c = characters[_k]
+  if (_c) { _c.hidden = true; _c.isPlayable = false; _c.hasSprites = false }
+}
+
 // The 7 characters shown in the starter roster select screen
 export const starterRoster = [goku, naruto, gojo, sukuna, omololu]
 

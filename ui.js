@@ -4078,7 +4078,7 @@ function getPortraitImageBySrc(src) {
 // Draw a fighter's resolved portrait into a square [x,y,size] with an accent border.
 // Shared by the themed 1v1 panel and the FFA (3–4 player) HUD. Nearest-neighbour (pixel-art).
 // `flash` (0..1) adds a hot glow on the border for hit reactions. Presentation-only.
-export function drawHudPortrait(ctx, fighter, x, y, size, accent, flash = 0) {
+export function drawHudPortrait(ctx, fighter, x, y, size, accent, flash = 0, ko = false) {
   const p = _resolveHudPortrait(fighter, accent)
   const cut = Math.max(3, Math.round(size * 0.1))
   ctx.save()
@@ -4087,10 +4087,11 @@ export function drawHudPortrait(ctx, fighter, x, y, size, accent, flash = 0) {
   if (p && p.src) {
     ctx.save(); _bevelPath(ctx, x, y, size, size, cut); ctx.clip()
     ctx.imageSmoothingEnabled = false
+    if (ko) { try { ctx.filter = "grayscale(1) brightness(0.72)" } catch (_) {} }   // KO → desaturated portrait
     const iw = p.src.width || p.src.naturalWidth || size, ih = p.src.height || p.src.naturalHeight || size
     const s = Math.max(size / iw, size / ih), dw = iw * s, dh = ih * s
     ctx.drawImage(p.src, x + (size - dw) / 2, y + (size - dh) * 0.18, dw, dh)
-    ctx.imageSmoothingEnabled = true
+    ctx.filter = "none"; ctx.imageSmoothingEnabled = true
     ctx.restore()
   }
   _bevelPath(ctx, x, y, size, size, cut)
@@ -4141,69 +4142,109 @@ function _hudHealthAnim(fighter) {
   if (!s || s.maxHp !== maxHp) {
     // First sight of this fighter (or a maxHP change → new match/round): seed the
     // display AT the real value so nothing animates on spawn.
-    s = { dispHp: actual, trailHp: actual, lastActual: actual, hold: 0, flash: 0, shake: 0, punch: 0, heal: 0, big: false, maxHp }
+    s = { dispHp: actual, trailHp: actual, lastActual: actual, hold: 0, flash: 0, shake: 0, big: false, maxHp,
+          chunkT: 999, punch: 0, punchMag: 0, flinch: 0, healGlow: 0, ko: false }
     _hudAnim.set(fighter, s)
   }
 
-  // A fresh drop this frame = a hit landed. Read the render-hint tier the damage
-  // choke-point stamped (`_hudDmgTier`), pause the ghost, and on a BIG hit kick a
-  // sharper flash + shake. Light hits get only the bar drain (flash/shake stay low).
-  if (actual < s.lastActual - 0.01) {
-    const big = fighter._hudDmgTier === "big"
-    s.big  = big
-    s.hold = 18                                  // ghost holds ~14 frames before draining
-    s.flash = Math.max(s.flash, big ? 1 : 0.42)
-    s.shake = Math.max(s.shake, big ? 1.25 : 0.6)   // a small SHAKE on every hit now (was big-only)
-    s.punch = Math.max(s.punch, big ? 1 : 0.7)   // scale-PUNCH the bar on every hit (juicy pop)
-  } else if (actual > s.lastActual + 0.01 && (actual - s.lastActual) < maxHp * 0.6) {
-    s.heal = 1                                   // HP climbed by a plausible HEAL amount (not a full-bar round-reset refill) → edge glow + sparkles
+  if (!_hudThemed) {
+    // ── CLASSIC behaviour — byte-identical to the pre-overhaul animator ──
+    if (actual < s.lastActual - 0.01) {
+      const big = fighter._hudDmgTier === "big"
+      s.big  = big
+      s.hold = 14                                  // ghost holds ~14 frames before draining
+      s.flash = Math.max(s.flash, big ? 1 : 0.42)
+      s.shake = Math.max(s.shake, big ? 1 : 0)
+    }
+    s.lastActual = actual
+    if (s.dispHp > actual)      s.dispHp += (actual - s.dispHp) * 0.34
+    else                        s.dispHp += (actual - s.dispHp) * 0.5
+    if (Math.abs(s.dispHp - actual) < 0.4) s.dispHp = actual
+    if (s.trailHp > s.dispHp) {
+      if (s.hold > 0) s.hold -= 1
+      else            s.trailHp += (s.dispHp - s.trailHp) * 0.09
+      if (Math.abs(s.trailHp - s.dispHp) < 0.4) s.trailHp = s.dispHp
+    } else {
+      s.trailHp = s.dispHp
+    }
+    s.flash = Math.max(0, s.flash - 0.06)
+    s.shake = Math.max(0, s.shake - 0.08)
+    return s
+  }
+
+  // ── THEMED "satisfying bar" behaviour (render-only; reads HP from the sim each frame) ──
+  const prev = s.lastActual
+  const delta = actual - prev
+  const SNAP = maxHp * 0.45   // a 1-frame change bigger than any legit hit = HP-set / Rick-Prime rewind → SNAP
+
+  if (delta < -0.01) {
+    if (-delta > SNAP) {
+      // rewind-down / HP-set → SNAP to value, no chunk / flash / punch (avoids a huge false "damage" chunk)
+      s.dispHp = actual; s.trailHp = actual; s.hold = 0; s.chunkT = 999; s.flash = 0; s.shake = 0; s.punch = 0
+    } else {
+      // a hit landed — tier from the stamped render-hint + drop magnitude (render-only LIGHT/MED/HEAVY)
+      const big  = fighter._hudDmgTier === "big"
+      const frac = -delta / maxHp
+      const tier = (big || frac > 0.11) ? 3 : frac > 0.055 ? 2 : 1
+      s.big   = tier >= 3
+      s.hold  = 20                                        // chunk holds ~20f; RESTARTS each hit → fast hits extend ONE chunk
+      s.chunkT = 0                                        // restart the white→orange→red colour cycle
+      s.flash  = Math.max(s.flash, tier >= 3 ? 1 : tier === 2 ? 0.6 : 0.4)
+      s.shake  = Math.max(s.shake, tier >= 3 ? 1 : tier === 2 ? 0.5 : 0.22)
+      s.punch  = 1; s.punchMag = tier >= 3 ? 1 : tier === 2 ? 0.66 : 0.42
+      s.flinch = 1
+    }
+  } else if (delta > 0.01) {
+    if (delta > SNAP && actual < maxHp * 0.98) {
+      // large partial up-jump = rewind-up / HP-set → SNAP (no spurious animation)
+      s.dispHp = actual; s.trailHp = actual; s.chunkT = 999
+    } else {
+      // heal (or round-reset refill) → ease up + green glow; the chunk snaps away (ghost logic below)
+      s.healGlow = 1
+    }
   }
   s.lastActual = actual
 
-  // FRONT bar: catch up to the real value quickly (a short, readable drain — not a snap).
-  if (s.dispHp > actual)      s.dispHp += (actual - s.dispHp) * 0.34
-  else                        s.dispHp += (actual - s.dispHp) * 0.5    // healing eases up faster
+  // KO: a single shake the frame HP first reaches 0 (the portrait desaturate is drawn from actual<=0).
+  if (actual <= 0) { if (!s.ko) { s.ko = true; s.shake = Math.max(s.shake, 0.8) } }
+  else s.ko = false
+
+  // FRONT bar ease (~12f to settle; up a touch faster).
+  const k = s.dispHp > actual ? 0.2 : 0.26
+  s.dispHp += (actual - s.dispHp) * k
   if (Math.abs(s.dispHp - actual) < 0.4) s.dispHp = actual
 
-  // GHOST (damage-trail) bar: lags behind — holds, then drains SLOWLY toward the front
-  // bar so the just-lost chunk stays visible for a beat. Always >= front bar.
-  if (s.trailHp > s.dispHp) {
+  // GHOST chunk: shown only while the front bar sits BELOW the trail (damage). On a heal the front
+  // rises past the trail → trail snaps to it, so NO red chunk is left behind.
+  if (s.dispHp < s.trailHp - 0.4) {
     if (s.hold > 0) s.hold -= 1
     else            s.trailHp += (s.dispHp - s.trailHp) * 0.09
-    if (Math.abs(s.trailHp - s.dispHp) < 0.4) s.trailHp = s.dispHp
+    if (s.trailHp - s.dispHp < 0.4) s.trailHp = s.dispHp
   } else {
     s.trailHp = s.dispHp
   }
 
-  s.flash = Math.max(0, s.flash - 0.06)
-  s.shake = Math.max(0, s.shake - 0.08)
-  s.punch = Math.max(0, s.punch - 0.095)   // quick pop, settles fast
-  s.heal  = Math.max(0, s.heal  - 0.045)  // heal glow fades over ~22f
+  s.flash    = Math.max(0, s.flash    - 0.06)
+  s.shake    = Math.max(0, s.shake    - 0.08)
+  s.punch    = Math.max(0, s.punch    - 0.17)    // ~6f punch
+  s.flinch   = Math.max(0, s.flinch   - 0.14)
+  s.healGlow = Math.max(0, s.healGlow - 0.045)   // ~22f green glow
+  s.chunkT   = Math.min(999, (s.chunkT || 0) + 1)
   return s
 }
 
-// HEAL feedback at the fill's LEADING edge: a soft green→white glow + a few rising sparkles while HP
-// climbs. Presentation-only, deterministic (sparkle layout seeded by index, animated by the `heal` decay
-// — no Math.random, no frame-flicker). edgeX = the advancing end of the fill.
-function _hpHealFx(ctx, edgeX, topY, h, heal) {
-  if (heal <= 0.02) return
-  ctx.save()
-  const gy = ctx.createLinearGradient(edgeX - 18, 0, edgeX + 6, 0)
-  gy.addColorStop(0, "rgba(120,240,170,0)")
-  gy.addColorStop(1, `rgba(206,255,224,${(0.75 * heal).toFixed(3)})`)
-  ctx.fillStyle = gy; ctx.fillRect(edgeX - 18, topY - 2, 24, h + 4)
-  ctx.globalCompositeOperation = "lighter"
-  const rise = 1 - heal                                   // 0 at heal start → 1 as it fades
-  for (let i = 0; i < 7; i++) {
-    const seed = (((i + 1) * 2654435761) >>> 0)
-    const sxo = ((seed % 19) - 9)                         // -9..9 horizontal spread
-    const a = heal * (1 - rise * 0.3)
-    if (a <= 0.02) continue
-    const r = 1.8 + 2.6 * heal
-    ctx.fillStyle = `rgba(212,255,226,${a.toFixed(3)})`
-    ctx.beginPath(); ctx.arc(edgeX + sxo, topY + h * 0.5 - rise * h * 1.9, r, 0, Math.PI * 2); ctx.fill()
-  }
-  ctx.restore()
+// Smoothly-blended health colour (themed bar): green >50% → amber >25% → red, lerped across the
+// thresholds instead of hard steps. Returns {top,bot} for a vertical sheen gradient. Render-only.
+function _hpColorSmooth(ratio) {
+  const G = [91, 189, 126], A = [215, 161, 62], R = [214, 75, 75]   // steel-green / bronze-amber / blood-red
+  const lerp = (a, b, t) => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]
+  const hex = (c) => "#" + c.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("")
+  let top
+  if (ratio >= 0.5)       top = lerp(A, G, Math.min(1, (ratio - 0.5) / 0.35))   // amber→green as it climbs past 50%
+  else if (ratio >= 0.25) top = lerp(R, A, (ratio - 0.25) / 0.25)               // red→amber across 25–50%
+  else                    top = lerp(R, R, 0)                                   // red floor below 25%
+  const bot = top.map(v => Math.round(v * 0.62))
+  return { top: hex(top), bot: hex(bot) }
 }
 
 // Chamfered ("corner-cut") rect path — the angular MK/Tekken container silhouette,
@@ -4293,8 +4334,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
     // BIG-hit shake: nudge the whole panel a few px (decaying), distinct from a light hit's
     // drain-only feedback. Deterministic (sine on the global frame clock — no Math.random).
-    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.9) * 5.0 * anim.shake : 0
-    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.5) * 3.2 * anim.shake : 0
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
     ctx.save()
     if (sx || sy) ctx.translate(sx, sy)
 
@@ -4303,10 +4344,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     _metalPanel(ctx, x, hpY, barW + 20, barH + 26, accent, 8, anim.flash)
 
     // BIG-hit backing flash — a hot wash over the panel the frame a heavy/special/ult lands.
-    if (anim.flash > 0.02) {
+    if (anim.flash > 0.02 && anim.big) {
       ctx.save()
       _bevelPath(ctx, x, hpY, barW + 20, barH + 26, 8)
-      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.38 * anim.flash})`
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`
       ctx.fill()
       ctx.restore()
     }
@@ -4330,8 +4371,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.save()
     _bevelPath(ctx, ghostX, hpY + 14, ghostW, barH, 4)
     const gg = ctx.createLinearGradient(0, hpY + 14, 0, hpY + 14 + barH)
-    gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
-    ctx.fillStyle = gg; ctx.shadowBlur = 11; ctx.shadowColor = "rgba(255,255,255,0.85)"
+    gg.addColorStop(0, "#ffe3e3"); gg.addColorStop(1, "#ff6b6b")
+    ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"
     ctx.fill()
     ctx.restore()
 
@@ -4339,18 +4380,13 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillW = barW * dispRatio
     const fillX = flip ? trackX + barW - fillW : trackX
     if (fillW > 0.5) {
-      const punchS = anim.punch > 0.01 ? 1 + 0.5 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit (bigger pop)
-      ctx.save()
-      if (punchS !== 1) { const cyf = hpY + 14 + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, hpY + 14, fillW, barH, 4)
       ctx.fillStyle = _hpGradient(ctx, fillX, hpY + 14, fillW, barH, dispRatio)
       ctx.fill()
       // top specular sheen line
       ctx.fillStyle = "rgba(255,255,255,0.18)"
       ctx.fillRect(fillX + 2, hpY + 15, Math.max(0, fillW - 4), 2)
-      ctx.restore()
     }
-    _hpHealFx(ctx, flip ? fillX : fillX + fillW, hpY + 14, barH, anim.heal)   // HEAL sparkles at the advancing edge
 
     ctx.restore()   // pop shake translate
 
@@ -4396,14 +4432,14 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     // distinguishable); the character accent still colours the portrait border + name plate.
     const edgeCol = _colorblindHud ? (flip ? "#ff9d2e" : "#4aa8e0") : accent
 
-    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.9) * 5.0 * anim.shake : 0
-    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.5) * 3.2 * anim.shake : 0
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
     ctx.save(); if (sx || sy) ctx.translate(sx, sy)
 
     _metalPanel(ctx, panelX, hpY, panelW, panelH, edgeCol, 8, anim.flash)
-    if (anim.flash > 0.02) {
+    if (anim.flash > 0.02 && anim.big) {
       ctx.save(); _bevelPath(ctx, panelX, hpY, panelW, panelH, 8)
-      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.38 * anim.flash})`; ctx.fill(); ctx.restore()
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`; ctx.fill(); ctx.restore()
     }
 
     // NAME PLATE — accent-tinted chamfered strip behind a fitted name.
@@ -4418,27 +4454,76 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.fillStyle = "#f4f7fb"; ctx.shadowBlur = 2; ctx.shadowColor = "rgba(0,0,0,0.8)"
     ctx.fillText(name, flip ? npX + npW - 5 : npX + 5, npY + npH / 2 + 0.5); ctx.shadowBlur = 0
 
-    // TRACK + GHOST + FRONT bar (colour-by-health unchanged).
+    // ── TRACK + GHOST CHUNK + FRONT bar (satisfying behaviour) ──
     const trackY = hpY + 15, trackX = panelX + 8
+    const reduceFlash  = !!juiceSettings?.reduceFlashing
+    const lowParticles = juiceSettings?.particles === "low"
+
+    // scaleY PUNCH on the whole bar on every hit (magnitude scaled by tier), about the bar's centre.
+    const punch = (anim.punch || 0) * (anim.punchMag || 0)
+    const barCY = trackY + barH / 2
+    ctx.save()
+    if (punch > 0.001) { ctx.translate(0, barCY); ctx.scale(1, 1 + punch * 0.12); ctx.translate(0, -barCY) }
+
     ctx.fillStyle = "rgba(0,0,0,0.62)"; _bevelPath(ctx, trackX, trackY, tBarW, barH, 4); ctx.fill()
+
+    // GHOST CHUNK — the just-lost slice. Colour cycles white (0–3f) → orange → red over ~20f.
+    // Reduce Flashing → a soft orange tint instead of the white pop.
     const ghostW = tBarW * trailRatio
     const ghostX = flip ? trackX + tBarW - ghostW : trackX
-    ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
-    const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
-    gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
-    ctx.fillStyle = gg; ctx.shadowBlur = 11; ctx.shadowColor = "rgba(255,255,255,0.85)"; ctx.fill(); ctx.restore()
+    if (ghostW > 0.5) {
+      const ct = anim.chunkT || 999
+      let cTop, cBot
+      if (ct < 3 && !reduceFlash) { cTop = "#ffffff"; cBot = "#ffd0d0" }
+      else if (ct < 10)           { cTop = "#ffd59a"; cBot = "#ff8a3c" }
+      else                        { cTop = "#ffb0b0"; cBot = "#ff5b5b" }
+      ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
+      const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
+      gg.addColorStop(0, cTop); gg.addColorStop(1, cBot); ctx.fillStyle = gg
+      if (!reduceFlash) { ctx.shadowBlur = ct < 4 ? 8 : 5; ctx.shadowColor = ct < 4 ? "rgba(255,255,255,0.8)" : "rgba(255,90,90,0.7)" }
+      ctx.fill(); ctx.restore()
+    }
+
+    // FRONT (main) bar — smoothly-blended colour-by-health.
     const fillW = tBarW * dispRatio
     const fillX = flip ? trackX + tBarW - fillW : trackX
     if (fillW > 0.5) {
-      const punchS = anim.punch > 0.01 ? 1 + 0.5 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit (bigger pop)
-      ctx.save()
-      if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
-      _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
-      ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill()
+      const col = _hpColorSmooth(dispRatio)
+      const fg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
+      fg.addColorStop(0, col.top); fg.addColorStop(0.55, col.top); fg.addColorStop(1, col.bot)
+      _bevelPath(ctx, fillX, trackY, fillW, barH, 4); ctx.fillStyle = fg; ctx.fill()
       ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
-      ctx.restore()
+
+      // HEAL — soft green glow over the fill + sparkles at the leading edge (sparkles honour Particles).
+      const hg = anim.healGlow || 0
+      if (hg > 0.02) {
+        ctx.save()
+        ctx.shadowBlur = 10 * hg; ctx.shadowColor = "rgba(90,230,140,0.9)"
+        ctx.fillStyle = `rgba(120,240,160,${0.22 * hg})`; _bevelPath(ctx, fillX, trackY, fillW, barH, 4); ctx.fill()
+        ctx.restore()
+        if (!lowParticles) {
+          const leadX = flip ? fillX : fillX + fillW
+          ctx.save(); ctx.fillStyle = `rgba(205,255,215,${0.85 * hg})`
+          for (let i = 0; i < 4; i++) {
+            const jx = leadX + Math.sin(globalFrameCount * 0.3 + i * 1.7) * 3
+            const jy = trackY + 2 + i * (barH - 4) / 3
+            ctx.beginPath(); ctx.arc(jx, jy, 1.1 + (i % 2) * 0.5, 0, Math.PI * 2); ctx.fill()
+          }
+          ctx.restore()
+        }
+      }
+
+      // LOW-HP (<25%) CVD pattern — thin tick marks over the fill so it reads without relying on colour.
+      if (dispRatio < 0.25) {
+        ctx.save(); ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1
+        for (let tx = trackX + 5; tx < trackX + tBarW - 2; tx += 7) {
+          const within = (flip ? (trackX + tBarW - tx) : (tx - trackX)) <= fillW
+          if (within) { ctx.beginPath(); ctx.moveTo(tx, trackY + 2); ctx.lineTo(tx, trackY + barH - 2); ctx.stroke() }
+        }
+        ctx.restore()
+      }
     }
-    _hpHealFx(ctx, flip ? fillX : fillX + fillW, trackY, barH, anim.heal)   // HEAL sparkles at the advancing edge
+    ctx.restore()   // pop punch scale
 
     // BREAK pips (same resource read as classic).
     const stotal = COMBO_BREAKER.stocksPerRound
@@ -4456,8 +4541,16 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     }
     ctx.textBaseline = "alphabetic"
 
-    // PORTRAIT at the outer edge, with an accent border (border uses the CVD-safe side colour when on).
-    drawHudPortrait(ctx, fighter, portraitX, hpY, TH_PS, edgeCol, anim.flash)
+    // PORTRAIT at the outer edge — flinches on hit, desaturates on KO, slow border-pulse at low HP.
+    const flinch = anim.flinch || 0
+    const fdx = flinch > 0.01 ? Math.sin(globalFrameCount * 2.1) * 2.2 * flinch : 0
+    const fdy = flinch > 0.01 ? Math.cos(globalFrameCount * 1.6) * 1.6 * flinch : 0
+    let portBorder = edgeCol
+    if (dispRatio < 0.25 && !anim.ko) {           // low-HP slow pulse (deterministic; non-colour cue, CVD-safe)
+      const pz = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.18)
+      portBorder = _lerpHex(edgeCol, "#ffffff", 0.28 * pz)
+    }
+    drawHudPortrait(ctx, fighter, portraitX + fdx, hpY + fdy, TH_PS, portBorder, Math.max(anim.flash, flinch * 0.6), anim.ko)
 
     ctx.restore()   // pop shake
   }
@@ -5423,6 +5516,11 @@ export function getAcademyBackButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
   return { id: "back", x: 40, y: h - 60, w: 190, h: 42 }
 }
+// "WATCH BRUTALITIES" button (bottom-right of the char screen) — opens the deterministic gallery reel.
+export function getAcademyWatchBrutButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "watchbrut", x: w - 40 - 250, y: h - 60, w: 250, h: 42 }
+}
 // GRID layout: returns the search box rect, universe filter chip rects, and the character card rects.
 export function academyGridLayout(canvas, roster = [], scroll = 0, filters = []) {
   const { width: w, height: h } = getCanvasSize(canvas)
@@ -5504,6 +5602,12 @@ export function academyCharLayout(canvas, groups = [], scroll = 0) {
   for (const g of groups) {
     rows.push({ type: "header", label: g.section, x: listX, y: cy, w: listW, h: 26 }); cy += 30
     for (const l of g.lessons) {
+      if (l.cat === "brutality") {   // a single WATCH button (opens the gallery reel at this finisher)
+        const ww = 140, wx = listX + listW - ww - 12
+        rows.push({ type: "row", lesson: l, x: listX, y: cy, w: listW, h: rowH, brutality: true,
+          watchRect: { id: "watch", x: wx, y: cy + (rowH - btnH) / 2, w: ww, h: btnH } })
+        cy += rowH + 6; continue
+      }
       const bx = listX + listW - (btnW * 3 + 24)
       const row = { type: "row", lesson: l, x: listX, y: cy, w: listW, h: rowH,
         showRect: l.cat === "passive" ? null : { id: "show", x: bx, y: cy + (rowH - btnH) / 2, w: btnW, h: btnH },
@@ -5537,7 +5641,15 @@ export function drawAcademyCharScreen(ctx, canvas, opts = {}) {
       ctx.strokeStyle = _withAlpha(accent, 0.25); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x + 6, r.y + 24); ctx.lineTo(r.x + r.w - 6, r.y + 24); ctx.stroke()
       continue
     }
-    const l = r.lesson, done = opts.isDone ? opts.isDone(l.id) : false
+    const l = r.lesson, done = (!r.brutality && opts.isDone) ? opts.isDone(l.id) : false
+    if (r.brutality) {   // a finisher entry — ☠ styling + a single WATCH button
+      _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = "rgba(40,14,20,0.6)"; ctx.fill(); ctx.strokeStyle = "rgba(255,90,90,0.4)"; ctx.lineWidth = 1; ctx.stroke()
+      drawCenteredText(ctx, "☠", r.x + 16, r.y + r.h / 2, { font: "800 18px Arial", fill: "#ff6a6a" })
+      drawCenteredText(ctx, l.name, r.x + 34, r.y + 18, { font: "900 15px Arial", fill: "#ffd7d7", align: "left", maxWidth: r.w * 0.6 })
+      drawCenteredText(ctx, l.desc || "", r.x + 34, r.y + 37, { font: "700 12px Arial", fill: "rgba(255,170,170,0.8)", align: "left", maxWidth: r.w * 0.6 })
+      if (r.watchRect) drawMkButton(ctx, r.watchRect, { label: "▶ WATCH", active: false, id: "w" + l.id, cut: 7, small: true })
+      continue
+    }
     _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = done ? "rgba(40,90,60,0.35)" : "rgba(16,20,36,0.6)"; ctx.fill()
     if (done) { ctx.strokeStyle = "rgba(120,255,170,0.5)"; ctx.lineWidth = 1; ctx.stroke(); drawCenteredText(ctx, "✓", r.x + 16, r.y + r.h / 2, { font: "800 18px Arial", fill: "#9effc0" }) }
     drawCenteredText(ctx, l.name, r.x + 34, r.y + 18, { font: "800 15px Arial", fill: "#f1f5f9", align: "left", maxWidth: r.w * 0.44 })
@@ -5552,7 +5664,9 @@ export function drawAcademyCharScreen(ctx, canvas, opts = {}) {
   ctx.restore()
   if (L.contentH > L.listH) drawCenteredText(ctx, "scroll ↕", w / 2, L.listY + L.listH + 14, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
   drawMkButton(ctx, getAcademyBackButton(canvas), { label: "BACK", active: opts.backHover, id: "acadcharback", cut: 10 })
-  drawFooterHint(ctx, canvas, `Device: ${device}  ·  SHOW ME = watch · TRY IT = do it · PRACTICE = free training  ·  Esc to go back`)
+  if (opts.canPreviewBrut) drawMkButton(ctx, getAcademyWatchBrutButton(canvas), { label: "☠ WATCH BRUTALITIES", active: opts.watchBrutHover, id: "acadwatchbrut", cut: 10 })
+  const brut = opts.canPreviewBrut ? "  ·  B = WATCH BRUTALITIES" : ""
+  drawFooterHint(ctx, canvas, `Device: ${device}  ·  SHOW ME = watch · TRY IT = do it · PRACTICE = free training${brut}  ·  Esc to go back`)
 }
 
 // DRILL overlay — drawn over the live Academy match (SHOW ME / TRY IT). info = { mode, moveName, inputLabel,
@@ -5591,7 +5705,25 @@ export function drawAcademyDrillOverlay(ctx, canvas, info = {}) {
     _bevelPath(ctx, hx, hy, hw, 40, 9); ctx.fillStyle = "rgba(60,40,10,0.85)"; ctx.fill(); ctx.strokeStyle = "rgba(255,200,90,0.6)"; ctx.lineWidth = 1; ctx.stroke()
     drawCenteredText(ctx, "💡 " + info.hint, w / 2, hy + 20, { font: "700 13px Arial", fill: "#ffe8b0" })
   }
-  drawCenteredText(ctx, info.mode === "showme" ? "Esc: back   ·   watch the inputs" : "Esc: back   ·   do the move   ·   it retries automatically", w / 2, h - 30, { font: "600 12px Arial", fill: "rgba(200,214,240,0.7)" })
+  const foot = info.mode === "showme" ? "Esc: back   ·   watch the inputs" : "Esc: back   ·   do the move   ·   it retries automatically"
+  drawCenteredText(ctx, info.brutHint ? foot + "   ·   " + info.brutHint : foot, w / 2, h - 30, { font: "600 12px Arial", fill: "rgba(200,214,240,0.7)" })
+  // which finisher the preview is playing (B)
+  if (info.brutName) drawCenteredText(ctx, "☠ " + info.brutName, w / 2, by + 100, { font: "900 16px Arial", fill: "rgba(255,120,120,0.95)", shadowBlur: 10, shadowColor: "#5a0000" })
+  ctx.restore()
+}
+
+// BRUTALITY GALLERY overlay — the clean "recordings" chrome while the reel auto-plays (no training HUD).
+// info = { name, index, total, charName }. name is null during the brief gap between clips.
+export function drawBrutalityReelOverlay(ctx, canvas, info = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0)
+  // top title chip
+  const label = `${(info.charName || "").toUpperCase()}  ·  BRUTALITY ${info.index || 1}/${info.total || 1}`
+  drawCenteredText(ctx, label, w / 2, 26, { font: "800 13px Arial", fill: "rgba(170,200,255,0.85)" })
+  // the finisher's name (big), once the clip is actually playing
+  if (info.name) drawCenteredText(ctx, info.name, w / 2, 52, { font: "900 26px Arial", fill: "#ff5a5a", shadowBlur: 14, shadowColor: "#5a0000" })
+  // controls footer
+  drawCenteredText(ctx, "◀ / ▶  prev · next      Esc  back", w / 2, h - 26, { font: "700 13px Arial", fill: "rgba(210,222,245,0.8)" })
   ctx.restore()
 }
 

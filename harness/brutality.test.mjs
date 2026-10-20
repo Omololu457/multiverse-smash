@@ -14,29 +14,39 @@ let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c
 // The 23 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
 // Tier 2: deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
 // Tier 3 (2026-09-17): sasuke, itachi, vegeta, pain, byakuya, yamamoto.
-// obito: added ONLY for the Impact Hit prototype — he has NO per-move gore table and IMPACT_HIT_STANDALONE
-// gates the KLASSIC fallback OFF, so he never plays a Brutality (verified in impact_hit_live.mjs). Eligible flag
-// only, so _tryStartImpactHit's "obito lands the kill" branch is reachable through the shared eligibility gate.
+// obito: the obitoKamuiDimension Impact-Hit cascade now HANDS OFF into his KAMUI rift finisher (full gore table
+// below) — plus Ten-Tails + phase-through. rick / rickPrime (portal gore) + flash (Speed Force run) round out the roster.
 const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
   "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
   "sasuke","itachi","vegeta","pain","byakuya","yamamoto",
-  "obito"];
+  "tobirama",   // brutality roll-out — Second Hokage (Suiton / Hiraishin / Edo Tensei); full gore table (opt-in routing)
+  "gojo",       // brutality roll-out — Gojo Satoru (Blue implode / Red repulse / Hollow Purple annihilate / Limitless); full gore table (opt-in routing)
+  "obito",      // Kamui rift / Ten-Tails / phase-through — full gore table (opt-in routing)
+  "rick","rickprime",   // portal-gun vacuum + guillotine (Prime adds temporal-ambush trait) — LOWERCASE (engine lowercases rosterKey)
+  "flash",      // Speed Force run — grabs + tears through multiple maps / time / dimension / space / sun
+  "killua",     // Killua — thunderhead / yo-yo / godspeed-flurry (trait)
+  "beerus",     // Beerus — Hakai / Sphere of Destruction / Judgment of Whis
+  "goku_rose","sasuke_adult","sasuke_sensei","naruto_seventh",
+  "naruto",    // Goku Black / Sasuke (Adult+Sensei) / Naruto (Seventh Hokage + teen naruto)
+  "shisui_fallen",   // Shisui (Fallen) — Body Flicker / Flicker Slice / Emerald Susano'o (trait)
+  "omega_ranger",   // Omega Ranger (S.P.D.) — Delta Enforcer: one shot → decapitation (gundecap)
+  "rengoku","zenitsu","shinobu","inosuke","nezuko"];   // Demon Slayer — canonical Breathing-Style finishers (Flame/Thunder/Insect/Beast/Blood-Demon; Nezuko by owner override)
 // Hard-exclusion list — must NEVER be eligible regardless of style.
-const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
+const EXCLUDED = ["boruto","kiba","gohan","gon","ben10","albedo","saiki","l_ryuuzaki","light"];   // killua + naruto[teen] + nezuko removed: age-gates lifted by owner request 2026-10-18/19
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
 const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
 const TABLE = {
-  sukuna:   { cleave:{n:"CLEAVE",g:"bisect"}, dismantle:{n:"DISMANTLE",g:"dice"}, domain:{n:"MALEVOLENT SHRINE",g:"shred"} },
-  toji:     { tojiG4:{n:"INVERTED SPEAR",g:"dismember"}, tojiSword2:{n:"SPLIT SOUL",g:"bisect"}, tojiRapidSlash:{n:"THOUSAND CUTS",g:"dice"} },
+  sukuna:   { cleave:{n:"CLEAVE",g:"decap"}, dismantle:{n:"DISMANTLE",g:"slashstorm"}, flameArrow:{n:"FUGA",g:"firearrow"}, domain:{n:"MALEVOLENT SHRINE",g:"domainslash"} },   // cinematic gore set (opt-in routing)
+  toji:     { tojiBullet:{n:"POINT BLANK",g:"gunshot"}, tojiChain5:{n:"INVERTED SPEAR",g:"spearrun"}, tojiRapidSlash:{n:"THOUSAND CUTS",g:"slashdance"}, tojiPlayfulCloud:{n:"PLAYFUL CLOUD",g:"bludgeon"}, grab:{n:"FLASH STEP",g:"flashgrab"}, tojiFlyHeads:{n:"CURSED ARSENAL",g:"flyheads"} },   // cinematic weapon set (opt-in routing)
   frieza:   { friezaDeathBeam:{n:"DEATH BEAM",g:"beam"}, friezaDeathBall:{n:"DEATH BALL",g:"crush"}, friezaRush3:{n:"TYRANT'S END",g:"dismember"} },
   omniman:  { omComboFin:{n:"VILTRUMITE FURY",g:"pulp"}, omSkewer:{n:"SKEWER",g:"dismember"}, ultimate:{n:"OBLITERATE",g:"pulp"} },
   zaraki:   { heavy:{n:"KENDO CLEAVE",g:"bisect"}, zarakiHollowStrike:{n:"HOLLOW STRIKE",g:"dismember"}, zarakiBankai:{n:"NOZARASHI",g:"shred"} },
   mayuri:   { mayuriCmd2:{n:"VIVISECTION",g:"dismember"}, mayuriPoison:{n:"NEUROTOXIN",g:"melt"}, ultimate:{n:"ASHISOGI JIZŌ",g:"crush"} },
-  madara:   { madaraSusanooPunch:{n:"SUSANOO SMASH",g:"pulp"}, heavy:{n:"SUSANOO BLADE",g:"bisect"}, ultimate:{n:"TENGAI SHINSEI",g:"shred"} },
-  jason:    { heavy:{n:"MACHETE CHOP",g:"decap"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, ultimate:{n:"MASSACRE",g:"pulp"} },
+  madara:   { madaraTengaiMeteor:{n:"TENGAI SHINSEI",g:"meteor"}, ultimate:{n:"TENGAI SHINSEI",g:"meteor"}, madaraSusanooPunch:{n:"SUSANO'O GRIP",g:"susanoograb"}, heavy:{n:"SUSANO'O SLAM",g:"susanooslam"}, madaraFireball:{n:"GREAT FIREBALL",g:"fireball"} },   // cinematic gore set (opt-in routing)
+  jason:    { heavy:{n:"MACHETE CHOP",g:"machetechop"}, jRelentless:{n:"RELENTLESS SLASH",g:"dismember"}, jasonMachete:{n:"MACHETE THROW",g:"decap"}, ultimate:{n:"MASSACRE",g:"pulp"} },
   naoya:    { naoyaCombo:{n:"PROJECTION",g:"dismember"}, naoyaDart:{n:"CURSED DART",g:"beam"}, ultimate:{n:"FRAME TRAP",g:"dice"} },
-  hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"dismember"}, hisoka_card:{n:"CARD THROW",g:"beam"} },
+  hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"bungeegum"}, hisoka_card:{n:"CARD STORM",g:"cardstorm"} },   // bungeegum LIVE · cardstorm snapshot (topples)
   ghostface:{ ghostfaceCombo3:{n:"FRENZY",g:"dismember"}, gfLunge:{n:"GUTTING LUNGE",g:"gut"}, ultimate:{n:"THE FINAL ACT",g:"decap"} },
   baki:     { bakiG2:{n:"GRAPPLE TEAR",g:"dismember"}, bakiRush:{n:"DEMON RUSH",g:"pulp"}, bakiRising:{n:"RISING FANG",g:"crush"} },
   // ── Tier 2 ──
@@ -46,12 +56,32 @@ const TABLE = {
   alt_sukuna:     { altSukunaCleave2:{n:"CLEAVE",g:"bisect"}, altSukunaBeam:{n:"FŪGA",g:"beam"}, altSukunaSpinkick:{n:"DISMANTLE",g:"dice"} },
   ghostface_billy:{ gfLunge:{n:"GUTTING LUNGE",g:"gut"}, gfLowCut:{n:"HAMSTRING",g:"dismember"}, ultimate:{n:"THE FINAL ACT",g:"dice"} },
   // ── Tier 3 (2026-09-17) ──
-  sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
+  sasuke:   { chidoriKoiten:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"LIONS FANG",g:"bladecut"}, susanooSword:{n:"SUSANO'O",g:"sasukesusanoo"}, up:{n:"KIRIN",g:"kirin"} },   // UPGRADED to LIVE set
   itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
   vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
-  pain:     { painAlmightyPull:{n:"TORN ASUNDER",g:"bisect"}, painAlmightyPush:{n:"CRUSHED",g:"crush"}, painSuperPushGround:{n:"SHATTERED FRAME",g:"dice"} },   // gravity finishers: Pull / Push / Super Push
+  pain:     { painAlmightyPush:{n:"ALMIGHTY PUSH",g:"squish"}, painAlmightyPull:{n:"ALMIGHTY PULL",g:"pull"}, ultimate:{n:"CHIBAKU TENSEI",g:"meteor"} },   // cinematic gore set (opt-in routing): squish + pull + meteor
   byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
   yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
+  // ── Brutality roll-out (2026-10-18): Obito / Rick / Rick Prime / Flash. Move-keyed entries only (Rick Prime's
+  //    TEMPORAL AMBUSH is a trait, tested in brutality_rick.mjs via setTrait). ──
+  obito:    { obitoKamuiDimension:{n:"KAMUI",g:"kamuivacuum"}, ultimate:{n:"TEN-TAILS",g:"juubi"}, heavy:{n:"PHASE EXECUTION",g:"phasekill"}, up:{n:"GEDŌ MAZŌ",g:"gedomazo"}, air:{n:"MOKUTON",g:"mokuton"} },   // cinematic Kamui set (opt-in routing)
+  rick:     { portalLaser:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, rocket:{n:"ROCKET",g:"fireball"}, selfDestructBlast:{n:"NUKE",g:"repulse"} },   // portal-gun gore + rocket/nuke (opt-in routing)
+  rickprime:{ primePortalBlast:{n:"PORTAL VACUUM",g:"portalvacuum"}, heavy:{n:"PORTAL GUILLOTINE",g:"portalguillotine"}, up:{n:"MULTIVERSE COLLAPSE",g:"implode"}, air:{n:"PORTAL BEAM",g:"annihilate"} },   // LOWERCASE table key; (+ __trait_rewind TEMPORAL AMBUSH, tested separately)
+  flash:    { grab:{n:"SPEED FORCE",g:"speedrun"}, spinAttack:{n:"CHRONO BREAK",g:"chronorun"}, tornado:{n:"DIMENSION RUN",g:"dimensionrun"}, heavy:{n:"DEAD SPACE",g:"spacevacuum"}, up:{n:"SUPERNOVA",g:"solarrun"} },   // Flash RUN family — maps/time/dimension/space/sun (opt-in routing)
+  killua:   { lightningPalm:{n:"THUNDERHEAD",g:"electrocute"}, killua_yoyo:{n:"YO-YO",g:"yoyobisect"} },   // Killua — electrocution / yo-yo bisect (+ __trait_godspeed GODSPEED FLURRY, tested separately via setTrait)
+  beerus:   { hakai:{n:"HAKAI",g:"hakai"}, ultimate:{n:"SPHERE OF DESTRUCTION",g:"destructionsphere"}, heavy:{n:"JUDGMENT OF WHIS",g:"whisslam"} },   // Beerus — erasure / god-ki orb / Whis slam (opt-in routing)
+  goku_rose:     { roseScythe:{n:"GOD SPLIT CUT",g:"bladecut"}, roseSword:{n:"SWORD OF LIGHT",g:"bladecut"}, roseKameha:{n:"BLACK KAMEHAMEHA",g:"annihilate"} },   // Goku Black (Rosé)
+  sasuke_adult:  { chidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, amaterasu:{n:"AMATERASU",g:"amaterasu"}, saChibakuTensei:{n:"CHIBAKU TENSEI",g:"implode"}, up:{n:"SUSANO'O",g:"sasukesusanoo"} },
+  sasuke_sensei: { ssChidori:{n:"CHIDORI",g:"electrocute"}, heavy:{n:"SWORD",g:"bladecut"}, ssAmaterasu:{n:"AMATERASU",g:"amaterasu"}, ssShinraTensei:{n:"RINNEGAN VOID",g:"implode"}, up:{n:"KIRIN",g:"kirin"} },
+  naruto_seventh:{ up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"}, n7Bijuudama:{n:"TAILED BEAST BOMB",g:"tbb"}, n7Rasengan:{n:"RASENGAN",g:"rasengan"}, n7Rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"} },   // Naruto (Seventh Hokage, adult)
+  naruto:        { tbb:{n:"TAILED BEAST BOMB",g:"tbb"}, rasengan:{n:"RASENGAN",g:"rasengan"}, rasenshuriken:{n:"RASENSHURIKEN",g:"rasenshuriken"}, up:{n:"UZUMAKI BARRAGE",g:"uzumakibarrage"} },   // Naruto (teen) — age-gate lifted
+  shisui_fallen: { shisuiFallenFlickerStrike:{n:"BODY FLICKER",g:"bodyflicker"}, heavy:{n:"FLICKER SLICE",g:"flickerslice"}, up:{n:"EMERALD SUSANO'O",g:"shisuisusanoo"}, shisuiFallenKotoamatsukami:{n:"KOTOAMATSUKAMI",g:"kotoamatsukami"} },   // Shisui (Fallen)
+  omega_ranger: { omGunBolt:{n:"DELTA ENFORCER",g:"gundecap"}, ultimate:{n:"OMEGA SABER",g:"swordsmoke"}, omSword7:{n:"OMEGA SABER",g:"swordsmoke"} },   // Omega Ranger (S.P.D.) — one shot → head drops · saber barrage from the smoke
+  rengoku: { heavy:{n:"FLAME BREATHING",g:"flamecleave"}, rengokuSuperDown:{n:"FLAME TIGER",g:"flamerush"}, ultimate:{n:"NINTH FORM: RENGOKU",g:"flamecleave"} },   // Flame tiger → incinerate
+  zenitsu: { zenUltimate:{n:"THUNDER BREATHING",g:"thunderdash"}, zenThunderclap:{n:"THUNDERCLAP & FLASH",g:"thunderdash"} },   // Godspeed bolt-dash
+  shinobu: { shinobuPoison:{n:"INSECT BREATHING",g:"poisonmelt"}, heavy:{n:"INSECT BREATHING",g:"poisonmelt"} },   // stabs → dissolve
+  inosuke: { inosukeB5:{n:"BEAST BREATHING",g:"beastmaul"}, beastLunge:{n:"BEAST BREATHING",g:"beastmaul"}, beastSpin:{n:"BEAST BREATHING",g:"beastmaul"} },   // dual-blade → chunks
+  nezuko: { nezukoCombo2:{n:"BLOOD DEMON ART",g:"bloodburst"}, nezukoUlt1a:{n:"EXPLODING BLOOD",g:"bloodburst"}, nezukoBite:{n:"BLOOD DEMON ART",g:"bloodburst"} },   // claw → pink detonation
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 
@@ -113,12 +143,12 @@ try {
   await page.evaluate(() => { window.__harness.brutality.setBrutality(true); window.__harness.brutality.setHp("p2", 500); });   // heal the dummy the OFF-trigger KO'd, so this is a genuine loser-alive case
   const timeOver = await page.evaluate(() => window.__harness.brutality.trigger("p1", false, "gfLunge"));
   check("time-over win (loser alive) → finisher does NOT trigger", timeOver === false);
-  const inelig = await page.evaluate(() => window.__harness.brutality.canTrigger("naruto"));
-  check("hard-excluded winner (Naruto) cannot trigger a finisher", inelig === false);
+  const inelig = await page.evaluate(() => window.__harness.brutality.canTrigger("gon"));   // naruto[teen]'s gate was lifted by owner request → use a still-excluded CHILD (Gon)
+  check("hard-excluded winner (Gon) cannot trigger a finisher", inelig === false);
 
   // ── LIVE finisher render per CHARACTER + per MOVE (real _tryStartBrutality + gore particles) ──────
   async function liveChar(ch) {
-    await boot(ch === "zaraki_shikai" ? "zaraki" : ch, "goku");
+    await boot(ch === "zaraki_shikai" ? "zaraki" : ch === "rickprime" ? "rickPrime" : ch, "goku");   // brutality table keys are lowercase; the character registry key for Rick Prime is camelCase "rickPrime"
     await page.evaluate(() => window.__harness.brutality.setBrutality(true));
     await page.evaluate(() => { window.__harness.start({ mode:"vs", difficulty:"easy" }); window.__harness.skipToBattle(); });
     await page.waitForTimeout(350);
@@ -128,9 +158,10 @@ try {
       const ok = await page.evaluate(m => window.__harness.brutality.trigger("p1", true, m), mv);
       await page.waitForTimeout(140);   // let the sprite-bisection capture + halves begin separating
       const s = await page.evaluate(() => window.__harness.brutality.state());
-      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && s.split === true && s.captured === true) good++;
+      const snapOK = s.live ? true : (s.split === true && s.captured === true);   // LIVE finishers animate the real fighters → no snapshot capture expected
+      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && snapOK) good++;
       else bad.push(`${mv}:${JSON.stringify(s)}`);
-      if (mv === moves[1][0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
+      if (mv === (moves[1] || moves[0])[0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
     }
     check(`LIVE ${ch}: all ${moves.length} per-move finishers fire (correct signature + sprite-bisection captured)`, bad.length === 0, bad.length ? bad.slice(0,2).join(" | ") : `${good}/${moves.length}`);
   }

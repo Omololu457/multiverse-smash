@@ -1,0 +1,1413 @@
+{
+  "rosterKey": "naruto",
+  "name": "Naruto",
+  "spriteScale": 2,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./naruto_kcm_stance.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 36,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 85,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 63
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 63
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 63
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 63
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./naruto_kcm_move.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.3,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./naruto_kcm_move.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.3,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./naruto_kcm_move.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.3,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 54
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./naruto_kcm_jump.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 49,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 115.6,
+        "h": 162.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./naruto_kcm_jump.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 49,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 196,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 115.6,
+        "h": 162.8
+      },
+      "rects": [
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        },
+        {
+          "x": 343,
+          "y": 0,
+          "w": 49,
+          "h": 69
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./naruto_kcm_guard.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 41,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 96.8,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./naruto_kcm_taking_damage.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.6,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./naruto_kcm_knocked_out_a.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 63,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 148.7,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 63,
+          "h": 49
+        }
+      ]
+    },
+    "transform": {
+      "sheet": "./naruto_kcm_win.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 24
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 103.8,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        },
+        {
+          "x": 44,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        },
+        {
+          "x": 88,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./naruto_kcm_win.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 24
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        },
+        {
+          "x": 44,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        },
+        {
+          "x": 88,
+          "y": 24,
+          "w": 44,
+          "h": 56
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./naruto_kcm_b_attack.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 122.7,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./naruto_kcm_y_attack.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 51,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 12
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 120.4,
+        "h": 188.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 51,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 102,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 153,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 204,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 255,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        },
+        {
+          "x": 306,
+          "y": 12,
+          "w": 51,
+          "h": 80
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./naruto_kcm_b_up_attack.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 51,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 120.4,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 306,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./naruto_kcm_y_up_attack.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 79,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 186.4,
+        "h": 174.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 395,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 474,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./naruto_kcm_b_down_attack.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 39,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./naruto_kcm_b_attack.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 122.7,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 53
+        }
+      ]
+    },
+    "rasengan_cast": {
+      "sheet": "./naruto_kcm_4_koma_body.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 52,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 122.7,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 364,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 416,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        },
+        {
+          "x": 520,
+          "y": 0,
+          "w": 52,
+          "h": 55
+        }
+      ]
+    },
+    "rasenshuriken_cast": {
+      "sheet": "./naruto_kcm_6_koma_body.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 51,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 120.4,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 306,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 357,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 459,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 510,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        },
+        {
+          "x": 561,
+          "y": 0,
+          "w": 51,
+          "h": 56
+        }
+      ]
+    },
+    "komaRasengan": {
+      "sheet": "./naruto_kcm_3koma_clone_row.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 41,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.8,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 41,
+          "h": 55
+        }
+      ]
+    },
+    "uzumakiRendan1": {
+      "sheet": "./naruto_kcm_b_up_attack.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 51,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 120.4,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        },
+        {
+          "x": 306,
+          "y": 0,
+          "w": 51,
+          "h": 53
+        }
+      ]
+    },
+    "uzumakiRendan2": {
+      "sheet": "./naruto_kcm_y_up_attack.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 79,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 186.4,
+        "h": 174.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 395,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        },
+        {
+          "x": 474,
+          "y": 0,
+          "w": 79,
+          "h": 74
+        }
+      ]
+    },
+    "uzumakiRendan3": {
+      "sheet": "./naruto_kcm_b_forward_attack.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 58,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 136.9,
+        "h": 110.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 47
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 47
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 47
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 47
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 47
+        }
+      ]
+    },
+    "uzumakiRendan4": {
+      "sheet": "./naruto_kcm_b_down_attack.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 39,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 52
+        }
+      ]
+    }
+  }
+}

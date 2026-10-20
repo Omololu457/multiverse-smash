@@ -1,0 +1,958 @@
+{
+  "rosterKey": "sukuna",
+  "name": "Sukuna",
+  "spriteScale": 1.8,
+  "globalScale": 1.18,
+  "actionCount": 19,
+  "actions": {
+    "idle": {
+      "sheet": "./sukuna_idle_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 27,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 57.3,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 27,
+          "h": 64
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./sukuna_walk_sheet.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 31,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 65.8,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 217,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./sukuna_walk_sheet.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 31,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 65.8,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 217,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 31,
+          "h": 63
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./sukuna_jump_sheet.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 28,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 59.5,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 61
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "w": 28,
+          "h": 61
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./sukuna_jump_sheet.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 28,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 59.5,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 61
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "w": 28,
+          "h": 61
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./sukuna_dash_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 52,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 110.4,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 59
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 59
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 59
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./sukuna_hurt_sheet.png",
+      "exists": false,
+      "frames": 2,
+      "cell": {
+        "w": 42,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.2,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 57
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 57
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "cleave": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "dismantle": {
+      "sheet": "./sukuna_attack_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 108.3,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 51
+        }
+      ]
+    },
+    "ultimate": {
+      "sheet": "./sukuna_ultimate_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 78.6,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 62
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 62
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 62
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 62
+        }
+      ]
+    },
+    "domain": {
+      "sheet": "./sukuna_domain_sheet.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 36,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.5,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        }
+      ]
+    },
+    "flame_arrow_charge": {
+      "sheet": "./sukuna_firearrow_charge_sheet.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 36,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.5,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 62
+        }
+      ]
+    },
+    "flame_arrow_fire": {
+      "sheet": "./sukuna_firearrow_fire_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 59,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.3,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        }
+      ]
+    }
+  }
+}

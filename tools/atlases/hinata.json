@@ -1,0 +1,1413 @@
+{
+  "rosterKey": "hinata",
+  "name": "Hinata Hyuga",
+  "spriteScale": 1.5,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./hinata_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 97.3,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./hinata_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 72,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 102.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./hinata_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 72,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 102.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 58
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./hinata_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 118.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./hinata_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./hinata_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 77
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./hinata_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.1,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 60
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 60
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./hinata_knockdown_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 82,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.1,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 410,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./hinata_knockdown_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 82,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.1,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 410,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 82,
+          "h": 70
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./hinata_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 52,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 63
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 63
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./hinata_intro_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.8,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 71
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 71
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 71
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 71
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 71
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./hinata_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 33,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 58.4,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 71
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "w": 33,
+          "h": 71
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 33,
+          "h": 71
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 33,
+          "h": 71
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./hinata_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 97.3,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 68
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./hinata_light_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 86,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.2,
+        "h": 122.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 516,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        },
+        {
+          "x": 602,
+          "y": 0,
+          "w": 86,
+          "h": 69
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./hinata_heavy_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 73,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.2,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 511,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./hinata_up_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 81,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.4,
+        "h": 164.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        },
+        {
+          "x": 486,
+          "y": 0,
+          "w": 81,
+          "h": 93
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./hinata_air_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 66,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 118.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 66,
+          "h": 67
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./hinata_down_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 77,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.3,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 63
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 63
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 63
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 63
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 63
+        }
+      ]
+    },
+    "hhByakugan": {
+      "sheet": "./hinata_byakugan_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 88,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.8,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 71
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 71
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 71
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 88,
+          "h": 71
+        }
+      ]
+    },
+    "hhShugo": {
+      "sheet": "./hinata_shugo_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 71,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.7,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 72
+        }
+      ]
+    },
+    "hhHasangeki": {
+      "sheet": "./hinata_hasangeki_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 77,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.3,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 71
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 71
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 71
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 71
+        }
+      ]
+    },
+    "hhGentleFist": {
+      "sheet": "./hinata_gf_rush_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 93,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 164.6,
+        "h": 90.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 465,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 558,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 651,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        },
+        {
+          "x": 744,
+          "y": 0,
+          "w": 93,
+          "h": 51
+        }
+      ]
+    },
+    "hhHakkesho": {
+      "sheet": "./hinata_hakkesho_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 71,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.7,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 497,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        }
+      ]
+    },
+    "hhJuuhou": {
+      "sheet": "./hinata_juuhou_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 72,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 576,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 648,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        }
+      ]
+    }
+  }
+}

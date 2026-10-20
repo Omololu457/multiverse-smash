@@ -1,0 +1,1008 @@
+{
+  "rosterKey": "naoya",
+  "name": "Naoya Zenin",
+  "spriteScale": 1.6,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./naoya_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 69.9,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 66
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 66
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 66
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 66
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./naoya_walk_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 103.8,
+        "h": 126.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 495,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./naoya_dash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 66,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 124.6,
+        "h": 96.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./naoya_dash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 66,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 124.6,
+        "h": 96.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./naoya_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 41,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 77.4,
+        "h": 139.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./naoya_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 50,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.4,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./naoya_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 72,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 63
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 63
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 63
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 63
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./naoya_lose_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 57,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 63
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./naoya_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 60,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 113.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 60
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 60
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 60
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./naoya_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.8,
+        "h": 117.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./naoya_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.8,
+        "h": 117.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./naoya_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 73,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.8,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./naoya_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 73,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.8,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 65
+        }
+      ]
+    },
+    "naoyaCombo": {
+      "sheet": "./naoya_combo_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 66,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        }
+      ]
+    },
+    "naoyaEnergyDart": {
+      "sheet": "./naoya_energy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 140,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 264.3,
+        "h": 126.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 67
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 67
+        }
+      ]
+    },
+    "naoyaPitch": {
+      "sheet": "./naoya_pitch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 75,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.6,
+        "h": 98.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 52
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 52
+        }
+      ]
+    },
+    "naoyaFrameSkip": {
+      "sheet": "./naoya_dash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 66,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 96.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 51
+        }
+      ]
+    },
+    "naoyaFrameTrap": {
+      "sheet": "./naoya_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 41,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 77.4,
+        "h": 139.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 74
+        }
+      ]
+    },
+    "naoyaFtStep1": {
+      "sheet": "./naoya_combo_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 66,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 70
+        }
+      ]
+    },
+    "naoyaFtStep2": {
+      "sheet": "./naoya_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.8,
+        "h": 117.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        }
+      ]
+    },
+    "naoyaFtFinish": {
+      "sheet": "./naoya_ftfinish_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 51,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.3,
+        "h": 134
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 71
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 71
+        }
+      ]
+    }
+  }
+}

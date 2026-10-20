@@ -1,0 +1,1119 @@
+{
+  "rosterKey": "alt_sukuna",
+  "name": "Alternate Sukuna",
+  "spriteScale": 1.8,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./alt_sukuna_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 25,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 53.1,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 62
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "w": 25,
+          "h": 62
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 25,
+          "h": 62
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./alt_sukuna_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 52,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 110.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./alt_sukuna_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 52,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 110.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 61
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./alt_sukuna_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 38,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 80.7,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 49
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 49
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./alt_sukuna_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 29,
+        "h": 38
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 61.6,
+        "h": 80.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 38
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 38
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 38
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./alt_sukuna_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.6,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./alt_sukuna_fall_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 29,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 61.6,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 60
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 60
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 60
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./alt_sukuna_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 37,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.6,
+        "h": 112.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 53
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./alt_sukuna_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 36,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.5,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 49
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 49
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 49
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./alt_sukuna_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 57,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 65.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 31
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 31
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./alt_sukuna_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 36,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.5,
+        "h": 82.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./alt_sukuna_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 27,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 57.3,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 58
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 58
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 58
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./alt_sukuna_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 37,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.6,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 54
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 54
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 54
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./alt_sukuna_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 40,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 59
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 59
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 59
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 59
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./alt_sukuna_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 67,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 142.3,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./alt_sukuna_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 67,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 142.3,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./alt_sukuna_grab_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.5,
+        "h": 112.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 53
+        }
+      ]
+    },
+    "altSukunaCleave1": {
+      "sheet": "./alt_sukuna_cleave1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.7,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 61
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 61
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 61
+        }
+      ]
+    },
+    "altSukunaCleave2": {
+      "sheet": "./alt_sukuna_cleave2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        }
+      ]
+    },
+    "altSukunaBeam": {
+      "sheet": "./alt_sukuna_beam_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 68,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.4,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 62
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 62
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 62
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 62
+        }
+      ]
+    },
+    "altSukunaSpinkick": {
+      "sheet": "./alt_sukuna_spinkick_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.9,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        }
+      ]
+    },
+    "altSukunaUltCharge": {
+      "sheet": "./alt_sukuna_ultcharge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 29,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 61.6,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 62
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 62
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 62
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 62
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 29,
+          "h": 62
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./alt_sukuna_intro_uniform.png",
+      "exists": true,
+      "frames": 13,
+      "cell": {
+        "w": 41,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.1,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 287,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 369,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 410,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 451,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./alt_sukuna_win_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 56
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 56
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 56
+        }
+      ]
+    }
+  }
+}

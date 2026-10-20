@@ -1,0 +1,941 @@
+{
+  "rosterKey": "gogeta",
+  "name": "Gogeta (Ultra Instinct)",
+  "spriteScale": 1.66,
+  "globalScale": 1.18,
+  "actionCount": 20,
+  "actions": {
+    "idle": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./gogeta_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./gogeta_combat_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./gogeta_combat_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./gogeta_combat_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./gogeta_combat_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./gogeta_combat_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./gogeta_aura_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.3,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./gogeta_aura_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 82.3,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        }
+      ]
+    },
+    "gogetaKi": {
+      "sheet": "./gogeta_kiblast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "gogetaKameha": {
+      "sheet": "./gogeta_kiblast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.7,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    },
+    "gogetaAura": {
+      "sheet": "./gogeta_aura_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.3,
+        "h": 131.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 67
+        }
+      ]
+    }
+  }
+}

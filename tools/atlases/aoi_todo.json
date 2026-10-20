@@ -1,0 +1,1388 @@
+{
+  "rosterKey": "aoi_todo",
+  "name": "Aoi Todo",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 29,
+  "actions": {
+    "idle": {
+      "sheet": "./aoi_todo_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 36,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 80.7,
+        "h": 165.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 74
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./aoi_todo_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.6,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./aoi_todo_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.6,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./aoi_todo_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.6,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./aoi_todo_crouch_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 60
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 60
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 60
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 60
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./aoi_todo_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 48,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 172.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./aoi_todo_fall_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 44,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./aoi_todo_guard_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 43,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.4,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./aoi_todo_hurt_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 51,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.3,
+        "h": 154.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 69
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 69
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 69
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 69
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./aoi_todo_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 84,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.3,
+        "h": 145.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 65
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 65
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 84,
+          "h": 65
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 84,
+          "h": 65
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./aoi_todo_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 61
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 61
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./aoi_todo_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 46,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.1,
+        "h": 154.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 69
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./aoi_todo_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 53,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 67
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 67
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 67
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./aoi_todo_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 62,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 159.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 71
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 71
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./aoi_todo_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 172.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./aoi_todo_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.6,
+        "h": 172.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 77
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./aoi_todo_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 57,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 100.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 45
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 45
+        }
+      ]
+    },
+    "todoCombo1": {
+      "sheet": "./aoi_todo_combo1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 46,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.1,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 62
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 62
+        }
+      ]
+    },
+    "todoCombo2": {
+      "sheet": "./aoi_todo_combo2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 57,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 68
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 68
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 68
+        }
+      ]
+    },
+    "todoCombo3": {
+      "sheet": "./aoi_todo_combo3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.6,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 68
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 68
+        }
+      ]
+    },
+    "todoGun": {
+      "sheet": "./aoi_todo_gun_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 44,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 66
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 66
+        }
+      ]
+    },
+    "todoFireKick": {
+      "sheet": "./aoi_todo_firekick_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 68,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.5,
+        "h": 156.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        }
+      ]
+    },
+    "todoWhip": {
+      "sheet": "./aoi_todo_whip_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 112,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 251.1,
+        "h": 159.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 71
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 71
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 112,
+          "h": 71
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 112,
+          "h": 71
+        }
+      ]
+    },
+    "todoSpin": {
+      "sheet": "./aoi_todo_spin_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 69,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.7,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 61
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 61
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 61
+        }
+      ]
+    },
+    "todoArmor": {
+      "sheet": "./aoi_todo_armor_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 34,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.2,
+        "h": 174.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        }
+      ]
+    },
+    "todoDive": {
+      "sheet": "./aoi_todo_dive_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 56
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 56
+        }
+      ]
+    },
+    "todoClap": {
+      "sheet": "./aoi_todo_guard_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 43,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.4,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 72
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./aoi_todo_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 100,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 224.2,
+        "h": 235.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 105
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 105
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 100,
+          "h": 105
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 100,
+          "h": 105
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./aoi_todo_lose_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 32,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 71.7,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 72
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 72
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 72
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 72
+        }
+      ]
+    }
+  }
+}

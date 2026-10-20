@@ -1,0 +1,1560 @@
+{
+  "rosterKey": "superman_fighter",
+  "name": "Superman (Fighter)",
+  "spriteScale": 1.8,
+  "globalScale": 1.18,
+  "actionCount": 33,
+  "actions": {
+    "idle": {
+      "sheet": "./superman_fighter_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 60,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./superman_fighter_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 62,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 131.7,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./superman_fighter_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 62,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 131.7,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./superman_fighter_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 62,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 131.7,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 64
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./superman_fighter_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.9,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./superman_fighter_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.9,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./superman_fighter_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./superman_fighter_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./superman_fighter_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 61,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.6,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./superman_fighter_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.1,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 58
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 58
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 58
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./superman_fighter_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 39,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.8,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 49
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./superman_fighter_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 60,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 61
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./superman_fighter_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.6,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./superman_fighter_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.9,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./superman_fighter_up_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 62,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.7,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./superman_fighter_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 68
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 32
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 32
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./superman_fighter_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 68
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 32
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 32
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./superman_fighter_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 40,
+        "h": 37
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 78.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 37
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 37
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 37
+        }
+      ]
+    },
+    "supFtrRush1": {
+      "sheet": "./superman_fighter_rush1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 101,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 214.5,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 61
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 61
+        }
+      ]
+    },
+    "supFtrRush2": {
+      "sheet": "./superman_fighter_rush2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 104,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 220.9,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 104,
+          "h": 63
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 104,
+          "h": 63
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 104,
+          "h": 63
+        }
+      ]
+    },
+    "supFtrRush3": {
+      "sheet": "./superman_fighter_rush3_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 169.9,
+        "h": 68
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 32
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 32
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 32
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 32
+        }
+      ]
+    },
+    "supFtrHeat": {
+      "sheet": "./superman_fighter_heatvision_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 128,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 271.9,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 50
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 128,
+          "h": 50
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 128,
+          "h": 50
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 128,
+          "h": 50
+        }
+      ]
+    },
+    "supFtrX": {
+      "sheet": "./superman_fighter_xblast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 160,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 339.8,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 160,
+          "h": 61
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 160,
+          "h": 61
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 160,
+          "h": 61
+        }
+      ]
+    },
+    "supFtrFrost": {
+      "sheet": "./superman_fighter_frost_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 112,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 237.9,
+        "h": 242.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        },
+        {
+          "x": 448,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        },
+        {
+          "x": 560,
+          "y": 0,
+          "w": 112,
+          "h": 114
+        }
+      ]
+    },
+    "supFtrIce": {
+      "sheet": "./superman_fighter_ice_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 124,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 263.4,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 496,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 620,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        },
+        {
+          "x": 744,
+          "y": 0,
+          "w": 124,
+          "h": 49
+        }
+      ]
+    },
+    "supFtrAerIce": {
+      "sheet": "./superman_fighter_aerice_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 80,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 169.9,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 80,
+          "h": 50
+        }
+      ]
+    },
+    "supFtrUlt": {
+      "sheet": "./superman_fighter_ult_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 230,
+        "h": 189
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 488.5,
+        "h": 401.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 230,
+          "h": 189
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 230,
+          "h": 189
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 230,
+          "h": 189
+        },
+        {
+          "x": 690,
+          "y": 0,
+          "w": 230,
+          "h": 189
+        },
+        {
+          "x": 920,
+          "y": 0,
+          "w": 230,
+          "h": 189
+        }
+      ]
+    },
+    "fly": {
+      "sheet": "./superman_fighter_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 140.2,
+        "h": 70.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        }
+      ]
+    },
+    "flyMove": {
+      "sheet": "./superman_fighter_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 140.2,
+        "h": 70.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        }
+      ]
+    },
+    "forcedDescent": {
+      "sheet": "./superman_fighter_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 70.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 33
+        }
+      ]
+    },
+    "descentLand": {
+      "sheet": "./superman_fighter_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 55,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 123.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 58
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./superman_fighter_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 94,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 199.7,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 76
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 76
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 94,
+          "h": 76
+        },
+        {
+          "x": 282,
+          "y": 0,
+          "w": 94,
+          "h": 76
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./superman_fighter_lose_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 40,
+        "h": 29
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85,
+        "h": 61.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 29
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 29
+        }
+      ]
+    }
+  }
+}

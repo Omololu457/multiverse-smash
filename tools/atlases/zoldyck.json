@@ -1,0 +1,1979 @@
+{
+  "rosterKey": "zoldyck",
+  "name": "Killua (Godspeed)",
+  "spriteScale": 2.1,
+  "globalScale": 1.18,
+  "actionCount": 32,
+  "actions": {
+    "idle": {
+      "sheet": "./zoldyck_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 36,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.2,
+        "h": 109
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 44
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 44
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 44
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 44
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./zoldyck_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 50,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 123.9,
+        "h": 106.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./zoldyck_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 50,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 123.9,
+        "h": 106.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 50,
+          "h": 43
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./zoldyck_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 29
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.8,
+        "h": 71.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 29
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 29
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./zoldyck_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 39,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.6,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./zoldyck_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 39,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 195,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.6,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 42
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./zoldyck_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 32,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.3,
+        "h": 109
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 44
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 44
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./zoldyck_hurt_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 52,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 116.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./zoldyck_knockdown_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.8,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 46
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./zoldyck_hurt_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 52,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 116.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 47
+        }
+      ]
+    },
+    "hang": {
+      "sheet": "./zoldyck_hang_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 36,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.2,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 46
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 46
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./zoldyck_charge_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 71.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./zoldyck_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 116.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./zoldyck_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 104.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 42
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 42
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 42
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 42
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./zoldyck_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 45,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 54
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 54
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./zoldyck_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 47,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.5,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 45
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 45
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 45
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 45
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 45
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./zoldyck_downair_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 83,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 205.7,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 332,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 415,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        },
+        {
+          "x": 498,
+          "y": 0,
+          "w": 83,
+          "h": 63
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./zoldyck_win_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 41,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 101.6,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 46
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 46
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./zoldyck_lose_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 29,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 71.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        },
+        {
+          "x": 145,
+          "y": 0,
+          "w": 29,
+          "h": 48
+        }
+      ]
+    },
+    "zoldyckYoyo": {
+      "sheet": "./zoldyck_yoyothrow_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 146,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 361.8,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 584,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 730,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 876,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 1022,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        },
+        {
+          "x": 1168,
+          "y": 0,
+          "w": 146,
+          "h": 48
+        }
+      ]
+    },
+    "zoldyckOrbit": {
+      "sheet": "./zoldyck_yoyoorbit_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 45,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 198.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 45,
+          "h": 80
+        }
+      ]
+    },
+    "zoldyckClaw": {
+      "sheet": "./zoldyck_claw_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 79,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 195.8,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 395,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 474,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        },
+        {
+          "x": 553,
+          "y": 0,
+          "w": 79,
+          "h": 48
+        }
+      ]
+    },
+    "zoldyckPalm": {
+      "sheet": "./zoldyck_palm_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 37,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.7,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 52
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 52
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 52
+        }
+      ]
+    },
+    "zoldyckCommand": {
+      "sheet": "./zoldyck_command_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 47,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.5,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 282,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        }
+      ]
+    },
+    "zoldyckThunderbolt": {
+      "sheet": "./zoldyck_thunderbolt_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 62,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.6,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 434,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        },
+        {
+          "x": 496,
+          "y": 0,
+          "w": 62,
+          "h": 48
+        }
+      ]
+    },
+    "zoldyckRhythmEcho": {
+      "sheet": "./zoldyck_rhythmecho_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 77,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190.8,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 46
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 46
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 46
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 46
+        }
+      ]
+    },
+    "zoldyckEchoStrike": {
+      "sheet": "./zoldyck_echostrike_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 77,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190.8,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 539,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 693,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 77,
+          "h": 51
+        }
+      ]
+    },
+    "zoldyckNarukami": {
+      "sheet": "./zoldyck_narukami_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 35,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 175,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 35,
+          "h": 48
+        }
+      ]
+    },
+    "zoldyckSnack": {
+      "sheet": "./zoldyck_snackbreak_uniform.png",
+      "exists": true,
+      "frames": 14,
+      "cell": {
+        "w": 59,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.2,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 295,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 354,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 413,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 472,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 531,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 590,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 649,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 708,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        },
+        {
+          "x": 767,
+          "y": 0,
+          "w": 59,
+          "h": 50
+        }
+      ]
+    },
+    "zoldyckBarrage": {
+      "sheet": "./zoldyck_barrage_uniform.png",
+      "exists": true,
+      "frames": 17,
+      "cell": {
+        "w": 62,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.6,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 434,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 496,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 558,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 620,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 682,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 744,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 806,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 868,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 930,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        },
+        {
+          "x": 992,
+          "y": 0,
+          "w": 62,
+          "h": 50
+        }
+      ]
+    },
+    "zoldyckGsRun": {
+      "sheet": "./zoldyck_gsrun_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 39,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 96.6,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 46
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 46
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 46
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 46
+        }
+      ]
+    },
+    "zoldyckGsCrouch": {
+      "sheet": "./zoldyck_gscrouch_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 121,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 299.8,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        },
+        {
+          "x": 121,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        },
+        {
+          "x": 242,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        },
+        {
+          "x": 363,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        },
+        {
+          "x": 484,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        },
+        {
+          "x": 605,
+          "y": 0,
+          "w": 121,
+          "h": 55
+        }
+      ]
+    }
+  }
+}

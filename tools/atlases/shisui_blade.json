@@ -1,0 +1,1273 @@
+{
+  "rosterKey": "shisui_blade",
+  "name": "Shisui (Blade)",
+  "spriteScale": 1.35,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./shisui_blade_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 46.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./shisui_blade_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 102,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./shisui_blade_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 102,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./shisui_blade_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102,
+        "h": 109.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 69
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./shisui_blade_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.2,
+        "h": 130.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./shisui_blade_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.2,
+        "h": 130.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./shisui_blade_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94,
+        "h": 108.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 68
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 68
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./shisui_blade_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 85,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 49.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 31
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 31
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./shisui_blade_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 85,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 49.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 31
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 31
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./shisui_blade_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 72,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.7,
+        "h": 79.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 50
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./shisui_blade_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 50,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 83
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./shisui_blade_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 46.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./shisui_blade_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 46.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./shisui_blade_win_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 49,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 78.1,
+        "h": 130.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./shisui_blade_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 46.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 84
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./shisui_blade_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 68,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.3,
+        "h": 130.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./shisui_blade_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 70,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./shisui_blade_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./shisui_blade_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 69,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 146.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./shisui_blade_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 69,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 146.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 92
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./shisui_blade_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 68,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.3,
+        "h": 130.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 82
+        }
+      ]
+    },
+    "shiBackstab": {
+      "sheet": "./shisui_blade_feint_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 71,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.1,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        }
+      ]
+    },
+    "blKunai": {
+      "sheet": "./shisui_blade_kunai_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 50,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.6,
+        "h": 90.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 57
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 57
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 57
+        }
+      ]
+    },
+    "blIaido": {
+      "sheet": "./shisui_blade_iaido_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 81,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 88
+        }
+      ]
+    },
+    "blRising": {
+      "sheet": "./shisui_blade_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 70,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        }
+      ]
+    },
+    "blFeint": {
+      "sheet": "./shisui_blade_feint_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 71,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.1,
+        "h": 119.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 75
+        }
+      ]
+    },
+    "blFocus": {
+      "sheet": "./shisui_blade_focus_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 26,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 41.4,
+        "h": 106.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 67
+        }
+      ]
+    },
+    "blThousand": {
+      "sheet": "./shisui_blade_finisher_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 67,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.7,
+        "h": 129
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 335,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        },
+        {
+          "x": 469,
+          "y": 0,
+          "w": 67,
+          "h": 81
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1284 @@
+{
+  "rosterKey": "omololu",
+  "name": "Omololu",
+  "spriteScale": 1.3,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./omololu_idle_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 40,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 61.4,
+        "h": 130.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 85
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 85
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 85
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 85
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 40,
+          "h": 85
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./omololu_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.5,
+        "h": 99.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./omololu_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.5,
+        "h": 99.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 65
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./omololu_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 65,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.7,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 87
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 87
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 87
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./omololu_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.6,
+        "h": 121.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 79
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 79
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 79
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./omololu_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 61,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 122,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.6,
+        "h": 121.2
+      },
+      "rects": [
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 79
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./omololu_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 49,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.2,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 80
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./omololu_light_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 90,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./omololu_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 87,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./omololu_up_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 91,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.6,
+        "h": 127.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        },
+        {
+          "x": 91,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        },
+        {
+          "x": 182,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        },
+        {
+          "x": 273,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        },
+        {
+          "x": 364,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        },
+        {
+          "x": 455,
+          "y": 0,
+          "w": 91,
+          "h": 83
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./omololu_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 76,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.6,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./omololu_downair_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 72,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.4,
+        "h": 118.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 77
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 77
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 77
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 77
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./omololu_hit1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 55,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 84
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 84
+        }
+      ]
+    },
+    "hurt_air": {
+      "sheet": "./omololu_hit2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 53,
+        "h": 86
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 81.3,
+        "h": 131.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 86
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 86
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 86
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./omololu_hit3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 87,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 79.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 52
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 52
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./omololu_hit4_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.8,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 80
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 80
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./omololu_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 89,
+        "h": 95.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 62
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 62
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 62
+        }
+      ]
+    },
+    "backDash": {
+      "sheet": "./omololu_back_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 55,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.4,
+        "h": 112
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 73
+        }
+      ]
+    },
+    "blockAir": {
+      "sheet": "./omololu_block_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 48,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 73.6,
+        "h": 122.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 80
+        }
+      ]
+    },
+    "obitoRod1": {
+      "sheet": "./omololu_light_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 90,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 90,
+          "h": 84
+        }
+      ]
+    },
+    "obitoRod2": {
+      "sheet": "./omololu_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 87,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 87,
+          "h": 81
+        }
+      ]
+    },
+    "obitoRod3": {
+      "sheet": "./omololu_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 76,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.6,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        }
+      ]
+    },
+    "obitoShurCast": {
+      "sheet": "./omololu_shurcast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.2,
+        "h": 125.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        }
+      ]
+    },
+    "obitoShurCastAir": {
+      "sheet": "./omololu_shurcast_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 59,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.5,
+        "h": 118.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 77
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 77
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 77
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 77
+        }
+      ]
+    },
+    "obitoRodCast": {
+      "sheet": "./omololu_rodcast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.8,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 84
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 84
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 84
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 84
+        }
+      ]
+    },
+    "obitoTeleport": {
+      "sheet": "./omololu_teleport_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 92,
+        "h": 131
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.1,
+        "h": 201
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        },
+        {
+          "x": 368,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 92,
+          "h": 131
+        }
+      ]
+    },
+    "obitoKamuiActivate": {
+      "sheet": "./omololu_kamui_activate_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.5,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 84
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 84
+        }
+      ]
+    }
+  }
+}

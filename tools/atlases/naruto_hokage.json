@@ -1,0 +1,888 @@
+{
+  "rosterKey": "naruto_hokage",
+  "name": "Naruto (Adult KCM)",
+  "spriteScale": 1.5,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./naruto_hokage_kcm_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 47,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 83.2,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./naruto_hokage_kcm_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 131,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./naruto_hokage_kcm_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 131,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 71
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./naruto_hokage_kcm_dash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 89,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.5,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 178,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 267,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 356,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./naruto_hokage_kcm_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 185.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./naruto_hokage_kcm_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 185.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 105
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./naruto_hokage_kcm_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 47,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.2,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./naruto_hokage_kcm_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 52,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 76
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 76
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 76
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./naruto_hokage_kcm_knockdown_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 73,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.2,
+        "h": 81.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 46
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./naruto_hokage_kcm_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 93.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 53
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 53
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./naruto_hokage_kcm_light_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 95,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.1,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        },
+        {
+          "x": 380,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        },
+        {
+          "x": 475,
+          "y": 0,
+          "w": 95,
+          "h": 78
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./naruto_hokage_kcm_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.4,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 76
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 76
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./naruto_hokage_kcm_flip_kick_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 55,
+        "h": 107
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.3,
+        "h": 189.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 107
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 107
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./naruto_hokage_kcm_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 84
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 84
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./naruto_hokage_kcm_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 84
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 84
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./naruto_hokage_kcm_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 47,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.2,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./naruto_hokage_kcm_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 51,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.3,
+        "h": 171.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 97
+        }
+      ]
+    },
+    "nhDash": {
+      "sheet": "./naruto_hokage_kcm_dash_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 89,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.5,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 178,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 267,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        },
+        {
+          "x": 356,
+          "y": 0,
+          "w": 89,
+          "h": 75
+        }
+      ]
+    },
+    "nhFlipKick": {
+      "sheet": "./naruto_hokage_kcm_flip_kick_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 55,
+        "h": 107
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.3,
+        "h": 189.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 107
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 107
+        }
+      ]
+    },
+    "nhChakraArm": {
+      "sheet": "./naruto_hokage_kcm_chakra_arm_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 94,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 166.4,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 66
+        }
+      ]
+    },
+    "nhGather": {
+      "sheet": "./naruto_hokage_kcm_gather_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 42,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 74.3,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 83
+        }
+      ]
+    }
+  }
+}

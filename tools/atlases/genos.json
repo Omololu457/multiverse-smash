@@ -1,0 +1,1591 @@
+{
+  "rosterKey": "genos",
+  "name": "Genos",
+  "spriteScale": 1.62,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./genos_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 27,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 51.6,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 27,
+          "h": 71
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "w": 27,
+          "h": 71
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 27,
+          "h": 71
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 27,
+          "h": 71
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./genos_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 31,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 59.3,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        },
+        {
+          "x": 217,
+          "y": 0,
+          "w": 31,
+          "h": 71
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./genos_run_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 45,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86,
+        "h": 145.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 315,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 45,
+          "h": 76
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./genos_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.7,
+        "h": 89.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 47
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 47
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./genos_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 32,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 61.2,
+        "h": 174
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 91
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 91
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 91
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./genos_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 32,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 64,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 61.2,
+        "h": 174
+      },
+      "rects": [
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 91
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./genos_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 40,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.5,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./genos_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.3,
+        "h": 74.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./genos_getup_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 48,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.8,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 71
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 71
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 71
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 71
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 71
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./genos_taunt_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 45,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./genos_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 45,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./genos_heavy_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.9,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./genos_heavy_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.9,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./genos_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.3,
+        "h": 122.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./genos_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.3,
+        "h": 122.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./genos_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 38,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.6,
+        "h": 107
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 56
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 56
+        }
+      ]
+    },
+    "genosRush1": {
+      "sheet": "./genos_rush1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 57,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 122.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 64
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 64
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 64
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 64
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 64
+        }
+      ]
+    },
+    "genosRush2": {
+      "sheet": "./genos_rush2_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 70,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.8,
+        "h": 126.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        }
+      ]
+    },
+    "genosRush3": {
+      "sheet": "./genos_rush3_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 73,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.5,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        },
+        {
+          "x": 511,
+          "y": 0,
+          "w": 73,
+          "h": 70
+        }
+      ]
+    },
+    "genosIncinerate1": {
+      "sheet": "./genos_incinerate1_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 117,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 223.7,
+        "h": 118.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 585,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        },
+        {
+          "x": 702,
+          "y": 0,
+          "w": 117,
+          "h": 62
+        }
+      ]
+    },
+    "genosIncinerate2": {
+      "sheet": "./genos_incinerate2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 152,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 290.6,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        },
+        {
+          "x": 456,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        },
+        {
+          "x": 608,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        },
+        {
+          "x": 760,
+          "y": 0,
+          "w": 152,
+          "h": 65
+        }
+      ]
+    },
+    "genosIncinerate3": {
+      "sheet": "./genos_incinerate3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 128,
+        "h": 191
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 244.7,
+        "h": 365.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 191
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 128,
+          "h": 191
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 128,
+          "h": 191
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 128,
+          "h": 191
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "w": 128,
+          "h": 191
+        }
+      ]
+    },
+    "genosMachinegun": {
+      "sheet": "./genos_machinegun_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 123,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 235.1,
+        "h": 156.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 369,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 615,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        },
+        {
+          "x": 738,
+          "y": 0,
+          "w": 123,
+          "h": 82
+        }
+      ]
+    },
+    "genosJetdash": {
+      "sheet": "./genos_jetdash_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 70,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.8,
+        "h": 122.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 70,
+          "h": 64
+        }
+      ]
+    },
+    "genosAfterimage": {
+      "sheet": "./genos_afterimage_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 73,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.5,
+        "h": 128.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 511,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        },
+        {
+          "x": 584,
+          "y": 0,
+          "w": 73,
+          "h": 67
+        }
+      ]
+    },
+    "genosOverdrive": {
+      "sheet": "./genos_overdrive_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 49,
+        "h": 127
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.7,
+        "h": 242.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 127
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./genos_win_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 45,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 71
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./genos_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.3,
+        "h": 74.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 39
+        }
+      ]
+    }
+  }
+}

@@ -163,7 +163,11 @@ function applyDamage(ctx, snd) {
     })
   }
   snd?.play?.(blocked ? SFX.BLOCK : SFX.HIT_HEAVY)
-  if (opp.health <= 0) snd?.play?.(SFX.KO)
+  if (opp.health <= 0) { snd?.play?.(SFX.KO)
+    // Stamp the ult as the killing-blow move so the TEN-TAILS brutality fires as the FINISH when the cinematic ends
+    // (the Juubi cinematic uses applyScaledDamage, which doesn't set this). Presentation-only field; read by the
+    // brutality resolver → escalation handoff (same pattern as Impact-Hit → Brutality). No sim effect.
+    if (cine.caster) cine.caster._killingBlowMove = "ultimate" }
 }
 
 function endCine() {

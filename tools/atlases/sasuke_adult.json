@@ -1,0 +1,1454 @@
+{
+  "rosterKey": "sasuke_adult",
+  "name": "Sasuke (Adult)",
+  "spriteScale": 1.5,
+  "globalScale": 1.18,
+  "actionCount": 29,
+  "actions": {
+    "idle": {
+      "sheet": "./sasuke_adult_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 38,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 67.3,
+        "h": 143.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 81
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 81
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 81
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 81
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./sasuke_adult_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 77,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 136.3,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./sasuke_adult_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 77,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 136.3,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./sasuke_adult_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 77,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.3,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 66
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./sasuke_adult_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./sasuke_adult_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 77
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./sasuke_adult_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 49,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 143.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 81
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 81
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./sasuke_adult_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 49,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.7,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 83
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 83
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./sasuke_adult_knockdown_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 86,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.2,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        },
+        {
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 60
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./sasuke_adult_launched_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 69,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.1,
+        "h": 122.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./sasuke_adult_charge_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 34,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 60.2,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 82
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./sasuke_adult_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 85,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.4,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 76
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 76
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 76
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 76
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./sasuke_adult_swordJ_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 118,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 208.9,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 70
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 118,
+          "h": 70
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 118,
+          "h": 70
+        },
+        {
+          "x": 354,
+          "y": 0,
+          "w": 118,
+          "h": 70
+        },
+        {
+          "x": 472,
+          "y": 0,
+          "w": 118,
+          "h": 70
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./sasuke_adult_swordG_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 93,
+        "h": 116
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 164.6,
+        "h": 205.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 465,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 558,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        },
+        {
+          "x": 651,
+          "y": 0,
+          "w": 93,
+          "h": 116
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./sasuke_adult_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 83,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.9,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 70
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 70
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 70
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 70
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./sasuke_adult_down_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 113,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 200,
+        "h": 131
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 74
+        },
+        {
+          "x": 113,
+          "y": 0,
+          "w": 113,
+          "h": 74
+        },
+        {
+          "x": 226,
+          "y": 0,
+          "w": 113,
+          "h": 74
+        }
+      ]
+    },
+    "throw": {
+      "sheet": "./sasuke_adult_throw_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        }
+      ]
+    },
+    "katon": {
+      "sheet": "./sasuke_adult_katon_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 70,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.9,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 82
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 82
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 82
+        }
+      ]
+    },
+    "katonAir": {
+      "sheet": "./sasuke_adult_katonAir_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 37,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 65.5,
+        "h": 129.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 73
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 73
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 73
+        }
+      ]
+    },
+    "chidori": {
+      "sheet": "./sasuke_adult_chidori_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 83,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.9,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 332,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 415,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 498,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        },
+        {
+          "x": 581,
+          "y": 0,
+          "w": 83,
+          "h": 84
+        }
+      ]
+    },
+    "chidoriAir": {
+      "sheet": "./sasuke_adult_chidoriAir_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 70,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.9,
+        "h": 150.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 85
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 85
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 85
+        }
+      ]
+    },
+    "chidoriNagashi": {
+      "sheet": "./sasuke_adult_chidoriNagashi_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        }
+      ]
+    },
+    "amaterasu": {
+      "sheet": "./sasuke_adult_amaterasu_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 75
+        }
+      ]
+    },
+    "swordSwap": {
+      "sheet": "./sasuke_adult_swordSwap_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 78,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.1,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 546,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 624,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 702,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 780,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        }
+      ]
+    },
+    "shinraTensei": {
+      "sheet": "./sasuke_adult_shinraTensei_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 49,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 82
+        }
+      ]
+    },
+    "banshouTenin": {
+      "sheet": "./sasuke_adult_banshouTenin_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 134.5,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        }
+      ]
+    },
+    "chibakuTensei": {
+      "sheet": "./sasuke_adult_chibakuTensei_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 79,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.8,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 82
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 82
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 82
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 82
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 82
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./sasuke_adult_intro_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 83
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./sasuke_adult_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 92,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.8,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 82
+        }
+      ]
+    }
+  }
+}

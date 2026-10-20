@@ -1,0 +1,767 @@
+{
+  "rosterKey": "ghostface_exe",
+  "name": "Ghostface.exe",
+  "spriteScale": 1,
+  "globalScale": 1.18,
+  "actionCount": 20,
+  "actions": {
+    "idle": {
+      "sheet": "./ghostface_exe_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 116
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./ghostface_exe_sneak_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 94.4,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./ghostface_exe_sneak_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 94.4,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./ghostface_exe_sneak_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.4,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./ghostface_exe_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 105,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.9,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./ghostface_exe_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 105,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 105,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.9,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./ghostface_exe_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 79,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.2,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 102
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 102
+        }
+      ]
+    },
+    "crouchStance": {
+      "sheet": "./ghostface_exe_crouchstance_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 101,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.2,
+        "h": 99.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 84
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./ghostface_exe_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.8,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 108
+        }
+      ]
+    },
+    "guardCrouch": {
+      "sheet": "./ghostface_exe_guardcrouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 89,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 98
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./ghostface_exe_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 122,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./ghostface_exe_hit_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 122,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 122,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 122,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        },
+        {
+          "x": 366,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./ghostface_exe_taunt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 100,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./ghostface_exe_taunt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 100,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./ghostface_exe_slash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 97,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.5,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./ghostface_exe_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 125,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.5,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 125,
+          "h": 115
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./ghostface_exe_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 97,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.5,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./ghostface_exe_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 97,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.5,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./ghostface_exe_downair_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 107,
+        "h": 145
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.3,
+        "h": 171.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 107,
+          "h": 145
+        },
+        {
+          "x": 107,
+          "y": 0,
+          "w": 107,
+          "h": 145
+        },
+        {
+          "x": 214,
+          "y": 0,
+          "w": 107,
+          "h": 145
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./ghostface_exe_lowslash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 96,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 118
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 100
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 100
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 100
+        }
+      ]
+    }
+  }
+}

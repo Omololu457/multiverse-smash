@@ -1,0 +1,1369 @@
+{
+  "rosterKey": "kakashi",
+  "name": "Kakashi",
+  "spriteScale": 1.75,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./kakashi_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 43,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.8,
+        "h": 138.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        },
+        {
+          "x": 215,
+          "y": 0,
+          "w": 43,
+          "h": 67
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./kakashi_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 34,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 70.2,
+        "h": 142.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 34,
+          "h": 69
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./kakashi_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 119.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./kakashi_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 119.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 61
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./kakashi_jump_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 47,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.1,
+        "h": 142.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./kakashi_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 188,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.1,
+        "h": 142.5
+      },
+      "rects": [
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./kakashi_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 39,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 80.5,
+        "h": 119.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./kakashi_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 53,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.4,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 54
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./kakashi_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 72,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 107.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 52
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 52
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 52
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 52
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./kakashi_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.3,
+        "h": 113.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 55
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 55
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./kakashi_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./kakashi_up_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 50,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.3,
+        "h": 165.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 80
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 80
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 80
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 80
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 80
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./kakashi_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.4,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./kakashi_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.4,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 61
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./kakashi_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 59,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.8,
+        "h": 101.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 49
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 49
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 49
+        }
+      ]
+    },
+    "kakashiCombo1": {
+      "sheet": "./kakashi_combo1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 53,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.4,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 56
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 56
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 56
+        }
+      ]
+    },
+    "kakashiCombo2": {
+      "sheet": "./kakashi_combo2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128,
+        "h": 113.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 55
+        }
+      ]
+    },
+    "kakashiCombo3": {
+      "sheet": "./kakashi_combo3_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        }
+      ]
+    },
+    "kakashiThrow": {
+      "sheet": "./kakashi_throw_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 52,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 63
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 63
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 63
+        }
+      ]
+    },
+    "kakashiThrowCrouch": {
+      "sheet": "./kakashi_throwcrouch_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.9,
+        "h": 97.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 47
+        }
+      ]
+    },
+    "kakashiThrowAir": {
+      "sheet": "./kakashi_throwair_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 52,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 142.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 69
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 69
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 69
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 69
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 69
+        }
+      ]
+    },
+    "kakashiPakkunCast": {
+      "sheet": "./kakashi_pakkun_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        }
+      ]
+    },
+    "kakashiNinDogsCast": {
+      "sheet": "./kakashi_nindogs_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 63
+        }
+      ]
+    },
+    "kakashiRaikiriCharge": {
+      "sheet": "./kakashi_raikiri_charge_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.3,
+        "h": 134.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 65
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 65
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 65
+        }
+      ]
+    },
+    "kakashiRaikiriDash": {
+      "sheet": "./kakashi_raikiri_dash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 83,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 171.4,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 54
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 54
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 54
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 54
+        }
+      ]
+    },
+    "kakashiRaikiriSupport": {
+      "sheet": "./kakashi_raikiri_support_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 94,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 194.1,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 61
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 61
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 94,
+          "h": 61
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./kakashi_win_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 41,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.7,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 287,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        },
+        {
+          "x": 369,
+          "y": 0,
+          "w": 41,
+          "h": 70
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./kakashi_lose_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 26
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.6,
+        "h": 53.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 26
+        }
+      ]
+    }
+  }
+}

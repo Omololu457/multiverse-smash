@@ -1,0 +1,2000 @@
+{
+  "rosterKey": "ichigo",
+  "name": "Ichigo Kurosaki",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 35,
+  "actions": {
+    "idle": {
+      "sheet": "./ichigo_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.6,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 60
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 60
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 60
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./ichigo_run_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 50,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 112.1,
+        "h": 103.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./ichigo_run_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 50,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 112.1,
+        "h": 103.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 46
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./ichigo_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 72,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.4,
+        "h": 159.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 71
+        }
+      ]
+    },
+    "dashDir": {
+      "sheet": "./ichigo_dash_But_in_different_directions_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 97,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 217.5,
+        "h": 210.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 291,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 388,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 485,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./ichigo_jump_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 62,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 434,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./ichigo_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 62,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 434,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 434,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./ichigo_block_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 46,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.1,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 64
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 64
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./ichigo_hit_1_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 54,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 48
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./ichigo_hit_1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 48
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 48
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 48
+        }
+      ]
+    },
+    "knockdownHeavy": {
+      "sheet": "./ichigo_hit_2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148,
+        "h": 96.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 43
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 43
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 43
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./ichigo_charge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 58,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 48
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 48
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 48
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 48
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 48
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./ichigo_taunt_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 56,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 57
+        }
+      ]
+    },
+    "intro1": {
+      "sheet": "./ichigo_intro_1_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 58,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 132.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 406,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 464,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        },
+        {
+          "x": 522,
+          "y": 0,
+          "w": 58,
+          "h": 59
+        }
+      ]
+    },
+    "intro2": {
+      "sheet": "./ichigo_intro_2_uniform.png",
+      "exists": true,
+      "frames": 15,
+      "cell": {
+        "w": 83,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 186.1,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 332,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 415,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 498,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 581,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 664,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 747,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 830,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 913,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 996,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 1079,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        },
+        {
+          "x": 1162,
+          "y": 0,
+          "w": 83,
+          "h": 62
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./ichigo_foward_sword-slash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 74,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 165.9,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 48
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 48
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 48
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./ichigo_sword_combo_1_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 71,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 159.2,
+        "h": 114.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./ichigo_up_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.5,
+        "h": 132.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./ichigo_launch_attack_2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 79,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.1,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./ichigo_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 77,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 172.6,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 67
+        }
+      ]
+    },
+    "ichigoRekka1": {
+      "sheet": "./ichigo_basic_sword_slash_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 71,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 159.2,
+        "h": 114.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 51
+        }
+      ]
+    },
+    "ichigoRekka2": {
+      "sheet": "./ichigo_double_sword_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 69,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 60
+        }
+      ]
+    },
+    "ichigoRekka3": {
+      "sheet": "./ichigo_super_combo_to_up_attack_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 76,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 170.4,
+        "h": 181.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 380,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        },
+        {
+          "x": 456,
+          "y": 0,
+          "w": 76,
+          "h": 81
+        }
+      ]
+    },
+    "ichigoDownHeavy": {
+      "sheet": "./ichigo_down_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 81,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.6,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 72
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 72
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 72
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 72
+        }
+      ]
+    },
+    "ichigoBackHeavy": {
+      "sheet": "./ichigo_launch_attack_1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 85,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190.6,
+        "h": 100.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 45
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 45
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 45
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 45
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 85,
+          "h": 45
+        }
+      ]
+    },
+    "ichigoFwdLight": {
+      "sheet": "./ichigo_front_attack_punch_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.6,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        }
+      ]
+    },
+    "ichigoDashAtk": {
+      "sheet": "./ichigo_double_dash_combo_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 69,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.7,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        },
+        {
+          "x": 483,
+          "y": 0,
+          "w": 69,
+          "h": 55
+        }
+      ]
+    },
+    "ichigoReturn": {
+      "sheet": "./ichigo_ruturn_stance_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 65,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.7,
+        "h": 121.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 325,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        }
+      ]
+    },
+    "ichigoGetsugaCast": {
+      "sheet": "./ichigo_specail_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 81,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.6,
+        "h": 118.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 53
+        }
+      ]
+    },
+    "ichigoChargedSlash": {
+      "sheet": "./ichigo_specail_1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 63,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.2,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 62
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 62
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 62
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 62
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 62
+        }
+      ]
+    },
+    "ichigoAirGetsuga": {
+      "sheet": "./ichigo_air_attack_specail_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 79,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.1,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 68
+        }
+      ]
+    },
+    "ichigoHollowGetsuga": {
+      "sheet": "./ichigo_super_sword_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.8,
+        "h": 114.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 51
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 51
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 51
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 51
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 51
+        }
+      ]
+    },
+    "ichigoHollowRising": {
+      "sheet": "./ichigo_super_up_attack_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 76,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 170.4,
+        "h": 156.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 70
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 70
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 70
+        }
+      ]
+    },
+    "ichigoUlt1": {
+      "sheet": "./ichigo_ultimate_part_1_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 79,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.1,
+        "h": 96.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 237,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 316,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 395,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 474,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 553,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        },
+        {
+          "x": 632,
+          "y": 0,
+          "w": 79,
+          "h": 43
+        }
+      ]
+    },
+    "ichigoUlt2": {
+      "sheet": "./ichigo_ultimate_part_2_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 78,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 174.9,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 67
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 67
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 67
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 67
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 78,
+          "h": 67
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1553 @@
+{
+  "rosterKey": "kakashi_war",
+  "name": "Kakashi (Kamui)",
+  "spriteScale": 1.75,
+  "globalScale": 1.18,
+  "actionCount": 32,
+  "actions": {
+    "idle": {
+      "sheet": "./kakashi_war_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 126,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 66
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 66
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 66
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 66
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./kakashi_war_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 84,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 173.5,
+        "h": 140.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./kakashi_war_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 84,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 173.5,
+        "h": 140.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 84,
+          "h": 68
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./kakashi_war_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 74,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 152.8,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 66
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./kakashi_war_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 163.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 79
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 79
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 79
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./kakashi_war_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 64,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 128,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 163.1
+      },
+      "rects": [
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 79
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./kakashi_war_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 49,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 101.2,
+        "h": 167.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 81
+        }
+      ]
+    },
+    "block": {
+      "sheet": "./kakashi_war_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 49,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 101.2,
+        "h": 167.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 81
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./kakashi_war_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 86
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.3,
+        "h": 177.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 86
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 86
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./kakashi_war_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 74,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.8,
+        "h": 113.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./kakashi_war_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 74,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.8,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 54
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./kakashi_war_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 74,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.8,
+        "h": 113.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 55
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./kakashi_war_light_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 81,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 167.3,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 78
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 78
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 78
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 78
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 78
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./kakashi_war_heavyfwd_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 82,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 169.3,
+        "h": 150.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 410,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 574,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./kakashi_war_heavyair_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 72,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 173.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 84
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 84
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 84
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 84
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./kakashi_war_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 97,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 200.3,
+        "h": 169.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 291,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        }
+      ]
+    },
+    "air_heavy": {
+      "sheet": "./kakashi_war_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 78,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.1,
+        "h": 165.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 80
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./kakashi_war_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 97,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 200.3,
+        "h": 169.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        },
+        {
+          "x": 291,
+          "y": 0,
+          "w": 97,
+          "h": 82
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./kakashi_war_heavydown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./kakashi_war_intro_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 35,
+        "h": 86
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.3,
+        "h": 177.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 86
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 86
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 86
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./kakashi_war_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 40,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.6,
+        "h": 181.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 88
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 88
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 88
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 88
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./kakashi_war_taunt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 32,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 66.1,
+        "h": 181.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 88
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 88
+        }
+      ]
+    },
+    "raikiri_charge": {
+      "sheet": "./kakashi_war_raikiri_charge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 67,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.4,
+        "h": 138.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        }
+      ]
+    },
+    "raikiri_strike": {
+      "sheet": "./kakashi_war_raikiri_strike_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 105,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 216.8,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 64
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 64
+        }
+      ]
+    },
+    "raikiri_air_charge": {
+      "sheet": "./kakashi_war_raikiri_air_charge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 67,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.4,
+        "h": 138.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        }
+      ]
+    },
+    "raikiri_air_strike": {
+      "sheet": "./kakashi_war_raikiri_air_strike_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.9,
+        "h": 187.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 91
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 91
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 91
+        }
+      ]
+    },
+    "mangekyou_cast": {
+      "sheet": "./kakashi_war_mangekyou_cast_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 71,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.6,
+        "h": 167.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 81
+        }
+      ]
+    },
+    "raikiri_loop": {
+      "sheet": "./kakashi_war_raikiri_charge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 67,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 138.4,
+        "h": 138.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 67
+        }
+      ]
+    },
+    "tsuiga_cast": {
+      "sheet": "./kakashi_war_tsuiga_cast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 78
+        }
+      ]
+    },
+    "sennen": {
+      "sheet": "./kakashi_war_sennen_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 73,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.7,
+        "h": 128
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 62
+        }
+      ]
+    },
+    "frog": {
+      "sheet": "./kakashi_war_frog_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92.9,
+        "h": 134.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 65
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 65
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 65
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 65
+        }
+      ]
+    },
+    "frog_damage": {
+      "sheet": "./kakashi_war_frog_damage_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 68,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.4,
+        "h": 107.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        }
+      ]
+    }
+  }
+}

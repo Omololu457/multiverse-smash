@@ -84,9 +84,12 @@ try {
   const dv = await applyCode("Omololu");
   check("DEV active", dv.dev === true);
   m = await modes();
-  check("Tower pool == full roster (includes piccolo) under dev", m.tower.includes("piccolo") && m.tower.length === gt.all.length, `n=${m.tower.length}`);
-  check("FFA grid includes art-less under dev", m.ffa.includes("piccolo") && m.ffa.includes("frieza"));
-  check("AI-vs-AI picker includes art-less under dev", m.aiVsAi.includes("piccolo"));
+  // The 2026-10-20 roster cleanup removed every art-less placeholder (piccolo/frieza wiped; cell/morty/evilMorty
+  // deleted as "no sprites"), so there are no longer any dev-only art-less chars to reveal. The genuine dev
+  // invariant that still holds: dev mode exposes the FULL non-hidden roster across every pool.
+  check("Tower pool == full roster under dev", m.tower.length === gt.all.length, `n=${m.tower.length} all=${gt.all.length}`);
+  check("FFA grid == full roster under dev", m.ffa.length === gt.all.length, `n=${m.ffa.length}`);
+  check("AI-vs-AI picker == full roster under dev", m.aiVsAi.length === gt.all.length, `n=${m.aiVsAi.length}`);
 
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
   console.log(`\n${FAIL === 0 ? "✅" : "❌"} BETA mode-roster coverage: ${PASS} passed, ${FAIL} failed — shot: beta_ffa_charselect.png`);

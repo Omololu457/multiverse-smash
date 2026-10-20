@@ -1,0 +1,1342 @@
+{
+  "rosterKey": "pain",
+  "name": "Pain",
+  "spriteScale": 2,
+  "globalScale": 1.18,
+  "actionCount": 25,
+  "actions": {
+    "idle": {
+      "sheet": "./pain_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 29,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 68.4,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 59
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 59
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 59
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 59
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./pain_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 60,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 141.6,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./pain_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 60,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 141.6,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 60,
+          "h": 49
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./pain_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 43,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 101.5,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 60
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 60
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./pain_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 51,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./pain_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 51,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 153,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 54
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./pain_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 35,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.6,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 60
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./pain_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 41,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.8,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 62
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./pain_stand_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 158.1,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 57
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./pain_light_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./pain_heavy_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 75,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177,
+        "h": 144
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 375,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 525,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        },
+        {
+          "x": 600,
+          "y": 0,
+          "w": 75,
+          "h": 61
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./pain_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 60
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./pain_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 73,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 172.3,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 56
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 56
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 56
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 56
+        }
+      ]
+    },
+    "air_heavy": {
+      "sheet": "./pain_airheavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 68,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 160.5,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./pain_downair_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 57,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 134.5,
+        "h": 148.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 63
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 63
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 63
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 63
+        }
+      ]
+    },
+    "painJab": {
+      "sheet": "./pain_jab_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 63,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 59
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 59
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 59
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 59
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 59
+        }
+      ]
+    },
+    "painCombo1": {
+      "sheet": "./pain_combo1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 58
+        }
+      ]
+    },
+    "painCombo2": {
+      "sheet": "./pain_combo2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 57
+        }
+      ]
+    },
+    "painCombo3": {
+      "sheet": "./pain_combo3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 59,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.2,
+        "h": 146.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        }
+      ]
+    },
+    "painAlmightyPushCast": {
+      "sheet": "./pain_almighty_push_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 151
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 64
+        }
+      ]
+    },
+    "painAlmightyPullCast": {
+      "sheet": "./pain_almighty_pull_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 52,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 60
+        }
+      ]
+    },
+    "painSuperPushCast": {
+      "sheet": "./pain_super_push_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.9,
+        "h": 151
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 64
+        }
+      ]
+    },
+    "painDederaCast": {
+      "sheet": "./pain_dedera_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151,
+        "h": 167.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 71
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 71
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 71
+        }
+      ]
+    },
+    "painDederaRise": {
+      "sheet": "./pain_dedera_rise_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 68,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 160.5,
+        "h": 139.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 59
+        }
+      ]
+    },
+    "painChibakuCast": {
+      "sheet": "./pain_chibaku_cast_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 59,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.2,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        },
+        {
+          "x": 295,
+          "y": 0,
+          "w": 59,
+          "h": 66
+        }
+      ]
+    }
+  }
+}

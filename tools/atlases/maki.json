@@ -1,0 +1,1202 @@
+{
+  "rosterKey": "maki",
+  "name": "Maki Zenin",
+  "spriteScale": 1.51,
+  "globalScale": 1.18,
+  "actionCount": 23,
+  "actions": {
+    "idle": {
+      "sheet": "./maki_new_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 50,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89.1,
+        "h": 126.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./maki_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 71,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 126.5,
+        "h": 106.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 497,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./maki_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 71,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 126.5,
+        "h": 106.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        },
+        {
+          "x": 497,
+          "y": 0,
+          "w": 71,
+          "h": 60
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./maki_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 65,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.8,
+        "h": 96.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./maki_jump_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 81,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.3,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./maki_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 81,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 324,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.3,
+        "h": 130.1
+      },
+      "rects": [
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 73
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./maki_block_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.4,
+        "h": 158.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 89
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 89
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 89
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 89
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./maki_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 83,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.9,
+        "h": 99.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 56
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./maki_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 83,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.9,
+        "h": 99.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 56
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 56
+        }
+      ]
+    },
+    "intro1": {
+      "sheet": "./maki_intro1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 48,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.5,
+        "h": 124.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 70
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 70
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 70
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 70
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 70
+        }
+      ]
+    },
+    "intro2": {
+      "sheet": "./maki_intro2_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 86,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.2,
+        "h": 119.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 67
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 67
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 67
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 67
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 67
+        }
+      ]
+    },
+    "intro3": {
+      "sheet": "./maki_intro3_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.9,
+        "h": 163.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 92
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./maki_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 122.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./maki_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 76,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 115.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 65
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 65
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 65
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 65
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 65
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./maki_up_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 77,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.2,
+        "h": 174.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 98
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 98
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 98
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 98
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 98
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./maki_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 122.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 69
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./maki_downair_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 87,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155,
+        "h": 220.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 124
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 124
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 124
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 124
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 87,
+          "h": 124
+        }
+      ]
+    },
+    "makiG1": {
+      "sheet": "./maki_g1_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 91,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.1,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 91,
+          "h": 77
+        },
+        {
+          "x": 91,
+          "y": 0,
+          "w": 91,
+          "h": 77
+        },
+        {
+          "x": 182,
+          "y": 0,
+          "w": 91,
+          "h": 77
+        },
+        {
+          "x": 273,
+          "y": 0,
+          "w": 91,
+          "h": 77
+        }
+      ]
+    },
+    "makiG2": {
+      "sheet": "./maki_g2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.5,
+        "h": 147.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 83
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 83
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 83
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 83
+        }
+      ]
+    },
+    "makiG3": {
+      "sheet": "./maki_g3_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.3,
+        "h": 180
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 101
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 101
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 101
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 101
+        }
+      ]
+    },
+    "makiKunai": {
+      "sheet": "./maki_kunai_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 86,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.2,
+        "h": 117.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        },
+        {
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 66
+        }
+      ]
+    },
+    "makiNunchaku": {
+      "sheet": "./maki_nunchaku_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 57,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 101.6,
+        "h": 171.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 399,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 456,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        },
+        {
+          "x": 513,
+          "y": 0,
+          "w": 57,
+          "h": 96
+        }
+      ]
+    },
+    "makiCharge": {
+      "sheet": "./maki_charge_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 65,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 115.8,
+        "h": 147.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 83
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 83
+        }
+      ]
+    }
+  }
+}

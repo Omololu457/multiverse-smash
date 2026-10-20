@@ -1362,6 +1362,7 @@ function executeBeerusSpecial(fighter, context) {
       }, context)
       shakeCamera(context, 10, 12)
       beerusApplyDirect(t, ex, ey, BEERUS_HAKAI.dmg, BEERUS_HAKAI.range, 8)
+      if (t && (t.health || 0) <= 0) fighter._killingBlowMove = "hakai"   // stamp so the HAKAI brutality fires (direct damage doesn't carry a move). Presentation-only; no sim effect.
     })
     return true
   }
@@ -1510,6 +1511,7 @@ function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
   applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
+  if ((opp.health || 0) <= 0) fighter._killingBlowMove = "ultimate"   // stamp so the SPHERE OF DESTRUCTION brutality fires (cinematic damage carries no move). Presentation-only; no sim effect.
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -22753,6 +22755,7 @@ function shisuiFallenFlickerStrike(fighter, context) {
     o.hitstun = Math.max(o.hitstun || 0, 24); o.vx = away * 8; o.vy = -4; o.colorFlash = 12
     shisuiFallenImpact(o, fighter, false)
     applyScaledDamage(o, shisuiFallenDmg(fighter, o, 52), { source: "shisui_fallen-flicker-strike" })
+    if ((o.health || 0) <= 0) fighter._killingBlowMove = "shisuiFallenFlickerStrike"   // stamp so the BODY FLICKER brutality fires (source-only damage carries no move). Presentation-only; no sim effect.
   })
   try { focusCameraOnAction(context, fighter, opp, 0.98, 10); shakeCamera(context, 5, 7) } catch (_) {}
   return true
@@ -22966,6 +22969,7 @@ function shisuiFallenKotoamatsukami(fighter, context) {
       o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 14
       shisuiFallenImpact(o, null, true)
       applyScaledDamage(o, shisuiFallenDmg(fighter, o, K.dmg), { source: "shisui_fallen-kotoamatsukami" })
+      if ((o.health || 0) <= 0) fighter._killingBlowMove = "shisuiFallenKotoamatsukami"   // stamp so the KOTOAMATSUKAMI brutality fires (source-only damage carries no move). Presentation-only; no sim effect.
     })
   }
   try { focusCameraOnAction(context, fighter, opp, 1.08, 24); shakeCamera(context, 4, 12) } catch (_) {}

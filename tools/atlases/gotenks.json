@@ -1,0 +1,1185 @@
+{
+  "rosterKey": "gotenks",
+  "name": "Gotenks",
+  "spriteScale": 1.2,
+  "globalScale": 1.18,
+  "actionCount": 30,
+  "actions": {
+    "idle": {
+      "sheet": "./gotenks_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./gotenks_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./gotenks_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./gotenks_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 74,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.8,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 88
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./gotenks_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 90,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 133.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 94
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 94
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 94
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./gotenks_fall_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 102
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 72
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./gotenks_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 74,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.8,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 93
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 93
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 93
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./gotenks_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 84,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.9,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 96
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 96
+        }
+      ]
+    },
+    "guardHit": {
+      "sheet": "./gotenks_guardhit_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 71,
+        "h": 116
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 164.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 116
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 116
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 116
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./gotenks_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 74,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.8,
+        "h": 137.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 97
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./gotenks_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 126,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 66.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 47
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 47
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./gotenks_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 99,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 96
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 96
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./gotenks_taunt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 73,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.4,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 117
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 117
+        }
+      ]
+    },
+    "dazed": {
+      "sheet": "./gotenks_dazed_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 88,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 113.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 80
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 80
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 80
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 88,
+          "h": 80
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./gotenks_light_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 90
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./gotenks_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 106,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.1,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 106,
+          "h": 93
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./gotenks_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 130.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 92
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./gotenks_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 79,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.9,
+        "h": 94.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 67
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./gotenks_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 79,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.9,
+        "h": 94.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 67
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./gotenks_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 88,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 90
+        }
+      ]
+    },
+    "gotenksRush1": {
+      "sheet": "./gotenks_rush1_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 84
+        }
+      ]
+    },
+    "gotenksRush2": {
+      "sheet": "./gotenks_rush2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 62,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.8,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 89
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 89
+        }
+      ]
+    },
+    "gotenksRush3": {
+      "sheet": "./gotenks_rush3_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 78,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.4,
+        "h": 137.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 97
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 97
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 97
+        }
+      ]
+    },
+    "gotenksKiBlast": {
+      "sheet": "./gotenks_kiblast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 71,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 98
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 98
+        }
+      ]
+    },
+    "gotenksKiCharge": {
+      "sheet": "./gotenks_kicharge_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 83,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 117.5,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 99
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 99
+        }
+      ]
+    },
+    "gotenksRisingKick": {
+      "sheet": "./gotenks_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 130.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 92
+        }
+      ]
+    },
+    "gotenksGhostWind": {
+      "sheet": "./gotenks_ghostwind_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 82,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.1,
+        "h": 144.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 102
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 102
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 102
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 102
+        }
+      ]
+    },
+    "gotenksGhostThrow": {
+      "sheet": "./gotenks_ghostthrow_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 86,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 121.8,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 96
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 96
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 96
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 96
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./gotenks_taunt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 73,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.4,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 117
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 117
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./gotenks_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 126,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 66.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 47
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 47
+        }
+      ]
+    }
+  }
+}

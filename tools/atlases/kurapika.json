@@ -1,0 +1,1218 @@
+{
+  "rosterKey": "kurapika",
+  "name": "Kurapika",
+  "spriteScale": 2.1,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./kurapika_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 31,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.8,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./kurapika_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 42,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 42,
+          "h": 51
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./kurapika_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 42,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 121.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 49
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 49
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 49
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 49
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./kurapika_dash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 93,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 230.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 48
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 48
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 48
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 48
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./kurapika_leap_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.3,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./kurapika_leap_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.3,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./kurapika_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 28,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 69.4,
+        "h": 121.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 49
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./kurapika_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.7,
+        "h": 114
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 46
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 46
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 46
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./kurapika_knockdown_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 60,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 60,
+          "h": 50
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./kurapika_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 31,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.8,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./kurapika_light_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 72,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 146.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 72,
+          "h": 59
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./kurapika_heavy_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 69,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 171,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./kurapika_up_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 42,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./kurapika_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 76,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.3,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./kurapika_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 76,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.3,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 63
+        }
+      ]
+    },
+    "kurapikaWindmill": {
+      "sheet": "./kurapika_windmill_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 31,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.8,
+        "h": 180.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        },
+        {
+          "x": 217,
+          "y": 0,
+          "w": 31,
+          "h": 73
+        }
+      ]
+    },
+    "kurapikaJudgment": {
+      "sheet": "./kurapika_judgment_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 139,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 344.4,
+        "h": 223
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 139,
+          "h": 90
+        },
+        {
+          "x": 139,
+          "y": 0,
+          "w": 139,
+          "h": 90
+        },
+        {
+          "x": 278,
+          "y": 0,
+          "w": 139,
+          "h": 90
+        },
+        {
+          "x": 417,
+          "y": 0,
+          "w": 139,
+          "h": 90
+        },
+        {
+          "x": 556,
+          "y": 0,
+          "w": 139,
+          "h": 90
+        }
+      ]
+    },
+    "kurapikaChainJail": {
+      "sheet": "./kurapika_chainjail_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 104,
+        "h": 116
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 257.7,
+        "h": 287.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        },
+        {
+          "x": 416,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        },
+        {
+          "x": 520,
+          "y": 0,
+          "w": 104,
+          "h": 116
+        }
+      ]
+    },
+    "kurapikaSteal": {
+      "sheet": "./kurapika_steal_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 71,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 175.9,
+        "h": 163.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 497,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 568,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        },
+        {
+          "x": 639,
+          "y": 0,
+          "w": 71,
+          "h": 66
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./kurapika_charge_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        }
+      ]
+    },
+    "kurapikaShock": {
+      "sheet": "./kurapika_shock_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 47,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.5,
+        "h": 183.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 282,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        },
+        {
+          "x": 329,
+          "y": 0,
+          "w": 47,
+          "h": 74
+        }
+      ]
+    }
+  }
+}

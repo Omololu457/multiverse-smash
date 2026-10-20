@@ -1,10 +1,98 @@
 ========================================================================
 MULTIVERSE SMASH — ROSTER TRIAGE TRACKER
-Updated: 2026-10-20   (written by triage.html)
+Updated: 2026-10-20  (sprite wipe + art-less cleanup applied)
 ========================================================================
 
->> KEPT, NO BRUTALITY YET  — build brutalities for these next.
->> DELETED (TEMP)          — NOT permanent. Pulled to redo their spritesheets (art not good enough).
+>> SPRITES WIPED — PNGs deleted from disk, fighters disabled in-game (hidden).
+   Re-download/redo the sheets, then re-enable by removing the key from
+   _WIPED_FOR_REDO in characters.js. Old art is in git (snapshot 4853574c).
+>> REMOVED — NO SPRITES: art-less dev-only placeholders that never had art.
+   Nothing to re-download; just disabled so they are gone from the game.
+>> REMOVED ENTIRELY: Ben 10 and Albedo (all alien forms) — names dropped.
+>> KEPT — still in the game. Round 2 of triage pending on these.
+
+========================================================================
+SPRITES WIPED — RE-DOWNLOAD & REDO (still tracked) (48)
+------------------------------------------------------------------------
+
+[ben_10]
+  Vilgax                            vilgax
+
+[bleach]
+  Yamamoto                          yamamoto
+
+[dc]
+  Batman                            batman
+  Batman                            dark_knight
+  Brainiac                          brainiac
+  Deathstroke                       deathstroke
+  Green Lantern                     green_lantern
+  Superman                          superman
+  Superman (Classic)                superman_classic
+  Superman (Custom)                 superman_dcuc
+  Superman (Fighter)                superman_fighter
+  Superman (New 52)                 superman_new52
+
+[dragon_ball]
+  Bardock                           bardock
+  Frieza                            frieza
+  Gogeta (Ultra Instinct)           gogeta
+  Goku                              goku
+  Goku Black (Rosé 3)               goku_rose
+  Gotenks                           gotenks
+  Piccolo                           piccolo
+  Teen Gohan                        gohan
+  Vegito                            vegito
+
+[horror]
+  Ghostface                         ghostface
+  Billy Ghostface                   ghostface_billy
+  Ghostface.exe                     ghostface_exe
+
+[hunter_x_hunter]
+  Gon Freecss                       gon
+  Killua (Godspeed)                 zoldyck
+  Kurapika                          kurapika
+  Meruem                            meruem
+  Shizuku Murasaki                  shizuku
+
+[invincible]
+  Omni-Man                          omniman
+
+[jujutsu_kaisen]
+  Megumi                            handler
+  Naoya Zenin                       naoya
+
+[marvel]
+  Iron Man                          iron_man
+  Iron Man 2                        iron_man_2
+  Iron Man 3                        iron_man_3
+  Miles Morales                     miles
+  Spider-Man                        spiderman
+  Spider-Man (Cosmic Invasion)      spiderman_mci
+  Spider-Man (Raimi)                spiderman_raimi
+  Spider-Man (SSF2)                 spiderman_ssf2
+
+[naruto]
+  Boruto Uzumaki                    boruto
+  Hiruzen Sarutobi                  hiruzen
+  Kiba Inuzuka                      kiba
+  Naruto (Adult KCM)                naruto_hokage
+  Onoki                             onoki
+  Orochimaru                        orochimaru
+  Shisui (Trinity)                  shisui_trinity
+  Shisui & Itachi (Kids)            shisui_itachi_kids
+
+========================================================================
+REMOVED — NO SPRITES (art-less placeholders, not coming back) (3)
+------------------------------------------------------------------------
+
+[dragon_ball]
+  Cell                              cell
+
+[rick_and_morty]
+  Morty Smith                       morty
+  Evil Morty                        evilMorty
 
 ========================================================================
 KEPT — NO BRUTALITY YET (TO BUILD) (34)
@@ -71,81 +159,7 @@ KEPT — NO BRUTALITY YET (TO BUILD) (34)
   Saiki Kusuo                       saiki
 
 ========================================================================
-DELETED — REDO SPRITESHEETS (TEMPORARY) (50)
-------------------------------------------------------------------------
-
-[ben_10]
-  Albedo                            albedo
-  Ben 10                            ben10
-  Vilgax                            vilgax
-
-[bleach]
-  Yamamoto                          yamamoto
-
-[dc]
-  Batman                            batman
-  Batman                            dark_knight
-  Brainiac                          brainiac
-  Deathstroke                       deathstroke
-  Green Lantern                     green_lantern
-  Superman                          superman
-  Superman (Classic)                superman_classic
-  Superman (Custom)                 superman_dcuc
-  Superman (Fighter)                superman_fighter
-  Superman (New 52)                 superman_new52
-
-[dragon_ball]
-  Bardock                           bardock
-  Frieza                            frieza
-  Gogeta (Ultra Instinct)           gogeta
-  Goku                              goku
-  Goku Black (Rosé 3)               goku_rose
-  Gotenks                           gotenks
-  Piccolo                           piccolo
-  Teen Gohan                        gohan
-  Vegito                            vegito
-
-[horror]
-  Billy Ghostface                   ghostface_billy
-  Ghostface                         ghostface
-  Ghostface.exe                     ghostface_exe
-
-[hunter_x_hunter]
-  Gon Freecss                       gon
-  Killua (Godspeed)                 zoldyck
-  Kurapika                          kurapika
-  Meruem                            meruem
-  Shizuku Murasaki                  shizuku
-
-[invincible]
-  Omni-Man                          omniman
-
-[jujutsu_kaisen]
-  Megumi                            handler
-  Naoya Zenin                       naoya
-
-[marvel]
-  Iron Man                          iron_man
-  Iron Man 2                        iron_man_2
-  Iron Man 3                        iron_man_3
-  Miles Morales                     miles
-  Spider-Man                        spiderman
-  Spider-Man (Cosmic Invasion)      spiderman_mci
-  Spider-Man (Raimi)                spiderman_raimi
-  Spider-Man (SSF2)                 spiderman_ssf2
-
-[naruto]
-  Boruto Uzumaki                    boruto
-  Hiruzen Sarutobi                  hiruzen
-  Kiba Inuzuka                      kiba
-  Naruto (Adult KCM)                naruto_hokage
-  Onoki                             onoki
-  Orochimaru                        orochimaru
-  Shisui (Trinity)                  shisui_trinity
-  Shisui & Itachi (Kids)            shisui_itachi_kids
-
-========================================================================
-KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (35)
+KEPT — ALREADY HAS A BRUTALITY (reference) (35)
 ------------------------------------------------------------------------
 
 [baki]
@@ -204,9 +218,4 @@ KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (35)
 [rick_and_morty]
   Rick Prime                        rickPrime
   Rick Sanchez                      rick
-
-========================================================================
-NOT YET REVIEWED (0)
-------------------------------------------------------------------------
-  (none yet)
 

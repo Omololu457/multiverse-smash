@@ -55,7 +55,7 @@
 <body>
 <div id="app">
   <header>
-    <h1>ROSTER TRIAGE</h1>
+    <h1>ROSTER TRIAGE — ROUND 2</h1>
     <span id="progress"></span>
     <div class="spacer"></div>
     <span class="pill" id="filterPill">Showing: all</span>
@@ -84,14 +84,14 @@
         <kbd>F</kbd> cycle filter &nbsp; <kbd>S</kbd> speed &nbsp; <kbd>R</kbd> replay reel
       </div>
       <footer>
-        <button id="exportBtn" class="primary">Save to characters.txt</button>
+        <button id="exportBtn" class="primary">Save round-2 cut list</button>
         <button id="resetBtn">Reset</button>
       </footer>
     </div>
   </main>
 </div>
 <script>
-const LS_KEY = "ms_triage_verdicts_v1";
+const LS_KEY = "ms_triage_verdicts_v2";  // round 2: fresh slate over the post-wipe roster
 let DATA = [];
 let order = [];          // indices into DATA, after filter
 let cur = 0;             // position in order
@@ -194,7 +194,7 @@ function step() {
 
 function silentSave() {
   // keep characters.txt in sync on every decision (ignored if on a plain static server)
-  try { fetch("/save", {method:"POST", headers:{"Content-Type":"text/plain"}, body:buildCharactersTxt()}).catch(()=>{}); } catch(e){}
+  try { fetch("/save2", {method:"POST", headers:{"Content-Type":"text/plain"}, body:buildCharactersTxt()}).catch(()=>{}); } catch(e){}
 }
 function setVerdict(v) {
   const ch = DATA[order[cur]];
@@ -280,15 +280,15 @@ function buildCharactersTxt() {
 function exportCut() {
   const t = buildCharactersTxt();
   // Try to write straight into the project's characters.txt via the triage server.
-  fetch("/save", {method:"POST", headers:{"Content-Type":"text/plain"}, body:t})
+  fetch("/save2", {method:"POST", headers:{"Content-Type":"text/plain"}, body:t})
     .then(r => r.ok ? r.text() : Promise.reject(r.status))
-    .then(() => flashBtn("Saved to characters.txt ✓"))
+    .then(() => flashBtn("Saved round-2 cut list ✓"))
     .catch(() => {
-      // Fallback: download if the plain static server can't accept the save.
+      // Fallback: download if the server can't accept the save.
       const blob = new Blob([t], {type:"text/plain"});
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "characters.txt"; a.click();
-      flashBtn("Downloaded characters.txt");
+      a.href = URL.createObjectURL(blob); a.download = "triage_round2.txt"; a.click();
+      flashBtn("Downloaded triage_round2.txt");
     });
 }
 function flashBtn(msg){

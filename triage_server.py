@@ -12,10 +12,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*a, directory=ROOT, **k)
 
     def do_POST(self):
-        if self.path == "/save":
+        # /save -> characters.txt (round 1) ;  /save2 -> triage_round2.txt (round 2, keeps the tracker intact)
+        target = {"/save": "characters.txt", "/save2": "triage_round2.txt"}.get(self.path)
+        if target:
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length).decode("utf-8")
-            with open(os.path.join(ROOT, "characters.txt"), "w", encoding="utf-8") as f:
+            with open(os.path.join(ROOT, target), "w", encoding="utf-8") as f:
                 f.write(body)
             self.send_response(200)
             self.send_header("Access-Control-Allow-Origin", "*")

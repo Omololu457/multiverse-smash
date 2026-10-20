@@ -11234,7 +11234,7 @@ export const characters = {
 // guards keyed on rosterKey) keep resolving and never throw. To bring one back:
 // remove its key from this list and restore its sprite PNGs from git history.
 const _WIPED_FOR_REDO = [
-  "albedo", "ben10", "vilgax",
+  "albedo", "ben10",   // vilgax REMOVED: rebuilt onto the new regulardor8go sheet (full kit + brutalities) — stays live
   "yamamoto",
   "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
   "superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",

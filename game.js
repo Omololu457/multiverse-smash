@@ -226,6 +226,7 @@ import {
   applySixPathsSwap,             // Six Paths of Pain — deterministic swap (harness setPath())
   updateMayuriNemuAssist,        // Mayuri "Nemu" assist — Charge + Down (attack) / Up (uppercut launcher)
   updateVilgaxDrone,             // Vilgax "Chimerian Drone" summon — Charge + Heavy → hover gun-drone (input + entity tick)
+  updateVilgaxCommandCombat,     // Vilgax Back+Light "Evasion Protocol" — i-frame sidestep counter-slash (command normal)
   updateAoiTodoClap,             // Aoi Todo "Boogie Woogie" Clap — Charge + dir → cameo summon/swap / enemy-swap / fake / self-swap (+ Black Flash arm/resolve)
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   fireObitoKamuiDimension, updateObitoKamuiDimension,   // Obito "Kamui Dimension" (NEW: Charge-HOLD→release) — domain-freeze + shuriken barrage + void-bg swap
@@ -8946,6 +8947,11 @@ function _updatePlayerCombatBody(fighter) {
   // ends the string. Consumes the input only when it fires; neutral heavy stays the normal kick.
   if ((fighter.rosterKey || "").toLowerCase() === "frieza" && !charging &&
       updateFriezaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // VILGAX — Back+Light "Evasion Protocol": an i-frame sidestep into a counter-slash. Consumes the Light press
+  // only when it fires; neutral Light stays Conqueror's Blade. (Down blocks in this engine, so Back is free.)
+  if ((fighter.rosterKey || "").toLowerCase() === "vilgax" && !charging &&
+      updateVilgaxCommandCombat(fighter, inputState, getAbilityContext())) return
 
   // PICCOLO rush chain: Fwd+Heavy opens piccoloRush1 (elbow/chop opener), re-tap Heavy during recovery to
   // cancel into piccoloRush2 (axe smash) → piccoloRush3 (roundhouse launcher) — cancel-on-hit; whiff/block

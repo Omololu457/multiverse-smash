@@ -9468,6 +9468,9 @@ const VILGAX_SPECIALS = {
   vilgaxDagon:  { damage: 120, startup: 16, active: 6, recovery: 22, hitstun: 30, knockbackX: 14, knockbackY: -4, rangeX: 132, rangeY: 68, cost: 45, pose: "vilgaxBlastXCast", lunge: 11, crumple: true },                  // Dagon's Wrath (Fwd)
   vilgaxCyclone:{ damage: 50,  startup: 12, active: 8, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -7, rangeX: 112, rangeY: 128, cost: 32, pose: "vilgaxUltAction", windbox: true },                             // Cyclone Breath (Up, anti-air)
   vilgaxMeteor: { damage: 90,  startup: 10, active: 6, recovery: 14, hitstun: 20, knockbackX: 6,  knockbackY: 8,  rangeX: 84,  rangeY: 80,  cost: 28, pose: "vilgaxTumble", dive: true },                                   // Meteor Dive (air)
+  // EVASION PROTOCOL (Back+Light command normal) — a sidestep with startup i-frames into a counter-slash. Free
+  // (it's a normal). invuln covers the startup (spec frames 1-5); stepBack hops him away as the slash goes out.
+  vilgaxEvasion:{ damage: 55,  startup: 5,  active: 3, recovery: 10, hitstun: 16, knockbackX: 5,  knockbackY: 0,  rangeX: 92,  rangeY: 58,  cost: 0,  pose: "vilgaxSlash", invuln: 9, stepBack: 8 },                          // Evasion Protocol (Back+Light)
 }
 function vilgaxOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
 function fireVilgaxProjectile(fighter, key, context, opts = {}) {
@@ -9622,6 +9625,33 @@ export function updateVilgaxDrone(fighter, inputState, context) {
       try { shakeCamera(context, 2, 3) } catch (_) {}
     } else { d.state = "death"; d.animClock = 0 }   // out of bolts — power down (plays the DEATH frames)
   }
+}
+
+// EVASION PROTOCOL (Back+Light) — sidestep with startup i-frames into a counter-slash. A read-based defensive
+// poke: the i-frames beat a committed attack, the backstep creates space, the slash punishes forward. Free.
+function fireVilgaxEvasion(fighter, context) {
+  const md = VILGAX_SPECIALS.vilgaxEvasion
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.invuln)   // i-frames through the sidestep startup
+  fighter._spriteCastMove = md.pose; fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  const attack = createAttackFromMove(fighter, "vilgaxSlash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })   // render the real slash animation (currentMove needs animationData)
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = -(fighter.facing || 1) * md.stepBack   // sidestep BACKWARD (evade) while the slash still reaches forward
+  try { spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) * 0.4) } catch (_) {}
+  try { shakeCamera(context, 2, 3) } catch (_) {}
+  return true
+}
+export function updateVilgaxCommandCombat(fighter, inputState, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const lightEdge = !!inputState.light && !fighter._vcmdPrevLight   // fresh tap, not held
+  fighter._vcmdPrevLight = !!inputState.light
+  const back = fighter.facing === 1 ? !!inputState.left : !!inputState.right
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (back && lightEdge) return fireVilgaxEvasion(fighter, context)   // Back+Light → Evasion Protocol (down blocks, so Back is free)
+  return false
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

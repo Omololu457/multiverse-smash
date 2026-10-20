@@ -9539,7 +9539,8 @@ const vilgax = {
     seismicSlam:   { cost: 34, damage: 85,  subtype: "projectile", effect: "Seismic Slam — punches the ground, sending a low shockwave along the floor; catches crouchers (Down, low)" },
     meteorDive:    { cost: 28, damage: 90,  subtype: "melee",      effect: "Meteor Dive — dives at a steep angle, sword extended, energy trailing (air)" },
     thrownSword:   { cost: 34, damage: 96,  subtype: "projectile", effect: "Thrown Spinning Sword — hurls a spinning energy blade (Back)" },
-    chimerianDrone:{ cost: 40, damage: 42,  subtype: "summon",     effect: "Chimerian Drone — Charge+Heavy deploys a hover gun-drone that strafes the foe with 3 aimed plasma bolts, then peels off" }
+    chimerianDrone:{ cost: 40, damage: 42,  subtype: "summon",     effect: "Chimerian Drone — Charge+Heavy deploys a hover gun-drone that strafes the foe with 3 aimed plasma bolts, then peels off" },
+    evasionProtocol:{ cost: 0, damage: 55,  subtype: "melee",      effect: "Evasion Protocol — Back+Light: a sidestep with startup i-frames into a quick counter-slash" }
   },
   ultimate: { name: "Chimerian Onslaught", cost: 100, description: "Eyes blaze red — converging eye-laser beams blast the foe in a freeze/camera-focus cinematic, invulnerable through the startup. Source: MEGA ATTACK band." },
   hasSprites: true,

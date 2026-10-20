@@ -14081,6 +14081,29 @@ function drawMadaraTengaiSky(ctx, canvas) {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
   ctx.restore()
 }
+// VILGAX — Chimerian Onslaught cinematic PANELS (eyes-blaze close-up → city-destruction payoff). Real sheet
+// panels drawn screen-space as a letterbox cutaway band that fades in/out. No-op unless a vilgax ult panel is active.
+const _vilgaxPanelImgs = {}
+function _vilgaxPanelImg(src) { if (!_vilgaxPanelImgs[src]) { const i = new Image(); i.src = src; _vilgaxPanelImgs[src] = i } return _vilgaxPanelImgs[src] }
+_vilgaxPanelImg("./vilgax_ult_panel_eye.png"); _vilgaxPanelImg("./vilgax_ult_panel_city.png")
+function drawVilgaxUltPanel(ctx, canvas) {
+  if (!ctx) return
+  const pan = p1?._vilgaxUltPanel || p2?._vilgaxUltPanel
+  if (!pan) return
+  const img = _vilgaxPanelImg(pan.which === "city" ? "./vilgax_ult_panel_city.png" : "./vilgax_ult_panel_eye.png")
+  if (!img.complete || img.naturalWidth === 0) return
+  const W = canvas.width, H = canvas.height
+  const max = pan.which === "city" ? 24 : 22, t = pan.timer
+  const a = Math.min(1, (max - t) / 5) * Math.min(1, t / 6)   // fade in ~5f, hold, fade out last ~6f
+  const bandH = H * 0.58, bandY = (H - bandH) / 2
+  ctx.save(); ctx.globalAlpha = a
+  ctx.fillStyle = "#000"; ctx.fillRect(0, bandY - 3, W, bandH + 6)   // letterbox backing + thin bars
+  const scale = Math.max(W / img.naturalWidth, bandH / img.naturalHeight)
+  const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale
+  ctx.beginPath(); ctx.rect(0, bandY, W, bandH); ctx.clip()
+  ctx.drawImage(img, (W - dw) / 2, bandY + (bandH - dh) / 2, dw, dh)
+  ctx.restore()
+}
 // SHISUI (FALLEN) — Body-Flicker AFTERIMAGES: a faded cold-tinted copy of his stance lingers at each departure
 // point (the thing that absorbs a hit). A dark flicker-streak links it to his current position. Render-only.
 function drawShisuiFallenFlicker(c, fighter) {
@@ -19930,6 +19953,7 @@ function drawBattle() {
   drawKakashiWarCutin(ctx, canvas)            // Kakashi (Kamui) Kamui Raikiri ult — Sharingan eye-banner cut-in slide + red flash (kakashi_war only, _warUltCutin)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
   drawMadaraTengaiSky(ctx, canvas)                 // Madara WAR polish — non-cinematic Tengai (ladder/avatar): darken the sky with a Rinnegan tint during the meteor call-down
+  drawVilgaxUltPanel(ctx, canvas)                  // Vilgax — Chimerian Onslaught cinematic panels (eye-blaze → city), letterbox cutaway (vilgax ult only)
   drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
   drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)
   drawMayuriBankaiCinematic(ctx, canvas)           // Bankai: Konjiki Ashisogi Jizō overlay (gold vignette → assembling golden construct → crush + gold impact flash)

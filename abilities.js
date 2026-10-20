@@ -9458,8 +9458,8 @@ export function executeGwenSpecial(fighter, context) {
 const VILGAX_SPECIALS = {
   // RUBY CRESCENTS (neutral, tiered) — white energy crescents loosed from the sword swing. tap = 1,
   //   HOLD = 2 in succession (vilgaxBlastX.double). Procedural projectile (no sheet), pale-white.
-  vilgaxBlast:  { cost: 30, wind: 14, recovery: 18, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff" },                        // Ruby Crescent — single (tap)
-  vilgaxBlastX: { cost: 42, wind: 14, recovery: 22, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff", double: true },           // Ruby Crescents — double (hold)
+  vilgaxBlast:  { cost: 30, wind: 14, recovery: 18, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff", sheet: "./vilgax_crescent_uniform.png", spriteW: 66, spriteH: 66, spriteScale: 0.95, spriteFrames: 4 },                        // Ruby Crescent — single (tap)
+  vilgaxBlastX: { cost: 42, wind: 14, recovery: 22, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff", sheet: "./vilgax_crescent_uniform.png", spriteW: 66, spriteH: 66, spriteScale: 0.95, spriteFrames: 4, double: true },           // Ruby Crescents — double (hold)
   // Real spinning-blade sprite projectile (animated 4-frame spin; flips to travel dir). BONUS (Back).
   vilgaxSword:  { cost: 34, wind: 12, recovery: 20, pose: "vilgaxThrow", projW: 46, projH: 40, speed: 16, damage: 96, hitstun: 20, kbX: 9, kbY: -2, life: 84, radius: 26, sheet: "./vilgax_sword_uniform.png", spriteW: 44, spriteH: 45, spriteScale: 1.0, spriteFrames: 4 },  // Thrown Spinning Sword (B)
   // SEISMIC SLAM (Down, low) — a ground-hugging shockwave projectile; code-themed dust colour, low spawn.
@@ -9583,6 +9583,7 @@ export function fireVilgaxDrone(fighter, context) {
 export function updateVilgaxDrone(fighter, inputState, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return
   if ((fighter._vilgaxDroneCd || 0) > 0) fighter._vilgaxDroneCd--
+  if (fighter._vilgaxUltPanel && --fighter._vilgaxUltPanel.timer <= 0) fighter._vilgaxUltPanel = null   // ult cinematic-panel cutaway lifetime
   // SUMMON INPUT — Charge + Heavy (edge). _omxConsume swallows the Heavy press (no stray Tyrant Thrust).
   const held = (fighter._vdHeld = fighter._vdHeld || {})
   if (inputState) {
@@ -9898,6 +9899,10 @@ export function executeVilgaxUltimate(fighter, context) {
   fighter.colorFlash = 14
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)   // CHIMERIAN ONSLAUGHT — invulnerable through the startup (spec frames 1-8)
   fighter._spriteCastMove = "vilgaxUltAction"; fighter._spriteCastTimer = VILGAX_ULT.cinematic   // LIVE fighter holds the green-charge trigger pose
+  // CINEMATIC PANELS (spec): eyes-blaze close-up establishes, then the city-destruction payoff. Drawn as a
+  // letterbox cutaway by drawVilgaxUltPanel (game.js); timer ticks down in updateVilgaxDrone.
+  fighter._vilgaxUltPanel = { which: "eye", timer: 22 }
+  schedulePendingSpawn(50, () => { fighter._vilgaxUltPanel = { which: "city", timer: 24 } })
   fighter.attackCooldown  = getAttackDuration(VILGAX_ULT.cinematic, fighter)
   try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
   try { shakeCamera(context, 5, 10) } catch (_) {}

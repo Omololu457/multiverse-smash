@@ -1,0 +1,1232 @@
+{
+  "rosterKey": "gojo",
+  "name": "Gojo Satoru",
+  "spriteScale": 1.8,
+  "globalScale": 1.18,
+  "actionCount": 23,
+  "actions": {
+    "idle": {
+      "sheet": "./gojo_idle_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 28,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 59.5,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 64
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "w": 28,
+          "h": 64
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 28,
+          "h": 64
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 28,
+          "h": 64
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./gojo_walk_sheet.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 34,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 72.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 238,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./gojo_walk_sheet.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 34,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 72.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        },
+        {
+          "x": 238,
+          "y": 0,
+          "w": 34,
+          "h": 63
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./gojo_jump_sheet.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 45,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 95.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 63
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 63
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./gojo_jump_sheet.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 45,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 95.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 63
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 63
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./gojo_dash_sheet.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 65,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 138.1,
+        "h": 89.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 42
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./gojo_hurt_sheet.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 72,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 152.9,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 62
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./gojo_ajab_sheet.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 49,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./gojo_heavy_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.8,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./gojo_light_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 56,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.9,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./gojo_ajab_sheet.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 49,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./gojo_heavy_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 55,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.8,
+        "h": 125.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 59
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./gojo_ajab_sheet.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 49,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.1,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 63
+        }
+      ]
+    },
+    "transform": {
+      "sheet": "./gojo_intro_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 42,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 89.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./gojo_intro_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 42,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 89.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 64
+        }
+      ]
+    },
+    "ultimate": {
+      "sheet": "./gojo_ultimate_sheet.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 39,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 82.8,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 64
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 64
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 64
+        }
+      ]
+    },
+    "domain": {
+      "sheet": "./gojo_domain_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 78.6,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 64
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 64
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 64
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 64
+        }
+      ]
+    },
+    "blue_cast": {
+      "sheet": "./gojo_max_output_blue_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 50,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        }
+      ]
+    },
+    "red_cast": {
+      "sheet": "./gojo_ctr_attack_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 56,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.9,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 62
+        }
+      ]
+    },
+    "hollow_purple_cast": {
+      "sheet": "./gojo_hollowpurple_cast_sheet.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 37,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 78.6,
+        "h": 210.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 99
+        }
+      ]
+    },
+    "blue_charge": {
+      "sheet": "./gojo_lapse_blue_sheet.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 95.6,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 64
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 64
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 64
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 64
+        }
+      ]
+    },
+    "red_charge": {
+      "sheet": "./gojo_ctr_charge_sheet.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 50,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 63
+        }
+      ]
+    },
+    "hollow_purple_charge": {
+      "sheet": "./gojo_hollowpurple_charge_sheet.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 36,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.5,
+        "h": 150.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 71
+        }
+      ]
+    }
+  }
+}

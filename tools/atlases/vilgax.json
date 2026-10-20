@@ -1,0 +1,1235 @@
+{
+  "rosterKey": "vilgax",
+  "name": "Vilgax",
+  "spriteScale": 2.5,
+  "globalScale": 1.18,
+  "actionCount": 26,
+  "actions": {
+    "intro": {
+      "sheet": "./vilgax_intro_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 36,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.2,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 39
+        }
+      ]
+    },
+    "idle": {
+      "sheet": "./vilgax_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 34,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 100.3,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 46
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 46
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 46
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 46
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./vilgax_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 53,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 156.3,
+        "h": 138.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 47
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./vilgax_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 36,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.2,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 36,
+          "h": 43
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./vilgax_run_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 46,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 135.7,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 322,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        },
+        {
+          "x": 368,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./vilgax_run_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 46,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 368,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.7,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 368,
+          "y": 0,
+          "w": 46,
+          "h": 43
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./vilgax_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 31,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.4,
+        "h": 150.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./vilgax_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 31,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 93,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.4,
+        "h": 150.4
+      },
+      "rects": [
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./vilgax_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 34,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.3,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 46
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./vilgax_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 35,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.3,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 45
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./vilgax_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 48,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.6,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 43
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 43
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 43
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./vilgax_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 37,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.1,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./vilgax_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 45,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./vilgax_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 45,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 43
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./vilgax_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.4,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./vilgax_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.4,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 39
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./vilgax_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 37,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.1,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 46
+        }
+      ]
+    },
+    "vilgaxBlastCast": {
+      "sheet": "./vilgax_blastcast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 87,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 256.6,
+        "h": 191.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 65
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 65
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 65
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 65
+        }
+      ]
+    },
+    "vilgaxBlastXCast": {
+      "sheet": "./vilgax_blastxcast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 236,
+        "h": 174
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 59
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 59
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 59
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 59
+        }
+      ]
+    },
+    "vilgaxSlash": {
+      "sheet": "./vilgax_slash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 182.9,
+        "h": 150.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 51
+        }
+      ]
+    },
+    "vilgaxThrow": {
+      "sheet": "./vilgax_throw_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.5,
+        "h": 159.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        }
+      ]
+    },
+    "vilgaxTumble": {
+      "sheet": "./vilgax_tumble_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 44,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 147.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 44,
+          "h": 50
+        }
+      ]
+    },
+    "vilgaxVanish": {
+      "sheet": "./vilgax_vanish_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 45,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 45
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 45
+        }
+      ]
+    },
+    "vilgaxUltAction": {
+      "sheet": "./vilgax_ultaction_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 30,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 156.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./vilgax_win_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 30,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 156.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 30,
+          "h": 53
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./vilgax_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.6,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 43
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 43
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,779 @@
+{
+  "rosterKey": "ghostface_billy",
+  "name": "Billy Ghostface",
+  "spriteScale": 0.982,
+  "globalScale": 1.18,
+  "actionCount": 20,
+  "actions": {
+    "idle": {
+      "sheet": "./ghostface_idle_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 116
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.9,
+        "h": 134.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 116
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./ghostface_walk_uniform__billy.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92.7,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./ghostface_walk_uniform__billy.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92.7,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./ghostface_walk_uniform__billy.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.7,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 115
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./ghostface_jump_uniform__billy.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 105,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.7,
+        "h": 136.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./ghostface_jump_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 105,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 105,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.7,
+        "h": 136.7
+      },
+      "rects": [
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 118
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./ghostface_guard_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 108
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./ghostface_hit_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 122,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.4,
+        "h": 132.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./ghostface_hit_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 122,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 122,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.4,
+        "h": 132.1
+      },
+      "rects": [
+        {
+          "x": 122,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        },
+        {
+          "x": 366,
+          "y": 0,
+          "w": 122,
+          "h": 114
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./ghostface_crouch_uniform__billy.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 79,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 91.5,
+        "h": 118.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 102
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 102
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./ghostface_taunt_uniform__billy.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 100,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 115.9,
+        "h": 132.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./ghostface_taunt_uniform__billy.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 100,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.9,
+        "h": 132.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 114
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./ghostface_slash_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 103,
+        "h": 110
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.4,
+        "h": 127.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        },
+        {
+          "x": 103,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        },
+        {
+          "x": 206,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./ghostface_charge_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 125,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.8,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 125,
+          "h": 115
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./ghostface_up_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 97,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.4,
+        "h": 143.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./ghostface_up_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 97,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.4,
+        "h": 143.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 124
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./ghostface_downair_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 107,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124,
+        "h": 148.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 107,
+          "h": 128
+        },
+        {
+          "x": 107,
+          "y": 0,
+          "w": 107,
+          "h": 128
+        },
+        {
+          "x": 214,
+          "y": 0,
+          "w": 107,
+          "h": 128
+        }
+      ]
+    },
+    "gfLunge": {
+      "sheet": "./ghostface_charge_uniform__billy.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 125,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.8,
+        "h": 133.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 125,
+          "h": 115
+        }
+      ]
+    },
+    "gfLowCut": {
+      "sheet": "./ghostface_lowslash_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 97,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.4,
+        "h": 102
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 88
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 88
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 88
+        }
+      ]
+    },
+    "gfUlt": {
+      "sheet": "./ghostface_slash_uniform__billy.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 103,
+        "h": 110
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.4,
+        "h": 127.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        },
+        {
+          "x": 103,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        },
+        {
+          "x": 206,
+          "y": 0,
+          "w": 103,
+          "h": 110
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1128 @@
+{
+  "rosterKey": "saiki",
+  "name": "Saiki Kusuo",
+  "spriteScale": 2.2,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./saiki_idle_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 25,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 64.9,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 52
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "w": 25,
+          "h": 52
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 25,
+          "h": 52
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 25,
+          "h": 52
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./saiki_run_u.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 44,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 114.2,
+        "h": 132.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./saiki_run_u.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 44,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 114.2,
+        "h": 132.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./saiki_run_u.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 44,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 114.2,
+        "h": 132.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./saiki_jump_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.1,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./saiki_jump_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 148,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.1,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 148,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 185,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        },
+        {
+          "x": 259,
+          "y": 0,
+          "w": 37,
+          "h": 57
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./saiki_hit_u.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 52,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 52
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./saiki_light_u.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.6,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./saiki_heavy_u.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 46,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.4,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 49
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 49
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./saiki_up_u.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 45,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./saiki_light_u.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.6,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./saiki_downair_u.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 29,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.3,
+        "h": 132.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 51
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 51
+        }
+      ]
+    },
+    "teleport": {
+      "sheet": "./saiki_teleport_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 21,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 54.5,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 21,
+          "h": 52
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "w": 21,
+          "h": 52
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 21,
+          "h": 52
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 21,
+          "h": 52
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./saiki_intro_u.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 26,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 67.5,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 26,
+          "h": 49
+        }
+      ]
+    },
+    "saikiChain1": {
+      "sheet": "./saiki_chain1_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 26,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 67.5,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 52
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "w": 26,
+          "h": 52
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 26,
+          "h": 52
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 26,
+          "h": 52
+        }
+      ]
+    },
+    "saikiChain2": {
+      "sheet": "./saiki_chain2_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 30,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 77.9,
+        "h": 150.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 58
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "w": 30,
+          "h": 58
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 30,
+          "h": 58
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 30,
+          "h": 58
+        }
+      ]
+    },
+    "saikiChain3": {
+      "sheet": "./saiki_chain3_u.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 30,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 77.9,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 52
+        },
+        {
+          "x": 30,
+          "y": 0,
+          "w": 30,
+          "h": 52
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 30,
+          "h": 52
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 30,
+          "h": 52
+        }
+      ]
+    },
+    "saikiChainFin": {
+      "sheet": "./saiki_chainfin_u.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 44,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.2,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 57
+        }
+      ]
+    },
+    "saikiBurst": {
+      "sheet": "./saiki_burst_cast_u.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 32,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 137.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        }
+      ]
+    },
+    "saikiLightning": {
+      "sheet": "./saiki_lightning_cast_u.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 50
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 50
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 50
+        }
+      ]
+    },
+    "saikiBomb": {
+      "sheet": "./saiki_bomb_cast_u.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 41,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.4,
+        "h": 153.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        },
+        {
+          "x": 287,
+          "y": 0,
+          "w": 41,
+          "h": 59
+        }
+      ]
+    }
+  }
+}

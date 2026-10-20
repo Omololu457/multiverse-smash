@@ -1,0 +1,1049 @@
+{
+  "rosterKey": "zenitsu",
+  "name": "Zenitsu Agatsuma",
+  "spriteScale": 2.25,
+  "globalScale": 1.18,
+  "actionCount": 20,
+  "actions": {
+    "idle": {
+      "sheet": "./zenitsu_idle_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 38,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 100.9,
+        "h": 159.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 60
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 60
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 60
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 60
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 60
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./zenitsu_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 47,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 124.8,
+        "h": 135.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./zenitsu_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 47,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 124.8,
+        "h": 135.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 51
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./zenitsu_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 51,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./zenitsu_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 39,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.5,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./zenitsu_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 39,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 195,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.5,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 58
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./zenitsu_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 41,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.9,
+        "h": 124.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 47
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./zenitsu_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 57,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.3,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./zenitsu_hit_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 57,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.3,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        },
+        {
+          "x": 399,
+          "y": 0,
+          "w": 57,
+          "h": 52
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./zenitsu_intro_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 44,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 162
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 352,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        },
+        {
+          "x": 484,
+          "y": 0,
+          "w": 44,
+          "h": 61
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./zenitsu_foward_slash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 56,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./zenitsu_foward_hit_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 71,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.5,
+        "h": 140.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 53
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 53
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 53
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./zenitsu_up_attack_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162,
+        "h": 188.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 71
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 71
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 71
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./zenitsu_down_air_2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 67,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 177.9,
+        "h": 156.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 59
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 59
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./zenitsu_down_air_1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 56,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 58
+        }
+      ]
+    },
+    "zenCombo1": {
+      "sheet": "./zenitsu_down_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 71,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.5,
+        "h": 185.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 70
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 70
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 70
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 70
+        }
+      ]
+    },
+    "zenCombo2": {
+      "sheet": "./zenitsu_dash_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 53,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.7,
+        "h": 151.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 57
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 57
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 57
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 57
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 57
+        }
+      ]
+    },
+    "zenCombo3": {
+      "sheet": "./zenitsu_super_up_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 42,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 188.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 42,
+          "h": 71
+        }
+      ]
+    },
+    "zenThunderclap": {
+      "sheet": "./zenitsu_thunderclap_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 48
+        }
+      ]
+    },
+    "zenUltimate": {
+      "sheet": "./zenitsu_ultimate_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 51,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.4,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 48
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1410 @@
+{
+  "rosterKey": "red_ranger_mmpr",
+  "name": "Red Ranger (Mighty Morphin)",
+  "spriteScale": 1.54,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./red_ranger_mmpr_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.3,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 74
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 74
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 74
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./red_ranger_mmpr_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 43,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 78.1,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        },
+        {
+          "x": 215,
+          "y": 0,
+          "w": 43,
+          "h": 74
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./red_ranger_mmpr_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 105.4,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./red_ranger_mmpr_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 105.4,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 70
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./red_ranger_mmpr_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 50,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.9,
+        "h": 147.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./red_ranger_mmpr_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 50,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.9,
+        "h": 147.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 81
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./red_ranger_mmpr_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.3,
+        "h": 132.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./red_ranger_mmpr_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.3,
+        "h": 132.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./red_ranger_mmpr_foward_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 64,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.3,
+        "h": 132.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 73
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 73
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./red_ranger_mmpr_punch_2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 70,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.2,
+        "h": 130.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./red_ranger_mmpr_up_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 58,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.4,
+        "h": 130.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 72
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./red_ranger_mmpr_jump_kick_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 72,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130.8,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 70
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 70
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./red_ranger_mmpr_180_kick_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 85,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.5,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 70
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 70
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 70
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 70
+        }
+      ]
+    },
+    "rrRekka1": {
+      "sheet": "./red_ranger_mmpr_foward_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 64,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.3,
+        "h": 132.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 73
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 73
+        }
+      ]
+    },
+    "rrRekka2": {
+      "sheet": "./red_ranger_mmpr_punch_2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 70,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.2,
+        "h": 130.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 72
+        }
+      ]
+    },
+    "rrRekka3": {
+      "sheet": "./red_ranger_mmpr_super_360_kick_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 63,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.5,
+        "h": 149
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 82
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 82
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 82
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 82
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 82
+        }
+      ]
+    },
+    "rrDiveKick": {
+      "sheet": "./red_ranger_mmpr_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 73,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.7,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 69
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 69
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 69
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./red_ranger_mmpr_trhow_1_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.8,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        }
+      ]
+    },
+    "rrGrab": {
+      "sheet": "./red_ranger_mmpr_trhow_1_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.8,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 69
+        }
+      ]
+    },
+    "rrThrow": {
+      "sheet": "./red_ranger_mmpr_trhow_2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 69,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 80
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 80
+        }
+      ]
+    },
+    "ultimate": {
+      "sheet": "./red_ranger_mmpr_ultimate_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 87,
+        "h": 113
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 158.1,
+        "h": 205.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 113
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 113
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 113
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 113
+        }
+      ]
+    },
+    "introRunIn": {
+      "sheet": "./red_ranger_mmpr_intro_runin_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 50,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.9,
+        "h": 129
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 500,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        },
+        {
+          "x": 550,
+          "y": 0,
+          "w": 50,
+          "h": 71
+        }
+      ]
+    },
+    "introTeleport": {
+      "sheet": "./red_ranger_mmpr_intro_teleport_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 36,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 65.4,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 69
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 69
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 69
+        }
+      ]
+    },
+    "introMorpher": {
+      "sheet": "./red_ranger_mmpr_intro_morpher_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 66,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.9,
+        "h": 165.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 66,
+          "h": 91
+        }
+      ]
+    },
+    "introKnuckles": {
+      "sheet": "./red_ranger_mmpr_intro_knuckles_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 29,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 52.7,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 69
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 69
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 69
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 69
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 29,
+          "h": 69
+        }
+      ]
+    },
+    "morphFlash": {
+      "sheet": "./red_ranger_mmpr_morph_flash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 33,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 60,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 69
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "w": 33,
+          "h": 69
+        }
+      ]
+    },
+    "introMorphed": {
+      "sheet": "./red_ranger_mmpr_intro_morphed_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 73,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.7,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 76
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1282 @@
+{
+  "rosterKey": "isshiki",
+  "name": "Isshiki Otsutsuki",
+  "spriteScale": 1.4,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./isshiki_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 44,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 72.7,
+        "h": 147
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 89
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./isshiki_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 72,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.9,
+        "h": 92.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./isshiki_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 72,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.9,
+        "h": 92.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./isshiki_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 72,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.9,
+        "h": 92.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 56
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./isshiki_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 53,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 80
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 80
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 80
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./isshiki_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 53,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 106,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.6,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 80
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./isshiki_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 44,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.7,
+        "h": 137.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 83
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./isshiki_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 50,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.6,
+        "h": 147
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 89
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./isshiki_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 89.2,
+        "h": 122.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 74
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 74
+        }
+      ]
+    },
+    "hurt_air": {
+      "sheet": "./isshiki_hurt_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 76,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        },
+        {
+          "x": 304,
+          "y": 0,
+          "w": 76,
+          "h": 76
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./isshiki_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 41
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.8,
+        "h": 67.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 41
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 41
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./isshiki_getup_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 70,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.6,
+        "h": 110.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 67
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 67
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 67
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 67
+        }
+      ]
+    },
+    "sukunahikonaShrink": {
+      "sheet": "./isshiki_sukunahikona_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 41,
+        "h": 16
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 67.7,
+        "h": 26.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 16
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 16
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 16
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 16
+        }
+      ]
+    },
+    "isshikiGround1": {
+      "sheet": "./isshiki_ground1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        }
+      ]
+    },
+    "isshikiGround2": {
+      "sheet": "./isshiki_ground2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 78,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 72
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 72
+        }
+      ]
+    },
+    "isshikiGround3": {
+      "sheet": "./isshiki_ground3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 74,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.2,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        }
+      ]
+    },
+    "isshikiAir1": {
+      "sheet": "./isshiki_air1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 65,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        }
+      ]
+    },
+    "isshikiAir2": {
+      "sheet": "./isshiki_air2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 82,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        }
+      ]
+    },
+    "isshikiAir3": {
+      "sheet": "./isshiki_air3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 159,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 262.7,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 159,
+          "h": 70
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 159,
+          "h": 70
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./isshiki_ground1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 76
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./isshiki_ground2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 78,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 72
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 72
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./isshiki_ground3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 74,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.2,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 77
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./isshiki_air1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 65,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 77
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./isshiki_air3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 159,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 262.7,
+        "h": 115.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 159,
+          "h": 70
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 159,
+          "h": 70
+        }
+      ]
+    },
+    "isshikiSukuCast": {
+      "sheet": "./isshiki_suku_cast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.6,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 76
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 76
+        }
+      ]
+    },
+    "isshikiRodCast": {
+      "sheet": "./isshiki_rod_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 82,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 72
+        }
+      ]
+    },
+    "isshikiFireCast": {
+      "sheet": "./isshiki_fire_cast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.2,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 75
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 75
+        }
+      ]
+    },
+    "isshikiFin1Cast": {
+      "sheet": "./isshiki_fin1_cast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.2,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 75
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 75
+        }
+      ]
+    },
+    "isshikiFin2": {
+      "sheet": "./isshiki_fin2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 159,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 262.7,
+        "h": 110.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 159,
+          "h": 67
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 159,
+          "h": 67
+        }
+      ]
+    },
+    "isshikiUltCast": {
+      "sheet": "./isshiki_ult_cast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 76
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.6,
+        "h": 125.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 76
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 76
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./isshiki_intro_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 44,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.7,
+        "h": 147
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 89
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 89
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 89
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 89
+        }
+      ]
+    }
+  }
+}

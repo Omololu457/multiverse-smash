@@ -1,0 +1,1190 @@
+{
+  "rosterKey": "shizuku",
+  "name": "Shizuku Murasaki",
+  "spriteScale": 2.05,
+  "globalScale": 1.18,
+  "actionCount": 23,
+  "actions": {
+    "idle": {
+      "sheet": "./shizuku_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 24,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 58.1,
+        "h": 113.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 47
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "w": 24,
+          "h": 47
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 24,
+          "h": 47
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./shizuku_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 38,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 91.9,
+        "h": 113.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 266,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./shizuku_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 38,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 91.9,
+        "h": 113.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 266,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./shizuku_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 38,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.9,
+        "h": 113.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 47
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./shizuku_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 31,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75,
+        "h": 125.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 52
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 52
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 52
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 52
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./shizuku_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 31,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 93,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75,
+        "h": 125.8
+      },
+      "rects": [
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 52
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./shizuku_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 46,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.3,
+        "h": 135.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 56
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 56
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./shizuku_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 34,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 82.2,
+        "h": 123.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 51
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 51
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 51
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./shizuku_knockdown_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 56,
+        "h": 41
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.5,
+        "h": 99.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 41
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 41
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 41
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 41
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 41
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./shizuku_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 26,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 62.9,
+        "h": 101.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 42
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "w": 26,
+          "h": 42
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./shizuku_light_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 46,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.3,
+        "h": 116.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 48
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 48
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 48
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 48
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 48
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./shizuku_heavy_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 49,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.5,
+        "h": 118.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        },
+        {
+          "x": 245,
+          "y": 0,
+          "w": 49,
+          "h": 49
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./shizuku_up_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 32,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 77.4,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 32,
+          "h": 53
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./shizuku_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 52,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.8,
+        "h": 123.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 51
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 51
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 51
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 51
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./shizuku_down_air_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 46,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.3,
+        "h": 140.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 58
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./shizuku_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 31,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 75,
+        "h": 123.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 51
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./shizuku_lose_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 41,
+        "h": 36
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.2,
+        "h": 87.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 36
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 36
+        }
+      ]
+    },
+    "shizukuPhantom": {
+      "sheet": "./shizuku_phantom_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 70,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 169.3,
+        "h": 118.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 70,
+          "h": 49
+        }
+      ]
+    },
+    "shizukuPull": {
+      "sheet": "./shizuku_pull_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.4,
+        "h": 123.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        }
+      ]
+    },
+    "shizukuSmash": {
+      "sheet": "./shizuku_smash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.6,
+        "h": 135.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 56
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 56
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 56
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 56
+        }
+      ]
+    },
+    "shizukuSpit": {
+      "sheet": "./shizuku_pull_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.4,
+        "h": 123.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 51
+        }
+      ]
+    },
+    "shizukuBloodletting": {
+      "sheet": "./shizuku_bloodletting_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 61,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.6,
+        "h": 142.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 305,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 366,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 427,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 488,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        }
+      ]
+    },
+    "shizukuSpringClean": {
+      "sheet": "./shizuku_springclean_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 90,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 217.7,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 90,
+          "h": 60
+        }
+      ]
+    }
+  }
+}

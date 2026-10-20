@@ -1,0 +1,973 @@
+{
+  "rosterKey": "spiderman_raimi",
+  "name": "Spider-Man (Raimi)",
+  "spriteScale": 1.25,
+  "globalScale": 1.18,
+  "actionCount": 22,
+  "actions": {
+    "idle": {
+      "sheet": "./raimi_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 51,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 75.2,
+        "h": 146
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./raimi_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 59,
+        "h": 86
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 87,
+        "h": 126.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 295,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        },
+        {
+          "x": 354,
+          "y": 0,
+          "w": 59,
+          "h": 86
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./raimi_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 83,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 122.4,
+        "h": 120.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 332,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 415,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./raimi_run_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 83,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.4,
+        "h": 120.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./raimi_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 60,
+        "h": 110
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 162.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 110
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./raimi_fall_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 76,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.1,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 78
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 78
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 78
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./raimi_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.6,
+        "h": 87
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 59
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 59
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./raimi_knockdown_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 78,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115,
+        "h": 134.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./raimi_knockdown_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 78,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115,
+        "h": 134.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 78,
+          "h": 91
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./raimi_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 51,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.2,
+        "h": 128.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 87
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./raimi_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 51,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.2,
+        "h": 128.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 87
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./raimi_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 51,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 75.2,
+        "h": 146
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 99
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./raimi_light_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.3,
+        "h": 125.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 85
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 85
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 85
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./raimi_heavy_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.6,
+        "h": 122.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 83
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 83
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 83
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./raimi_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 75,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.6,
+        "h": 123.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 84
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 84
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./raimi_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 76,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.1,
+        "h": 113.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 77
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 77
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./raimi_downair_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 68,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.3,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 98
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 98
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./raimi_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.5,
+        "h": 76.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 52
+        }
+      ]
+    },
+    "webShot": {
+      "sheet": "./raimi_webshot_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 76,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.1,
+        "h": 97.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 66
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 66
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 66
+        }
+      ]
+    },
+    "webZip": {
+      "sheet": "./raimi_webzip_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 85,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 98.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 67
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 67
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 67
+        }
+      ]
+    },
+    "spiderSense": {
+      "sheet": "./raimi_spidersense_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 52,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.7,
+        "h": 103.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 70
+        }
+      ]
+    },
+    "webThwip": {
+      "sheet": "./raimi_webthwip_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90,
+        "h": 120.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 82
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1352 @@
+{
+  "rosterKey": "goku_rose",
+  "name": "Goku Black (Rosé 3)",
+  "spriteScale": 2,
+  "globalScale": 1.18,
+  "actionCount": 23,
+  "actions": {
+    "idle": {
+      "sheet": "./goku_rose_idle_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 43,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 101.5,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 215,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 301,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./goku_rose_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 148.7,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./goku_rose_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 148.7,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./goku_rose_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 132.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./goku_rose_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./goku_rose_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./goku_rose_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 43,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 101.5,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./goku_rose_idle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 43,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 101.5,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 58
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./goku_rose_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 42,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./goku_rose_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 42,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 58
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./goku_rose_light_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 151,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 356.4,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 151,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 302,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 453,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 604,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 755,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 906,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./goku_rose_heavy_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 52,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./goku_rose_heavy_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 52,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./goku_rose_light_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 151,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 356.4,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 151,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 302,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 453,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 604,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 755,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        },
+        {
+          "x": 906,
+          "y": 0,
+          "w": 151,
+          "h": 57
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./goku_rose_heavy_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 52,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 57
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./goku_rose_transform_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 77,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.7,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 539,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 693,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./goku_rose_transform_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 77,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 181.7,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 539,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 693,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        }
+      ]
+    },
+    "roseKi": {
+      "sheet": "./goku_rose_kiblast_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 69,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.8,
+        "h": 191.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 81
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 81
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 81
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 81
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 81
+        }
+      ]
+    },
+    "roseKameha": {
+      "sheet": "./goku_rose_kamehameha_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 63,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 136.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 58
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 58
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 58
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 58
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 58
+        }
+      ]
+    },
+    "roseSword": {
+      "sheet": "./goku_rose_sword_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 80,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 188.8,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 560,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        },
+        {
+          "x": 640,
+          "y": 0,
+          "w": 80,
+          "h": 57
+        }
+      ]
+    },
+    "roseScythe": {
+      "sheet": "./goku_rose_scythe_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 174,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 410.6,
+        "h": 167.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 522,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 696,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 870,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 1044,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 1218,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 1392,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 1566,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        },
+        {
+          "x": 1740,
+          "y": 0,
+          "w": 174,
+          "h": 71
+        }
+      ]
+    },
+    "roseAura": {
+      "sheet": "./goku_rose_aura_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 77,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.7,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 77,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 231,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 77,
+          "h": 65
+        }
+      ]
+    },
+    "roseDragon": {
+      "sheet": "./goku_rose_dragon_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 210,
+        "h": 148
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 495.6,
+        "h": 349.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 210,
+          "h": 148
+        }
+      ]
+    }
+  }
+}

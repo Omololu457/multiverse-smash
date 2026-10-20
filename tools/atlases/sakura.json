@@ -1,0 +1,1281 @@
+{
+  "rosterKey": "sakura",
+  "name": "Sakura Haruno",
+  "spriteScale": 1.5,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./sakura_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 102.7,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 71
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./sakura_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 81,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 143.4,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./sakura_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 81,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 143.4,
+        "h": 111.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 63
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./sakura_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 79,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.8,
+        "h": 108
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 79,
+          "h": 61
+        },
+        {
+          "x": 79,
+          "y": 0,
+          "w": 79,
+          "h": 61
+        },
+        {
+          "x": 158,
+          "y": 0,
+          "w": 79,
+          "h": 61
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./sakura_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 68,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 129.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./sakura_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 68,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 129.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 73
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./sakura_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 160,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 283.2,
+        "h": 139.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 160,
+          "h": 79
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 160,
+          "h": 79
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 160,
+          "h": 79
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./sakura_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 80,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.6,
+        "h": 54.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 31
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 31
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 31
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./sakura_getup_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 75,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 95.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 54
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 54
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 54
+        },
+        {
+          "x": 225,
+          "y": 0,
+          "w": 75,
+          "h": 54
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./sakura_guard_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 129.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 73
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 73
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 73
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./sakura_intro_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.6,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 78
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 78
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 78
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 78
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./sakura_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 42,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 74.3,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 80
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 80
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 80
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 80
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./sakura_charge_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 81.4,
+        "h": 125.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 71
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 71
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 71
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 71
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./sakura_light_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 198,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 350.5,
+        "h": 164.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 594,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 792,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 990,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 1188,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 1386,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        },
+        {
+          "x": 1584,
+          "y": 0,
+          "w": 198,
+          "h": 93
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./sakura_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 93,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 164.6,
+        "h": 139.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 79
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 79
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 79
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 79
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./sakura_special3_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 86,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.2,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./sakura_air_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 84,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 588,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 672,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        },
+        {
+          "x": 756,
+          "y": 0,
+          "w": 84,
+          "h": 91
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./sakura_heavy_air_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 86,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.2,
+        "h": 139.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        },
+        {
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 79
+        }
+      ]
+    },
+    "sakuraShannaro": {
+      "sheet": "./sakura_special2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 81,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.4,
+        "h": 169.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        },
+        {
+          "x": 405,
+          "y": 0,
+          "w": 81,
+          "h": 96
+        }
+      ]
+    },
+    "sakuraHeavenKick": {
+      "sheet": "./sakura_special3_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 86,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.2,
+        "h": 161.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 91
+        }
+      ]
+    },
+    "sakuraStrike": {
+      "sheet": "./sakura_special4_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 63,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 120.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 68
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 68
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 68
+        }
+      ]
+    },
+    "sakuraByakugou": {
+      "sheet": "./sakura_byakugou_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 57,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.9,
+        "h": 129.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 399,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        },
+        {
+          "x": 456,
+          "y": 0,
+          "w": 57,
+          "h": 73
+        }
+      ]
+    },
+    "sakuraThrow": {
+      "sheet": "./sakura_throw_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 83,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.9,
+        "h": 145.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 82
+        }
+      ]
+    },
+    "sakuraDaichi": {
+      "sheet": "./sakura_daichi_cast_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 119,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 210.6,
+        "h": 177
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 100
+        },
+        {
+          "x": 119,
+          "y": 0,
+          "w": 119,
+          "h": 100
+        },
+        {
+          "x": 238,
+          "y": 0,
+          "w": 119,
+          "h": 100
+        }
+      ]
+    }
+  }
+}

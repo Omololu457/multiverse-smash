@@ -1,0 +1,532 @@
+[
+ {
+  "id": "sting_pitch_rise_hold",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/sting_pitch_rise_hold.ogg",
+  "duration": 1.6,
+  "src_start": 0.88,
+  "src_end": 2.49
+ },
+ {
+  "id": "charge_swell_riser",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/charge_swell_riser.ogg",
+  "duration": 1.2,
+  "src_start": 3.09,
+  "src_end": 4.31
+ },
+ {
+  "id": "whoosh_medium_01",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/whoosh_medium_01.ogg",
+  "duration": 0.8,
+  "src_start": 4.31,
+  "src_end": 5.16
+ },
+ {
+  "id": "charge_hum_rise",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/charge_hum_rise.ogg",
+  "duration": 1.19,
+  "src_start": 6.88,
+  "src_end": 8.09
+ },
+ {
+  "id": "swish_fast_01",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/swish_fast_01.ogg",
+  "duration": 0.59,
+  "src_start": 9.28,
+  "src_end": 10.01
+ },
+ {
+  "id": "swish_fast_02",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/swish_fast_02.ogg",
+  "duration": 0.56,
+  "src_start": 10.01,
+  "src_end": 10.62
+ },
+ {
+  "id": "swish_fast_03",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/swish_fast_03.ogg",
+  "duration": 0.53,
+  "src_start": 10.92,
+  "src_end": 11.46
+ },
+ {
+  "id": "warp_wobble_01",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/warp_wobble_01.ogg",
+  "duration": 0.97,
+  "src_start": 12.95,
+  "src_end": 13.93
+ },
+ {
+  "id": "energy_hum_low",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/energy_hum_low.ogg",
+  "duration": 2.26,
+  "src_start": 15.08,
+  "src_end": 17.36
+ },
+ {
+  "id": "energy_tone_hold",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/energy_tone_hold.ogg",
+  "duration": 1.29,
+  "src_start": 19.1,
+  "src_end": 20.41
+ },
+ {
+  "id": "pitch_drop_slowmo",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/pitch_drop_slowmo.ogg",
+  "duration": 1.27,
+  "src_start": 22.4,
+  "src_end": 23.68
+ },
+ {
+  "id": "whoosh_medium_02",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/whoosh_medium_02.ogg",
+  "duration": 0.78,
+  "src_start": 25.35,
+  "src_end": 26.15
+ },
+ {
+  "id": "warp_wobble_02",
+  "source": "anime",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "clean_tones_whooshes/warp_wobble_02.ogg",
+  "duration": 1.31,
+  "src_start": 26.97,
+  "src_end": 28.3
+ },
+ {
+  "id": "boom_anticipation_suck",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/boom_anticipation_suck.ogg",
+  "duration": 0.59,
+  "src_start": 0.768,
+  "src_end": 1.387
+ },
+ {
+  "id": "impact_crack_01",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/impact_crack_01.ogg",
+  "duration": 0.34,
+  "src_start": 1.387,
+  "src_end": 1.756
+ },
+ {
+  "id": "boom_medium_01",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/boom_medium_01.ogg",
+  "duration": 1.65,
+  "src_start": 1.756,
+  "src_end": 3.422
+ },
+ {
+  "id": "boom_medium_02",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/boom_medium_02.ogg",
+  "duration": 1.97,
+  "src_start": 3.422,
+  "src_end": 5.408
+ },
+ {
+  "id": "impact_frame_boom_long",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/impact_frame_boom_long.ogg",
+  "duration": 5.1,
+  "src_start": 5.408,
+  "src_end": 10.506
+ },
+ {
+  "id": "rumble_tail_01",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/rumble_tail_01.ogg",
+  "duration": 3.44,
+  "src_start": 10.506,
+  "src_end": 13.978
+ },
+ {
+  "id": "impact_hit_01",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/impact_hit_01.ogg",
+  "duration": 0.34,
+  "src_start": 13.978,
+  "src_end": 14.337
+ },
+ {
+  "id": "crack_sizzle_bright",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/crack_sizzle_bright.ogg",
+  "duration": 0.95,
+  "src_start": 14.337,
+  "src_end": 15.295
+ },
+ {
+  "id": "boom_huge_01",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/boom_huge_01.ogg",
+  "duration": 2.16,
+  "src_start": 15.295,
+  "src_end": 17.47
+ },
+ {
+  "id": "boom_huge_02_roar",
+  "source": "impact",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "explosion_impact_design/boom_huge_02_roar.ogg",
+  "duration": 4.1,
+  "src_start": 17.47,
+  "src_end": 21.571
+ },
+ {
+  "id": "hit_flurry_01",
+  "source": "hit",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "hits/hit_flurry_01.ogg",
+  "duration": 1.77,
+  "src_start": 0.03,
+  "src_end": 1.846
+ },
+ {
+  "id": "hit_heavy_boom_01",
+  "source": "hit",
+  "background_music": false,
+  "confidence": "category-high",
+  "file": "hits/hit_heavy_boom_01.ogg",
+  "duration": 3.24,
+  "src_start": 1.846,
+  "src_end": 5.138
+ },
+ {
+  "id": "naruto_01_impact",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_01_impact.ogg",
+  "duration": 1.91,
+  "src_start": 1.806,
+  "src_end": 3.776
+ },
+ {
+  "id": "naruto_02_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_02_mixed.ogg",
+  "duration": 2.11,
+  "src_start": 3.776,
+  "src_end": 5.902
+ },
+ {
+  "id": "naruto_03_rumble_low",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_03_rumble_low.ogg",
+  "duration": 1.2,
+  "src_start": 6.036,
+  "src_end": 7.293
+ },
+ {
+  "id": "naruto_04_whoosh_noise",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_04_whoosh_noise.ogg",
+  "duration": 2.47,
+  "src_start": 7.293,
+  "src_end": 9.808
+ },
+ {
+  "id": "naruto_05_whoosh_noise",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_05_whoosh_noise.ogg",
+  "duration": 2.09,
+  "src_start": 9.808,
+  "src_end": 11.933
+ },
+ {
+  "id": "naruto_06_whoosh_noise",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_06_whoosh_noise.ogg",
+  "duration": 1.16,
+  "src_start": 11.933,
+  "src_end": 13.11
+ },
+ {
+  "id": "naruto_07_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_07_mixed.ogg",
+  "duration": 2.0,
+  "src_start": 13.11,
+  "src_end": 15.146
+ },
+ {
+  "id": "naruto_08_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_08_mixed.ogg",
+  "duration": 3.09,
+  "src_start": 15.146,
+  "src_end": 18.249
+ },
+ {
+  "id": "naruto_09_whoosh_noise",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_09_whoosh_noise.ogg",
+  "duration": 0.51,
+  "src_start": 18.249,
+  "src_end": 18.777
+ },
+ {
+  "id": "naruto_10_impact",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_10_impact.ogg",
+  "duration": 0.74,
+  "src_start": 18.917,
+  "src_end": 19.695
+ },
+ {
+  "id": "naruto_11_tonal",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_11_tonal.ogg",
+  "duration": 2.02,
+  "src_start": 19.695,
+  "src_end": 21.736
+ },
+ {
+  "id": "naruto_12_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_12_mixed.ogg",
+  "duration": 1.96,
+  "src_start": 21.736,
+  "src_end": 23.746
+ },
+ {
+  "id": "naruto_13_tonal",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_13_tonal.ogg",
+  "duration": 1.73,
+  "src_start": 23.746,
+  "src_end": 25.502
+ },
+ {
+  "id": "naruto_14_rumble_low",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_14_rumble_low.ogg",
+  "duration": 1.23,
+  "src_start": 25.502,
+  "src_end": 26.949
+ },
+ {
+  "id": "naruto_15_impact",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_15_impact.ogg",
+  "duration": 1.22,
+  "src_start": 26.949,
+  "src_end": 28.196
+ },
+ {
+  "id": "naruto_16_impact",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_16_impact.ogg",
+  "duration": 1.78,
+  "src_start": 28.196,
+  "src_end": 30.012
+ },
+ {
+  "id": "naruto_17_tonal",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_17_tonal.ogg",
+  "duration": 1.64,
+  "src_start": 30.012,
+  "src_end": 31.678
+ },
+ {
+  "id": "naruto_18_tonal",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_18_tonal.ogg",
+  "duration": 1.41,
+  "src_start": 31.927,
+  "src_end": 33.394
+ },
+ {
+  "id": "naruto_19_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_19_mixed.ogg",
+  "duration": 2.74,
+  "src_start": 33.394,
+  "src_end": 36.163
+ },
+ {
+  "id": "naruto_20_rumble_low",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_20_rumble_low.ogg",
+  "duration": 3.25,
+  "src_start": 36.337,
+  "src_end": 39.595
+ },
+ {
+  "id": "naruto_21_rumble_low",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_21_rumble_low.ogg",
+  "duration": 3.55,
+  "src_start": 39.595,
+  "src_end": 43.182
+ },
+ {
+  "id": "naruto_22_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_22_mixed.ogg",
+  "duration": 4.8,
+  "src_start": 43.182,
+  "src_end": 47.971
+ },
+ {
+  "id": "naruto_23_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_23_mixed.ogg",
+  "duration": 2.04,
+  "src_start": 47.971,
+  "src_end": 50.066
+ },
+ {
+  "id": "naruto_24_whoosh_noise",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_24_whoosh_noise.ogg",
+  "duration": 0.4,
+  "src_start": 50.066,
+  "src_end": 50.49
+ },
+ {
+  "id": "naruto_25_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_25_mixed.ogg",
+  "duration": 3.84,
+  "src_start": 50.635,
+  "src_end": 54.501
+ },
+ {
+  "id": "naruto_26_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_26_mixed.ogg",
+  "duration": 3.38,
+  "src_start": 54.501,
+  "src_end": 57.933
+ },
+ {
+  "id": "naruto_27_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_27_mixed.ogg",
+  "duration": 3.58,
+  "src_start": 57.933,
+  "src_end": 61.615
+ },
+ {
+  "id": "naruto_28_mixed",
+  "source": "naruto",
+  "background_music": true,
+  "confidence": "category-guess",
+  "file": "naruto_clips_bgm/naruto_28_mixed.ogg",
+  "duration": 2.07,
+  "src_start": 61.615,
+  "src_end": 63.745
+ }
+]

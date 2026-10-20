@@ -1,0 +1,819 @@
+{
+  "rosterKey": "flash",
+  "name": "The Flash",
+  "spriteScale": 1.35,
+  "globalScale": 1.18,
+  "actionCount": 18,
+  "actions": {
+    "idle": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 80,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": -1
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 127.4,
+        "h": 148.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 194,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": -5
+      },
+      "source": {
+        "x": 0,
+        "y": 93
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 309,
+        "h": 157.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        },
+        {
+          "x": 194,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 194,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": -5
+      },
+      "source": {
+        "x": 0,
+        "y": 93
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 309,
+        "h": 157.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        },
+        {
+          "x": 194,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 194,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": -5
+      },
+      "source": {
+        "x": 0,
+        "y": 93
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 309,
+        "h": 157.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        },
+        {
+          "x": 194,
+          "y": 93,
+          "w": 194,
+          "h": 99
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 192
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.1,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 192,
+          "w": 66,
+          "h": 104
+        },
+        {
+          "x": 66,
+          "y": 192,
+          "w": 66,
+          "h": 104
+        },
+        {
+          "x": 132,
+          "y": 192,
+          "w": 66,
+          "h": 104
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 66,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 132,
+        "y": 192
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.1,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 132,
+          "y": 192,
+          "w": 66,
+          "h": 104
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 80,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": -1
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 148.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 115,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": -5
+      },
+      "source": {
+        "x": 0,
+        "y": 296
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 183.2,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 296,
+          "w": 115,
+          "h": 104
+        },
+        {
+          "x": 115,
+          "y": 296,
+          "w": 115,
+          "h": 104
+        },
+        {
+          "x": 230,
+          "y": 296,
+          "w": 115,
+          "h": 104
+        },
+        {
+          "x": 345,
+          "y": 296,
+          "w": 115,
+          "h": 104
+        },
+        {
+          "x": 460,
+          "y": 296,
+          "w": 115,
+          "h": 104
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 80,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": -2
+      },
+      "source": {
+        "x": 0,
+        "y": 400
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 80,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 160,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 240,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 320,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 400,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 480,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        },
+        {
+          "x": 560,
+          "y": 400,
+          "w": 80,
+          "h": 104
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 114,
+        "h": 95
+      },
+      "anchor": {
+        "x": 0,
+        "y": -4
+      },
+      "source": {
+        "x": 0,
+        "y": 504
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.6,
+        "h": 151.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 504,
+          "w": 114,
+          "h": 95
+        },
+        {
+          "x": 114,
+          "y": 504,
+          "w": 114,
+          "h": 95
+        },
+        {
+          "x": 228,
+          "y": 504,
+          "w": 114,
+          "h": 95
+        },
+        {
+          "x": 342,
+          "y": 504,
+          "w": 114,
+          "h": 95
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 116,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": -2
+      },
+      "source": {
+        "x": 0,
+        "y": 599
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 184.8,
+        "h": 186.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 599,
+          "w": 116,
+          "h": 117
+        },
+        {
+          "x": 116,
+          "y": 599,
+          "w": 116,
+          "h": 117
+        },
+        {
+          "x": 232,
+          "y": 599,
+          "w": 116,
+          "h": 117
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 103,
+        "h": 121
+      },
+      "anchor": {
+        "x": 0,
+        "y": -1
+      },
+      "source": {
+        "x": 0,
+        "y": 716
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 164.1,
+        "h": 192.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 716,
+          "w": 103,
+          "h": 121
+        },
+        {
+          "x": 103,
+          "y": 716,
+          "w": 103,
+          "h": 121
+        },
+        {
+          "x": 206,
+          "y": 716,
+          "w": 103,
+          "h": 121
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 115,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": -1
+      },
+      "source": {
+        "x": 0,
+        "y": 837
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 183.2,
+        "h": 149.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 837,
+          "w": 115,
+          "h": 94
+        },
+        {
+          "x": 115,
+          "y": 837,
+          "w": 115,
+          "h": 94
+        },
+        {
+          "x": 230,
+          "y": 837,
+          "w": 115,
+          "h": 94
+        },
+        {
+          "x": 345,
+          "y": 837,
+          "w": 115,
+          "h": 94
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 92,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": -15
+      },
+      "source": {
+        "x": 0,
+        "y": 931
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.6,
+        "h": 167.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 931,
+          "w": 92,
+          "h": 105
+        },
+        {
+          "x": 92,
+          "y": 931,
+          "w": 92,
+          "h": 105
+        },
+        {
+          "x": 184,
+          "y": 931,
+          "w": 92,
+          "h": 105
+        }
+      ]
+    },
+    "rush1": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 130,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": -5
+      },
+      "source": {
+        "x": 0,
+        "y": 1036
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 207.1,
+        "h": 167.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 1036,
+          "w": 130,
+          "h": 105
+        },
+        {
+          "x": 130,
+          "y": 1036,
+          "w": 130,
+          "h": 105
+        },
+        {
+          "x": 260,
+          "y": 1036,
+          "w": 130,
+          "h": 105
+        }
+      ]
+    },
+    "rush2": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 113,
+        "h": 107
+      },
+      "anchor": {
+        "x": 0,
+        "y": -9
+      },
+      "source": {
+        "x": 0,
+        "y": 1141
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 180,
+        "h": 170.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 1141,
+          "w": 113,
+          "h": 107
+        },
+        {
+          "x": 113,
+          "y": 1141,
+          "w": 113,
+          "h": 107
+        }
+      ]
+    },
+    "spinAttack": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 120,
+        "h": 119
+      },
+      "anchor": {
+        "x": 0,
+        "y": -12
+      },
+      "source": {
+        "x": 0,
+        "y": 1248
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 191.2,
+        "h": 189.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 1248,
+          "w": 120,
+          "h": 119
+        },
+        {
+          "x": 120,
+          "y": 1248,
+          "w": 120,
+          "h": 119
+        },
+        {
+          "x": 240,
+          "y": 1248,
+          "w": 120,
+          "h": 119
+        }
+      ]
+    },
+    "tornado": {
+      "sheet": "./flash_atlas.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 113,
+        "h": 112
+      },
+      "anchor": {
+        "x": 0,
+        "y": -2
+      },
+      "source": {
+        "x": 0,
+        "y": 1367
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 180,
+        "h": 178.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 1367,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 113,
+          "y": 1367,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 226,
+          "y": 1367,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 339,
+          "y": 1367,
+          "w": 113,
+          "h": 112
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1785 @@
+{
+  "rosterKey": "toji",
+  "name": "Toji Fushiguro",
+  "spriteScale": 1.71,
+  "globalScale": 1.18,
+  "actionCount": 30,
+  "actions": {
+    "idle": {
+      "sheet": "./toji_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 46,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 92.8,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./toji_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 38,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.7,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./toji_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 38,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.7,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./toji_walk_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 38,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 152,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 76.7,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 152,
+          "y": 0,
+          "w": 38,
+          "h": 66
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./toji_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 46,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.8,
+        "h": 157.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./toji_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 46,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 230,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.8,
+        "h": 157.4
+      },
+      "rects": [
+        {
+          "x": 230,
+          "y": 0,
+          "w": 46,
+          "h": 78
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./toji_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 46,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.8,
+        "h": 135.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 67
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./toji_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 36,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.6,
+        "h": 129.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 64
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./toji_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 36,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.6,
+        "h": 129.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 64
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 64
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./toji_intro_uniform.png",
+      "exists": true,
+      "frames": 36,
+      "cell": {
+        "w": 67,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.2,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 335,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 469,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 536,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 603,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 670,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 737,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 804,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 871,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 938,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1005,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1072,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1139,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1206,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1273,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1340,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1407,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1474,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1541,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1608,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1675,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1742,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1809,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1876,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 1943,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2010,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2077,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2144,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2211,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2278,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        },
+        {
+          "x": 2345,
+          "y": 0,
+          "w": 67,
+          "h": 66
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 336,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 112,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./toji_up_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 66,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.2,
+        "h": 149.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 74
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 74
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 74
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 74
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 74
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./toji_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 80,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.4,
+        "h": 177.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        },
+        {
+          "x": 560,
+          "y": 0,
+          "w": 80,
+          "h": 88
+        }
+      ]
+    },
+    "tojiG1": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "tojiG2": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 112,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "tojiG3": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 224,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "tojiG4": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 336,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    },
+    "tojiGun": {
+      "sheet": "./toji_gun_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 53,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.9,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 66
+        }
+      ]
+    },
+    "tojiSword1": {
+      "sheet": "./toji_sword_down_attack_1_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 94,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 189.7,
+        "h": 141.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 282,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 376,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 470,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 564,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 658,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        },
+        {
+          "x": 752,
+          "y": 0,
+          "w": 94,
+          "h": 70
+        }
+      ]
+    },
+    "tojiSword2": {
+      "sheet": "./toji_sword_down_attack_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 74,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 149.3,
+        "h": 125.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        },
+        {
+          "x": 296,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        },
+        {
+          "x": 370,
+          "y": 0,
+          "w": 74,
+          "h": 62
+        }
+      ]
+    },
+    "tojiRapidSlash": {
+      "sheet": "./toji_rapid_sword_slashes_uniform.png",
+      "exists": true,
+      "frames": 21,
+      "cell": {
+        "w": 53,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.9,
+        "h": 147.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 371,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 477,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 530,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 583,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 636,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 689,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 742,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 795,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 848,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 901,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 954,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 1007,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        },
+        {
+          "x": 1060,
+          "y": 0,
+          "w": 53,
+          "h": 73
+        }
+      ]
+    },
+    "tojiChain1": {
+      "sheet": "./toji_chain_attack_1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 98,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 197.7,
+        "h": 145.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 72
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 98,
+          "h": 72
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 98,
+          "h": 72
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 98,
+          "h": 72
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 98,
+          "h": 72
+        }
+      ]
+    },
+    "tojiChain2": {
+      "sheet": "./toji_chain_attack_2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 140,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 282.5,
+        "h": 145.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 72
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 72
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 140,
+          "h": 72
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 140,
+          "h": 72
+        }
+      ]
+    },
+    "tojiChain3": {
+      "sheet": "./toji_chain_attack_3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 118,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 238.1,
+        "h": 181.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 90
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 118,
+          "h": 90
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 118,
+          "h": 90
+        },
+        {
+          "x": 354,
+          "y": 0,
+          "w": 118,
+          "h": 90
+        },
+        {
+          "x": 472,
+          "y": 0,
+          "w": 118,
+          "h": 90
+        }
+      ]
+    },
+    "tojiChain4": {
+      "sheet": "./toji_chain_attack_4_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 122,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 246.2,
+        "h": 183.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 366,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 488,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 610,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 732,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        }
+      ]
+    },
+    "tojiChain5": {
+      "sheet": "./toji_chain_attack_5_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 110,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 222,
+        "h": 165.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 110,
+          "h": 82
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 110,
+          "h": 82
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 110,
+          "h": 82
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 110,
+          "h": 82
+        }
+      ]
+    },
+    "tojiPlayfulCloud": {
+      "sheet": "./toji_playful_cloud_dash_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 99,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 199.8,
+        "h": 113
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        },
+        {
+          "x": 297,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        },
+        {
+          "x": 495,
+          "y": 0,
+          "w": 99,
+          "h": 56
+        }
+      ]
+    },
+    "tojiFlyHeads": {
+      "sheet": "./toji_punch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 56,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 336,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113,
+        "h": 133.2
+      },
+      "rects": [
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 66
+        }
+      ]
+    }
+  }
+}

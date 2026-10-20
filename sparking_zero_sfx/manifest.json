@@ -1,0 +1,372 @@
+[
+ {
+  "id": "sz_click_01",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_01.ogg",
+  "duration": 0.2,
+  "src_start": 0.414,
+  "src_end": 0.599
+ },
+ {
+  "id": "sz_hit_short_01",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_01.ogg",
+  "duration": 0.5,
+  "src_start": 0.933,
+  "src_end": 1.457
+ },
+ {
+  "id": "sz_click_02",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_02.ogg",
+  "duration": 0.2,
+  "src_start": 2.22,
+  "src_end": 2.405
+ },
+ {
+  "id": "sz_hit_long_tail_01",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_01.ogg",
+  "duration": 1.5,
+  "src_start": 2.749,
+  "src_end": 4.26
+ },
+ {
+  "id": "sz_click_03",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_03.ogg",
+  "duration": 0.19,
+  "src_start": 5.083,
+  "src_end": 5.278
+ },
+ {
+  "id": "sz_hit_long_tail_02",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_02.ogg",
+  "duration": 0.97,
+  "src_start": 5.557,
+  "src_end": 6.51
+ },
+ {
+  "id": "sz_click_04",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_04.ogg",
+  "duration": 0.2,
+  "src_start": 6.829,
+  "src_end": 7.019
+ },
+ {
+  "id": "sz_hit_long_tail_03",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_03.ogg",
+  "duration": 1.14,
+  "src_start": 7.313,
+  "src_end": 8.451
+ },
+ {
+  "id": "sz_click_05",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_05.ogg",
+  "duration": 0.18,
+  "src_start": 8.9,
+  "src_end": 9.089
+ },
+ {
+  "id": "sz_hit_short_02",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_02.ogg",
+  "duration": 0.27,
+  "src_start": 9.369,
+  "src_end": 9.643
+ },
+ {
+  "id": "sz_click_06",
+  "category": "click",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "click/sz_click_06.ogg",
+  "duration": 0.2,
+  "src_start": 10.785,
+  "src_end": 10.975
+ },
+ {
+  "id": "sz_hit_short_03",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_03.ogg",
+  "duration": 0.67,
+  "src_start": 11.259,
+  "src_end": 11.918
+ },
+ {
+  "id": "sz_flurry_01",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_01.ogg",
+  "duration": 4.8,
+  "src_start": 13.14,
+  "src_end": 17.889
+ },
+ {
+  "id": "sz_hit_short_04",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_04.ogg",
+  "duration": 0.46,
+  "src_start": 18.049,
+  "src_end": 18.508
+ },
+ {
+  "id": "sz_flurry_02",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_02.ogg",
+  "duration": 4.9,
+  "src_start": 19.76,
+  "src_end": 24.579
+ },
+ {
+  "id": "sz_hit_short_05",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_05.ogg",
+  "duration": 0.34,
+  "src_start": 24.699,
+  "src_end": 25.053
+ },
+ {
+  "id": "sz_hit_long_tail_04",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_04.ogg",
+  "duration": 2.33,
+  "src_start": 26.39,
+  "src_end": 28.705
+ },
+ {
+  "id": "sz_hit_long_tail_05",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_05.ogg",
+  "duration": 2.27,
+  "src_start": 29.892,
+  "src_end": 32.147
+ },
+ {
+  "id": "sz_hit_long_tail_06",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_06.ogg",
+  "duration": 1.79,
+  "src_start": 33.19,
+  "src_end": 34.99
+ },
+ {
+  "id": "sz_hit_long_tail_07",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_07.ogg",
+  "duration": 1.54,
+  "src_start": 36.387,
+  "src_end": 37.929
+ },
+ {
+  "id": "sz_hit_long_tail_08",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_08.ogg",
+  "duration": 1.7,
+  "src_start": 39.126,
+  "src_end": 40.837
+ },
+ {
+  "id": "sz_hit_short_06",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_06.ogg",
+  "duration": 0.4,
+  "src_start": 41.361,
+  "src_end": 41.73
+ },
+ {
+  "id": "sz_hit_long_tail_09",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_09.ogg",
+  "duration": 1.11,
+  "src_start": 42.808,
+  "src_end": 43.92
+ },
+ {
+  "id": "sz_hit_short_07",
+  "category": "hit_short",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_short/sz_hit_short_07.ogg",
+  "duration": 0.5,
+  "src_start": 45.003,
+  "src_end": 45.492
+ },
+ {
+  "id": "sz_hit_long_tail_10",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_10.ogg",
+  "duration": 1.21,
+  "src_start": 46.509,
+  "src_end": 47.712
+ },
+ {
+  "id": "sz_hit_long_tail_11",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_11.ogg",
+  "duration": 1.19,
+  "src_start": 48.904,
+  "src_end": 50.086
+ },
+ {
+  "id": "sz_hit_long_tail_12",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_12.ogg",
+  "duration": 1.21,
+  "src_start": 51.343,
+  "src_end": 52.566
+ },
+ {
+  "id": "sz_hit_long_tail_13",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_13.ogg",
+  "duration": 1.23,
+  "src_start": 54.007,
+  "src_end": 55.244
+ },
+ {
+  "id": "sz_flurry_03",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_03.ogg",
+  "duration": 2.38,
+  "src_start": 56.691,
+  "src_end": 59.046
+ },
+ {
+  "id": "sz_flurry_04",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_04.ogg",
+  "duration": 2.41,
+  "src_start": 60.742,
+  "src_end": 63.137
+ },
+ {
+  "id": "sz_flurry_05",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_05.ogg",
+  "duration": 4.0,
+  "src_start": 64.982,
+  "src_end": 68.928
+ },
+ {
+  "id": "sz_hit_long_tail_14",
+  "category": "hit_long_tail",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "hit_long_tail/sz_hit_long_tail_14.ogg",
+  "duration": 2.0,
+  "src_start": 69.188,
+  "src_end": 71.213
+ },
+ {
+  "id": "sz_flurry_06",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_06.ogg",
+  "duration": 4.0,
+  "src_start": 72.236,
+  "src_end": 76.172
+ },
+ {
+  "id": "sz_flurry_07",
+  "category": "flurry",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "flurry/sz_flurry_07.ogg",
+  "duration": 2.14,
+  "src_start": 76.406,
+  "src_end": 78.541
+ },
+ {
+  "id": "sz_barrage_01",
+  "category": "barrage",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "barrage/sz_barrage_01.ogg",
+  "duration": 5.3,
+  "src_start": 78.96,
+  "src_end": 84.2
+ },
+ {
+  "id": "sz_barrage_02",
+  "category": "barrage",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "barrage/sz_barrage_02.ogg",
+  "duration": 2.26,
+  "src_start": 84.2,
+  "src_end": 86.45
+ },
+ {
+  "id": "sz_barrage_03",
+  "category": "barrage",
+  "confidence": "category-guess",
+  "notes": "from a modern-vs-classic comparison video; which is modern vs classic is unknown",
+  "file": "barrage/sz_barrage_03.ogg",
+  "duration": 5.6,
+  "src_start": 86.45,
+  "src_end": 92.07
+ }
+]

@@ -1,255 +1,212 @@
 ========================================================================
-MULTIVERSE SMASH — CLONE-CHOREOGRAPHY CONTROLS
-Branch: naruto-clone-choreography
+MULTIVERSE SMASH — ROSTER TRIAGE TRACKER
+Updated: 2026-10-20   (written by triage.html)
 ========================================================================
 
-HOW THE INPUTS WORK
--------------------
-FULL-KIT characters use SUMMON-THEN-SELECT:
-  1. Stage a clone formation:   down, down, up  +  Special   ( ↓↓↑ + Special )
-  2. Within the ~1 second window, press Special AGAIN with a held direction
-     (or press Ultimate) to pick one of the 6 moves.
-
-LIGHT-KIT characters (Sasuke, Obito) use a DIRECT TRIGGER:
-  ↓↓↑ + Special with a held direction fires the move immediately (no formation).
-
-BUTTON MAP  (Player 1 keyboard;  gamepad in [brackets])
-  Down  = S            Up = W
-  Special = L          [ Triangle / Y ]
-  Ultimate = U         [ L2 / R2 ]
-  Forward / Back       = toward / away from the opponent  (facing-relative)
-
-SELECT DIRECTIONS (full kit) — pressed AFTER the summon, within the window
-  Pure Attack  = (neutral) + Special
-  Grab         = Forward   + Special
-  Ranged       = Back      + Special
-  Defensive    = Up        + Special
-  Deception    = Down      + Special
-  Swarm        = Ultimate  (while the formation is staged)
-
-Notation below:  "↓↓↑+L -> L"  means  summon (↓↓↑+Special)  ->  select (press L).
-Keyboard is first, gamepad second.
+>> KEPT, NO BRUTALITY YET  — build brutalities for these next.
+>> DELETED (TEMP)          — NOT permanent. Pulled to redo their spritesheets (art not good enough).
 
 ========================================================================
-FULL-KIT CHARACTERS  (summon-then-select)
-========================================================================
-
-TOBIRAMA
-  Pure Attack  Water Clone Barrage            ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Water Prison Seize             ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Water Dragon Volley            ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Water Clone Guard              ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Instant Revolving Swap         ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Great Waterfall Swarm          ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-MINATO
-  Pure Attack  Hiraishin Flash Strike         ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Rasengan Warp-Grab             ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Marked Kunai Scatter           ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Flash Guard                    ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Afterimage Split               ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Thunder God Assault            ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-HASHIRAMA
-  Pure Attack  Wood Clone Onslaught           ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Deep Forest Emergence          ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Wood Pillar Barrage            ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Wood Clone Bulwark             ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Wood Clone Feint               ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Sage Art: Deep Forest Bloom    ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-HIRUZEN
-  Pure Attack  Four Elements Volley           ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Earth Prison Clamp             ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Elemental Fan                  ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Mud Wall Guard                 ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Twin Shadow Feint              ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Five Elements Grand Combination ↓↓↑+L -> U        ↓↓↑+△ -> L2/R2
-
-KAKASHI
-  Pure Attack  Raikiri Twin Pierce            ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Ninken Fang Pin                ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Kunai Snipe                    ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Kamui Phase Guard              ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Sharingan Copy Read            ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Raikiri Hound Rush             ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-ITACHI
-  Pure Attack  Crow Scatter Strike            ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Genjutsu Lock                  ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Great Fireball Pair            ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Crow Burst Double              ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Crow Clone Illusion            ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Clone Great Explosion          ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-MADARA
-  Pure Attack  Susanoo Wood Rise              ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Wood Dragon Coil               ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Great Fireball Volley          ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Gunbai Guard                   ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Wood Clone Feint               ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Perfect Susanoo                ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-BORUTO  (deliberately scaled-down — fewer clones, lower damage than Naruto)
-  Pure Attack  Clone Rasengan Combo           ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Vanishing Snatch               ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Kote Volley                    ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Clone Guard                    ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Vanishing Feint                ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Clone Rasengan Barrage         ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-PAIN
-  Pure Attack  Twin-Body Pincer               ↓↓↑+L -> L         ↓↓↑+△ -> △
-  Grab         Deva Path Crush                ↓↓↑+L -> Fwd+L     ↓↓↑+△ -> Fwd+△
-  Ranged       Asura Cannon                   ↓↓↑+L -> Back+L    ↓↓↑+△ -> Back+△
-  Defensive    Rinnegan Guard                 ↓↓↑+L -> W+L       ↓↓↑+△ -> ↑+△
-  Deception    Shadow Clone Bait              ↓↓↑+L -> S+L       ↓↓↑+△ -> ↓+△
-  Swarm        Chibaku Tensei Crush           ↓↓↑+L -> U         ↓↓↑+△ -> L2/R2
-
-========================================================================
-LIGHT-KIT CHARACTERS  (direct trigger — no formation, 1-2 moves)
-========================================================================
-
-SASUKE
-  Amenotejikara                               ↓↓↑ + L            ↓↓↑ + △
-
-OBITO
-  Kamui Clone Feint                           ↓↓↑ + L            ↓↓↑ + △
-  Shadow Clone Ambush                         ↓↓↑ + S + L        ↓↓↑ + ↓ + △
-
-========================================================================
-NOTE — IN-GAME MOVE LIST SCREEN
-========================================================================
-These per-character move NAMES do NOT appear on the in-game Move List screen
-(its kit panel is driven by getKit() in kits.js, a separate system from
-cloneChoreography.js). The Move List's "Controls" tab (and the pause Controls
-overlay) DO show the generic input:
-  "Clone Summon — ↓↓↑ + Special"  +  "...then hold a direction + Special to pick:
-   Neutral=Pure Attack · Down=Deception · Up=Defensive · Back=Ranged · Fwd=Grab · Ultimate=Swarm"
-...but not the individual named moves above.
-
-NARUTO uses his own dedicated engine (narutoChoreography.js), but as of the
-2026-10-08 pass he is on the SAME roster-standard summon-then-select scheme:
-
-  Summon          ↓↓↑ + Special          (roster-standard; alternates kept: Up+Special, ↓↑+Special)
-  Pure Attack     Uzumaki Barrage        ↓↓↑+L -> L      (also direct: Down+Special, or ↓→↓→)
-  Ranged          Shadow Clone Shuriken  ↓↓↑+L -> Back+L
-  Defensive       Substitution Escape    ↓↓↑+L -> Up+L
-  Grab            Clone Flank Strike     ↓↓↑+L -> Fwd+L
-  Swarm           Two Thousand Combo     ↓↓↑+L -> Ultimate   (while the formation is staged)
-  (Naruto has no Deception sequence — a Down-select falls back to Uzumaki Barrage.)
-
-  ULTIMATE = NINE-TAILS (Kurama Avatar / Tailed Beast Bomb):
-    Neutral Ultimate  = Nine-Tails        (alternates: Down+Ultimate, or ↓←↓←+Ultimate)
-  Other specials unchanged: Dark Rasengan = Back+Special (or ↓←↓←); Chakra-Arm Strike = Fwd+Special (or ←↓→).
-========================================================================
-
-
-========================================================================
-SASUKE DŌJUTSU PASS — MANGEKYŌ / RINNEGAN SPACE-TIME
-Applies to ALL THREE Sasukes:  SASUKE (original) · SASUKE (adult) · SASUKE (sensei)
-========================================================================
-
-EXTRA BUTTONS (on top of the BUTTON MAP near the top of this file)
-  Charge = P        (a HELD modifier — hold it, then press Special)
-  Block  = ;  (semicolon)
-
-The dōjutsu live on Sasuke's previously-unused CHARGE modifier + on blocking,
-so they never replace any of his normal specials (plain Special still works).
-
-SHARED RINNEGAN SPACE-TIME MOVES  (identical inputs on every Sasuke; the gating differs per character — see below)
-  R1  Amenotejikara: Kunai Swap     Charge + Special          (1st press = THROW a marker;
-                                                                2nd press = SWAP places with the marker,
-                                                                or with the foe if the marker is near them)
-  R2  Portal Chidori                Charge + Forward + Special
-  R5  Portal Redirect               Charge + Back + Special    (opens a ~0.7s window that REFLECTS a projectile)
-  R3  Counter Swap                  Special — the instant AFTER you BLOCK a hit (i.e. during blockstun):
-                                    warps you BEHIND the attacker with brief i-frames
-  R4  Rinnegan Strain               (PASSIVE — no input; firing the space-time moves back-to-back
-                                     overloads the Rinnegan and LOCKS it for ~2.5s. Pace yourself.)
-
-MANGEKYŌ
-  M1  Kagutsuchi Flame Control      while your Amaterasu flame is on screen:
-                                      hold Up / Down      = STEER the black flame up / down
-                                      re-press Amaterasu  = SNUFF it out (+ small chakra refund)
-
+KEPT — NO BRUTALITY YET (TO BUILD) (34)
 ------------------------------------------------------------------------
-SASUKE  (original / Mangekyō-era — the one with Susanoo)
-------------------------------------------------------------------------
-  Rinnegan suite (R1 / R2 / R3 / R5)  — works ANY time, no setup. Inputs exactly as the shared list above.
-  M1 Kagutsuchi  — N/A: this Sasuke has no Amaterasu move in his kit.
-  SUSANOO (his ULTIMATE, two-stage):
-      Ultimate                    U            [ L2 / R2 ]   -> Stage 1 giant (costs ~50% energy)
-      Ultimate again (after release)                         -> Stage 2 escalation.  Lasts ~13s.
-      NOTE: while Susanoo is active the dōjutsu is disabled — Susanoo keeps the Special/Charge+Special buttons.
 
-------------------------------------------------------------------------
-SASUKE (ADULT)
-------------------------------------------------------------------------
-  Rinnegan suite (R1 / R2 / R3 / R5)  — works ANY time, no eye-set needed. Inputs as the shared list above.
-  M1 Kagutsuchi:
-      Cast Amaterasu              Up + Special         ( W + L )
-      then steer with Up / Down, and re-press Up + Special to snuff it (+ refund).
-  No Susanoo.
+[ben_10]
+  Gwen                              gwen
 
-------------------------------------------------------------------------
-SASUKE (SENSEI / Boruto-era — EYE-SET gated)
-------------------------------------------------------------------------
-  Cycle the active eye         Up + Ultimate   ( W + U )     Raiton -> Mangekyō -> Rinnegan -> (back to Raiton)
-      (a small "SET" indicator shows the current eye. Plain Ultimate = his summon, NOT the cycle.)
+[bleach]
+  Ichigo Kurosaki                   ichigo
 
-  Rinnegan suite (R1 / R2 / R3 / R5)  — ONLY while the eye is on RINNEGAN
-      i.e. press Up+Ultimate TWICE from the start, then use the shared Charge+Special inputs.
-  M1 Kagutsuchi  — ONLY while the eye is on MANGEKYŌ (Up+Ultimate ONCE from the start):
-      Cast Amaterasu              Forward + Special
-      then steer with Up / Down, and re-press to snuff it (+ refund).
-  No Susanoo.
+[deathnote]
+  L                                 l_ryuuzaki
+  Light Yagami                      light
+
+[divine]
+  Jesus                             jesus
+
+[dragon_ball]
+  Dark Vegeta                       vegeta_dark
+  Goku Black                        goku_black
+
+[hajime_no_ippo]
+  Ippo Makunouchi                   ippo
+
+[hunter_x_hunter]
+  Chrollo Lucilfer                  chrollo
+  Isaac Netero                      netero
+
+[jujutsu_kaisen]
+  Aoi Todo                          aoi_todo
+  Kasumi Miwa                       miwa
+  Maki Zenin                        maki
+  Yuji Itadori                      yuji
+  Yuta Okkotsu                      yuta
+
+[naruto]
+  Gaara                             gaara
+  Hashirama Senju                   hashirama
+  Hinata Hyuga                      hinata
+  Jiraiya                           jiraiya
+  Kakashi                           kakashi
+  Kakashi (ANBU)                    kakashi_anbu
+  Kakashi (Kamui)                   kakashi_war
+  Minato Namikaze                   minato
+  Sakura Haruno                     sakura
+  Six Paths of Pain                 six_paths_pain
+  Tobi                              tobi
+
+[one_punch_man]
+  Genos                             genos
+  Saitama                           saitama
+
+[original]
+  Omololu                           omololu
+
+[power_rangers]
+  Gold Samurai Ranger (Light)       gold_samurai_ranger
+  Green Samurai Ranger (Forest)     green_samurai_ranger
+  Red Ranger (Mighty Morphin)       red_ranger_mmpr
+  Samurai Red Ranger (Fire)         samurai_red_ranger
+
+[saiki_k]
+  Saiki Kusuo                       saiki
+
 ========================================================================
-
-
-========================================================================
-WAR-SUSANO'O — TIER 1 (sasuke_sensei + sasuke_adult ONLY; teen Sasuke excluded)
-How to actually trigger it + where to see the proof screenshots
-========================================================================
-
-★ IMPORTANT — WHY IT "DIDN'T WORK": the two Tier-1 moves are NOT on the
-  normal purple special. They are:
-
-  (1) SUSANO'O ARM GRAB   =  hold FORWARD + press GRAB (the "O" key)
-         - NOT a Special. It's the GRAB button with Forward held.
-         - Works in ANY eye-set (base form). A purple skeletal arm + claw
-           shoots forward with long reach and grabs/throws. CHEAPEST move (15 chakra).
-         - P1 keys: Forward = D (toward the foe) + Grab = O.
-
-  (2) RIBCAGE GUARD       =  UP + SPECIAL, but ONLY while the SUSANO'O eye-set is active
-         - You MUST first switch to the Susano'o eye-set:
-              press  UP + ULTIMATE  (W + U)  to cycle the eye:
-              Raiton -> Mangekyo -> Rinnegan -> SUSANO'O   (press it 3 times from the start;
-              the active eye flashes above Sasuke's head).
-         - THEN press  UP + SPECIAL  (W + L)  = the rib-ring guard shell (20 chakra).
-         - TIP: tap Special quickly — if you HOLD Up too long first you'll JUMP
-           instead (Up = jump). Hold Up and tap L almost together.
-
-  Other Susano'o-set inputs (N/F/B/D Special + the Ultimate) are RESERVED —
-  they do nothing yet (Tier 2 = torso, Tier 3 = Soldier; coming in later phases).
-
-PROOF SCREENSHOTS (open these to see it working):
-  harness/shots/SHOW_armgrab_reach.png   — the purple arm + claw reaching forward
-  harness/shots/SHOW_armgrab_catch.png   — the arm catching the opponent
-  harness/shots/SHOW_ribcage_guard.png   — the rib-cage guard shell wrapped around Sasuke
-========================================================================
-
+DELETED — REDO SPRITESHEETS (TEMPORARY) (50)
 ------------------------------------------------------------------------
-WAR-SUSANO'O — TIER 2 (torso)   [in the SUSANO'O eye-set; sensei]
-------------------------------------------------------------------------
-  First switch to the Susano'o eye-set (Up+Ultimate x3), then:
-    Torso Arrow   =  (neutral) + Special     — the bust draws its bow, fires a homing arrow (34 chakra)
-    Claw Smash    =  Forward + Special        — fast claw rake (32 chakra)
-    Blade Swing   =  Back + Special           — heavy, longest-reach blade (38 chakra)
-  The Susano'o BUST materializes + follows Sasuke for a few seconds while you use these.
-  (Up+Special is still the Tier-1 Ribcage Guard.)
-  Proof screenshots:
-    harness/shots/war2_sensei_torso_arrow.png  — bust + bow + the arrow in flight
-    harness/shots/war2_sensei_torso_blade.png  — bust swinging its blade
-    harness/shots/war2_sensei_torso_claw.png   — bust claw smash
+
+[ben_10]
+  Albedo                            albedo
+  Ben 10                            ben10
+  Vilgax                            vilgax
+
+[bleach]
+  Yamamoto                          yamamoto
+
+[dc]
+  Batman                            batman
+  Batman                            dark_knight
+  Brainiac                          brainiac
+  Deathstroke                       deathstroke
+  Green Lantern                     green_lantern
+  Superman                          superman
+  Superman (Classic)                superman_classic
+  Superman (Custom)                 superman_dcuc
+  Superman (Fighter)                superman_fighter
+  Superman (New 52)                 superman_new52
+
+[dragon_ball]
+  Bardock                           bardock
+  Frieza                            frieza
+  Gogeta (Ultra Instinct)           gogeta
+  Goku                              goku
+  Goku Black (Rosé 3)               goku_rose
+  Gotenks                           gotenks
+  Piccolo                           piccolo
+  Teen Gohan                        gohan
+  Vegito                            vegito
+
+[horror]
+  Billy Ghostface                   ghostface_billy
+  Ghostface                         ghostface
+  Ghostface.exe                     ghostface_exe
+
+[hunter_x_hunter]
+  Gon Freecss                       gon
+  Killua (Godspeed)                 zoldyck
+  Kurapika                          kurapika
+  Meruem                            meruem
+  Shizuku Murasaki                  shizuku
+
+[invincible]
+  Omni-Man                          omniman
+
+[jujutsu_kaisen]
+  Megumi                            handler
+  Naoya Zenin                       naoya
+
+[marvel]
+  Iron Man                          iron_man
+  Iron Man 2                        iron_man_2
+  Iron Man 3                        iron_man_3
+  Miles Morales                     miles
+  Spider-Man                        spiderman
+  Spider-Man (Cosmic Invasion)      spiderman_mci
+  Spider-Man (Raimi)                spiderman_raimi
+  Spider-Man (SSF2)                 spiderman_ssf2
+
+[naruto]
+  Boruto Uzumaki                    boruto
+  Hiruzen Sarutobi                  hiruzen
+  Kiba Inuzuka                      kiba
+  Naruto (Adult KCM)                naruto_hokage
+  Onoki                             onoki
+  Orochimaru                        orochimaru
+  Shisui (Trinity)                  shisui_trinity
+  Shisui & Itachi (Kids)            shisui_itachi_kids
+
 ========================================================================
+KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (35)
+------------------------------------------------------------------------
+
+[baki]
+  Baki Hanma                        baki
+
+[bleach]
+  Byakuya Kuchiki                   byakuya
+  Mayuri Kurotsuchi                 mayuri
+  Zaraki Kenpachi                   zaraki
+  Zaraki Kenpachi (Shikai)          zaraki_shikai
+
+[dc]
+  The Flash                         flash
+
+[demon_slayer]
+  Inosuke Hashibira                 inosuke
+  Kyojuro Rengoku                   rengoku
+  Nezuko Kamado                     nezuko
+  Shinobu Kocho                     shinobu
+  Zenitsu Agatsuma                  zenitsu
+
+[dragon_ball]
+  Beerus                            beerus
+  Vegeta                            vegeta
+
+[horror]
+  Jason Voorhees                    jason
+
+[hunter_x_hunter]
+  Hisoka Morrow                     hisoka
+  Killua Zoldyck                    killua
+
+[jujutsu_kaisen]
+  Alternate Sukuna                  alt_sukuna
+  Gojo Satoru                       gojo
+  Sukuna                            sukuna
+  Toji Fushiguro                    toji
+
+[naruto]
+  Isshiki Otsutsuki                 isshiki
+  Itachi Uchiha                     itachi
+  Madara Uchiha                     madara
+  Naruto                            naruto
+  Naruto (Seventh Hokage)           naruto_seventh
+  Obito Uchiha                      obito
+  Pain                              pain
+  Sasuke                            sasuke
+  Sasuke (Adult)                    sasuke_adult
+  Sasuke (Sensei)                   sasuke_sensei
+  Shisui (Fallen)                   shisui_fallen
+  Tobirama Senju                    tobirama
+
+[power_rangers]
+  Omega Ranger (White Ranger, S.P.D.)omega_ranger
+
+[rick_and_morty]
+  Rick Prime                        rickPrime
+  Rick Sanchez                      rick
+
+========================================================================
+NOT YET REVIEWED (0)
+------------------------------------------------------------------------
+  (none yet)
+

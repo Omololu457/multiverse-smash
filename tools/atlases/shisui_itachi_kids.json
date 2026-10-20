@@ -1,0 +1,961 @@
+{
+  "rosterKey": "shisui_itachi_kids",
+  "name": "Shisui & Itachi (Kids)",
+  "spriteScale": 1.15,
+  "globalScale": 1.18,
+  "actionCount": 22,
+  "actions": {
+    "idle": {
+      "sheet": "./shisui_itachi_kids_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 33,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 44.8,
+        "h": 93.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 69
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./shisui_itachi_kids_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 61,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 82.8,
+        "h": 65.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 305,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./shisui_itachi_kids_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 61,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 82.8,
+        "h": 65.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        },
+        {
+          "x": 305,
+          "y": 0,
+          "w": 61,
+          "h": 48
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./shisui_itachi_kids_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 48,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 65.1,
+        "h": 93.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 69
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 69
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 69
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./shisui_itachi_kids_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 47,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 63.8,
+        "h": 85.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 63
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 63
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 63
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./shisui_itachi_kids_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 94,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 63.8,
+        "h": 85.5
+      },
+      "rects": [
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 63
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./shisui_itachi_kids_charge_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 47,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 63.8,
+        "h": 93.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 69
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./shisui_itachi_kids_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 50,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 67.8,
+        "h": 74.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 55
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./shisui_itachi_kids_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 73.3,
+        "h": 80.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 59
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 59
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./shisui_itachi_kids_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 71,
+        "h": 41
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.3,
+        "h": 55.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 41
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 41
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./shisui_itachi_kids_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 43,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 58.4,
+        "h": 66.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 49
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./shisui_itachi_kids_light_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 86,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.7,
+        "h": 77.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 57
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 57
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 57
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 57
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 57
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./shisui_itachi_kids_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 70,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95,
+        "h": 84.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./shisui_itachi_kids_up_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 53,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 71.9,
+        "h": 84.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 265,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        },
+        {
+          "x": 371,
+          "y": 0,
+          "w": 53,
+          "h": 62
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./shisui_itachi_kids_air_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 70,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95,
+        "h": 84.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 62
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./shisui_itachi_kids_downair_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 42,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 57,
+        "h": 61.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 45
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./shisui_itachi_kids_intro_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 96.3,
+        "h": 93.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 69
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./shisui_itachi_kids_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 33,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 44.8,
+        "h": 93.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 69
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./shisui_itachi_kids_lose_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 30
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 96.3,
+        "h": 40.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 30
+        }
+      ]
+    },
+    "sikKunaiCast": {
+      "sheet": "./shisui_itachi_kids_kunaicast_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 51,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 69.2,
+        "h": 82.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 61
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 61
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 61
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 61
+        }
+      ]
+    },
+    "sikFlicker": {
+      "sheet": "./shisui_itachi_kids_flicker_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 58,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.7,
+        "h": 74.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 58,
+          "h": 55
+        }
+      ]
+    },
+    "sikGenjutsu": {
+      "sheet": "./shisui_itachi_kids_genjutsu_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 54,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 73.3,
+        "h": 126.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 93
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 93
+        }
+      ]
+    }
+  }
+}

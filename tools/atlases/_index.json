@@ -1,0 +1,1370 @@
+{
+  "generatedFrom": "characters.js animationData",
+  "globalScale": 1.18,
+  "characters": 124,
+  "atlasesWritten": 124,
+  "totalActions": 3057,
+  "totalFrames": 14513,
+  "coverage": [
+    {
+      "key": "goku",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "goku_black",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "goku_rose",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gogeta",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "vegeta",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "vegeta_dark",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "piccolo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "frieza",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "cell",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gohan",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gotenks",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "bardock",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gojo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "sukuna",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": [
+        "./sukuna_hurt_sheet.png"
+      ]
+    },
+    {
+      "key": "alt_sukuna",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "aoi_todo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "omololu",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "jesus",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "maki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "toji",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "yuji",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "baki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "naoya",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "naruto",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "sasuke",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "sasuke_adult",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "itachi",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shisui_itachi_kids",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "tobirama",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "hashirama",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "minato",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "madara",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "obito",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "tobi",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "pain",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "jiraiya",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "zenitsu",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "rengoku",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shinobu",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "inosuke",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "nezuko",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "rick",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "morty",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "evilMorty",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "rickPrime",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "beerus",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ben10",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "albedo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "omniman",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "omega_ranger",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "samurai_red_ranger",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gold_samurai_ranger",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "green_samurai_ranger",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "red_ranger_mmpr",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "netero",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "saiki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "killua",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "flash",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gon",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "batman",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "hisoka",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "superman",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "superman_dcuc",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "superman_new52",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "superman_classic",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "superman_fighter",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "chrollo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ghostface",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ghostface_billy",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "jason",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "hiruzen",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "isshiki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "miwa",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ichigo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "zaraki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "zaraki_shikai",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "saitama",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "genos",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "orochimaru",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "onoki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "mayuri",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "kiba",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "byakuya",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "sakura",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "sasuke_sensei",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "hinata",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gaara",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "meruem",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "boruto",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "light",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "l_ryuuzaki",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "yamamoto",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [
+        "hurt_air"
+      ],
+      "missingSheets": []
+    },
+    {
+      "key": "six_paths_pain",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "kurapika",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "spiderman",
+      "hurt": [],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "iron_man",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "iron_man_2",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "iron_man_3",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "deathstroke",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "brainiac",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "green_lantern",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "yuta",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "handler",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "dark_knight",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "vegito",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "kakashi",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "kakashi_anbu",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "kakashi_war",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "gwen",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "vilgax",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "miles",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ghostface_exe",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "spiderman_raimi",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "spiderman_ssf2",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "spiderman_mci",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "ippo",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "naruto_hokage",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "naruto_seventh",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shisui_trinity",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shisui_blade",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shisui_puppeteer",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shisui_fallen",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "shizuku",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    },
+    {
+      "key": "zoldyck",
+      "hurt": [
+        "hurt"
+      ],
+      "ko": [
+        "knockdown",
+        "lose"
+      ],
+      "airKo": [],
+      "missingSheets": []
+    }
+  ]
+}

@@ -1,0 +1,972 @@
+{
+  "rosterKey": "six_paths_pain",
+  "name": "Six Paths of Pain",
+  "spriteScale": 1.55,
+  "globalScale": 1.18,
+  "actionCount": 21,
+  "actions": {
+    "idle": {
+      "sheet": "./sixpaths_deva_stance_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 36,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 65.8,
+        "h": 124.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./sixpaths_deva_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 117.1,
+        "h": 95.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./sixpaths_deva_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 117.1,
+        "h": 95.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./sixpaths_deva_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 64,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 117.1,
+        "h": 95.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 64,
+          "h": 52
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./sixpaths_deva_jfct_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 58,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.1,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./sixpaths_deva_jfct_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 58,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 174,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.1,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./sixpaths_deva_jfct_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 58,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 232,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.1,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./sixpaths_deva_stance_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 36,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 216,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 65.8,
+        "h": 124.4
+      },
+      "rects": [
+        {
+          "x": 216,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./sixpaths_deva_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.2,
+        "h": 107.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./sixpaths_deva_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 75,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 225,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.2,
+        "h": 107.9
+      },
+      "rects": [
+        {
+          "x": 225,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        },
+        {
+          "x": 375,
+          "y": 0,
+          "w": 75,
+          "h": 59
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./sixpaths_deva_combo_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 85,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./sixpaths_deva_combo_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 85,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 510,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 510,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 595,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 680,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 765,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 850,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 935,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./sixpaths_deva_runatk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 60,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.7,
+        "h": 104.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 57
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./sixpaths_deva_jfct_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 290,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.1,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        },
+        {
+          "x": 406,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        },
+        {
+          "x": 464,
+          "y": 0,
+          "w": 58,
+          "h": 65
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./sixpaths_deva_downatk_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 87,
+        "h": 63
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 159.1,
+        "h": 115.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 435,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 522,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 609,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        },
+        {
+          "x": 696,
+          "y": 0,
+          "w": 87,
+          "h": 63
+        }
+      ]
+    },
+    "spPush": {
+      "sheet": "./sixpaths_deva_push_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 112,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 204.8,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        }
+      ]
+    },
+    "spPull": {
+      "sheet": "./sixpaths_deva_pull_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.9,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 65
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 65
+        }
+      ]
+    },
+    "spRinnegan": {
+      "sheet": "./sixpaths_deva_push_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 112,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 204.8,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        }
+      ]
+    },
+    "spUlt": {
+      "sheet": "./sixpaths_deva_push_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 112,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 204.8,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 60
+        }
+      ]
+    },
+    "spTeleport": {
+      "sheet": "./sixpaths_deva_stance_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 36,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 144,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 65.8,
+        "h": 124.4
+      },
+      "rects": [
+        {
+          "x": 144,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 36,
+          "h": 68
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./sixpaths_deva_intro_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 139,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 254.2,
+        "h": 126.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 139,
+          "h": 69
+        }
+      ]
+    }
+  }
+}

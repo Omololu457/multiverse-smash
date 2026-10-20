@@ -1,0 +1,1233 @@
+{
+  "rosterKey": "tobi",
+  "name": "Tobi",
+  "spriteScale": 1.9,
+  "globalScale": 1.18,
+  "actionCount": 24,
+  "actions": {
+    "idle": {
+      "sheet": "./masked_man_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 32,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 71.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 60
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 60
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 60
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 60
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./masked_man_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.8,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./masked_man_run_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118.8,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 55
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./masked_man_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 33,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 74,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 60
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "w": 33,
+          "h": 60
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./masked_man_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 44,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./masked_man_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 44,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 44,
+          "h": 64
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./masked_man_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 35,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 78.5,
+        "h": 127.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 57
+        }
+      ]
+    },
+    "dashCombo": {
+      "sheet": "./masked_man_dash_combo_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 72,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.4,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./masked_man_up_attack_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 67,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./masked_man_dash_combo_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 72,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.4,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        },
+        {
+          "x": 504,
+          "y": 0,
+          "w": 72,
+          "h": 67
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./masked_man_up_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 72
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./masked_man_air_kunia_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 60
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 60
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 60
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./masked_man_down_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 57,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 136.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 61
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 61
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 61
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 61
+        }
+      ]
+    },
+    "tobiChainGrab": {
+      "sheet": "./masked_man_chain_grab_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 58,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 150.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 67
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 67
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 67
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 67
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 67
+        }
+      ]
+    },
+    "tobiChainAttack1": {
+      "sheet": "./masked_man_chain_attack1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 129,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 289.2,
+        "h": 145.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 129,
+          "h": 65
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 129,
+          "h": 65
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 129,
+          "h": 65
+        },
+        {
+          "x": 387,
+          "y": 0,
+          "w": 129,
+          "h": 65
+        },
+        {
+          "x": 516,
+          "y": 0,
+          "w": 129,
+          "h": 65
+        }
+      ]
+    },
+    "tobiChainSnatched": {
+      "sheet": "./masked_man_chain_snatched_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 115,
+        "h": 75
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 257.8,
+        "h": 168.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        },
+        {
+          "x": 575,
+          "y": 0,
+          "w": 115,
+          "h": 75
+        }
+      ]
+    },
+    "tobiChainSmash": {
+      "sheet": "./masked_man_chain_smash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 117,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 262.3,
+        "h": 152.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 68
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 68
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 117,
+          "h": 68
+        },
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 68
+        }
+      ]
+    },
+    "tobiKamuiActivate": {
+      "sheet": "./masked_man_kamui_activation_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 41,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.9,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        }
+      ]
+    },
+    "tobiFireCast": {
+      "sheet": "./masked_man_fire_cast_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 51,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.3,
+        "h": 132.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 51,
+          "h": 59
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./masked_man_intro_uniform.png",
+      "exists": true,
+      "frames": 14,
+      "cell": {
+        "w": 40,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 89.7,
+        "h": 134.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 400,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        },
+        {
+          "x": 520,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./masked_man_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 38,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.2,
+        "h": 123.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 55
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 55
+        }
+      ]
+    },
+    "hurt_air": {
+      "sheet": "./masked_man_hurt_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 57,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.8,
+        "h": 105.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 47
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 47
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./masked_man_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 66,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./masked_man_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 42,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.2,
+        "h": 118.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 53
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 53
+        }
+      ]
+    }
+  }
+}

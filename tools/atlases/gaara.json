@@ -1,0 +1,1543 @@
+{
+  "rosterKey": "gaara",
+  "name": "Gaara",
+  "spriteScale": 1.5,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./gaara_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 39,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 69,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./gaara_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 43,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.1,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        },
+        {
+          "x": 215,
+          "y": 0,
+          "w": 43,
+          "h": 65
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./gaara_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 50,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 104.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./gaara_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 50,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 104.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 59
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./gaara_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 51,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.3,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./gaara_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 51,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.3,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 51,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        },
+        {
+          "x": 153,
+          "y": 0,
+          "w": 51,
+          "h": 77
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./gaara_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 50,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 62
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 62
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./gaara_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 66,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 85
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./gaara_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 66,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.8,
+        "h": 85
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 48
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./gaara_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 49,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 100.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 57
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 57
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./gaara_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 41,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 72.6,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./gaara_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 39,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 69,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./gaara_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 39,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 69,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./gaara_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 47,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.2,
+        "h": 146.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 83
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./gaara_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 39,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 69,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 39,
+          "h": 65
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./gaara_light_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 55,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 97.3,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 65
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./gaara_heavy_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 116,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 205.3,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 464,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 580,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 696,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        },
+        {
+          "x": 812,
+          "y": 0,
+          "w": 116,
+          "h": 65
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./gaara_up_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 129,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 228.3,
+        "h": 131
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 387,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 516,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 645,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        },
+        {
+          "x": 774,
+          "y": 0,
+          "w": 129,
+          "h": 74
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./gaara_air_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 69,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./gaara_down_air_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 69,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        },
+        {
+          "x": 414,
+          "y": 0,
+          "w": 69,
+          "h": 77
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./gaara_crouchLight_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 53,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.8,
+        "h": 92
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 53,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        },
+        {
+          "x": 159,
+          "y": 0,
+          "w": 53,
+          "h": 52
+        }
+      ]
+    },
+    "gaaraThrow": {
+      "sheet": "./gaara_throw_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 59,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.4,
+        "h": 109.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 62
+        }
+      ]
+    },
+    "gaaraThrowAir": {
+      "sheet": "./gaara_throwAir_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 54,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 113.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 64
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 64
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 64
+        }
+      ]
+    },
+    "gaaraThrowCrouch": {
+      "sheet": "./gaara_throwCrouch_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 64,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 95.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 64,
+          "h": 54
+        }
+      ]
+    },
+    "teleport": {
+      "sheet": "./gaara_teleport_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 36,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 63.7,
+        "h": 115
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 65
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "w": 36,
+          "h": 65
+        }
+      ]
+    },
+    "gaaraSandCast": {
+      "sheet": "./gaara_sandcast_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 41,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.6,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 60
+        }
+      ]
+    },
+    "gaaraUltCast": {
+      "sheet": "./gaara_ult_cast_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 54,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 95.6,
+        "h": 122.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 486,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 54,
+          "h": 69
+        }
+      ]
+    },
+    "gaaraUltKneel": {
+      "sheet": "./gaara_ult_kneel_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 89,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.5,
+        "h": 104.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 178,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 267,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 356,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 445,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        },
+        {
+          "x": 534,
+          "y": 0,
+          "w": 89,
+          "h": 59
+        }
+      ]
+    }
+  }
+}

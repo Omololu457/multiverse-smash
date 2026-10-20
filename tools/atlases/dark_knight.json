@@ -1,0 +1,1438 @@
+{
+  "rosterKey": "dark_knight",
+  "name": "Batman",
+  "spriteScale": 0.9,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./dark_knight_idle_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 119,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 126.4,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        },
+        {
+          "x": 119,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        },
+        {
+          "x": 238,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        },
+        {
+          "x": 357,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        },
+        {
+          "x": 476,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        },
+        {
+          "x": 595,
+          "y": 0,
+          "w": 119,
+          "h": 128
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./dark_knight_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 154,
+        "h": 131
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 163.5,
+        "h": 139.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 924,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./dark_knight_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 154,
+        "h": 131
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 163.5,
+        "h": 139.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 924,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./dark_knight_walk_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 154,
+        "h": 131
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 163.5,
+        "h": 139.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 154,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 308,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 462,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 770,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        },
+        {
+          "x": 924,
+          "y": 0,
+          "w": 154,
+          "h": 131
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./dark_knight_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 119,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.4,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 124
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./dark_knight_glide_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 218,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 231.5,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 218,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 436,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 654,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 872,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 1090,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./dark_knight_glide_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 218,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 231.5,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 218,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 436,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 654,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 872,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 1090,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        }
+      ]
+    },
+    "glide": {
+      "sheet": "./dark_knight_glide_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 218,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 231.5,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 218,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 436,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 654,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 872,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        },
+        {
+          "x": 1090,
+          "y": 0,
+          "w": 218,
+          "h": 147
+        }
+      ]
+    },
+    "dodge": {
+      "sheet": "./dark_knight_dodge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 142,
+        "h": 132
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.8,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 142,
+          "h": 132
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 142,
+          "h": 132
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 142,
+          "h": 132
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 142,
+          "h": 132
+        },
+        {
+          "x": 568,
+          "y": 0,
+          "w": 142,
+          "h": 132
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./dark_knight_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 118,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.3,
+        "h": 137
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 129
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./dark_knight_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 104,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.4,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 104,
+          "h": 100
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./dark_knight_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 118,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.3,
+        "h": 137
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 129
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./dark_knight_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 172,
+        "h": 119
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 182.7,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./dark_knight_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 132,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 124.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 132,
+          "h": 117
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 132,
+          "h": 117
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./dark_knight_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 142,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.8,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 568,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./dark_knight_heavy_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 142,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.8,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        },
+        {
+          "x": 568,
+          "y": 0,
+          "w": 142,
+          "h": 100
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./dark_knight_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 209,
+        "h": 119
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 222,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        },
+        {
+          "x": 209,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        },
+        {
+          "x": 418,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./dark_knight_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 209,
+        "h": 119
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 222,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        },
+        {
+          "x": 209,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        },
+        {
+          "x": 418,
+          "y": 0,
+          "w": 209,
+          "h": 119
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./dark_knight_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 193,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 205,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 193,
+          "h": 128
+        }
+      ]
+    },
+    "dkCrescent": {
+      "sheet": "./dark_knight_crescent_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 215,
+        "h": 165
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 228.3,
+        "h": 175.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 215,
+          "h": 165
+        },
+        {
+          "x": 215,
+          "y": 0,
+          "w": 215,
+          "h": 165
+        }
+      ]
+    },
+    "dkFlail": {
+      "sheet": "./dark_knight_flail_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 227,
+        "h": 141
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 241.1,
+        "h": 149.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 227,
+          "h": 141
+        },
+        {
+          "x": 227,
+          "y": 0,
+          "w": 227,
+          "h": 141
+        },
+        {
+          "x": 454,
+          "y": 0,
+          "w": 227,
+          "h": 141
+        }
+      ]
+    },
+    "dkPistol": {
+      "sheet": "./dark_knight_pistol_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 229,
+        "h": 121
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 243.2,
+        "h": 128.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 229,
+          "h": 121
+        },
+        {
+          "x": 229,
+          "y": 0,
+          "w": 229,
+          "h": 121
+        },
+        {
+          "x": 458,
+          "y": 0,
+          "w": 229,
+          "h": 121
+        },
+        {
+          "x": 687,
+          "y": 0,
+          "w": 229,
+          "h": 121
+        }
+      ]
+    },
+    "dkGrapple": {
+      "sheet": "./dark_knight_grapple_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 230,
+        "h": 180
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 244.3,
+        "h": 191.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 230,
+          "h": 180
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 230,
+          "h": 180
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 230,
+          "h": 180
+        }
+      ]
+    },
+    "dkDive": {
+      "sheet": "./dark_knight_dive_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 218,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 231.5,
+        "h": 135.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 218,
+          "h": 128
+        },
+        {
+          "x": 218,
+          "y": 0,
+          "w": 218,
+          "h": 128
+        },
+        {
+          "x": 436,
+          "y": 0,
+          "w": 218,
+          "h": 128
+        }
+      ]
+    },
+    "dkRageTransform": {
+      "sheet": "./dark_knight_ragetransform_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 132,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 137
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        }
+      ]
+    },
+    "dkRageIdle": {
+      "sheet": "./dark_knight_rageidle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 132,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 140.2,
+        "h": 137
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 132,
+          "h": 129
+        }
+      ]
+    },
+    "dkMechWire": {
+      "sheet": "./dark_knight_mechwire_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 213,
+        "h": 205
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 226.2,
+        "h": 217.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 213,
+          "h": 205
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 213,
+          "h": 205
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 213,
+          "h": 205
+        },
+        {
+          "x": 639,
+          "y": 0,
+          "w": 213,
+          "h": 205
+        }
+      ]
+    },
+    "dkMechIdle": {
+      "sheet": "./dark_knight_mechidle_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 198,
+        "h": 205
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 210.3,
+        "h": 217.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 198,
+          "h": 205
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 198,
+          "h": 205
+        }
+      ]
+    },
+    "dkMechAttack": {
+      "sheet": "./dark_knight_mechattack_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 238,
+        "h": 178
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 252.8,
+        "h": 189
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 238,
+          "h": 178
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./dark_knight_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 140,
+        "h": 132
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 140.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 132
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./dark_knight_knockdown_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 172,
+        "h": 119
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 182.7,
+        "h": 126.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 172,
+          "h": 119
+        }
+      ]
+    }
+  }
+}

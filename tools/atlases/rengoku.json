@@ -1,0 +1,1672 @@
+{
+  "rosterKey": "rengoku",
+  "name": "Kyojuro Rengoku",
+  "spriteScale": 1.94,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./rengoku_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 69,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 158,
+        "h": 135.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 59
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 59
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 59
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 59
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./rengoku_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.9,
+        "h": 119
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./rengoku_run_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 125.9,
+        "h": 119
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 52
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./rengoku_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 49,
+        "h": 38
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.2,
+        "h": 87
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 38
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 38
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./rengoku_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 48,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 141.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./rengoku_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 48,
+        "h": 62
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 240,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.9,
+        "h": 141.9
+      },
+      "rects": [
+        {
+          "x": 240,
+          "y": 0,
+          "w": 48,
+          "h": 62
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./rengoku_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 59,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135.1,
+        "h": 139.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 61
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./rengoku_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 55,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.9,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 56
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./rengoku_hit_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 55,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.9,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 56
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 56
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 56
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 56
+        }
+      ]
+    },
+    "introRunIn": {
+      "sheet": "./rengoku_intro_run_in_reverse_right_to_left_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 46,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.3,
+        "h": 135.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 59
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 59
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 59
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 59
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 46,
+          "h": 59
+        }
+      ]
+    },
+    "intro2": {
+      "sheet": "./rengoku_intro_2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.8,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./rengoku_foward_slash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 82,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 187.7,
+        "h": 116.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 51
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 51
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./rengoku_down_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 82,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 187.7,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 56
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 56
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 56
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 56
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./rengoku_up_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 50,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.5,
+        "h": 146.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 50,
+          "h": 64
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./rengoku_combo_air_1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 101,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 231.2,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 202,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./rengoku_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 73,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 167.1,
+        "h": 194.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 73,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 219,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 365,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 73,
+          "h": 85
+        }
+      ]
+    },
+    "rengokuG1": {
+      "sheet": "./rengoku_combo_1_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 82,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 187.7,
+        "h": 146.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 64
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 64
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 64
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 64
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 64
+        }
+      ]
+    },
+    "rengokuG2": {
+      "sheet": "./rengoku_combo_2_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 97,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 97,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 222.1,
+        "h": 139.6
+      },
+      "rects": [
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 61
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 61
+        },
+        {
+          "x": 291,
+          "y": 0,
+          "w": 97,
+          "h": 61
+        },
+        {
+          "x": 388,
+          "y": 0,
+          "w": 97,
+          "h": 61
+        },
+        {
+          "x": 485,
+          "y": 0,
+          "w": 97,
+          "h": 61
+        }
+      ]
+    },
+    "rengokuG3": {
+      "sheet": "./rengoku_combo_3_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 85,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 170,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 194.6,
+        "h": 137.4
+      },
+      "rects": [
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 425,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 510,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        }
+      ]
+    },
+    "rengokuSuperFwd": {
+      "sheet": "./rengoku_super_foward_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 86,
+        "h": 51
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 196.9,
+        "h": 116.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        },
+        {
+          "x": 430,
+          "y": 0,
+          "w": 86,
+          "h": 51
+        }
+      ]
+    },
+    "rengokuSuperDown": {
+      "sheet": "./rengoku_super_down_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 85,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 194.6,
+        "h": 137.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        },
+        {
+          "x": 425,
+          "y": 0,
+          "w": 85,
+          "h": 60
+        }
+      ]
+    },
+    "rengokuA1": {
+      "sheet": "./rengoku_combo_air_1_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 101,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 303,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 231.2,
+        "h": 128.2
+      },
+      "rects": [
+        {
+          "x": 303,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 404,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 505,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 606,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 707,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        },
+        {
+          "x": 808,
+          "y": 0,
+          "w": 101,
+          "h": 56
+        }
+      ]
+    },
+    "rengokuABridge": {
+      "sheet": "./rengoku_combo_into_air_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 56,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.2,
+        "h": 148.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 56,
+          "h": 65
+        }
+      ]
+    },
+    "rengokuA2": {
+      "sheet": "./rengoku_combo_air_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 83,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 332,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 415,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        }
+      ]
+    },
+    "rengokuSuperAir": {
+      "sheet": "./rengoku_super_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 83,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 190,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 166,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        },
+        {
+          "x": 249,
+          "y": 0,
+          "w": 83,
+          "h": 66
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./rengoku_charge_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 49,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 112.2,
+        "h": 123.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        },
+        {
+          "x": 147,
+          "y": 0,
+          "w": 49,
+          "h": 54
+        }
+      ]
+    },
+    "rengokuCharge1": {
+      "sheet": "./rengoku_charge_hit_1_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 66,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.1,
+        "h": 125.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        },
+        {
+          "x": 396,
+          "y": 0,
+          "w": 66,
+          "h": 55
+        }
+      ]
+    },
+    "rengokuCharge2": {
+      "sheet": "./rengoku_charge_hit_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 117,
+        "h": 60
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 267.8,
+        "h": 137.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        },
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        },
+        {
+          "x": 585,
+          "y": 0,
+          "w": 117,
+          "h": 60
+        }
+      ]
+    },
+    "rengokuFlameTail": {
+      "sheet": "./rengoku_puches_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 58,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.8,
+        "h": 112.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 49
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 49
+        }
+      ]
+    },
+    "rengokuCounter": {
+      "sheet": "./rengoku_foward_attack_charge_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.8,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        }
+      ]
+    },
+    "ultimate": {
+      "sheet": "./rengoku_ultimate_explosion_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 55,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.9,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 67
+        }
+      ]
+    }
+  }
+}

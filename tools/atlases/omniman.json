@@ -1,0 +1,1555 @@
+{
+  "rosterKey": "omniman",
+  "name": "Omni-Man",
+  "spriteScale": 0.95,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./omni_man_idle.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 88,
+        "h": 139
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.6,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./omni_man_idle.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 88,
+        "h": 139
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.6,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./omni_man_idle.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 88,
+        "h": 139
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.6,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./omni_man_idle.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 88,
+        "h": 139
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 98.6,
+        "h": 155.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 139
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./omni_man_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 131,
+        "h": 143
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.9,
+        "h": 160.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        },
+        {
+          "x": 131,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        },
+        {
+          "x": 262,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        },
+        {
+          "x": 393,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        },
+        {
+          "x": 524,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        },
+        {
+          "x": 655,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./omni_man_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 131,
+        "h": 143
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 655,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.9,
+        "h": 160.3
+      },
+      "rects": [
+        {
+          "x": 655,
+          "y": 0,
+          "w": 131,
+          "h": 143
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./omni_man_hit_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 126,
+        "h": 127
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.2,
+        "h": 142.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 127
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 127
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 126,
+          "h": 127
+        }
+      ]
+    },
+    "hurt_air": {
+      "sheet": "./omni_man_air_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 140,
+        "h": 171
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 156.9,
+        "h": 191.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 171
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 171
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./omni_man_intro_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 146,
+        "h": 161
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 163.7,
+        "h": 180.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        },
+        {
+          "x": 292,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        },
+        {
+          "x": 438,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        },
+        {
+          "x": 584,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        },
+        {
+          "x": 730,
+          "y": 0,
+          "w": 146,
+          "h": 161
+        }
+      ]
+    },
+    "intro2": {
+      "sheet": "./omni_man_intro2_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 115,
+        "h": 133
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 149.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 575,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 690,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        },
+        {
+          "x": 805,
+          "y": 0,
+          "w": 115,
+          "h": 133
+        }
+      ]
+    },
+    "introCrash": {
+      "sheet": "./omni_man_intro_crash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 112,
+        "h": 156
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.6,
+        "h": 174.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 156
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 156
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 112,
+          "h": 156
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 112,
+          "h": 156
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./omni_man_ground_punch_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 160,
+        "h": 130
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 179.4,
+        "h": 145.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 160,
+          "h": 130
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 160,
+          "h": 130
+        },
+        {
+          "x": 320,
+          "y": 0,
+          "w": 160,
+          "h": 130
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 160,
+          "h": 130
+        },
+        {
+          "x": 640,
+          "y": 0,
+          "w": 160,
+          "h": 130
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./omni_man_ground_punch_1_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 165,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 185,
+        "h": 143.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 165,
+          "h": 128
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 165,
+          "h": 128
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 165,
+          "h": 128
+        },
+        {
+          "x": 495,
+          "y": 0,
+          "w": 165,
+          "h": 128
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./omni_man_ground_up_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 134,
+        "h": 166
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 186.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 134,
+          "h": 166
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 134,
+          "h": 166
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 134,
+          "h": 166
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 134,
+          "h": 166
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./omni_man_air_forward_punch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 156,
+        "h": 144
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 174.9,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 156,
+          "h": 144
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 156,
+          "h": 144
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 156,
+          "h": 144
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./omni_man_air_down_attack_2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 115,
+        "h": 138
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 154.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 138
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 138
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 138
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./omni_man_grab_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 107,
+        "h": 126
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 119.9,
+        "h": 141.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 107,
+          "h": 126
+        },
+        {
+          "x": 107,
+          "y": 0,
+          "w": 107,
+          "h": 126
+        },
+        {
+          "x": 214,
+          "y": 0,
+          "w": 107,
+          "h": 126
+        },
+        {
+          "x": 321,
+          "y": 0,
+          "w": 107,
+          "h": 126
+        }
+      ]
+    },
+    "omCombo1": {
+      "sheet": "./omni_man_ground_air_kick_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 150,
+        "h": 154
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.1,
+        "h": 172.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 150,
+          "h": 154
+        },
+        {
+          "x": 150,
+          "y": 0,
+          "w": 150,
+          "h": 154
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 150,
+          "h": 154
+        },
+        {
+          "x": 450,
+          "y": 0,
+          "w": 150,
+          "h": 154
+        }
+      ]
+    },
+    "omCombo2": {
+      "sheet": "./omni_man_ground_down_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 134,
+        "h": 133
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 149.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 134,
+          "h": 133
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 134,
+          "h": 133
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 134,
+          "h": 133
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 134,
+          "h": 133
+        },
+        {
+          "x": 536,
+          "y": 0,
+          "w": 134,
+          "h": 133
+        }
+      ]
+    },
+    "omComboFin": {
+      "sheet": "./omni_man_combo_launch_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 134,
+        "h": 173
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.2,
+        "h": 193.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 402,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 536,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 670,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 804,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 938,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 1072,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 1206,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        },
+        {
+          "x": 1340,
+          "y": 0,
+          "w": 134,
+          "h": 173
+        }
+      ]
+    },
+    "omPush": {
+      "sheet": "./omni_man_push_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 136,
+        "h": 153
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.5,
+        "h": 171.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 136,
+          "h": 153
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 136,
+          "h": 153
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 136,
+          "h": 153
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 136,
+          "h": 153
+        }
+      ]
+    },
+    "fly": {
+      "sheet": "./omni_man_fly_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 124,
+        "h": 148
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 139,
+        "h": 165.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 124,
+          "h": 148
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 124,
+          "h": 148
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 124,
+          "h": 148
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 124,
+          "h": 148
+        }
+      ]
+    },
+    "flyMove": {
+      "sheet": "./omni_man_fly_move_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 162,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 181.6,
+        "h": 139
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 162,
+          "h": 124
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 162,
+          "h": 124
+        }
+      ]
+    },
+    "forcedDescent": {
+      "sheet": "./omni_man_descent_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 165,
+        "h": 144
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 185,
+        "h": 161.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 495,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 660,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 825,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        },
+        {
+          "x": 990,
+          "y": 0,
+          "w": 165,
+          "h": 144
+        }
+      ]
+    },
+    "descentLand": {
+      "sheet": "./omni_man_land_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 164,
+        "h": 158
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 183.8,
+        "h": 177.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 492,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 656,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 820,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        },
+        {
+          "x": 984,
+          "y": 0,
+          "w": 164,
+          "h": 158
+        }
+      ]
+    },
+    "omSkewer": {
+      "sheet": "./omni_man_skewer_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 180,
+        "h": 127
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 201.8,
+        "h": 142.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 720,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 900,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1080,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1260,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1440,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1620,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1800,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        },
+        {
+          "x": 1980,
+          "y": 0,
+          "w": 180,
+          "h": 127
+        }
+      ]
+    },
+    "omMeteor": {
+      "sheet": "./omni_man_meteor_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 144,
+        "h": 154
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.4,
+        "h": 172.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 144,
+          "h": 154
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 144,
+          "h": 154
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 144,
+          "h": 154
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 144,
+          "h": 154
+        },
+        {
+          "x": 576,
+          "y": 0,
+          "w": 144,
+          "h": 154
+        }
+      ]
+    },
+    "ultimate": {
+      "sheet": "./omni_man_ultimate_uniform.png",
+      "exists": true,
+      "frames": 15,
+      "cell": {
+        "w": 171,
+        "h": 191
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 191.7,
+        "h": 214.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 513,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 684,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 855,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1026,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1197,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1368,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1539,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1710,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 1881,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 2052,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 2223,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        },
+        {
+          "x": 2394,
+          "y": 0,
+          "w": 171,
+          "h": 191
+        }
+      ]
+    }
+  }
+}

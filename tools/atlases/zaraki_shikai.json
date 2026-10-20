@@ -1,0 +1,2077 @@
+{
+  "rosterKey": "zaraki_shikai",
+  "name": "Zaraki Kenpachi (Shikai)",
+  "spriteScale": 1.97,
+  "globalScale": 1.18,
+  "actionCount": 34,
+  "actions": {
+    "idle": {
+      "sheet": "./zaraki_shikai_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 100,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 232.5,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 65
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 100,
+          "h": 65
+        },
+        {
+          "x": 200,
+          "y": 0,
+          "w": 100,
+          "h": 65
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 100,
+          "h": 65
+        }
+      ]
+    },
+    "idleLow": {
+      "sheet": "./zaraki_low_health_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 69,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 160.4,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 65
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./zaraki_shikai_run_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 96,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 223.2,
+        "h": 111.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 576,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./zaraki_shikai_run_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 96,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 223.2,
+        "h": 111.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        },
+        {
+          "x": 576,
+          "y": 0,
+          "w": 96,
+          "h": 48
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./zaraki_shikai_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 77,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 179,
+        "h": 204.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 77,
+          "h": 88
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./zaraki_shinkai_jump_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 97,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 225.5,
+        "h": 218.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 291,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 388,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        },
+        {
+          "x": 485,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./zaraki_shinkai_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 97,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 485,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 225.5,
+        "h": 218.5
+      },
+      "rects": [
+        {
+          "x": 485,
+          "y": 0,
+          "w": 97,
+          "h": 94
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./zaraki_shinkai_block_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.8,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 59
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./zaraki_shinkai_hit_2_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 115,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 267.3,
+        "h": 148.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        }
+      ]
+    },
+    "hurt_air": {
+      "sheet": "./zaraki_shinkai_hit_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 115,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 267.3,
+        "h": 148.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 575,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./zaraki_shinkai_hit_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 115,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 267.3,
+        "h": 148.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 575,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        }
+      ]
+    },
+    "knockdownHeavy": {
+      "sheet": "./zaraki_shinkai_hit_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 115,
+        "h": 64
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 267.3,
+        "h": 148.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 230,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        },
+        {
+          "x": 575,
+          "y": 0,
+          "w": 115,
+          "h": 64
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./zaraki_taunt_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 71,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 165,
+        "h": 181.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 78
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 78
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 78
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 78
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 78
+        }
+      ]
+    },
+    "tauntAlt": {
+      "sheet": "./zaraki_tuant_2_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 65,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.1,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 65,
+          "h": 66
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./zaraki_combo_1_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 197,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 457.9,
+        "h": 186
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 197,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 394,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 591,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 788,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 985,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 1182,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 1379,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        },
+        {
+          "x": 1576,
+          "y": 0,
+          "w": 197,
+          "h": 80
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./zaraki_combo_2_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 101,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 234.8,
+        "h": 153.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 202,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 303,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 404,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 505,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 606,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 707,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 808,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 909,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        },
+        {
+          "x": 1010,
+          "y": 0,
+          "w": 101,
+          "h": 66
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./zaraki_up_attack_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 65,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.1,
+        "h": 160.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 69
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 69
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 69
+        }
+      ]
+    },
+    "zarakiAirUp": {
+      "sheet": "./zaraki_up_attack_to_down_air_combo_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 70,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.7,
+        "h": 216.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        }
+      ]
+    },
+    "zarakiAirDown": {
+      "sheet": "./zaraki_up_attack_to_down_air_combo_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 70,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 350,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.7,
+        "h": 216.2
+      },
+      "rects": [
+        {
+          "x": 350,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        },
+        {
+          "x": 490,
+          "y": 0,
+          "w": 70,
+          "h": 93
+        }
+      ]
+    },
+    "zarakiFwdSlash1": {
+      "sheet": "./zaraki_foward_slash_1_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 69,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 160.4,
+        "h": 160.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 69
+        }
+      ]
+    },
+    "zarakiFwdSlash2": {
+      "sheet": "./zaraki_foward_slash_2_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 66,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 153.4,
+        "h": 167.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 66,
+          "h": 72
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./zaraki_shikai_release_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 92,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 213.9,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 368,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        }
+      ]
+    },
+    "zarakiChargedDash": {
+      "sheet": "./zaraki_super_foward_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 111,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 333,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 258,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 333,
+          "y": 0,
+          "w": 111,
+          "h": 65
+        },
+        {
+          "x": 444,
+          "y": 0,
+          "w": 111,
+          "h": 65
+        },
+        {
+          "x": 555,
+          "y": 0,
+          "w": 111,
+          "h": 65
+        },
+        {
+          "x": 666,
+          "y": 0,
+          "w": 111,
+          "h": 65
+        }
+      ]
+    },
+    "zarakiHollowStrike": {
+      "sheet": "./zaraki_hollow_down_attack_assist_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 212,
+        "h": 180
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 492.8,
+        "h": 418.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 212,
+          "h": 180
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 212,
+          "h": 180
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 212,
+          "h": 180
+        },
+        {
+          "x": 636,
+          "y": 0,
+          "w": 212,
+          "h": 180
+        },
+        {
+          "x": 848,
+          "y": 0,
+          "w": 212,
+          "h": 180
+        }
+      ]
+    },
+    "zarakiBankai": {
+      "sheet": "./zaraki_bankai_ultimate_uniform.png",
+      "exists": true,
+      "frames": 17,
+      "cell": {
+        "w": 127,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 295.2,
+        "h": 232.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 127,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 254,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 381,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 508,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 635,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 762,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 889,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1016,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1143,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1270,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1397,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1524,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1651,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1778,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 1905,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        },
+        {
+          "x": 2032,
+          "y": 0,
+          "w": 127,
+          "h": 100
+        }
+      ]
+    },
+    "zarakiYachiruThrow": {
+      "sheet": "./zaraki_Yachiru_Kusajishi_throw_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 89,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 206.9,
+        "h": 232.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 178,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 267,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 356,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 445,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        },
+        {
+          "x": 534,
+          "y": 0,
+          "w": 89,
+          "h": 100
+        }
+      ]
+    },
+    "shikaiRelease": {
+      "sheet": "./zaraki_shikai_release_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 92,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 213.9,
+        "h": 151.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 368,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 552,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 644,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 736,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        },
+        {
+          "x": 828,
+          "y": 0,
+          "w": 92,
+          "h": 65
+        }
+      ]
+    },
+    "zarakiShikaiC1": {
+      "sheet": "./zaraki_shinkai_combo_1_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 191,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 444,
+        "h": 288.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 191,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 382,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 573,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 764,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 955,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 1146,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 1337,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 1528,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 1719,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        },
+        {
+          "x": 1910,
+          "y": 0,
+          "w": 191,
+          "h": 124
+        }
+      ]
+    },
+    "zarakiShikaiC2": {
+      "sheet": "./zaraki_shinkai_combo_2_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 140,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 325.4,
+        "h": 211.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 560,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 700,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 840,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 980,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 1120,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 1260,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        },
+        {
+          "x": 1400,
+          "y": 0,
+          "w": 140,
+          "h": 91
+        }
+      ]
+    },
+    "zarakiShikaiC3": {
+      "sheet": "./zaraki_shinkai_combo_3_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 101,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 234.8,
+        "h": 241.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 202,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 303,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 404,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 505,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        },
+        {
+          "x": 606,
+          "y": 0,
+          "w": 101,
+          "h": 104
+        }
+      ]
+    },
+    "zarakiShikaiC4": {
+      "sheet": "./zaraki_shikai_combo_4_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 98,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 227.8,
+        "h": 213.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 196,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 392,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 490,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 588,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        },
+        {
+          "x": 686,
+          "y": 0,
+          "w": 98,
+          "h": 92
+        }
+      ]
+    },
+    "zarakiShikaiUp": {
+      "sheet": "./zaraki_shinkai_up_atttack_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 94,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 218.5,
+        "h": 241.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 104
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 104
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 94,
+          "h": 104
+        }
+      ]
+    },
+    "zarakiShikaiDownAir": {
+      "sheet": "./zaraki_shinkai_down_air_attack_png_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 95,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 220.8,
+        "h": 213.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 92
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 92
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 92
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 95,
+          "h": 92
+        }
+      ]
+    },
+    "zarakiShikaiSpecial": {
+      "sheet": "./zaraki_shikai_specail_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 93,
+        "h": 120
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 216.2,
+        "h": 279
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        },
+        {
+          "x": 372,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        },
+        {
+          "x": 465,
+          "y": 0,
+          "w": 93,
+          "h": 120
+        }
+      ]
+    }
+  }
+}

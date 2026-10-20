@@ -1,0 +1,1444 @@
+{
+  "rosterKey": "ippo",
+  "name": "Ippo Makunouchi",
+  "spriteScale": 2.1,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./ippo_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.7,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./ippo_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 40,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./ippo_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 40,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./ippo_walk_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 40,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.1,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 55
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./ippo_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 37,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 91.7,
+        "h": 143.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 58
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "w": 37,
+          "h": 58
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 37,
+          "h": 58
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 37,
+          "h": 58
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./ippo_fall_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 54
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 54
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 54
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 54
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./ippo_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 39,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./ippo_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 39,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        }
+      ]
+    },
+    "dodge": {
+      "sheet": "./ippo_dodge_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        }
+      ]
+    },
+    "failed": {
+      "sheet": "./ippo_failed_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 35,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.7,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 35,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 35,
+          "h": 55
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./ippo_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 38,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.2,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 54
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./ippo_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 65,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161.1,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 54
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./ippo_getup_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 47,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.5,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 54
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./ippo_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 55
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./ippo_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.2,
+        "h": 136.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 55
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./ippo_up_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 45,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.5,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        },
+        {
+          "x": 135,
+          "y": 0,
+          "w": 45,
+          "h": 56
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./ippo_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 34,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.3,
+        "h": 143.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./ippo_air_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 34,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.3,
+        "h": 143.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 58
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./ippo_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 50,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.9,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 50,
+          "h": 52
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 50,
+          "h": 52
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 50,
+          "h": 52
+        }
+      ]
+    },
+    "ippoJab1": {
+      "sheet": "./ippo_jab1_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 85,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 210.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 54
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 54
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 54
+        }
+      ]
+    },
+    "ippoJab2": {
+      "sheet": "./ippo_jab2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 95,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 235.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        }
+      ]
+    },
+    "ippoGazelle": {
+      "sheet": "./ippo_gazelle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 78,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 193.3,
+        "h": 151.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 78,
+          "h": 61
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 78,
+          "h": 61
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 78,
+          "h": 61
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 78,
+          "h": 61
+        }
+      ]
+    },
+    "ippoHook": {
+      "sheet": "./ippo_hook_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 68,
+        "h": 53
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.5,
+        "h": 131.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 53
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 53
+        }
+      ]
+    },
+    "ippoUppercut": {
+      "sheet": "./ippo_upper_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 71,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 175.9,
+        "h": 141.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 57
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 57
+        }
+      ]
+    },
+    "ippoBodyblow": {
+      "sheet": "./ippo_body_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 68,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.5,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 52
+        }
+      ]
+    },
+    "ippoAirhook": {
+      "sheet": "./ippo_airhook_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 61,
+        "h": 59
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.2,
+        "h": 146.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 59
+        }
+      ]
+    },
+    "ippoDempseyWeave": {
+      "sheet": "./ippo_dempsey_weave_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 114,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 54
+        }
+      ]
+    },
+    "ippoDempseyFlurry": {
+      "sheet": "./ippo_dempsey_flurry_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 95,
+        "h": 52
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 235.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 95,
+          "h": 52
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./ippo_win_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 38,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 94.2,
+        "h": 151.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 61
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 61
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 61
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 61
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./ippo_lose_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 58,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.7,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 290,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 58,
+          "h": 54
+        }
+      ]
+    },
+    "idleLow": {
+      "sheet": "./ippo_idlelow_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 39,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 96.6,
+        "h": 133.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 54
+        }
+      ]
+    }
+  }
+}

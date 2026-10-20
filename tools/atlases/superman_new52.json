@@ -1,0 +1,1384 @@
+{
+  "rosterKey": "superman_new52",
+  "name": "Superman (New 52)",
+  "spriteScale": 1.25,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./superman_new52_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 105,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.9,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 92
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./superman_new52_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 105,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.9,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 92
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./superman_new52_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 76,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.1,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 92
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./superman_new52_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 50
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.9,
+        "h": 73.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 50
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./superman_new52_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 114,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.1,
+        "h": 50.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 114,
+          "h": 34
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 114,
+          "h": 34
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./superman_new52_idle_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 88.5,
+        "h": 144.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 98
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./superman_new52_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 67,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.8,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 93
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 93
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./superman_new52_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 71,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.7,
+        "h": 131.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 89
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 89
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./superman_new52_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 94,
+        "h": 106
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.7,
+        "h": 156.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 106
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 106
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./superman_new52_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 110,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.3,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 110,
+          "h": 92
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 110,
+          "h": 92
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./superman_new52_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 110,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.3,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 110,
+          "h": 92
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 110,
+          "h": 92
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./superman_new52_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 83,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.4,
+        "h": 138.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 94
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 94
+        }
+      ]
+    },
+    "supN52Rush1": {
+      "sheet": "./superman_new52_rush1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 99,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146,
+        "h": 137.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 93
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 93
+        }
+      ]
+    },
+    "supN52Rush2": {
+      "sheet": "./superman_new52_rush2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 89,
+        "h": 106
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.3,
+        "h": 156.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 106
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 106
+        }
+      ]
+    },
+    "supN52Rush3": {
+      "sheet": "./superman_new52_rush3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 91,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 134.2,
+        "h": 128.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 91,
+          "h": 87
+        },
+        {
+          "x": 91,
+          "y": 0,
+          "w": 91,
+          "h": 87
+        }
+      ]
+    },
+    "supN52Flycharge": {
+      "sheet": "./superman_new52_flycharge_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 89,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.3,
+        "h": 138.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 89,
+          "h": 94
+        },
+        {
+          "x": 89,
+          "y": 0,
+          "w": 89,
+          "h": 94
+        },
+        {
+          "x": 178,
+          "y": 0,
+          "w": 89,
+          "h": 94
+        }
+      ]
+    },
+    "supN52Soar": {
+      "sheet": "./superman_new52_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 94,
+        "h": 106
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 138.7,
+        "h": 156.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 106
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 106
+        }
+      ]
+    },
+    "supN52Dive": {
+      "sheet": "./superman_new52_dive_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 119,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 175.5,
+        "h": 120.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 82
+        },
+        {
+          "x": 119,
+          "y": 0,
+          "w": 119,
+          "h": 82
+        }
+      ]
+    },
+    "supN52Ult": {
+      "sheet": "./superman_new52_ult_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 99,
+        "h": 94
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146,
+        "h": 138.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 99,
+          "h": 94
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 99,
+          "h": 94
+        },
+        {
+          "x": 198,
+          "y": 0,
+          "w": 99,
+          "h": 94
+        },
+        {
+          "x": 297,
+          "y": 0,
+          "w": 99,
+          "h": 94
+        }
+      ]
+    },
+    "fly": {
+      "sheet": "./superman_new52_fly_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        }
+      ]
+    },
+    "flyMove": {
+      "sheet": "./superman_new52_fly_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 118,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        }
+      ]
+    },
+    "forcedDescent": {
+      "sheet": "./superman_new52_fly_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 80,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118,
+        "h": 141.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 96
+        }
+      ]
+    },
+    "descentLand": {
+      "sheet": "./superman_new52_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 76,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.1,
+        "h": 135.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 92
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./superman_new52_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.4,
+        "h": 132.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 90
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./superman_new52_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 114,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 168.1,
+        "h": 50.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 114,
+          "h": 34
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 114,
+          "h": 34
+        }
+      ]
+    }
+  }
+}

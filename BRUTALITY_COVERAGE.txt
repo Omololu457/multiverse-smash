@@ -1,0 +1,191 @@
+========================================================================
+MULTIVERSE SMASH — BRUTALITY COVERAGE (Academy roster)
+Generated: 2026-10-20   Branch: feat/brutalities-tobirama
+========================================================================
+
+Academy roster (playable, non-hidden): 119
+  WITH a brutality:    44
+  WITHOUT a brutality: 75
+
+========================================================================
+CHARACTERS WITHOUT A BRUTALITY (75)
+========================================================================
+
+[ben_10]
+  Albedo                            albedo
+  Ben 10                            ben10
+  Gwen                              gwen
+  Vilgax                            vilgax
+
+[bleach]
+  Ichigo Kurosaki                   ichigo
+
+[dc]
+  Batman                            batman
+  Batman                            dark_knight
+  Brainiac                          brainiac
+  Green Lantern                     green_lantern
+  Superman                          superman
+  Superman (Classic)                superman_classic
+  Superman (Custom)                 superman_dcuc
+  Superman (Fighter)                superman_fighter
+  Superman (New 52)                 superman_new52
+
+[deathnote]
+  L                                 l_ryuuzaki
+  Light Yagami                      light
+
+[divine]
+  Jesus                             jesus
+
+[dragon_ball]
+  Bardock                           bardock
+  Dark Vegeta                       vegeta_dark
+  Gogeta (Ultra Instinct)           gogeta
+  Goku                              goku
+  Goku Black                        goku_black
+  Gotenks                           gotenks
+  Piccolo                           piccolo
+  Teen Gohan                        gohan
+  Vegito                            vegito
+
+[hajime_no_ippo]
+  Ippo Makunouchi                   ippo
+
+[horror]
+  Ghostface.exe                     ghostface_exe
+
+[hunter_x_hunter]
+  Chrollo Lucilfer                  chrollo
+  Gon Freecss                       gon
+  Isaac Netero                      netero
+  Killua (Godspeed)                 zoldyck
+  Kurapika                          kurapika
+  Meruem                            meruem
+  Shizuku Murasaki                  shizuku
+
+[jujutsu_kaisen]
+  Aoi Todo                          aoi_todo
+  Kasumi Miwa                       miwa
+  Maki Zenin                        maki
+  Megumi                            handler
+  Yuji Itadori                      yuji
+  Yuta Okkotsu                      yuta
+
+[marvel]
+  Iron Man                          iron_man
+  Iron Man 2                        iron_man_2
+  Iron Man 3                        iron_man_3
+  Miles Morales                     miles
+  Spider-Man                        spiderman
+  Spider-Man (Cosmic Invasion)      spiderman_mci
+  Spider-Man (Raimi)                spiderman_raimi
+  Spider-Man (SSF2)                 spiderman_ssf2
+
+[naruto]
+  Boruto Uzumaki                    boruto
+  Gaara                             gaara
+  Hashirama Senju                   hashirama
+  Hinata Hyuga                      hinata
+  Hiruzen Sarutobi                  hiruzen
+  Jiraiya                           jiraiya
+  Kakashi                           kakashi
+  Kakashi (ANBU)                    kakashi_anbu
+  Kakashi (Kamui)                   kakashi_war
+  Kiba Inuzuka                      kiba
+  Minato Namikaze                   minato
+  Naruto (Adult KCM)                naruto_hokage
+  Onoki                             onoki
+  Sakura Haruno                     sakura
+  Shisui (Trinity)                  shisui_trinity
+  Shisui & Itachi (Kids)            shisui_itachi_kids
+  Six Paths of Pain                 six_paths_pain
+  Tobi                              tobi
+
+[one_punch_man]
+  Genos                             genos
+  Saitama                           saitama
+
+[original]
+  Omololu                           omololu
+
+[power_rangers]
+  Gold Samurai Ranger (Light)       gold_samurai_ranger
+  Green Samurai Ranger (Forest)     green_samurai_ranger
+  Red Ranger (Mighty Morphin)       red_ranger_mmpr
+  Samurai Red Ranger (Fire)         samurai_red_ranger
+
+[saiki_k]
+  Saiki Kusuo                       saiki
+
+========================================================================
+CHARACTERS WITH A BRUTALITY (44)  — for reference
+========================================================================
+
+[baki]
+  Baki Hanma                        baki
+
+[bleach]
+  Byakuya Kuchiki                   byakuya
+  Mayuri Kurotsuchi                 mayuri
+  Yamamoto                          yamamoto
+  Zaraki Kenpachi                   zaraki
+  Zaraki Kenpachi (Shikai)          zaraki_shikai
+
+[dc]
+  Deathstroke                       deathstroke
+  The Flash                         flash
+
+[demon_slayer]
+  Inosuke Hashibira                 inosuke
+  Kyojuro Rengoku                   rengoku
+  Nezuko Kamado                     nezuko
+  Shinobu Kocho                     shinobu
+  Zenitsu Agatsuma                  zenitsu
+
+[dragon_ball]
+  Beerus                            beerus
+  Frieza                            frieza
+  Goku Black (Rosé 3)               goku_rose
+  Vegeta                            vegeta
+
+[horror]
+  Billy Ghostface                   ghostface_billy
+  Ghostface                         ghostface
+  Jason Voorhees                    jason
+
+[hunter_x_hunter]
+  Hisoka Morrow                     hisoka
+  Killua Zoldyck                    killua
+
+[invincible]
+  Omni-Man                          omniman
+
+[jujutsu_kaisen]
+  Alternate Sukuna                  alt_sukuna
+  Gojo Satoru                       gojo
+  Naoya Zenin                       naoya
+  Sukuna                            sukuna
+  Toji Fushiguro                    toji
+
+[naruto]
+  Isshiki Otsutsuki                 isshiki
+  Itachi Uchiha                     itachi
+  Madara Uchiha                     madara
+  Naruto                            naruto
+  Naruto (Seventh Hokage)           naruto_seventh
+  Obito Uchiha                      obito
+  Orochimaru                        orochimaru
+  Pain                              pain
+  Sasuke                            sasuke
+  Sasuke (Adult)                    sasuke_adult
+  Sasuke (Sensei)                   sasuke_sensei
+  Shisui (Fallen)                   shisui_fallen
+  Tobirama Senju                    tobirama
+
+[power_rangers]
+  Omega Ranger (White Ranger, S.P.D.)omega_ranger
+
+[rick_and_morty]
+  Rick Prime                        rickPrime
+  Rick Sanchez                      rick

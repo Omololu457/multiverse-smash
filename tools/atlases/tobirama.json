@@ -1,0 +1,1554 @@
+{
+  "rosterKey": "tobirama",
+  "name": "Tobirama Senju",
+  "spriteScale": 1.3,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./tobirama_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 39,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 59.8,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 90
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 90
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 90
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 39,
+          "h": 90
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./tobirama_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 47,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 72.1,
+        "h": 139.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 91
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./tobirama_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 68,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 104.3,
+        "h": 107.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 68,
+          "h": 70
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./tobirama_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 74,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.5,
+        "h": 136.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        },
+        {
+          "x": 148,
+          "y": 0,
+          "w": 74,
+          "h": 89
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./tobirama_jump_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 57,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        },
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./tobirama_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 57,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 342,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 342,
+          "y": 0,
+          "w": 57,
+          "h": 90
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./tobirama_block_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 41,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 62.9,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 90
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 90
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./tobirama_hit_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./tobirama_hit_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 84,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 128.9,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 84,
+          "h": 84
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./tobirama_intro_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 70,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.4,
+        "h": 135
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 88
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./tobirama_low_kick_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 72,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.4,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 90
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./tobirama_strongz_foward_attack_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 145,
+        "h": 79
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 222.4,
+        "h": 121.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 145,
+          "h": 79
+        },
+        {
+          "x": 145,
+          "y": 0,
+          "w": 145,
+          "h": 79
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./tobirama_up_kick_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 69,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.8,
+        "h": 127.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        },
+        {
+          "x": 69,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        },
+        {
+          "x": 207,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        },
+        {
+          "x": 345,
+          "y": 0,
+          "w": 69,
+          "h": 83
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./tobirama_super_up_kick_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 60,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 87
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 87
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 87
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./tobirama_down_air_kick_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 67,
+        "h": 87
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.8,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 87
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 87
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 87
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 87
+        }
+      ]
+    },
+    "tobiCombo1": {
+      "sheet": "./tobirama_attack_combo_1_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 65,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.7,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 325,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 65,
+          "h": 90
+        }
+      ]
+    },
+    "tobiCombo2": {
+      "sheet": "./tobirama_attack_combo_2_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 88,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 135,
+        "h": 136.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 176,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 264,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 352,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 528,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        },
+        {
+          "x": 616,
+          "y": 0,
+          "w": 88,
+          "h": 89
+        }
+      ]
+    },
+    "tobiComboFin": {
+      "sheet": "./tobirama_super_down_attack_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 71,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 108.9,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 213,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 284,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 355,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        },
+        {
+          "x": 426,
+          "y": 0,
+          "w": 71,
+          "h": 90
+        }
+      ]
+    },
+    "tobiStrongFwd": {
+      "sheet": "./tobirama_strong_upper_attack_kick_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 60,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92,
+        "h": 156.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 102
+        }
+      ]
+    },
+    "tobiRisingKnee": {
+      "sheet": "./tobirama_upper_knee_attack_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 57,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.4,
+        "h": 136.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 57,
+          "h": 89
+        }
+      ]
+    },
+    "tobiWaterDragon": {
+      "sheet": "./tobirama_water_dragon_justu_uniform.png",
+      "exists": true,
+      "frames": 10,
+      "cell": {
+        "w": 55,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 84.4,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 220,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 275,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 330,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 385,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 440,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        },
+        {
+          "x": 495,
+          "y": 0,
+          "w": 55,
+          "h": 90
+        }
+      ]
+    },
+    "tobiWaterSlash": {
+      "sheet": "./tobirama_foward_water_slash_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 82,
+        "h": 85
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.8,
+        "h": 130.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        },
+        {
+          "x": 246,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        },
+        {
+          "x": 328,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        },
+        {
+          "x": 410,
+          "y": 0,
+          "w": 82,
+          "h": 85
+        }
+      ]
+    },
+    "tobiRisingWater": {
+      "sheet": "./tobirama_water_up_attack_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 65,
+        "h": 104
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.7,
+        "h": 159.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 65,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 130,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 195,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 325,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        },
+        {
+          "x": 390,
+          "y": 0,
+          "w": 65,
+          "h": 104
+        }
+      ]
+    },
+    "tobiWaterWall": {
+      "sheet": "./tobirama_water_wall_justu_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 47,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.1,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        }
+      ]
+    },
+    "tobiDarkness": {
+      "sheet": "./tobirama_darkness_justu_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 47,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 72.1,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 47,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 141,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 188,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        },
+        {
+          "x": 235,
+          "y": 0,
+          "w": 47,
+          "h": 90
+        }
+      ]
+    },
+    "tobiWaterFlicker": {
+      "sheet": "./tobirama_water_teleport_after_hit_to_get_away_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 92,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 141.1,
+        "h": 102.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        },
+        {
+          "x": 184,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        },
+        {
+          "x": 276,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        },
+        {
+          "x": 368,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        },
+        {
+          "x": 460,
+          "y": 0,
+          "w": 92,
+          "h": 67
+        }
+      ]
+    },
+    "tobiEdoCast": {
+      "sheet": "./tobirama_performing_edo_tense_uniform.png",
+      "exists": true,
+      "frames": 11,
+      "cell": {
+        "w": 52,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.8,
+        "h": 138.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 104,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 156,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 208,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 260,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 312,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 364,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 416,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 468,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        },
+        {
+          "x": 520,
+          "y": 0,
+          "w": 52,
+          "h": 90
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1211 @@
+{
+  "rosterKey": "superman_classic",
+  "name": "Superman (Classic)",
+  "spriteScale": 1.2,
+  "globalScale": 1.18,
+  "actionCount": 32,
+  "actions": {
+    "idle": {
+      "sheet": "./superman_classic_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./superman_classic_walk_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./superman_classic_walk_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./superman_classic_walk_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./superman_classic_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 182.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 129
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./superman_classic_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 182.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 129
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./superman_classic_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 68,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.3,
+        "h": 97.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 69
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./superman_classic_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./superman_classic_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 71,
+        "h": 77
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.5,
+        "h": 109
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 77
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./superman_classic_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 108,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.9,
+        "h": 65.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 46
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 46
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./superman_classic_getup_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 85,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.4,
+        "h": 77.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 55
+        }
+      ]
+    },
+    "charge": {
+      "sheet": "./superman_classic_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 61,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 86.4,
+        "h": 128.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 91
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./superman_classic_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 75,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.2,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 75,
+          "h": 93
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 75,
+          "h": 93
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./superman_classic_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 74,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 104.8,
+        "h": 127.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 74,
+          "h": 90
+        },
+        {
+          "x": 74,
+          "y": 0,
+          "w": 74,
+          "h": 90
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./superman_classic_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 92,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130.3,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 84
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 84
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./superman_classic_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 82,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.1,
+        "h": 103.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./superman_classic_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 82,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.1,
+        "h": 103.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 73
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./superman_classic_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 86,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.8,
+        "h": 102
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 72
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 72
+        }
+      ]
+    },
+    "supClsRush1": {
+      "sheet": "./superman_classic_rush1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 80,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.3,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 93
+        }
+      ]
+    },
+    "supClsRush2": {
+      "sheet": "./superman_classic_rush2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.7,
+        "h": 97.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 69
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 69
+        }
+      ]
+    },
+    "supClsRush3": {
+      "sheet": "./superman_classic_rush3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 83,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 117.5,
+        "h": 97.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 69
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 69
+        }
+      ]
+    },
+    "supClsHeat": {
+      "sheet": "./superman_classic_heatvision_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 111,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.2,
+        "h": 66.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 111,
+          "h": 47
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 111,
+          "h": 47
+        }
+      ]
+    },
+    "supClsFlycharge": {
+      "sheet": "./superman_classic_flycharge_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 90,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.4,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 89
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 89
+        }
+      ]
+    },
+    "supClsSoar": {
+      "sheet": "./superman_classic_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 92,
+        "h": 84
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130.3,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 84
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 84
+        }
+      ]
+    },
+    "supClsDive": {
+      "sheet": "./superman_classic_dive_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 83,
+        "h": 89
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 117.5,
+        "h": 126
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 89
+        },
+        {
+          "x": 83,
+          "y": 0,
+          "w": 83,
+          "h": 89
+        }
+      ]
+    },
+    "supClsUlt": {
+      "sheet": "./superman_classic_ult_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 111,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 157.2,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 111,
+          "h": 81
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 111,
+          "h": 81
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 111,
+          "h": 81
+        }
+      ]
+    },
+    "fly": {
+      "sheet": "./superman_classic_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 82,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.1,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        }
+      ]
+    },
+    "flyMove": {
+      "sheet": "./superman_classic_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 82,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.1,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        }
+      ]
+    },
+    "forcedDescent": {
+      "sheet": "./superman_classic_fly_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 82,
+        "h": 88
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 116.1,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 82,
+          "h": 88
+        }
+      ]
+    },
+    "descentLand": {
+      "sheet": "./superman_classic_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 68,
+        "h": 69
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 96.3,
+        "h": 97.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 69
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./superman_classic_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 62,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.8,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 98
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./superman_classic_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 108,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.9,
+        "h": 65.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 46
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 46
+        }
+      ]
+    }
+  }
+}

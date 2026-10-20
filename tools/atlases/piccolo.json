@@ -1,0 +1,1015 @@
+{
+  "rosterKey": "piccolo",
+  "name": "Piccolo",
+  "spriteScale": 0.9,
+  "globalScale": 1.18,
+  "actionCount": 28,
+  "actions": {
+    "idle": {
+      "sheet": "./piccolo_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 70,
+        "h": 168
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 74.3,
+        "h": 178.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 168
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./piccolo_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 70,
+        "h": 168
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 74.3,
+        "h": 178.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 168
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./piccolo_idle_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 70,
+        "h": 168
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 74.3,
+        "h": 178.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 168
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./piccolo_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 114,
+        "h": 122
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 129.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 114,
+          "h": 122
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./piccolo_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 82,
+        "h": 198
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.1,
+        "h": 210.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 198
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 198
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./piccolo_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 198
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 82,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.1,
+        "h": 210.3
+      },
+      "rects": [
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 198
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./piccolo_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 90,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.6,
+        "h": 97.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 92
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./piccolo_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 115,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122.1,
+        "h": 106.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 100
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 100
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./piccolo_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 101,
+        "h": 121
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 107.3,
+        "h": 128.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 121
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 121
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./piccolo_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 170,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 180.5,
+        "h": 75.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 170,
+          "h": 71
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 170,
+          "h": 71
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./piccolo_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 117,
+        "h": 109
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.3,
+        "h": 115.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 109
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 109
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./piccolo_taunt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 138,
+        "h": 154
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 146.6,
+        "h": 163.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 138,
+          "h": 154
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./piccolo_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 168,
+        "h": 160
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 169.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 168,
+          "h": 160
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 168,
+          "h": 160
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./piccolo_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 165,
+        "h": 145
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 175.2,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 165,
+          "h": 145
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 165,
+          "h": 145
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./piccolo_up_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 189
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86,
+        "h": 200.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 189
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 189
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./piccolo_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 144,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.9,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 144,
+          "h": 108
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 144,
+          "h": 108
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./piccolo_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 144,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152.9,
+        "h": 114.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 144,
+          "h": 108
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 144,
+          "h": 108
+        }
+      ]
+    },
+    "piccoloRush1": {
+      "sheet": "./piccolo_rush1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 131,
+        "h": 141
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 139.1,
+        "h": 149.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 131,
+          "h": 141
+        },
+        {
+          "x": 131,
+          "y": 0,
+          "w": 131,
+          "h": 141
+        }
+      ]
+    },
+    "piccoloRush2": {
+      "sheet": "./piccolo_rush2_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 118,
+        "h": 167
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.3,
+        "h": 177.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 118,
+          "h": 167
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 118,
+          "h": 167
+        },
+        {
+          "x": 236,
+          "y": 0,
+          "w": 118,
+          "h": 167
+        }
+      ]
+    },
+    "piccoloRush3": {
+      "sheet": "./piccolo_rush3_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 150,
+        "h": 156
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 159.3,
+        "h": 165.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 150,
+          "h": 156
+        }
+      ]
+    },
+    "piccoloBeam": {
+      "sheet": "./piccolo_beam_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 140,
+        "h": 141
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.7,
+        "h": 149.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 141
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 141
+        }
+      ]
+    },
+    "piccoloMasenko": {
+      "sheet": "./piccolo_masenko_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 116,
+        "h": 182
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.2,
+        "h": 193.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 116,
+          "h": 182
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 116,
+          "h": 182
+        }
+      ]
+    },
+    "piccoloDemonwave": {
+      "sheet": "./piccolo_demonwave_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 97,
+        "h": 145
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 145
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 145
+        }
+      ]
+    },
+    "piccoloStretch": {
+      "sheet": "./piccolo_stretch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 114,
+        "h": 146
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 121.1,
+        "h": 155.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 114,
+          "h": 146
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 114,
+          "h": 146
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 114,
+          "h": 146
+        }
+      ]
+    },
+    "piccoloFlykick": {
+      "sheet": "./piccolo_flykick_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 181,
+        "h": 80
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 192.2,
+        "h": 85
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 181,
+          "h": 80
+        },
+        {
+          "x": 181,
+          "y": 0,
+          "w": 181,
+          "h": 80
+        }
+      ]
+    },
+    "piccoloIntro": {
+      "sheet": "./piccolo_intro_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 194,
+        "h": 170
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 206,
+        "h": 180.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 194,
+          "h": 170
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 194,
+          "h": 170
+        },
+        {
+          "x": 388,
+          "y": 0,
+          "w": 194,
+          "h": 170
+        },
+        {
+          "x": 582,
+          "y": 0,
+          "w": 194,
+          "h": 170
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./piccolo_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 104,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.4,
+        "h": 156.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 104,
+          "h": 147
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./piccolo_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 170,
+        "h": 71
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 180.5,
+        "h": 75.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 170,
+          "h": 71
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 170,
+          "h": 71
+        }
+      ]
+    }
+  }
+}

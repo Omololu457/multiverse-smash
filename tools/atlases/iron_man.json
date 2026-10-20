@@ -1,0 +1,1054 @@
+{
+  "rosterKey": "iron_man",
+  "name": "Iron Man",
+  "spriteScale": 1.6,
+  "globalScale": 1.18,
+  "actionCount": 25,
+  "actions": {
+    "idle": {
+      "sheet": "./iron_man_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 48,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 90.6,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./iron_man_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 42,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 79.3,
+        "h": 128.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./iron_man_walk_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 42,
+        "h": 68
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 79.3,
+        "h": 128.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        },
+        {
+          "x": 294,
+          "y": 0,
+          "w": 42,
+          "h": 68
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./iron_man_dash_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 57,
+        "h": 74
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 107.6,
+        "h": 139.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 74
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 74
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./iron_man_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 42,
+        "h": 55
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.3,
+        "h": 103.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 55
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./iron_man_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 43,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 81.2,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 66
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 66
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./iron_man_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 43,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 81.2,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 66
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 66
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./iron_man_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 42,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 79.3,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 66
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 66
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./iron_man_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.5,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 66
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 66
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 66
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./iron_man_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 61,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.2,
+        "h": 109.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        },
+        {
+          "x": 61,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        },
+        {
+          "x": 183,
+          "y": 0,
+          "w": 61,
+          "h": 58
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./iron_man_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 66,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 79.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 66,
+          "h": 42
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 66,
+          "h": 42
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./iron_man_intro_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 49,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 92.5,
+        "h": 126.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 49,
+          "h": 67
+        },
+        {
+          "x": 49,
+          "y": 0,
+          "w": 49,
+          "h": 67
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "w": 49,
+          "h": 67
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./iron_man_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 46,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 86.8,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 66
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 66
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./iron_man_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.6,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./iron_man_up_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 40,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.5,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 66
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 66
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 66
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./iron_man_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.6,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./iron_man_air_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.6,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./iron_man_crouchthrust_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 62,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 117.1,
+        "h": 107.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 57
+        }
+      ]
+    },
+    "ironManRush1": {
+      "sheet": "./iron_man_rush1_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 52,
+        "h": 58
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.2,
+        "h": 109.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 58
+        }
+      ]
+    },
+    "ironManRush2": {
+      "sheet": "./iron_man_rush2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 48,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 90.6,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "w": 48,
+          "h": 66
+        }
+      ]
+    },
+    "ironManRush3": {
+      "sheet": "./iron_man_rush3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 44,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 66
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 66
+        }
+      ]
+    },
+    "ironManBlast": {
+      "sheet": "./iron_man_blast_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 70,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.2,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 70,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 210,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        },
+        {
+          "x": 350,
+          "y": 0,
+          "w": 70,
+          "h": 66
+        }
+      ]
+    },
+    "ironManSpiderLegs": {
+      "sheet": "./iron_man_spiderlegs_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 129,
+        "h": 120
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 243.6,
+        "h": 226.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 129,
+          "h": 120
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 129,
+          "h": 120
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 129,
+          "h": 120
+        }
+      ]
+    },
+    "ironManUlt": {
+      "sheet": "./iron_man_super_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 123
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.8,
+        "h": 232.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 123
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./iron_man_super_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 82,
+        "h": 123
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.8,
+        "h": 232.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 123
+        }
+      ]
+    }
+  }
+}

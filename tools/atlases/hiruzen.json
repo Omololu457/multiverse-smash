@@ -1,0 +1,937 @@
+{
+  "rosterKey": "hiruzen",
+  "name": "Hiruzen Sarutobi",
+  "spriteScale": 2.8,
+  "globalScale": 1.18,
+  "actionCount": 22,
+  "actions": {
+    "idle": {
+      "sheet": "./hiruzen_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 208.2,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 42
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 42
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 42
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 42
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./hiruzen_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 67,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 221.4,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 335,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./hiruzen_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 67,
+        "h": 42
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 221.4,
+        "h": 138.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 201,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 268,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        },
+        {
+          "x": 335,
+          "y": 0,
+          "w": 67,
+          "h": 42
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./hiruzen_dash_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 57
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 211.5,
+        "h": 188.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 57
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 57
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 57
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./hiruzen_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 59,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 194.9,
+        "h": 270.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 59,
+          "h": 82
+        },
+        {
+          "x": 59,
+          "y": 0,
+          "w": 59,
+          "h": 82
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 82
+        },
+        {
+          "x": 177,
+          "y": 0,
+          "w": 59,
+          "h": 82
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./hiruzen_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 59,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 118,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 194.9,
+        "h": 270.9
+      },
+      "rects": [
+        {
+          "x": 118,
+          "y": 0,
+          "w": 59,
+          "h": 82
+        }
+      ]
+    },
+    "doubleJump": {
+      "sheet": "./hiruzen_back_jump_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 67,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 221.4,
+        "h": 201.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 67,
+          "h": 61
+        },
+        {
+          "x": 67,
+          "y": 0,
+          "w": 67,
+          "h": 61
+        },
+        {
+          "x": 134,
+          "y": 0,
+          "w": 67,
+          "h": 61
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./hiruzen_hit_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 55,
+        "h": 46
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.7,
+        "h": 152
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 46
+        },
+        {
+          "x": 55,
+          "y": 0,
+          "w": 55,
+          "h": 46
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./hiruzen_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 54,
+        "h": 44
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 178.4,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 44
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 300,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 360,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 180,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 300,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "hiruzenSpin": {
+      "sheet": "./hiruzen_spin_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 47
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": true,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 152,
+        "h": 155.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 47
+        }
+      ]
+    },
+    "hiruzenFireCast": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 360,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 360,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "hiruzenEarthCast": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "hiruzenEnmaCast": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 240,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 240,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 300,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "hiruzenBind": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 180,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "hiruzenReaperCast": {
+      "sheet": "./hiruzen_punches_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 60,
+        "h": 43
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 198.2,
+        "h": 142.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 43
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./hiruzen_intro_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 63,
+        "h": 56
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 208.2,
+        "h": 185
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 63,
+          "h": 56
+        }
+      ]
+    },
+    "introRobe": {
+      "sheet": "./hiruzen_introrobe_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 46,
+        "h": 36
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 152,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 46,
+          "h": 36
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "w": 46,
+          "h": 36
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 46,
+          "h": 36
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "w": 46,
+          "h": 36
+        }
+      ]
+    }
+  }
+}

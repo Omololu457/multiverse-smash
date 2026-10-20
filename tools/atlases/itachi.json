@@ -1,0 +1,1229 @@
+{
+  "rosterKey": "itachi",
+  "name": "Itachi Uchiha",
+  "spriteScale": 1.55,
+  "globalScale": 1.18,
+  "actionCount": 20,
+  "actions": {
+    "idle": {
+      "sheet": "./itachi_melle_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 42,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": -2
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 76.8,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 73
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./itachi_melle_walk_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 41,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": -9
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 75,
+        "h": 142.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 78
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./itachi_melle_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 62,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.4,
+        "h": 98.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./itachi_melle_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 62,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 113.4,
+        "h": 98.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 62,
+          "h": 54
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./itachi_melle_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 62,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.4,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 65
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 65
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 65
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 65
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./itachi_melle_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 62,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 186,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.4,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 65
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./itachi_melle_low_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 54,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": -16
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.8,
+        "h": 148.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./itachi_melle_foward_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 85,
+        "h": 65
+      },
+      "anchor": {
+        "x": 0,
+        "y": -8
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.5,
+        "h": 118.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 65
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./itachi_melle_up_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 63,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": -3
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 115.2,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 63,
+          "h": 72
+        },
+        {
+          "x": 63,
+          "y": 0,
+          "w": 63,
+          "h": 72
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 63,
+          "h": 72
+        },
+        {
+          "x": 189,
+          "y": 0,
+          "w": 63,
+          "h": 72
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./itachi_melle_foward_knife_attack_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 58,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": -16
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.1,
+        "h": 142.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 58,
+          "h": 78
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 58,
+          "h": 78
+        },
+        {
+          "x": 116,
+          "y": 0,
+          "w": 58,
+          "h": 78
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 58,
+          "h": 78
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./itachi_melle_down_air_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 62,
+        "h": 70
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 113.4,
+        "h": 128
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 70
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 62,
+          "h": 70
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 62,
+          "h": 70
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 62,
+          "h": 70
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "w": 62,
+          "h": 70
+        }
+      ]
+    },
+    "grab": {
+      "sheet": "./itachi_melle_low_attack_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 54,
+        "h": 81
+      },
+      "anchor": {
+        "x": 0,
+        "y": -16
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.8,
+        "h": 148.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 54,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 54,
+          "h": 81
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./itachi_melle_block_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 38,
+        "h": 72
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 69.5,
+        "h": 131.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 72
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./itachi_intro_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 85,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": -14
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.5,
+        "h": 151.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 85,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 255,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 425,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 510,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 595,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 680,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 765,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 850,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        },
+        {
+          "x": 935,
+          "y": 0,
+          "w": 85,
+          "h": 83
+        }
+      ]
+    },
+    "fireballCast": {
+      "sheet": "./itachi_melle_fireball_cast_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 122.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        }
+      ]
+    },
+    "itachiFire1": {
+      "sheet": "./itachi_melle_fireball_cast_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 122.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        }
+      ]
+    },
+    "itachiFire2": {
+      "sheet": "./itachi_melle_fireball_cast_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 122.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        }
+      ]
+    },
+    "itachiFire3": {
+      "sheet": "./itachi_melle_fireball_cast_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 56,
+        "h": 67
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 102.4,
+        "h": 122.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 56,
+          "h": 67
+        }
+      ]
+    },
+    "amaterasuCast": {
+      "sheet": "./itachi_amaterasu_cast_uniform.png",
+      "exists": true,
+      "frames": 12,
+      "cell": {
+        "w": 34,
+        "h": 78
+      },
+      "anchor": {
+        "x": 0,
+        "y": -3
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 62.2,
+        "h": 142.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 68,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 136,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 170,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 204,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 238,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 272,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 306,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 340,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        },
+        {
+          "x": 374,
+          "y": 0,
+          "w": 34,
+          "h": 78
+        }
+      ]
+    },
+    "genjutsuCast": {
+      "sheet": "./itachi_genjutsu_cast_uniform.png",
+      "exists": true,
+      "frames": 13,
+      "cell": {
+        "w": 87,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 159.1,
+        "h": 164.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 174,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 261,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 348,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 435,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 522,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 609,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 696,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 783,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 870,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 957,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        },
+        {
+          "x": 1044,
+          "y": 0,
+          "w": 87,
+          "h": 90
+        }
+      ]
+    }
+  }
+}

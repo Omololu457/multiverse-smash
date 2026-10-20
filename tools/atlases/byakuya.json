@@ -1,0 +1,1666 @@
+{
+  "rosterKey": "byakuya",
+  "name": "Byakuya Kuchiki",
+  "spriteScale": 1.1,
+  "globalScale": 1.18,
+  "actionCount": 31,
+  "actions": {
+    "idle": {
+      "sheet": "./byakuya_idle_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 57,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 74,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 57,
+          "h": 101
+        },
+        {
+          "x": 57,
+          "y": 0,
+          "w": 57,
+          "h": 101
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 57,
+          "h": 101
+        },
+        {
+          "x": 171,
+          "y": 0,
+          "w": 57,
+          "h": 101
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 57,
+          "h": 101
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./byakuya_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 90,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.8,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./byakuya_walk_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 90,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 116.8,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 270,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 90,
+          "h": 101
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./byakuya_dash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 83.1,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./byakuya_dash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./byakuya_dash_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 64,
+        "h": 90
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 116.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 90
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./byakuya_crouch_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 72,
+        "h": 73
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 93.5,
+        "h": 94.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 73
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./byakuya_hurt_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 97,
+        "h": 92
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 125.9,
+        "h": 119.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 92
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 92
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 92
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./byakuya_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 95,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.3,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 98
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 98
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./byakuya_getup_uniform.png",
+      "exists": true,
+      "frames": 9,
+      "cell": {
+        "w": 106,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.6,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 212,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 318,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 424,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 530,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 636,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 742,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        },
+        {
+          "x": 848,
+          "y": 0,
+          "w": 106,
+          "h": 101
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./byakuya_guard_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 120,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.8,
+        "h": 118.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 120,
+          "h": 91
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 120,
+          "h": 91
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 120,
+          "h": 91
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 120,
+          "h": 91
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./byakuya_taunt_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 93,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 120.7,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 93,
+          "h": 101
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 93,
+          "h": 101
+        },
+        {
+          "x": 186,
+          "y": 0,
+          "w": 93,
+          "h": 101
+        },
+        {
+          "x": 279,
+          "y": 0,
+          "w": 93,
+          "h": 101
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./byakuya_intro_uniform.png",
+      "exists": true,
+      "frames": 14,
+      "cell": {
+        "w": 108,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.2,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 108,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 540,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 648,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 756,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 864,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 972,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 1080,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 1188,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 1296,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        },
+        {
+          "x": 1404,
+          "y": 0,
+          "w": 108,
+          "h": 98
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./byakuya_light_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 72,
+        "h": 99
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.5,
+        "h": 128.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 99
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./byakuya_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 76,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 98.6,
+        "h": 125.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 97
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 97
+        },
+        {
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 97
+        },
+        {
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 97
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./byakuya_up_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 86,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.6,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 100
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./byakuya_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 52,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 67.5,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 100
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./byakuya_downair_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 81,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.1,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 98
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./byakuya_crouchlight_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 112,
+        "h": 66
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 145.4,
+        "h": 85.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 66
+        },
+        {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 66
+        },
+        {
+          "x": 224,
+          "y": 0,
+          "w": 112,
+          "h": 66
+        },
+        {
+          "x": 336,
+          "y": 0,
+          "w": 112,
+          "h": 66
+        }
+      ]
+    },
+    "byakuyaThrust": {
+      "sheet": "./byakuya_thrust_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 111,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.1,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 222,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 333,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 444,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 555,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 666,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        },
+        {
+          "x": 777,
+          "y": 0,
+          "w": 111,
+          "h": 101
+        }
+      ]
+    },
+    "byakuyaPetalCast": {
+      "sheet": "./byakuya_petalcast_b_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 86,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 111.6,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 86,
+          "h": 101
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 86,
+          "h": 101
+        },
+        {
+          "x": 172,
+          "y": 0,
+          "w": 86,
+          "h": 101
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 86,
+          "h": 101
+        },
+        {
+          "x": 344,
+          "y": 0,
+          "w": 86,
+          "h": 101
+        }
+      ]
+    },
+    "byakuyaShunpoOut": {
+      "sheet": "./byakuya_shunpo_out_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        }
+      ]
+    },
+    "byakuyaShunpoIn": {
+      "sheet": "./byakuya_shunpo_in_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 64,
+        "h": 98
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 83.1,
+        "h": 127.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 98
+        }
+      ]
+    },
+    "byakuyaReformVanish": {
+      "sheet": "./byakuya_reform_vanish_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 72,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 93.5,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 72,
+          "h": 101
+        }
+      ]
+    },
+    "byakuyaReformOverhead": {
+      "sheet": "./byakuya_reform_overhead_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 95,
+        "h": 114
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.3,
+        "h": 148
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 380,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 475,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 570,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        },
+        {
+          "x": 665,
+          "y": 0,
+          "w": 95,
+          "h": 114
+        }
+      ]
+    },
+    "byakuyaReformThrust": {
+      "sheet": "./byakuya_reform_thrust_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 125,
+        "h": 100
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162.3,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 125,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 375,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 500,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 625,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        },
+        {
+          "x": 750,
+          "y": 0,
+          "w": 125,
+          "h": 100
+        }
+      ]
+    },
+    "byakuyaJumpSlash": {
+      "sheet": "./byakuya_jumpslash_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 129,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 167.4,
+        "h": 132.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 258,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 387,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 516,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 645,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        },
+        {
+          "x": 774,
+          "y": 0,
+          "w": 129,
+          "h": 102
+        }
+      ]
+    },
+    "byakuyaAirVault": {
+      "sheet": "./byakuya_airvault_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 95,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 123.3,
+        "h": 149.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 95,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 190,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 285,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 380,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 475,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        },
+        {
+          "x": 570,
+          "y": 0,
+          "w": 95,
+          "h": 115
+        }
+      ]
+    },
+    "byakuyaBankaiCharge": {
+      "sheet": "./byakuya_bankai_charge_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 81,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.1,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        },
+        {
+          "x": 162,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        },
+        {
+          "x": 243,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        },
+        {
+          "x": 324,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        }
+      ]
+    },
+    "byakuyaBankaiTransform": {
+      "sheet": "./byakuya_bankai_transform_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 81,
+        "h": 101
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 105.1,
+        "h": 131.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        },
+        {
+          "x": 81,
+          "y": 0,
+          "w": 81,
+          "h": 101
+        }
+      ]
+    },
+    "byakuyaBankaiThrust": {
+      "sheet": "./byakuya_bankai_thrust_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 144,
+        "h": 93
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 186.9,
+        "h": 120.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 144,
+          "h": 93
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 144,
+          "h": 93
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 144,
+          "h": 93
+        },
+        {
+          "x": 432,
+          "y": 0,
+          "w": 144,
+          "h": 93
+        }
+      ]
+    }
+  }
+}

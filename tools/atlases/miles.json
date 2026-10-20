@@ -1,0 +1,1253 @@
+{
+  "rosterKey": "miles",
+  "name": "Miles Morales",
+  "spriteScale": 2.9,
+  "globalScale": 1.18,
+  "actionCount": 26,
+  "actions": {
+    "idle": {
+      "sheet": "./miles_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 26,
+        "h": 37
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 89,
+        "h": 126.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 37
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "w": 26,
+          "h": 37
+        },
+        {
+          "x": 52,
+          "y": 0,
+          "w": 26,
+          "h": 37
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./miles_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 31,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.1,
+        "h": 106.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./miles_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 31,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.1,
+        "h": 106.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./miles_run_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 31,
+        "h": 31
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 106.1,
+        "h": 106.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 93,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 124,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 31,
+          "h": 31
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./miles_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 32,
+        "h": 45
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109.5,
+        "h": 154
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 45
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 45
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 45
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 45
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./miles_fall_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 31,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.1,
+        "h": 116.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 34
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "w": 31,
+          "h": 34
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "w": 31,
+          "h": 34
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./miles_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 25,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.5,
+        "h": 109.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 32
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./miles_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 22,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 75.3,
+        "h": 112.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 22,
+          "h": 33
+        },
+        {
+          "x": 22,
+          "y": 0,
+          "w": 22,
+          "h": 33
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./miles_knockdown_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 41,
+        "h": 23
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 140.3,
+        "h": 78.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        },
+        {
+          "x": 41,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        },
+        {
+          "x": 123,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        },
+        {
+          "x": 164,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        },
+        {
+          "x": 205,
+          "y": 0,
+          "w": 41,
+          "h": 23
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./miles_getup_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 29,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.2,
+        "h": 116.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 34
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 34
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 34
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 34
+        }
+      ]
+    },
+    "intro": {
+      "sheet": "./miles_intro_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 40,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 136.9,
+        "h": 116.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 34
+        },
+        {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 34
+        },
+        {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 34
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 34
+        },
+        {
+          "x": 160,
+          "y": 0,
+          "w": 40,
+          "h": 34
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./miles_light_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 38,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130,
+        "h": 116.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 38,
+          "h": 34
+        },
+        {
+          "x": 38,
+          "y": 0,
+          "w": 38,
+          "h": 34
+        },
+        {
+          "x": 76,
+          "y": 0,
+          "w": 38,
+          "h": 34
+        },
+        {
+          "x": 114,
+          "y": 0,
+          "w": 38,
+          "h": 34
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./miles_heavy_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 33,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.9,
+        "h": 112.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 33
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "w": 33,
+          "h": 33
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 33,
+          "h": 33
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 33,
+          "h": 33
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./miles_up_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 29,
+        "h": 35
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.2,
+        "h": 119.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 35
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 35
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 35
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./miles_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 39,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./miles_air_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 39,
+        "h": 39
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 133.5,
+        "h": 133.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        },
+        {
+          "x": 39,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "w": 39,
+          "h": 39
+        }
+      ]
+    },
+    "milesWeb": {
+      "sheet": "./miles_web_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 44,
+        "h": 33
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 150.6,
+        "h": 112.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 44,
+          "h": 33
+        },
+        {
+          "x": 44,
+          "y": 0,
+          "w": 44,
+          "h": 33
+        },
+        {
+          "x": 88,
+          "y": 0,
+          "w": 44,
+          "h": 33
+        }
+      ]
+    },
+    "milesVenomStrike": {
+      "sheet": "./miles_venomstrike_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 71,
+        "h": 30
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 243,
+        "h": 102.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 71,
+          "h": 30
+        },
+        {
+          "x": 71,
+          "y": 0,
+          "w": 71,
+          "h": 30
+        },
+        {
+          "x": 142,
+          "y": 0,
+          "w": 71,
+          "h": 30
+        }
+      ]
+    },
+    "milesVenomArc": {
+      "sheet": "./miles_venomarc_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 29,
+        "h": 49
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 99.2,
+        "h": 167.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 29,
+          "h": 49
+        },
+        {
+          "x": 29,
+          "y": 0,
+          "w": 29,
+          "h": 49
+        },
+        {
+          "x": 58,
+          "y": 0,
+          "w": 29,
+          "h": 49
+        },
+        {
+          "x": 87,
+          "y": 0,
+          "w": 29,
+          "h": 49
+        }
+      ]
+    },
+    "milesStealth": {
+      "sheet": "./miles_stealth_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 25,
+        "h": 22
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.5,
+        "h": 75.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        },
+        {
+          "x": 25,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        },
+        {
+          "x": 75,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        },
+        {
+          "x": 100,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        },
+        {
+          "x": 125,
+          "y": 0,
+          "w": 25,
+          "h": 22
+        }
+      ]
+    },
+    "milesVenomBeam": {
+      "sheet": "./miles_venombeam_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 72,
+        "h": 30
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 246.4,
+        "h": 102.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 72,
+          "h": 30
+        },
+        {
+          "x": 72,
+          "y": 0,
+          "w": 72,
+          "h": 30
+        },
+        {
+          "x": 144,
+          "y": 0,
+          "w": 72,
+          "h": 30
+        }
+      ]
+    },
+    "milesDive": {
+      "sheet": "./miles_dive_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 43,
+        "h": 28
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 147.1,
+        "h": 95.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 43,
+          "h": 28
+        },
+        {
+          "x": 43,
+          "y": 0,
+          "w": 43,
+          "h": 28
+        },
+        {
+          "x": 86,
+          "y": 0,
+          "w": 43,
+          "h": 28
+        },
+        {
+          "x": 129,
+          "y": 0,
+          "w": 43,
+          "h": 28
+        }
+      ]
+    },
+    "milesDashKick": {
+      "sheet": "./miles_dashkick_uniform.png",
+      "exists": true,
+      "frames": 5,
+      "cell": {
+        "w": 42,
+        "h": 34
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 143.7,
+        "h": 116.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 34
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "w": 42,
+          "h": 34
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 42,
+          "h": 34
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 42,
+          "h": 34
+        },
+        {
+          "x": 168,
+          "y": 0,
+          "w": 42,
+          "h": 34
+        }
+      ]
+    },
+    "milesUlt": {
+      "sheet": "./miles_ult_uniform.png",
+      "exists": true,
+      "frames": 6,
+      "cell": {
+        "w": 33,
+        "h": 48
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 112.9,
+        "h": 164.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        },
+        {
+          "x": 66,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        },
+        {
+          "x": 99,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        },
+        {
+          "x": 132,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        },
+        {
+          "x": 165,
+          "y": 0,
+          "w": 33,
+          "h": 48
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./miles_win_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 25,
+        "h": 38
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 85.5,
+        "h": 130
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 25,
+          "h": 38
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./miles_lose_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 37,
+        "h": 14
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.6,
+        "h": 47.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 37,
+          "h": 14
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1072 @@
+{
+  "rosterKey": "goku",
+  "name": "Goku",
+  "spriteScale": 1.1,
+  "globalScale": 1.18,
+  "actionCount": 25,
+  "actions": {
+    "idle": {
+      "sheet": "./goku_base_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 113,
+        "h": 112
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 146.7,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 113,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 226,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 339,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./goku_base_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 113,
+        "h": 112
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 146.7,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 113,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 226,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 339,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./goku_base_hurt_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 100,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 166.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 128
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./goku_base_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 102,
+        "h": 138
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 132.4,
+        "h": 179.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 102,
+          "h": 138
+        },
+        {
+          "x": 102,
+          "y": 0,
+          "w": 102,
+          "h": 138
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./goku_base_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 94,
+        "h": 135
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122,
+        "h": 175.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 135
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 135
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./goku_base_upAttack_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 82,
+        "h": 139
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 106.4,
+        "h": 180.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 82,
+          "h": 139
+        },
+        {
+          "x": 82,
+          "y": 0,
+          "w": 82,
+          "h": 139
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./goku_base_airAttack_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 119,
+        "h": 145
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.5,
+        "h": 188.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 145
+        },
+        {
+          "x": 119,
+          "y": 0,
+          "w": 119,
+          "h": 145
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./goku_base_downAir_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 111,
+        "h": 124
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 144.1,
+        "h": 161
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 111,
+          "h": 124
+        },
+        {
+          "x": 111,
+          "y": 0,
+          "w": 111,
+          "h": 124
+        }
+      ]
+    },
+    "grab": {
+      "sheet": null,
+      "exists": false,
+      "frames": 6,
+      "cell": {
+        "w": 128,
+        "h": 128
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 166.1,
+        "h": 166.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        },
+        {
+          "x": 640,
+          "y": 0,
+          "w": 128,
+          "h": 128
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./goku_base_idle_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 113,
+        "h": 112
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 146.7,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 113,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 226,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        },
+        {
+          "x": 339,
+          "y": 0,
+          "w": 113,
+          "h": 112
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./goku_base_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 98,
+        "h": 135
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 127.2,
+        "h": 175.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 98,
+          "h": 135
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./goku_base_jump_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 117,
+        "h": 158
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.9,
+        "h": 205.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 158
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 158
+        },
+        {
+          "x": 234,
+          "y": 0,
+          "w": 117,
+          "h": 158
+        },
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 158
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./goku_base_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 117,
+        "h": 158
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 351,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.9,
+        "h": 205.1
+      },
+      "rects": [
+        {
+          "x": 351,
+          "y": 0,
+          "w": 117,
+          "h": 158
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./goku_base_crouch_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 117,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.9,
+        "h": 125.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 117,
+          "h": 97
+        },
+        {
+          "x": 117,
+          "y": 0,
+          "w": 117,
+          "h": 97
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./goku_base_guard_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 84,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 167.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 129
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 129
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./goku_base_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 140,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.7,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./goku_base_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 119,
+        "h": 82
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 154.5,
+        "h": 106.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 119,
+          "h": 82
+        },
+        {
+          "x": 119,
+          "y": 0,
+          "w": 119,
+          "h": 82
+        }
+      ]
+    },
+    "crouchLight": {
+      "sheet": "./goku_base_crouchLight_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 175,
+        "h": 83
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 227.2,
+        "h": 107.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 175,
+          "h": 83
+        }
+      ]
+    },
+    "gokuRush1": {
+      "sheet": "./goku_base_rush1_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 91,
+        "h": 115
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 118.1,
+        "h": 149.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 91,
+          "h": 115
+        },
+        {
+          "x": 91,
+          "y": 0,
+          "w": 91,
+          "h": 115
+        }
+      ]
+    },
+    "gokuRush2": {
+      "sheet": "./goku_base_rush2_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 115,
+        "h": 130
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 149.3,
+        "h": 168.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 115,
+          "h": 130
+        },
+        {
+          "x": 115,
+          "y": 0,
+          "w": 115,
+          "h": 130
+        }
+      ]
+    },
+    "gokuRush3": {
+      "sheet": "./goku_base_rush3_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 96,
+        "h": 143
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 124.6,
+        "h": 185.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 143
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 143
+        }
+      ]
+    },
+    "dragonFist": {
+      "sheet": "./goku_base_heavy_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 94,
+        "h": 135
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 122,
+        "h": 175.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 94,
+          "h": 135
+        },
+        {
+          "x": 94,
+          "y": 0,
+          "w": 94,
+          "h": 135
+        }
+      ]
+    },
+    "gokuKamehameha": {
+      "sheet": "./goku_base_kamehamehaWindup_uniform.png",
+      "exists": true,
+      "frames": 7,
+      "cell": {
+        "w": 120,
+        "h": 129
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 155.8,
+        "h": 167.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 120,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 240,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 360,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 600,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        },
+        {
+          "x": 720,
+          "y": 0,
+          "w": 120,
+          "h": 129
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./goku_base_win_uniform.png",
+      "exists": true,
+      "frames": 8,
+      "cell": {
+        "w": 101,
+        "h": 175
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.1,
+        "h": 227.2
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 101,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 202,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 303,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 404,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 505,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 606,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        },
+        {
+          "x": 707,
+          "y": 0,
+          "w": 101,
+          "h": 175
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./goku_base_knockdown_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 140,
+        "h": 96
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 181.7,
+        "h": 124.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 140,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 280,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        },
+        {
+          "x": 420,
+          "y": 0,
+          "w": 140,
+          "h": 96
+        }
+      ]
+    }
+  }
+}

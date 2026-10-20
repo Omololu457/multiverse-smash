@@ -1,0 +1,1038 @@
+{
+  "rosterKey": "frieza",
+  "name": "Frieza",
+  "spriteScale": 0.88,
+  "globalScale": 1.18,
+  "actionCount": 27,
+  "actions": {
+    "idle": {
+      "sheet": "./frieza_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 96,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.7,
+        "h": 152.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        }
+      ]
+    },
+    "walk": {
+      "sheet": "./frieza_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 96,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.7,
+        "h": 152.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        }
+      ]
+    },
+    "run": {
+      "sheet": "./frieza_idle_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 96,
+        "h": 147
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": false,
+      "onScreen": {
+        "w": 99.7,
+        "h": 152.6
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 147
+        }
+      ]
+    },
+    "dash": {
+      "sheet": "./frieza_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 132,
+        "h": 125
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.1,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 132,
+          "h": 125
+        }
+      ]
+    },
+    "jump": {
+      "sheet": "./frieza_jump_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 84,
+        "h": 170
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.2,
+        "h": 176.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 84,
+          "h": 170
+        },
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 170
+        }
+      ]
+    },
+    "fall": {
+      "sheet": "./frieza_jump_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 84,
+        "h": 170
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 84,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 87.2,
+        "h": 176.5
+      },
+      "rects": [
+        {
+          "x": 84,
+          "y": 0,
+          "w": 84,
+          "h": 170
+        }
+      ]
+    },
+    "crouch": {
+      "sheet": "./frieza_crouch_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 122,
+        "h": 91
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.7,
+        "h": 94.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 122,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        },
+        {
+          "x": 244,
+          "y": 0,
+          "w": 122,
+          "h": 91
+        }
+      ]
+    },
+    "hurt": {
+      "sheet": "./frieza_hurt_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 127,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 131.9,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 127,
+          "h": 108
+        },
+        {
+          "x": 127,
+          "y": 0,
+          "w": 127,
+          "h": 108
+        }
+      ]
+    },
+    "knockdown": {
+      "sheet": "./frieza_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 146,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.6,
+        "h": 56.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 146,
+          "h": 54
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 146,
+          "h": 54
+        }
+      ]
+    },
+    "getup": {
+      "sheet": "./frieza_getup_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 110,
+        "h": 61
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 114.2,
+        "h": 63.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 110,
+          "h": 61
+        },
+        {
+          "x": 110,
+          "y": 0,
+          "w": 110,
+          "h": 61
+        }
+      ]
+    },
+    "taunt": {
+      "sheet": "./frieza_taunt_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 125,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 129.8,
+        "h": 121.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 125,
+          "h": 117
+        },
+        {
+          "x": 125,
+          "y": 0,
+          "w": 125,
+          "h": 117
+        },
+        {
+          "x": 250,
+          "y": 0,
+          "w": 125,
+          "h": 117
+        },
+        {
+          "x": 375,
+          "y": 0,
+          "w": 125,
+          "h": 117
+        }
+      ]
+    },
+    "light": {
+      "sheet": "./frieza_light_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 146,
+        "h": 102
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.6,
+        "h": 105.9
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 146,
+          "h": 102
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 146,
+          "h": 102
+        }
+      ]
+    },
+    "heavy": {
+      "sheet": "./frieza_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 156,
+        "h": 103
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162,
+        "h": 107
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 156,
+          "h": 103
+        }
+      ]
+    },
+    "up": {
+      "sheet": "./frieza_heavy_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 156,
+        "h": 103
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 162,
+        "h": 107
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 156,
+          "h": 103
+        }
+      ]
+    },
+    "air": {
+      "sheet": "./frieza_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 100,
+        "h": 148
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 153.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 148
+        }
+      ]
+    },
+    "down_air": {
+      "sheet": "./frieza_air_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 100,
+        "h": 148
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 103.8,
+        "h": 153.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 148
+        }
+      ]
+    },
+    "guard": {
+      "sheet": "./frieza_guard_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 122,
+        "h": 108
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 126.7,
+        "h": 112.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 122,
+          "h": 108
+        }
+      ]
+    },
+    "friezaRush1": {
+      "sheet": "./frieza_rush1_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 143,
+        "h": 105
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 148.5,
+        "h": 109
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 143,
+          "h": 105
+        },
+        {
+          "x": 143,
+          "y": 0,
+          "w": 143,
+          "h": 105
+        },
+        {
+          "x": 286,
+          "y": 0,
+          "w": 143,
+          "h": 105
+        },
+        {
+          "x": 429,
+          "y": 0,
+          "w": 143,
+          "h": 105
+        }
+      ]
+    },
+    "friezaRush2": {
+      "sheet": "./frieza_rush2_uniform.png",
+      "exists": true,
+      "frames": 4,
+      "cell": {
+        "w": 126,
+        "h": 111
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 130.8,
+        "h": 115.3
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 126,
+          "h": 111
+        },
+        {
+          "x": 126,
+          "y": 0,
+          "w": 126,
+          "h": 111
+        },
+        {
+          "x": 252,
+          "y": 0,
+          "w": 126,
+          "h": 111
+        },
+        {
+          "x": 378,
+          "y": 0,
+          "w": 126,
+          "h": 111
+        }
+      ]
+    },
+    "friezaRush3": {
+      "sheet": "./frieza_rush3_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 167,
+        "h": 106
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 173.4,
+        "h": 110.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 167,
+          "h": 106
+        },
+        {
+          "x": 167,
+          "y": 0,
+          "w": 167,
+          "h": 106
+        },
+        {
+          "x": 334,
+          "y": 0,
+          "w": 167,
+          "h": 106
+        }
+      ]
+    },
+    "friezaDeathbeam": {
+      "sheet": "./frieza_deathbeam_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 106,
+        "h": 118
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 110.1,
+        "h": 122.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 106,
+          "h": 118
+        },
+        {
+          "x": 106,
+          "y": 0,
+          "w": 106,
+          "h": 118
+        }
+      ]
+    },
+    "friezaKiblast": {
+      "sheet": "./frieza_kiblast_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 92,
+        "h": 97
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 95.5,
+        "h": 100.7
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 97
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "w": 92,
+          "h": 97
+        }
+      ]
+    },
+    "friezaDeathball": {
+      "sheet": "./frieza_deathball_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 105,
+        "h": 132
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 109,
+        "h": 137.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 132
+        },
+        {
+          "x": 105,
+          "y": 0,
+          "w": 105,
+          "h": 132
+        }
+      ]
+    },
+    "friezaTeleport": {
+      "sheet": "./frieza_dash_uniform.png",
+      "exists": true,
+      "frames": 1,
+      "cell": {
+        "w": 132,
+        "h": 125
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 137.1,
+        "h": 129.8
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 132,
+          "h": 125
+        }
+      ]
+    },
+    "friezaOverload": {
+      "sheet": "./frieza_overload_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 155,
+        "h": 140
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 161,
+        "h": 145.4
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 155,
+          "h": 140
+        },
+        {
+          "x": 155,
+          "y": 0,
+          "w": 155,
+          "h": 140
+        },
+        {
+          "x": 310,
+          "y": 0,
+          "w": 155,
+          "h": 140
+        }
+      ]
+    },
+    "win": {
+      "sheet": "./frieza_win_uniform.png",
+      "exists": true,
+      "frames": 3,
+      "cell": {
+        "w": 97,
+        "h": 117
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 100.7,
+        "h": 121.5
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 117
+        },
+        {
+          "x": 97,
+          "y": 0,
+          "w": 97,
+          "h": 117
+        },
+        {
+          "x": 194,
+          "y": 0,
+          "w": 97,
+          "h": 117
+        }
+      ]
+    },
+    "lose": {
+      "sheet": "./frieza_knockdown_uniform.png",
+      "exists": true,
+      "frames": 2,
+      "cell": {
+        "w": 146,
+        "h": 54
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      },
+      "source": {
+        "x": 0,
+        "y": 0
+      },
+      "loop": false,
+      "lockLastFrame": true,
+      "onScreen": {
+        "w": 151.6,
+        "h": 56.1
+      },
+      "rects": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 146,
+          "h": 54
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "w": 146,
+          "h": 54
+        }
+      ]
+    }
+  }
+}

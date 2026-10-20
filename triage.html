@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roster Triage — Keep / Cut</title>
+<style>
+  :root { --bg:#0d0f14; --panel:#161a22; --line:#2a303c; --keep:#1f8f4a; --cut:#c0392b; --accent:#6fb3ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:#e6e9ef;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
+  #app { display:flex; flex-direction:column; height:100%; }
+  header { display:flex; align-items:center; gap:14px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { font-size:15px; margin:0; letter-spacing:.5px; color:#aeb6c4; font-weight:600; }
+  #progress { font-size:13px; color:#8b93a3; }
+  #progress b { color:var(--accent); }
+  .spacer { flex:1; }
+  .pill { font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid var(--line); color:#aeb6c4; cursor:pointer; user-select:none; }
+  .pill.on { background:var(--accent); color:#0d0f14; border-color:var(--accent); font-weight:600; }
+  main { flex:1; display:flex; min-height:0; }
+  #stage { flex:1; position:relative; display:flex; align-items:center; justify-content:center; background:
+      repeating-conic-gradient(#12141a 0% 25%, #0d0f14 0% 50%) 50% / 36px 36px; }
+  canvas { image-rendering:pixelated; image-rendering:crisp-edges; }
+  #meta { position:absolute; top:16px; left:16px; right:16px; pointer-events:none; }
+  #charname { font-size:30px; font-weight:800; letter-spacing:.5px; text-shadow:0 2px 10px #000; }
+  #charsub { font-size:14px; color:#aeb6c4; margin-top:2px; text-shadow:0 2px 8px #000; }
+  #actionlabel { position:absolute; bottom:18px; left:0; right:0; text-align:center; font-size:15px;
+    color:#dfe4ee; letter-spacing:2px; text-transform:uppercase; text-shadow:0 2px 8px #000; }
+  #bruttag { display:inline-block; margin-left:10px; font-size:11px; padding:2px 8px; border-radius:4px; vertical-align:middle; }
+  .bt-no { background:#3a1c1c; color:#ff8a8a; border:1px solid #5a2a2a; }
+  .bt-yes { background:#1c3a24; color:#8affad; border:1px solid #2a5a38; }
+  #side { width:270px; border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; min-height:0; }
+  #verdictbtns { display:flex; gap:10px; padding:14px; }
+  #verdictbtns button { flex:1; border:none; border-radius:8px; padding:16px 0; font-size:16px; font-weight:800;
+    letter-spacing:1px; cursor:pointer; color:#fff; }
+  #keepBtn { background:var(--keep); } #cutBtn { background:var(--cut); }
+  #verdictbtns button:active { transform:translateY(1px); }
+  .navrow { display:flex; gap:8px; padding:0 14px 10px; }
+  .navrow button { flex:1; background:#20252f; border:1px solid var(--line); color:#cfd5e0; border-radius:6px; padding:8px 0; cursor:pointer; font-size:13px; }
+  #list { flex:1; overflow:auto; border-top:1px solid var(--line); }
+  .row { display:flex; align-items:center; gap:8px; padding:7px 14px; font-size:13px; cursor:pointer; border-bottom:1px solid #1b1f28; }
+  .row:hover { background:#1b2029; }
+  .row.cur { background:#232a36; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#3a414d; flex:none; }
+  .row.keep .dot { background:var(--keep); } .row.cut .dot { background:var(--cut); }
+  .row .nm { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .uni { font-size:10px; color:#6b7280; }
+  footer { padding:10px 14px; border-top:1px solid var(--line); display:flex; gap:8px; }
+  footer button { flex:1; background:#20252f; border:1px solid var(--line); color:#cfd5e0; border-radius:6px; padding:9px 0; cursor:pointer; font-size:12px; }
+  footer button.primary { background:var(--accent); color:#0d0f14; border-color:var(--accent); font-weight:700; }
+  #help { font-size:11px; color:#6b7280; padding:6px 14px 12px; line-height:1.6; }
+  kbd { background:#20252f; border:1px solid var(--line); border-radius:4px; padding:1px 6px; font-size:11px; color:#cfd5e0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>ROSTER TRIAGE</h1>
+    <span id="progress"></span>
+    <div class="spacer"></div>
+    <span class="pill" id="filterPill">Showing: all</span>
+    <span class="pill" id="speedPill">Speed: 1×</span>
+    <span class="pill on" id="autoPill">Auto-advance: on</span>
+  </header>
+  <main>
+    <div id="stage">
+      <div id="meta"><div id="charname">—</div><div id="charsub"></div></div>
+      <canvas id="cv" width="640" height="560"></canvas>
+      <div id="actionlabel"></div>
+    </div>
+    <div id="side">
+      <div id="verdictbtns">
+        <button id="keepBtn">KEEP</button>
+        <button id="cutBtn">CUT</button>
+      </div>
+      <div class="navrow">
+        <button id="prevBtn">◀ Prev</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="nextBtn">Next ▶</button>
+      </div>
+      <div id="list"></div>
+      <div id="help">
+        <kbd>K</kbd> keep &nbsp; <kbd>C</kbd> cut &nbsp; <kbd>←/→</kbd> nav &nbsp; <kbd>Space</kbd> pause<br>
+        <kbd>F</kbd> cycle filter &nbsp; <kbd>S</kbd> speed &nbsp; <kbd>R</kbd> replay reel
+      </div>
+      <footer>
+        <button id="exportBtn" class="primary">Save to characters.txt</button>
+        <button id="resetBtn">Reset</button>
+      </footer>
+    </div>
+  </main>
+</div>
+<script>
+const LS_KEY = "ms_triage_verdicts_v1";
+let DATA = [];
+let order = [];          // indices into DATA, after filter
+let cur = 0;             // position in order
+let filterMode = 0;      // 0 all, 1 no-brutality only, 2 undecided only
+const FILTERS = ["all", "no-brutality", "undecided"];
+let verdicts = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); // key -> "keep"|"cut"
+let speedIdx = 0; const SPEEDS = [1, 2, 0.5];
+let autoAdvance = true;
+let paused = false;
+
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+const imgCache = new Map();
+function getImg(src) {
+  if (imgCache.has(src)) return imgCache.get(src);
+  const im = new Image(); im.src = src; imgCache.set(src, im); return im;
+}
+
+// Reel: ordered actions. Idle/locomotion first, then attacks, then specials, hurt last.
+const PRIORITY = ["idle","walk","run","dash","jump","fall","light","heavy","up","air","down_air"];
+const LAST = ["guard","hurt","knockdown","win","lose","intro"];
+function buildReel(ch) {
+  const acts = Object.keys(ch.actions);
+  const seen = new Set();
+  const reel = [];
+  for (const a of PRIORITY) if (ch.actions[a] && !seen.has(a)) { reel.push(a); seen.add(a); }
+  for (const a of acts) if (!seen.has(a) && !LAST.includes(a)) { reel.push(a); seen.add(a); } // specials
+  for (const a of LAST) if (ch.actions[a] && !seen.has(a)) { reel.push(a); seen.add(a); }
+  return reel;
+}
+
+let reel = [], reelPos = 0, frameIdx = 0, tick = 0, loopsDone = 0;
+const LOOPS_PER_ACTION = 2;   // play each action twice before moving on
+
+function loadChar() {
+  const ch = DATA[order[cur]];
+  reel = buildReel(ch);
+  reelPos = 0; frameIdx = 0; tick = 0; loopsDone = 0;
+  // preload sheets
+  for (const a of reel) getImg(ch.actions[a].sheet);
+  document.getElementById("charname").textContent = ch.name;
+  const v = verdicts[ch.key];
+  const bt = ch.hasBrutality ? '<span id="bruttag" class="bt-yes">has brutality</span>'
+                             : '<span id="bruttag" class="bt-no">no brutality</span>';
+  document.getElementById("charsub").innerHTML =
+    ch.universe + " · <code>" + ch.key + "</code> · scale " + ch.spriteScale + bt +
+    (v ? ' · <b style="color:' + (v==="keep"?"#8affad":"#ff8a8a") + '">'+v.toUpperCase()+'</b>' : "");
+  renderProgress();
+  renderList();
+}
+
+function drawFrame() {
+  const ch = DATA[order[cur]];
+  if (!reel.length) return;
+  const action = reel[reelPos];
+  const def = ch.actions[action];
+  const img = getImg(def.sheet);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  document.getElementById("actionlabel").textContent = action + "  ·  " + (reelPos+1) + "/" + reel.length;
+
+  if (!img.complete || img.naturalWidth === 0) return; // still loading; grid stays
+
+  // On-screen height mirrors engine: height * spriteScale * 1.18, then a zoom factor to fill the stage.
+  const baseline = def.height * ch.spriteScale * 1.18;
+  const ZOOM = Math.min(5, (cv.height * 0.72) / baseline); // shared zoom keeps relative sizes honest within a char
+  const dh = def.height * ch.spriteScale * 1.18 * ZOOM;
+  const dw = def.width  * ch.spriteScale * 1.18 * ZOOM;
+  const sx = (def.sourceX||0) + frameIdx * def.width;
+  const sy = (def.sourceY||0);
+  const dx = (cv.width - dw)/2;
+  const dy = (cv.height - dh)/2 + cv.height*0.12; // nudge down so head isn't clipped by name
+  try { ctx.drawImage(img, sx, sy, def.width, def.height, dx, dy, dw, dh); } catch(e){}
+}
+
+function step() {
+  if (paused) { drawFrame(); return; }
+  const ch = DATA[order[cur]];
+  if (!reel.length) return;
+  const def = ch.actions[reel[reelPos]];
+  const speed = Math.max(1, Math.round((def.speed||6) / SPEEDS[speedIdx]));
+  tick++;
+  if (tick >= speed) {
+    tick = 0;
+    frameIdx++;
+    if (frameIdx >= (def.frames||1)) {
+      frameIdx = 0; loopsDone++;
+      if (loopsDone >= LOOPS_PER_ACTION) {
+        loopsDone = 0; reelPos++;
+        if (reelPos >= reel.length) {
+          reelPos = 0;
+          if (autoAdvance) { goNext(false); return; }
+        }
+      }
+    }
+  }
+  drawFrame();
+}
+
+function silentSave() {
+  // keep characters.txt in sync on every decision (ignored if on a plain static server)
+  try { fetch("/save", {method:"POST", headers:{"Content-Type":"text/plain"}, body:buildCharactersTxt()}).catch(()=>{}); } catch(e){}
+}
+function setVerdict(v) {
+  const ch = DATA[order[cur]];
+  verdicts[ch.key] = v;
+  localStorage.setItem(LS_KEY, JSON.stringify(verdicts));
+  silentSave();
+  loadChar();
+  if (autoAdvance) goNext(true);
+}
+function goNext(fromVerdict) { cur = (cur+1) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
+function goPrev() { cur = (cur-1+order.length) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
+function replay() { reelPos=0; frameIdx=0; tick=0; loopsDone=0; }
+
+function applyFilter() {
+  const all = DATA.map((_,i)=>i);
+  if (filterMode === 1) order = all.filter(i => !DATA[i].hasBrutality);
+  else if (filterMode === 2) order = all.filter(i => !verdicts[DATA[i].key]);
+  else order = all;
+  if (!order.length) order = all; // never empty
+  cur = Math.min(cur, order.length-1);
+  document.getElementById("filterPill").textContent = "Showing: " + FILTERS[filterMode];
+  loadChar();
+}
+
+function renderProgress() {
+  const decided = Object.keys(verdicts).length;
+  const cut = Object.values(verdicts).filter(v=>v==="cut").length;
+  const keep = Object.values(verdicts).filter(v=>v==="keep").length;
+  document.getElementById("progress").innerHTML =
+    "<b>"+(cur+1)+"</b>/"+order.length+" shown &nbsp;·&nbsp; decided "+decided+"/"+DATA.length+
+    " &nbsp;·&nbsp; keep "+keep+" / cut "+cut;
+}
+function renderList() {
+  const el = document.getElementById("list");
+  el.innerHTML = "";
+  order.forEach((di, pos) => {
+    const ch = DATA[di];
+    const v = verdicts[ch.key] || "";
+    const row = document.createElement("div");
+    row.className = "row " + v + (pos===cur ? " cur" : "");
+    row.innerHTML = '<span class="dot"></span><span class="nm">'+ch.name+
+      '</span><span class="uni">'+(ch.hasBrutality?"":"✂")+'</span>';
+    row.onclick = () => { cur = pos; frameIdx=0; reelPos=0; loadChar(); };
+    el.appendChild(row);
+  });
+  const curRow = el.querySelector(".row.cur");
+  if (curRow) curRow.scrollIntoView({block:"nearest"});
+}
+
+function pad(s){ return (s+"").padEnd(34); }
+function section(title, arr){
+  let t = title+" ("+arr.length+")\n";
+  t += "------------------------------------------------------------------------\n";
+  if (!arr.length) { t += "  (none yet)\n"; return t; }
+  let u="";
+  for (const c of arr){ if(c.universe!==u){u=c.universe; t+="\n["+u+"]\n";} t += "  "+pad(c.name)+c.key+"\n"; }
+  return t;
+}
+function buildCharactersTxt() {
+  // KEPT with no brutality = the work pool (build brutalities for these).
+  const keptNoBrut   = DATA.filter(c => verdicts[c.key]==="keep" && !c.hasBrutality);
+  const keptHasBrut  = DATA.filter(c => verdicts[c.key]==="keep" &&  c.hasBrutality);
+  const deleted      = DATA.filter(c => verdicts[c.key]==="cut");
+  const undecided    = DATA.filter(c => !verdicts[c.key]);
+  const d = new Date().toISOString().slice(0,10);
+  let t = "";
+  t += "========================================================================\n";
+  t += "MULTIVERSE SMASH — ROSTER TRIAGE TRACKER\n";
+  t += "Updated: "+d+"   (written by triage.html)\n";
+  t += "========================================================================\n\n";
+  t += ">> KEPT, NO BRUTALITY YET  — build brutalities for these next.\n";
+  t += ">> DELETED (TEMP)          — NOT permanent. Pulled to redo their spritesheets (art not good enough).\n\n";
+  t += "========================================================================\n";
+  t += section("KEPT — NO BRUTALITY YET (TO BUILD)", keptNoBrut) + "\n";
+  t += "========================================================================\n";
+  t += section("DELETED — REDO SPRITESHEETS (TEMPORARY)", deleted) + "\n";
+  t += "========================================================================\n";
+  t += section("KEPT — ALREADY HAS A BRUTALITY (reference, no work needed)", keptHasBrut) + "\n";
+  t += "========================================================================\n";
+  t += section("NOT YET REVIEWED", undecided) + "\n";
+  return t;
+}
+function exportCut() {
+  const t = buildCharactersTxt();
+  // Try to write straight into the project's characters.txt via the triage server.
+  fetch("/save", {method:"POST", headers:{"Content-Type":"text/plain"}, body:t})
+    .then(r => r.ok ? r.text() : Promise.reject(r.status))
+    .then(() => flashBtn("Saved to characters.txt ✓"))
+    .catch(() => {
+      // Fallback: download if the plain static server can't accept the save.
+      const blob = new Blob([t], {type:"text/plain"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "characters.txt"; a.click();
+      flashBtn("Downloaded characters.txt");
+    });
+}
+function flashBtn(msg){
+  const b = document.getElementById("exportBtn");
+  const old = b.textContent; b.textContent = msg;
+  setTimeout(()=>{ b.textContent = old; }, 1600);
+}
+
+// Controls
+document.getElementById("keepBtn").onclick = ()=>setVerdict("keep");
+document.getElementById("cutBtn").onclick = ()=>setVerdict("cut");
+document.getElementById("nextBtn").onclick = ()=>goNext(false);
+document.getElementById("prevBtn").onclick = goPrev;
+document.getElementById("pauseBtn").onclick = (e)=>{ paused=!paused; e.target.textContent = paused?"Play":"Pause"; };
+document.getElementById("exportBtn").onclick = exportCut;
+document.getElementById("resetBtn").onclick = ()=>{ if(confirm("Clear all keep/cut verdicts?")){ verdicts={}; localStorage.removeItem(LS_KEY); loadChar(); } };
+document.getElementById("filterPill").onclick = ()=>{ filterMode=(filterMode+1)%FILTERS.length; applyFilter(); };
+document.getElementById("speedPill").onclick = ()=>{ speedIdx=(speedIdx+1)%SPEEDS.length; document.getElementById("speedPill").textContent="Speed: "+SPEEDS[speedIdx]+"×"; };
+document.getElementById("autoPill").onclick = (e)=>{ autoAdvance=!autoAdvance; e.target.textContent="Auto-advance: "+(autoAdvance?"on":"off"); e.target.classList.toggle("on",autoAdvance); };
+
+window.addEventListener("keydown", (e)=>{
+  if (e.key==="k"||e.key==="K") setVerdict("keep");
+  else if (e.key==="c"||e.key==="C") setVerdict("cut");
+  else if (e.key==="ArrowRight") goNext(false);
+  else if (e.key==="ArrowLeft") goPrev();
+  else if (e.key===" ") { e.preventDefault(); paused=!paused; document.getElementById("pauseBtn").textContent = paused?"Play":"Pause"; }
+  else if (e.key==="f"||e.key==="F") { filterMode=(filterMode+1)%FILTERS.length; applyFilter(); }
+  else if (e.key==="s"||e.key==="S") { speedIdx=(speedIdx+1)%SPEEDS.length; document.getElementById("speedPill").textContent="Speed: "+SPEEDS[speedIdx]+"×"; }
+  else if (e.key==="r"||e.key==="R") replay();
+});
+
+fetch("triage_data.json").then(r=>r.json()).then(d=>{
+  DATA = d;
+  applyFilter();   // sets order + loads first
+  setInterval(step, 1000/60);
+}).catch(err=>{
+  document.getElementById("charname").textContent = "Failed to load triage_data.json";
+  document.getElementById("charsub").textContent = "Serve this folder over http (see instructions). " + err;
+});
+</script>
+</body>
+</html>

@@ -9517,26 +9517,29 @@ const vilgax = {
   stats: { maxHealth: 1200, maxEnergy: 200, attack: 90, defense: 88, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 12, dashCooldownMax: 46 },
   // ── STAGE 2 numbers wired at Stage 2. Placeholder tuning now so the fighter is combat-safe; ×0.60
   //    via GLOBAL_DAMAGE_SCALE. Normal ART (B claw→tentacle-whip / Aerial B dive) is mapped at Stage 2.
+  // ── STAGE 2/Phase-2 NORMALS (X / sword). Spec frame data. ×0.60 via GLOBAL_DAMAGE_SCALE.
+  //    light = "Conqueror's Blade" 3-hit chain · heavy = "Tyrant Thrust" lunging stab · upAttack =
+  //    "Ascending Fang" anti-air launcher · airAttack = "Orbital Strike" · downAir = sword down-swipe.
   basic_attacks: {
-    light:    { damage: 44, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:    { damage: 84, startup: 9, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 66, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11 },
-    airAttack:{ damage: 54, startup: 6, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    light:    { damage: 45, startup: 7, active: 4, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },   // Conqueror's Blade (X,X,X chain)
+    heavy:    { damage: 75, startup: 10, active: 3, recovery: 16, hitstun: 18, knockbackX: 8, knockbackY: 1 },   // Tyrant Thrust (lunging stab)
+    upAttack: { type: "launcher", damage: 65, startup: 9, active: 5, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11 },   // Ascending Fang
+    airAttack:{ damage: 55, startup: 6, active: 4, recovery: 8,  hitstun: 14, knockbackX: 3, knockbackY: -2 },   // Orbital Strike
     downAir:  { damage: 72, startup: 9, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     crouchLight:{ damage: 40, startup: 5, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 }
   },
-  // ── STAGE 4 SPECIALS (HUD/movelist meta; real logic in abilities.js executeVilgaxSpecial + VILGAX_SPECIALS).
-  //    Fixed directional slots (owner-locked, VILGAX_ASSET_MAP §7): N=Plasma Blast (tiered tap/hold) /
-  //    Fwd=Energy-Sword Slash / Back=Thrown Spinning Sword / Up=Teleport / air=Aerial Tumble. Down=unused.
+  // ── PHASE 2 SPECIALS (HUD/movelist meta; real logic in abilities.js executeVilgaxSpecial + VILGAX_SPECIALS).
+  //    Directional slots: N=Ruby Crescents (tiered tap=1 / hold=2) · Fwd=Dagon's Wrath · Up=Cyclone Breath ·
+  //    Down=Seismic Slam · air=Meteor Dive · Back=Thrown Spinning Sword (bonus). Cyclone/Seismic FX code-drawn.
   specials: {
-    plasmaBlast:  { cost: 30, damage: 90,  subtype: "projectile", effect: "Plasma Blast — red spiky charge fired forward; HOLD for the heavier explosive tier (neutral, tap/hold)" },
-    plasmaBlastX: { cost: 55, damage: 138, subtype: "projectile", effect: "Plasma Blast (Heavy) — bigger explosive piercing blast (neutral HOLD tier)" },
-    swordSlash:   { cost: 30, damage: 100, subtype: "melee",      effect: "Energy-Sword Slash — draws an energy sword for a wide forward slash (Fwd)" },
-    thrownSword:  { cost: 34, damage: 96,  subtype: "projectile", effect: "Thrown Spinning Sword — hurls a spinning energy blade (Back)" },
-    teleport:     { cost: 20, damage: 0,   subtype: "utility",    effect: "Teleport — vanish and blink past the foe with i-frames (Up)" },
-    aerialTumble: { cost: 24, damage: 78,  subtype: "melee",      effect: "Aerial Tumble — spinning airborne attack (air)" }
+    rubyCrescents: { cost: 30, damage: 60,  subtype: "projectile", effect: "Ruby Crescents — swings the sword to loose a white energy crescent; HOLD to release two in succession (neutral, tap/hold)" },
+    dagonsWrath:   { cost: 45, damage: 120, subtype: "melee",      effect: "Dagon's Wrath — charges forward, sword wreathed in red energy, for a massive explosive burst; crumples on hit (Fwd)" },
+    cycloneBreath: { cost: 32, damage: 50,  subtype: "utility",    effect: "Cyclone Breath — inhales and blasts a cone of wind up-forward; tumbles airborne foes, pushes grounded ones back (Up, anti-air)" },
+    seismicSlam:   { cost: 34, damage: 85,  subtype: "projectile", effect: "Seismic Slam — punches the ground, sending a low shockwave along the floor; catches crouchers (Down, low)" },
+    meteorDive:    { cost: 28, damage: 90,  subtype: "melee",      effect: "Meteor Dive — dives at a steep angle, sword extended, energy trailing (air)" },
+    thrownSword:   { cost: 34, damage: 96,  subtype: "projectile", effect: "Thrown Spinning Sword — hurls a spinning energy blade (Back)" }
   },
-  ultimate: { name: "Koma Atakes", cost: 100, description: "Multi-beam eye-laser barrage — two spiky charge-bursts narrow into two converging fired beams (freeze/camera-focus cinematic). Source: KOMA ATAKES band." },
+  ultimate: { name: "Chimerian Onslaught", cost: 100, description: "Eyes blaze red — converging eye-laser beams blast the foe in a freeze/camera-focus cinematic, invulnerable through the startup. Source: MEGA ATTACK band." },
   hasSprites: true,
   // idle content ~44px × 2.5 ≈ 110px on-screen ≈ roster mid-band (Naruto/Gojo ~112). REQUIRES the
   // skins.js `vilgax` default entry + the spritesheets.js idle gate. Bottom-aligned cells (feet at cell

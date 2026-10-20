@@ -9456,14 +9456,18 @@ export function executeGwenSpecial(fighter, context) {
 //   ×0.60 EFF at hit via GLOBAL_DAMAGE_SCALE.
 // ─────────────────────────────────────────────────────────────────────────────
 const VILGAX_SPECIALS = {
-  // Procedural red plasma (renders as the category-"special" spiky energy burst — no sheet). Two TIERS.
-  vilgaxBlast:  { cost: 30, wind: 12, recovery: 18, pose: "vilgaxBlastCast",  projW: 46, projH: 34, speed: 15, damage: 90,  hitstun: 18, kbX: 8,  kbY: -1, life: 80, radius: 22, color: "#ff3b32" },                    // base plasma (Down+Y)
-  vilgaxBlastX: { cost: 55, wind: 16, recovery: 28, pose: "vilgaxBlastXCast", projW: 78, projH: 52, speed: 13, damage: 138, hitstun: 26, kbX: 12, kbY: -3, life: 92, radius: 40, color: "#ff1e10", piercing: true },  // heavy plasma (X) — bigger, pierces
-  // Real spinning-blade sprite projectile (animated 4-frame spin; flips to travel dir).
+  // RUBY CRESCENTS (neutral, tiered) — white energy crescents loosed from the sword swing. tap = 1,
+  //   HOLD = 2 in succession (vilgaxBlastX.double). Procedural projectile (no sheet), pale-white.
+  vilgaxBlast:  { cost: 30, wind: 14, recovery: 18, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff" },                        // Ruby Crescent — single (tap)
+  vilgaxBlastX: { cost: 42, wind: 14, recovery: 22, pose: "vilgaxBlastCast",  projW: 56, projH: 28, speed: 15, damage: 60, hitstun: 16, kbX: 7, kbY: -1, life: 82, radius: 24, color: "#eaf6ff", double: true },           // Ruby Crescents — double (hold)
+  // Real spinning-blade sprite projectile (animated 4-frame spin; flips to travel dir). BONUS (Back).
   vilgaxSword:  { cost: 34, wind: 12, recovery: 20, pose: "vilgaxThrow", projW: 46, projH: 40, speed: 16, damage: 96, hitstun: 20, kbX: 9, kbY: -2, life: 84, radius: 26, sheet: "./vilgax_sword_uniform.png", spriteW: 44, spriteH: 45, spriteScale: 1.0, spriteFrames: 4 },  // Thrown Spinning Sword (B)
-  // Melee disjoints (createAttackFromMove) — no projectile.
-  vilgaxSlash:  { damage: 100, startup: 8, active: 5, recovery: 18, hitstun: 24, knockbackX: 11, knockbackY: -3, rangeX: 122, rangeY: 64, cost: 30 },   // Energy-Sword Slash (F)
-  vilgaxTumble: { damage: 78,  startup: 6, active: 6, recovery: 14, hitstun: 18, knockbackX: 7,  knockbackY: 2,  rangeX: 86,  rangeY: 72, cost: 24 },   // Aerial Tumble (air)
+  // SEISMIC SLAM (Down, low) — a ground-hugging shockwave projectile; code-themed dust colour, low spawn.
+  vilgaxSeismic:{ cost: 34, wind: 16, recovery: 20, pose: "heavy", projW: 64, projH: 26, speed: 10, damage: 85, hitstun: 22, kbX: 6, kbY: 6, life: 58, radius: 26, color: "#caa36a", low: true },                           // Seismic Slam (Down)
+  // Melee disjoints (createAttackFromMove) — no projectile. pose overrides the cast action (md.pose).
+  vilgaxDagon:  { damage: 120, startup: 16, active: 6, recovery: 22, hitstun: 30, knockbackX: 14, knockbackY: -4, rangeX: 132, rangeY: 68, cost: 45, pose: "vilgaxBlastXCast", lunge: 11, crumple: true },                  // Dagon's Wrath (Fwd)
+  vilgaxCyclone:{ damage: 50,  startup: 12, active: 8, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -7, rangeX: 112, rangeY: 128, cost: 32, pose: "vilgaxUltAction", windbox: true },                             // Cyclone Breath (Up, anti-air)
+  vilgaxMeteor: { damage: 90,  startup: 10, active: 6, recovery: 14, hitstun: 20, knockbackX: 6,  knockbackY: 8,  rangeX: 84,  rangeY: 80,  cost: 28, pose: "vilgaxTumble", dive: true },                                   // Meteor Dive (air)
 }
 function vilgaxOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
 function fireVilgaxProjectile(fighter, key, context, opts = {}) {
@@ -9477,16 +9481,18 @@ function fireVilgaxProjectile(fighter, key, context, opts = {}) {
   fighter._rekkaNext = null
   const offense = vilgaxOffense(fighter)
   const grow = t.radius >= 40 ? 1 + (offense - 1) * 0.6 : 1   // only the big heavy blast scales visibly with offense
-  schedulePendingSpawn(t.wind, () => {
+  const spawnOne = () => {
     const p = {
       w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
       speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
       knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing, isSpecial: true,
-      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.32,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * (t.low ? 0.82 : 0.32),   // low = a ground-hugging shockwave (Seismic Slam)
     }
     if (t.sheet) { p.sheet = t.sheet; p.spriteW = t.spriteW; p.spriteH = t.spriteH; p.spriteScale = t.spriteScale; p.spriteFrames = t.spriteFrames }
     spawnProjectile(fighter, key, p, context)
-  })
+  }
+  schedulePendingSpawn(t.wind, spawnOne)
+  if (t.double) schedulePendingSpawn(t.wind + 12, spawnOne)   // Ruby Crescents HOLD — a second crescent in quick succession
   try { shakeCamera(context, 3, 5) } catch (_) {}
   return true
 }
@@ -9498,12 +9504,19 @@ function fireVilgaxMelee(fighter, key, context) {
   const md = VILGAX_SPECIALS[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, md.cost)) return false
-  fighter._spriteCastMove  = key    // vilgaxSlash / vilgaxTumble — pose action key matches the move name
+  fighter._spriteCastMove  = md.pose || key   // pose override: Dagon→blastXCast burst / Cyclone→ultAction inhale / Meteor→tumble
   fighter._spriteCastTimer = md.startup + md.active + md.recovery
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   fighter._rekkaNext = null
-  if (key === "vilgaxSlash") fighter.vx = 0
+  const face = fighter.facing || 1
+  if (md.lunge)      fighter.vx = face * md.lunge                                   // Dagon's Wrath — charge forward
+  else if (md.dive) { fighter.vx = face * 6; fighter.vy = Math.max(fighter.vy || 0, 12) }   // Meteor Dive — steep downward
+  else               fighter.vx = 0
+  // code-drawn FX (no invented sprites): wind/charge puffs for the cyclone + dagon burst
+  if (md.windbox) { try { spawnClonePuff(fighter.x + fighter.w/2 + face*24, fighter.y + (fighter.h||100)*0.22); spawnClonePuff(fighter.x + fighter.w/2 + face*44, fighter.y + (fighter.h||100)*0.12) } catch(_){} }
+  else if (md.lunge) { try { spawnClonePuff(fighter.x + fighter.w/2 + face*30, fighter.y + (fighter.h||100)*0.5) } catch(_){} }
+  try { shakeCamera(context, md.crumple ? 6 : 3, 6) } catch (_) {}
   return true
 }
 function fireVilgaxTeleport(fighter, context) {
@@ -9540,11 +9553,12 @@ export function executeVilgaxSpecial(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const dir = fighter._specialHeldDir || null
-  if (!grounded) return fireVilgaxMelee(fighter, "vilgaxTumble", context)        // AIR (any) — Aerial Tumble
-  if (dir === "F") return fireVilgaxMelee(fighter, "vilgaxSlash", context)       // Fwd — Energy-Sword Slash (melee)
-  if (dir === "B") return fireVilgaxProjectile(fighter, "vilgaxSword", context)  // Back — Thrown Spinning Sword
-  if (dir === "U") return fireVilgaxTeleport(fighter, context)                   // Up — Teleport (blink)
-  return fireVilgaxBlast(fighter, "S", context)                                 // neutral GROUND safety net (armed tap/hold in game.js)
+  if (!grounded) return fireVilgaxMelee(fighter, "vilgaxMeteor", context)         // AIR (any) — Meteor Dive
+  if (dir === "F") return fireVilgaxMelee(fighter, "vilgaxDagon", context)        // Fwd — Dagon's Wrath (lunge burst)
+  if (dir === "B") return fireVilgaxProjectile(fighter, "vilgaxSword", context)   // Back — Thrown Spinning Sword (bonus)
+  if (dir === "U") return fireVilgaxMelee(fighter, "vilgaxCyclone", context)      // Up — Cyclone Breath (anti-air windbox)
+  if (dir === "D") return fireVilgaxProjectile(fighter, "vilgaxSeismic", context) // Down — Seismic Slam (low shockwave)
+  return fireVilgaxBlast(fighter, "S", context)                                  // neutral — Ruby Crescents (armed tap/hold in game.js)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9817,6 +9831,7 @@ export function executeVilgaxUltimate(fighter, context) {
   const opp = getTargetResolver(context)(fighter) || null
   fighter.vx = 0
   fighter.colorFlash = 14
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)   // CHIMERIAN ONSLAUGHT — invulnerable through the startup (spec frames 1-8)
   fighter._spriteCastMove = "vilgaxUltAction"; fighter._spriteCastTimer = VILGAX_ULT.cinematic   // LIVE fighter holds the green-charge trigger pose
   fighter.attackCooldown  = getAttackDuration(VILGAX_ULT.cinematic, fighter)
   try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}

@@ -225,6 +225,7 @@ import {
   updateSixPathsSwapCombo,       // Six Paths of Pain — Charge + slot → swap between the six Paths (free mid-match, cost+cooldown)
   applySixPathsSwap,             // Six Paths of Pain — deterministic swap (harness setPath())
   updateMayuriNemuAssist,        // Mayuri "Nemu" assist — Charge + Down (attack) / Up (uppercut launcher)
+  updateVilgaxDrone,             // Vilgax "Chimerian Drone" summon — Charge + Heavy → hover gun-drone (input + entity tick)
   updateAoiTodoClap,             // Aoi Todo "Boogie Woogie" Clap — Charge + dir → cameo summon/swap / enemy-swap / fake / self-swap (+ Black Flash arm/resolve)
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   fireObitoKamuiDimension, updateObitoKamuiDimension,   // Obito "Kamui Dimension" (NEW: Charge-HOLD→release) — domain-freeze + shuriken barrage + void-bg swap
@@ -8275,6 +8276,10 @@ function updateMovementInput(fighter) {
   // AOI TODO — "Boogie Woogie" Clap selector (Charge + dir → cameo summon/swap / enemy-swap / fake / self-swap).
   // Runs before the jump/attack path so its _omxConsume swallows the Charge+↑ press (no double jump).
   updateAoiTodoClap(fighter, inputState, getAbilityContext())
+  // VILGAX — Chimerian Drone summon (Charge + Heavy) + per-frame drone entity tick. Runs before the jump/
+  // attack path so its _omxConsume swallows the Charge+Heavy press (no stray Tyrant Thrust); the drone's
+  // own flight/firing keeps ticking even while Vilgax is in hitstun (handled inside updateVilgaxDrone).
+  updateVilgaxDrone(fighter, inputState, getAbilityContext())
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
   // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
@@ -13182,6 +13187,29 @@ function drawDarkKnightVoidAuraOverlay(c, fighter) {
   c.restore()
 }
 
+// VILGAX — Chimerian Drone (Charge+Heavy summon). Blits the real s716cB hover gun-drone at its live world
+// position (fighter._vilgaxDrone). fire-state → fire strip, else → fwd strip; flips to face the foe. Drawn in
+// the FX pass (world space). No-op when no drone is active.
+const _vilgaxDroneImgs = {}
+function _vilgaxDroneImg(src) { if (!_vilgaxDroneImgs[src]) { const i = new Image(); i.src = src; _vilgaxDroneImgs[src] = i } return _vilgaxDroneImgs[src] }
+_vilgaxDroneImg("./vilgax_drone_fire_uniform.png"); _vilgaxDroneImg("./vilgax_drone_fwd_uniform.png")
+function drawVilgaxDrone(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "vilgax") return
+  const d = fighter._vilgaxDrone
+  if (!d) return
+  const firing = d.state === "fire"
+  const img = _vilgaxDroneImg(firing ? "./vilgax_drone_fire_uniform.png" : "./vilgax_drone_fwd_uniform.png")
+  const frames = firing ? 6 : 4
+  if (!img.complete || img.naturalWidth === 0) return
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight, sc = 1.25
+  const dw = fw * sc, dh = fh * sc
+  const fi = Math.max(0, Math.min(frames - 1, d.frame || 0)), face = d.facing || 1
+  c.save()
+  if (face < 0) { c.translate(d.x, 0); c.scale(-1, 1); c.translate(-d.x, 0) }
+  c.drawImage(img, fi * fw, 0, fw, fh, d.x - dw / 2, d.y - dh / 2, dw, dh)
+  c.restore()
+}
+
 // VILGAX — Void Sovereign overlay (skins). Part B: rising dark TENTACLE-tendrils (his tentacle-beard motif) +
 // faint green conqueror glow + glowing red eyes, ON TOP of the void-black silhouette. vilgax-only.
 function seedVilgaxVoidField(fighter) {
@@ -17695,6 +17723,7 @@ function renderHybridFighter(fighter) {
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
+    drawVilgaxDrone(c, fighter)             // Vilgax — Chimerian hover gun-drone summon (s716cB art blit; vilgax only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
     drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)

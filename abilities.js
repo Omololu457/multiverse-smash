@@ -9562,6 +9562,71 @@ export function executeVilgaxSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// VILGAX DRONE (Charge + Heavy) — deploys a Chimerian hover gun-drone (real s716cB art) that flies in,
+// strafes the foe with AIMED plasma bolts, then peels off. The entity lives on fighter._vilgaxDrone; its
+// per-frame tick (summon-input + movement + firing) is updateVilgaxDrone (called from the game.js input
+// path, like the Mayuri/Pain assists); drawVilgaxDrone (game.js) blits it. One drone at a time + cooldown.
+// ─────────────────────────────────────────────────────────────────────────────
+const VILGAX_DRONE = { cost: 40, cd: 160, life: 200, boltDmg: 42, bolts: 3, boltGap: 20, speed: 7, fwdFrames: 4, fireFrames: 6 }
+export function fireVilgaxDrone(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return false
+  if (fighter._vilgaxDrone || (fighter._vilgaxDroneCd || 0) > 0 || (fighter.hitstun || 0) > 0) return false
+  if (!spendEnergy(fighter, VILGAX_DRONE.cost)) return false
+  const face = fighter.facing || 1
+  fighter._vilgaxDrone = { x: fighter.x + (fighter.w || 60) / 2 - face * 46, y: fighter.y - 24, facing: face,
+    state: "flyin", timer: 0, frame: 0, animClock: 0, shotsLeft: VILGAX_DRONE.bolts, boltCd: 24 }
+  fighter._vilgaxDroneCd = VILGAX_DRONE.cd
+  try { spawnClonePuff(fighter.x + (fighter.w || 60) / 2 - face * 46, fighter.y - 14) } catch (_) {}
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+export function updateVilgaxDrone(fighter, inputState, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return
+  if ((fighter._vilgaxDroneCd || 0) > 0) fighter._vilgaxDroneCd--
+  // SUMMON INPUT — Charge + Heavy (edge). _omxConsume swallows the Heavy press (no stray Tyrant Thrust).
+  const held = (fighter._vdHeld = fighter._vdHeld || {})
+  if (inputState) {
+    const charge = !!inputState.charge, heavy = !!inputState.heavy
+    if (charge && heavy && !held.heavy && !fighter.attacking && (fighter.hitstun || 0) <= 0) {
+      if (fireVilgaxDrone(fighter, context)) fighter._omxConsume = { heavy: true, light: false, jump: false }
+    }
+    held.heavy = heavy; held.charge = charge
+  }
+  // ENTITY tick (movement + firing); runs regardless of the fighter's own state so the drone acts on its own.
+  const d = fighter._vilgaxDrone
+  if (!d) return
+  d.timer++; d.animClock++
+  const getOpp = getTargetResolver(context)
+  const opp = getOpp ? getOpp(fighter) : null
+  const sp = VILGAX_DRONE.speed
+  if (d.state === "flyin") {
+    const tx = fighter.x + (fighter.w || 60) / 2 + d.facing * 78, ty = fighter.y - 54
+    if (Math.abs(d.x - tx) > sp) d.x += Math.sign(tx - d.x) * sp; else d.x = tx
+    if (Math.abs(d.y - ty) > 3)  d.y += Math.sign(ty - d.y) * 3;  else d.y = ty
+    d.frame = Math.floor(d.animClock / 5) % VILGAX_DRONE.fwdFrames
+    if (d.x === tx && d.y === ty) { d.state = "fire"; d.animClock = 0; d.frame = 0; d.boltCd = 10 }
+  } else if (d.state === "fire") {
+    d.y += Math.sin(d.animClock * 0.2) * 0.5
+    d.frame = Math.floor(d.animClock / 4) % VILGAX_DRONE.fireFrames
+    if (opp) d.facing = (opp.x >= d.x) ? 1 : -1
+    if (d.boltCd > 0) d.boltCd--
+    else if (d.shotsLeft > 0) {
+      d.shotsLeft--; d.boltCd = VILGAX_DRONE.boltGap
+      spawnProjectile(fighter, "vilgaxDroneBolt", {
+        damage: VILGAX_DRONE.boltDmg, w: 22, h: 10, speed: 15, lifetime: 72, hitstun: 14, knockbackX: 6, knockbackY: -1,
+        isSpecial: true, color: "#ff5a2a", radius: 11, spawnX: d.x + d.facing * 24, spawnY: d.y + 8,
+        aimAt: opp ? { x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 110) * 0.42 } : null, vx: opp ? null : d.facing * 15,
+      }, context)
+      try { shakeCamera(context, 2, 3) } catch (_) {}
+    } else if (d.boltCd <= 0) { d.state = "leave"; d.animClock = 0; d.frame = 0 }
+  } else {   // leave — peel off and fade
+    d.x += d.facing * (sp + 2); d.y -= 2
+    d.frame = Math.floor(d.animClock / 5) % VILGAX_DRONE.fwdFrames
+  }
+  if (d.timer >= VILGAX_DRONE.life || (d.state === "leave" && d.animClock > 46)) fighter._vilgaxDrone = null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DARK VEGETA — STAGE 4 SPECIALS (fixed directional slots; owner-locked blade-FX=SPECIALS). Mirrors
 // executeVilgaxSpecial (fixed slots + procedural projectiles + real cast poses):
 //   N (neutral) / AIR = Ki Blast — procedural energy sphere. ★TIERED BY TRANSFORM STATE (VEGETA_BLACK_ASSET_MAP

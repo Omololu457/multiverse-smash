@@ -9514,7 +9514,8 @@ const vilgax = {
   traits: { hasEnergy: true, energyType: "plasma", mobility: "medium", scaling: "power", animeMovement: true },
   // maxEnergy 200: two sword specials + the red charge-blast (base+heavy tier) + teleport + the Koma
   //   Atakes multi-beam ULT all draw on a full bar.
-  stats: { maxHealth: 1200, maxEnergy: 200, attack: 90, defense: 88, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 12, dashCooldownMax: 46 },
+  // maxHealth 1250 (spec: "extremely durable"); speed 82 = slow, menacing stride; heavy/hard to launch.
+  stats: { maxHealth: 1250, maxEnergy: 200, attack: 90, defense: 88, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 12, dashCooldownMax: 46 },
   // ── STAGE 2 numbers wired at Stage 2. Placeholder tuning now so the fighter is combat-safe; ×0.60
   //    via GLOBAL_DAMAGE_SCALE. Normal ART (B claw→tentacle-whip / Aerial B dive) is mapped at Stage 2.
   // ── STAGE 2/Phase-2 NORMALS (X / sword). Spec frame data. ×0.60 via GLOBAL_DAMAGE_SCALE.
@@ -9537,7 +9538,8 @@ const vilgax = {
     cycloneBreath: { cost: 32, damage: 50,  subtype: "utility",    effect: "Cyclone Breath — inhales and blasts a cone of wind up-forward; tumbles airborne foes, pushes grounded ones back (Up, anti-air)" },
     seismicSlam:   { cost: 34, damage: 85,  subtype: "projectile", effect: "Seismic Slam — punches the ground, sending a low shockwave along the floor; catches crouchers (Down, low)" },
     meteorDive:    { cost: 28, damage: 90,  subtype: "melee",      effect: "Meteor Dive — dives at a steep angle, sword extended, energy trailing (air)" },
-    thrownSword:   { cost: 34, damage: 96,  subtype: "projectile", effect: "Thrown Spinning Sword — hurls a spinning energy blade (Back)" }
+    thrownSword:   { cost: 34, damage: 96,  subtype: "projectile", effect: "Thrown Spinning Sword — hurls a spinning energy blade (Back)" },
+    chimerianDrone:{ cost: 40, damage: 42,  subtype: "summon",     effect: "Chimerian Drone — Charge+Heavy deploys a hover gun-drone that strafes the foe with 3 aimed plasma bolts, then peels off" }
   },
   ultimate: { name: "Chimerian Onslaught", cost: 100, description: "Eyes blaze red — converging eye-laser beams blast the foe in a freeze/camera-focus cinematic, invulnerable through the startup. Source: MEGA ATTACK band." },
   hasSprites: true,

@@ -3706,36 +3706,6 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
-  // GHOSTFACE — a frenzy of knife-work; nobody hears the phone ring twice.
-  ghostface: {
-    banner: "GHOSTFACE", bannerRgb: "#ff3040", base: "hurt", choreographed: true, total: 166,
-    beats: [
-      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
-      { fx: "darken", t0: 0, t1: 166, rgb: "e05058", max: 0.97, ramp: 8 },
-      { fx: "cam", t0: 0, t1: 40, zoom: 1.5, cx: 0.52, cy: 0.45, ease: 0.1 },
-      { fx: "actor", t0: 0, t1: 50, who: "vic", action: "idle", x: 0.5, y: 0.52, frame: "anim:10", facing: -1 },
-      { fx: "cam", t0: 44, t1: 112, zoom: 1.42, cx: 0.5, cy: 0.47, ease: 0.08 },
-      { fx: "flickerRush", t0: 48, t1: 112, action: "run", around: 0.5, aroundY: 0.48, count: 10, radX: 0.3, radY: 0.14, color: "8,2,4" },
-      { fx: "actor", t0: 50, t1: 112, who: "vic", action: "hurt", x: 0.5, y: 0.52, frame: "hold:0", facing: -1 },
-      { fx: "slashCross", t0: 52, t1: 112, count: 16, color: "8,2,4" },
-      { fx: "bloodGush", t0: 60, t1: 166, x: 0.5, y: 0.5, amount: 8 },
-      { fx: "cam", t0: 112, t1: 146, zoom: 2.1, cx: 0.5, cy: 0.46, cut: true },
-      { fx: "whiteSpike", t0: 112, t1: 122 },
-      { fx: "headPop", t0: 116, t1: 146, headY: 0.42 },
-      { fx: "shockRing", t0: 116, t1: 146, count: 4, color: "rgba(200,200,220,0.6)" },
-      { fx: "bloodGush", t0: 116, t1: 166, x: 0.5, y: 0.46, amount: 32 },
-      { fx: "cam", t0: 146, t1: 166, zoom: 1.4, cx: 0.5, cy: 0.54, ease: 0.1 },
-      { fx: "actor", t0: 146, t1: 166, who: "vic", action: ["knockdown", "lose", "hurt"], x: 0.48, y: 0.62, frame: "once:7", facing: -1, rot: 1.35, hFrac: 0.4 },
-      { fx: "actor", t0: 148, t1: 166, who: "atk", action: "idle", x: 0.72, y: 0.52, frame: "anim:12", facing: 1 },
-      { fx: "banner", t0: 152, t1: 166 },
-    ],
-    sound: [
-      { t: 1, id: "boom_anticipation_suck", gain: 0.45 },
-      { t: 48, id: "warp_wobble_01", gain: 0.5 },
-      { t: 112, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
-      { t: 118, id: "rumble_tail_01", gain: 0.5 },
-    ],
-  },
 
   // BILLY GHOSTFACE — the original: a flash-in and a gutting lunge that opens the target up.
   ghostface_billy: {

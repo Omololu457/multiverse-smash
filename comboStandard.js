@@ -77,7 +77,6 @@ export const REKKA = [
 
   // ── STAGE C CONVERTED — heavy ender → launcher finisher (now conform) ──────────────────────────
   { key: "netero",   driver: "updateNeteroCommandCombat",   opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "Stage B opener + Stage C finisher (down_attck_2 now launches)" },
-  { key: "ghostface", driver: "updateGhostfaceCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "Stage B opener + Stage C finisher (ghostfaceCombo3 now launches); bleed DoT special" },
   { key: "shinobu",  driver: "updateShinobuCommandCombat",  opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "Stage C: shinobuG3 now launches; poison-dance" },
   { key: "inosuke",  driver: "updateInosukeCommandCombat",  opener: "fwd+heavy", retap: "heavy", stages: 5, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "Stage C: inosukeB5 now launches; 5-stage flurry" },
   { key: "tobirama", driver: "updateTobiramaCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "Stage C: tobiComboFin now launches (was downward-slam heavy ender)" },

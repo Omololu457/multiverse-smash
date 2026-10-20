@@ -5401,76 +5401,6 @@ const miwa = {
 // stab-flurry Ultimate. The signature Call-In companion special (skin-gated pools)
 // lands in a later stage; the Stage-1 build is the standard normals/chain/specials/Ultimate.
 // ─────────────────────────────────────────────────────────────────
-const ghostface = {
-  rosterKey: "ghostface", name: "Ghostface", universe: "horror", color: "#1c2030",
-  portrait: "./ghostface_portrait.png",   // cropped from idle frame 0 (Stage 1; falls back cleanly if absent pre-crop).
-  archetypes: ["rushdown", "technical"],
-  primary: "rushdown", secondary: ["technical"],
-  traits: { hasEnergy: true, energyType: "dread", mobility: "high", scaling: "combo", animeMovement: false },
-  // STALKER SLASHER — fast, mixup-heavy knife rushdown; human-fragile but mobile, with bleed
-  // attrition rather than raw burst. vs roster: Killua HP1030/atk84/def78/spd95 (glass assassin),
-  // Batman HP1080/atk86/def88/spd92 (disciplined mid), Flash HP1020/spd99 (glass speedster).
-  // Ghostface sits fragile-fast: HP1040 (low, above Killua/Flash), atk85 (moderate), def80
-  // (low-mid — a masked human, not armored), spd95 (fast, ties Killua; below Toji98/Flash99).
-  // No stat is an outlier. maxEnergy 100 = Dread meter (specials + Ultimate).
-  stats: { maxHealth: 1040, maxEnergy: 100, attack: 85, defense: 80, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 9, dashCooldownMax: 30 },
-  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
-  basic_attacks: {
-    light:    { damage: 54, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:    { damage: 86, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
-    upAttack: { type: "launcher", damage: 74, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
-    airAttack:{ damage: 66, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
-    downAir:  { damage: 78, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
-  },
-  // HUD-only until wired in abilities.js (real logic + cost there). Direction-branched Special.
-  specials: {
-    guttingLunge: { cost: 25, damage: 50, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "dashing knife lunge (gap-closer) — leaves a BLEED DoT on a clean hit" },
-    lowGut:       { cost: 20, damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "low sweeping gut-slash — trips (knockdown) on hit" },
-    stalkVanish:  { cost: 15, damage: 0,  startup: 2, active: 0, recovery: 18, effect: "backstep with brief i-frames — stalk/reposition, no damage" }
-  },
-  ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Ghostface stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%)." },
-  hasSprites: true,
-  // idle content ~116px tall × 1.15 ≈ 133px on-screen (upper roster band — an imposing stalker).
-  // Ghostface has NO default skin — each of the 5 killer-identity skins sets spriteScale explicitly, and
-  // applySkin resolves any non-identity id to one of them (getSkin's list[0] fallback is a killer, not a
-  // spriteScale:1 default). Plus the spritesheets.js idle gate.
-  spriteScale: 0.982,   // HEIGHT-REF: canon ~178cm (EST — no single canon height; the mask is worn by different actors across the films, so an average adult male default) → target ~111px (was 1.15, measured 130px = +17% too tall — rendered TALLER than Sasuke/Naruto; now correctly only mildly taller). See HEIGHT_REFERENCE.md §6; all anchorY are 0.
-  animationData: {
-    // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (reslice_strip.mjs). ──
-    idle:  { frames: 3, width: 75,  height: 116, speed: 8, anchorY: 0, sheet: "./ghostface_idle_uniform.png" },   // hunched breathing loop
-    walk:  { frames: 4, width: 80,  height: 115, speed: 6, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },   // stalking creep (from sneak)
-    run:   { frames: 4, width: 80,  height: 115, speed: 4, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },   // same sheet, faster
-    dash:  { frames: 4, width: 80,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_walk_uniform.png" },
-    jump:  { frames: 2, width: 105, height: 118, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },
-    fall:  { frames: 1, width: 105, height: 118, speed: 6, anchorY: 0, sourceX: 105, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },   // apex/descent = jump frame 1
-    guard: { frames: 1, width: 82,  height: 108, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_guard_uniform.png" },   // cloak-brace block
-    hurt:  { frames: 1, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform.png" },   // recoil flinch = hit frame 0
-    knockdown: { frames: 3, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform.png" },   // crumple→prone→getup = hit frames 1-3
-    crouch: { frames: 2, width: 79, height: 102, speed: 8, anchorY: 0, loop: true, sheet: "./ghostface_crouch_uniform.png" },
-    charge: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: true, sheet: "./ghostface_taunt_uniform.png" },   // hold-to-charge = menacing knife beckon (reuses taunt)
-    taunt:  { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },
-    // ── NORMALS (5 slots). Play once, hold last frame. ──
-    light:    { frames: 3, width: 103, height: 110, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform.png" },    // quick standing knife swipes
-    heavy:    { frames: 1, width: 125, height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform.png" },   // committed lunging power-stab (long reach)
-    up:       { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform.png" },       // overhead knife launcher
-    air:      { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform.png" },       // aerial overhead slash (reuse up)
-    down_air: { frames: 3, width: 107, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_downair_uniform.png" },  // aerial dive-stab
-    // ── COMMAND-NORMAL CHAIN — "Slasher Frenzy" (Down+Heavy rekka, cancel-on-hit; Batman architecture).
-    // The 3-frame low-slash sheet split into 3 cancelable stages. currentMove = ghostfaceComboN → sheet. ──
-    ghostfaceCombo1: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
-    ghostfaceCombo2: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 97,  loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
-    ghostfaceCombo3: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 194, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
-    // ── SPECIAL cast poses (SPECIAL button, direction-branched via _specialHeldDir). ──
-    gfLunge:  { frames: 1, width: 125, height: 115, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform.png" },   // Gutting Lunge (neutral/F): dashing stab
-    gfLowCut: { frames: 3, width: 97,  height: 88,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },  // Low Gut (D): sweeping low slash
-    // Stalk Vanish (B) is FX-only (poof + i-frames), no cast pose.
-    // Call-In (Neutral Special) beckon pose — the "come here" knife gesture (reuses taunt sheet).
-    gfCallIn: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },
-    // ── ULTIMATE cast pose — "The Final Act" stab-flurry, held through the frozen cinematic. ──
-    gfUlt:    { frames: 3, width: 103, height: 110, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform.png" }
-  },
-  introPool: ["idle"]   // no dedicated intro art in the batch → stand in idle
-}
 
 // ─────────────────────────────────────────────────────────────────
 // BILLY GHOSTFACE  (rosterKey "ghostface_billy", universe "horror") — the FIRST of the 12
@@ -11165,7 +11095,6 @@ export const characters = {
   superman_classic: supermanClassic,
   superman_fighter: supermanFighter,
   chrollo,
-  ghostface,
   ghostface_billy,
   jason,
   hiruzen,

@@ -1970,13 +1970,6 @@ export const SKINS = {
   // mask + steel knife + black linework preserved (sat/val gates). Each sets spriteScale explicitly (no
   // reliance on a default entry). NOTE: unlike every other char these skins ALSO carry gameplay property
   // modifiers (Stages 3-4) — a deliberate, confirmed project-first exception (NOT cosmetic-only).
-  ghostface: [
-    { id: "ghostfaceBilly",  name: "Billy",  unlockLevel: 0, portrait: "./ghostface_portrait__billy.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "billy"),  recolorTag: "billy" },
-    { id: "ghostfaceDebbie", name: "Debbie", unlockLevel: 0, portrait: "./ghostface_portrait__debbie.png", spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "debbie"), recolorTag: "debbie" },
-    { id: "ghostfaceRoman",  name: "Roman",  unlockLevel: 0, portrait: "./ghostface_portrait__roman.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "roman"),  recolorTag: "roman" },
-    { id: "ghostfaceJill",   name: "Jill",   unlockLevel: 0, portrait: "./ghostface_portrait__jill.png",   spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "jill"),   recolorTag: "jill" },
-    { id: "ghostfaceAmber",  name: "Amber",  unlockLevel: 0, portrait: "./ghostface_portrait__amber.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "amber"),  recolorTag: "amber" }
-  ],
   // GHOSTFACE .EXE — 5 killer-identity skins ("the person behind the mask"). ★SCOPE: only BILLY (default) is
   // fully built (real weak base kit + Sasuke/Deathstroke identity-swaps, Stages 2-3). Stu/Roman/Mrs.Loomis/
   // Amber are SELECTABLE but INCOMPLETE — recolor ONLY (HSV colorize via tools/gen_ghostface_exe_skins.py:

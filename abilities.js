@@ -15685,10 +15685,68 @@ function isHomelanderAirborne(f) {
 export function executeHomelanderSpecial(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
   const dir = fighter._specialHeldDir || null
-  // Only Heat Vision is wired so far (neutral / Up anti-air / AIR down-strafe). Other directions
-  // (Supersonic / Barrage / Sonic Clap / Take A Ride) land in later kit passes → no-op for now.
-  if (dir && dir !== "U") return false
-  return startHomelanderHeatVision(fighter, dir)
+  // Forward = Supersonic (sonic-boom dash) · Down = Sonic Clap (get-off-me shockwave) ·
+  // Back = Super-Speed Barrage (advancing flurry → launcher) · neutral/Up = Heat Vision.
+  if (dir === "F") return fireHomelanderSupersonic(fighter, context)
+  if (dir === "D") return fireHomelanderSonicClap(fighter, context)
+  if (dir === "B") return fireHomelanderBarrage(fighter, context)
+  return startHomelanderHeatVision(fighter, dir)   // null (neutral) or "U" (anti-air)
+}
+
+// SUPERSONIC (Fwd) — a full-screen sonic-boom DASH using the flight streak pose, leaving a code-drawn
+// shockwave ring + boom crack. Brief i-frames at the boom = it "passes through projectiles". In flight
+// it adds a downward dive (Mach Ram). Committed + unsafe on block (long recovery).
+function fireHomelanderSupersonic(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.supersonic?.cost ?? 25)) return false
+  const md = { damage: 110, startup: 6, active: 6, recovery: 22, hitstun: 26, knockbackX: 16, knockbackY: -4, rangeX: 112, rangeY: 62, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "hlSupersonic", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const face = fighter.facing || 1
+  fighter.vx = face * 22                                   // rocket across the screen
+  if (isHomelanderAirborne(fighter)) fighter.vy = 7        // Mach Ram dive
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)   // sonic-boom i-frames → passes through projectiles at the start
+  fighter._hlBoomFx = 18                                   // shockwave ring + crack (drawHomelanderHeatVision)
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// SONIC CLAP (Down) — an instant thunderclap shockwave: shoves the opponent away + destroys weak
+// opponent projectiles in range. A short-range get-off-me tool (small damage, big push).
+function fireHomelanderSonicClap(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.sonicClap?.cost ?? 15)) return false
+  const cx = fighter.x + (fighter.w || 50) / 2, cy = fighter.y + (fighter.h || 100) * 0.4
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  if (opp) {
+    const ox = opp.x + (opp.w || 50) / 2
+    if (Math.abs(ox - cx) < 155 && Math.abs(opp.y - fighter.y) < 130) {
+      const dir = ox >= cx ? 1 : -1
+      if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 16); opp.vx = dir * 10 }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 18); opp.vx = dir * 16; opp.vy = -6; opp.colorFlash = 8; applyScaledDamage(opp, 40, { source: "ability" }) }
+    }
+  }
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {   // destroy weak opponent projectiles nearby
+    const p = activeProjectiles[i]
+    if (p && p.owner !== fighter && (p.damage || 0) <= 80 && Math.abs((p.x ?? cx) - cx) < 180) activeProjectiles.splice(i, 1)
+  }
+  fighter._hlClapFx = 14
+  fighter._spriteCastMove = "hlClap"; fighter._spriteCastTimer = 12
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 22)
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+// SUPER-SPEED BARRAGE (Back) — a fast advancing fist flurry that ends in a launcher.
+function fireHomelanderBarrage(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.barrage?.cost ?? 20)) return false
+  const md = { damage: 95, startup: 6, active: 10, recovery: 22, hitstun: 24, knockbackX: 6, knockbackY: -14, rangeX: 104, rangeY: 56, launcher: true, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "hlBarrage", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 7     // advance into the flurry
+  fighter._hlBarrageFx = 16
+  shakeCamera(context, 3, 5)
+  return true
 }
 
 function startHomelanderHeatVision(fighter, dir) {
@@ -15707,6 +15765,9 @@ function startHomelanderHeatVision(fighter, dir) {
 // Per-frame Heat-Vision driver (game.js updateFighterState passes raw HELD controls). Gated on rosterKey.
 export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  if (fighter._hlBoomFx > 0) fighter._hlBoomFx--          // special-FX render timers (shockwave rings)
+  if (fighter._hlClapFx > 0) fighter._hlClapFx--
+  if (fighter._hlBarrageFx > 0) fighter._hlBarrageFx--
   if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
   if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; return }
   // a hard hit / knockdown kills the beam
@@ -15759,6 +15820,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
 export function resetHomelanderKit(fighter) {
   if (!fighter) return
   fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
+  fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
 }
 
 // ─────────────────────────────────────────────────────────────────────────

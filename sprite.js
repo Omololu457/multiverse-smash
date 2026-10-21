@@ -233,6 +233,8 @@ const MOVE_TO_ACTION = {
   up: "up",
   air: "air",
   down_air: "down_air",
+  // Homelander specials → existing poses (Supersonic = cape-twirl dash streak, Barrage = punch flurry).
+  hlSupersonic: "flyDash", hlBarrage: "light", hlClap: "heavy",
   // Shisui (Trinity) — THE LOYALIST special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the fallback box. (Backstab / Fireball / Genjutsu Grab / Kunai Rain / Flurry / Susanoo.)
   shiBackstab: "shiBackstab", shiFireball: "shiFireball", shiGenjutsu: "shiGenjutsu",

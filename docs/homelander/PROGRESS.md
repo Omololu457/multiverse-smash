@@ -94,9 +94,20 @@ other character provably untouched.
   72→52, **hits the opponent**, beam renders (screenshot `_render_5_heat_vision.png`), stops cleanly on
   release, heat recovers 52→67. Regression unchanged (det 14/0 · combo 225/9 · roster green · flight
   harnesses 1031/0 & 1047/0).
-- NEXT (3c-2…): Supersonic (dir special), Super-Speed Barrage, Take A Ride (command grab), Sonic Clap,
-  X-Ray, Super Hearing (passive), Supe Durability (−40% chip), Flex (parry), Ultimate FLIGHT 37,
-  brutalities, intro/win/lose, voice lines, sound mapping, air normals. Then Phase 4 (HUD bars + AI +
-  SUPERMAN_NOTES + REPORT).
+### 3c-2 — Directional specials (Supersonic · Sonic Clap · Super-Speed Barrage) ✅ (committed)
+- `abilities.js` `executeHomelanderSpecial` dispatch: **F** = Supersonic (sonic-boom dash, 22px burst +
+  Mach-Ram dive in flight, 8f i-frames = passes through projectiles at the boom, unsafe on block), **D** =
+  Sonic Clap (instant get-off-me: shove + 40 dmg in range + destroys weak opponent projectiles via
+  `activeProjectiles`), **B** = Super-Speed Barrage (advancing flurry → launcher). All `spendEnergy` +
+  `createAttackFromMove`/`setAttackState`; FX timers (`_hlBoomFx/_hlClapFx/_hlBarrageFx`) tick in the
+  driver + clear in `resetHomelanderKit`.
+- `sprite.js` `MOVE_TO_ACTION`: `hlSupersonic→flyDash`, `hlBarrage→light`, `hlClap→heavy`.
+- `game.js` `drawHomelanderHeatVision` extended with code-drawn shockwave rings (clap), boom cracks
+  (supersonic), fist streaks (barrage).
+- **Render check 23/0**: fires all three (`hlSupersonic` / `hlClap` cast / `hlBarrage`) via real keyboard
+  dir+special; clap shockwave ring renders (screenshot). det 14/0 · combo 225/9 · roster green · flight 1047/0.
+- NEXT (3c-3…): Take A Ride (command grab), X-Ray (mark), Super Hearing (passive), Supe Durability
+  (−40% chip), Flex (parry), Ultimate FLIGHT 37, brutalities, intro/win/lose, voice, sound, air normals.
+  Then Phase 4 (HUD bars + AI + SUPERMAN_NOTES + REPORT).
 
 ## Phase 4 — HUD, AI, Superman readiness ⏳ pending

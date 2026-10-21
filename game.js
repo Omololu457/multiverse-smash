@@ -17124,6 +17124,27 @@ function drawShisuiItachiKidsFx(c, fighter) {
 function drawHomelanderHeatVision(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "homelander") return
   const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 50) / 2, cyc = fighter.y + (fighter.h || 100) * 0.45
+  // ── SONIC CLAP shockwave ring (expanding, Down+Special) ─────────────────────
+  if ((fighter._hlClapFx || 0) > 0) {
+    const t = 1 - fighter._hlClapFx / 14, r = 14 + t * 120
+    c.save(); c.globalAlpha = 0.6 * (1 - t); c.strokeStyle = "#bfe0ff"; c.lineWidth = 4
+    c.beginPath(); c.arc(cx, cyc, r, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = 0.35 * (1 - t); c.beginPath(); c.arc(cx, cyc, r * 0.6, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
+  // ── SUPERSONIC boom crack + trailing rings (Fwd+Special) ────────────────────
+  if ((fighter._hlBoomFx || 0) > 0) {
+    const t = 1 - fighter._hlBoomFx / 18
+    c.save(); c.globalAlpha = 0.5 * (1 - t); c.strokeStyle = "#ffffff"; c.lineWidth = 3
+    for (let k = 0; k < 3; k++) { const r = 10 + t * 70 + k * 16; c.beginPath(); c.arc(cx - face * (12 + k * 10), cyc, r * 0.5, Math.PI * 0.4, Math.PI * 1.6); c.stroke() }
+    c.restore()
+  }
+  // ── SUPER-SPEED BARRAGE fist streaks (Back+Special) ─────────────────────────
+  if ((fighter._hlBarrageFx || 0) > 0) {
+    c.save(); c.globalAlpha = 0.5; c.strokeStyle = "#8fc7ff"; c.lineWidth = 2
+    for (let k = 0; k < 5; k++) { const yy = fighter.y + (fighter.h || 100) * (0.3 + k * 0.08); c.beginPath(); c.moveTo(cx, yy); c.lineTo(cx + face * (40 + (fighter._hlBarrageFx * 3 + k * 9) % 50), yy); c.stroke() }
+    c.restore()
+  }
   const ex = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30)
   const ey = fighter.y + (fighter.h || 100) * 0.18
   if ((fighter._hvOverheat || 0) > 0) {   // overheat: dim red eye glow (cooling down)

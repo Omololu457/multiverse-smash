@@ -97,6 +97,26 @@ try {
   const prCool = await probe()
   ok(prCool.laserHeat > prStop.laserHeat, `laser-heat did not recover while idle (${prStop.laserHeat} → ${prCool.laserHeat})`)
 
+  // DIRECTIONAL SPECIALS via real keyboard (facing right: Fwd=d, Down=s, Back=a) + special=l.
+  // Reads the resolved move / cast move / FX timer right after the press to confirm each fired.
+  const specProbe = () => page.evaluate(() => { const f = window.__harness.p1(); return { move: f.currentMove, cast: f.castMove, boom: !!f.spriteAction }; })
+  async function dirSpecial(dirKey) {
+    if (dirKey) await page.keyboard.down(dirKey)
+    await page.keyboard.down("l"); await frames(2)
+    const got = await page.evaluate(() => { const f = window.__harness.p1(); return { move: f.currentMove, cast: f.castMove }; })
+    await page.keyboard.up("l"); if (dirKey) await page.keyboard.up(dirKey)
+    return got
+  }
+  const rSup = await dirSpecial("d"); await frames(6); await shot("6_supersonic")
+  ok(rSup.move === "hlSupersonic", `Supersonic did not fire (move=${rSup.move})`)
+  await frames(40)
+  const rClap = await dirSpecial("s"); await frames(4); await shot("7_sonic_clap")
+  ok(rClap.cast === "hlClap" || rClap.move === "hlClap", `Sonic Clap did not fire (move=${rClap.move}, cast=${rClap.cast})`)
+  await frames(40)
+  const rBar = await dirSpecial("a"); await frames(6); await shot("8_barrage")
+  ok(rBar.move === "hlBarrage", `Barrage did not fire (move=${rBar.move})`)
+  await frames(24)
+
   // both fighters + HUD still render, no errors
   const sf1 = await snap1(), sf2 = await snap2()
   ok(sf1 && sf1.health > 0 && sf2 && sf2.health > 0, "a fighter lost its HUD/health after the flight")
@@ -107,6 +127,7 @@ try {
   console.log(`  HOMELANDER RENDER CHECK: ${passed} passed, ${failed} failed`)
   console.log(`  takeoff.phase=${prTO?.phase} climb y ${yBefore}→${prUp.y} pose=${prUp.pose} cruise.action=${prCr.action} landed.phase=${prLand.phase}`)
   console.log(`  laser: heat ${heat0}→${prFire.laserHeat} (active=${prFire.hvActive}, hit=${prFire.hvHit}) recovered→${prCool.laserHeat}`)
+  console.log(`  specials: supersonic.move=${rSup.move} clap.cast=${rClap.cast} barrage.move=${rBar.move}`)
   console.log(`  JS-exceptions=${jsErrors.length}  homelander-404s=${my404.length}  (pre-existing batman/etc. 404s ignored)`)
   console.log("════════════════════════════════════════════")
   if (failed) fails.slice(0, 12).forEach(m => console.log("  ✗ " + m))

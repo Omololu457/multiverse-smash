@@ -141,5 +141,16 @@ other character provably untouched.
   pinned to full and overheat cleared (gated on rosterKey) so flight + Heat Vision can be practiced freely.
 - Render check 26/0 (fire a sustained beam with infinite on → heat stays pinned ≥70). det 14/0 · combo 225/9.
 
-- NEXT: CPU AI (flight/lasers). (Remaining kit: Take A Ride, X-Ray, Super Hearing wiring, Flex,
-  brutalities, intro/win/lose, sound, dedicated air normals.) `SUPERMAN_NOTES.md` + `REPORT.md` done.
+## Phase 4c — CPU AI (signature zoning layer) ✅ (committed)
+- `ai.js`: `SIGNATURE_MOTIONS` gains homelander specials (heatVision [] / supersonic F / sonicClap D /
+  barrage B); new `decideHomelanderSignatureMove` (same shape as Gojo/Sukuna, called ONLY for homelander
+  in `choosePlan`) — an aerial zoner: **Heat Vision at range** (iq×0.6), **FLIGHT 37 at full meter**
+  (iq×0.3, mid-range so the grab connects), **Sonic Clap point-blank** (iq×0.5). Gated on rosterKey → no
+  other character affected.
+- Verified with a new deterministic AI harness `harness/homelander_ai.mjs` (aiVsAi.step clock): CPU-
+  Homelander vs Batman — **4/0**, the CPU fires Heat Vision + casts hlSupersonic, 0 JS exceptions.
+- Regression: det 14/0 · combo 225/9 · roster green · flight-engine 1047/0 · render check 26/0.
+- NOTE: this is ground-laser zoning + his specials + ult. Active FLIGHT takeoff/land AI (press the charge
+  edge, land on low flight-energy, dodge anti-airs) needs charge-input synthesis in the AI controller —
+  a refinement, documented. (Remaining kit: Take A Ride, X-Ray, Super Hearing, Flex, brutalities,
+  intro/win/lose, sound, dedicated air normals.)

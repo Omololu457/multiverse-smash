@@ -11,6 +11,16 @@ each phase. Never merge/push to `main`. Universe: **`dc`** (existing key; no new
 - **FASTER FLIGHT** (user request): profile maxH 6.5→9.5, maxV 5.5→8.0, accel 0.55→0.85, dashSpeed 11→16,
   liftoff −4→−5, reverseBrake 0.72→0.70, ceilEaseZone 48→56. Render check: climb now y 373→−14 (vs ~260px).
 
+## Polish — air-dash fix + Ben 10 skin + proper Alien X ✅ (committed)
+- **AIR-DASH FIX**: his new speed-tier status made a double-tap-toward trigger the ground dash-TELEPORT
+  instead of the flight air-dash ("stuck after dashing"). Gated in `detectDoubleTapDashTeleport`: while the
+  flight module is active, a double-tap always routes to the flight air-dash (`_dashTap`).
+- **Ben 10 skin**: Omnitrix-green suit / black accents / brown hair (`gen_skins.py` ben10 LUT).
+- **Alien X fixed to match the roster convention**: skin id renamed `homelander_alienx` → **`homelanderAlienX`**
+  (ends "AlienX") so the engine's `drawAlienXStarfield` auto-overlays the colourful Celestialsapien starfield
+  on the matte-black sheets (verified: isAlienX=true, 30 stars / 3 nebulae). alienx recolor regenerated to
+  true matte-black. 4 skins now (Rose/Albedo/Ben 10/Alien X). 0 recolor-404s, render 26/0, det 14/0 · combo 225/9.
+
 ## Polish — GODSPEED tuning (faster still) ✅ (committed)
 - Flight cranked past Flash: maxH 15→**22**, maxV 12→**18**, accel 1.4→**2.2**, dashSpeed 24→**34**, liftoff
   −7→−9, drag 0.86→0.84, reverseBrake 0.68→0.64, ceilEaseZone 64→72. Render climb y 357→−344 (pins near

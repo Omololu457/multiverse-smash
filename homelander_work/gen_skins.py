@@ -29,6 +29,7 @@ def set_hsv(r, g, b, hue, sat, vmode):
     if vmode == "keep":   nv = v
     elif vmode == "raise": nv = min(1.0, v * 1.12 + 0.18)
     elif vmode == "lowerV": nv = v * 0.32
+    elif vmode == "brown": nv = v * 0.62
     else: nv = v
     nr, ng, nb = colorsys.hsv_to_rgb(hue, sat, nv)
     return int(nr * 255), int(ng * 255), int(nb * 255)
@@ -50,12 +51,21 @@ SKINS = {
         "hair": lambda r, g, b: grey(r, g, b, 0.74, 1.0),                # blonde → white hair
         # red cape kept (Albedo red+black+white); skin kept
     },
+    # Alien X = matte-black Celestialsapien VOID (every region → near-black). The colourful starfield is
+    # NOT baked — it's the engine's runtime drawAlienXStarfield overlay (gated on skinId ending "AlienX").
     "alienx": {
-        "blue": lambda r, g, b: set_hsv(r, g, b, 0.72, 0.55, "lowerV"),  # near-black (faint cosmic purple)
-        "red":  lambda r, g, b: grey(r, g, b, 0.03, 0.16),               # black cape
-        "hair": lambda r, g, b: grey(r, g, b, 0.03, 0.18),               # black hair
-        "skin": lambda r, g, b: grey(r, g, b, 0.08, 0.26),               # no skin tone — dark body
-        "other": lambda r, g, b: grey(r, g, b, 0.05, 0.2),
+        "blue": lambda r, g, b: grey(r, g, b, 0.02, 0.12),
+        "red":  lambda r, g, b: grey(r, g, b, 0.02, 0.12),
+        "hair": lambda r, g, b: grey(r, g, b, 0.02, 0.13),
+        "skin": lambda r, g, b: grey(r, g, b, 0.03, 0.14),
+        "white": lambda r, g, b: grey(r, g, b, 0.10, 0.22),   # dim the white highlights so the starfield reads
+        "other": lambda r, g, b: grey(r, g, b, 0.02, 0.12),
+    },
+    # Ben 10 — Omnitrix green suit, black accents, brown hair.
+    "ben10": {
+        "blue": lambda r, g, b: set_hsv(r, g, b, 0.33, 0.80, "keep"),    # Omnitrix green suit
+        "red":  lambda r, g, b: grey(r, g, b, 0.04, 0.17),              # black cape / boots / gloves
+        "hair": lambda r, g, b: set_hsv(r, g, b, 0.075, 0.72, "brown"),  # brown hair
     },
 }
 

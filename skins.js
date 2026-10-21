@@ -1805,7 +1805,10 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.homelander?.portrait, spriteScale: characters.homelander?.spriteScale, animationData: null },
     { id: "homelander_rose",   name: "Rose",    unlockLevel: 0, portrait: recolorPortrait("homelander", "rose"),   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "rose") },
     { id: "homelander_albedo", name: "Albedo",  unlockLevel: 0, portrait: recolorPortrait("homelander", "albedo"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "albedo") },
-    { id: "homelander_alienx", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("homelander", "alienx"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "alienx") },
+    { id: "homelander_ben10",  name: "Ben 10",  unlockLevel: 0, portrait: recolorPortrait("homelander", "ben10"),  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "ben10") },
+    // id ENDS "AlienX" so game.js drawAlienXStarfield auto-gates the colourful Celestialsapien starfield
+    // overlay onto the matte-black (alienx) sheets — matching every other character's Alien X skin.
+    { id: "homelanderAlienX",  name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("homelander", "alienx"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "alienx") },
   ],
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },

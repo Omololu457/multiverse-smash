@@ -91,12 +91,13 @@ const goku = {
     // recolours them per form). grab reuses the heavy lunge pose; the crescent-kick normal lands in 4b with
     // the arc effect.
     light:       { frames: 2, width: 48, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_light_uniform.png" },      // jab
-    heavy:       { frames: 2, width: 55, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // advancing lunge punch
+    heavy:       { frames: 2, width: 67, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // side kick (windup → extend)
     up:          { frames: 2, width: 36, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_up_uniform.png" },         // uppercut launcher (anti-air)
     air:         { frames: 2, width: 44, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_air_uniform.png" },        // aerial strike
     down_air:    { frames: 2, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_down_air_uniform.png" },   // diving-down strike
-    crouchLight: { frames: 2, width: 72, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },// low kick
-    grab:        { frames: 2, width: 55, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // reuse the lunge reach for the throw
+    crouchLight: { frames: 2, width: 76, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },// low sweep kick (dark-blue arc)
+    grab:        { frames: 2, width: 67, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // reuse the side-kick reach for the throw
+    gokuCrescent:{ frames: 2, width: 55, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crescent_uniform.png" },   // Fwd+Heavy spinning crescent-kick launcher
     // INTRO — the excited hop/stretch ("I'm getting excited!"); reuses the win cheer strip (same frames).
     intro: { frames: 8, width: 56, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
     win:   { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },   // victory cheer (arms-raised)

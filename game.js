@@ -9777,6 +9777,7 @@ function handleToggleInputs(fighter, key) {
   if (key === c.charge && !fighter._chargeHeld) {
     fighter._chargeHeld     = true
     fighter._chargeDownTime = performance.now()
+    fighter._gokuChargeDir  = null   // fresh charge → clear the Goku ladder direction latch
   }
 }
 
@@ -10122,16 +10123,16 @@ function handleChargeRelease(fighter, key) {
   }
 
   // GOKU — 7-LEVEL LADDER (clean rebuild). Charge is Goku's Ki button: HOLD builds Ki (doEnergyCharge,
-  // vulnerable). The direction HELD AT RELEASE picks the action — Up = climb one level, Down = power down to
-  // base, Back = Kaioken toggle (Base/Blue), neutral = just bank the Ki (no transform). _gokuChargeDir is
-  // captured each frame while Charge is held (updateMovementInput). All on Goku's dedicated button → no
-  // collision with normals/specials/ultimate.
+  // vulnerable). A direction TAPPED any time during the hold is latched (_gokuChargeDir) and, on release,
+  // picks the action — FORWARD = climb one level · BACK = power down to base · DOWN = Kaioken toggle
+  // (Base/Blue) · NEUTRAL = just bank the Ki. UP is deliberately NOT used (it is bound to jump). All on
+  // Goku's dedicated Charge button → no collision with normals/specials/ultimate/jump.
   if ((fighter.rosterKey || "").toLowerCase() === "goku") {
     const dir = fighter._gokuChargeDir || null
     if (wasHeld) {
-      if (dir === "U") enterGokuNextForm(fighter, getAbilityContext())
-      else if (dir === "D") revertGoku(fighter)
-      else if (dir === "B") toggleGokuKaioken(fighter, getAbilityContext())
+      if (dir === "F") enterGokuNextForm(fighter, getAbilityContext())     // climb one level
+      else if (dir === "B") revertGoku(fighter)                            // power down to base
+      else if (dir === "D") toggleGokuKaioken(fighter, getAbilityContext()) // Kaioken (Base/Blue)
       // neutral release → no-op (Ki already banked during the hold)
     }
     fighter._gokuChargeDir = null
@@ -10876,10 +10877,13 @@ function updateMovementInput(fighter) {
   if (fighter._bpActive) { fighter.isBlocking = false; fighter.isCharging = false; return }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
-  // GOKU ladder: while the Charge button is held, remember the direction so handleChargeRelease can read it
-  // at release (Up=climb · Down=power down · Back=Kaioken · neutral=bank Ki). Only Goku reads this.
-  if (inputState.charge && (fighter.rosterKey || "").toLowerCase() === "goku")
-    fighter._gokuChargeDir = betaHeldDirFromInput(inputState, fighter.facing)
+  // GOKU ladder: while the Charge button is held, LATCH the direction tapped (so handleChargeRelease can read
+  // it at release: Fwd=climb · Back=power down · Down=Kaioken · neutral=bank Ki). Latching (not per-frame
+  // overwrite) is forgiving — a brief tap mid-charge sticks. UP is ignored (it's jump). Only Goku reads this.
+  if (inputState.charge && (fighter.rosterKey || "").toLowerCase() === "goku") {
+    const _gd = betaHeldDirFromInput(inputState, fighter.facing)
+    if (_gd && _gd !== "U") fighter._gokuChargeDir = _gd
+  }
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)

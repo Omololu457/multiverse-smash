@@ -38,13 +38,15 @@ PICKS = {
                (482,13,37,55),(524,12,38,56),(588,13,43,56),(638,17,50,52)],
  # ── PHASE 4a normals (real attack strips; replace the Phase-3 guard-pose placeholder) ──
  "light":     [(376,651,42,60),(425,651,26,60)],          # quick jab
- "heavy":     [(270,1419,49,54),(340,1404,33,69)],        # advancing lunge punch
+ "heavy":     [(972,650,41,61),(1016,658,61,53)],          # side kick (windup → extend) — a KICK vs the jab
  "up":        [(196,647,30,64),(241,646,29,65)],          # uppercut launcher (anti-air)
  "air":       [(309,1347,32,48),(360,1328,38,67)],        # aerial strike
  "down_air":  [(786,655,46,56),(853,666,53,45)],          # diving-down strike
- "crouchLight":[(453,650,66,61),(522,651,65,60)],         # low kick / sweep
+ "crouchLight":[(972,650,41,61),(1080,660,70,51)],        # low sweep kick (windup → dark-blue sweep arc)
  # ── PHASE 4d: battle-damage shirtless frames → LOSE pose + low-HP idle (idleLow) ──
  "battleDamage":[(1004,212,44,70),(1052,212,44,70)],
+ # ── variety: Fwd+Heavy CRESCENT KICK launcher (high kick → spinning crescent) ──
+ "crescent":[(376,1417,44,56),(534,1436,49,37)],
 }
 PAD = 3
 TEAL_TOL = 28      # teal → transparent key (sprite colours are all >TOL away from #008080)

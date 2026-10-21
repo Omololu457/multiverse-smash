@@ -261,4 +261,19 @@ Spirit-Bomb 3-size charge + Dragon-Fist code spiral = render refinements.
 
 **PHASE 4 COMPLETE** (normals · specials · 7 ultimates · UI auto-dodge · God regen ·
 intro/win/lose · sound). Also fixed walk (upright stride) + hurt (recoil) frames.
+
+### Playtest fixes (user feedback)
+- **TRANSFORMATIONS WERE BROKEN** — the transform input used `Up`, but `up` and `jump`
+  are both bound to `w`, so Charge+Up just jumped. Re-mapped to non-jump directions:
+  **Charge+Forward = climb · Charge+Back = power down · Charge+Down = Kaioken** (neutral
+  release still banks Ki). The held direction is now LATCHED during the charge (forgiving)
+  and cleared on a fresh charge. Real-keyboard test `goku_transform_input_live.mjs` 5/0.
+- **Heavy (K) was weird** — re-picked it to a clean **side kick** (windup→extend), a kick
+  vs the light jab. **crouchLight** → the **low sweep kick with the dark-blue arc**.
+- **Mugshot was MISSING** (`goku_portrait.png` didn't exist) — generated a head-bust
+  portrait (base + per-form, `goku_work/portraits.py`) for the Phase-5 mugshot swap.
+- **More variety** — added a **Fwd+Heavy crescent-kick launcher** (`gokuCrescent`,
+  re-enabled `updateGokuCommandCombat`). Normals are now jab / side-kick / uppercut-AA /
+  aerial / dive / sweep-arc + the crescent command move. Variety test 7/0.
+Guards green (determinism 14/0, combo 225/9, roster ✅); all goku harnesses pass.
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

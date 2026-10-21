@@ -2059,9 +2059,10 @@ const GOKU_DIMS = {
   idle:{f:6,w:54,h:60,sp:7}, walk:{f:4,w:36,h:70,sp:6}, jump:{f:3,w:50,h:71,sp:5},
   crouch:{f:2,w:63,h:47,sp:6}, guard:{f:2,w:53,h:53,sp:6}, hurt:{f:1,w:50,h:59,sp:5},
   knockdown:{f:1,w:74,h:30,sp:5}, getup:{f:1,w:40,h:44,sp:4}, kiCharge:{f:8,w:42,h:71,sp:5}, win:{f:8,w:56,h:62,sp:6},
-  light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:55,h:75,sp:3}, up:{f:2,w:36,h:71,sp:3},
-  air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:72,h:67,sp:3},
-  battleDamage:{f:2,w:50,h:76,sp:7},
+  light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:67,h:67,sp:3}, up:{f:2,w:36,h:71,sp:3},
+  air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:76,h:67,sp:3},
+  grab:{f:2,w:67,h:67,sp:3},
+  battleDamage:{f:2,w:50,h:76,sp:7}, crescent:{f:2,w:55,h:62,sp:3},
 }
 // Per-form _skinAnim: base animationData + this form's recolored movement/state sheets (goku_<form>_<action>).
 function gokuFormAnim(form) {
@@ -2083,7 +2084,7 @@ function gokuFormAnim(form) {
     // normals — per-form recoloured strips so a transformed Goku's attacks match his form
     light: mk("light"), heavy: mk("heavy"), up: mk("up"), air: mk("air"),
     down_air: mk("down_air"), crouchLight: mk("crouchLight"),
-    grab: { ...mk("heavy") },
+    grab: { ...mk("heavy") }, gokuCrescent: mk("crescent"),
   }
 }
 // gokuFormAnim overrides ONLY locomotion/state (idle/walk/run/jump/fall/dash) with the form's REAL recoloured
@@ -8434,20 +8435,24 @@ function fireGokuCmd(fighter, key) {
 }
 export function updateGokuCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "goku" || !inputState) return false
-  return false   // PHASE 3: the "Meteor Combination" rekka (and all command normals) are rebuilt in PHASE 4.
   const grounded = fighter.onGround ?? fighter.grounded ?? false
-  const phase    = getPhase?.(fighter)
-  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
-  fighter._cmdPrevHeavy = !!inputState.heavy
-  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
-  const opp  = context?.getOpponent?.(fighter)
-  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
-  if (next) return fireGokuCmd(fighter, next)
-  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const heavyEdge = !!inputState.heavy && !fighter._gokuCmdPrevHeavy      // fresh Heavy tap
+  fighter._gokuCmdPrevHeavy = !!inputState.heavy
+  const forward = (fighter.facing === 1) ? !!inputState.right : !!inputState.left
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (!canStart || !grounded) return false
-  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` lunge-punch.
-  if (forward && heavyEdge) return fireGokuCmd(fighter, "gokuRush1")
+  if (grounded && canStart && forward && heavyEdge) {
+    // CRESCENT KICK — Fwd+Heavy spinning-kick LAUNCHER (variety move; neutral Heavy stays the side kick).
+    const off = gokuOffense(fighter)
+    const attack = createAttackFromMove(fighter, "gokuCrescent", {
+      damage: Math.round(70 * off), startup: 8, active: 5, recovery: 18,
+      hitstun: 22, knockbackX: 4, knockbackY: -10, launchVy: -26, rangeX: 82, rangeY: 62,
+    })
+    setAttackState(fighter, attack, 28)
+    fighter.vx = (fighter.facing || 1) * 3
+    try { sound.playJuiceSfx?.("swish_fast_02") } catch (_) {}
+    try { focusCameraOnAction(context, fighter, null, 1.0, 8); shakeCamera(context, 5, 6) } catch (_) {}
+    return true
+  }
   return false
 }
 

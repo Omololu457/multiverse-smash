@@ -19233,6 +19233,12 @@ function updateTrainingMode() {
     for (const f of [p1, p2]) {
       if (f.maxHealth) f.health = f.maxHealth
       if (f.maxEnergy) f.energy = f.maxEnergy
+      // HOMELANDER training toggles: pin flight energy + laser heat to full and clear overheat so
+      // flight and Heat Vision can be practiced without the gauges depleting. Gated → no-op otherwise.
+      if ((f.rosterKey || "").toLowerCase() === "homelander") {
+        if (f._flightCtl) f._flightCtl.energy = getFlightProfile(f)?.energyMax ?? 240
+        f._laserHeat = HV_HEAT_MAX; f._hvOverheat = 0
+      }
     }
   }
 

@@ -130,6 +130,15 @@ try {
   ok(ultDmg > 0, `FLIGHT 37 slam dealt no damage (grab whiffed; dmg=${ultDmg})`)
   await frames(20)
 
+  // TRAINING TOGGLE — F3 (infinite resources): flight energy + laser heat stay pinned to full so
+  // they can be practiced. Fire a sustained beam and confirm the gauge does NOT drain.
+  await page.keyboard.press("F3"); await frames(3)
+  await page.keyboard.down("l"); await frames(22)
+  const prTrain = await probe()
+  await page.keyboard.up("l"); await frames(2)
+  ok(prTrain.laserHeat >= 70, `training infinite did not pin laser heat while firing (${prTrain.laserHeat})`)
+  await page.keyboard.press("F3"); await frames(2)   // toggle back off
+
   // both fighters + HUD still render, no errors
   const sf1 = await snap1(), sf2 = await snap2()
   ok(sf1 && sf1.health > 0 && sf2 && sf2.health > 0, "a fighter lost its HUD/health after the flight")

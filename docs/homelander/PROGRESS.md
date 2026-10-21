@@ -136,5 +136,10 @@ other character provably untouched.
 - **Render check 25/0**: casts, grab connects, slam deals **192** (320×scale) to p2; dark-startup silhouette
   renders (`_render_9_ult_startup.png`). det 14/0 · combo 225/9 · roster green.
 
-- NEXT: CPU AI (flight/lasers); Training-mode infinite flight/heat toggles; final `REPORT.md`. (Remaining
-  kit: Take A Ride, X-Ray, Super Hearing wiring, Flex, brutalities, intro/win/lose, sound, air normals.)
+## Phase 4b — Training-mode toggles ✅ (committed)
+- `game.js` infinite-resources block: when F3 infinite is on, Homelander's flight energy + laser heat are
+  pinned to full and overheat cleared (gated on rosterKey) so flight + Heat Vision can be practiced freely.
+- Render check 26/0 (fire a sustained beam with infinite on → heat stays pinned ≥70). det 14/0 · combo 225/9.
+
+- NEXT: CPU AI (flight/lasers). (Remaining kit: Take A Ride, X-Ray, Super Hearing wiring, Flex,
+  brutalities, intro/win/lose, sound, dedicated air normals.) `SUPERMAN_NOTES.md` + `REPORT.md` done.

@@ -18560,7 +18560,8 @@ function executeGhostfaceSpecial(fighter, context) {
 const GHOSTFACE_ULT       = { cost: 100, dmg: 320, blockRatio: 0.25 }
 const GHOSTFACE_ULT_BLEED = { ticks: 6, interval: 18, dmg: 10 }   // lethal finisher DoT on a CLEAN hit (60 over ~1.8s)
 function executeGhostfaceUltimate(fighter, context) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  // Fire for real Ghostface OR a Ghostface mid-Killer-Swap (rosterKey is borrowed Zaraki/Chrollo then).
+  if (!fighter || ((fighter.rosterKey || "").toLowerCase() !== "ghostface" && !(fighter._gfSwapActive && fighter._killerForm))) return false
   if (isGhostfaceFinalActCinematicActive()) return false            // already mid-cinematic
   if (!spendEnergy(fighter, GHOSTFACE_ULT.cost)) return false
   const opp = getTargetResolver(context)(fighter)
@@ -33391,7 +33392,9 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (fighter.attacking) return false
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
-  const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
+  // GHOSTFACE Killer Swap: while swapped into Enforcer/Assassin, the Ultimate fires Ghostface's OWN
+  // "The Final Act" (his signature works in any form) instead of the borrowed fighter's gated ult.
+  const key = (fighter._gfSwapActive && fighter._killerForm) ? "ghostface" : (fighter.rosterKey || fighter.id || "").toLowerCase()
   // ADDITIVE: Naruto-universe clone-choreography — pressing Ultimate while a clone formation is staged fires
   // the Ultimate-Swarm (the 6th move). Intercepted before the signature-ultimate switch, so the character's
   // real ultimate is untouched when NO formation is staged. Metered by the summon cost already paid.

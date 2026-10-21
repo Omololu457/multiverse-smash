@@ -103,6 +103,54 @@ Commit: _(this phase)_
 
 ---
 
-## Phase 3 — POWER LADDER ⏳ pending
+## Phase 3 — POWER LADDER ⏳ IN PROGRESS (groundwork committed; code surgery pending)
+
+**★ MAJOR DISCOVERY (verified, not from recon agent):** the "deleted" old Goku is
+NOT gone — it is a fully-wired STUB still present on origin/main:
+- `characters.js:20-123` — full `goku` object (4-form base/ssj/ssg/ssblue ladder,
+  specials dragonFist/kamehameha, animationData pointing to ~20 per-action strips
+  `goku_base_<action>_uniform.png` that **no longer exist** → currently can't render).
+- `abilities.js` — `GOKU_SPECIALS` (665), `fireGokuKamehameha` (669), `GOKU_FORM_ANIM`
+  (1913), `GOKU_LADDER` (1918), `enterGokuNextForm` (1923), `revertGoku` (1947),
+  `applyGokuFormSystem` (1959), `GOKU_KAIOKEN`/`applyGokuKaiokenLevel`/`toggleGokuKaioken`
+  (1975-2010), `GOKU_CMD`/`fireGokuCmd`/`updateGokuCommandCombat` (8144-8160).
+- `game.js` imports/uses those (80,111,155-168) + cleanup `revertGoku` (1276/4830/5869)
+  + intro voice (5037) + win voice (9379).
+- `skins.js:285-293` — goku default skin (+3 recolor skins albedo/valkyrie/alienx).
+- `combat.js:2410/2418` goku voice hooks; `combat.js:2960` render pick
+  (`fighter._skinAnim || fighter.animationData`). `spritesheets.js:163` manifest.
+- `comboStandard.js:157` classifies goku as a STANDARD_STRING built-in.
+
+**Engine fact:** sprites are **per-action uniform strips** (one PNG per action, N
+frames × fixed W×H, feet-aligned, anchorY 0), swapped per form via `fighter._skinAnim
+= GOKU_FORM_ANIM[form]`. My Phase-2 full-sheet recolors are the **slice source**, not
+the final art.
+
+**Decision (conservative, logged — "no clarifying questions"):** REBUILD the `goku`
+slot in place. Keep the rosterKey/skins/combo-standard registration (roster-integrity
+stays green; the task says add/keep Goku's own entry, never touch others' entries).
+Rewrite the object + replace the abilities.js ladder functions with **fresh** 7-form
+code (reuse none of the old logic), keeping export names stable so game.js imports
+don't break. The obsolete `harness/goku.test.mjs` (tests the deleted old sheets) will
+be rewritten to test the NEW goku — not to "make it pass" but because its subject was
+replaced (logged).
+
+**Reshaped Phase-3 work units:**
+- 3a — slice per-action uniform strips (idle/walk/run/jump/fall/crouch/guard/hurt/
+  knockdown/getup/ki-charge) from base + 6 form sheets → `goku_<form>_<action>_uniform.png`.
+- 3b — rewrite `goku` object (hp 1000, walk 5.0/run 7.5/jump 11/weight 1.0 mapped to
+  engine stats; 7-form transformations; new animationData; spriteScale for ~115-120px).
+- 3c — replace abilities.js ladder funcs with the 7-level sim (transform/powerdown/
+  charge inputs, ki drain, drop-on-zero gasp, UI timer, exhaustion, zenkai, transform
+  burst, GAME_STATE sync, deterministic hash).
+- 3d — transform cinematics (crossfade/flash/shake by level; reduce-flash/motion).
+- 3e — guards + render check (boot, pick Goku, transform once), commit.
+
+Groundwork committed now: `docs/goku/LADDER_DESIGN.md` (level table + sim-state +
+input plan) and this discovery log. Code surgery resumes next.
+
+Commit (groundwork): _(this commit)_
+
+### Phase 3 — remainder ⏳ pending
 ## Phase 4 — THE KIT ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

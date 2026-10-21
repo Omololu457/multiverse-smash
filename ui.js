@@ -3628,6 +3628,22 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.globalAlpha = flick * 0.95; ctx.fillStyle = "#d6f7ff"; ctx.fillRect(x - w / 2, y - h * 0.28, w, h * 0.56)   // inner body
         ctx.globalAlpha = 1;           ctx.fillStyle = "#ffffff"; ctx.fillRect(x - w / 2, y - h * 0.12, w, h * 0.24)    // white-hot core
         ctx.shadowBlur = 0
+      } else if (p.drawKind === "kamehameha") {
+        // GOKU KAMEHAMEHA — a long horizontal energy BEAM trailing behind a bright leading orb: white-hot
+        // core → form-coloured body → outer glow, flickering as it streaks. (Collision still uses w/h/radius.)
+        const len = p.beamLen || 170, h = p.h || 20
+        const col = p.color || "#bfeaff"
+        const dir = (p.vx || 0) < 0 ? -1 : 1
+        const flick = 0.85 + 0.15 * Math.sin(t * 0.8)
+        const left = (dir >= 0) ? (x - len) : x, bw = len
+        ctx.shadowBlur = 24; ctx.shadowColor = col
+        ctx.globalAlpha = flick * 0.9;  ctx.fillStyle = col;       ctx.fillRect(left, y - h / 2, bw, h)             // outer beam + glow
+        ctx.globalAlpha = flick * 0.95; ctx.fillStyle = "#e8f8ff"; ctx.fillRect(left, y - h * 0.26, bw, h * 0.52)   // inner body
+        ctx.globalAlpha = 1;            ctx.fillStyle = "#ffffff"; ctx.fillRect(left, y - h * 0.12, bw, h * 0.24)   // white-hot core
+        ctx.shadowBlur = 28                                                                                         // leading muzzle orb
+        ctx.globalAlpha = flick * 0.6;  ctx.fillStyle = col;       ctx.beginPath(); ctx.arc(x, y, h * 1.0, 0, Math.PI * 2); ctx.fill()
+        ctx.globalAlpha = flick;        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(x, y, h * 0.6, 0, Math.PI * 2); ctx.fill()
+        ctx.shadowBlur = 0
       } else if (p.drawKind === "waterwall") {
         const w = p.w || 34, h = p.h || 120
         ctx.shadowBlur = 16; ctx.shadowColor = "rgba(56,189,248,0.8)"

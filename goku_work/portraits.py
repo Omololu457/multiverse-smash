@@ -7,7 +7,7 @@ SHEETS = {"": "assets/source/goku_original.png", "ssj": "assets/goku_forms/goku_
           "ssj2": "assets/goku_forms/goku_ssj2.png", "ssj3": "assets/goku_forms/goku_ssj3.png",
           "god": "assets/goku_forms/goku_god.png", "blue": "assets/goku_forms/goku_blue.png",
           "ui": "assets/goku_forms/goku_ui.png"}
-BOX = (1103, 208, 1142, 244)   # tight head + face (avoids the clenched fists)
+BOX = (11, 13, 53, 54)   # the idle-frame head+face (clear mugshot) — same cell position in every form sheet
 def key_teal(im):
     a = np.array(im.convert("RGBA")); rgb = a[:, :, :3].astype(int)
     a[(np.abs(rgb - [0, 128, 128]).sum(2) <= 30), 3] = 0

@@ -695,7 +695,8 @@ function fireGokuKamehameha(fighter, context, opts = {}) {
       w: b.w, h: b.h, radius: Math.round(b.h * 0.6), speed: 22,
       damage: Math.round(92 * b.dmg * offense), hitstun: 20,
       knockbackX: 9, knockbackY: airDown ? 5 : -1, lifetime: 72, piercing: true,
-      color: b.color, spawnY: fighter.y + (fighter.h || 100) * (airDown ? 0.52 : 0.34),
+      color: b.color, drawKind: "kamehameha", beamLen: 160, vx: (fighter.facing || 1) * 22,
+      spawnY: fighter.y + (fighter.h || 100) * (airDown ? 0.52 : 0.34),
     }, context)
     try { shakeCamera(context, 6, 10) } catch (_) {}
   })
@@ -781,8 +782,9 @@ function runGokuBeamUlt(fighter, context, cfg) {
   const face = fighter.facing || 1, getOpp = getTargetResolver(context), offense = gokuOffense(fighter)
   schedulePendingSpawn(26, () => {
     spawnProjectile(fighter, "gokuKameUlt", {
-      w: cfg.w, h: Math.round(cfg.w * 0.14), radius: Math.round(cfg.w * 0.08), speed: 18, vx: face * 18,
+      w: cfg.w, h: 34, radius: Math.round(cfg.w * 0.08), speed: 18, vx: face * 18,
       damage: 0, visualOnly: true, lifetime: 60, piercing: true, isUltimate: true, color: cfg.color,
+      drawKind: "kamehameha", beamLen: cfg.w,
       spawnY: fighter.y + (fighter.h || 100) * 0.34,
     }, context)
     try { shakeCamera(context, 18, 26) } catch (_) {}

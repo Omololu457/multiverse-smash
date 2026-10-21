@@ -290,4 +290,14 @@ Guards green (determinism 14/0, combo 225/9, roster ✅); all goku harnesses pas
 - **Mugshot** — re-cropped the portraits tight on the face (base + per-form). NOTE: the
   user attached a custom mugshot image, but it was not on disk (a chat attachment isn't a
   file I can read) — to use it, save it into the repo and point me at the path.
+
+### Playtest fixes, round 3
+- **Kamehameha is now an ENERGY BEAM** — added a `"kamehameha"` projectile `drawKind`
+  (ui.js): a long horizontal beam, white-hot core → form-coloured body → outer glow + a
+  bright leading muzzle orb (modelled on the repulsorbeam/heatvision renderers). Wired into
+  the Kamehameha special (`beamLen 160`) and the Super/God/Kaioken-x10 ultimate beams
+  (`beamLen = cfg.w`). Screenshot-confirmed.
+- **Mugshot (again)** — re-cropped from the idle-frame head (clear face, same cell position
+  in every form sheet), base + per-form. Still auto-generated from the sheet; the user's own
+  attached image remains unavailable on disk (save it in-repo to use it).
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

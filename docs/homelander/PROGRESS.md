@@ -80,8 +80,23 @@ other character provably untouched.
   0 homelander-asset 404s** (pre-existing batman/etc. 404s ignored). Screenshots in `homelander_work/`.
 - Regression unchanged: determinism 14/0 · combo-standard 225/9 · roster-integrity green · flight-path
   1031/0 · flight-engine 1047/0.
-- NEXT (3c — the kit): Heat Vision (laser + heat gauge, per-frame eye anchor), Supersonic, Super-Speed
-  Barrage, Take A Ride, Sonic Clap, X-Ray, Super Hearing, Supe Durability, Flex, Ultimate FLIGHT 37,
-  brutalities, intro/win/lose, voice lines, sound mapping, air normals.
+### 3c-1 — HEAT VISION (signature laser) ✅ (committed)
+- `abilities.js`: `executeHomelanderSpecial` (dispatch case added to `triggerSpecial`) → Heat Vision on
+  neutral / Up (anti-air) / AIR (down-strafe). `applyHomelanderHeatVision` per-frame driver — code-drawn
+  hitscan beam from an eye-anchored origin, tap=burst / hold=sustained, up/down **sweep** at a capped
+  1.5°/frame, **LASER-HEAT gauge** (`_laserHeat`, sim state, 72f≈1.2s) → **overheat lockout** (dim eyes)
+  when empty, idle refill. Damage via `applyScaledDamage` on tick frames; block chips. `resetHomelanderKit`
+  clears it each round. All deterministic (no Math.random).
+- `game.js`: import + per-frame driver call (reads `readRawControls` held state) + `drawHomelanderHeatVision`
+  (white core + red glow + impact burst, world-space, render-only) in the FX pass + reset lists + laser
+  fields added to the `flightProbe` harness hook.
+- **Render check extended — `harness/homelander_render_check.mjs`: 20/0.** Fires Heat Vision: heat drains
+  72→52, **hits the opponent**, beam renders (screenshot `_render_5_heat_vision.png`), stops cleanly on
+  release, heat recovers 52→67. Regression unchanged (det 14/0 · combo 225/9 · roster green · flight
+  harnesses 1031/0 & 1047/0).
+- NEXT (3c-2…): Supersonic (dir special), Super-Speed Barrage, Take A Ride (command grab), Sonic Clap,
+  X-Ray, Super Hearing (passive), Supe Durability (−40% chip), Flex (parry), Ultimate FLIGHT 37,
+  brutalities, intro/win/lose, voice lines, sound mapping, air normals. Then Phase 4 (HUD bars + AI +
+  SUPERMAN_NOTES + REPORT).
 
 ## Phase 4 — HUD, AI, Superman readiness ⏳ pending

@@ -81,6 +81,22 @@ try {
   ok(prLand.onGround, `did not land (phase=${prLand.phase}, y=${prLand.y})`)
   await shot("4_landed")
 
+  // FIRE A LASER (Heat Vision = special "l"). Hold it so the sustained beam drains the heat gauge.
+  const heat0 = (await probe()).laserHeat
+  await page.keyboard.down("l"); await frames(18)
+  const prFire = await probe()
+  await shot("5_heat_vision")
+  await page.keyboard.up("l"); await frames(2)
+  ok(prFire.hvActive, "Heat Vision did not activate on special")
+  ok(prFire.laserHeat < heat0, `laser-heat gauge did not drain (${heat0} → ${prFire.laserHeat})`)
+  // beam stops after release, then heat recovers when idle
+  await frames(12)
+  const prStop = await probe()
+  ok(!prStop.hvActive, `beam did not stop after releasing special (heat=${prStop.laserHeat})`)
+  await frames(50)
+  const prCool = await probe()
+  ok(prCool.laserHeat > prStop.laserHeat, `laser-heat did not recover while idle (${prStop.laserHeat} → ${prCool.laserHeat})`)
+
   // both fighters + HUD still render, no errors
   const sf1 = await snap1(), sf2 = await snap2()
   ok(sf1 && sf1.health > 0 && sf2 && sf2.health > 0, "a fighter lost its HUD/health after the flight")
@@ -90,6 +106,7 @@ try {
   console.log("════════════════════════════════════════════")
   console.log(`  HOMELANDER RENDER CHECK: ${passed} passed, ${failed} failed`)
   console.log(`  takeoff.phase=${prTO?.phase} climb y ${yBefore}→${prUp.y} pose=${prUp.pose} cruise.action=${prCr.action} landed.phase=${prLand.phase}`)
+  console.log(`  laser: heat ${heat0}→${prFire.laserHeat} (active=${prFire.hvActive}, hit=${prFire.hvHit}) recovered→${prCool.laserHeat}`)
   console.log(`  JS-exceptions=${jsErrors.length}  homelander-404s=${my404.length}  (pre-existing batman/etc. 404s ignored)`)
   console.log("════════════════════════════════════════════")
   if (failed) fails.slice(0, 12).forEach(m => console.log("  ✗ " + m))

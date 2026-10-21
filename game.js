@@ -10416,6 +10416,10 @@ function detectDoubleTapDashTeleport(fighter, key) {
   const towardKey = target ? (target.x >= fighter.x ? c.right : c.left) : null
 
   const onDoubleTap = (isToward) => {
+    // FLIGHT MODULE: while flying (Homelander), a double-tap is the flight AIR-DASH (handled in
+    // physics.stepFlight via _dashTap), NEVER the ground speed-tier teleport — which, now that he's
+    // speed-tier, would hijack the air-dash and yank him across the screen ("got stuck after dashing").
+    if (fighter._flightCtl && isFlightModuleFlying(fighter)) { fighter._dashTap = true; return }
     if ((fighter.dashTeleport || isSpeedTierTeleport(fighter)) && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
       // MINATO FLYING RAIJIN: with ≥1 teleport mark placed, the F→F blink RECALLS to the selected
       // mark (his signature) instead of blinking behind the opponent. With no marks it falls through
@@ -27553,7 +27557,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0 } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

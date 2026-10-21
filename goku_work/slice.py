@@ -47,6 +47,8 @@ PICKS = {
  "battleDamage":[(1004,212,44,70),(1052,212,44,70)],
  # ── variety: Fwd+Heavy CRESCENT KICK launcher (high kick → spinning crescent) ──
  "crescent":[(376,1417,44,56),(534,1436,49,37)],
+ # ── KAMEHAMEHA cast pose: hands cupped at the hip (charge) → thrust forward (fire) ──
+ "kameha":[(3,1695,45,54),(48,1694,44,55),(93,1696,43,53),(139,1698,43,51)],
 }
 PAD = 3
 TEAL_TOL = 28      # teal → transparent key (sprite colours are all >TOL away from #008080)

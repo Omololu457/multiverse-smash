@@ -98,6 +98,7 @@ const goku = {
     crouchLight: { frames: 2, width: 76, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },// low sweep kick (dark-blue arc)
     grab:        { frames: 2, width: 67, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // reuse the side-kick reach for the throw
     gokuCrescent:{ frames: 2, width: 55, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crescent_uniform.png" },   // Fwd+Heavy spinning crescent-kick launcher
+    gokuKamehameha:{ frames: 4, width: 51, height: 61, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_kameha_uniform.png" },    // cupped-hands charge → thrust-forward fire
     // INTRO — the excited hop/stretch ("I'm getting excited!"); reuses the win cheer strip (same frames).
     intro: { frames: 8, width: 56, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
     win:   { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },   // victory cheer (arms-raised)

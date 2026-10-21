@@ -276,4 +276,18 @@ intro/win/lose · sound). Also fixed walk (upright stride) + hurt (recoil) frame
   re-enabled `updateGokuCommandCombat`). Normals are now jab / side-kick / uppercut-AA /
   aerial / dive / sweep-arc + the crescent command move. Variety test 7/0.
 Guards green (determinism 14/0, combo 225/9, roster ✅); all goku harnesses pass.
+
+### Playtest fixes, round 2 (user feedback)
+- **STILL couldn't transform** — the Charge+direction scheme wasn't discoverable. Switched
+  to the **universal DBZ idiom**: **hold Charge → release = climb** one level (Piccolo/
+  Frieza style). **Charge+Back = power down · Charge+Down = Kaioken.** Climbs are now
+  THRESHOLD-gated + FREE (Ki drains in-form, preserved for ultimates) — a flat per-climb
+  cost + hold-release would cap Ki below the 50-cost ultimates (logged). Real-keyboard
+  test `goku_transform_input_live.mjs` **7/0**.
+- **Real Kamehameha sprite** — sliced the cupped-hands-at-hip charge → thrust-forward fire
+  frames (row 24); `fireGokuKamehameha` now casts `gokuKamehameha` (was the kiCharge
+  placeholder). Per-form recoloured.
+- **Mugshot** — re-cropped the portraits tight on the face (base + per-form). NOTE: the
+  user attached a custom mugshot image, but it was not on disk (a chat attachment isn't a
+  file I can read) — to use it, save it into the repo and point me at the path.
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

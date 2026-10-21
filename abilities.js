@@ -685,7 +685,7 @@ function fireGokuKamehameha(fighter, context, opts = {}) {
   const airDown = !!opts.angleDown
   const wind = opts.chain ? 6 : 16, recovery = 20, dur = wind + recovery
   fighter.vx = 0
-  fighter._spriteCastMove = "kiCharge"; fighter._spriteCastTimer = dur
+  fighter._spriteCastMove = "gokuKamehameha"; fighter._spriteCastTimer = dur
   fighter.attackCooldown = getAttackDuration(dur, fighter)
   try { sound.playJuiceSfx?.("charge_hum_rise") } catch (_) {}        // Kamehameha charge hum
   const offense = gokuOffense(fighter)
@@ -802,8 +802,8 @@ function runGokuBeamUlt(fighter, context, cfg) {
 // SPIRIT BOMB (Base ultimate) — full Ki. Arms-raised gather, then a huge sphere hurled DOWN at the foe.
 function gokuSpiritBomb(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if ((fighter.energy || 0) < (fighter.maxEnergy || 100)) return false      // requires FULL Ki (pure heart)
-  if (!spendEnergy(fighter, fighter.maxEnergy || 100)) return false
+  if ((fighter.energy || 0) < 25) return false       // needs Ki (base-castable; power scales with the gather window)
+  if (!spendEnergy(fighter, 25)) return false
   fighter._spriteCastMove = "win"; fighter._spriteCastTimer = 84            // arms-raised gather pose
   fighter.attackCooldown = getAttackDuration(86, fighter)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 86); fighter.vx = 0
@@ -2062,7 +2062,7 @@ const GOKU_DIMS = {
   light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:67,h:67,sp:3}, up:{f:2,w:36,h:71,sp:3},
   air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:76,h:67,sp:3},
   grab:{f:2,w:67,h:67,sp:3},
-  battleDamage:{f:2,w:50,h:76,sp:7}, crescent:{f:2,w:55,h:62,sp:3},
+  battleDamage:{f:2,w:50,h:76,sp:7}, crescent:{f:2,w:55,h:62,sp:3}, kameha:{f:4,w:51,h:61,sp:4},
 }
 // Per-form _skinAnim: base animationData + this form's recolored movement/state sheets (goku_<form>_<action>).
 function gokuFormAnim(form) {
@@ -2084,7 +2084,7 @@ function gokuFormAnim(form) {
     // normals — per-form recoloured strips so a transformed Goku's attacks match his form
     light: mk("light"), heavy: mk("heavy"), up: mk("up"), air: mk("air"),
     down_air: mk("down_air"), crouchLight: mk("crouchLight"),
-    grab: { ...mk("heavy") }, gokuCrescent: mk("crescent"),
+    grab: { ...mk("heavy") }, gokuCrescent: mk("crescent"), gokuKamehameha: mk("kameha"),
   }
 }
 // gokuFormAnim overrides ONLY locomotion/state (idle/walk/run/jump/fall/dash) with the form's REAL recoloured
@@ -2101,14 +2101,18 @@ const GOKU_FORM_ANIM = {
 // Per-LEVEL rule table — index 0 = base. cost = Ki to climb INTO this level; drainPS = Ki/sec while in it;
 // tf = transform-burst frames (first 10 invuln + opponent pushback); dmg/spd/def = OUTGOING multipliers (spd
 // also scales walk/run/dash via fighter.baseSpeed each frame). Base dmg EXACTLY 1.00 (combo-standard unchanged).
+// thr = Ki THRESHOLD to climb INTO this level (hold-charge → release). The climb is FREE (no up-front spend)
+// so Ki is preserved for ultimates; each form then DRAINS Ki/s (drainPS) and drops a level at 0. (Same proven
+// model as Vegeta/Piccolo/Frieza — a flat per-climb COST + hold-release would cap Ki too low for the 50-cost
+// ultimates, so the brief's cost column became a threshold. Logged in REPORT.)
 const GOKU_FORMS = [
-  { key: "base", name: "Base",              cost: 0,   dmg: 1.00, spd: 1.00, def: 1.00, drainPS: 0,   tf: 0,  shake: 0  },
-  { key: "ssj",  name: "Super Saiyan",      cost: 25,  dmg: 1.10, spd: 1.05, def: 1.05, drainPS: 0.5, tf: 30, shake: 8  },
-  { key: "ssj2", name: "Super Saiyan 2",    cost: 25,  dmg: 1.18, spd: 1.10, def: 1.08, drainPS: 1.0, tf: 30, shake: 10 },
-  { key: "ssj3", name: "Super Saiyan 3",    cost: 50,  dmg: 1.28, spd: 0.92, def: 1.10, drainPS: 3.0, tf: 90, shake: 16 },
-  { key: "god",  name: "Super Saiyan God",  cost: 25,  dmg: 1.32, spd: 1.12, def: 1.12, drainPS: 1.0, tf: 40, shake: 11 },
-  { key: "blue", name: "Super Saiyan Blue", cost: 25,  dmg: 1.38, spd: 1.15, def: 1.15, drainPS: 0,   tf: 30, shake: 12 },  // 0 idle (active drain in P4)
-  { key: "ui",   name: "Ultra Instinct",    cost: 100, dmg: 1.45, spd: 1.20, def: 1.20, drainPS: 0,   tf: 60, shake: 14 },  // 15s timer, no Ki drain
+  { key: "base", name: "Base",              thr: 0,   dmg: 1.00, spd: 1.00, def: 1.00, drainPS: 0,   tf: 0,  shake: 0  },
+  { key: "ssj",  name: "Super Saiyan",      thr: 25,  dmg: 1.10, spd: 1.05, def: 1.05, drainPS: 0.5, tf: 30, shake: 8  },
+  { key: "ssj2", name: "Super Saiyan 2",    thr: 40,  dmg: 1.18, spd: 1.10, def: 1.08, drainPS: 1.0, tf: 30, shake: 10 },
+  { key: "ssj3", name: "Super Saiyan 3",    thr: 55,  dmg: 1.28, spd: 0.92, def: 1.10, drainPS: 3.0, tf: 90, shake: 16 },
+  { key: "god",  name: "Super Saiyan God",  thr: 65,  dmg: 1.32, spd: 1.12, def: 1.12, drainPS: 1.0, tf: 40, shake: 11 },
+  { key: "blue", name: "Super Saiyan Blue", thr: 80,  dmg: 1.38, spd: 1.15, def: 1.15, drainPS: 0,   tf: 30, shake: 12 },  // 0 idle drain
+  { key: "ui",   name: "Ultra Instinct",    thr: 100, dmg: 1.45, spd: 1.20, def: 1.20, drainPS: 0,   tf: 60, shake: 14 },  // from Blue at FULL Ki, 15s timer
 ]
 const GOKU_BASE_SPEED = 84, GOKU_BASE_DASH = 16
 // Per-form transform cue from the JUICE pack (layered over the shared DB transform sting). Biggest riser for
@@ -2148,8 +2152,7 @@ export function enterGokuNextForm(fighter, context = {}) {
   if (next >= GOKU_FORMS.length) return false           // already at Ultra Instinct
   const form = GOKU_FORMS[next]
   if (next === 6 && (idx !== 5 || (fighter.energy || 0) < (fighter.maxEnergy || 100))) return false   // UI: from Blue at FULL Ki
-  if ((fighter.energy || 0) < form.cost) return false
-  fighter.energy = Math.max(0, (fighter.energy || 0) - form.cost)
+  if ((fighter.energy || 0) < form.thr) return false   // Ki threshold to climb (FREE — no spend; form drains Ki)
   fighter._kaioken = 0                                  // climbing clears Kaioken (re-toggle at Blue)
   fighter.transformIndex = next
   fighter.currentForm = "goku_" + form.key              // NON-matching label → generic drain/revert stays off

@@ -10122,18 +10122,18 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
-  // GOKU — 7-LEVEL LADDER (clean rebuild). Charge is Goku's Ki button: HOLD builds Ki (doEnergyCharge,
-  // vulnerable). A direction TAPPED any time during the hold is latched (_gokuChargeDir) and, on release,
-  // picks the action — FORWARD = climb one level · BACK = power down to base · DOWN = Kaioken toggle
-  // (Base/Blue) · NEUTRAL = just bank the Ki. UP is deliberately NOT used (it is bound to jump). All on
-  // Goku's dedicated Charge button → no collision with normals/specials/ultimate/jump.
+  // GOKU — 7-LEVEL LADDER (clean rebuild). Charge is Goku's Ki button, the universal DBZ idiom:
+  //   • HOLD Charge to build Ki (doEnergyCharge, vulnerable), then RELEASE → CLIMB one level (if Ki ≥ the
+  //     next level's threshold; the climb is free, Ki drains in-form). Same as Piccolo/Frieza/Vegeta.
+  //   • hold Charge + tap BACK, then release → POWER DOWN to base.
+  //   • hold Charge + tap DOWN, then release → KAIOKEN toggle (Base/Blue).
+  // (UP is NOT used — it is bound to jump. Direction-based so it's frame-deterministic, not wall-clock.)
   if ((fighter.rosterKey || "").toLowerCase() === "goku") {
     const dir = fighter._gokuChargeDir || null
     if (wasHeld) {
-      if (dir === "F") enterGokuNextForm(fighter, getAbilityContext())     // climb one level
-      else if (dir === "B") revertGoku(fighter)                            // power down to base
-      else if (dir === "D") toggleGokuKaioken(fighter, getAbilityContext()) // Kaioken (Base/Blue)
-      // neutral release → no-op (Ki already banked during the hold)
+      if (dir === "B") revertGoku(fighter)                                 // Charge+Back → power down to base
+      else if (dir === "D") toggleGokuKaioken(fighter, getAbilityContext()) // Charge+Down → Kaioken (Base/Blue)
+      else enterGokuNextForm(fighter, getAbilityContext())                 // hold-release (neutral/Fwd) → climb
     }
     fighter._gokuChargeDir = null
     return

@@ -3,6 +3,15 @@
 Branch: `feat/homelander-flight` (off `main`). One commit per phase, push the branch after
 each phase. Never merge/push to `main`. Universe: **`dc`** (existing key; no new universe).
 
+## Polish — sizing fix + 3 skins ✅ (committed)
+- **Sizing**: `spriteScale` 1.2 → **1.6**. Measured body (measureSprite contentH) was ~89px at 1.2 (too
+  short); now ~115px — above roster median (~108), under tall outliers (Gojo 132). Verified in-game vs Gojo.
+- **Skins** (baked HSV region-recolor, `homelander_work/gen_skins.py` → 57 `*__<tag>.png` files, shading
+  preserved): **Rose** (darker-pink suit / lighter-pink hair / deep-rose cape), **Albedo** (Ben 10 villain:
+  blue suit→red + blonde hair→white), **Alien X** (near-black cosmic body). Registered in `skins.js` via
+  `recolorSkinAnim`/`recolorPortrait`. All applied in-game (bootSkin), **0 recolor-sheet 404s**, render
+  check 26/0, det 14/0 · combo 225/9 · roster green.
+
 ## Decisions / conservative calls (logged)
 - **Universe = `dc`** — found in `characters.js` (Flash, Batman, Superman×5, Green Lantern
   all use `universe:"dc"`). Homelander joins it. No new universe created.

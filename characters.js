@@ -8669,9 +8669,11 @@ const homelander = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  // cellH 77 × 1.2 × 1.18 ≈ 109px on-screen (≈ roster median). REQUIRES the skins.js `homelander`
-  // default entry (spriteScale gate) + the spritesheets.js SPRITE_MANIFEST idle gate.
-  spriteScale: 1.2,
+  // SIZING: measured on-screen BODY (measureSprite contentH) = 108px at 1.5 (≈ roster median) vs ~89px at
+  // the old 1.2 (too short). 1.6 → ~115px — a touch above median, fitting an imposing Supe powerhouse,
+  // while staying well under tall outliers (Gojo ~132). REQUIRES the skins.js `homelander` default entry
+  // (spriteScale gate) + the spritesheets.js SPRITE_MANIFEST idle gate.
+  spriteScale: 1.6,
   animationData: {
     // Homelander hovers like Omni-Man → ground idle/walk/run/dash all reuse the hover pose.
     idle: { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },

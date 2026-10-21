@@ -64,4 +64,24 @@ other character provably untouched.
   auto-face) + sprite.js flight-pose resolution + character registration (characters.js / spritesheets.js
   / skins.js + sliced frames) → then the kit + a browser render check.
 
+### 3b — Character registration + full flight wiring + RENDER CHECK ✅ (committed)
+- Sprites: 18 per-action strips sliced from the sheet (`homelander_work/slice.py`) → `homelander_*_uniform.png`
+  (84×77 cells, foot-anchored, consistent scale) + `homelander_portrait.png`.
+- `characters.js`: full `homelander` entry (dc universe, HP 1050, `traits.flightProfile:"homelander"`,
+  basic normals + kit DATA + 23-action animationData incl. all flight poses) + collection key.
+- `spritesheets.js` idle gate, `skins.js` default entry (spriteScale gate).
+- `sprite.js`: gated flight-pose branch maps `_flightCtl.poseKey` → fly animation (hover/cruise/rise/
+  dive/turn/dash/takeoff/land). `game.js`: flight.js import; charge-tap takeoff (@10203); per-frame
+  `tickFlightDriver` + opponentX auto-face (@18877); `resetFlight` in all 4 round-reset lists; read-only
+  `flightProbe` harness hook. `flight.js`: `resetFlight` only touches real flyers.
+- **RENDER CHECK (Playwright, real game boot) — `harness/homelander_render_check.mjs`: 16/0.** Picks
+  Homelander vs Batman, starts the match, takes off (→flying), climbs (y 378→113), cruises (rendering
+  `homelander_flyCruise_uniform.png`), lands (→grounded). Both fighters + HUD render; **0 JS exceptions,
+  0 homelander-asset 404s** (pre-existing batman/etc. 404s ignored). Screenshots in `homelander_work/`.
+- Regression unchanged: determinism 14/0 · combo-standard 225/9 · roster-integrity green · flight-path
+  1031/0 · flight-engine 1047/0.
+- NEXT (3c — the kit): Heat Vision (laser + heat gauge, per-frame eye anchor), Supersonic, Super-Speed
+  Barrage, Take A Ride, Sonic Clap, X-Ray, Super Hearing, Supe Durability, Flex, Ultimate FLIGHT 37,
+  brutalities, intro/win/lose, voice lines, sound mapping, air normals.
+
 ## Phase 4 — HUD, AI, Superman readiness ⏳ pending

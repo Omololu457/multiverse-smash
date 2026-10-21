@@ -113,11 +113,12 @@ export function isFlying(fighter) {
 }
 export function flightPhase(fighter) { return fighter._flightCtl ? fighter._flightCtl.phase : FLIGHT_PHASE.GROUNDED }
 
-// Full reset (round start / match reset) — nothing leaks across rounds.
+// Full reset (round start / match reset) — nothing leaks across rounds. Only touches real flyers:
+// a non-flyer is left with NO _flightCtl at all (so every gated engine branch stays a strict no-op).
 export function resetFlight(fighter) {
   if (!fighter) return
   fighter._flightCtl = null
-  ensureFlightState(fighter)
+  if (hasFlight(fighter)) ensureFlightState(fighter)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

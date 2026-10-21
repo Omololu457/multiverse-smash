@@ -8624,6 +8624,79 @@ const greenLantern = {
 // Mahoraga adaptation ultimate (NEW engine scope). REQUIRES the skins.js `handler` default entry
 // (else applySkin() → spriteScale:1 native shrink) + the spritesheets.js idle gate.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// HOMELANDER (The Boys) — placed in the EXISTING `dc` universe (prototype for a future Superman).
+// Aerial zoner & bully. Uses the NEW reusable flight module (flight.js) — gated on
+// traits.flightProfile:"homelander" (NOT traits.canFly, which drives the separate simple Omni-Man/
+// Superman flight). Sprites sliced from the attached sheet → ./homelander_*_uniform.png (84×77 cells,
+// foot-anchored). Stats follow the brief (HP 1050; walk ~4.6 / run ~7 mapped to the engine's speed
+// band; weight 1.15 → durable, hard to launch). The full kit (Heat Vision, Supersonic, Barrage, Take
+// A Ride, Sonic Clap, X-Ray, Super Hearing, Flex, FLIGHT 37) lands in the Phase-3 kit pass; this
+// registration ships a pickable, flying Homelander with basic normals + flight.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const homelander = {
+  rosterKey: "homelander", name: "Homelander", universe: "dc", color: "#2b5fd0",
+  portrait: "./homelander_portrait.png",
+  archetypes: ["flight", "melee"],
+  primary: "flight", secondary: ["melee"],
+  // flightProfile selects the flight.js FLIGHT PROFILE. NO canFly → the old simple flight is untouched.
+  traits: { hasEnergy: true, energyType: "flight", mobility: "high", scaling: "damage", animeMovement: false, flightProfile: "homelander" },
+  passive: { name: "Supe Physiology", effect: "Nigh-invulnerable Supe: durable, super-hearing, and an aerial zoner once airborne on flight energy" },
+  // Brief stats: health 1050, walk 4.6, run 7, jump 10, weight 1.15. Mapped to engine conventions:
+  // speed 80 → walk ≈5.0 (ground speed matters little for a flyer); dashSpeed 14 → run tier; a normal
+  // jumpPower (he flies instead of jumping); heavyweight durability via HP + defense 92.
+  stats: { maxHealth: 1050, maxEnergy: 100, attack: 90, defense: 92, speed: 80, maxJumps: 2, jumpPower: 24, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 32 },
+  basic_attacks: {
+    light:     { damage: 46, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0, rangeX: 76 },
+    heavy:     { damage: 100, startup: 12, active: 5, recovery: 24, hitstun: 22, knockbackX: 10, knockbackY: 2, rangeX: 92, rangeY: 48 },   // cape-wrapped haymaker
+    upAttack:  { type: "launcher", damage: 80, startup: 10, active: 4, recovery: 20, hitstun: 22, blockstun: 10, knockbackX: 3, knockbackY: -12, launch: 12, airOK: false },
+    airAttack: { damage: 70, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: -2 },
+    downAir:   { damage: 95, startup: 11, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: 13 },
+    grab:      { damage: 34, startup: 6, active: 3, recovery: 15, hitstun: 22, throwForceX: 7, throwForceY: -5 }
+  },
+  // Kit DATA declared for the roster/UI; behaviour wiring (abilities.js) lands in the kit pass.
+  specials: {
+    heatVision: { cost: 0, damage: 90, effect: "twin eye beams from the per-frame eye anchor; tap=burst, hold=sweepable beam (laser-heat gauge)" },
+    supersonic: { cost: 25, damage: 110, subtype: "mobility", effect: "supersonic dash + shockwave; passes through projectiles (Mach Ram dive in flight)" },
+    barrage:    { cost: 20, damage: 95, effect: "super-speed fist flurry → launcher" },
+    sonicClap:  { cost: 15, damage: 40, effect: "thunderclap shockwave: pushes away + destroys weak projectiles" }
+  },
+  ultimate: { name: "FLIGHT 37", cost: 100, duration: 6, effect: "dark-silhouette supersonic grab → carry to the sky → Heat Vision slam" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  hasSprites: true,
+  // cellH 77 × 1.2 × 1.18 ≈ 109px on-screen (≈ roster median). REQUIRES the skins.js `homelander`
+  // default entry (spriteScale gate) + the spritesheets.js SPRITE_MANIFEST idle gate.
+  spriteScale: 1.2,
+  animationData: {
+    // Homelander hovers like Omni-Man → ground idle/walk/run/dash all reuse the hover pose.
+    idle: { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },
+    walk: { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },
+    run:  { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },
+    dash: { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },
+    jump: { frames: 3, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_jump_uniform.png" },
+    fall: { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_fall_uniform.png" },
+    hurt: { frames: 2, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_hurt_uniform.png" },
+    knockdown: { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_knockdown_uniform.png" },
+    // basic normals
+    light: { frames: 3, width: 84, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_light_uniform.png" },
+    heavy: { frames: 4, width: 84, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_heavy_uniform.png" },
+    air:   { frames: 2, width: 84, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_flyDash_uniform.png" },
+    grab:  { frames: 4, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_grab_uniform.png" },
+    heatCharge: { frames: 4, width: 84, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_heatCharge_uniform.png" },
+    ultSilhouette: { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_ultSilhouette_uniform.png" },
+    // ── FLIGHT poses (resolved in sprite.js from _flightCtl.poseKey) ─────────────────────────────
+    flyHover:  { frames: 4, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_flyHover_uniform.png" },
+    flyCruise: { frames: 4, width: 84, height: 77, speed: 6, anchorY: 0, sheet: "./homelander_flyCruise_uniform.png" },
+    flyRise:   { frames: 3, width: 84, height: 77, speed: 5, anchorY: 0, sheet: "./homelander_flyRise_uniform.png" },
+    flyDive:   { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_flyDive_uniform.png" },
+    flyTurn:   { frames: 2, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_flyTurn_uniform.png" },
+    flyDash:   { frames: 2, width: 84, height: 77, speed: 5, anchorY: 0, sheet: "./homelander_flyDash_uniform.png" },
+    takeoff:   { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_takeoff_uniform.png" },
+    land:      { frames: 1, width: 84, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./homelander_land_uniform.png" }
+  }
+}
+
 const handler = {
   rosterKey: "handler", name: "Megumi", universe: "jujutsu_kaisen",   // display name Megumi (owner-named); internal rosterKey stays `handler`
   portrait: "./handler_portrait.png",   // bust carved from the sword-drawn win stance (Stage 6)
@@ -11202,6 +11275,7 @@ export const characters = {
   deathstroke,
   brainiac,
   green_lantern: greenLantern,
+  homelander,
   yuta,
   handler,
   dark_knight: darkKnight,

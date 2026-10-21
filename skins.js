@@ -1798,6 +1798,10 @@ export const SKINS = {
   // native ~127px (his idle content is already large, so the fallback would OVER-size then his own
   // <1 scale wouldn't apply). Sources his real spriteScale (0.95) from the character. No portrait yet
   // (procedural name/universe panel on select until Stage 6). No alt skins yet.
+  // HOMELANDER (dc) — default-only (spriteScale gate so applySkin keeps his 1.2 scale). Alt skins later.
+  homelander: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.homelander?.portrait, spriteScale: characters.homelander?.spriteScale, animationData: null },
+  ],
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

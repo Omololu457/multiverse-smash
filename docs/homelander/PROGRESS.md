@@ -49,5 +49,19 @@ data) is Phase-3 work and the natural place to wire the proven module in. Phase 
 **verified reusable module** with its own headless proof, keeping the branch clean and every
 other character provably untouched.
 
-## Phase 3 — The Kit ⏳ pending (includes the flight in-engine wiring + render check)
+## Phase 3 — The Kit ⏳ in progress
+### 3a — Flight wired into the engine physics ✅ (committed)
+- `physics.js`: gated branches in `moveFighter` (flight.js owns x+y while airborne → early return)
+  and `applyGravity` (skip gravity while flying). Both gated on `fighter._flightCtl && isFlying` →
+  strict no-op for every other fighter (incl. the separate `_flightActive` Omni-Man/Superman system).
+- `flight.js`: added `flightToggleInput` (charge-edge takeoff / descend-to-land request).
+- `harness/homelander_flight_engine.mjs`: drives the REAL `physics.js` with a synthetic flyer —
+  **1047 passed / 0 failed** (takeoff→airborne, climb, cruise, air-dash Δx 7.78>maxH, lands feet-on-
+  floor, bounds respected, and a non-flyer is provably untouched: no state leak, walks normally).
+- Regression: determinism 14/0 · combo-standard 225/9 (pre-existing) · roster-integrity green · the
+  standalone flight-path harness 1031/0 — all unchanged from baseline.
+- NEXT (3b): game.js wiring (charge-edge toggle @10203, driver @18873, reset lists, opponentX for
+  auto-face) + sprite.js flight-pose resolution + character registration (characters.js / spritesheets.js
+  / skins.js + sliced frames) → then the kit + a browser render check.
+
 ## Phase 4 — HUD, AI, Superman readiness ⏳ pending

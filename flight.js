@@ -141,6 +141,14 @@ export function flightTakeoff(fighter) {
   return true
 }
 
+// Takeoff-input toggle (bound to the charge/L2 edge in game.js): on the ground → take off;
+// while flying → request a controlled descent-to-land (held Up cancels it in stepFlight).
+export function flightToggleInput(fighter) {
+  if (!hasFlight(fighter)) return false
+  if (isFlying(fighter)) { ensureFlightState(fighter).wantDescend = true; return true }
+  return flightTakeoff(fighter)
+}
+
 // Begin a soft landing (hold-down, energy-out). recovery picks the air-attack length if flagged.
 function beginLanding(fighter, p, c) {
   c.phase = FLIGHT_PHASE.LANDING
@@ -242,13 +250,14 @@ export function stepFlight(fighter, input, env) {
   }
   fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
 
-  // ── LAND TRIGGERS: hold-down-near-floor, or energy ran out ───────────────────
+  // ── LAND TRIGGERS: hold-down-near-floor, energy ran out, or a charge-tap descend request ─────
   const nearFloor = (feetFloor - fighter.y) <= p.landThreshold || fighter.y >= feetFloor - 0.5
+  if (U && !D) c.wantDescend = false                 // held Up cancels a pending descend request
   if (c.phase !== FLIGHT_PHASE.TAKEOFF) {
-    const outOfEnergy = c.energy <= 0
+    const descend = c.energy <= 0 || c.wantDescend    // out of energy OR charge-tapped to come down
     if ((input.holdDown || (D && !U)) && nearFloor) { beginLanding(fighter, p, c); landed = true }
-    else if (outOfEnergy && nearFloor) { beginLanding(fighter, p, c); landed = true }
-    else if (outOfEnergy && fighter.vy < 2) { fighter.vy = 2 }   // ran dry up high → sink until near the floor
+    else if (descend && nearFloor) { beginLanding(fighter, p, c); landed = true }
+    else if (descend && fighter.vy < 2) { fighter.vy = 2 }   // up high → sink until near the floor, then land
   }
   return { landed }
 }

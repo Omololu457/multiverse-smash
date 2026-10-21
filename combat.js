@@ -806,6 +806,28 @@ export function shouldMilesStealthEvade(defender) {
   defender.invulnTimer   = Math.max(defender.invulnTimer || 0, 5)
   return true
 }
+// GOKU — ULTRA INSTINCT auto-dodge (form 6 only). In neutral (NOT attacking / NOT in recovery) an incoming
+// strike OR projectile is dodged for 8 Ki: the body slips a short distance away (silver shimmer + brief
+// i-frames so one blow isn't re-dodged every overlap frame), the outline ghost stays (_gokuGhost), and the
+// next attack within 20 frames is a guaranteed counter-hit (_gokuCounter). NOT dodged: grabs, unblockables,
+// full-screen ultimates, or hits while Goku is attacking/in recovery — so he can be beaten by baiting him.
+// Deterministic (no RNG). `src` = the attacker (melee) or the projectile. Mirrors shouldVegitoUIEvade.
+export function shouldGokuUIEvade(defender, src) {
+  if ((defender?.rosterKey || "").toLowerCase() !== "goku") return false
+  if ((defender.transformIndex || 0) !== 6) return false         // Ultra Instinct only
+  if ((defender.energy || 0) < 8) return false                   // 8 Ki per dodge
+  if (defender.attacking || (defender.attackCooldown || 0) > 0) return false   // not while attacking / in recovery
+  const atk = src?.currentAttack || src                          // melee: attacker.currentAttack · proj: the projectile
+  if (atk?.isUltimate || atk?.unblockable || atk?.isGrab || src?.isGrabbing) return false   // undodgeable classes
+  defender.energy = Math.max(0, (defender.energy || 0) - 8)
+  defender._gokuGhost = 10                                       // outline ghost left where he was
+  defender._gokuCounter = 20                                     // next attack within 20f = counter-hit
+  const away = (src && (src.x ?? 0) > (defender.x ?? 0)) ? -1 : 1
+  defender.x += away * 20                                        // slip a short distance away
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 9)   // silver shimmer
+  defender.invulnTimer   = Math.max(defender.invulnTimer || 0, 5)
+  return true
+}
 export function applyVegitoUISystem(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegito") return
   if ((fighter.health || 0) <= 0) return
@@ -3146,6 +3168,14 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // GOKU — Ultra Instinct auto-dodge: the incoming melee blow is slipped (8 Ki, ghost + counter window in
+  // shouldGokuUIEvade). Not while attacking/recovery, and grabs/unblockables/ults are NOT dodged.
+  if (shouldGokuUIEvade(defender, attacker)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
   // MILES — Camouflage: while the stealth window holds, the incoming melee blow phases through (brief
   // per-hit i-frames handled in shouldMilesStealthEvade). See MILES_STEALTH (abilities.js).
   if (shouldMilesStealthEvade(defender)) {
@@ -4025,6 +4055,10 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // Grants brief i-frames (in shouldVegitoUIEvade) so a lingering bolt isn't re-dodged every frame; the
       // projectile is NOT consumed (it flies on past). No-op for everyone else. See VEGITO_UI.
       if (shouldVegitoUIEvade(fighter)) continue
+
+      // GOKU — Ultra Instinct auto-dodge: phase past the shot (8 Ki) while in UI + neutral. Full-screen
+      // ULTIMATE projectiles are NOT dodged (checked in shouldGokuUIEvade). Projectile flies on past.
+      if (shouldGokuUIEvade(fighter, proj)) continue
 
       // MILES — Camouflage: phase past the shot while the stealth window holds (brief per-hit i-frames in
       // shouldMilesStealthEvade). The projectile is NOT consumed (flies on past). No-op for everyone else.

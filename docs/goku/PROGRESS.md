@@ -236,9 +236,17 @@ gogeta beam-nuke pattern + `runDbzMeleeUlt` beat tables:
   UI **Autonomous Assault** (4 afterimage strikes → palm blast).
 Test `goku_ultimates_live.mjs` **15/0** — all 7 cast AND connect (216/198/204/192/269/
 281/216 dmg), zero errors. Guards unchanged; ladder 27/0 + specials 6/0 intact.
-Still pending in 4c: **UI auto-dodge** (per-frame hit-intercept, 8 Ki, counter-hit
-window) + form passives (SSJ rage stacks, SSJ2 chip, SSJ3 light-armor, God regen/
-light-stagger-immune/absorb-proof). Spirit-Bomb 3-size charge + Dragon-Fist code spiral
-= render refinements.
+**UI auto-dodge ✅** — `shouldGokuUIEvade` (combat.js, mirrors `shouldVegitoUIEvade`)
+wired at BOTH the melee (3143) + projectile (4027) hit-intercepts: in UI + neutral
+(not attacking/recovery) an incoming strike/projectile is slipped for 8 Ki (silver
+shimmer + i-frames + `_gokuGhost`), opens a 20f **counter-hit** window (×1.2 damage via
+`_gokuCounter` in applyGokuFormSystem). NOT dodged: grabs, unblockables, full-screen
+ultimates, or when attacking/in recovery (baitable). **God regen ✅** — +~0.3%/s HP up
+to the HP on entry (`_gokuGodHp`, in applyGokuFormSystem). Test `goku_autododge_live.mjs`
+**7/0** (added a `p2BoltAtP1` test hook, matching the existing `p2ProjectileAtClone`).
+
+Still pending (minor form passives, each needs a hit-taken/block hook): SSJ rage stacks,
+SSJ2 chip + block pushback, SSJ3 light-armor, God light-stagger-immune / ki-absorb-proof.
+Spirit-Bomb 3-size charge + Dragon-Fist code spiral = render refinements.
 ### 4d — intro / win / lose + sound mapping ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

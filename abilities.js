@@ -2139,6 +2139,7 @@ export function enterGokuNextForm(fighter, context = {}) {
   fighter.currentForm = "goku_" + form.key              // NON-matching label → generic drain/revert stays off
   fighter._skinAnim = retagFormAnim(GOKU_FORM_ANIM[form.key], fighter._recolorTag)
   applyGokuFormStats(fighter, form)
+  if (next === 4) fighter._gokuGodHp = fighter.health   // GOD divine-ki regen cap = HP on entry
   fighter._gokuBurst = form.tf                          // transform-burst window (first 10f invuln, set below)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
   // Aura explosion: push the opponent back on the transform burst (scaled by level).
@@ -2201,11 +2202,15 @@ export function applyGokuFormSystem(fighter) {
   if (fighter._gokuExhaust > 0) fighter._gokuExhaust--
   if (fighter._gokuAfterCd > 0) fighter._gokuAfterCd--     // Afterimage cooldown
   if (fighter._gokuBarrageCd > 0) fighter._gokuBarrageCd-- // Rapid Fist Barrage cooldown
-  if (fighter._gokuGhost > 0) fighter._gokuGhost--         // Afterimage ghost-frame window
+  if (fighter._gokuGhost > 0) fighter._gokuGhost--         // Afterimage / UI-dodge ghost window
+  if (fighter._gokuCounter > 0) fighter._gokuCounter--     // UI auto-dodge counter-hit window
   const idx = fighter.transformIndex || 0
   if (idx > 0) {
     const form = GOKU_FORMS[idx]
     applyGokuFormStats(fighter, form)                   // keep multipliers + speed applied every frame
+    // GOD (form 4) — DIVINE KI: regen HP up to the HP Goku had on entry (~0.3%/s of max HP).
+    if (idx === 4 && fighter._gokuGodHp != null)
+      fighter.health = Math.min(fighter._gokuGodHp, (fighter.health || 0) + (fighter.maxHealth || 1000) * 0.00005)
     if (idx === 6) {                                    // Ultra Instinct: timer, not Ki drain
       fighter._gokuUITimer = (fighter._gokuUITimer || 0) - 1
       if (fighter._gokuUITimer <= 0) { endGokuUI(fighter); return }
@@ -2220,6 +2225,9 @@ export function applyGokuFormSystem(fighter) {
     applyGokuFormStats(fighter, GOKU_FORMS[0])          // base, no Kaioken → reset to neutral once
   }
   tickGokuKaioken(fighter)                              // Kaioken (Base/Blue) stacks ON TOP + HP strain
+  // UI auto-dodge payoff: the next attack within the counter window hits harder (non-compounding — the
+  // form/Kaioken stats are re-applied from scratch above every frame, so this multiplies the fresh value).
+  if (fighter._gokuCounter > 0) fighter.damageMultiplier = fighter.attackMultiplier = (fighter.damageMultiplier || 1) * 1.2
 }
 
 // ── STAGE 6 — KAIOKEN (Base-form-only per-form delta). A risk/reward burst buff that STACKS through 2 tiers

@@ -10,7 +10,14 @@ each phase. Never merge/push to `main`. Universe: **`dc`** (existing key; no new
   re-takeoff must climb). 1069/0.
 - **FASTER FLIGHT** (user request): profile maxH 6.5→9.5, maxV 5.5→8.0, accel 0.55→0.85, dashSpeed 11→16,
   liftoff −4→−5, reverseBrake 0.72→0.70, ceilEaseZone 48→56. Render check: climb now y 373→−14 (vs ~260px).
-  Harnesses 1069/0 & 1031/0, render 26/0, det 14/0 · combo 225/9 · roster green.
+
+## Polish — SPEEDSTER tuning ("as fast as the Flash") ✅ (committed)
+- **Flight** pushed to Flash tier: maxH 9.5→**15**, maxV 8→**12**, accel 0.85→**1.4**, dashSpeed 16→**24**,
+  liftoff −5→−7, ceilEaseZone 56→64, reverseBrake 0.70→0.68. Render check climb now y 362→−235 (~597px).
+- **Ground stats** matched to Flash: `speed` 80→**99** (walk caps at the 9.5 top tier), `dashSpeed` 14→**26**
+  (dash ≈14, = Flash), `jumpPower` 24→30, `dashDuration` 10→12, `dashCooldownMax` 32→24.
+- Flight-path 1066/0 (stuck-regression test updated to simulate engine grounding + energy refill), flight-
+  engine 919/0, render 26/0, det 14/0 · combo 225/9 · roster green.
 
 ## Polish — sizing fix + 3 skins ✅ (committed)
 - **Sizing**: `spriteScale` 1.2 → **1.6**. Measured body (measureSprite contentH) was ~89px at 1.2 (too

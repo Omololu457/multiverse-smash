@@ -8645,7 +8645,10 @@ const homelander = {
   // Brief stats: health 1050, walk 4.6, run 7, jump 10, weight 1.15. Mapped to engine conventions:
   // speed 80 → walk ≈5.0 (ground speed matters little for a flyer); dashSpeed 14 → run tier; a normal
   // jumpPower (he flies instead of jumping); heavyweight durability via HP + defense 92.
-  stats: { maxHealth: 1050, maxEnergy: 100, attack: 90, defense: 92, speed: 80, maxJumps: 2, jumpPower: 24, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 32 },
+  // SPEEDSTER (user request: "as fast as the Flash"): ground stats matched to Flash — speed 99 (walk caps
+  // at the 9.5 top tier), dashSpeed 26 (dash ≈14), snappy dashDuration/cooldown. His real burst speed is in
+  // Flight (profile maxH 15). Stays a durable supe (HP 1050, def 92).
+  stats: { maxHealth: 1050, maxEnergy: 100, attack: 90, defense: 92, speed: 99, maxJumps: 2, jumpPower: 30, dashSpeed: 26, dashDuration: 12, dashCooldownMax: 24 },
   basic_attacks: {
     light:     { damage: 46, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0, rangeX: 76 },
     heavy:     { damage: 100, startup: 12, active: 5, recovery: 24, hitstun: 22, knockbackX: 10, knockbackY: 2, rangeX: 92, rangeY: 48 },   // cape-wrapped haymaker

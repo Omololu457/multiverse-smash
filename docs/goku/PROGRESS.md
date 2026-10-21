@@ -225,6 +225,20 @@ New per-frame cooldown decrements (`_gokuAfterCd`/`_gokuBarrageCd`/`_gokuGhost`)
 afterimage i-frames, zero errors). Guards unchanged; ladder 27/0 intact.
 3-level Kamehameha charge + the 3-direction IT reappear + the authentic fist-barrage /
 crescent-arc sprites are flagged refinements.
-### 4c — form powers + ultimates ⏳ pending (Spirit Bomb, Super Kameha, Meteor Smash, Dragon Fist, God Kameha, Kaioken Kameha, Autonomous Assault; UI auto-dodge)
+### 4c — the 7 ultimates ✅  (UI auto-dodge + form passives ⏳ next)
+Wired the free Ultimate button → `executeGokuUltimate` (dispatch by form); REMOVED the
+stale `triggerUltimate` goku→Kaioken intercept (Kaioken is Charge+Back now). Reused the
+gogeta beam-nuke pattern + `runDbzMeleeUlt` beat tables:
+- BASE **Spirit Bomb** (full Ki; arms-raised gather → huge sphere hurled down),
+- SSJ **Super Kamehameha** (big gold beam), SSJ2 **Meteor Smash** (barrage→up-kick→aerial
+  →double-fist hammer), SSJ3 **Dragon Fist** (charge→corkscrew→flare), GOD **God
+  Kamehameha** (red beam), BLUE **Kaioken×10 Kamehameha** (forces Kaioken on + cyan beam),
+  UI **Autonomous Assault** (4 afterimage strikes → palm blast).
+Test `goku_ultimates_live.mjs` **15/0** — all 7 cast AND connect (216/198/204/192/269/
+281/216 dmg), zero errors. Guards unchanged; ladder 27/0 + specials 6/0 intact.
+Still pending in 4c: **UI auto-dodge** (per-frame hit-intercept, 8 Ki, counter-hit
+window) + form passives (SSJ rage stacks, SSJ2 chip, SSJ3 light-armor, God regen/
+light-stagger-immune/absorb-proof). Spirit-Bomb 3-size charge + Dragon-Fist code spiral
+= render refinements.
 ### 4d — intro / win / lose + sound mapping ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

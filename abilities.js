@@ -765,6 +765,109 @@ function executeGokuSpecial(fighter, context) {
   return fireGokuKamehameha(fighter, context, { angleDown: dir === "D" || airborne })   // neutral / Down / air
 }
 
+// ── GOKU ULTIMATES (PHASE 4c) — one per form, on the Ultimate button, dispatched by the current level.
+// Beam ults reuse the gogeta auto-hit-beam pattern; the combo ults reuse runDbzMeleeUlt (scheduled beats).
+function runGokuBeamUlt(fighter, context, cfg) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) < cfg.cost) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  if (cfg.preFire) { try { cfg.preFire(fighter, context) } catch (_) {} }
+  fighter._spriteCastMove = "kiCharge"; fighter._spriteCastTimer = 72
+  fighter.attackCooldown = getAttackDuration(74, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 72); fighter.vx = 0
+  const face = fighter.facing || 1, getOpp = getTargetResolver(context), offense = gokuOffense(fighter)
+  schedulePendingSpawn(26, () => {
+    spawnProjectile(fighter, "gokuKameUlt", {
+      w: cfg.w, h: Math.round(cfg.w * 0.14), radius: Math.round(cfg.w * 0.08), speed: 18, vx: face * 18,
+      damage: 0, visualOnly: true, lifetime: 60, piercing: true, isUltimate: true, color: cfg.color,
+      spawnY: fighter.y + (fighter.h || 100) * 0.34,
+    }, context)
+    try { shakeCamera(context, 18, 26) } catch (_) {}
+  })
+  schedulePendingSpawn(44, () => {
+    const opp = getOpp(fighter)
+    if (opp && !opp.eliminated) {
+      let d = Math.round(cfg.dmg * offense)
+      if (opp.isBlocking) { d = oneShotUltBlockedDmg(d); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 56); opp.vx = face * 22; opp.vy = -16; opp.colorFlash = 16; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 50) }
+      applyScaledDamage(opp, d, { source: "ability" })
+    }
+    try { shakeCamera(context, 22, 28) } catch (_) {}
+  })
+  return true
+}
+// SPIRIT BOMB (Base ultimate) — full Ki. Arms-raised gather, then a huge sphere hurled DOWN at the foe.
+function gokuSpiritBomb(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) < (fighter.maxEnergy || 100)) return false      // requires FULL Ki (pure heart)
+  if (!spendEnergy(fighter, fighter.maxEnergy || 100)) return false
+  fighter._spriteCastMove = "win"; fighter._spriteCastTimer = 84            // arms-raised gather pose
+  fighter.attackCooldown = getAttackDuration(86, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 86); fighter.vx = 0
+  const face = fighter.facing || 1, getOpp = getTargetResolver(context), offense = gokuOffense(fighter)
+  schedulePendingSpawn(44, () => {
+    spawnProjectile(fighter, "gokuSpiritBomb", {
+      w: 120, h: 120, radius: 58, speed: 16, vx: face * 14, vy: 6, damage: 0, visualOnly: true,
+      lifetime: 72, piercing: true, isUltimate: true, color: "#cdecff", spawnY: fighter.y - 44,
+    }, context)
+    try { shakeCamera(context, 16, 24) } catch (_) {}
+  })
+  schedulePendingSpawn(62, () => {
+    const opp = getOpp(fighter)
+    if (opp && !opp.eliminated) {
+      let d = Math.round(360 * offense)
+      if (opp.isBlocking) { d = oneShotUltBlockedDmg(d); opp.blockstun = Math.max(opp.blockstun || 0, 28) }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 60); opp.vx = face * 16; opp.vy = 14; opp.colorFlash = 18; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 56) }
+      applyScaledDamage(opp, d, { source: "ability" })
+    }
+    try { shakeCamera(context, 24, 30) } catch (_) {}
+  })
+  return true
+}
+const GOKU_METEOR_SMASH = {   // SSJ2 ultimate — barrage → up-kick → aerial → double-fist hammer down
+  cost: 50, cinematic: 74, windPose: "heavy",
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5,  pose: "heavy" },
+    { at: 20, dmg: 60,  hitstun: 16, kb: 3, vy: -2,  shake: 6,  pose: "heavy" },
+    { at: 34, dmg: 70,  hitstun: 20, kb: 3, vy: -14, shake: 8,  pose: "up" },
+    { at: 50, dmg: 60,  hitstun: 20, kb: 2, vy: -6,  shake: 6,  pose: "air" },
+    { at: 66, dmg: 150, hitstun: 44, kb: 6, vy: 16,  shake: 20, pose: "down_air", payoff: true, knockdown: true },
+  ],
+}
+const GOKU_DRAGON_FIST = {    // SSJ3 ultimate — charging corkscrew punch → dragon flare (code-drawn spiral = render polish)
+  cost: 50, cinematic: 66, windPose: "kiCharge",
+  beats: [
+    { at: 10, dmg: 0,   shake: 6,  pose: "kiCharge" },
+    { at: 30, dmg: 120, hitstun: 24, kb: 8,  vy: -4,  shake: 10, pose: "heavy" },
+    { at: 50, dmg: 200, hitstun: 48, kb: 16, vy: -12, shake: 22, pose: "heavy", payoff: true, knockdown: true },
+  ],
+}
+const GOKU_AUTONOMOUS = {     // UI ultimate — multi-angle afterimage strikes → palm blast
+  cost: 50, cinematic: 74, windPose: "guard",
+  beats: [
+    { at: 6,  dmg: 50,  hitstun: 12, kb: 2, vy: -2, shake: 5,  pose: "light" },
+    { at: 18, dmg: 50,  hitstun: 12, kb: 2, vy: -2, shake: 5,  pose: "heavy" },
+    { at: 30, dmg: 50,  hitstun: 12, kb: 2, vy: -2, shake: 5,  pose: "up" },
+    { at: 42, dmg: 50,  hitstun: 12, kb: 2, vy: -2, shake: 5,  pose: "air" },
+    { at: 62, dmg: 160, hitstun: 44, kb: 14, vy: -6, shake: 20, pose: "heavy", payoff: true, knockdown: true },
+  ],
+}
+// Dispatch the per-form ultimate (free Ultimate button; Kaioken is NOT here anymore — it's Charge+Back).
+function executeGokuUltimate(fighter, context) {
+  if (!isGokuChar(fighter)) return false
+  switch (gokuFormKey(fighter)) {
+    case "base": return gokuSpiritBomb(fighter, context)                                                                   // Spirit Bomb (full Ki)
+    case "ssj":  return runGokuBeamUlt(fighter, context, { cost: 50, color: "#ffe79a", w: 520, dmg: 300 })                 // Super Kamehameha
+    case "ssj2": return runDbzMeleeUlt(fighter, context, GOKU_METEOR_SMASH, "goku-meteor-smash")                           // Meteor Smash
+    case "ssj3": return runDbzMeleeUlt(fighter, context, GOKU_DRAGON_FIST, "goku-dragon-fist")                             // Dragon Fist
+    case "god":  return runGokuBeamUlt(fighter, context, { cost: 50, color: "#ff9a6a", w: 540, dmg: 340 })                 // God Kamehameha
+    case "blue": return runGokuBeamUlt(fighter, context, { cost: 50, color: "#8fe4ff", w: 540, dmg: 340,                   // Kaioken x10 Kamehameha
+                        preFire: f => { if (!(f._kaioken > 0)) f._kaioken = 1 } })
+    case "ui":   return runDbzMeleeUlt(fighter, context, GOKU_AUTONOMOUS, "goku-autonomous-assault")                       // Autonomous Assault
+  }
+  return false
+}
+
 // ── GOKU BLACK (Super Saiyan Rosé 3) ──────────────────────────────
 // Canonical Zamasu/Goku-Black kit. Neutral = Rosé Ki Blast · Down = Black Kamehameha (beam) · Fwd = Sword of
 // Light (ki-blade slash) · Back = God Split Cut (the Scythe) · Up = Super Saiyan Rosé aura erupt (AOE pulse).
@@ -33531,9 +33634,9 @@ function executeVegetaDarkUltimate(fighter, context) {
 
 export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (!fighter) return false
-  // GOKU: the Ultimate input is a Base-only KAIOKEN toggle (an HP-strain buff, NOT a metered ultimate).
-  // Handle it BEFORE the ultimate-economy gates below so it bypasses ultimate cooldown/meter entirely.
-  if ((fighter.rosterKey || "").toLowerCase() === "goku") return toggleGokuKaioken(fighter, context)
+  // GOKU (clean rebuild): the Ultimate button fires the per-form ULTIMATE (dispatched in the switch below).
+  // Kaioken is NOT here anymore — it moved to Charge+Back (handleChargeRelease). So Goku takes the normal
+  // ultimate-economy path (cooldown-gated); each form ult spends its own Ki inside executeGokuUltimate.
   // NOTE: during an Edo Tensei window the fighter IS the vessel (rosterKey swapped) → this dispatches to
   // the VESSEL's own ultimate (the nested ultimate-within-an-ultimate). We intentionally do NOT block it.
   if ((fighter.ultimateCooldown || 0) > 0) return false      // on cooldown → do nothing (same as too little meter)
@@ -33568,7 +33671,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // GOKU has NO separate ultimate — his transformation LADDER moved to the CHARGE button (enterGokuNextForm),
       // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
-      case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
+      case "goku":    cast = executeGokuUltimate(fighter, context); break   // per-form ult: Spirit Bomb / Super Kameha / Meteor Smash / Dragon Fist / God Kameha / Kaioken x10 Kameha / Autonomous Assault
       case "goku_rose": cast = executeGokuRoseUltimate(fighter, context); break   // Divine Retribution — auto-hit crimson Black Kamehameha nuke
       case "gogeta":  cast = executeGogetaUltimate(fighter, context); break   // Big Bang Kamehameha — auto-hit screen-clearing nuke
 

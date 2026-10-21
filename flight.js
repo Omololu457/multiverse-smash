@@ -22,17 +22,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 export const FLIGHT_PROFILES = {
   homelander: {
-    // movement — SPEEDSTER tuning (user request: "as fast as the Flash"). Matches Flash's dash/zip tier
-    // (FT_ZIP 14, dashSpeed 26) and then some, so flight reads as genuinely Flash-fast.
-    accel: 1.4,             // px/frame² while a direction is held (no drag while held) → maxH in ~11f
-    maxH: 15.0,             // max cruise horizontal speed (px/frame) — Flash-tier
-    maxV: 12.0,             // max cruise vertical speed
-    drag: 0.86,             // per-frame coast multiplier on an axis with NO input (the floaty drift)
-    reverseBrake: 0.68,     // extra brake applied when input reverses current velocity → snappy turnaround
+    // movement — GODSPEED tuning (user request: faster still). Well past Flash-baseline — a blistering,
+    // screen-crossing flyer. Higher accel keeps it responsive at speed; reverse-brake snappier so it
+    // doesn't feel floaty at these velocities.
+    accel: 2.2,             // px/frame² while a direction is held (no drag while held) → maxH in ~10f
+    maxH: 22.0,             // max cruise horizontal speed (px/frame) — blistering
+    maxV: 18.0,             // max cruise vertical speed
+    drag: 0.84,             // per-frame coast multiplier on an axis with NO input (slightly tighter at speed)
+    reverseBrake: 0.64,     // extra brake applied when input reverses current velocity → snappy turnaround
     overspeedDrag: 0.90,    // ease-down when |v| exceeds max (preserves air-dash momentum carry)
-    ceilEaseZone: 64,       // px from the ceiling where upward vy starts easing (no hard stop)
+    ceilEaseZone: 72,       // px from the ceiling where upward vy starts easing (no hard stop)
     // air dash
-    dashSpeed: 24,          // launch speed of an air dash (> maxH so momentum carries out)
+    dashSpeed: 34,          // launch speed of an air dash (> maxH so momentum carries out)
     dashFrames: 14,         // duration an air dash locks velocity
     maxAirDash: 2,          // dashes per flight
     dashCost: 30,           // flight energy spent per air dash
@@ -41,7 +42,7 @@ export const FLIGHT_PROFILES = {
     drainPerFrame: 1,       // flight energy spent per frame airborne
     groundRefillPerFrame: 2,// refills full (~2 s) while grounded
     // takeoff / landing
-    liftoff: -7,            // initial upward nudge on takeoff
+    liftoff: -9,            // initial upward nudge on takeoff
     takeoffFrames: 6,       // takeoff pose / blast-streak window
     landRecovery: 4,        // soft-landing recovery frames
     landRecoveryAfterAir: 8,// recovery if landing out of an air attack

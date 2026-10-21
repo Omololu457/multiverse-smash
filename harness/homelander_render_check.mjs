@@ -107,19 +107,22 @@ try {
     await page.keyboard.up("l"); if (dirKey) await page.keyboard.up(dirKey)
     return got
   }
-  const rSup = await dirSpecial("d"); await frames(6); await shot("6_supersonic")
+  // Forward/Back are facing-RELATIVE (the fast movement can flip his facing), so read it live.
+  const facing1 = (await snap1()).facing || 1
+  const FWD = facing1 >= 0 ? "d" : "a", BACK = facing1 >= 0 ? "a" : "d"
+  const rSup = await dirSpecial(FWD); await frames(6); await shot("6_supersonic")
   ok(rSup.move === "hlSupersonic", `Supersonic did not fire (move=${rSup.move})`)
   await frames(40)
   const rClap = await dirSpecial("s"); await frames(4); await shot("7_sonic_clap")
   ok(rClap.cast === "hlClap" || rClap.move === "hlClap", `Sonic Clap did not fire (move=${rClap.move}, cast=${rClap.cast})`)
   await frames(40)
-  const rBar = await dirSpecial("a"); await frames(6); await shot("8_barrage")
+  const rBar = await dirSpecial(BACK); await frames(6); await shot("8_barrage")
   ok(rBar.move === "hlBarrage", `Barrage did not fire (move=${rBar.move})`)
   await frames(24)
 
-  // ULTIMATE — FLIGHT 37. Walk p1 toward batman first (face right + close distance) so the
-  // supersonic grab lunge connects, then fill meter + trigger.
-  await page.keyboard.down("d"); await frames(28); await page.keyboard.up("d"); await frames(3)
+  // ULTIMATE — FLIGHT 37. Walk p1 toward batman (whichever side he's on) so the grab lunge connects.
+  const towardKey = ((await snap2()).x > (await snap1()).x) ? "d" : "a"
+  await page.keyboard.down(towardKey); await frames(40); await page.keyboard.up(towardKey); await frames(3)
   const p2hp0 = (await snap2()).health
   const ultRes = await page.evaluate(() => { window.__harness.fillEnergy(); return window.__harness.p1Ultimate(); })
   await frames(14); await shot("9_ult_startup")   // dark-silhouette screen wash

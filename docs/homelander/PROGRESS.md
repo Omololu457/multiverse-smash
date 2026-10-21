@@ -11,6 +11,15 @@ each phase. Never merge/push to `main`. Universe: **`dc`** (existing key; no new
 - **FASTER FLIGHT** (user request): profile maxH 6.5→9.5, maxV 5.5→8.0, accel 0.55→0.85, dashSpeed 11→16,
   liftoff −4→−5, reverseBrake 0.72→0.70, ceilEaseZone 48→56. Render check: climb now y 373→−14 (vs ~260px).
 
+## Polish — GODSPEED tuning (faster still) ✅ (committed)
+- Flight cranked past Flash: maxH 15→**22**, maxV 12→**18**, accel 1.4→**2.2**, dashSpeed 24→**34**, liftoff
+  −7→−9, drag 0.86→0.84, reverseBrake 0.68→0.64, ceilEaseZone 64→72. Render climb y 357→−344 (pins near
+  the −360 ceiling — screen-crossing fast). Ground dash maxed: `dashSpeed` 26→**30** (hits the 16 cap),
+  jumpPower 30→32, dashCooldownMax 24→20 (walk still caps at 9.5 — engine clamp).
+- Render-check specials made facing-relative (the fast movement flips facing → Fwd/Back read live) + ult
+  walks toward whichever side the foe is on. Flight-path 1021/0, flight-engine 839/0, render 26/0, det
+  14/0 · combo 225/9 · roster green.
+
 ## Polish — SPEEDSTER tuning ("as fast as the Flash") ✅ (committed)
 - **Flight** pushed to Flash tier: maxH 9.5→**15**, maxV 8→**12**, accel 0.85→**1.4**, dashSpeed 16→**24**,
   liftoff −5→−7, ceilEaseZone 56→64, reverseBrake 0.70→0.68. Render check climb now y 362→−235 (~597px).

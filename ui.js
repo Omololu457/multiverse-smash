@@ -4276,6 +4276,40 @@ function _hpGradient(ctx, x, y, w, h, ratio) {
 // ─────────────────────────────────────────────
 // HUD — Health TOP, Energy BOTTOM
 // ─────────────────────────────────────────────
+// GOKU — TRANSFORMATION LADDER HUD: 7 level pips (lit up to the current form) just under the health bar +
+// a thin UI-timer / post-UI-exhaustion bar directly beneath it. Presentation-only (reads sim state).
+const _GOKU_PIPC = ["#cfd8e3", "#ffd84a", "#fff0a0", "#ffcf5a", "#ff6a4a", "#52c7ff", "#e6ecf8"]   // base→ui
+function _drawGokuLadderHud(ctx, fighter, barX, barW, barTopY, barH, flip) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "goku") return
+  const gidx = fighter.transformIndex || 0
+  // thin timer bar directly under the health bar: UI countdown (silver) or post-UI exhaustion (red).
+  const tb = (fighter._gokuExhaust > 0) ? { frac: fighter._gokuExhaust / 360, col: "#ff6a4a" }
+           : (gidx === 6 && fighter._gokuUITimer > 0) ? { frac: fighter._gokuUITimer / 900, col: "#e6ecf8" }
+           : null
+  if (tb) {
+    const tbY = barTopY + barH + 1, tbH = 3
+    ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(barX, tbY, barW, tbH)
+    const w = Math.max(0, Math.min(1, tb.frac)) * barW
+    ctx.fillStyle = tb.col; ctx.shadowBlur = 5; ctx.shadowColor = tb.col
+    ctx.fillRect(flip ? barX + barW - w : barX, tbY, w, tbH); ctx.shadowBlur = 0
+  }
+  // 7 level pips (row below the BREAK strip)
+  const gy = barTopY + barH + (tb ? 22 : 17), gGap = 12, gR = 3.5
+  ctx.textAlign = flip ? "right" : "left"; ctx.textBaseline = "middle"
+  ctx.font = "700 8px Arial"; ctx.fillStyle = "rgba(170,205,255,0.9)"
+  const gEdge = flip ? barX + barW : barX
+  ctx.fillText("FORM", gEdge - (flip ? 0 : 0), gy)
+  for (let i = 0; i < 7; i++) {
+    const gx = flip ? gEdge - 34 - i * gGap : gEdge + 34 + i * gGap
+    ctx.beginPath(); ctx.arc(gx, gy, gR, 0, Math.PI * 2)
+    if (i <= gidx) { ctx.fillStyle = _GOKU_PIPC[i]; if (i === gidx) { ctx.shadowBlur = 7; ctx.shadowColor = _GOKU_PIPC[i] } }
+    else ctx.fillStyle = "rgba(255,255,255,0.12)"
+    ctx.fill(); ctx.shadowBlur = 0
+    ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1; ctx.stroke()
+  }
+  ctx.textBaseline = "alphabetic"
+}
+
 export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0, p2: 0 }, globalFrameCount = 0) {
   const cw = canvas?.width  || window.innerWidth
   const ch = canvas?.height || window.innerHeight
@@ -4389,6 +4423,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.lineWidth = 1; ctx.stroke()
     }
     ctx.textBaseline = "alphabetic"
+    _drawGokuLadderHud(ctx, fighter, x + 8, barW, hpY + 14, barH, flip)   // GOKU form pips + UI/exhaust bar
   }
 
   // THEMED health panel (HUD Style = Themed). Same data + animator as the classic panel, plus a
@@ -4472,6 +4507,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.lineWidth = 1; ctx.stroke()
     }
     ctx.textBaseline = "alphabetic"
+    _drawGokuLadderHud(ctx, fighter, trackX, tBarW, trackY, barH, flip)   // GOKU form pips + UI/exhaust bar
 
     // PORTRAIT at the outer edge, with an accent border (border uses the CVD-safe side colour when on).
     drawHudPortrait(ctx, fighter, portraitX, hpY, TH_PS, edgeCol, anim.flash)

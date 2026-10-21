@@ -309,6 +309,15 @@ glows) + a **thin UI-timer / post-UI-exhaustion bar** directly under the health 
 **ki gauge** is the existing energy panel; the **portrait mugshot already swaps per form**
 via `_resolveHudPortrait`'s live idle head-crop. Guards green; ladder 27/0.
 
-### 5b — zenkai + training mode ⏳
+### 5b — zenkai + training ✅
+- **ZENKAI BOOST** — `_prevRoundLoserSide` recorded at each round-end (both KO + timeout
+  paths); in `resetRound`, if Goku lost the previous round he starts the next with **+25 Ki
+  + a 1s golden flash** (`teleportFlash`). Round 1 / draws → no boost.
+- **Training infinite Ki** — Goku respects the engine's existing `infiniteEnergy` flag
+  (set by training/meter-free options); `applyGokuFormSystem` keeps Ki pinned to max so
+  transforms/supers are free and no form ever drops. (Auto-forcing it on `mode==="training"`
+  was reverted — the harness runs in training mode and it broke the Ki-economy tests.)
+Guards green; ladder 27/0.
+
 ### 5c — CPU AI ⏳
 ### 5d — LAN/companion sync verify + REPORT ⏳

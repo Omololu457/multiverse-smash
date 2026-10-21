@@ -2115,6 +2115,7 @@ let globalFrameCount = 0
 let gameState        = GAME_STATES.START
 let roundNumber      = 1
 let roundWins        = { p1: 0, p2: 0 }
+let _prevRoundLoserSide = null   // GOKU ZENKAI: the side that LOST the previous round (null on round 1 / draw)
 // COMEBACK FINISHER — once-per-MATCH usage, keyed by side. Fighters are recreated each round
 // (resetRound), so the match-level token lives here, not on the fighter. Reset in startMatch.
 let comebackFinisherUsed = { p1: false, p2: false, p3: false, p4: false }
@@ -4753,6 +4754,17 @@ function resetRound() {
   const _c2 = netMatch.isActive() ? makeNetControls(1) : P2_CONTROLS
   p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X,  1, _c1, "p1")
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, _c2, "p2")
+  // GOKU ZENKAI BOOST (Phase 5b) — a Saiyan comes back stronger: if Goku LOST the previous round, start the
+  // next with +25 Ki and a 1s golden flash. (Training-mode infinite Ki is handled via the engine's existing
+  // `infiniteEnergy` flag — meter-free/training options set it, and applyGokuFormSystem then keeps Ki full.)
+  for (const [side, f] of [["p1", p1], ["p2", p2]]) {
+    if ((f?.rosterKey || "").toLowerCase() !== "goku") continue
+    if (_prevRoundLoserSide === side) {
+      f.energy = Math.min(f.maxEnergy || 100, (f.energy || 0) + 25)
+      f._gokuZenkaiFlash = 60
+      f.teleportFlash = Math.max(f.teleportFlash || 0, 20)
+    }
+  }
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
   // Shisui (Trinity) — INTRO: the Loyalist arrives with a Mangekyō flash + a banter line above the head.
@@ -19265,6 +19277,7 @@ function checkRoundEnd() {
     else if (p2h > p1h) { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
     else                { winnerText = "Time Over — Draw" }
     recordRoundEnd?.(matchStats, rw, p1h, p2h)   // per-round (drives perfectRounds → FLAWLESS)
+    _prevRoundLoserSide = rw ? (rw === "p1" ? "p2" : "p1") : null   // GOKU ZENKAI: remember the loser
     if (aiVsAiState.active) logRoundEnd(aiVsAiState.session, { round: roundNumber, winner: rw || "draw", method: "timeout", p1Health: p1h, p2Health: p2h, frame: globalFrameCount })
     maybeRickRoundVoice(rw, true)   // time-over bell (suppressed if this ends the match)
     _checkMatchOver(); return
@@ -19293,6 +19306,7 @@ function checkRoundEnd() {
   else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
   else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
   recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
+  _prevRoundLoserSide = rw ? (rw === "p1" ? "p2" : "p1") : null         // GOKU ZENKAI: remember the loser
   // ANNOUNCER — PERFECT round callout when the winner never dropped below their round-start HP (same
   // condition recordRoundEnd uses for perfectRounds). Mirrors the KO/perfect priority over the plain KO line.
   if (rw && (rw === "p1" ? (p1?.health || 0) >= (matchStats?.roundStartHealth?.p1 || 0)

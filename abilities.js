@@ -2219,6 +2219,7 @@ function endGokuUI(fighter) { revertGoku(fighter); fighter._gokuExhaust = GOKU_E
 // Per-frame: timers, per-form Ki drain, drop-on-empty, UI timer, exhaustion, re-apply stats, Kaioken strain.
 export function applyGokuFormSystem(fighter) {
   if (!isGokuChar(fighter)) return
+  if (fighter.infiniteEnergy) fighter.energy = fighter.maxEnergy || 100   // training: Ki never drains/drops
   if (fighter._gokuBurst > 0) fighter._gokuBurst--
   if (fighter._gokuGasp > 0) fighter._gokuGasp--
   if (fighter._gokuExhaust > 0) fighter._gokuExhaust--

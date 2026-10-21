@@ -662,50 +662,107 @@ export function spawnCharacterSummon(fighter, moveName, moveData, context = {}) 
 // Special Beam Cannon band. Cast pose "gokuKamehameha" reuses the dormant windup sheet
 // (goku_base_kamehamehaWindup_uniform.png), wired in characters.js animationData. Offense mult folds
 // in like Piccolo/Frieza so transforms amp it.
-const GOKU_SPECIALS = {
-  gokuKamehameha: { cost: 30, wind: 14, recovery: 22, pose: "gokuKamehameha", projW: 78, projH: 14, speed: 22, damage: 94, hitstun: 18, kbX: 7, kbY: -1, life: 72, radius: 10, color: "#7fdcff", piercing: true },  // charge→release piercing ki beam
-}
+// ── GOKU SPECIALS (PHASE 4b, clean rebuild). All on the Special button + held direction:
+//   neutral/Down = Kamehameha (code-drawn beam, form-coloured; Down/air angles it down) ·
+//   Fwd = Rapid Fist Barrage · Back = Afterimage (zanzoken) · Up = Instant Transmission (→ point-blank
+//   Instant Kamehameha from SSJ+). Reuses engine projectile/hit primitives, not the old Goku kit.
 function gokuOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
-function fireGokuKamehameha(fighter, context) {
-  const t = GOKU_SPECIALS.gokuKamehameha
-  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, t.cost)) return false
-  const dur = t.wind + t.recovery
+// Per-form Kamehameha beam: core stays white, outer colour = the form.
+const GOKU_BEAM = {
+  base: { color: "#bfeaff", w: 80, h: 16, dmg: 1.00 },
+  ssj:  { color: "#ffe79a", w: 86, h: 18, dmg: 1.00 },
+  ssj2: { color: "#fff0b0", w: 86, h: 18, dmg: 1.00 },
+  ssj3: { color: "#ffd870", w: 102, h: 22, dmg: 1.10 },
+  god:  { color: "#ff9a6a", w: 88, h: 18, dmg: 1.00 },
+  blue: { color: "#8fe4ff", w: 88, h: 18, dmg: 1.00 },
+  ui:   { color: "#e6ecf8", w: 90, h: 18, dmg: 1.00 },
+}
+function fireGokuKamehameha(fighter, context, opts = {}) {
+  if (!opts.chain && ((fighter.attackCooldown || 0) > 0 || fighter.attacking)) return false
+  const cost = opts.chain ? 10 : 25
+  if (!spendEnergy(fighter, cost)) return false
+  const b = GOKU_BEAM[gokuFormKey(fighter)] || GOKU_BEAM.base
+  const airDown = !!opts.angleDown
+  const wind = opts.chain ? 6 : 16, recovery = 20, dur = wind + recovery
   fighter.vx = 0
-  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
-  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._spriteCastMove = "kiCharge"; fighter._spriteCastTimer = dur
+  fighter.attackCooldown = getAttackDuration(dur, fighter)
   const offense = gokuOffense(fighter)
-  schedulePendingSpawn(t.wind, () => {
+  schedulePendingSpawn(wind, () => {
     spawnProjectile(fighter, "gokuKamehameha", {
-      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
-      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
-      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.34,
+      w: b.w, h: b.h, radius: Math.round(b.h * 0.6), speed: 22,
+      damage: Math.round(92 * b.dmg * offense), hitstun: 20,
+      knockbackX: 9, knockbackY: airDown ? 5 : -1, lifetime: 72, piercing: true,
+      color: b.color, spawnY: fighter.y + (fighter.h || 100) * (airDown ? 0.52 : 0.34),
     }, context)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
   })
+  return true
+}
+// Instant Transmission — vanish and reappear BEHIND the opponent (i-frames). From SSJ+ it chains into a
+// point-blank Instant Kamehameha (canon vs Cell).
+function gokuInstantTransmission(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const opp = getTargetResolver(context)(fighter)
+  if (!opp || !spendEnergy(fighter, 15)) return false
+  const gap = 52
+  fighter.x = opp.x - (opp.facing || 1) * gap          // reappear behind the opponent
+  fighter.facing = (fighter.x < opp.x) ? 1 : -1
+  fighter.vx = 0
+  fighter.teleportFlash = 18
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { shakeCamera(context, 5, 6) } catch (_) {}
+  if ((fighter.transformIndex || 0) >= 1) schedulePendingSpawn(6, () => fireGokuKamehameha(fighter, context, { chain: true }))
+  return true
+}
+// Afterimage (zanzoken) — a short invulnerable sidestep that leaves a ghost. Counter-tool; brief cooldown.
+function gokuAfterimage(fighter, context) {
+  if ((fighter._gokuAfterCd || 0) > 0 || (fighter.attacking)) return false
+  if (!spendEnergy(fighter, 8)) return false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)
+  fighter._gokuGhost = 12                              // ghost-frame window (outline), read by the renderer later
+  fighter.vx = -(fighter.facing || 1) * 7             // slip backward
+  fighter.teleportFlash = 14
+  fighter._gokuAfterCd = 48
+  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  return true
+}
+// Rapid Fist Barrage — a forward mash of guaranteed hits ending in a knockback punch.
+function gokuRapidFistBarrage(fighter, context) {
+  if ((fighter._gokuBarrageCd || 0) > 0 || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const opp = getTargetResolver(context)(fighter)
+  const offense = gokuOffense(fighter)
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 40
+  fighter.attackCooldown = getAttackDuration(40, fighter)
+  fighter.vx = (fighter.facing || 1) * 4
+  fighter._gokuBarrageCd = 70
+  const reach = () => opp && !opp.eliminated && Math.abs((fighter.x || 0) - (opp.x || 0)) < 120
+  for (let i = 0; i < 6; i++) schedulePendingSpawn(6 + i * 4, () => {   // 6 rapid jabs
+    if (!reach()) return
+    applyScaledDamage(opp, Math.round(9 * offense), { source: "ability" })
+    opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.colorFlash = 4
+    try { shakeCamera(context, 3, 3) } catch (_) {}
+  })
+  schedulePendingSpawn(6 + 6 * 4, () => {                               // knockback finisher
+    if (!reach()) return
+    applyScaledDamage(opp, Math.round(28 * offense), { source: "ability" })
+    opp.hitstun = Math.max(opp.hitstun || 0, 20)
+    opp.vx = (fighter.facing || 1) * 11; opp.vy = -3
+    try { shakeCamera(context, 8, 8) } catch (_) {}
+  })
+  try { focusCameraOnAction(context, fighter, opp, 1.0, 10) } catch (_) {}
   return true
 }
 function executeGokuSpecial(fighter, context) {
-  return false   // PHASE 3 (clean rebuild): the kit (Kamehameha / Dragon Fist / Instant Transmission /
-                 // Afterimage / Rapid Fist Barrage / per-form ultimates / Spirit Bomb) is rebuilt in PHASE 4.
-  const getOpponent = getTargetResolver(context)
-  const target      = getOpponent(fighter)
-
-  // Down+Special → Kamehameha (procedural charge→release ki beam). Any other direction / neutral
-  // keeps firing Dragon Fist (the melee rocket-punch rush), exactly as before.
-  if ((fighter._specialHeldDir || null) === "D") return fireGokuKamehameha(fighter, context)
-
-  // Dragon Fist — melee rocket-punch rush
-  if (!spendEnergy(fighter, 40)) return false
-  const attack = createAttackFromMove(fighter, "dragonFist", {
-    damage: 150, startup: 10, active: 6, recovery: 22,
-    hitstun: 28, knockbackX: 12, knockbackY: -6,
-    rangeX: 95, rangeY: 55
-  })
-  setAttackState(fighter, attack, 26)
-  fighter.vx = fighter.facing * 7
-  focusCameraOnAction(context, fighter, target, 0.98, 10)
-  shakeCamera(context, 8, 8)
-  return true
+  const dir = fighter._specialHeldDir || null          // "F" | "B" | "U" | "D" | null
+  if (dir === "U") return gokuInstantTransmission(fighter, context)
+  if (dir === "B") return gokuAfterimage(fighter, context)
+  if (dir === "F") return gokuRapidFistBarrage(fighter, context)
+  const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
+  return fireGokuKamehameha(fighter, context, { angleDown: dir === "D" || airborne })   // neutral / Down / air
 }
 
 // ── GOKU BLACK (Super Saiyan Rosé 3) ──────────────────────────────
@@ -2039,6 +2096,9 @@ export function applyGokuFormSystem(fighter) {
   if (fighter._gokuBurst > 0) fighter._gokuBurst--
   if (fighter._gokuGasp > 0) fighter._gokuGasp--
   if (fighter._gokuExhaust > 0) fighter._gokuExhaust--
+  if (fighter._gokuAfterCd > 0) fighter._gokuAfterCd--     // Afterimage cooldown
+  if (fighter._gokuBarrageCd > 0) fighter._gokuBarrageCd-- // Rapid Fist Barrage cooldown
+  if (fighter._gokuGhost > 0) fighter._gokuGhost--         // Afterimage ghost-frame window
   const idx = fighter.transformIndex || 0
   if (idx > 0) {
     const form = GOKU_FORMS[idx]

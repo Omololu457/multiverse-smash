@@ -208,7 +208,23 @@ resolve to real strips, light connects (27 dmg) / heavy (51 dmg), zero JS errors
 guards determinism 14/0 · combo-standard 225/9 · roster green. Minor polish flagged:
 heavy's windup frame + the low-kick read.
 
-### 4b — specials ⏳ pending (Kamehameha beam, Instant Transmission, Afterimage, Rapid Fist Barrage, crescent kick + arc)
+### 4b — specials ✅
+Un-stubbed `executeGokuSpecial`; routed by held direction (Special button):
+- **neutral / Down / air → KAMEHAMEHA** — code-drawn beam via `spawnProjectile`, **form-
+  coloured** (`GOKU_BEAM` table: base blue-white → ssj/ssj2/ssj3 gold → god red → blue
+  cyan → ui silver); Down/air angles it down; damage folds in the form offense mult.
+- **Fwd → RAPID FIST BARRAGE** — 6 staggered guaranteed hits (`applyScaledDamage`) + a
+  knockback finisher; cooldown-gated.
+- **Back → AFTERIMAGE (zanzoken)** — short i-frame back-slip + ghost window
+  (`_gokuGhost`) + flash; small Ki cost, cooldown.
+- **Up → INSTANT TRANSMISSION** — vanish → reappear BEHIND the opponent (i-frames); from
+  SSJ+ it chains a point-blank **Instant Kamehameha** (`fireGokuKamehameha{chain}`).
+New per-frame cooldown decrements (`_gokuAfterCd`/`_gokuBarrageCd`/`_gokuGhost`) in
+`applyGokuFormSystem`. Deterministic (no RNG). Test `goku_specials_live.mjs` **6/0**
+(Kamehameha spends 25 Ki + beam spawns, SSJ beam, barrage 46 dmg, IT teleports behind,
+afterimage i-frames, zero errors). Guards unchanged; ladder 27/0 intact.
+3-level Kamehameha charge + the 3-direction IT reappear + the authentic fist-barrage /
+crescent-arc sprites are flagged refinements.
 ### 4c — form powers + ultimates ⏳ pending (Spirit Bomb, Super Kameha, Meteor Smash, Dragon Fist, God Kameha, Kaioken Kameha, Autonomous Assault; UI auto-dodge)
 ### 4d — intro / win / lose + sound mapping ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

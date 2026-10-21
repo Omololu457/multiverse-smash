@@ -180,6 +180,7 @@ import {
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
   applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX,   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
+  applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
@@ -17139,6 +17140,18 @@ function drawHomelanderHeatVision(c, fighter) {
     for (let k = 0; k < 3; k++) { const r = 10 + t * 70 + k * 16; c.beginPath(); c.arc(cx - face * (12 + k * 10), cyc, r * 0.5, Math.PI * 0.4, Math.PI * 1.6); c.stroke() }
     c.restore()
   }
+  // ── FLIGHT 37 slam impact ring + dust (ultimate) ────────────────────────────
+  if ((fighter._f37slam || 0) > 0) {
+    const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+    const ix = opp ? opp.x + (opp.w || 50) / 2 : cx, iy = opp ? opp.y + (opp.h || 100) : cyc
+    const t = 1 - fighter._f37slam / 22, r = 20 + t * 150
+    c.save(); c.globalAlpha = 0.7 * (1 - t); c.strokeStyle = "#ffd27a"; c.lineWidth = 5
+    c.beginPath(); c.arc(ix, iy, r, Math.PI, Math.PI * 2); c.stroke()
+    c.globalAlpha = 0.4 * (1 - t); c.fillStyle = "#c9a26a"
+    for (let k = 0; k < 6; k++) { const a = Math.PI + (k / 5) * Math.PI; c.beginPath(); c.arc(ix + Math.cos(a) * r * 0.8, iy + Math.sin(a) * r * 0.3, 6 * (1 - t), 0, Math.PI * 2); c.fill() }
+    c.restore()
+    fighter._f37slam--
+  }
   // ── SUPER-SPEED BARRAGE fist streaks (Back+Special) ─────────────────────────
   if ((fighter._hlBarrageFx || 0) > 0) {
     c.save(); c.globalAlpha = 0.5; c.strokeStyle = "#8fc7ff"; c.lineWidth = 2
@@ -18928,6 +18941,7 @@ function updateFighterState(fighter) {
   tickFlightDriver(updated, {})      // FLIGHT MODULE (Homelander): energy drain/refill, takeoff/land/grounded-lock timers, velocity-derived pose hold (gated on _flightCtl; BEFORE applyGravity)
   if (updated._flightCtl) { const _opp = updated === p1 ? p2 : updated === p2 ? p1 : null; if (_opp) updated._flightOpponentX = _opp.x + (_opp.w || 0) / 2 }   // auto-face target while hovering
   applyHomelanderHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander HEAT VISION: sustained/sweep beam + laser-heat drain/overheat + hitscan damage (gated on rosterKey)
+  applyHomelanderFlight37(updated, getAbilityContext())   // Homelander ULT FLIGHT 37: dark-silhouette → supersonic grab → launch + Heat-Vision slam (gated on _f37)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
   resolvePortalDropLanding(updated)   // Rick Portal-Pull/Push: impact damage the frame they reground
@@ -22214,7 +22228,17 @@ function drawHomelanderGauges(c, cv) {
   draw(p1, false); draw(p2, true)
 }
 
+// FLIGHT 37 "screen goes dark" — a screen-space wash during the ult's dark-silhouette startup so
+// only the (already-black) silhouette + red eyes read. Gated on the startup flag → nothing otherwise.
+function drawHomelanderUltOverlay(c, cv) {
+  const f = homelanderUltStartup(p1) ? p1 : homelanderUltStartup(p2) ? p2 : null
+  if (!f || !f._f37) return
+  const prog = Math.min(1, (1 - f._f37.t / 24) * 2)
+  c.save(); c.fillStyle = `rgba(3,3,10,${0.72 * prog})`; c.fillRect(0, 0, cv.width, cv.height); c.restore()
+}
+
 function drawBattleHud() {
+  drawHomelanderUltOverlay(ctx, canvas)   // Homelander FLIGHT 37 dark-startup screen wash (behind HUD)
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawControlsInfo(ctx, canvas)

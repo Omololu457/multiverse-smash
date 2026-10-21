@@ -125,6 +125,16 @@ other character provably untouched.
   `_laserHeat`/`HV_HEAT_MAX`, dim-red "OVERHEAT" label while locked out). Styled like the HUD theme;
   reads sim state only. Render check 23/0 — gauges visible in `_render_5_heat_vision.png` (cyan full,
   amber draining while firing). det 14/0 · combo 225/9 · roster green.
-- NEXT: portrait already wired; CPU AI for flight/lasers/Flex; Training-mode infinite flight/heat toggles;
-  `SUPERMAN_NOTES.md`; final `REPORT.md`. (Remaining kit: Take A Ride, X-Ray, Super Hearing wiring, Flex,
-  Ultimate FLIGHT 37, brutalities, intro/win/lose, sound, air normals.)
+## Phase 3c-4 — ULTIMATE "FLIGHT 37" ✅ (committed)
+- `abilities.js` `executeHomelanderUltimate` (dispatch case in `triggerUltimate`) + `applyHomelanderFlight37`
+  per-frame state machine: dark **SILHOUETTE** startup (INVULN, `ultSilhouette` sprite, screen wash) →
+  **SUPERSONIC GRAB** lunge → on connect LAUNCH victim up + full **HEAT VISION** beam SLAMS them down →
+  impact ring + dust + camera shake + knockdown (320 raw). Whiff → overshoot + long recovery. Invuln only
+  during startup; victim arc uses normal physics (no two-actor gating). Cleared in `resetHomelanderKit`.
+- `game.js`: import + driver call; `drawHomelanderUltOverlay` screen-space dark wash during startup (behind
+  HUD); FLIGHT-37 impact ring in `drawHomelanderHeatVision`.
+- **Render check 25/0**: casts, grab connects, slam deals **192** (320×scale) to p2; dark-startup silhouette
+  renders (`_render_9_ult_startup.png`). det 14/0 · combo 225/9 · roster green.
+
+- NEXT: CPU AI (flight/lasers); Training-mode infinite flight/heat toggles; final `REPORT.md`. (Remaining
+  kit: Take A Ride, X-Ray, Super Hearing wiring, Flex, brutalities, intro/win/lose, sound, air normals.)

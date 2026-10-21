@@ -15821,7 +15821,87 @@ export function resetHomelanderKit(fighter) {
   if (!fighter) return
   fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
   fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
+  fighter._f37 = null; fighter._f37slam = 0
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// HOMELANDER — ULTIMATE "FLIGHT 37" (scripted state machine, no freeze-cinematic file).
+// Beats: dark SILHOUETTE startup (screen darkens, red eyes, INVULN) → SUPERSONIC GRAB lunge → on
+// connect, LAUNCH the victim up and fire a full HEAT VISION beam that SLAMS them down → huge impact
+// ring + shake + knockdown. On whiff: overshoot + long recovery. Invuln ONLY during the dark startup.
+// Uses normal physics for the victim's arc (launch vy → driven down) so no two-actor carry gating is
+// needed. Deterministic (no Math.random).
+// ─────────────────────────────────────────────────────────────────────────
+const F37 = { cost: 100, startup: 24, lunge: 16, slam: 26, whiffRecover: 44, grabRange: 140, dmg: 320 }
+
+export function executeHomelanderUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
+  if (fighter._f37) return false
+  if (!spendEnergy(fighter, F37.cost)) return false
+  fighter.vx = 0
+  fighter._hvActive = false; fighter._hv = null
+  fighter._f37 = { phase: "startup", t: F37.startup, slammed: false }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F37.startup)   // invuln ONLY during the dark silhouette
+  fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = F37.startup
+  fighter.attacking = false; fighter.attackCooldown = 0
+  return true
+}
+
+// Per-frame driver (game.js updateFighterState). Keeps normal attacks locked while it runs.
+export function applyHomelanderFlight37(fighter, context = {}) {
+  const s = fighter._f37; if (!s) return
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  const face = fighter.facing || 1
+  fighter.attacking = false
+  s.t--
+  if (s.phase === "startup") {
+    fighter.vx = 0
+    fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
+    if (s.t <= 0) { s.phase = "lunge"; s.t = F37.lunge; fighter.vx = face * 26 }   // supersonic grab lunge
+    return
+  }
+  if (s.phase === "lunge") {
+    fighter._hlBoomFx = 6
+    if (opp && !(opp.invulnTimer > 0)) {
+      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
+      if (dx < F37.grabRange && Math.abs(opp.y - fighter.y) < 150) {   // grab connects → launch them up for the slam
+        opp.vy = -16; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 70); opp.colorFlash = 10
+        s.phase = "slam"; s.t = F37.slam; fighter.vx = 0
+        return
+      }
+    }
+    if (s.t <= 0) { s.phase = "whiff"; s.t = F37.whiffRecover; fighter.vx = face * 6 }   // missed → overshoot + long recovery
+    return
+  }
+  if (s.phase === "slam") {
+    fighter.vx = 0
+    if (opp) {
+      opp.hitstun = Math.max(opp.hitstun || 0, 4)
+      if (s.t < F37.slam - 6) opp.vy = Math.max(opp.vy || 0, 16)   // after a beat, HEAT VISION drives them down
+      const floor = (opp.groundY != null ? opp.groundY : 520)
+      if (opp.y + (opp.h || 100) >= floor - 2 && !s.slammed) {     // impact
+        s.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vy = 0
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48); opp.colorFlash = 16
+        opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+        applyScaledDamage(opp, F37.dmg, { source: "ability", attacker: fighter, move: "ultimate" })
+        shakeCamera(context, 8, 12)
+        fighter._f37slam = 22   // impact ring/dust render timer
+      }
+      // render the slam beam from Homelander's eyes down onto the victim
+      const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
+      fighter._hv = { ox, oy, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
+    }
+    if (s.t <= 0) { fighter._hv = null; fighter._f37 = null }
+    return
+  }
+  // whiff recovery
+  fighter.vx *= 0.9
+  if (s.t <= 0) fighter._f37 = null
+}
+
+export function isHomelanderUltActive(fighter) { return !!(fighter && fighter._f37) }
+export function homelanderUltStartup(fighter) { return !!(fighter && fighter._f37 && fighter._f37.phase === "startup") }
 
 // ─────────────────────────────────────────────────────────────────────────
 // OMNI-MAN — "Viltrumite Onslaught" ULTIMATE (Stage 5). A frozen cinematic BODY-SLAM built on the SAME
@@ -33697,6 +33777,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "ghostface_billy": cast = executeBillyGhostfaceUltimate(fighter, context); break   // Billy variant (live): reuses The Final Act cinematic + payoff (un-gated helpers)
       case "miwa": cast = executeMiwaUltimate(fighter, context); break   // Blade of the Neophyte: battojutsu quick-draw freeze-cinematic — single guaranteed slash
 
+      case "homelander": cast = executeHomelanderUltimate(fighter, context); break   // FLIGHT 37: dark-silhouette supersonic grab → carry to the sky → Heat Vision slam (scripted state machine)
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic
       case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm

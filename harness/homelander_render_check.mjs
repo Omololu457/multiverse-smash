@@ -117,6 +117,19 @@ try {
   ok(rBar.move === "hlBarrage", `Barrage did not fire (move=${rBar.move})`)
   await frames(24)
 
+  // ULTIMATE — FLIGHT 37. Walk p1 toward batman first (face right + close distance) so the
+  // supersonic grab lunge connects, then fill meter + trigger.
+  await page.keyboard.down("d"); await frames(28); await page.keyboard.up("d"); await frames(3)
+  const p2hp0 = (await snap2()).health
+  const ultRes = await page.evaluate(() => { window.__harness.fillEnergy(); return window.__harness.p1Ultimate(); })
+  await frames(14); await shot("9_ult_startup")   // dark-silhouette screen wash
+  await frames(74); await shot("10_ult_slam")
+  const p2hp1 = (await snap2()).health
+  const ultDmg = p2hp0 - p2hp1
+  ok(ultRes && ultRes.cast, `FLIGHT 37 did not cast (${JSON.stringify(ultRes)})`)
+  ok(ultDmg > 0, `FLIGHT 37 slam dealt no damage (grab whiffed; dmg=${ultDmg})`)
+  await frames(20)
+
   // both fighters + HUD still render, no errors
   const sf1 = await snap1(), sf2 = await snap2()
   ok(sf1 && sf1.health > 0 && sf2 && sf2.health > 0, "a fighter lost its HUD/health after the flight")
@@ -128,6 +141,7 @@ try {
   console.log(`  takeoff.phase=${prTO?.phase} climb y ${yBefore}→${prUp.y} pose=${prUp.pose} cruise.action=${prCr.action} landed.phase=${prLand.phase}`)
   console.log(`  laser: heat ${heat0}→${prFire.laserHeat} (active=${prFire.hvActive}, hit=${prFire.hvHit}) recovered→${prCool.laserHeat}`)
   console.log(`  specials: supersonic.move=${rSup.move} clap.cast=${rClap.cast} barrage.move=${rBar.move}`)
+  console.log(`  ultimate FLIGHT 37: cast=${ultRes?.cast} slam dmg to p2=${ultDmg}`)
   console.log(`  JS-exceptions=${jsErrors.length}  homelander-404s=${my404.length}  (pre-existing batman/etc. 404s ignored)`)
   console.log("════════════════════════════════════════════")
   if (failed) fails.slice(0, 12).forEach(m => console.log("  ✗ " + m))

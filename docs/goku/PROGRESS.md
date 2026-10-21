@@ -53,7 +53,56 @@ Commit: _(filled on commit)_
 
 ---
 
-## Phase 2 — PER-FORM SHEETS ⏳ pending
+## Phase 2 — PER-FORM SHEETS ✅
+Writes assets only (no game code). Source only READ (md5 `fa937fec…` intact).
+
+**Method (decision, logged):** primary = **localized hair-region recolour**,
+pose-preserving — not frozen-head transplant. Per inventory frame: build a dark
+mask (hair+outlines+dark gi), erode 1px so thin outlines drop and the chunky
+hair blob survives, take the blob at the hair crown, dilate back, then remap its
+luminance along the form ramp. This keeps every frame's head pose exact (no
+floating heads / neck seams — the failure mode the transplant spec warns about).
+Donor loose-heads were used to **sample** the authentic gold/red/silver ramps;
+Blue uses the brief's exact hex ramp.
+
+**Per-form counts (of 395 frames):**
+| form | recoloured (confident) | fallback | eyes px | brow px |
+|------|-----|-----|-----|-----|
+| SSJ  | 358 | 37 | 739 | — |
+| SSJ2 | 358 | 37 | 660 | — (brighter/whiter gold ramp) |
+| SSJ3 | 358 | 37 | 739 | 480 (eyebrows→skin) |
+| God  | 358 | 37 | 758 | — |
+| Blue | 358 | 37 | 741 | — (exact #0b3887→#c9f6ff ramp) |
+| UI   | 358 | 37 | 660 | — |
+
+- **direct** (donor frames used as-is) = 0; **transplanted** = 0 — the sheet has
+  no distinct form-hair bodies except the gold SSJ cluster, which my recolour
+  leaves gold (correct for SSJ; harmless for others — those reference positions
+  aren't sampled by the animation frame-map). All identity comes from recolour.
+- **fallback 37** = knockdown / face-down / extreme-tilt frames where the hair
+  crown blob can't be confidently found → recolour all dark pixels in the upper
+  55% of the frame (per brief's fallback rule). Visually acceptable; logged.
+- **SSJ3** has no donor (Phase-1 finding) → SSJ gold ramp + eyebrow removal
+  (brow specks → local skin). Transplanted SSJ3 = 0 (honest).
+- **Eyes** tinted to form colour via a tight face-embedded detector (teal-green
+  SSJ/SSJ2/SSJ3, red God, blue Blue, silver UI). The naive "whiteish in upper
+  half" rule wrongly caught the white gi-collar → replaced with skin-embedded
+  eye-band detection. ~2 px/frame.
+- **Battle-damage** (2 shirtless frames) recolour per form → they are the
+  <25%-HP idle + LOSE pose for Base and every form.
+
+**Artifacts:** `assets/goku_forms/goku_{ssj,ssj2,ssj3,god,blue,ui}.png` (same
+layout as base), `assets/goku_forms/goku_<form>_contact.png` (base|result),
+`goku_work/forms.py`, `goku_work/gen_all.py`.
+
+**How to test:** `python3 goku_work/gen_all.py` regenerates all six + contacts;
+open `assets/goku_forms/goku_<form>_contact.png`. No game code touched → guards
+unchanged (determinism 14/0, roster-integrity green, combo-standard 225/9).
+
+Commit: _(this phase)_
+
+---
+
 ## Phase 3 — POWER LADDER ⏳ pending
 ## Phase 4 — THE KIT ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

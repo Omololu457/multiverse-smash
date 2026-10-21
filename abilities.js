@@ -1896,6 +1896,8 @@ const GOKU_DIMS = {
   idle:{f:6,w:54,h:60,sp:7}, walk:{f:4,w:55,h:69,sp:6}, jump:{f:3,w:50,h:71,sp:5},
   crouch:{f:2,w:63,h:47,sp:6}, guard:{f:2,w:53,h:53,sp:6}, hurt:{f:1,w:50,h:58,sp:5},
   knockdown:{f:1,w:74,h:30,sp:5}, getup:{f:1,w:40,h:44,sp:4}, kiCharge:{f:8,w:42,h:71,sp:5}, win:{f:8,w:56,h:62,sp:6},
+  light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:55,h:75,sp:3}, up:{f:2,w:36,h:71,sp:3},
+  air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:72,h:67,sp:3},
 }
 // Per-form _skinAnim: base animationData + this form's recolored movement/state sheets (goku_<form>_<action>).
 function gokuFormAnim(form) {
@@ -1913,6 +1915,10 @@ function gokuFormAnim(form) {
     knockdown: mk("knockdown"), getup: mk("getup"),
     kiCharge: mk("kiCharge", { loop: true, lockLastFrame: false }),
     win: mk("win"), lose: mk("knockdown", { frames: 1 }),
+    // normals — per-form recoloured strips so a transformed Goku's attacks match his form
+    light: mk("light"), heavy: mk("heavy"), up: mk("up"), air: mk("air"),
+    down_air: mk("down_air"), crouchLight: mk("crouchLight"),
+    grab: { ...mk("heavy") },
   }
 }
 // gokuFormAnim overrides ONLY locomotion/state (idle/walk/run/jump/fall/dash) with the form's REAL recoloured

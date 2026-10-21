@@ -197,5 +197,18 @@ render, base→SSJ transform with burst flash — screenshot-verified).
 Frame-data for every other character is unchanged — all edits are Goku-gated
 (`regenEnergy` still gives naruto its +0.02; the direction capture / charge handler
 only act when `rosterKey==="goku"`).
-## Phase 4 — THE KIT ⏳ pending
+## Phase 4 — THE KIT ⏳ IN PROGRESS
+
+### 4a — real normals ✅
+Sliced real attack strips (light jab / heavy advancing-lunge / up uppercut-AA / air
+aerial / down_air dive / crouchLight low-kick) for base + all 6 forms (42 strips), wired
+into `animationData` (replacing the Phase-3 guard placeholder) + `gokuFormAnim` (so a
+transformed Goku's normals are recoloured). grab reuses the heavy lunge. Test: all 6
+resolve to real strips, light connects (27 dmg) / heavy (51 dmg), zero JS errors;
+guards determinism 14/0 · combo-standard 225/9 · roster green. Minor polish flagged:
+heavy's windup frame + the low-kick read.
+
+### 4b — specials ⏳ pending (Kamehameha beam, Instant Transmission, Afterimage, Rapid Fist Barrage, crescent kick + arc)
+### 4c — form powers + ultimates ⏳ pending (Spirit Bomb, Super Kameha, Meteor Smash, Dragon Fist, God Kameha, Kaioken Kameha, Autonomous Assault; UI auto-dodge)
+### 4d — intro / win / lose + sound mapping ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

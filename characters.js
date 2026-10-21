@@ -87,14 +87,16 @@ const goku = {
     getup:     { frames: 1, width: 40, height: 44, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_getup_uniform.png" },
     // KI CHARGE pose (powering-up) — shown while holding Charge to build Ki.
     kiCharge:  { frames: 8, width: 42, height: 71, speed: 5, anchorY: 0, sheet: "./goku_base_kiCharge_uniform.png" },
-    // ── NORMALS — PHASE-3 PLACEHOLDER: reuse the guard combat pose until PHASE 4 slices real normal strips.
-    // (The render-check only needs the body + ladder; real light/heavy/up/air/down_air land in the kit phase.)
-    light:       { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    heavy:       { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    up:          { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    air:         { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    down_air:    { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    crouchLight: { frames: 2, width: 63, height: 47, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouch_uniform.png" },
+    // ── NORMALS (PHASE 4a) — real attack strips (goku_work/slice.py). Shared by every form (gokuFormAnim
+    // recolours them per form). grab reuses the heavy lunge pose; the crescent-kick normal lands in 4b with
+    // the arc effect.
+    light:       { frames: 2, width: 48, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_light_uniform.png" },      // jab
+    heavy:       { frames: 2, width: 55, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // advancing lunge punch
+    up:          { frames: 2, width: 36, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_up_uniform.png" },         // uppercut launcher (anti-air)
+    air:         { frames: 2, width: 44, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_air_uniform.png" },        // aerial strike
+    down_air:    { frames: 2, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_down_air_uniform.png" },   // diving-down strike
+    crouchLight: { frames: 2, width: 72, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },// low kick
+    grab:        { frames: 2, width: 55, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // reuse the lunge reach for the throw
     win:  { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
     lose: { frames: 1, width: 74, height: 30, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" }
   }

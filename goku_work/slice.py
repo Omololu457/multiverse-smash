@@ -36,6 +36,13 @@ PICKS = {
                (310,172,36,64),(348,172,36,64),(386,171,36,65),(423,171,36,65)],
  "win":       [(319,17,42,51),(364,18,36,50),(403,21,40,47),(444,12,37,56),
                (482,13,37,55),(524,12,38,56),(588,13,43,56),(638,17,50,52)],
+ # ── PHASE 4a normals (real attack strips; replace the Phase-3 guard-pose placeholder) ──
+ "light":     [(376,651,42,60),(425,651,26,60)],          # quick jab
+ "heavy":     [(270,1419,49,54),(340,1404,33,69)],        # advancing lunge punch
+ "up":        [(196,647,30,64),(241,646,29,65)],          # uppercut launcher (anti-air)
+ "air":       [(309,1347,32,48),(360,1328,38,67)],        # aerial strike
+ "down_air":  [(786,655,46,56),(853,666,53,45)],          # diving-down strike
+ "crouchLight":[(453,650,66,61),(522,651,65,60)],         # low kick / sweep
 }
 PAD = 3
 TEAL_TOL = 28      # teal → transparent key (sprite colours are all >TOL away from #008080)

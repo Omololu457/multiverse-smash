@@ -22,16 +22,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 export const FLIGHT_PROFILES = {
   homelander: {
-    // movement
-    accel: 0.55,            // px/frame² while a direction is held (no drag while held) → maxH in ~12f
-    maxH: 6.5,              // max cruise horizontal speed (px/frame)
-    maxV: 5.5,              // max cruise vertical speed
+    // movement — FASTER tuning (user request): a genuinely quick, powerful flyer.
+    accel: 0.85,            // px/frame² while a direction is held (no drag while held) → maxH in ~11f
+    maxH: 9.5,              // max cruise horizontal speed (px/frame) — a brisk cruise
+    maxV: 8.0,              // max cruise vertical speed
     drag: 0.86,             // per-frame coast multiplier on an axis with NO input (the floaty drift)
-    reverseBrake: 0.72,     // extra brake applied when input reverses current velocity → turnaround in ~8f
+    reverseBrake: 0.70,     // extra brake applied when input reverses current velocity → snappy turnaround
     overspeedDrag: 0.90,    // ease-down when |v| exceeds max (preserves air-dash momentum carry)
-    ceilEaseZone: 48,       // px from the ceiling where upward vy starts easing (no hard stop)
+    ceilEaseZone: 56,       // px from the ceiling where upward vy starts easing (no hard stop)
     // air dash
-    dashSpeed: 11,          // launch speed of an air dash (> maxH so momentum carries out)
+    dashSpeed: 16,          // launch speed of an air dash (> maxH so momentum carries out)
     dashFrames: 14,         // duration an air dash locks velocity
     maxAirDash: 2,          // dashes per flight
     dashCost: 30,           // flight energy spent per air dash
@@ -40,7 +40,7 @@ export const FLIGHT_PROFILES = {
     drainPerFrame: 1,       // flight energy spent per frame airborne
     groundRefillPerFrame: 2,// refills full (~2 s) while grounded
     // takeoff / landing
-    liftoff: -4,            // initial upward nudge on takeoff
+    liftoff: -5,            // initial upward nudge on takeoff
     takeoffFrames: 6,       // takeoff pose / blast-streak window
     landRecovery: 4,        // soft-landing recovery frames
     landRecoveryAfterAir: 8,// recovery if landing out of an air attack
@@ -136,6 +136,7 @@ export function flightTakeoff(fighter) {
   c.takeoffTimer = p.takeoffFrames
   c.airDashCount = 0
   c.afterAirAttack = false
+  c.wantDescend = false            // FIX: clear any stale descend request so a fresh takeoff actually climbs
   fighter.onGround = false; fighter.grounded = false
   fighter.isLaunched = false; fighter.jumpCount = 0
   if ((fighter.vy || 0) >= 0) fighter.vy = p.liftoff
@@ -154,6 +155,7 @@ export function flightToggleInput(fighter) {
 function beginLanding(fighter, p, c) {
   c.phase = FLIGHT_PHASE.LANDING
   c.landRecovery = c.afterAirAttack ? p.landRecoveryAfterAir : p.landRecovery
+  c.wantDescend = false            // FIX: consumed on landing so it can't leak into the next takeoff
   fighter.vx = 0
 }
 

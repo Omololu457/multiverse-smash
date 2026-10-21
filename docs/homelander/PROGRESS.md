@@ -3,6 +3,15 @@
 Branch: `feat/homelander-flight` (off `main`). One commit per phase, push the branch after
 each phase. Never merge/push to `main`. Universe: **`dc`** (existing key; no new universe).
 
+## Polish — flight stuck-fix + faster speed ✅ (committed)
+- **STUCK FIX**: `wantDescend` (set by a charge-tap descend request) was never cleared on takeoff/landing,
+  so after toggling down to land the NEXT takeoff immediately re-descended → "flying got stuck". Now cleared
+  in `flightTakeoff` and `beginLanding`. New regression test in `homelander_flight_path.mjs` (toggle-land →
+  re-takeoff must climb). 1069/0.
+- **FASTER FLIGHT** (user request): profile maxH 6.5→9.5, maxV 5.5→8.0, accel 0.55→0.85, dashSpeed 11→16,
+  liftoff −4→−5, reverseBrake 0.72→0.70, ceilEaseZone 48→56. Render check: climb now y 373→−14 (vs ~260px).
+  Harnesses 1069/0 & 1031/0, render 26/0, det 14/0 · combo 225/9 · roster green.
+
 ## Polish — sizing fix + 3 skins ✅ (committed)
 - **Sizing**: `spriteScale` 1.2 → **1.6**. Measured body (measureSprite contentH) was ~89px at 1.2 (too
   short); now ~115px — above roster median (~108), under tall outliers (Gojo 132). Verified in-game vs Gojo.

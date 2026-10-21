@@ -7,7 +7,7 @@
  */
 import {
   FLIGHT_PROFILES, FLIGHT_PHASE, ensureFlightState, flightTakeoff, stepFlight,
-  tickFlightDriver, isFlying, flightPhase,
+  tickFlightDriver, isFlying, flightPhase, flightToggleInput,
 } from "../flight.js"
 
 const P = FLIGHT_PROFILES.homelander
@@ -125,6 +125,22 @@ ok(flightPhase({ _flightCtl: { phase: traceA[traceA.length - 1].phase } }) === F
 const poses = new Set(traceA.map(t => t.pose))
 ok(poses.size >= 5, `too few distinct poses (${poses.size})`)
 ok(traceA.some(t => t.phase === FLIGHT_PHASE.AIRDASH), "no air-dash phase observed")
+
+// REGRESSION — "flying got stuck": a charge-tap descend-to-land must NOT leak into the next takeoff.
+// Take off, climb, charge-tap to descend+land, then take off AGAIN and confirm he actually climbs.
+{
+  const f = makeFighter(7); ensureFlightState(f)
+  flightTakeoff(f)
+  for (let i = 0; i < 40; i++) frame(f, IN({ up: true }))      // climb
+  flightToggleInput(f)                                         // charge-tap → descend request
+  let g = 0; while (isFlying(f) && g++ < 400) frame(f, IN())   // sinks + lands
+  for (let i = 0; i < P.landRecovery + 4; i++) frame(f, IN())  // finish landing recovery → grounded
+  const took2 = flightTakeoff(f)                               // SECOND takeoff
+  const y0 = f.y
+  for (let i = 0; i < 40; i++) frame(f, IN({ up: true }))      // climb again
+  ok(took2, "second takeoff refused after a toggle-land")
+  ok(f.y < y0 - 40, `STUCK: second takeoff did not climb (y ${y0.toFixed(0)} → ${f.y.toFixed(0)}) — wantDescend leaked`)
+}
 
 console.log("════════════════════════════════════════════")
 console.log(`  FLIGHT PATH: ${passed} passed, ${failed} failed`)

@@ -140,6 +140,8 @@ const SIGNATURE_MOTIONS = {
   blue: [],        red: ["F"],       hollowPurple: ["D", "B"],
   cleave: [],      dismantle: ["D", "B"], flameArrow: ["F"],
   rasengan: [],    shadowClone: ["D", "F"], chakraArm: ["F", "F"],
+  // Homelander — heatVision [] (neutral) | supersonic F | sonicClap D | barrage B (verified vs executeHomelanderSpecial)
+  heatVision: [],  supersonic: ["F"], sonicClap: ["D"], barrage: ["B"],
   ultimate: []     // fires on the dedicated ultimate key — no motion needed
 }
 const SIGNATURE_MOTION_FRAME_MS = 1000 / 60   // ~16.7ms — one frame of spacing between synthesized inputs
@@ -762,6 +764,42 @@ function decideSukunaSignatureMove(controller, fighter, opponent) {
   return null
 }
 
+// Called from choosePlan ONLY when fighter.rosterKey === "homelander" (never for anyone else). Same
+// shape as Gojo/Sukuna. Homelander is an aerial ZONER: he prefers to keep Heat Vision on the opponent
+// at range, uses FLIGHT 37 at full meter, and a point-blank Sonic Clap to reset space. Returns a plan
+// string ("ultimate"/"special") + sets _sigTarget, or null to fall through.
+function decideHomelanderSignatureMove(controller, fighter, opponent) {
+  if ((controller.memory._sigCooldown || 0) > 0) return null
+  const profile = controller.profile
+  const iq = profile.situationalIQ || 0
+  if (iq <= 0) return null
+  if (!chance(iq)) return null
+
+  const distanceX = getHorizontalDistance(fighter, opponent)
+  const energy    = getEnergy(fighter)
+  const maxEnergy = getMaxEnergy(fighter)
+  const overheated = (fighter._hvOverheat || 0) > 0
+  const heatReady  = (fighter._laserHeat == null ? 72 : fighter._laserHeat) > 20
+
+  // (a) ULTIMATE FLIGHT 37 — full meter, mid-range so the grab lunge can connect. Rare (iq*0.3).
+  if (energy >= maxEnergy && distanceX < 420 && chance(iq * 0.3)) {
+    controller.memory._sigTarget = "ultimate"
+    return "ultimate"
+  }
+  // (b) HEAT VISION zoning — the signature tool. Any range the beam reaches, as long as it isn't
+  //     overheated and has heat left. Strong roll (iq*0.6) → he really wants to laser you.
+  if (distanceX >= 90 && distanceX <= 540 && !overheated && heatReady && chance(iq * 0.6)) {
+    controller.memory._sigTarget = "heatVision"
+    return "special"
+  }
+  // (c) SONIC CLAP get-off-me — point blank, enough meter. Resets space to resume zoning. Roll iq*0.5.
+  if (distanceX < 150 && energy >= (fighter.specials?.sonicClap?.cost ?? 15) && chance(iq * 0.5)) {
+    controller.memory._sigTarget = "sonicClap"
+    return "special"
+  }
+  return null
+}
+
 function choosePlan(controller, fighter, opponent, world = {}) {
   controller.memory._sigActive = false   // reset each decision; a signature layer below sets it true if it fires
   const profile = controller.profile
@@ -798,6 +836,17 @@ function choosePlan(controller, fighter, opponent, world = {}) {
   // Gojo's checklist is untouched. Invoked ONLY for Sukuna; shares the same _sigCooldown constant.
   if (fighter.rosterKey === "sukuna") {
     const sigPlan = decideSukunaSignatureMove(controller, fighter, opponent)
+    if (sigPlan) {
+      controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
+      controller.memory._sigActive   = true
+      return sigPlan
+    }
+  }
+
+  // HOMELANDER-ONLY signature layer — aerial zoner: Heat Vision at range, FLIGHT 37 at full meter,
+  // Sonic Clap point-blank. Same shape as Gojo/Sukuna; invoked ONLY for Homelander.
+  if (fighter.rosterKey === "homelander") {
+    const sigPlan = decideHomelanderSignatureMove(controller, fighter, opponent)
     if (sigPlan) {
       controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
       controller.memory._sigActive   = true

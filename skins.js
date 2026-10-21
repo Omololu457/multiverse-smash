@@ -1798,6 +1798,18 @@ export const SKINS = {
   // native ~127px (his idle content is already large, so the fallback would OVER-size then his own
   // <1 scale wouldn't apply). Sources his real spriteScale (0.95) from the character. No portrait yet
   // (procedural name/universe panel on select until Stage 6). No alt skins yet.
+  // HOMELANDER (dc) — default + 3 baked recolor skins (homelander_work/gen_skins.py → *__<tag>.png, HSV
+  // region-swap preserving shading). All free, cosmetic-only, keep his spriteScale. Rose = pink suit /
+  // lighter-pink hair; Albedo (Ben 10 villain) = red suit + white hair; Alien X = near-black cosmic body.
+  homelander: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.homelander?.portrait, spriteScale: characters.homelander?.spriteScale, animationData: null },
+    { id: "homelander_rose",   name: "Rose",    unlockLevel: 0, portrait: recolorPortrait("homelander", "rose"),   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "rose") },
+    { id: "homelander_albedo", name: "Albedo",  unlockLevel: 0, portrait: recolorPortrait("homelander", "albedo"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "albedo") },
+    { id: "homelander_ben10",  name: "Ben 10",  unlockLevel: 0, portrait: recolorPortrait("homelander", "ben10"),  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "ben10") },
+    // id ENDS "AlienX" so game.js drawAlienXStarfield auto-gates the colourful Celestialsapien starfield
+    // overlay onto the matte-black (alienx) sheets — matching every other character's Alien X skin.
+    { id: "homelanderAlienX",  name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("homelander", "alienx"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "alienx") },
+  ],
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

@@ -9,6 +9,8 @@
 //
 // Exports: SpriteHandler, preloadCharacterSprites, preloadSheets, processPendingSpawns
 
+import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
+
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
 // sprite for the whole stolen-form window (fighter._shActive). ONE shared treatment for ANY copied
@@ -231,6 +233,8 @@ const MOVE_TO_ACTION = {
   up: "up",
   air: "air",
   down_air: "down_air",
+  // Homelander specials → existing poses (Supersonic = cape-twirl dash streak, Barrage = punch flurry).
+  hlSupersonic: "flyDash", hlBarrage: "light", hlClap: "heavy",
   // Shisui (Trinity) — THE LOYALIST special cast poses (_spriteCastMove). Identity maps so a cast recovery
   // tail never resolves to the fallback box. (Backstab / Fireball / Genjutsu Grab / Kunai Rain / Flurry / Susanoo.)
   shiBackstab: "shiBackstab", shiFireball: "shiFireball", shiGenjutsu: "shiGenjutsu",
@@ -796,6 +800,21 @@ function _resolveAction(fighter, currentAction = "idle") {
   // "transform". Gating here mirrors every other branch (guard/knockdown/hurt_air) that checks the strip exists.
   const activeAnim = fighter._skinAnim || fighter.animationData;
   if ((fighter.teleportFlash || 0) > 10 && activeAnim?.transform) return "transform";
+
+  // FLIGHT MODULE (Homelander + future flyers): map the flight controller's velocity-derived pose
+  // (flight.js selectFlightPose) to a flight animation action. Below attack/cast/hurt so a mid-flight
+  // punch or hit still shows the right pose. Gated on _flightCtl → a strict no-op for every other
+  // fighter. A missing strip falls back to a cruise/hover we know exists (never a missing-action box).
+  if (fighter._flightCtl && isFlying(fighter)) {
+    const anim = fighter._skinAnim || fighter.animationData || {};
+    const MAP = { hoverIdle: "flyHover", cruiseA: "flyCruise", cruiseB: "flyCruise", rise: "flyRise",
+                  dive: "flyDive", brake: "flyDive", turn: "flyTurn", takeoff: "takeoff", land: "land",
+                  capeTwirl: "flyDash" };
+    const want = MAP[fighter._flightCtl.poseKey] || "flyHover";
+    if (anim[want]) return want;
+    for (const fb of ["flyCruise", "flyHover", "fly", "idle"]) if (anim[fb]) return fb;
+    return "idle";
+  }
 
   // OMNI-MAN FLIGHT (Stage 3): the toggleable hover MODE — a movement state (below attack/cast/hurt so
   // a mid-flight punch or hit still shows the right pose). flyMove = streaking with horizontal speed;

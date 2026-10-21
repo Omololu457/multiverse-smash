@@ -13,6 +13,7 @@
 
 import { setupBen10, updateOmnitrix } from "./fighters.js"
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
+import { stepFlight, isFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): richer data-driven flyer, gated on fighter._flightCtl (no-op for everyone else, incl. the separate _flightActive Omni-Man/Superman system)
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
 const TRIPLE_JUMP_CHARACTERS = new Set(["gojo", "sukuna"])
@@ -129,6 +130,22 @@ export const physics = {
     )
 
     const air = !fighter.onGround
+
+    // ── FLIGHT MODULE (Homelander & future flyers) ───────────────────────────────
+    // A richer, data-driven flyer (flight.js) that OWNS x AND y while airborne — velocity
+    // with real acceleration/drag, 8-way air dashes, energy, pose selection. ENTIRELY separate
+    // from the simple _flightActive snap-velocity system below (Omni-Man / Superman), and gated
+    // on fighter._flightCtl + isFlying → a strict no-op for every fighter without a flight PROFILE,
+    // so their movement stays byte-identical. flight.js clamps to the arena walls/floor/ceiling; we
+    // still apply the camera clamp. Returns early: the generic X-integration/bounds below are skipped.
+    if (fighter._flightCtl && isFlying(fighter) && canMove) {
+      const baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY
+      const env = { floorY: baseFloor, ceilingY: -360, leftWall: this.stageLeft, rightWall: this.stageWidth }
+      stepFlight(fighter, { left: L, right: R, up: U, down: D, dashEdge: dash, holdDown: D && !U, faceTarget: fighter._flightOpponentX }, env)
+      fighter._flightInputX = (R ? 1 : 0) - (L ? 1 : 0)
+      if (camera && !fighter.ignoreCameraBounds) this.clampToCamera(fighter, camera)
+      return
+    }
 
     // ── OMNI-MAN FLIGHT ──────────────────────────────
     // Toggleable movement MODE that REPLACES the jump: free 8-directional hover instead of a jump arc.
@@ -327,6 +344,14 @@ export const physics = {
     // SPIDER-MAN WEB-SWING: while swinging, the pendulum (abilities.updateSpidermanWebSwing) OWNS position
     // — skip normal gravity entirely so the arc isn't fought by the fall.
     if (fighter._swinging) return
+
+    // FLIGHT MODULE: while airborne, flight.js already integrated y (in moveFighter) and clamped
+    // to floor/ceiling — skip gravity entirely. Gated on _flightCtl → no-op for every other fighter.
+    if (fighter._flightCtl && isFlying(fighter)) {
+      fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
+      fighter._prevFeetY = fighter.y + fighter.h
+      return
+    }
 
     const baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY
 

@@ -773,6 +773,11 @@ export const SPRITE_MANIFEST = {
   omniman: {
     actions: { idle: "./omni_man_idle.png" }
   },
+  // HOMELANDER (dc) — idle gate flips him from procedural box to sprite. Per-action rendering reads
+  // characters.js → homelander.animationData (each action carries its own ./homelander_*_uniform.png).
+  homelander: {
+    actions: { idle: "./homelander_idle_uniform.png" }
+  },
 
   // Zenitsu Agatsuma (universe: demon_slayer) — FIRST Demon Slayer sprite char. Gates
   // spritesReady() by decoding the idle strip → flips Zenitsu from procedural box to sprite.

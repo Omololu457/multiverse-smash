@@ -46,6 +46,7 @@ import {
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
+import { flightToggleInput, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + per-frame driver + round reset + profile (HUD gauge max)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -179,6 +180,8 @@ import {
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
+  applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX,   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
+  applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
@@ -1274,7 +1277,7 @@ function _rewindTeardown() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -4840,7 +4843,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -5879,7 +5882,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -9609,7 +9612,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -10223,6 +10226,9 @@ function handleChargeRelease(fighter, key) {
   // FLIGHT toggle (Omni-Man + Superman, any traits.canFly char): a quick P-TAP engages/disengages
   // Flight (a HOLD charges the shared pool instead, see updateMovementInput). Same charge-TAP shape as
   // Gojo's Infinity. toggleOmniManFlight no-ops if crashing / in hitstun / out of energy.
+  // FLIGHT MODULE (Homelander + future flyers): a charge-TAP takes off / requests a descent-to-land.
+  // Gated on traits.flightProfile → separate from the simple canFly path below (no collision).
+  if (fighter.traits?.flightProfile) { flightToggleInput(fighter); return }
   if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {
     if (!fighter.disabledSpecials?.includes("infinity")) {   // Limitless Sacrifice vow disables Infinity
@@ -10433,6 +10439,10 @@ function detectDoubleTapDashTeleport(fighter, key) {
   const towardKey = target ? (target.x >= fighter.x ? c.right : c.left) : null
 
   const onDoubleTap = (isToward) => {
+    // FLIGHT MODULE: while flying (Homelander), a double-tap is the flight AIR-DASH (handled in
+    // physics.stepFlight via _dashTap), NEVER the ground speed-tier teleport — which, now that he's
+    // speed-tier, would hijack the air-dash and yank him across the screen ("got stuck after dashing").
+    if (fighter._flightCtl && isFlightModuleFlying(fighter)) { fighter._dashTap = true; return }
     if ((fighter.dashTeleport || isSpeedTierTeleport(fighter)) && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
       // MINATO FLYING RAIJIN: with ≥1 teleport mark placed, the F→F blink RECALLS to the selected
       // mark (his signature) instead of blinking behind the opponent. With no marks it falls through
@@ -17143,6 +17153,67 @@ function drawShisuiItachiKidsFx(c, fighter) {
 // Killua (Godspeed) `zoldyck` — Phase 2 code-drawn FX: Rhythm Echo / Echo Strike afterimages (cyan ghost
 // silhouettes), Thunderbolt Barrage lightning crackle, Snack Break "+VOLTS" spark pop. Deterministic (frame
 // counters only; no Math.random). Projectile bolts/pillars render via the sprite-projectile system.
+// HOMELANDER — Heat Vision beam. Reads the SIM-stamped _hv render-state (abilities.applyHomelanderHeatVision)
+// and draws it in world space: white core + red glow + impact burst, with a small eye glow at the origin.
+// While overheated, a dim red eye tell. Render-only (never writes sim state). homelander only.
+function drawHomelanderHeatVision(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "homelander") return
+  const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 50) / 2, cyc = fighter.y + (fighter.h || 100) * 0.45
+  // ── SONIC CLAP shockwave ring (expanding, Down+Special) ─────────────────────
+  if ((fighter._hlClapFx || 0) > 0) {
+    const t = 1 - fighter._hlClapFx / 14, r = 14 + t * 120
+    c.save(); c.globalAlpha = 0.6 * (1 - t); c.strokeStyle = "#bfe0ff"; c.lineWidth = 4
+    c.beginPath(); c.arc(cx, cyc, r, 0, Math.PI * 2); c.stroke()
+    c.globalAlpha = 0.35 * (1 - t); c.beginPath(); c.arc(cx, cyc, r * 0.6, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
+  // ── SUPERSONIC boom crack + trailing rings (Fwd+Special) ────────────────────
+  if ((fighter._hlBoomFx || 0) > 0) {
+    const t = 1 - fighter._hlBoomFx / 18
+    c.save(); c.globalAlpha = 0.5 * (1 - t); c.strokeStyle = "#ffffff"; c.lineWidth = 3
+    for (let k = 0; k < 3; k++) { const r = 10 + t * 70 + k * 16; c.beginPath(); c.arc(cx - face * (12 + k * 10), cyc, r * 0.5, Math.PI * 0.4, Math.PI * 1.6); c.stroke() }
+    c.restore()
+  }
+  // ── FLIGHT 37 slam impact ring + dust (ultimate) ────────────────────────────
+  if ((fighter._f37slam || 0) > 0) {
+    const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+    const ix = opp ? opp.x + (opp.w || 50) / 2 : cx, iy = opp ? opp.y + (opp.h || 100) : cyc
+    const t = 1 - fighter._f37slam / 22, r = 20 + t * 150
+    c.save(); c.globalAlpha = 0.7 * (1 - t); c.strokeStyle = "#ffd27a"; c.lineWidth = 5
+    c.beginPath(); c.arc(ix, iy, r, Math.PI, Math.PI * 2); c.stroke()
+    c.globalAlpha = 0.4 * (1 - t); c.fillStyle = "#c9a26a"
+    for (let k = 0; k < 6; k++) { const a = Math.PI + (k / 5) * Math.PI; c.beginPath(); c.arc(ix + Math.cos(a) * r * 0.8, iy + Math.sin(a) * r * 0.3, 6 * (1 - t), 0, Math.PI * 2); c.fill() }
+    c.restore()
+    fighter._f37slam--
+  }
+  // ── SUPER-SPEED BARRAGE fist streaks (Back+Special) ─────────────────────────
+  if ((fighter._hlBarrageFx || 0) > 0) {
+    c.save(); c.globalAlpha = 0.5; c.strokeStyle = "#8fc7ff"; c.lineWidth = 2
+    for (let k = 0; k < 5; k++) { const yy = fighter.y + (fighter.h || 100) * (0.3 + k * 0.08); c.beginPath(); c.moveTo(cx, yy); c.lineTo(cx + face * (40 + (fighter._hlBarrageFx * 3 + k * 9) % 50), yy); c.stroke() }
+    c.restore()
+  }
+  const ex = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30)
+  const ey = fighter.y + (fighter.h || 100) * 0.18
+  if ((fighter._hvOverheat || 0) > 0) {   // overheat: dim red eye glow (cooling down)
+    c.save(); c.globalAlpha = 0.5; c.fillStyle = "#7a1414"
+    c.beginPath(); c.arc(ex, ey, 3, 0, Math.PI * 2); c.fill(); c.restore(); return
+  }
+  const hv = fighter._hv
+  if (!hv) return
+  c.save()
+  c.lineCap = "round"
+  c.strokeStyle = "rgba(255,40,30,0.55)"; c.lineWidth = 9; c.beginPath(); c.moveTo(hv.ox, hv.oy); c.lineTo(hv.impX, hv.impY); c.stroke()
+  c.strokeStyle = "rgba(255,120,90,0.85)"; c.lineWidth = 5; c.beginPath(); c.moveTo(hv.ox, hv.oy); c.lineTo(hv.impX, hv.impY); c.stroke()
+  c.strokeStyle = "rgba(255,255,255,0.95)"; c.lineWidth = 2; c.beginPath(); c.moveTo(hv.ox, hv.oy); c.lineTo(hv.impX, hv.impY); c.stroke()
+  c.fillStyle = "rgba(255,90,60,0.95)"; c.beginPath(); c.arc(hv.ox, hv.oy, 3.5, 0, Math.PI * 2); c.fill()
+  if (hv.hit) {
+    const r = 8 + ((hv.tick || 0) % 4)
+    c.fillStyle = "rgba(255,180,120,0.7)"; c.beginPath(); c.arc(hv.impX, hv.impY, r, 0, Math.PI * 2); c.fill()
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.beginPath(); c.arc(hv.impX, hv.impY, r * 0.4, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 function drawZoldyckFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "zoldyck") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -18901,6 +18972,10 @@ function updateFighterState(fighter) {
   updateOmoluDrones(updated, getAbilityContext())   // OMOLOLU Drone Swarm: fly / bomb-drop AOE / crash contact, + keep teleport markers live
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
+  tickFlightDriver(updated, {})      // FLIGHT MODULE (Homelander): energy drain/refill, takeoff/land/grounded-lock timers, velocity-derived pose hold (gated on _flightCtl; BEFORE applyGravity)
+  if (updated._flightCtl) { const _opp = updated === p1 ? p2 : updated === p2 ? p1 : null; if (_opp) updated._flightOpponentX = _opp.x + (_opp.w || 0) / 2 }   // auto-face target while hovering
+  applyHomelanderHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander HEAT VISION: sustained/sweep beam + laser-heat drain/overheat + hitscan damage (gated on rosterKey)
+  applyHomelanderFlight37(updated, getAbilityContext())   // Homelander ULT FLIGHT 37: dark-silhouette → supersonic grab → launch + Heat-Vision slam (gated on _f37)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
   resolvePortalDropLanding(updated)   // Rick Portal-Pull/Push: impact damage the frame they reground
@@ -19192,6 +19267,12 @@ function updateTrainingMode() {
     for (const f of [p1, p2]) {
       if (f.maxHealth) f.health = f.maxHealth
       if (f.maxEnergy) f.energy = f.maxEnergy
+      // HOMELANDER training toggles: pin flight energy + laser heat to full and clear overheat so
+      // flight and Heat Vision can be practiced without the gauges depleting. Gated → no-op otherwise.
+      if ((f.rosterKey || "").toLowerCase() === "homelander") {
+        if (f._flightCtl) f._flightCtl.energy = getFlightProfile(f)?.energyMax ?? 240
+        f._laserHeat = HV_HEAT_MAX; f._hvOverheat = 0
+      }
     }
   }
 
@@ -20424,6 +20505,7 @@ function renderHybridFighter(fighter) {
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
+    drawHomelanderHeatVision(c, fighter)    // Homelander — twin code-drawn Heat Vision beam (white core + red glow + impact burst) from the eye anchor; dim-eye overheat tell (homelander only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawVilgaxDrone(c, fighter)             // Vilgax — Chimerian hover gun-drone summon (s716cB art blit; vilgax only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
@@ -22154,8 +22236,53 @@ function drawTowerHud(ctx, canvas) {
   ctx.restore()
 }
 
+// HOMELANDER HUD — two thin gauges under his health bar, styled like the HUD theme: FLIGHT ENERGY
+// (cyan) and LASER HEAT (amber→red, dim "OVERHEAT" red while locked out). Both read SIM state
+// (_flightCtl.energy, _laserHeat/_hvOverheat). Gated on rosterKey → nothing drawn for anyone else.
+function drawHomelanderGauges(c, cv) {
+  const cw = cv?.width || (typeof window !== "undefined" ? window.innerWidth : 1280)
+  const barW = Math.max(220, Math.min(420, cw * 0.28)), pad = 14
+  const draw = (f, flip) => {
+    if (!f || (f.rosterKey || "").toLowerCase() !== "homelander") return
+    const x = (flip ? cw - pad - barW - 20 : pad) + 8
+    const w = barW, y0 = 74, h = 6, gap = 4
+    const gauge = (y, ratio, col, bg) => {
+      c.save()
+      c.fillStyle = "rgba(0,0,0,0.55)"; c.fillRect(x, y, w, h)
+      c.fillStyle = bg || col
+      c.fillRect(x, y, Math.max(0, Math.min(1, ratio)) * w, h)
+      c.strokeStyle = "rgba(255,255,255,0.22)"; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
+      c.restore()
+    }
+    // flight energy
+    const fc = f._flightCtl
+    const eMax = getFlightProfile(f)?.energyMax || 240
+    gauge(y0, fc ? (fc.energy || 0) / eMax : 1, "#45c6ff")
+    // laser heat (full = cool/ready; empty/overheat = red)
+    const over = (f._hvOverheat || 0) > 0
+    const heat = f._laserHeat != null ? f._laserHeat : HV_HEAT_MAX
+    gauge(y0 + h + gap, over ? 1 : heat / HV_HEAT_MAX, over ? "#ff3b30" : (heat / HV_HEAT_MAX < 0.33 ? "#ff7a1a" : "#ffd24a"))
+    if (over) {
+      c.save(); c.font = "bold 8px Arial"; c.fillStyle = "#ff6a60"
+      c.textAlign = flip ? "right" : "left"; c.fillText("OVERHEAT", flip ? x + w : x, y0 + h + gap + h + 8); c.restore()
+    }
+  }
+  draw(p1, false); draw(p2, true)
+}
+
+// FLIGHT 37 "screen goes dark" — a screen-space wash during the ult's dark-silhouette startup so
+// only the (already-black) silhouette + red eyes read. Gated on the startup flag → nothing otherwise.
+function drawHomelanderUltOverlay(c, cv) {
+  const f = homelanderUltStartup(p1) ? p1 : homelanderUltStartup(p2) ? p2 : null
+  if (!f || !f._f37) return
+  const prog = Math.min(1, (1 - f._f37.t / 24) * 2)
+  c.save(); c.fillStyle = `rgba(3,3,10,${0.72 * prog})`; c.fillRect(0, 0, cv.width, cv.height); c.restore()
+}
+
 function drawBattleHud() {
+  drawHomelanderUltOverlay(ctx, canvas)   // Homelander FLIGHT 37 dark-startup screen wash (behind HUD)
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
+  drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
@@ -27461,6 +27588,8 @@ gameLoop()
     standP1OnPlatform: (id) => { const p = getPlatforms().find(z => z.id === id); if (!p1 || !p) return false; p1.x = p.x + p.w/2 - (p1.w||60)/2; p1.y = p.topY - (p1.h||100); p1.vx = 0; p1.vy = 0; p1.onGround = true; p1.grounded = true; p1.isLaunched = false; p1._prevFeetY = p.topY; p1._floorPlatformId = id; return true },   // _prevFeetY/_floorPlatformId make the one-way query read it as ALREADY resting (not a from-below teleport)
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
+    // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

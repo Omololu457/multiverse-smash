@@ -15971,6 +15971,251 @@ function fireOmniManMeteor(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// HOMELANDER — HEAT VISION (signature). Twin code-drawn eye beams from an eye-anchored origin.
+// Tap = a short burst; HOLD = a sustained beam that sweeps up/down with the stick at a capped turn
+// rate. A LASER-HEAT gauge (_laserHeat, SIM state) limits sustained fire → overheat lockout (dim eyes).
+// Ground fires forward, Up angles it as an anti-air, and the AIR version fires down-diagonally while he
+// keeps drifting. Hitscan damage via applyScaledDamage; the beam is drawn in game.js
+// (drawHomelanderHeatVision) from the _hv render-state this driver stamps. Fully code-drawn, no art.
+// All state is deterministic (no Math.random) → LAN/replay-safe.
+// ─────────────────────────────────────────────────────────────────────────
+export const HV_HEAT_MAX  = 72     // ~1.2s of sustained beam (also the HUD gauge max)
+const HV_OVERHEAT = 90             // lockout frames once heat hits 0 (dim-eye cooldown)
+const HV_MIN_BURST = 12            // a tap still fires a visible burst this many frames
+const HV_DRAIN = 1                 // heat spent per active frame
+const HV_REFILL = 0.8              // heat regained per idle frame
+const HV_SWEEP = 0.026             // radians/frame (~1.5°) stick sweep rate
+const HV_SWEEP_CAP = 0.62          // ~35° max off the firing axis
+const HV_TICK = 4                  // apply damage every N active frames
+const HV_TICK_DMG = 15             // raw damage per tick (scaled by applyScaledDamage)
+const HV_LEN = 560                 // beam reach (px)
+
+function isHomelanderAirborne(f) {
+  return !!(f._flightCtl && f._flightCtl.phase && f._flightCtl.phase !== "grounded") || !(f.onGround ?? f.grounded ?? true)
+}
+
+export function executeHomelanderSpecial(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
+  const dir = fighter._specialHeldDir || null
+  // Forward = Supersonic (sonic-boom dash) · Down = Sonic Clap (get-off-me shockwave) ·
+  // Back = Super-Speed Barrage (advancing flurry → launcher) · neutral/Up = Heat Vision.
+  if (dir === "F") return fireHomelanderSupersonic(fighter, context)
+  if (dir === "D") return fireHomelanderSonicClap(fighter, context)
+  if (dir === "B") return fireHomelanderBarrage(fighter, context)
+  return startHomelanderHeatVision(fighter, dir)   // null (neutral) or "U" (anti-air)
+}
+
+// SUPERSONIC (Fwd) — a full-screen sonic-boom DASH using the flight streak pose, leaving a code-drawn
+// shockwave ring + boom crack. Brief i-frames at the boom = it "passes through projectiles". In flight
+// it adds a downward dive (Mach Ram). Committed + unsafe on block (long recovery).
+function fireHomelanderSupersonic(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.supersonic?.cost ?? 25)) return false
+  const md = { damage: 110, startup: 6, active: 6, recovery: 22, hitstun: 26, knockbackX: 16, knockbackY: -4, rangeX: 112, rangeY: 62, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "hlSupersonic", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const face = fighter.facing || 1
+  fighter.vx = face * 22                                   // rocket across the screen
+  if (isHomelanderAirborne(fighter)) fighter.vy = 7        // Mach Ram dive
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)   // sonic-boom i-frames → passes through projectiles at the start
+  fighter._hlBoomFx = 18                                   // shockwave ring + crack (drawHomelanderHeatVision)
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// SONIC CLAP (Down) — an instant thunderclap shockwave: shoves the opponent away + destroys weak
+// opponent projectiles in range. A short-range get-off-me tool (small damage, big push).
+function fireHomelanderSonicClap(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.sonicClap?.cost ?? 15)) return false
+  const cx = fighter.x + (fighter.w || 50) / 2, cy = fighter.y + (fighter.h || 100) * 0.4
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  if (opp) {
+    const ox = opp.x + (opp.w || 50) / 2
+    if (Math.abs(ox - cx) < 155 && Math.abs(opp.y - fighter.y) < 130) {
+      const dir = ox >= cx ? 1 : -1
+      if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 16); opp.vx = dir * 10 }
+      else { opp.hitstun = Math.max(opp.hitstun || 0, 18); opp.vx = dir * 16; opp.vy = -6; opp.colorFlash = 8; applyScaledDamage(opp, 40, { source: "ability" }) }
+    }
+  }
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {   // destroy weak opponent projectiles nearby
+    const p = activeProjectiles[i]
+    if (p && p.owner !== fighter && (p.damage || 0) <= 80 && Math.abs((p.x ?? cx) - cx) < 180) activeProjectiles.splice(i, 1)
+  }
+  fighter._hlClapFx = 14
+  fighter._spriteCastMove = "hlClap"; fighter._spriteCastTimer = 12
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 22)
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+// SUPER-SPEED BARRAGE (Back) — a fast advancing fist flurry that ends in a launcher.
+function fireHomelanderBarrage(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.barrage?.cost ?? 20)) return false
+  const md = { damage: 95, startup: 6, active: 10, recovery: 22, hitstun: 24, knockbackX: 6, knockbackY: -14, rangeX: 104, rangeY: 56, launcher: true, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "hlBarrage", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 7     // advance into the flurry
+  fighter._hlBarrageFx = 16
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+function startHomelanderHeatVision(fighter, dir) {
+  if ((fighter._hvOverheat || 0) > 0) return false
+  if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
+  if (fighter._laserHeat <= 1) return false
+  const airborne = isHomelanderAirborne(fighter)
+  fighter._hvActive = true
+  fighter._hvMinBurst = HV_MIN_BURST
+  fighter._hvAngle = airborne ? 0.38 : (dir === "U" ? -0.5 : 0)   // air → down-diagonal; Up → anti-air; ground → level
+  fighter._hvBaseAngle = fighter._hvAngle
+  fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 8   // flex / eyes-bright startup pose
+  return true
+}
+
+// Per-frame Heat-Vision driver (game.js updateFighterState passes raw HELD controls). Gated on rosterKey.
+export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  if (fighter._hlBoomFx > 0) fighter._hlBoomFx--          // special-FX render timers (shockwave rings)
+  if (fighter._hlClapFx > 0) fighter._hlClapFx--
+  if (fighter._hlBarrageFx > 0) fighter._hlBarrageFx--
+  if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
+  if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; return }
+  // a hard hit / knockdown kills the beam
+  if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._hvActive = false; fighter._hv = null }
+
+  if (fighter._hvActive) {
+    const held = !!raw.special
+    if (fighter._hvMinBurst > 0) fighter._hvMinBurst--
+    if ((!held && fighter._hvMinBurst <= 0) || fighter._laserHeat <= 0) {
+      fighter._hvActive = false; fighter._hv = null
+      if (fighter._laserHeat <= 0) { fighter._hvOverheat = HV_OVERHEAT; fighter._laserHeat = 0 }   // overheat lockout
+      return
+    }
+    fighter._laserHeat = Math.max(0, fighter._laserHeat - HV_DRAIN)
+    fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = Math.max(fighter._spriteCastTimer || 0, 3)
+    // SWEEP: up/down adjust the firing angle at a capped rate around the base axis (down = +, up = −)
+    const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
+    if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
+    else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
+    // eye origin (approx eye anchor: head height, facing side — per-frame anchor refinement is a later polish)
+    const face = fighter.facing || 1
+    const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30)
+    const oy = fighter.y + (fighter.h || 100) * 0.18
+    const bx = Math.cos(fighter._hvAngle) * face
+    const by = Math.sin(fighter._hvAngle)
+    // hitscan vs the opponent AABB (first contact = impact point)
+    const opp = context.getOpponent ? context.getOpponent(fighter) : null
+    let impX = ox + bx * HV_LEN, impY = oy + by * HV_LEN, hit = false
+    if (opp) {
+      for (let t = 0; t <= HV_LEN; t += 10) {
+        const px = ox + bx * t, py = oy + by * t
+        if (px >= opp.x && px <= opp.x + (opp.w || 50) && py >= opp.y && py <= opp.y + (opp.h || 100)) { impX = px; impY = py; hit = true; break }
+      }
+    }
+    if (hit && opp && !(opp.invulnTimer > 0)) {
+      fighter._hvTick = (fighter._hvTick || 0) + 1
+      if (fighter._hvTick % HV_TICK === 0) {
+        if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 8); applyScaledDamage(opp, HV_TICK_DMG * 0.3, { source: "ability" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.colorFlash = 6; applyScaledDamage(opp, HV_TICK_DMG, { source: "ability" }) }
+      }
+    }
+    fighter._hv = { ox, oy, impX, impY, hit, tick: fighter._hvTick || 0 }   // render state for game.js drawHomelanderHeatVision
+  } else {
+    fighter._hv = null; fighter._hvBaseAngle = null
+    fighter._laserHeat = Math.min(HV_HEAT_MAX, fighter._laserHeat + HV_REFILL)   // idle → heat recovers
+  }
+}
+
+// Round/match reset — clear Heat-Vision state so heat/overheat never leak across rounds.
+export function resetHomelanderKit(fighter) {
+  if (!fighter) return
+  fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
+  fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
+  fighter._f37 = null; fighter._f37slam = 0
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// HOMELANDER — ULTIMATE "FLIGHT 37" (scripted state machine, no freeze-cinematic file).
+// Beats: dark SILHOUETTE startup (screen darkens, red eyes, INVULN) → SUPERSONIC GRAB lunge → on
+// connect, LAUNCH the victim up and fire a full HEAT VISION beam that SLAMS them down → huge impact
+// ring + shake + knockdown. On whiff: overshoot + long recovery. Invuln ONLY during the dark startup.
+// Uses normal physics for the victim's arc (launch vy → driven down) so no two-actor carry gating is
+// needed. Deterministic (no Math.random).
+// ─────────────────────────────────────────────────────────────────────────
+const F37 = { cost: 100, startup: 24, lunge: 16, slam: 26, whiffRecover: 44, grabRange: 140, dmg: 320 }
+
+export function executeHomelanderUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
+  if (fighter._f37) return false
+  if (!spendEnergy(fighter, F37.cost)) return false
+  fighter.vx = 0
+  fighter._hvActive = false; fighter._hv = null
+  fighter._f37 = { phase: "startup", t: F37.startup, slammed: false }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F37.startup)   // invuln ONLY during the dark silhouette
+  fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = F37.startup
+  fighter.attacking = false; fighter.attackCooldown = 0
+  return true
+}
+
+// Per-frame driver (game.js updateFighterState). Keeps normal attacks locked while it runs.
+export function applyHomelanderFlight37(fighter, context = {}) {
+  const s = fighter._f37; if (!s) return
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  const face = fighter.facing || 1
+  fighter.attacking = false
+  s.t--
+  if (s.phase === "startup") {
+    fighter.vx = 0
+    fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
+    if (s.t <= 0) { s.phase = "lunge"; s.t = F37.lunge; fighter.vx = face * 26 }   // supersonic grab lunge
+    return
+  }
+  if (s.phase === "lunge") {
+    fighter._hlBoomFx = 6
+    if (opp && !(opp.invulnTimer > 0)) {
+      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
+      if (dx < F37.grabRange && Math.abs(opp.y - fighter.y) < 150) {   // grab connects → launch them up for the slam
+        opp.vy = -16; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 70); opp.colorFlash = 10
+        s.phase = "slam"; s.t = F37.slam; fighter.vx = 0
+        return
+      }
+    }
+    if (s.t <= 0) { s.phase = "whiff"; s.t = F37.whiffRecover; fighter.vx = face * 6 }   // missed → overshoot + long recovery
+    return
+  }
+  if (s.phase === "slam") {
+    fighter.vx = 0
+    if (opp) {
+      opp.hitstun = Math.max(opp.hitstun || 0, 4)
+      if (s.t < F37.slam - 6) opp.vy = Math.max(opp.vy || 0, 16)   // after a beat, HEAT VISION drives them down
+      const floor = (opp.groundY != null ? opp.groundY : 520)
+      if (opp.y + (opp.h || 100) >= floor - 2 && !s.slammed) {     // impact
+        s.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vy = 0
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48); opp.colorFlash = 16
+        opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+        applyScaledDamage(opp, F37.dmg, { source: "ability", attacker: fighter, move: "ultimate" })
+        shakeCamera(context, 8, 12)
+        fighter._f37slam = 22   // impact ring/dust render timer
+      }
+      // render the slam beam from Homelander's eyes down onto the victim
+      const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
+      fighter._hv = { ox, oy, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
+    }
+    if (s.t <= 0) { fighter._hv = null; fighter._f37 = null }
+    return
+  }
+  // whiff recovery
+  fighter.vx *= 0.9
+  if (s.t <= 0) fighter._f37 = null
+}
+
+export function isHomelanderUltActive(fighter) { return !!(fighter && fighter._f37) }
+export function homelanderUltStartup(fighter) { return !!(fighter && fighter._f37 && fighter._f37.phase === "startup") }
+
+// ─────────────────────────────────────────────────────────────────────────
 // OMNI-MAN — "Viltrumite Onslaught" ULTIMATE (Stage 5). A frozen cinematic BODY-SLAM built on the SAME
 // shared freeze architecture as Beerus/Batman (omnimanBodySlamCinematic.js). Chosen as the LARGEST /
 // most elaborate sequence in the batch (combo_where_he_lands_on_his_oppenets, 15f — the widest sheet)
@@ -33528,6 +33773,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "hashirama": return executeHashiramaSpecial(fighter, context)   // Stage 3: Kunai Throw (ground/air, spinning-shuriken projectile). Mokuton dir-specials land in Stages 4-6.
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
+    case "homelander": return executeHomelanderSpecial(fighter, context)   // Heat Vision (neutral / Up anti-air / AIR down-strafe); other dirs = later kit pass
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
     case "ghostface_exe": return executeGhostfaceExeSpecial(fighter, context)   // BILLY (base): Special = IDENTITY SWAP (Down+Sp → Sasuke / Up+Sp → Deathstroke). While swapped, rosterKey is sasuke/deathstroke → routes to THEIR special above.
     case "shisui_trinity": return executeShisuiTrinitySpecial(fighter, context)   // SHISUI — THE LOYALIST: Fwd=Backstab / N=Fireball / B=Genjutsu Grab / D=Kunai Rain / U=Flurry. Blade/Puppeteer identities (P2/P3) add their own cases.
@@ -33843,6 +34089,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "ghostface_billy": cast = executeBillyGhostfaceUltimate(fighter, context); break   // Billy variant (live): reuses The Final Act cinematic + payoff (un-gated helpers)
       case "miwa": cast = executeMiwaUltimate(fighter, context); break   // Blade of the Neophyte: battojutsu quick-draw freeze-cinematic — single guaranteed slash
 
+      case "homelander": cast = executeHomelanderUltimate(fighter, context); break   // FLIGHT 37: dark-silhouette supersonic grab → carry to the sky → Heat Vision slam (scripted state machine)
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic
       case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm

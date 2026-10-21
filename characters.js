@@ -75,14 +75,14 @@ const goku = {
     // ── NEW per-action uniform strips (goku_work/slice.py) from the clean sheet. Feet-anchored, anchorY 0.
     // ONE frame map serves every form; applyGokuFormSystem/_skinAnim swaps only the sheet (goku_<form>_<action>).
     idle:      { frames: 6, width: 54, height: 60, speed: 7, anchorY: 0, sheet: "./goku_base_idle_uniform.png" },
-    walk:      { frames: 4, width: 55, height: 69, speed: 6, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },
-    run:       { frames: 4, width: 55, height: 69, speed: 4, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },   // reuse walk, faster cadence
-    dash:      { frames: 4, width: 55, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_walk_uniform.png" },
+    walk:      { frames: 4, width: 36, height: 70, speed: 6, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },
+    run:       { frames: 4, width: 36, height: 70, speed: 4, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },   // reuse walk, faster cadence
+    dash:      { frames: 4, width: 36, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_walk_uniform.png" },
     jump:      { frames: 3, width: 50, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" },
     fall:      { frames: 1, width: 50, height: 71, speed: 6, anchorY: 0, sourceX: 100, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" },  // last jump cell held
     crouch:    { frames: 2, width: 63, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouch_uniform.png" },
     guard:     { frames: 2, width: 53, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
-    hurt:      { frames: 1, width: 50, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_hurt_uniform.png" },
+    hurt:      { frames: 1, width: 50, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_hurt_uniform.png" },
     knockdown: { frames: 1, width: 74, height: 30, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" },
     getup:     { frames: 1, width: 40, height: 44, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_getup_uniform.png" },
     // KI CHARGE pose (powering-up) — shown while holding Charge to build Ki.

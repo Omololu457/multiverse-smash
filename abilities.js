@@ -2053,8 +2053,8 @@ export function revertVegetaBlue(fighter) {
 // ═════════════════════════════════════════════════════════════════════════════
 // Per-action strip cell dims — identical across all form sheets (goku_work/slice.py). ONE frame map.
 const GOKU_DIMS = {
-  idle:{f:6,w:54,h:60,sp:7}, walk:{f:4,w:55,h:69,sp:6}, jump:{f:3,w:50,h:71,sp:5},
-  crouch:{f:2,w:63,h:47,sp:6}, guard:{f:2,w:53,h:53,sp:6}, hurt:{f:1,w:50,h:58,sp:5},
+  idle:{f:6,w:54,h:60,sp:7}, walk:{f:4,w:36,h:70,sp:6}, jump:{f:3,w:50,h:71,sp:5},
+  crouch:{f:2,w:63,h:47,sp:6}, guard:{f:2,w:53,h:53,sp:6}, hurt:{f:1,w:50,h:59,sp:5},
   knockdown:{f:1,w:74,h:30,sp:5}, getup:{f:1,w:40,h:44,sp:4}, kiCharge:{f:8,w:42,h:71,sp:5}, win:{f:8,w:56,h:62,sp:6},
   light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:55,h:75,sp:3}, up:{f:2,w:36,h:71,sp:3},
   air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:72,h:67,sp:3},

@@ -155,6 +155,7 @@ import {
   enterGokuNextForm,          // Goku — step UP the transform ladder (charge hold-release, threshold-gated)
   revertGoku,                 // Goku — revert to base (charge tap / drain-empty / KO)
   applyGokuFormSystem,        // Goku — per-frame continuous Ki drain + instant auto-revert at 0 (same model)
+  updateGokuCpuAI,            // Goku — CPU ladder AI (transform when it has Ki+space; avoid SSJ3-low-Ki; wait in UI)
   narutoHokageChargeAction,   // Naruto (Hokage) — charge-hold → enter KCM / tap → exit
   revertNarutoHokageKCM,      // Naruto (Hokage) — revert KCM (tap / drain-empty / KO / match reset)
   applyNarutoHokageKCMSystem, // Naruto (Hokage) — per-frame KCM chakra drain + auto-revert at 0
@@ -9681,9 +9682,11 @@ function updateCPUInput() {
   if (matchConfig.mode === "aivsai") {
     if (p1) {
       if (isTransformDevice(p1) && !p1.transformed) tryTransform(p1)
+      updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       applyAIInputToKeys(p1, getAIInput(p1AI, p1, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
     }
     if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+    updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
     applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
     return
   }
@@ -9694,6 +9697,7 @@ function updateCPUInput() {
   // once it has recharged — otherwise a CPU Ben/Albedo would stay weak human after
   // its first forced revert.
   if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+  updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)   // Goku CPU ladder decisions
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied

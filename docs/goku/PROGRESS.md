@@ -319,5 +319,12 @@ via `_resolveHudPortrait`'s live idle head-crop. Guards green; ladder 27/0.
   was reverted — the harness runs in training mode and it broke the Ki-economy tests.)
 Guards green; ladder 27/0.
 
-### 5c — CPU AI ⏳
-### 5d — LAN/companion sync verify + REPORT ⏳
+### 5c — CPU AI ✅
+`updateGokuCpuAI` (abilities.js), called for the CPU fighter in the 1v1 + AI-vs-AI input
+paths. Deterministic (frame tick + positions, no RNG), non-cheating (climbs still require
+real Ki thresholds; only self-charges a little when safely spaced). Rules: transform when
+it has Ki + space (opponent far, not attacking), never sit in SSJ3 at low Ki, wait (don't
+climb) in Ultra Instinct, drop toward Base late in a losing round (for Spirit Bomb).
+AI-vs-AI test: CPU Goku climbs the ladder. Guards green.
+
+### 5d — LAN/companion sync + REPORT ⏳

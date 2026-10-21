@@ -2134,6 +2134,31 @@ function isGokuChar(f) { return (f?.rosterKey || "").toLowerCase() === "goku" }
 export function isGokuSuper(fighter) { return (fighter?.transformIndex || 0) > 0 }
 export function gokuFormKey(fighter) { return GOKU_FORMS[fighter?.transformIndex || 0]?.key || "base" }
 export function gokuIsExhausted(fighter) { return (fighter?._gokuExhaust || 0) > 0 }
+// CPU AI for Goku's ladder (Phase 5c) — called each frame when a CPU controls Goku. Deterministic (frame
+// tick + positions, no RNG) and NON-cheating (climbs still require real Ki thresholds; it only self-charges
+// a small amount when safely spaced, which the player can do too). Rules per the brief: transform when it
+// has Ki + space, never sit in SSJ3 at low Ki, wait (don't climb) in Ultra Instinct, and drop toward Base
+// late in a losing round so the base-form Ultimate (Spirit Bomb) is available.
+export function updateGokuCpuAI(fighter, target, context = {}, roundTimerFrac = 1) {
+  if (!isGokuChar(fighter)) return   // call sites invoke this only for the CPU-controlled fighter
+  if ((fighter._gokuExhaust || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0 || (fighter.attackCooldown || 0) > 0) return
+  fighter._gokuAiTick = (fighter._gokuAiTick || 0) + 1
+  if (fighter._gokuAiTick < 75) return            // deliberate cadence (~1.25s)
+  fighter._gokuAiTick = 0
+  const idx = fighter.transformIndex || 0
+  const ki = fighter.energy || 0, maxKi = fighter.maxEnergy || 100
+  const dist = Math.abs((fighter.x || 0) - (target?.x || 0))
+  const safe = dist > 150 && !target?.attacking
+  const hpFrac = (fighter.health || 0) / (fighter.maxHealth || 1000)
+  if (idx === 3 && ki < 30) { revertGoku(fighter); return }                 // never sit in SSJ3 at low Ki
+  if (idx === 6) return                                                     // Ultra Instinct: wait (let auto-dodge work)
+  // Late + losing → drop to Base so the Spirit Bomb Ultimate is available for a comeback.
+  if (roundTimerFrac < 0.35 && hpFrac < 0.35 && idx > 0) { revertGoku(fighter); return }
+  if (!safe) return                                                         // only transform with space
+  const next = GOKU_FORMS[idx + 1]
+  if (next && ki >= next.thr && idx < 5) { enterGokuNextForm(fighter, context); return }   // climb when it has the Ki
+  if (ki < maxKi) fighter.energy = Math.min(maxKi, ki + 10)                 // else charge up (only when safe)
+}
 // Apply a level's multipliers + speed scale (speed scales walk/run/dash, NEVER startup frames).
 function applyGokuFormStats(fighter, form) {
   fighter.damageMultiplier = fighter.attackMultiplier = form.dmg

@@ -118,4 +118,13 @@ other character provably untouched.
   Ultimate FLIGHT 37 (cinematic), brutalities, intro/win/lose choreography, sound mapping, air normals.
   Then Phase 4 (HUD bars + AI + SUPERMAN_NOTES + REPORT).
 
-## Phase 4 — HUD, AI, Superman readiness ⏳ pending
+## Phase 4 — HUD, AI, Superman readiness ⏳ in progress
+### 4a — HUD gauges ✅ (committed)
+- `game.js` `drawHomelanderGauges` (called from `drawBattleHud`, gated on rosterKey): two thin bars under
+  his health — **FLIGHT ENERGY** (cyan, `_flightCtl.energy`/profile max) and **LASER HEAT** (amber→red,
+  `_laserHeat`/`HV_HEAT_MAX`, dim-red "OVERHEAT" label while locked out). Styled like the HUD theme;
+  reads sim state only. Render check 23/0 — gauges visible in `_render_5_heat_vision.png` (cyan full,
+  amber draining while firing). det 14/0 · combo 225/9 · roster green.
+- NEXT: portrait already wired; CPU AI for flight/lasers/Flex; Training-mode infinite flight/heat toggles;
+  `SUPERMAN_NOTES.md`; final `REPORT.md`. (Remaining kit: Take A Ride, X-Ray, Super Hearing wiring, Flex,
+  Ultimate FLIGHT 37, brutalities, intro/win/lose, sound, air normals.)

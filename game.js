@@ -46,7 +46,7 @@ import {
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
-import { flightToggleInput, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + per-frame driver + round reset
+import { flightToggleInput, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + per-frame driver + round reset + profile (HUD gauge max)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -22180,8 +22180,43 @@ function drawTowerHud(ctx, canvas) {
   ctx.restore()
 }
 
+// HOMELANDER HUD — two thin gauges under his health bar, styled like the HUD theme: FLIGHT ENERGY
+// (cyan) and LASER HEAT (amber→red, dim "OVERHEAT" red while locked out). Both read SIM state
+// (_flightCtl.energy, _laserHeat/_hvOverheat). Gated on rosterKey → nothing drawn for anyone else.
+function drawHomelanderGauges(c, cv) {
+  const cw = cv?.width || (typeof window !== "undefined" ? window.innerWidth : 1280)
+  const barW = Math.max(220, Math.min(420, cw * 0.28)), pad = 14
+  const draw = (f, flip) => {
+    if (!f || (f.rosterKey || "").toLowerCase() !== "homelander") return
+    const x = (flip ? cw - pad - barW - 20 : pad) + 8
+    const w = barW, y0 = 74, h = 6, gap = 4
+    const gauge = (y, ratio, col, bg) => {
+      c.save()
+      c.fillStyle = "rgba(0,0,0,0.55)"; c.fillRect(x, y, w, h)
+      c.fillStyle = bg || col
+      c.fillRect(x, y, Math.max(0, Math.min(1, ratio)) * w, h)
+      c.strokeStyle = "rgba(255,255,255,0.22)"; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
+      c.restore()
+    }
+    // flight energy
+    const fc = f._flightCtl
+    const eMax = getFlightProfile(f)?.energyMax || 240
+    gauge(y0, fc ? (fc.energy || 0) / eMax : 1, "#45c6ff")
+    // laser heat (full = cool/ready; empty/overheat = red)
+    const over = (f._hvOverheat || 0) > 0
+    const heat = f._laserHeat != null ? f._laserHeat : HV_HEAT_MAX
+    gauge(y0 + h + gap, over ? 1 : heat / HV_HEAT_MAX, over ? "#ff3b30" : (heat / HV_HEAT_MAX < 0.33 ? "#ff7a1a" : "#ffd24a"))
+    if (over) {
+      c.save(); c.font = "bold 8px Arial"; c.fillStyle = "#ff6a60"
+      c.textAlign = flip ? "right" : "left"; c.fillText("OVERHEAT", flip ? x + w : x, y0 + h + gap + h + 8); c.restore()
+    }
+  }
+  draw(p1, false); draw(p2, true)
+}
+
 function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
+  drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)

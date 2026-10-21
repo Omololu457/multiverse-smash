@@ -43,6 +43,8 @@ PICKS = {
  "air":       [(309,1347,32,48),(360,1328,38,67)],        # aerial strike
  "down_air":  [(786,655,46,56),(853,666,53,45)],          # diving-down strike
  "crouchLight":[(453,650,66,61),(522,651,65,60)],         # low kick / sweep
+ # ── PHASE 4d: battle-damage shirtless frames → LOSE pose + low-HP idle (idleLow) ──
+ "battleDamage":[(1004,212,44,70),(1052,212,44,70)],
 }
 PAD = 3
 TEAL_TOL = 28      # teal → transparent key (sprite colours are all >TOL away from #008080)

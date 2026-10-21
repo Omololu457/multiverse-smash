@@ -248,5 +248,17 @@ to the HP on entry (`_gokuGodHp`, in applyGokuFormSystem). Test `goku_autododge_
 Still pending (minor form passives, each needs a hit-taken/block hook): SSJ rage stacks,
 SSJ2 chip + block pushback, SSJ3 light-armor, God light-stagger-immune / ki-absorb-proof.
 Spirit-Bomb 3-size charge + Dragon-Fist code spiral = render refinements.
-### 4d — intro / win / lose + sound mapping ⏳ pending
+### 4d — intro / win / lose + sound ✅
+- **INTRO** = the excited hop/stretch (reuses the win cheer strip). **WIN** = arms-raised
+  cheer. **LOSE** + **low-HP (<25%) idle** (`idleLow`) = the battle-damage shirtless
+  frames (sliced base + 6 forms, recoloured per form via gokuFormAnim).
+- **SOUND** — distinct per-form transform cue layered over the shared DB sting
+  (`GOKU_XFORM_SFX`): SSJ `charge_swell_riser` · SSJ2 `crack_sizzle_bright` · SSJ3
+  `boom_huge_02_roar` (biggest) · God `energy_hum_low` · Blue `sting_pitch_rise_hold` ·
+  UI `energy_tone_hold` (quiet high tone). Specials: Kamehameha `charge_hum_rise`→
+  `boom_medium_01`, IT `warp_wobble_01`, Afterimage `swish_fast_01`, Barrage
+  `hit_flurry_01`. Full table in REPORT. Guards + all 4 harnesses green.
+
+**PHASE 4 COMPLETE** (normals · specials · 7 ultimates · UI auto-dodge · God regen ·
+intro/win/lose · sound). Also fixed walk (upright stride) + hurt (recoil) frames.
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

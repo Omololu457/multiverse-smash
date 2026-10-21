@@ -687,8 +687,10 @@ function fireGokuKamehameha(fighter, context, opts = {}) {
   fighter.vx = 0
   fighter._spriteCastMove = "kiCharge"; fighter._spriteCastTimer = dur
   fighter.attackCooldown = getAttackDuration(dur, fighter)
+  try { sound.playJuiceSfx?.("charge_hum_rise") } catch (_) {}        // Kamehameha charge hum
   const offense = gokuOffense(fighter)
   schedulePendingSpawn(wind, () => {
+    try { sound.playJuiceSfx?.("boom_medium_01") } catch (_) {}       // beam fire
     spawnProjectile(fighter, "gokuKamehameha", {
       w: b.w, h: b.h, radius: Math.round(b.h * 0.6), speed: 22,
       damage: Math.round(92 * b.dmg * offense), hitstun: 20,
@@ -712,7 +714,7 @@ function gokuInstantTransmission(fighter, context) {
   fighter.teleportFlash = 18
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
   fighter.attackCooldown = getAttackDuration(14, fighter)
-  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { sound.playJuiceSfx?.("warp_wobble_01") } catch (_) {}   // Instant Transmission warp
   try { shakeCamera(context, 5, 6) } catch (_) {}
   if ((fighter.transformIndex || 0) >= 1) schedulePendingSpawn(6, () => fireGokuKamehameha(fighter, context, { chain: true }))
   return true
@@ -726,7 +728,7 @@ function gokuAfterimage(fighter, context) {
   fighter.vx = -(fighter.facing || 1) * 7             // slip backward
   fighter.teleportFlash = 14
   fighter._gokuAfterCd = 48
-  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { sound.playJuiceSfx?.("swish_fast_01") } catch (_) {}   // Afterimage sidestep whoosh
   return true
 }
 // Rapid Fist Barrage — a forward mash of guaranteed hits ending in a knockback punch.
@@ -739,6 +741,7 @@ function gokuRapidFistBarrage(fighter, context) {
   fighter.attackCooldown = getAttackDuration(40, fighter)
   fighter.vx = (fighter.facing || 1) * 4
   fighter._gokuBarrageCd = 70
+  try { sound.playJuiceSfx?.("hit_flurry_01") } catch (_) {}   // Rapid Fist Barrage flurry
   const reach = () => opp && !opp.eliminated && Math.abs((fighter.x || 0) - (opp.x || 0)) < 120
   for (let i = 0; i < 6; i++) schedulePendingSpawn(6 + i * 4, () => {   // 6 rapid jabs
     if (!reach()) return
@@ -2058,6 +2061,7 @@ const GOKU_DIMS = {
   knockdown:{f:1,w:74,h:30,sp:5}, getup:{f:1,w:40,h:44,sp:4}, kiCharge:{f:8,w:42,h:71,sp:5}, win:{f:8,w:56,h:62,sp:6},
   light:{f:2,w:48,h:66,sp:3}, heavy:{f:2,w:55,h:75,sp:3}, up:{f:2,w:36,h:71,sp:3},
   air:{f:2,w:44,h:73,sp:3}, down_air:{f:2,w:59,h:62,sp:3}, crouchLight:{f:2,w:72,h:67,sp:3},
+  battleDamage:{f:2,w:50,h:76,sp:7},
 }
 // Per-form _skinAnim: base animationData + this form's recolored movement/state sheets (goku_<form>_<action>).
 function gokuFormAnim(form) {
@@ -2074,7 +2078,8 @@ function gokuFormAnim(form) {
     crouch: mk("crouch"), guard: mk("guard"), hurt: mk("hurt"),
     knockdown: mk("knockdown"), getup: mk("getup"),
     kiCharge: mk("kiCharge", { loop: true, lockLastFrame: false }),
-    win: mk("win"), lose: mk("knockdown", { frames: 1 }),
+    intro: mk("win", { loop: false }), win: mk("win"),
+    idleLow: { ...mk("battleDamage"), loop: true, lockLastFrame: false }, lose: mk("battleDamage"),
     // normals — per-form recoloured strips so a transformed Goku's attacks match his form
     light: mk("light"), heavy: mk("heavy"), up: mk("up"), air: mk("air"),
     down_air: mk("down_air"), crouchLight: mk("crouchLight"),
@@ -2105,6 +2110,16 @@ const GOKU_FORMS = [
   { key: "ui",   name: "Ultra Instinct",    cost: 100, dmg: 1.45, spd: 1.20, def: 1.20, drainPS: 0,   tf: 60, shake: 14 },  // 15s timer, no Ki drain
 ]
 const GOKU_BASE_SPEED = 84, GOKU_BASE_DASH = 16
+// Per-form transform cue from the JUICE pack (layered over the shared DB transform sting). Biggest riser for
+// SSJ3, a quiet high tone for UI (per the build brief). See docs/goku/REPORT.md for the full sound table.
+const GOKU_XFORM_SFX = {
+  ssj:  "charge_swell_riser",      // gold rage riser
+  ssj2: "crack_sizzle_bright",     // lightning crackle
+  ssj3: "boom_huge_02_roar",       // BIGGEST riser + long roar
+  god:  "energy_hum_low",          // calm divine hum
+  blue: "sting_pitch_rise_hold",   // sharp blue flash
+  ui:   "energy_tone_hold",        // quiet high tone
+}
 const GOKU_UI_FRAMES = 900          // 15s @ 60fps
 const GOKU_EXHAUST_FRAMES = 360     // 6s post-UI exhaustion
 const GOKU_GASP_FRAMES = 20         // vulnerable gasp on a Ki-empty level-drop
@@ -2157,6 +2172,7 @@ export function enterGokuNextForm(fighter, context = {}) {
   fighter.attackCooldown = 10
   fighter.vx = 0
   try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { sound.playJuiceSfx?.(GOKU_XFORM_SFX[form.key]) } catch (_) {}   // distinct per-form riser/tone
   try { focusCameraOnAction(context, fighter, null, 1.03, Math.min(16, form.tf || 12)); shakeCamera(context, form.shake, 12) } catch (_) {}
   return true
 }

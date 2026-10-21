@@ -97,8 +97,12 @@ const goku = {
     down_air:    { frames: 2, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_down_air_uniform.png" },   // diving-down strike
     crouchLight: { frames: 2, width: 72, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },// low kick
     grab:        { frames: 2, width: 55, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },      // reuse the lunge reach for the throw
-    win:  { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
-    lose: { frames: 1, width: 74, height: 30, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" }
+    // INTRO — the excited hop/stretch ("I'm getting excited!"); reuses the win cheer strip (same frames).
+    intro: { frames: 8, width: 56, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
+    win:   { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },   // victory cheer (arms-raised)
+    // low-HP (<25%) idle swap + LOSE = the battle-damage shirtless frames.
+    idleLow: { frames: 2, width: 50, height: 76, speed: 7, anchorY: 0, sheet: "./goku_base_battleDamage_uniform.png" },
+    lose:    { frames: 2, width: 50, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_battleDamage_uniform.png" }
   }
 }
 

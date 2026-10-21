@@ -106,8 +106,16 @@ other character provably untouched.
   (supersonic), fist streaks (barrage).
 - **Render check 23/0**: fires all three (`hlSupersonic` / `hlClap` cast / `hlBarrage`) via real keyboard
   dir+special; clap shockwave ring renders (screenshot). det 14/0 · combo 225/9 · roster green · flight 1047/0.
-- NEXT (3c-3…): Take A Ride (command grab), X-Ray (mark), Super Hearing (passive), Supe Durability
-  (−40% chip), Flex (parry), Ultimate FLIGHT 37, brutalities, intro/win/lose, voice, sound, air normals.
+### 3c-3 — Supe Durability (passive) + voice lines ✅ (committed)
+- `combat.js` `applyScaledDamage`: **Supe Durability** — chip damage (damage while blocking) reduced 40%,
+  gated on `rosterKey === "homelander"` (strict no-op for everyone else). Unit check: Homelander chip 36
+  vs others 60 (0.60×), non-blocking full 60; determinism 14/0, combo 225/9, roster green.
+- `characters.js`: original **voice lines** (text, for later VO) — intro "Smile for the cameras." / win
+  "I can do whatever I want." / lose "This isn't... how this goes." / super "You're gonna love this." +
+  `passiveTraits` data (supeDurability chipReduction 0.4; superHearing leadFrames 10, wiring later).
+- Render check 23/0 (Playwright harness is timing-sensitive — occasional flaky miss, re-run is clean).
+- NEXT (3c-4…): Take A Ride (command grab), X-Ray (mark), Super Hearing (passive wiring), Flex (parry),
+  Ultimate FLIGHT 37 (cinematic), brutalities, intro/win/lose choreography, sound mapping, air normals.
   Then Phase 4 (HUD bars + AI + SUPERMAN_NOTES + REPORT).
 
 ## Phase 4 — HUD, AI, Superman readiness ⏳ pending

@@ -8662,6 +8662,10 @@ const homelander = {
     sonicClap:  { cost: 15, damage: 40, effect: "thunderclap shockwave: pushes away + destroys weak projectiles" }
   },
   ultimate: { name: "FLIGHT 37", cost: 100, duration: 6, effect: "dark-silhouette supersonic grab → carry to the sky → Heat Vision slam" },
+  // Original in-character lines (text only, for later VO). intro on match start, win/lose on the result,
+  // super on ultimate cast. Short and arrogant — Homelander's ego.
+  voiceLines: { intro: "Smile for the cameras.", win: "I can do whatever I want.", lose: "This isn't... how this goes.", super: "You're gonna love this." },
+  passiveTraits: { supeDurability: { chipReduction: 0.4, note: "chip damage taken reduced 40% (combat.applyScaledDamage, gated)" }, superHearing: { leadFrames: 10, note: "early marker where a teleporting/invisible foe reappears (wiring: later kit pass)" } },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,

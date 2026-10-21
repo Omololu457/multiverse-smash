@@ -171,6 +171,9 @@ export const GLOBAL_DAMAGE_SCALE = 0.60
 //   [DMG] <source> raw=<r> scale=<s> dealt=<d> <before>-><after>
 export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
+  // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
+  // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
+  if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled

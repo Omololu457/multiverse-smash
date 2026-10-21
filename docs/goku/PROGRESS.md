@@ -327,4 +327,12 @@ it has Ki + space (opponent far, not attacking), never sit in SSJ3 at low Ki, wa
 climb) in Ultra Instinct, drop toward Base late in a losing round (for Spirit Bomb).
 AI-vs-AI test: CPU Goku climbs the ladder. Guards green.
 
-### 5d — LAN/companion sync + REPORT ⏳
+### 5d — LAN/companion sync + REPORT ✅
+- **LAN/replay/companion sync:** the netcode is **lockstep** (peers sync inputs, compute
+  state deterministically), so every `_goku*` field (form, timers, Ki, Kaioken) is RNG-free
+  sim state computed identically on both peers. `test:determinism` 14/0 + `test:net-lockstep`
+  6/6 confirm it (no per-field serialization needed in the lockstep model).
+- **`docs/goku/REPORT.md`** — the full final report (sprite counts, move list + frame data,
+  inputs + rationale, level table, decisions, tests, render check, ledger, play-test order).
+
+**PHASE 5 COMPLETE** → **GOKU BUILD COMPLETE** (all 5 phases + 3 rounds of playtest fixes).

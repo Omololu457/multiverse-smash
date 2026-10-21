@@ -8,6 +8,7 @@ at repo root (matching the engine's ./goku_base_<action>_uniform.png convention)
 Source sheets are only READ.
 """
 import sys, json
+import numpy as np
 from PIL import Image
 
 SHEETS = {
@@ -37,16 +38,25 @@ PICKS = {
                (482,13,37,55),(524,12,38,56),(588,13,43,56),(638,17,50,52)],
 }
 PAD = 3
+TEAL_TOL = 28      # teal → transparent key (sprite colours are all >TOL away from #008080)
+
+def key_teal(crop):
+    """Return an RGBA crop with near-teal pixels made fully transparent."""
+    a = np.array(crop.convert("RGBA"))
+    rgb = a[:, :, :3].astype(int)
+    teal = (np.abs(rgb - np.array([0, 128, 128])).sum(2) <= TEAL_TOL)
+    a[teal, 3] = 0                              # alpha 0 on the teal background
+    return Image.fromarray(a, "RGBA")
 
 def build_strip(sheet_img, frames):
     cellw = max(w for _,_,w,_ in frames) + PAD*2
     cellh = max(h for _,_,_,h in frames) + PAD*2
-    strip = Image.new("RGBA", (cellw*len(frames), cellh), TEAL)
+    strip = Image.new("RGBA", (cellw*len(frames), cellh), (0, 0, 0, 0))   # TRANSPARENT cells
     for i,(x,y,w,h) in enumerate(frames):
-        crop = sheet_img.crop((x,y,x+w,y+h))
+        crop = key_teal(sheet_img.crop((x,y,x+w,y+h)))
         cx = i*cellw + (cellw - w)//2          # h-centre
         cy = cellh - PAD - h                    # feet to bottom (anchorY 0)
-        strip.paste(crop, (cx, cy))
+        strip.paste(crop, (cx, cy), crop)      # use alpha as the paste mask
     return strip, cellw, cellh
 
 def main(forms=None):

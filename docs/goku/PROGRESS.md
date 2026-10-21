@@ -151,6 +151,51 @@ input plan) and this discovery log. Code surgery resumes next.
 
 Commit (groundwork): _(this commit)_
 
-### Phase 3 — remainder ⏳ pending
+### Phase 3 — remainder ✅ DONE
+
+**Rebuilt in place** (reused none of the old kit logic):
+- **3a** (`98b3f345`) 70 per-action strips. **Re-cut TRANSPARENT** this commit (the
+  first cut had opaque teal cells → a teal box behind the sprite; slice.py now keys
+  teal→alpha).
+- **3b** `characters.js` `goku`: HP 1000 / KI 100 (`maxEnergy` 100) / speed 84
+  (walk ≈6.0, scaled per form) / jumpPower 32 / weight 1.0; spriteScale 2.0
+  (→ ~115px); 7-form `transformations` (base dmg EXACTLY 1.00); `animationData` → new
+  strips (normals are a PLACEHOLDER reusing the guard pose until Phase 4). **Removed
+  `"goku"` from `_WIPED_FOR_REDO`** — THAT is how the old Goku was "deleted"
+  (hasSprites/hidden/isPlayable forced off); un-wiping makes it render + be playable.
+- **3c** `abilities.js` fresh ladder: `GOKU_FORMS` table + `GOKU_FORM_ANIM` (7 forms) +
+  `enterGokuNextForm` (climb one, flat Ki cost, UI only from Blue at full Ki, burst
+  = 10f invuln + opponent pushback), `revertGoku` (power down), `dropGokuOneLevel`
+  (Ki-empty, 20f gasp), `endGokuUI` (→ base + 6s exhaustion), `applyGokuFormSystem`
+  (per-frame drain/timer/exhaust + speed scale via `baseSpeed`), `toggleGokuKaioken`
+  + `tickGokuKaioken` (Base ×2 / Blue ×10 feel, HP drain, never < 10% HP). Cut Goku's
+  passive Ki regen in `regenEnergy` (Charge-hold is the source — "no free meter").
+  Old `executeGokuSpecial` / `updateGokuCommandCombat` stubbed to no-ops (kit = P4).
+- **3d** cinematic: transform burst = white flash (`teleportFlash`) + camera
+  focus + screenshake scaled by level + DB transform SFX + aura-pushback. (Per-form
+  slow-mo / flames / long SSJ3 scream = Phase-5 polish.)
+- **INPUTS chosen** (collision-checked — all on Goku's dedicated **Charge** button, so
+  no clash with normals/specials/ultimate/jump): hold **Charge** = build Ki (vulnerable,
+  powering-up pose); **Charge+Up** release = climb one level; **Charge+Down** = power
+  down to base; **Charge+Back** = Kaioken toggle; neutral release = just bank Ki.
+  Direction captured each frame in `updateMovementInput`, read in `handleChargeRelease`.
+
+**Deferred to later phases (logged):** zenkai boost + UI/exhaustion HUD bars + the
+slow-mo UI cinematic → Phase 5; GAME_STATE/LAN sync of the new `_goku*` fields →
+verified in the Phase-5 LAN test; real normals + specials + per-form ultimates +
+Spirit Bomb → Phase 4. `harness/goku.test.mjs` (+ old `goku_stage*`/`goku_walk`) test
+the DELETED kit/sheets and were ALREADY failing on baseline — to be rewritten in
+Phase 4; superseded for now by `harness/goku_ladder_live.mjs`.
+
+**Tests:** `goku_ladder_live.mjs` **27/0** (renders as sprites, HUD renders, all 7
+forms climb w/ correct multipliers, UI gate, power-down, Ki-empty level-drop,
+Kaioken on/off, zero JS errors). Guards: determinism **14/0**, roster-integrity
+**green**, combo-standard **225/9** (pre-existing; Goku unregressed — still classified
++ core normals). **RENDER CHECK: PASS** (booted goku vs naruto, both fighters + HUD
+render, base→SSJ transform with burst flash — screenshot-verified).
+
+Frame-data for every other character is unchanged — all edits are Goku-gated
+(`regenEnergy` still gives naruto its +0.02; the direction capture / charge handler
+only act when `rosterKey==="goku"`).
 ## Phase 4 — THE KIT ⏳ pending
 ## Phase 5 — HUD / AI / POLISH ⏳ pending

@@ -685,6 +685,8 @@ function fireGokuKamehameha(fighter, context) {
   return true
 }
 function executeGokuSpecial(fighter, context) {
+  return false   // PHASE 3 (clean rebuild): the kit (Kamehameha / Dragon Fist / Instant Transmission /
+                 // Afterimage / Rapid Fist Barrage / per-form ultimates / Spirit Bomb) is rebuilt in PHASE 4.
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
@@ -1889,18 +1891,28 @@ export function revertVegetaBlue(fighter) {
 // DEFERRED (flagged): bespoke transition CINEMATICS (charge-up flash / white-flash reverts / full cutscene),
 // SSJ3 flourish, SSG teleport-dash — the transform currently uses teleportFlash + the shared DB SFX.
 // ═════════════════════════════════════════════════════════════════════════════
-// Per-form _skinAnim: base animationData + this form's recolored movement sheets (reslice_goku.py stage5).
-function gokuFormAnim(form, dims) {
-  const idleSheet = `./goku_${form}_idle_uniform.png`, jumpSheet = `./goku_${form}_jump_uniform.png`
-  const d = dims
+// Per-action strip cell dims — identical across all form sheets (goku_work/slice.py). ONE frame map.
+const GOKU_DIMS = {
+  idle:{f:6,w:54,h:60,sp:7}, walk:{f:4,w:55,h:69,sp:6}, jump:{f:3,w:50,h:71,sp:5},
+  crouch:{f:2,w:63,h:47,sp:6}, guard:{f:2,w:53,h:53,sp:6}, hurt:{f:1,w:50,h:58,sp:5},
+  knockdown:{f:1,w:74,h:30,sp:5}, getup:{f:1,w:40,h:44,sp:4}, kiCharge:{f:8,w:42,h:71,sp:5}, win:{f:8,w:56,h:62,sp:6},
+}
+// Per-form _skinAnim: base animationData + this form's recolored movement/state sheets (goku_<form>_<action>).
+function gokuFormAnim(form) {
+  const S = a => `./goku_${form}_${a}_uniform.png`, D = GOKU_DIMS
+  const mk = (a, ex = {}) => ({ frames: D[a].f, width: D[a].w, height: D[a].h, speed: D[a].sp, anchorY: 0, loop: false, lockLastFrame: true, sheet: S(a), ...ex })
   return {
-    ...characters.goku.animationData,   // un-overridden actions render base art (accepted merge fallback)
-    idle: { frames: 4, width: d.iw, height: d.ih, speed: 6, anchorY: 0, sheet: idleSheet },
-    walk: { frames: 4, width: d.iw, height: d.ih, speed: 6, anchorY: 0, sheet: idleSheet },   // no walk cycle → reuse idle
-    run:  { frames: 4, width: d.iw, height: d.ih, speed: 4, anchorY: 0, sheet: idleSheet },
-    jump: { frames: d.jf, width: d.jw, height: d.jh, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: jumpSheet },
-    fall: { frames: 1, width: d.jw, height: d.jh, speed: 6, anchorY: 0, sourceX: (d.jf - 1) * d.jw, loop: false, lockLastFrame: true, sheet: jumpSheet },
-    dash: { frames: 1, width: d.dw, height: d.dh, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: `./goku_${form}_dash_uniform.png` },
+    ...characters.goku.animationData,   // un-overridden actions (normals placeholder) render base art
+    idle: mk("idle", { loop: true, lockLastFrame: false }),
+    walk: mk("walk", { loop: true, lockLastFrame: false }),
+    run:  mk("walk", { loop: true, lockLastFrame: false, speed: 4 }),
+    dash: mk("walk", { speed: 3 }),
+    jump: mk("jump"),
+    fall: mk("jump", { frames: 1, sourceX: (D.jump.f - 1) * D.jump.w }),
+    crouch: mk("crouch"), guard: mk("guard"), hurt: mk("hurt"),
+    knockdown: mk("knockdown"), getup: mk("getup"),
+    kiCharge: mk("kiCharge", { loop: true, lockLastFrame: false }),
+    win: mk("win"), lose: mk("knockdown", { frames: 1 }),
   }
 }
 // gokuFormAnim overrides ONLY locomotion/state (idle/walk/run/jump/fall/dash) with the form's REAL recoloured
@@ -1911,58 +1923,134 @@ function gokuFormAnim(form, dims) {
 // exactly the Piccolo Potential/Orange precedent. That tint is a PLACEHOLDER pending bespoke per-form attack
 // art; if such sheets are ever added, add them here (like Vegeta SSJ) and drop the corresponding tint gate.
 const GOKU_FORM_ANIM = {
-  ssj: gokuFormAnim("ssj", { iw: 71,  ih: 165, jf: 4, jw: 117, jh: 158, dw: 101, dh: 107 }),   // gold
-  ssg: gokuFormAnim("ssg", { iw: 93,  ih: 156, jf: 3, jw: 77,  jh: 144, dw: 121, dh: 123 }),   // red
-  ssblue: gokuFormAnim("ssb", { iw: 96, ih: 135, jf: 4, jw: 119, jh: 113, dw: 104, dh: 148 }), // blue (sheet alias "ssb")
+  ssj: gokuFormAnim("ssj"), ssj2: gokuFormAnim("ssj2"), ssj3: gokuFormAnim("ssj3"),
+  god: gokuFormAnim("god"), blue: gokuFormAnim("blue"), ui: gokuFormAnim("ui"),
 }
-const GOKU_LADDER = ["ssj", "ssg", "ssblue"]   // index+1 = transformIndex
+// Per-LEVEL rule table — index 0 = base. cost = Ki to climb INTO this level; drainPS = Ki/sec while in it;
+// tf = transform-burst frames (first 10 invuln + opponent pushback); dmg/spd/def = OUTGOING multipliers (spd
+// also scales walk/run/dash via fighter.baseSpeed each frame). Base dmg EXACTLY 1.00 (combo-standard unchanged).
+const GOKU_FORMS = [
+  { key: "base", name: "Base",              cost: 0,   dmg: 1.00, spd: 1.00, def: 1.00, drainPS: 0,   tf: 0,  shake: 0  },
+  { key: "ssj",  name: "Super Saiyan",      cost: 25,  dmg: 1.10, spd: 1.05, def: 1.05, drainPS: 0.5, tf: 30, shake: 8  },
+  { key: "ssj2", name: "Super Saiyan 2",    cost: 25,  dmg: 1.18, spd: 1.10, def: 1.08, drainPS: 1.0, tf: 30, shake: 10 },
+  { key: "ssj3", name: "Super Saiyan 3",    cost: 50,  dmg: 1.28, spd: 0.92, def: 1.10, drainPS: 3.0, tf: 90, shake: 16 },
+  { key: "god",  name: "Super Saiyan God",  cost: 25,  dmg: 1.32, spd: 1.12, def: 1.12, drainPS: 1.0, tf: 40, shake: 11 },
+  { key: "blue", name: "Super Saiyan Blue", cost: 25,  dmg: 1.38, spd: 1.15, def: 1.15, drainPS: 0,   tf: 30, shake: 12 },  // 0 idle (active drain in P4)
+  { key: "ui",   name: "Ultra Instinct",    cost: 100, dmg: 1.45, spd: 1.20, def: 1.20, drainPS: 0,   tf: 60, shake: 14 },  // 15s timer, no Ki drain
+]
+const GOKU_BASE_SPEED = 84, GOKU_BASE_DASH = 16
+const GOKU_UI_FRAMES = 900          // 15s @ 60fps
+const GOKU_EXHAUST_FRAMES = 360     // 6s post-UI exhaustion
+const GOKU_GASP_FRAMES = 20         // vulnerable gasp on a Ki-empty level-drop
 function isGokuChar(f) { return (f?.rosterKey || "").toLowerCase() === "goku" }
 export function isGokuSuper(fighter) { return (fighter?.transformIndex || 0) > 0 }
-export function gokuFormKey(fighter) { const i = fighter?.transformIndex || 0; return i > 0 ? GOKU_LADDER[i - 1] : "base" }
-// Charge hold-release: step UP one tier if Ki ≥ the next tier's threshold (NO up-front spend).
+export function gokuFormKey(fighter) { return GOKU_FORMS[fighter?.transformIndex || 0]?.key || "base" }
+export function gokuIsExhausted(fighter) { return (fighter?._gokuExhaust || 0) > 0 }
+// Apply a level's multipliers + speed scale (speed scales walk/run/dash, NEVER startup frames).
+function applyGokuFormStats(fighter, form) {
+  fighter.damageMultiplier = fighter.attackMultiplier = form.dmg
+  fighter.speedMultiplier = form.spd
+  fighter.defenseMultiplier = form.def
+  fighter.currentFormData = { damageMultiplier: form.dmg, speedMultiplier: form.spd, defenseMultiplier: form.def }
+  fighter.baseSpeed = fighter.speed = Math.round(GOKU_BASE_SPEED * form.spd)
+  fighter.dashSpeed = Math.round(GOKU_BASE_DASH * form.spd)
+}
+// Climb ONE level (Charge+Up release). Flat Ki COST; UI only from Blue at FULL Ki. First 10 frames of the
+// transform-burst are invulnerable + push the opponent back (game.js reads _gokuPush).
 export function enterGokuNextForm(fighter, context = {}) {
   if (!isGokuChar(fighter)) return false
+  if ((fighter._gokuExhaust || 0) > 0) return false    // post-UI exhaustion → no transform
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
   const idx = fighter.transformIndex || 0
-  if (idx >= GOKU_LADDER.length) return false          // already at the top (Super Saiyan Blue)
-  const key  = GOKU_LADDER[idx]                        // the next tier up
-  const form = fighter.transformations?.[key]
-  if (!form) return false
-  if ((fighter.energy || 0) < (form.energyThreshold || 0)) return false   // threshold gate — NO up-front spend
-  fighter._kaioken          = 0                        // KAIOKEN is Base-form-only → transforming clears it
-  fighter.transformIndex    = idx + 1
-  fighter.currentForm       = "goku_" + key            // NON-matching label → generic drain/revert stays off
-  fighter._skinAnim         = retagFormAnim(GOKU_FORM_ANIM[key], fighter._recolorTag)   // ART-SWAP to the form's recolored sheets
-  fighter.damageMultiplier  = fighter.attackMultiplier = form.damageMultiplier || 1
-  fighter.speedMultiplier   = form.speedMultiplier || 1
-  fighter.defenseMultiplier = form.defenseMultiplier || 1
-  fighter.currentFormData   = form                     // re-applied each frame by updateTransformationState
-  fighter.teleportFlash     = 16
-  fighter.attackCooldown    = 12                        // brief transform lock
+  const next = idx + 1
+  if (next >= GOKU_FORMS.length) return false           // already at Ultra Instinct
+  const form = GOKU_FORMS[next]
+  if (next === 6 && (idx !== 5 || (fighter.energy || 0) < (fighter.maxEnergy || 100))) return false   // UI: from Blue at FULL Ki
+  if ((fighter.energy || 0) < form.cost) return false
+  fighter.energy = Math.max(0, (fighter.energy || 0) - form.cost)
+  fighter._kaioken = 0                                  // climbing clears Kaioken (re-toggle at Blue)
+  fighter.transformIndex = next
+  fighter.currentForm = "goku_" + form.key              // NON-matching label → generic drain/revert stays off
+  fighter._skinAnim = retagFormAnim(GOKU_FORM_ANIM[form.key], fighter._recolorTag)
+  applyGokuFormStats(fighter, form)
+  fighter._gokuBurst = form.tf                          // transform-burst window (first 10f invuln, set below)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  // Aura explosion: push the opponent back on the transform burst (scaled by level).
+  try {
+    const opp = context?.getOpponent?.(fighter)
+    if (opp && !opp.eliminated) {
+      opp.vx = (fighter.facing || 1) * (6 + next)
+      opp.vy = Math.min(opp.vy || 0, -3)
+      opp.hitstun = Math.max(opp.hitstun || 0, 8)
+      opp.teleportFlash = Math.max(opp.teleportFlash || 0, 6)
+    }
+  } catch (_) {}
+  if (next === 6) fighter._gokuUITimer = GOKU_UI_FRAMES
+  fighter.teleportFlash = 16
+  fighter.attackCooldown = 10
   fighter.vx = 0
-  try { sound.playDragonBallTransformSfx() } catch (_) {}
-  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 9, 12) } catch (_) {}
+  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { focusCameraOnAction(context, fighter, null, 1.03, Math.min(16, form.tf || 12)); shakeCamera(context, form.shake, 12) } catch (_) {}
   return true
 }
+// Power DOWN to base (Charge+Down, cleanup, KO). Free.
 export function revertGoku(fighter) {
-  if (!fighter || (fighter.transformIndex || 0) <= 0) return
-  fighter.transformIndex    = 0
-  fighter.currentForm       = "base"
-  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore base art (or recoloured base if alt-skinned)
-  fighter.damageMultiplier  = fighter.attackMultiplier = 1
-  fighter.speedMultiplier   = 1
+  if (!fighter) return
+  fighter.transformIndex = 0
+  fighter.currentForm = "base"
+  fighter._gokuUITimer = 0
+  fighter._skinAnim = fighter._baseSkinAnim || null     // restore base art (or recoloured base if alt-skinned)
+  fighter.damageMultiplier = fighter.attackMultiplier = 1
+  fighter.speedMultiplier = 1
   fighter.defenseMultiplier = 1
-  fighter.currentFormData   = fighter.transformations?.base || null
-  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+  fighter.currentFormData = fighter.transformations?.base || null
+  fighter.baseSpeed = fighter.speed = GOKU_BASE_SPEED
+  fighter.dashSpeed = GOKU_BASE_DASH
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
 }
-// Per-frame continuous drain (current tier's rate) + instant auto-revert at 0 — SAME model as Vegeta/Goku Black.
-export function applyGokuFormSystem(fighter) {
-  if (!isGokuChar(fighter)) return
-  tickGokuKaioken(fighter)                              // KAIOKEN (Base-only) HP-strain drain runs every frame
+// Ki ran out → drop ONE level + a 20-frame vulnerable gasp.
+function dropGokuOneLevel(fighter) {
   const idx = fighter.transformIndex || 0
   if (idx <= 0) return
-  const drain = fighter.transformations?.[GOKU_LADDER[idx - 1]]?.energyDrainPerFrame || 0
-  tickSustainedFormDrain(fighter, { active: f => (f.transformIndex || 0) > 0, drainPerFrame: drain, revert: revertGoku })
+  const next = idx - 1
+  fighter._gokuUITimer = 0
+  if (next <= 0) { revertGoku(fighter) }
+  else {
+    const form = GOKU_FORMS[next]
+    fighter.transformIndex = next
+    fighter.currentForm = "goku_" + form.key
+    fighter._skinAnim = retagFormAnim(GOKU_FORM_ANIM[form.key], fighter._recolorTag)
+    applyGokuFormStats(fighter, form)
+  }
+  fighter._gokuGasp = GOKU_GASP_FRAMES
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 6)
+}
+// Ultra Instinct ended (timer / Ki out / grabbed) → Base + 6s EXHAUSTION (no transform/Kaioken; Ki gain halved).
+function endGokuUI(fighter) { revertGoku(fighter); fighter._gokuExhaust = GOKU_EXHAUST_FRAMES }
+// Per-frame: timers, per-form Ki drain, drop-on-empty, UI timer, exhaustion, re-apply stats, Kaioken strain.
+export function applyGokuFormSystem(fighter) {
+  if (!isGokuChar(fighter)) return
+  if (fighter._gokuBurst > 0) fighter._gokuBurst--
+  if (fighter._gokuGasp > 0) fighter._gokuGasp--
+  if (fighter._gokuExhaust > 0) fighter._gokuExhaust--
+  const idx = fighter.transformIndex || 0
+  if (idx > 0) {
+    const form = GOKU_FORMS[idx]
+    applyGokuFormStats(fighter, form)                   // keep multipliers + speed applied every frame
+    if (idx === 6) {                                    // Ultra Instinct: timer, not Ki drain
+      fighter._gokuUITimer = (fighter._gokuUITimer || 0) - 1
+      if (fighter._gokuUITimer <= 0) { endGokuUI(fighter); return }
+    } else {
+      const drain = (form.drainPS || 0) / 60
+      if (drain > 0) {
+        fighter.energy = (fighter.energy || 0) - drain
+        if (fighter.energy <= 0) { fighter.energy = 0; dropGokuOneLevel(fighter) }
+      }
+    }
+  } else if ((fighter._kaioken || 0) <= 0 && (fighter.damageMultiplier || 1) !== 1) {
+    applyGokuFormStats(fighter, GOKU_FORMS[0])          // base, no Kaioken → reset to neutral once
+  }
+  tickGokuKaioken(fighter)                              // Kaioken (Base/Blue) stacks ON TOP + HP strain
 }
 
 // ── STAGE 6 — KAIOKEN (Base-form-only per-form delta). A risk/reward burst buff that STACKS through 2 tiers
@@ -1972,46 +2060,40 @@ export function applyGokuFormSystem(fighter) {
 // (prompt Stage 6 reading — confirmed against the palette evidence). Bound to the (freed) ULTIMATE input;
 // each press cycles 0→1→2→0. Visual = procedural red/maroon aura (drawGokuFormAura, GOKU_KAIOKEN_LOOK) — the
 // real #7/#8 red/maroon palette-stance art is a DEFERRABLE refinement (crude to key reliably). See GOKU_ASSET_MAP.md.
-const GOKU_KAIOKEN = [
-  null,
-  { dmg: 1.30, spd: 1.20, def: 1.0, hpDrainPerFrame: 0.15 },   // Kaioken (tier 1)
-  { dmg: 1.55, spd: 1.40, def: 1.0, hpDrainPerFrame: 0.30 },   // Kaioken ×3 (tier 2)
-]
-function applyGokuKaiokenLevel(fighter, level, context = {}) {
-  fighter._kaioken = level
-  const k = GOKU_KAIOKEN[level]
-  if (!k) {   // OFF → clear buffs + art
-    fighter.damageMultiplier = fighter.attackMultiplier = 1
-    fighter.speedMultiplier = 1; fighter.defenseMultiplier = 1
-    fighter.currentFormData = fighter.transformations?.base || null
-    return
-  }
-  fighter.damageMultiplier = fighter.attackMultiplier = k.dmg
-  fighter.speedMultiplier = k.spd; fighter.defenseMultiplier = k.def
-  // Point currentFormData at the Kaioken values so updateTransformationState re-applies them each frame
-  // (else the base 1.0 form data would stomp the buffs a frame later — the Vegeta gotcha).
-  fighter.currentFormData = { damageMultiplier: k.dmg, speedMultiplier: k.spd, defenseMultiplier: k.def }
-  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
-  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
-  try { shakeCamera(context, 6, 8) } catch (_) {}
-}
-// ULTIMATE input (Base-only): cycle Kaioken 0→1→2→0.
+// Kaioken deltas (multiply ON TOP of the active form). Base = x2 tier; Blue = x10 tier (bigger, costlier).
+const GOKU_KAIOKEN_BASE = { dmg: 2.00, spd: 1.20, hpPS: 9 }    // Base-form Kaioken (×2)
+const GOKU_KAIOKEN_BLUE = { dmg: 1.50, spd: 1.30, hpPS: 12 }   // Blue-form Kaioken (×10 feel) — delta on Blue
+// Toggle (Charge+Back) — Base OR Blue only. Drains HEALTH (not Ki); never takes Goku below 10% HP.
 export function toggleGokuKaioken(fighter, context = {}) {
   if (!isGokuChar(fighter)) return false
-  if ((fighter.transformIndex || 0) > 0) return false                    // Base-form ONLY
+  const idx = fighter.transformIndex || 0
+  if (idx !== 0 && idx !== 5) return false                               // Base or Blue only
+  if ((fighter._gokuExhaust || 0) > 0) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
-  applyGokuKaiokenLevel(fighter, ((fighter._kaioken || 0) + 1) % 3, context)
+  fighter._kaioken = (fighter._kaioken || 0) ? 0 : 1
+  if (!fighter._kaioken) applyGokuFormStats(fighter, GOKU_FORMS[idx])    // OFF → restore the form's own stats
+  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { shakeCamera(context, 6, 8) } catch (_) {}
   return true
 }
-// Per-frame HP strain while Kaioken is active; auto-off before a self-KO (Kaioken hurts but shouldn't suicide).
+// Per-frame: stack Kaioken multipliers on top of the form + HP strain; auto-off before a self-KO.
 export function tickGokuKaioken(fighter) {
   if (!isGokuChar(fighter)) return
-  const lvl = fighter._kaioken || 0
-  if (lvl <= 0) return
-  if ((fighter.transformIndex || 0) > 0) { applyGokuKaiokenLevel(fighter, 0); return }   // safety: never coexist with a form
-  const k = GOKU_KAIOKEN[lvl]; if (!k) { applyGokuKaiokenLevel(fighter, 0); return }
-  fighter.health = Math.max(0, (fighter.health || 0) - (k.hpDrainPerFrame || 0))
-  if (fighter.health <= (fighter.maxHealth || 1000) * 0.10) applyGokuKaiokenLevel(fighter, 0)   // auto-off at 10% HP
+  if (!(fighter._kaioken > 0)) return
+  const idx = fighter.transformIndex || 0
+  if (idx !== 0 && idx !== 5) { fighter._kaioken = 0; return }           // only Base/Blue
+  const k = (idx === 5) ? GOKU_KAIOKEN_BLUE : GOKU_KAIOKEN_BASE
+  const base = GOKU_FORMS[idx]
+  fighter.damageMultiplier = fighter.attackMultiplier = base.dmg * k.dmg
+  fighter.speedMultiplier = base.spd * k.spd
+  fighter.defenseMultiplier = base.def
+  fighter.currentFormData = { damageMultiplier: fighter.damageMultiplier, speedMultiplier: fighter.speedMultiplier, defenseMultiplier: base.def }
+  fighter.baseSpeed = fighter.speed = Math.round(GOKU_BASE_SPEED * fighter.speedMultiplier)
+  fighter.health = Math.max(0, (fighter.health || 0) - (k.hpPS / 60))
+  if (fighter.health <= (fighter.maxHealth || 1000) * 0.10) {           // auto-off at 10% HP
+    fighter._kaioken = 0
+    applyGokuFormStats(fighter, base)
+  }
 }
 
 // ── NARUTO ────────────────────────────────────────────────────────
@@ -8159,6 +8241,7 @@ function fireGokuCmd(fighter, key) {
 }
 export function updateGokuCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "goku" || !inputState) return false
+  return false   // PHASE 3: the "Meteor Combination" rekka (and all command normals) are rebuilt in PHASE 4.
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const phase    = getPhase?.(fighter)
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
@@ -34500,11 +34583,14 @@ export function regenEnergy(fighter) {
   // Killua (Godspeed) `zoldyck`: VOLTS do NOT self-regenerate — electricity is a spent resource that only
   // refills by HOLDING Charge (doEnergyCharge, +0.5/f, vulnerable while charging). Skip passive regen.
   if ((fighter.rosterKey || "").toLowerCase() === "zoldyck") return
+  // Goku (clean rebuild): Ki is built by HOLDING Charge (doEnergyCharge), NOT passively — transforming must
+  // cost real Ki (build brief: "do not add free meter"). Skip passive regen, like Killua's Volts.
+  if ((fighter.rosterKey || "").toLowerCase() === "goku") return
 
   let regen = 0.06
 
   const key = (fighter.rosterKey || "").toLowerCase()
-  if (key === "goku"   || key === "naruto") regen += 0.02
+  if (key === "naruto") regen += 0.02
   if (key === "gojo"   || key === "sukuna") regen += 0.01
   if (key === "omololu") regen += 0.015
   if (fighter.domainBuff)      regen += 0.04

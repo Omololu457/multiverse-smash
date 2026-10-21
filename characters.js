@@ -23,7 +23,11 @@ const goku = {
   archetypes: ["melee", "transformations"],
   primary: "melee", secondary: ["transformations"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
-  stats: { maxHealth: 1200, maxEnergy: 200, attack: 92, defense: 86, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
+  // CLEAN-SLATE REBUILD (2026-10-20): new sprite sheet (goku_original.png) + fresh 7-level transformation
+  // ladder (base→SSJ→SSJ2→SSJ3→God→Blue→Ultra Instinct). KI 0–100 (25 = one bar). All movement/weight per the
+  // build brief (walk 5.0/run 7.5/jump 11/weight 1.0) realised in engine units: walk = clamp(4.5+(speed-78)/20*5)
+  // → speed 84 ≈ walk 6.0 (scaled per-form by applyGokuFormSystem). Reuses NONE of the deleted old-Goku kit.
+  stats: { maxHealth: 1000, maxEnergy: 100, attack: 90, defense: 86, speed: 84, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 38, weight: 1.0 },
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
@@ -33,38 +37,30 @@ const goku = {
     crouchLight:{ damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 },   // low leg SWEEP — auto-swapped from light by _setCrouchVariant while crouching (base #80)
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
   },
-  // STAGE 4 (2026-08-23): MELEE-ONLY kit. Kamehameha is CUT — no beam/projectile art exists on ANY of the
-  // four EB sheets (Stage-0 verified). Dragon Fist (a big rocket straight-punch) is the LONE special. The
-  // Kamehameha WINDUP pose is preserved as dormant art (goku_base_kamehamehaWindup_uniform.png, base #170-176)
-  // for future use once real beam art exists — see GOKU_ASSET_MAP.md. ★BALANCE: 4-tier transform chain with
-  // NO ranged special is an unusual shape (flagged for Stage 7 balance pass).
-  specials: {
-    dragonFist: { cost: 40, damage: 150, startup: 10, active: 6, recovery: 22, hitstun: 28, knockbackX: 12, knockbackY: -6, effect: "Dragon Fist (neutral / any non-Down) — melee rocket-punch rush with dragon aura" },
-    // ITEM 4 (2026-09-02): Kamehameha REVIVED by ITEM 1 (Down+Special → fireGokuKamehameha, procedural beam) —
-    // no longer "CUT". This entry now reflects the move that actually fires; cost/damage match GOKU_SPECIALS.
-    kamehameha: { cost: 30, damage: 94, motion: "D", effect: "Kamehameha (Down+Special) — procedural charge→release piercing ki beam (Piccolo/Frieza beam pattern; windup art revived)" }
-  },
-  // ── TRANSFORMATION LADDER (STAGE 5, 2026-08-23 re-scope to the 4 REAL EB sheets): base → Super Saiyan →
-  // Super Saiyan God → Super Saiyan Blue. SAME mechanic as Vegeta / Frieza: CHARGE button — hold-release
-  // STEPS UP the ladder, a tap reverts to base. Threshold-gated (NO up-front cost), continuous per-frame Ki
-  // DRAIN pays for the form, auto-revert the instant Ki hits 0. Logic: abilities.js enterGokuNextForm /
-  // applyGokuFormSystem. Each tier art-swaps fighter._skinAnim to the form's recolored sheets (Vegeta-SSJ
-  // pattern) — see GOKU_FORM_ANIM in abilities.js. ★Replaces the old numeric 6-tier box ladder
-  // (ssj1/ssj2/ssj3/ultraInstinct REMOVED; SSG added) per owner 2026-08-23 — matches the four real sheets.
-  //   ★★REGEN-AWARE: Goku regens ~0.08 Ki/frame, so drains MUST exceed 0.08 to be a real net cost. SSJ is the
-  //   cheap workhorse (thr40/drain0.14); SSG the mid power-jump (thr90/drain0.22); Blue the ceiling
-  //   (thr150/drain0.36 → ~11.5s from full, bounding ×2.0 dmg). Drain/threshold = DESIGN CALL, playtest-flagged.
-  transformationOrder: ["base","ssj","ssg","ssblue"],
+  // PHASE 3 (clean rebuild): the kit (Kamehameha / Instant Transmission / Afterimage / Rapid Fist Barrage /
+  // per-form ultimates / Spirit Bomb) lands in PHASE 4. This phase ships the body + the 7-level ladder only.
+  specials: {},
+  // ── 7-LEVEL TRANSFORMATION LADDER (clean rebuild 2026-10-20): base → SSJ → SSJ2 → SSJ3 → God → Blue → Ultra
+  // Instinct. Climbed ONE level at a time via Charge+Up (hold the Charge button, tap Up, release); Charge+Down
+  // powers down to base; Charge+Back toggles Kaioken (Base/Blue only); Charge neutral just banks Ki. Each climb
+  // has a flat KI COST (not a threshold). Continuous Ki DRAIN per form; at Ki 0 Goku drops ONE level (20f gasp).
+  // UI is timer-based (15s) and entered only from Blue at FULL Ki; when it ends Goku drops to Base EXHAUSTED 6s.
+  // The per-form damage/speed/defense multipliers below are the engine stat deltas; the full rule-set (cost,
+  // ki drain/s, transform-burst frames, exhaustion, zenkai) lives in abilities.js GOKU_FORMS / applyGokuFormSystem.
+  // damageMultiplier is OUTGOING only; Base is EXACTLY 1.00 so combo-standard in Base is unchanged.
+  transformationOrder: ["base","ssj","ssj2","ssj3","god","blue","ui"],
   transformations: {
-    base:   { damageMultiplier: 1,    speedMultiplier: 1,    defenseMultiplier: 1 },
-    ssj:    { damageMultiplier: 1.2,  speedMultiplier: 1.1,  defenseMultiplier: 1.05, energyThreshold: 40,  energyDrainPerFrame: 0.14, kiDrainPerSecond: 8,  revertOnEmpty: true },                                            // Super Saiyan (gold)
-    ssg:    { damageMultiplier: 1.5,  speedMultiplier: 1.25, defenseMultiplier: 1.15, energyThreshold: 90,  energyDrainPerFrame: 0.22, kiDrainPerSecond: 13, revertOnEmpty: true, requiresForm: "ssj" },                        // Super Saiyan God (red)
-    ssblue: { damageMultiplier: 2,    speedMultiplier: 1.4,  defenseMultiplier: 1.2,  energyThreshold: 150, energyDrainPerFrame: 0.36, kiDrainPerSecond: 22, revertOnEmpty: true, requiresForm: "ssg", isSpecial: true }        // Super Saiyan Blue (ceiling)
+    base: { damageMultiplier: 1.00, speedMultiplier: 1.00, defenseMultiplier: 1.00 },
+    ssj:  { damageMultiplier: 1.10, speedMultiplier: 1.05, defenseMultiplier: 1.05 },
+    ssj2: { damageMultiplier: 1.18, speedMultiplier: 1.10, defenseMultiplier: 1.08 },
+    ssj3: { damageMultiplier: 1.28, speedMultiplier: 0.92, defenseMultiplier: 1.10 },
+    god:  { damageMultiplier: 1.32, speedMultiplier: 1.12, defenseMultiplier: 1.12 },
+    blue: { damageMultiplier: 1.38, speedMultiplier: 1.15, defenseMultiplier: 1.15 },
+    ui:   { damageMultiplier: 1.45, speedMultiplier: 1.20, defenseMultiplier: 1.20 }
   },
-  // No separate ultimate — the base→...→Ultra Instinct ladder on the CHARGE button IS the power ceiling
-  // (same as Vegeta / Frieza). The old ultimate-button "Super Saiyan Blue" trigger was REMOVED in the
-  // 2026-08-22 DB-transform alignment; the Ultimate input is now unbound for Goku.
-  ultimate: { name: "Super Saiyan (transformation ladder)", cost: 0, description: "No separate ultimate — hold the Charge button and RELEASE to step UP the transformation ladder (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct); tap Charge to revert. Each form boosts damage, speed & defense but continuously DRAINS Ki and reverts when empty (same as Vegeta / Goku Black / Frieza)." },
+  // No separate ultimate button-move binds the ladder — the ladder is on the Charge button. Per-form ULTIMATES
+  // (Spirit Bomb in Base, Super Kamehameha in SSJ, …) land on the Ultimate input in PHASE 4.
+  ultimate: { name: "Transformation Ladder", cost: 0, description: "Hold Charge to build Ki; Charge+Up climbs one level (base → SSJ → SSJ2 → SSJ3 → God → Blue → Ultra Instinct), Charge+Down powers down to base, Charge+Back toggles Kaioken (Base/Blue). Each climb costs Ki and each form drains Ki over time; at empty Goku drops a level. Ultra Instinct is a 15s timed state entered from Blue at full Ki." },
   hasSprites: true,   // STAGE 1 (2026-08-23): flipped box → SPRITE. Real EB (Extreme Butoden) art now wired.
   // ── 4-FORM SPRITE REBUILD (see GOKU_ASSET_MAP.md). ONE roster entry, four forms
   // (Base/SSJ/SSG/SSB) sourced from four EB sheets sharing an animation skeleton. STAGE 1 =
@@ -73,52 +69,34 @@ const goku = {
   // sprite-swap land in later stages. ⚠ Goku MUST keep his skins.js SKINS entry: applySkin()
   // pulls spriteScale from the default skin; without it getSkins() forces spriteScale:1.
   // Old procedural full-sheet slice (goku_base_FULLSHEET_transparent.png @ scale3.2) RETIRED.
-  spriteScale: 1.1,   // idle content ~108px × 1.1 ≈ 118px on-screen ≈ Gojo/old-Goku tier (tunable at STOP)
+  spriteScale: 2.0,   // new sheet idle content ~53px → ~115-120px on-screen ≈ roster tier (tuned at render-check)
   animationData: {
-    ...DEFAULT_ANIM,   // unmapped actions (attacks/…) fall back to the box until later stages slice them
-    // ── uniform strips (one PNG per action) from tools/reslice_goku.py stage1. feet-aligned;
-    // anchorY 0 (cells already bottom-plant the feet). Base-index picks documented in the tool.
-    idle:      { frames: 4, width: 113, height: 112, speed: 6, anchorY: 0, sheet: "./goku_base_idle_uniform.png" },        // subtle breathing ready-stance (base #10-13)
-    // No slow-walk exists on any EB sheet (confirmed intentional, like Superman 2 / Iron Man 3) →
-    // walk BORROWS idle (owner-approved gap pattern, cf. Piccolo); run reuses it at a faster cadence.
-    walk:      { frames: 4, width: 113, height: 112, speed: 6, anchorY: 0, sheet: "./goku_base_idle_uniform.png" },
-    run:       { frames: 4, width: 113, height: 112, speed: 4, anchorY: 0, sheet: "./goku_base_idle_uniform.png" },
-    dash:      { frames: 1, width: 98,  height: 135, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_dash_uniform.png" },     // forward lunge (base #288)
-    jump:      { frames: 4, width: 117, height: 158, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" },     // airborne leap: rise → arms-spread apex → descend (base #227-230, owner-approved re-pick)
-    fall:      { frames: 1, width: 117, height: 158, speed: 6, anchorY: 0, sourceX: 351, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" }, // last jump cell (descend) held
-    crouch:    { frames: 2, width: 117, height: 97,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouch_uniform.png" },   // low duck (base #249-250)
-    guard:     { frames: 2, width: 84,  height: 129, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },    // arms-up braced block (base #245-246)
-    hurt:      { frames: 1, width: 100, height: 128, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_hurt_uniform.png" },     // stagger flinch (base #236)
-    knockdown: { frames: 4, width: 140, height: 96,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" }, // flat/prone lying (base #268-271)
-    getup:     { frames: 2, width: 119, height: 82,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_getup_uniform.png" },     // low → rise (base #265-266)
-    // ── STAGE 2 — normals (render by move name; basic_attacks data above; effective dmg ×0.60
-    // GLOBAL_DAMAGE_SCALE). Base-form picks (tools/reslice_goku.py stage2); shared across forms.
-    light:       { frames: 2, width: 102, height: 138, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_light_uniform.png" },       // quick straight jab (base #66-67)
-    heavy:       { frames: 2, width: 94,  height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },        // lunging straight punch, long reach (base #107-108)
-    up:          { frames: 2, width: 82,  height: 139, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_upAttack_uniform.png" },     // rising uppercut LAUNCHER (base #194-195) — MOVE_TO_ACTION: upAttack→up
-    air:         { frames: 2, width: 119, height: 145, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_airAttack_uniform.png" },    // airborne forward strike (base #157-158) — airAttack→air
-    down_air:    { frames: 2, width: 111, height: 124, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_downAir_uniform.png" },      // diagonal-down diving strike (base #161-162) — downAir→down_air
-    crouchLight: { frames: 1, width: 175, height: 83,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouchLight_uniform.png" },   // low leg sweep (base #80)
-    // ── STAGE 3 — "Meteor Combination" Fwd+Heavy 3-stage rush rekka (render key = move name; logic in
-    // abilities.js updateGokuCommandCombat). Base picks; shared across forms.
-    gokuRush1:   { frames: 2, width: 91,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_rush1_uniform.png" },   // lunging straight-punch opener (base #97-98)
-    gokuRush2:   { frames: 2, width: 115, height: 130, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_rush2_uniform.png" },   // flurry hook mid-beat (base #100-101)
-    gokuRush3:   { frames: 2, width: 96,  height: 143, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_rush3_uniform.png" },   // roundhouse LAUNCHER finisher (base #109-110; no baked VFX trail — procedural crescent deferrable)
-    // ── STAGE 4 — Dragon Fist (lone special; render key = move name "dragonFist"). ★HONEST REUSE of the
-    // heavy lunge-punch pose (base #107-108): a full pixel survey found it's the ONLY true grounded
-    // forward rocket-punch on the sheet (candidate distinct frames #83-84/#103-104 were aerial/dive poses,
-    // subagent-rejected). Dragon Fist = an enhanced straight punch, so the reuse reads correctly; a
-    // procedural dragon-aura FX overlay to distinguish it is DEFERRABLE. See GOKU_ASSET_MAP.md.
-    dragonFist:  { frames: 2, width: 94, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },  // reuse heavy straight-punch (base #107-108)
-    // Kamehameha (Down+Special) cast pose — REVIVES the dormant windup art (goku_base_kamehamehaWindup_uniform.png,
-    // base #170-176). 840×129 strip = 7 frames × 120px; charge→release hold. Beam itself is procedural (abilities.js
-    // fireGokuKamehameha), same as Piccolo's Special Beam Cannon — no EB beam graphic exists.
-    gokuKamehameha: { frames: 7, width: 120, height: 129, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_kamehamehaWindup_uniform.png" },
-    // ── STAGE 7 — win (cheer-jump + scratch-head-laugh, base #274-277 + #282-285) / lose (reuse knockdown).
-    // Win always resolves to BASE form regardless of the fight-ending form (STATED ASSUMPTION per Stage 0 —
-    // no win pose exists on SSJ/SSG/SSB sheets; inferred, not confirmed).
-    win:  { frames: 8, width: 101, height: 175, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
-    lose: { frames: 4, width: 140, height: 96,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" }   // REUSE knockdown (no dedicated lose art — flagged)
+    ...DEFAULT_ANIM,
+    // ── NEW per-action uniform strips (goku_work/slice.py) from the clean sheet. Feet-anchored, anchorY 0.
+    // ONE frame map serves every form; applyGokuFormSystem/_skinAnim swaps only the sheet (goku_<form>_<action>).
+    idle:      { frames: 6, width: 54, height: 60, speed: 7, anchorY: 0, sheet: "./goku_base_idle_uniform.png" },
+    walk:      { frames: 4, width: 55, height: 69, speed: 6, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },
+    run:       { frames: 4, width: 55, height: 69, speed: 4, anchorY: 0, sheet: "./goku_base_walk_uniform.png" },   // reuse walk, faster cadence
+    dash:      { frames: 4, width: 55, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_walk_uniform.png" },
+    jump:      { frames: 3, width: 50, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" },
+    fall:      { frames: 1, width: 50, height: 71, speed: 6, anchorY: 0, sourceX: 100, loop: false, lockLastFrame: true, sheet: "./goku_base_jump_uniform.png" },  // last jump cell held
+    crouch:    { frames: 2, width: 63, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouch_uniform.png" },
+    guard:     { frames: 2, width: 53, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    hurt:      { frames: 1, width: 50, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_hurt_uniform.png" },
+    knockdown: { frames: 1, width: 74, height: 30, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" },
+    getup:     { frames: 1, width: 40, height: 44, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_getup_uniform.png" },
+    // KI CHARGE pose (powering-up) — shown while holding Charge to build Ki.
+    kiCharge:  { frames: 8, width: 42, height: 71, speed: 5, anchorY: 0, sheet: "./goku_base_kiCharge_uniform.png" },
+    // ── NORMALS — PHASE-3 PLACEHOLDER: reuse the guard combat pose until PHASE 4 slices real normal strips.
+    // (The render-check only needs the body + ladder; real light/heavy/up/air/down_air land in the kit phase.)
+    light:       { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    heavy:       { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    up:          { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    air:         { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    down_air:    { frames: 2, width: 53, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_guard_uniform.png" },
+    crouchLight: { frames: 2, width: 63, height: 47, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_crouch_uniform.png" },
+    win:  { frames: 8, width: 56, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_win_uniform.png" },
+    lose: { frames: 1, width: 74, height: 30, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_knockdown_uniform.png" }
   }
 }
 
@@ -11241,7 +11219,9 @@ const _WIPED_FOR_REDO = [
   "yamamoto",
   "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
   "superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",
-  "bardock", "frieza", "gogeta", "goku", "goku_rose", "gotenks", "piccolo", "gohan", "vegito",
+  // goku REMOVED from the wipe (2026-10-20): clean-slate 7-level transformation-ladder rebuild on the new
+  // sheet (per-action strips + fresh ladder kit) — stays LIVE (same convention as vilgax's rebuild above).
+  "bardock", "frieza", "gogeta", "goku_rose", "gotenks", "piccolo", "gohan", "vegito",
   "ghostface_billy", "ghostface_exe",
   "gon", "zoldyck", "kurapika", "meruem", "shizuku",
   "omniman",

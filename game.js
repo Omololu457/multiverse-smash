@@ -10121,14 +10121,20 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
-  // GOKU — TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct), same charge idiom.
-  // Hold P to build Ki; a RELEASE steps UP one tier if Ki ≥ that tier's threshold; a quick TAP reverts to
-  // base. Continuous Ki drain (applyGokuFormSystem) auto-reverts at 0. REPLACES the old ultimate-button entry.
+  // GOKU — 7-LEVEL LADDER (clean rebuild). Charge is Goku's Ki button: HOLD builds Ki (doEnergyCharge,
+  // vulnerable). The direction HELD AT RELEASE picks the action — Up = climb one level, Down = power down to
+  // base, Back = Kaioken toggle (Base/Blue), neutral = just bank the Ki (no transform). _gokuChargeDir is
+  // captured each frame while Charge is held (updateMovementInput). All on Goku's dedicated button → no
+  // collision with normals/specials/ultimate.
   if ((fighter.rosterKey || "").toLowerCase() === "goku") {
-    if ((fighter.transformIndex || 0) > 0) {
-      if (wasTap) revertGoku(fighter)
-      else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // step up the ladder
-    } else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // base → SSJ (real press-release only)
+    const dir = fighter._gokuChargeDir || null
+    if (wasHeld) {
+      if (dir === "U") enterGokuNextForm(fighter, getAbilityContext())
+      else if (dir === "D") revertGoku(fighter)
+      else if (dir === "B") toggleGokuKaioken(fighter, getAbilityContext())
+      // neutral release → no-op (Ki already banked during the hold)
+    }
+    fighter._gokuChargeDir = null
     return
   }
 
@@ -10870,6 +10876,10 @@ function updateMovementInput(fighter) {
   if (fighter._bpActive) { fighter.isBlocking = false; fighter.isCharging = false; return }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
+  // GOKU ladder: while the Charge button is held, remember the direction so handleChargeRelease can read it
+  // at release (Up=climb · Down=power down · Back=Kaioken · neutral=bank Ki). Only Goku reads this.
+  if (inputState.charge && (fighter.rosterKey || "").toLowerCase() === "goku")
+    fighter._gokuChargeDir = betaHeldDirFromInput(inputState, fighter.facing)
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)

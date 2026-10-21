@@ -17,6 +17,7 @@
 //   brutalityCinematicStatus() -> { active, t, wKey, done }    (harness/debug)
 // ─────────────────────────────────────────────────────────────────
 import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"
+import { pickGhostfaceSfx } from "./ghostface_sfx_map.js"   // LIGHTS OUT phone-ring clip
 import { getSpriteSheets } from "./spritesheets.js"
 import { sound as _sound } from "./sound.js"
 
@@ -88,6 +89,10 @@ export function activateBrutalityCinematic(winner, victim, move) {
     else if (/ult|final|gfult|backstage|\bbp\b|ambush|swap/.test(m)) concept = BRUTALITY_CONCEPTS.ghostface_outnumbered || concept
     else if (/light|heavy|combo|slash|stab|jab|^up$|air|down/.test(m)) concept = BRUTALITY_CONCEPTS.ghostface   // knife normals → Fourth Wall
     else                                                             concept = BRUTALITY_CONCEPTS.ghostface_lightsout || concept
+  }
+  // LIGHTS OUT — the phone rings in the dark (real Ghostface SFX clip; Phase 5 pack).
+  if (concept === BRUTALITY_CONCEPTS.ghostface_lightsout) {
+    try { _sound?.playSfxFile?.(pickGhostfaceSfx("PHONE_RING", (winner._gfSfxN = (winner._gfSfxN | 0) + 1), 0), null, { volumeMult: 0.95 }) } catch (_) {}
   }
   const base = concept.base === "idle" ? "idle" : "hurt"
   const ad = victim.animationData || {}

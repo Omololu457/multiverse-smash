@@ -568,6 +568,8 @@ import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./kil
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
 import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
 import { pickGhostfaceVoice, GHOSTFACE_VOICE } from "./ghostfaceVoice.js"   // Ghostface intro + win voice pools (audio-only)
+import { pickGhostfaceSfx, playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface"; Billy/.exe keep the aliased old pools)
+let _gfIntroN = 0
 import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
@@ -5054,7 +5056,7 @@ const INTRO_VOICE = {
   yuta: { pool: YUTA_VOICE.intro, gateReveal: false },
   // Ippo: humble/determined challenger opener ("Let's both give it our all!"). No taunt action → taunt rides offense-connect. JA.
   ippo: { pool: IPPO_VOICE.intro, gateReveal: false },
-  ghostface: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // one of his openers at random ("What's your favorite scary movie?" …)
+  ghostface: { pick: (rk) => rk === "ghostface" ? pickGhostfaceSfx("INTRO_LINES", (_gfIntroN = (_gfIntroN + 1) | 0), 0) : null, pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // EXACT ghostface → NEW SFX pack; Billy (voiceKey alias) falls through to the old intro pool
   ghostface_exe: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // STAGE 4: Billy (ghostface_exe) REUSES the Ghostface intro pool — no new audio
   // Miwa picks ONE of her pre-fight openers / nervous-taunt lines at random per match ("I will defeat you
   // here!" / "I'm not drunk!" / "Please don't think of me as a bad girl!"). No taunt action exists → the
@@ -9275,7 +9277,7 @@ function _checkMatchOver() {
       // GHOSTFACE win voice — random pick from his victory pool ("Now you lose" / "You won't get a
       // sequel!" / "See you soon!"). Fires only when the WINNER is Ghostface.
       if (voiceKey(winFighter?.rosterKey) === "ghostface" || winFighter?.rosterKey === "ghostface_exe") {   // STAGE 4: ghostface_exe + ghostface_billy reuse Ghostface win lines
-        sound.playSfxFile?.(pickGhostfaceVoice("win"), null)
+        if ((winFighter?.rosterKey || "") === "ghostface") playGhostfaceSfx(sound, "WIN_LINES", winFighter); else sound.playSfxFile?.(pickGhostfaceVoice("win"), null)
       }
       // MIWA win voice — random pick from her victory pool ("I did it!" / "I won safely!" / "It was a good
       // match, wasn't it?"). Fires only when the WINNER is Miwa. JP dub.

@@ -93,7 +93,8 @@ import { pickIsshikiVoice } from "./isshikiVoice.js"         // Isshiki per-tech
 import { pickSukunaVoice } from "./sukunaVoice.js"            // Sukuna Cleave/Flame/Dismantle/CursedSlash cast voice pools (audio-only; JA default, EN switchable)
 import { pickAltSukunaVoice } from "./alt_sukunaVoice.js"    // Alternate Sukuna — TONE-FILTERED reuse (measured/neutral cast pools, cruel excluded; EN default)
 import { pickChrolloVoice } from "./chrolloVoice.js"            // Chrollo Skill Hunter ULTIMATE-activation cast voice pool (audio-only; fires once at transform beat)
-import { pickGhostfaceVoice } from "./ghostfaceVoice.js"        // Ghostface knife-special + ultimate cast voice pool (audio-only)
+import { pickGhostfaceVoice } from "./ghostfaceVoice.js"
+import { playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface" paths below are already rosterKey-gated)        // Ghostface knife-special + ultimate cast voice pool (audio-only)
 import { pickJasonVoice } from "./jasonVoice.js"               // Jason Relentless Slash cast grunt / ~25% signature roar (audio-only)
 import { pickHiruzenVoice } from "./hiruzenVoice.js"          // Hiruzen per-technique cast voice pools (audio-only, JA — spin/fireball/earthWall/enma/ultimate)
 import { pickOrochimaruVoice } from "./orochimaruVoice.js"    // Orochimaru per-technique cast voice pools (audio-only, JA — specials/chain/grab/ult/transform; vibe-sorted, unidentified)
@@ -18545,7 +18546,7 @@ function executeGhostfaceSpecial(fighter, context) {
   // by the shared _atkVoiceCd so it never stacks with the offense-connect bark. Swap/getaway/switch
   // (Backstage Pass) are voiced by the companion swap system, not here.
   if ((dir === "F" || dir === "D") && (fighter._atkVoiceCd || 0) <= 0) {
-    try { sound?.playSfxFile?.(pickGhostfaceVoice("specialCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+    try { playGhostfaceSfx(sound, "SPECIAL_CALLOUT", fighter); playGhostfaceSfx(sound, "KNIFE_SFX", fighter); fighter._atkVoiceCd = 120 } catch (_) {}
   }
   if (dir === "F")              return finishGfKnife(fighter, fireGhostfaceGuttingLunge(fighter, context))   // Fwd  = Gutting Lunge (bleed)
   if (dir === "D")              return finishGfKnife(fighter, fireGhostfaceLowGut(fighter, context))         // Down = Low Gut (knockdown)
@@ -18807,7 +18808,8 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
   if (!applyGhostfaceSwap(fighter, targetKey)) return false
   // KILLER-FORM identity: flat silhouette tint (rendered in sprite.js while _gfSwapActive) + form glow.
   const _kf = KILLER_FORM_FX[targetKey]
-  if (_kf) { fighter._killerTint = _kf.tint; fighter._killerForm = _kf.name; swapFlashColor = _kf.glow }
+  if (_kf) { fighter._killerTint = _kf.tint; fighter._killerForm = _kf.name; swapFlashColor = _kf.glow
+    try { playGhostfaceSfx(sound, _kf.name === "assassin" ? "ASSASSIN_LINES" : "ENFORCER_LINES", fighter) } catch (_) {} }
   // 3-beat transition (visual only): hold the new companion hidden through EXIT+FLASH, pulse the identity-tinted
   // flash, then materialise it in. The swap itself already fired above — window/cost/revert are unchanged.
   fighter._gfSwapCine = { t: 0, color: swapFlashColor }

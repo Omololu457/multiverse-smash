@@ -71,6 +71,7 @@ import { pickSukunaVoice } from "./sukunaVoice.js"   // Sukuna hit-react / offen
 import { pickAltSukunaVoice } from "./alt_sukunaVoice.js"   // Alternate Sukuna — TONE-FILTERED reuse of the same bank (less-malicious: measured/neutral only, cruel excluded; EN default)
 import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / grunt / offense-bark / taunt / low-health voice pools (audio-only)
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
+import { playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface" only; Billy/.exe keep the old pools)
 import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort / hit-react (light/heavy) / knockdown / offense-quip voice pools (audio-only, EN Marvel-Rivals pack)
 
 // ========================
@@ -1323,7 +1324,7 @@ function _isGhostfaceVoiced(f) { const k = voiceKey(f?.rosterKey); return k === 
 function applyGhostfaceHitVoice(defender, cat, dmg) {
   if (!defender || !_isGhostfaceVoiced(defender) || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
-  try { sound?.playSfxFile?.(pickGhostfaceVoice("hitReact"), null) } catch (_) {}
+  try { if ((defender.rosterKey || "") === "ghostface") playGhostfaceSfx(sound, "HIT_REACT", defender); else sound?.playSfxFile?.(pickGhostfaceVoice("hitReact"), null) } catch (_) {}
 }
 
 // ATTACKER connect — combat barks on a HEAVY connect OR a long BASIC light string, with ~30% chance
@@ -1336,7 +1337,7 @@ function applyGhostfaceOffenseVoice(attacker, cat, unblocked) {
   if (!strong && !longString) return
   attacker._atkVoiceCd = 150
   const pool = Math.random() < 0.3 ? "taunt" : "combatBark"
-  try { sound?.playSfxFile?.(pickGhostfaceVoice(pool), null) } catch (_) {}
+  try { if ((attacker.rosterKey || "") === "ghostface") playGhostfaceSfx(sound, pool === "taunt" ? "TAUNT" : "ATTACK_GRUNT", attacker); else sound?.playSfxFile?.(pickGhostfaceVoice(pool), null) } catch (_) {}
 }
 
 // LOW-HEALTH bark — "I'll survive. I always do." / "We're only in the first reel." — fires ONCE the
@@ -1348,7 +1349,7 @@ function applyGhostfaceLowHealthVoice(defender) {
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * GHOSTFACE_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
-    try { sound?.playSfxFile?.(pickGhostfaceVoice("lowHealth"), null) } catch (_) {}
+    try { if ((defender.rosterKey || "") === "ghostface") playGhostfaceSfx(sound, "LOSE_LINES", defender); else sound?.playSfxFile?.(pickGhostfaceVoice("lowHealth"), null) } catch (_) {}
   }
 }
 

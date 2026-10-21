@@ -979,6 +979,7 @@ class SoundManager {
       if (VOICE_VOLUME_MULT[_pfx] != null) a.volume *= VOICE_VOLUME_MULT[_pfx]
       if (typeof opts.volumeMult === "number") a.volume *= opts.volumeMult
       a.volume = Math.max(0, Math.min(1, a.volume))
+      if (typeof opts.rate === "number") a.playbackRate = Math.max(0.5, Math.min(2, opts.rate))   // ±pitch jitter (deterministic, caller-supplied)
       if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
       // Track it so a match-end stop (stopAllSfx) or a newer same-owner cue (above) can STOP it. A cue
       // is NOT cut when its source animation ends — voice lines play to natural completion by default.

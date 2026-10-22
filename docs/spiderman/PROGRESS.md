@@ -91,7 +91,11 @@ setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated spec
   it would overlap the opponent, and respects a new **"Quip bubbles" ON/OFF setting**
   (`ms_quip_bubbles`, default ON) + **Reduce Flashing**. Harness `spiderman_quips.mjs` 7/0.
 - **FINAL REPORT** ✅ — `docs/spiderman/REPORT.md` (all phases).
+- **Spider-Sense passive** ✅ — incoming attack (melee/projectile; grabs & unblockables excluded)
+  opens a warning window + white-flash + 3 head rings (render-only, Reduce-Flashing-aware); a
+  buffered dodge tap inside it = true evade (brief invuln + next-attack counter hit ×1.3).
+  `abilities.updateSpiderSense` (deterministic); harness `spiderman_sense.mjs` 9/0.
 - Still OPEN: a dedicated HUD Webbed-stacks pip row (web-fluid bar already renders via the
-  `web_fluid` energyConfig); Spider-Sense white-flash passive + dodge-evade; Web Cocoon capture;
-  CPU AI; Training toggles; the "Quip bubbles" toggle in the Settings MENU (the flag + default
-  are in; menu wiring remains).
+  `web_fluid` energyConfig); Web Cocoon capture; CPU AI; Training toggles; the "Quip bubbles"
+  toggle in the Settings MENU (the flag + default are in; menu wiring remains); dedicated
+  Web Swing Kick / Spider Sting specials.

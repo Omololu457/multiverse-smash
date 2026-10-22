@@ -153,8 +153,11 @@ tested and pushed. The existing kit (5 directional specials, Maximum Web ultimat
 normal, audio quips) is now live.
 
 **Deferred (Phase 4 / beyond), with reconciliation notes:**
-- **Spider-Sense** white-flash passive + dodge-evade — not yet built (the white/negative row-25
-  frame is identified for it).
+- **Spider-Sense** white-flash passive + dodge-evade — ✅ DONE (Phase 4): an incoming attack
+  (melee in range, or an incoming projectile; grabs/unblockables excluded) opens a warning
+  window with a white-flash + 3 code-drawn head rings (render-only, Reduce-Flashing-aware).
+  Tapping the dodge input (buffered) inside it = a true evade — brief invulnerability + the
+  next attack within ~20f is a counter hit (×1.3). Harness `spiderman_sense.mjs` 9/0.
 - **Web Cocoon** capture state — not built (the Maximum Web ultimate already delivers the
   web-capture fantasy).
 - **Quip bubble system** — ✅ DONE (Phase 4): the 5 cut sprites pop above him on events (small

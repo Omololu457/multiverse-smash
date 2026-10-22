@@ -30481,12 +30481,58 @@ export function tickWebbed(target) {
   if (st >= WEBBED.max) target.dashCooldown = Math.max(target.dashCooldown || 0, 8)   // 3 stacks → dash disabled (kept on cooldown)
   if (--target._webStackDecay <= 0) { target.speedMultiplier = base; target._webbedBaseSpd = 0; target._webStacks = 0 }
 }
+// ─── SPIDER-SENSE (Phase 4) — the defining passive. When an attack is about to hit him in neutral, a WARNING
+// fires (white-flash + 3 code-drawn rings, render-only) and a short window opens. Tapping the dodge input
+// (block edge) inside it performs a TRUE EVADE: brief invulnerability + his next attack within ~20f is a
+// counter hit (×1.3). It's a read, not free defence. Grabs & unblockables do NOT trigger it. Deterministic.
+const SENSE = { range: 155, projRange: 230, window: 9, flash: 2, cd: 48, invuln: 15, counter: 20, counterMul: 1.3 }
+function _senseIncomingThreat(fighter, opp) {
+  const cx = fighter.x + (fighter.w || 60) / 2
+  if (opp && opp.attacking && opp.currentAttack && !opp.currentAttack.isGrab && !opp.currentAttack.unblockable && (opp.hitstun || 0) <= 0) {
+    if (Math.abs((opp.x + (opp.w || 60) / 2) - cx) < SENSE.range) return true   // incoming melee (not a grab/unblockable)
+  }
+  for (const p of activeProjectiles) {                                           // incoming enemy projectile
+    if (!p || p.owner === fighter || p.isUltimate || p.visualOnly) continue
+    const px = p.x + (p.w || 0) / 2, dx = px - cx
+    if (Math.abs(dx) < SENSE.projRange && Math.sign(p.vx || 0) !== Math.sign(dx || 1)) return true
+  }
+  return false
+}
+function updateSpiderSense(fighter, opp) {
+  if ((fighter._senseCd || 0) > 0) fighter._senseCd--
+  if ((fighter._senseFlash || 0) > 0) fighter._senseFlash--
+  if ((fighter._senseEvadeFx || 0) > 0) fighter._senseEvadeFx--
+  if ((fighter._senseCounter || 0) > 0) {                                        // counter-hit buff (×1.3) after an evade
+    if (!fighter._senseBaseAtk) fighter._senseBaseAtk = fighter.attackMultiplier || 1
+    fighter.attackMultiplier = fighter._senseBaseAtk * SENSE.counterMul
+    if (--fighter._senseCounter <= 0) { fighter.attackMultiplier = fighter._senseBaseAtk; fighter._senseBaseAtk = 0 }
+  }
+  const neutral = !fighter.attacking && (fighter.hitstun || 0) <= 0 && (fighter.blockstun || 0) <= 0 && !fighter._swinging && !fighter._zipT && !fighter._hangT
+  if ((fighter._senseWindow || 0) <= 0 && (fighter._senseCd || 0) <= 0 && neutral && _senseIncomingThreat(fighter, opp)) {
+    fighter._senseWindow = SENSE.window; fighter._senseFlash = SENSE.flash; fighter._senseCd = SENSE.cd   // WARNING
+  }
+  const blockEdge = !!fighter.isBlocking && !fighter._sensePrevBlock
+  if (blockEdge || fighter._senseDodgeIntent) fighter._senseDodgeBuf = 6          // buffer the dodge tap (lenient reaction window)
+  if ((fighter._senseDodgeBuf || 0) > 0) fighter._senseDodgeBuf--
+  if ((fighter._senseWindow || 0) > 0) {
+    fighter._senseWindow--
+    if ((fighter._senseDodgeBuf || 0) > 0 && neutral) {                          // DODGE inside the window → true evade
+      fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SENSE.invuln)
+      fighter._spriteCastMove = "rollBack"; fighter._spriteCastTimer = SENSE.invuln   // tumble frames
+      fighter._senseWindow = 0; fighter._senseDodgeBuf = 0; fighter._senseCounter = SENSE.counter; fighter._senseEvadeFx = 12
+      try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
+    }
+  }
+  fighter._sensePrevBlock = !!fighter.isBlocking
+  fighter._senseDodgeIntent = false
+}
 export function updateSpidermanTraversal(fighter, context) {
   if (!fighter) return
   // WEBBED upkeep: apply a stack when a web projectile connected (hitFlag _webHitLanded), then tick the
   // opponent's debuff. One opponent in 1v1, so manage it entirely from here.
   const _opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
   if (fighter._webHitLanded) { fighter._webHitLanded = false; if (_opp) applyWebbed(_opp, 1) }   // the per-frame WEBBED slow is ticked universally in game.js (tickWebbed)
+  updateSpiderSense(fighter, _opp)   // SPIDER-SENSE passive: warning window + dodge-evade + counter buff
   // Quip-bubble upkeep (RENDER-ONLY state — game.js drawSpidermanQuipBubble reads it; never feeds the sim).
   // Events set fighter._quipEvent (catch in tryCatchAndReturn; counter/taunt below) → a timed bubble.
   if ((fighter.currentMove === "taunt" || fighter._spriteCastMove === "taunt") && !fighter._quipBubble) fighter._quipEvent = "taunt"

@@ -20572,6 +20572,7 @@ function renderHybridFighter(fighter) {
     drawIppoVoidAuraOverlay(c, fighter)       // Ippo Void Sovereign — drifting white sweat/impact-spark motes (boxer motif) + pale glow + glowing pale eyes, ON TOP of the void-black silhouette
     drawSpidermanWebSwing(c, fighter)        // Spider-Man WEB-SWING — the web LINE from his hand up to the sky anchor while pendulum-swinging (spiderman only, _swinging)
     drawSpidermanQuipBubble(c, fighter)      // Spider-Man QUIP BUBBLES — comic shout balloons above him on events (render-only; "Quip bubbles" + Reduce Flashing settings)
+    drawSpiderSenseFlash(c, fighter)         // Spider-Man SPIDER-SENSE — white flash + head rings when the passive warns / evades (render-only; Reduce Flashing)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -21626,6 +21627,35 @@ function drawSpidermanQuipBubble(c, fighter) {
   if (a <= 0.02) return
   _spiderQuipRenders++
   c.save(); c.globalAlpha = a * 0.97; c.drawImage(img, Math.round(bx), Math.round(by), Math.round(w), Math.round(h)); c.restore()
+}
+// Spider-Sense WARNING tell (Phase 4) — a white flash + 3 code-drawn rings pulsing from his head when the
+// passive fires, plus a brief evade sparkle. Render-only (reads _senseFlash/_senseEvadeFx). Respects Reduce
+// Flashing (the strobe is exactly what the photosensitivity setting guards).
+let _spiderSenseRenders = 0
+function drawSpiderSenseFlash(c, fighter) {
+  if (!c || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  if (juiceSettings.reduceFlashing) return
+  const hx = fighter.x + (fighter.w || 60) / 2, hy = fighter.y + (fighter.h || 100) * 0.12
+  const flash = fighter._senseFlash || 0, evade = fighter._senseEvadeFx || 0
+  if (flash <= 0 && evade <= 0) return
+  _spiderSenseRenders++
+  c.save()
+  if (flash > 0) {
+    const prog = (2 - Math.min(2, flash)) / 2                    // 0 → 1 over the 2-frame flash
+    for (let i = 0; i < 3; i++) {
+      c.globalAlpha = Math.max(0, 0.55 - i * 0.14 - prog * 0.2)
+      c.strokeStyle = "#eaf4ff"; c.lineWidth = 2.6
+      c.beginPath(); c.arc(hx, hy, 15 + i * 11 + prog * 10, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = 0.28 * (1 - prog); c.fillStyle = "#ffffff"
+    c.beginPath(); c.arc(hx, hy, 22, 0, Math.PI * 2); c.fill()
+  }
+  if (evade > 0) {                                               // brief evade sparkle (ring that expands + fades)
+    const e = evade / 12
+    c.globalAlpha = 0.5 * e; c.strokeStyle = "#cfe6ff"; c.lineWidth = 2
+    c.beginPath(); c.arc(hx, fighter.y + (fighter.h || 100) * 0.4, 20 + (1 - e) * 26, 0, Math.PI * 2); c.stroke()
+  }
+  c.restore()
 }
 function drawSpidermanMaxWebCinematic(ctx, canvas) {
   const caster = [p1, p2].find(f => f && (f._maxWebTimer || 0) > 0)
@@ -27987,6 +28017,8 @@ gameLoop()
     spiderQuip: () => ({ renders: _spiderQuipRenders, bubble: (p1 && p1._quipBubble) ? { key: p1._quipBubble.key, t: p1._quipBubble.t } : null, on: quipBubbles }),   // Spider-Man quip-bubble readout
     spiderQuipEvent: (ev = "catch", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._quipEvent = ev; return !!f },   // fire a quip event
     setQuipBubbles: (on = true) => { setQuipBubbles(on); return quipBubbles },
+    spiderSense: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { window: f._senseWindow || 0, flash: f._senseFlash || 0, counter: f._senseCounter || 0, invuln: f.invulnTimer || 0, cd: f._senseCd || 0, renders: _spiderSenseRenders, atkMul: +((f.attackMultiplier || 1)).toFixed(3) } : null },   // Spider-Sense readout
+    spiderSenseDodge: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._senseDodgeIntent = true; return !!f },   // simulate the dodge tap inside the window
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

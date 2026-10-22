@@ -157,9 +157,11 @@ normal, audio quips) is now live.
   frame is identified for it).
 - **Web Cocoon** capture state — not built (the Maximum Web ultimate already delivers the
   web-capture fantasy).
-- **Quip bubble sprites** + "Quip bubbles" ON/OFF setting — the 5 sprites are cut and ready in
-  `spiderman_quips/`; only the on-screen rendering + the `ms_quip_bubbles` setting remain.
-  (Audio quips already fire via `spidermanVoice`.)
+- **Quip bubble system** — ✅ DONE (Phase 4): the 5 cut sprites pop above him on events (small
+  balloons on catch/counter/evade, big "Does this outfit make me look fat?" on taunt),
+  render-only, camera-clamped, fade-on-overlap, with a **"Quip bubbles" ON/OFF setting**
+  (`ms_quip_bubbles`, default ON) + Reduce Flashing respected. Harness `spiderman_quips.mjs` 7/0.
+  Still open: exposing the toggle in the Settings MENU (the flag + default are wired).
 - **HUD Webbed-stacks indicator** — the web-fluid bar already renders via the `web_fluid`
   energyConfig; a dedicated Webbed-stack pip row is not yet added.
 - **CPU AI** tuning + **Training** toggles — not yet added.

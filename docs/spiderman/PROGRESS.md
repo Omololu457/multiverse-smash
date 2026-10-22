@@ -82,5 +82,16 @@ MAXIMUM SPIDER ≈ existing Maximum Web ult. DEFERRED to Phase 4/polish: Spider-
 passive + dodge-evade, Web Cocoon capture, quip-BUBBLE sprites (the 5 cut sprites + ON/OFF
 setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated specials.
 
-## Phase 4 — HUD, AI, polish, report — PENDING
-HUD portrait + web-fluid bar + Webbed stacks; CPU AI; training toggles; `docs/spiderman/REPORT.md`.
+## Phase 4 — HUD, AI, polish, report — IN PROGRESS
+
+- **Quip bubble system** ✅ — the 5 cut sprites (`spiderman_quips/`) pop above Spider-Man on
+  events (catch/counter/evade → small HEY!/DO YOUR JOB!/C'MON PAL!; taunt → big "Does this
+  outfit make me look fat?"). Render-only (reads `fighter._quipBubble` set deterministically in
+  `abilities.updateSpidermanTraversal`; never feeds the sim), clamps inside the camera, fades if
+  it would overlap the opponent, and respects a new **"Quip bubbles" ON/OFF setting**
+  (`ms_quip_bubbles`, default ON) + **Reduce Flashing**. Harness `spiderman_quips.mjs` 7/0.
+- **FINAL REPORT** ✅ — `docs/spiderman/REPORT.md` (all phases).
+- Still OPEN: a dedicated HUD Webbed-stacks pip row (web-fluid bar already renders via the
+  `web_fluid` energyConfig); Spider-Sense white-flash passive + dodge-evade; Web Cocoon capture;
+  CPU AI; Training toggles; the "Quip bubbles" toggle in the Settings MENU (the flag + default
+  are in; menu wiring remains).

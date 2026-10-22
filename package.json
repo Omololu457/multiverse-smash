@@ -524,6 +524,7 @@
     "test:spiderman-webswing": "node harness/spiderman_webswing.mjs",
     "test:spiderman-traversal": "node harness/spiderman_traversal.mjs",
     "test:spiderman-kit": "node harness/spiderman_kit.mjs",
+    "test:spiderman-quips": "node harness/spiderman_quips.mjs",
     "test:spiderman-raimi": "node harness/raimi_shots.mjs",
     "test:spiderman-raimi-specials": "node harness/spiderman_raimi_specials.test.mjs",
     "test:green-lantern": "node harness/green_lantern.test.mjs",

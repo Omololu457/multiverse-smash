@@ -30487,6 +30487,14 @@ export function updateSpidermanTraversal(fighter, context) {
   // opponent's debuff. One opponent in 1v1, so manage it entirely from here.
   const _opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
   if (fighter._webHitLanded) { fighter._webHitLanded = false; if (_opp) applyWebbed(_opp, 1) }   // the per-frame WEBBED slow is ticked universally in game.js (tickWebbed)
+  // Quip-bubble upkeep (RENDER-ONLY state — game.js drawSpidermanQuipBubble reads it; never feeds the sim).
+  // Events set fighter._quipEvent (catch in tryCatchAndReturn; counter/taunt below) → a timed bubble.
+  if ((fighter.currentMove === "taunt" || fighter._spriteCastMove === "taunt") && !fighter._quipBubble) fighter._quipEvent = "taunt"
+  if (fighter._quipEvent) {
+    const map = { catch: "cmonpal", counter: "hey", evade: "dojob", taunt: "taunt", roundwin: "ohyeah" }
+    fighter._quipBubble = { key: map[fighter._quipEvent] || "hey", t: fighter._quipEvent === "taunt" ? 70 : 90, max: fighter._quipEvent === "taunt" ? 70 : 90 }
+    fighter._quipEvent = null
+  } else if (fighter._quipBubble && fighter._quipBubble.t > 0) { fighter._quipBubble.t-- }
   if ((fighter.hitstun || 0) > 0 || (fighter.knockdown || 0) > 0) {   // hit out of traversal → fall normally
     if (fighter._swinging) { fighter._swinging = false; fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
     if (fighter._zipT) { fighter._zipT = 0; fighter._zipVX = 0; fighter._zipVY = 0 }

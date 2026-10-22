@@ -691,6 +691,10 @@ touch.setup(canvas, {
 // debris + heavier droplets that arc and fall (see _seedSparkParticles). Visual-only: no
 // hitstop/knockback/shake changes, so it can't affect balance or desync AI/net play.
 let bloodFx = (() => { try { return localStorage.getItem("ms_blood_fx") === "1" } catch (_) { return false } })()
+// Spider-Man "Quip bubbles" on/off (default ON) — his comic shout balloons are a render-only layer; people
+// who find them noisy can turn them off (mirrors the ms_blood_fx pattern). Also respects Reduce Flashing.
+let quipBubbles = (() => { try { return localStorage.getItem("ms_quip_bubbles") !== "0" } catch (_) { return true } })()
+function setQuipBubbles(on) { quipBubbles = !!on; try { localStorage.setItem("ms_quip_bubbles", on ? "1" : "0") } catch (_) {} }
 function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_fx", bloodFx ? "1" : "0") } catch (_) {} }
 
 // BRUTALITIES (stylized finishing move, opt-in per character — scope A). INDEPENDENT toggle from bloodFx
@@ -20567,6 +20571,7 @@ function renderHybridFighter(fighter) {
     drawVilgaxVoidAuraOverlay(c, fighter)     // Vilgax Void Sovereign — rising dark tentacle-tendrils (tentacle-beard motif) + green glow + glowing red eyes, ON TOP of the void-black silhouette
     drawIppoVoidAuraOverlay(c, fighter)       // Ippo Void Sovereign — drifting white sweat/impact-spark motes (boxer motif) + pale glow + glowing pale eyes, ON TOP of the void-black silhouette
     drawSpidermanWebSwing(c, fighter)        // Spider-Man WEB-SWING — the web LINE from his hand up to the sky anchor while pendulum-swinging (spiderman only, _swinging)
+    drawSpidermanQuipBubble(c, fighter)      // Spider-Man QUIP BUBBLES — comic shout balloons above him on events (render-only; "Quip bubbles" + Reduce Flashing settings)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -21591,6 +21596,37 @@ function drawBrainiacPillarCinematic(ctx, canvas) {
 // (t≈0.62, synced to applySpidermanMaxWebDamage @ frame 52/84), then fades. No-op otherwise.
 let _spiderMaxWebImg = null
 let _spiderMaxWebRenders = 0   // Stage-4 probe: counts frames the Maximum Web overlay actually drew
+// ── Spider-Man QUIP BUBBLES (Phase 4) — his comic shout balloons (cut from the sheet, in spiderman_quips/)
+// pop above him on events: small balloons (HEY!/DO YOUR JOB!/C'MON PAL!) on a counter / catch / evade, and
+// the big "Does this outfit make me look fat?" on his taunt. Render-ONLY (reads fighter._quipBubble set by
+// abilities.updateSpidermanTraversal — never feeds the sim). Respects the "Quip bubbles" + Reduce Flashing
+// settings, clamps inside the camera, and fades when it would overlap the opponent so it never blocks a view.
+const _SPIDER_QUIP_SRC = { hey: "./spiderman_quips/spiderman_quip_hey.png", dojob: "./spiderman_quips/spiderman_quip_dojob.png", cmonpal: "./spiderman_quips/spiderman_quip_cmonpal.png", taunt: "./spiderman_quips/spiderman_quip_taunt.png", ohyeah: "./spiderman_quips/spiderman_quip_ohyeah.png" }
+const _spiderQuipImgs = {}
+let _spiderQuipRenders = 0     // probe: frames a quip bubble actually drew
+function _spiderQuipImg(key) { let im = _spiderQuipImgs[key]; if (!im && _SPIDER_QUIP_SRC[key]) { im = new Image(); im.src = _SPIDER_QUIP_SRC[key]; _spiderQuipImgs[key] = im } return im }
+function drawSpidermanQuipBubble(c, fighter) {
+  if (!c || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  if (!quipBubbles || juiceSettings.reduceMotion || juiceSettings.reduceFlashing) return
+  const q = fighter._quipBubble; if (!q || (q.t || 0) <= 0) return
+  const img = _spiderQuipImg(q.key); if (!img || !img.complete || !img.naturalWidth) return
+  const big = q.key === "taunt" || q.key === "ohyeah"
+  const targetW = big ? 150 : 72                                   // on-screen width (world px); big bubbles scale down, small up
+  const s = targetW / img.naturalWidth, w = img.naturalWidth * s, h = img.naturalHeight * s
+  const face = fighter.facing || 1
+  let bx = fighter.x + (fighter.w || 60) / 2 - w / 2 + face * (fighter.w || 60) * 0.25
+  let by = fighter.y - h - 4                                        // above the head
+  // fade timing: ease in over the first 20%, hold, ease out over the last 30%
+  const life = q.max || 90
+  let a = q.t > life * 0.8 ? (life - q.t) / (life * 0.2) : (q.t < life * 0.3 ? q.t / (life * 0.3) : 1)
+  // fade if it would overlap the opponent (never block a fighter from view)
+  const opp = fighter === p1 ? p2 : p1
+  if (opp) { const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (bx + w / 2)); if (dx < w * 0.7) a *= Math.max(0.15, dx / (w * 0.7)) }
+  a = Math.max(0, Math.min(1, a))
+  if (a <= 0.02) return
+  _spiderQuipRenders++
+  c.save(); c.globalAlpha = a * 0.97; c.drawImage(img, Math.round(bx), Math.round(by), Math.round(w), Math.round(h)); c.restore()
+}
 function drawSpidermanMaxWebCinematic(ctx, canvas) {
   const caster = [p1, p2].find(f => f && (f._maxWebTimer || 0) > 0)
   if (!caster) return
@@ -27948,6 +27984,9 @@ gameLoop()
     setVx: (who, v) => { const f = who === "p2" ? p2 : p1; if (f) f.vx = v },   // inject velocity → a running physics step would move them; a FROZEN one won't (cinematic-freeze proof)
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
     spiderWebbed: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { stacks: f._webStacks || 0, speedMult: +((f.speedMultiplier || 1)).toFixed(3), dashCd: f.dashCooldown || 0, decay: f._webStackDecay || 0 } : null },   // Spider-Man WEBBED debuff readout
+    spiderQuip: () => ({ renders: _spiderQuipRenders, bubble: (p1 && p1._quipBubble) ? { key: p1._quipBubble.key, t: p1._quipBubble.t } : null, on: quipBubbles }),   // Spider-Man quip-bubble readout
+    spiderQuipEvent: (ev = "catch", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._quipEvent = ev; return !!f },   // fire a quip event
+    setQuipBubbles: (on = true) => { setQuipBubbles(on); return quipBubbles },
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

@@ -20574,6 +20574,7 @@ function renderHybridFighter(fighter) {
     drawSpidermanQuipBubble(c, fighter)      // Spider-Man QUIP BUBBLES — comic shout balloons above him on events (render-only; "Quip bubbles" + Reduce Flashing settings)
     drawSpiderSenseFlash(c, fighter)         // Spider-Man SPIDER-SENSE — white flash + head rings when the passive warns / evades (render-only; Reduce Flashing)
     drawSpidermanWebbedPips(c, fighter)      // Spider-Man WEBBED indicator — web-pips above any webbed fighter (1 per stack; red at 3) (render-only)
+    drawSpidermanCocoon(c, fighter)          // Spider-Man WEB COCOON — translucent web-wrap over a captured fighter while held (render-only)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -21661,6 +21662,20 @@ function drawSpiderSenseFlash(c, fighter) {
 // WEBBED-stacks indicator (Phase 4) — small white web-pips above the victim's head (1 per stack), so the
 // Spider-Man WEBBED debuff is readable at a glance. Fighter-anchored (not the health bar) so it rides the
 // slowed fighter. Render-only (reads _webStacks). Draws for ANY webbed fighter (the victim, usually the foe).
+// WEB COCOON wrap (Phase 4) — a translucent white web-cocoon drawn over a captured fighter while held
+// (reads _cocooned). Render-only; draws for any cocooned fighter (the victim).
+function drawSpidermanCocoon(c, fighter) {
+  const t = fighter._cocooned || 0; if (!c || t <= 0) return
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5
+  const rw = (fighter.w || 60) * 0.7, rh = (fighter.h || 100) * 0.62
+  c.save()
+  c.globalAlpha = 0.5; c.fillStyle = "#eef3ff"
+  c.beginPath(); c.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.85; c.strokeStyle = "#ffffff"; c.lineWidth = 1.5     // criss-cross web strands
+  for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(cx - rw, cy + i * rh * 0.4); c.lineTo(cx + rw, cy + i * rh * 0.25); c.stroke(); }
+  for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(cx + i * rw * 0.4, cy - rh); c.lineTo(cx + i * rw * 0.25, cy + rh); c.stroke(); }
+  c.restore()
+}
 let _webbedPipRenders = 0
 function drawSpidermanWebbedPips(c, fighter) {
   const st = fighter._webStacks || 0; if (!c || st <= 0) return
@@ -28033,13 +28048,14 @@ gameLoop()
     setP1Pos: (x, y) => { if (p1) { if (x != null) p1.x = x; if (y != null) p1.y = y } },
     setVx: (who, v) => { const f = who === "p2" ? p2 : p1; if (f) f.vx = v },   // inject velocity → a running physics step would move them; a FROZEN one won't (cinematic-freeze proof)
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
-    spiderWebbed: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { stacks: f._webStacks || 0, speedMult: +((f.speedMultiplier || 1)).toFixed(3), dashCd: f.dashCooldown || 0, decay: f._webStackDecay || 0, pipRenders: _webbedPipRenders } : null },   // Spider-Man WEBBED debuff readout
+    spiderWebbed: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { stacks: f._webStacks || 0, speedMult: +((f.speedMultiplier || 1)).toFixed(3), dashCd: f.dashCooldown || 0, decay: f._webStackDecay || 0, pipRenders: _webbedPipRenders, cocooned: f._cocooned || 0 } : null },   // Spider-Man WEBBED/cocoon readout
     spiderQuip: () => ({ renders: _spiderQuipRenders, bubble: (p1 && p1._quipBubble) ? { key: p1._quipBubble.key, t: p1._quipBubble.t } : null, on: quipBubbles }),   // Spider-Man quip-bubble readout
     spiderQuipEvent: (ev = "catch", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._quipEvent = ev; return !!f },   // fire a quip event
     forceWebbed: (n = 3, who = "p2") => { const f = who === "p2" ? p2 : p1; if (f) { f._webbedBaseSpd = f._webbedBaseSpd || f.speedMultiplier || 1; f._webStacks = n; f._webStackDecay = 150; } return f ? f._webStacks : 0 },   // test hook: force WEBBED stacks
     setQuipBubbles: (on = true) => { setQuipBubbles(on); return quipBubbles },
     spiderSense: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { window: f._senseWindow || 0, flash: f._senseFlash || 0, counter: f._senseCounter || 0, invuln: f.invulnTimer || 0, cd: f._senseCd || 0, renders: _spiderSenseRenders, atkMul: +((f.attackMultiplier || 1)).toFixed(3) } : null },   // Spider-Sense readout
     spiderSenseDodge: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._senseDodgeIntent = true; return !!f },   // simulate the dodge tap inside the window
+    spiderSwingAttack: () => { if (!p1) return null; p1._cmdPrevLight = false; const r = updateSpidermanCommandCombat(p1, { light: true }, getAbilityContext(), getAttackPhase); return { fired: !!r, swinging: !!p1._swinging, move: p1.currentMove || null, vx: Math.round(p1.vx || 0) } },   // test: attack out of a swing (Web Swing Kick)
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

@@ -102,6 +102,9 @@ setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated spec
   web pokes at range (apply WEBBED) + Maximum Web at full meter; gated to spiderman, seeded-RNG
   (deterministic). Harness `spiderman_ai.mjs` 6/0 (verified via web projectiles + opponent WEBBED
   in AI-vs-AI; p1() omits cast/move in aiVsAi, so projectiles()/spiderWebbed() are the signal).
-- Still OPEN: Web Cocoon capture; Training toggles; the "Quip bubbles" toggle in the Settings
-  MENU (flag + default wired); dedicated Web Swing Kick / Spider Sting specials; fuller AI
-  (swing-to-approach, zip-escape-corner).
+- **Web Swing Kick + Spider Sting + Web Cocoon** ✅ (`spiderman_kit2.mjs` 8/0): swing-kick =
+  attack out of a swing (committed kick, keeps momentum); Spider Sting = Up+Special Handstand
+  with reversal i-frames; Web Cocoon = air Down+Special slow web → capture/wrap (held, mash,
+  unravel) + code-drawn web-wrap visual.
+- Still OPEN: Training toggles; the "Quip bubbles" toggle in the Settings MENU (flag + default
+  wired); fuller AI (swing-to-approach, zip-escape-corner).

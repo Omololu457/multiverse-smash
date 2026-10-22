@@ -158,8 +158,10 @@ normal, audio quips) is now live.
   window with a white-flash + 3 code-drawn head rings (render-only, Reduce-Flashing-aware).
   Tapping the dodge input (buffered) inside it = a true evade — brief invulnerability + the
   next attack within ~20f is a counter hit (×1.3). Harness `spiderman_sense.mjs` 9/0.
-- **Web Cocoon** capture state — not built (the Maximum Web ultimate already delivers the
-  web-capture fantasy).
+- **Web Cocoon** capture state — ✅ DONE (Phase 4): air Down+Special fires a slow web that
+  WRAPS the opponent on hit (held ~1.3s, mash-shortened via grabInputBuffer, unravels on its
+  own; long cooldown) with a code-drawn web-wrap visual. His setup/mix-up tool, not a combo
+  starter. Harness `spiderman_kit2.mjs` 8/0.
 - **Quip bubble system** — ✅ DONE (Phase 4): the 5 cut sprites pop above him on events (small
   balloons on catch/counter/evade, big "Does this outfit make me look fat?" on taunt),
   render-only, camera-clamped, fade-on-overlap, with a **"Quip bubbles" ON/OFF setting**
@@ -175,9 +177,11 @@ normal, audio quips) is now live.
   the seeded AI RNG (deterministic). Verified via AI-vs-AI (`spiderman_ai.mjs` 6/0): web
   projectiles appear, the opponent gets WEBBED, same seed → identical, different seed → differs.
   Fuller behaviors (swing-to-approach, zip-escape-corner) are a future refinement.
+- Dedicated **Web Swing Kick** / **Spider Sting** — ✅ DONE (Phase 4): Web Swing Kick =
+  attacking out of a swing releases it into a committed kick that keeps the arc's momentum;
+  Spider Sting = Up+Special (Handstand) now grants brief reversal i-frames (10f) + higher
+  recovery. Harness `spiderman_kit2.mjs` 8/0.
 - **Training** toggles — not yet added.
-- Dedicated **Web Swing Kick** / **Spider Sting** specials — the input slots are full; these
-  would repurpose existing directional specials.
 
 ## ⚠️ Concurrency note (important for the merge)
 

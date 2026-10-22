@@ -30230,7 +30230,11 @@ function fireSpidermanWebThrow(fighter, context, opts = {}) {
 // Dash Attack (Back, rushdown gap-closer) + Handstand Flip Kick (Up, anti-air launcher) — melee specials.
 const SPIDERMAN_SPECIALS = {
   spiderDashAttack: { damage: 72, startup: 6, active: 5, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 94, rangeY: 56, cost: 20, advance: 16, superArmor: true, isSpecial: true },
-  spiderHandstand:  { damage: 64, startup: 6, active: 5, recovery: 18, hitstun: 20, knockbackX: 3, knockbackY: -11, launchVy: -26, launcher: true, rangeX: 80, rangeY: 94, cost: 20, isSpecial: true },
+  // SPIDER STING (Up+Special) — rising uppercut REVERSAL: brief invulnerable startup (his only true wake-up
+  // tool) in exchange for high recovery. invuln = startup i-frames granted on cast.
+  spiderHandstand:  { damage: 64, startup: 6, active: 5, recovery: 26, hitstun: 20, knockbackX: 3, knockbackY: -11, launchVy: -26, launcher: true, rangeX: 80, rangeY: 94, cost: 20, invuln: 10, isSpecial: true },
+  // WEB SWING KICK (attack out of a swing) — a committed aerial kick carrying the arc's momentum.
+  spiderSwingKick:  { damage: 86, startup: 4, active: 6, recovery: 20, hitstun: 24, knockbackX: 11, knockbackY: -4, rangeX: 96, rangeY: 70, cost: 0, isSpecial: true },
 }
 function fireSpidermanMeleeSpecial(fighter, key, context) {
   const md = SPIDERMAN_SPECIALS[key]
@@ -30241,6 +30245,7 @@ function fireSpidermanMeleeSpecial(fighter, key, context) {
   if (md.launchVy != null) attack.launchY = md.launchVy   // createAttackFromMove doesn't carry launchVy → set on the attack
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   fighter._rekkaNext = null
+  if (md.invuln) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.invuln)   // Spider Sting reversal i-frames
   if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance   // lunging gap-closer travels forward
   return true
 }
@@ -30257,6 +30262,20 @@ export function updateSpidermanCommandCombat(fighter, inputState, context, getPh
   fighter._cmdPrevHeavy   = !!inputState.heavy
   fighter._cmdPrevLight   = !!inputState.light
   fighter._cmdPrevSpecial = !!inputState.special
+  // WEB SWING KICK — an attack out of a swing: Light/Heavy while swinging RELEASES the web (keeping the arc's
+  // tangent momentum) INTO a committed aerial kick. Big reward, punishable if blocked (makes the swing a real
+  // approach tool, not just travel).
+  if (fighter._swinging && (heavyEdge || lightEdge)) {
+    releaseSpidermanWebSwing(fighter)
+    const vx = fighter.vx, vy = fighter.vy                        // preserve the fling momentum through the kick
+    const md = SPIDERMAN_SPECIALS.spiderSwingKick
+    const attack = createAttackFromMove(fighter, "spiderSwingKick", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    attack.isSpecial = true
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter.vx = vx; fighter.vy = vy; fighter.isLaunched = true   // ride the arc momentum
+    spideyVoice(fighter, "webCast", 120)
+    return true
+  }
   // WEB-THROW COMBO CANCEL (the real combo-extension mechanic): during spiderCombo, once it has landed a
   // CLEAN hit, a Special edge CANCELS the string into Web Throw (via the row_15 fanning web-net bridge pose).
   if (fighter.attacking && fighter.currentMove === "spiderCombo" && fighter._cmdHitLanded && specialEdge) {
@@ -30447,6 +30466,7 @@ export function executeSpidermanSpecial(fighter, context) {
     if (dir === "U") return fireSpidermanWebSwing(fighter, context)  // AIR + Up   → WEB-SWING (pendulum)
     if (dir === "F") return fireSpidermanWebZip(fighter)             // AIR + Fwd  → WEB ZIP (fast straight pull)
     if (dir === "B") return fireSpidermanHang(fighter)               // AIR + Back → CEILING HANG (Tier-3 cling)
+    if (dir === "D") return fireSpidermanWebCocoon(fighter, context) // AIR + Down → WEB COCOON (committed capture)
   }
   if (dir === "D") return fireSpidermanCrawl(fighter, context)       // Down → Ground Crawl evasive
   if (dir === "F") return fireSpidermanWebThrow(fighter, context)    // Fwd  → Web Throw (signature)
@@ -30481,6 +30501,45 @@ export function tickWebbed(target) {
   if (st >= WEBBED.max) target.dashCooldown = Math.max(target.dashCooldown || 0, 8)   // 3 stacks → dash disabled (kept on cooldown)
   if (--target._webStackDecay <= 0) { target.speedMultiplier = base; target._webbedBaseSpd = 0; target._webStacks = 0 }
 }
+// ─── WEB COCOON (Phase 4) — a slow, committed web that WRAPS the opponent on hit (capture state), holding
+// them briefly before it unravels on its own. His setup / mix-up tool, NOT a combo starter → long cooldown.
+// A slow web projectile (hitFlag _cocoonHit) applies the capture from Spider-Man's per-frame driver; the hold
+// is escapable by mashing (grabInputBuffer shortens it). Self-contained on the victim (no other char touched).
+const WEBCOCOON = { cost: 26, cd: 150, hold: 80, mashCut: 8 }
+export function fireSpidermanWebCocoon(fighter, context) {
+  if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._cocoonCd || 0) > 0) return false
+  if (!spendEnergy(fighter, WEBCOCOON.cost)) return false
+  const face = fighter.facing || 1
+  fighter._cocoonCd = WEBCOCOON.cd
+  fighter._spriteCastMove = "spiderWebBridge"; fighter._spriteCastTimer = 28   // fanning web-net cast pose
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  fighter._rekkaNext = null
+  spideyVoice(fighter, "webCast", 160)
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "spiderWebCocoon", {
+      damage: 40, w: 66, h: 56, speed: 7, lifetime: 80, hitstun: 14, knockbackX: 2, knockbackY: 0,
+      isSpecial: true, color: "#e8eefc", hitFlag: "_cocoonHit",
+      sheet: "./spiderman_webball_uniform.png", spriteFrames: 1, spriteW: 75, spriteH: 50, spriteScale: 1.7,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 66, spawnY: fighter.y + (fighter.h || 110) * 0.4,
+    }, context)
+  })
+  return true
+}
+function applyCocoon(target) {
+  if (!target) return
+  target._cocooned = WEBCOCOON.hold
+  target.vx = 0; target.vy = 0
+  target.hitstun = Math.max(target.hitstun || 0, WEBCOCOON.hold)   // held
+}
+export function tickCocoon(target) {
+  if (!target || (target._cocooned || 0) <= 0) return
+  target.hitstun = Math.max(target.hitstun || 0, 2)                // keep them held while wrapped
+  target.vx = 0
+  if ((target.grabInputBuffer || 0) > 0) { target._cocooned = Math.max(0, target._cocooned - WEBCOCOON.mashCut); target.grabInputBuffer = 0 }   // mashing shortens the wrap
+  if (--target._cocooned <= 0) { target._cocooned = 0 }            // unravels on its own
+}
+
 // ─── SPIDER-SENSE (Phase 4) — the defining passive. When an attack is about to hit him in neutral, a WARNING
 // fires (white-flash + 3 code-drawn rings, render-only) and a short window opens. Tapping the dodge input
 // (block edge) inside it performs a TRUE EVADE: brief invulnerability + his next attack within ~20f is a
@@ -30532,6 +30591,9 @@ export function updateSpidermanTraversal(fighter, context) {
   // opponent's debuff. One opponent in 1v1, so manage it entirely from here.
   const _opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
   if (fighter._webHitLanded) { fighter._webHitLanded = false; if (_opp) applyWebbed(_opp, 1) }   // the per-frame WEBBED slow is ticked universally in game.js (tickWebbed)
+  if ((fighter._cocoonCd || 0) > 0) fighter._cocoonCd--
+  if (fighter._cocoonHit) { fighter._cocoonHit = false; if (_opp) applyCocoon(_opp) }   // Web Cocoon connected → wrap the foe
+  if (_opp && (_opp._cocooned || 0) > 0) tickCocoon(_opp)                               // hold + mash-escape + unravel
   updateSpiderSense(fighter, _opp)   // SPIDER-SENSE passive: warning window + dodge-evade + counter buff
   // Quip-bubble upkeep (RENDER-ONLY state — game.js drawSpidermanQuipBubble reads it; never feeds the sim).
   // Events set fighter._quipEvent (catch in tryCatchAndReturn; counter/taunt below) → a timed bubble.

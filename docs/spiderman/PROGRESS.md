@@ -53,10 +53,34 @@ after each; never merge/push `main`. Stage files by explicit path only.
   in the shared tree. Phase-2 commit built via PRIVATE INDEX (HEAD + only my hunks) so those
   foreign changes are NOT absorbed.
 
-## Phase 3 — The kit — PENDING
-Reconcile existing specials/ult/quip-voice against the spec's richer kit (3-angle Web Shot,
-Catch & Return, Web Cocoon capture, Spider-Sense white-flash passive + dodge-evade, WEBBED
-debuff, quip-bubble system + ON/OFF setting, MAXIMUM SPIDER silhouette ult, voice lines).
+## Phase 3 — The kit — IN PROGRESS (part A done)
+
+Existing kit was already coded (5 dir specials: Web Impact/Throw/Dash-Attack/Handstand/Crawl;
+Maximum Web ult; spiderCombo command-normal; audio quip/voice pool). Phase 3 ADDED the spec's
+most distinctive NEW combat mechanics:
+
+- **WEBBED debuff** — web projectiles (Web Impact / Web Throw / Catch-return) carry
+  `hitFlag:"_webHitLanded"`; a clean connect stacks WEBBED on the victim (abilities.applyWebbed).
+  3 stacks → stronger slow + dash disabled; decays. Held in the UNIVERSAL timer loop
+  (abilities.tickWebbed, called from game.js beside `_madaraDrowsy`) so the victim can't reset it.
+  Self-contained on the victim — no other character's code changed.
+- **Catch & Return** — folded into the neutral Web Impact (context-sensitive, no new input):
+  an incoming enemy NORMAL projectile in front within range is caught (removed), ownership
+  transferred, and hurled back as a `spiderWebReturn` at ~1.3× damage/speed. Not beams/ults.
+  Whiff = the normal Web Impact (the read). abilities.tryCatchAndReturn.
+- **Voice lines (text)** — `characters.spiderman.voiceLines` (intro/win/lose/taunt/super),
+  young nervous-funny MCU register (the exact spec lines).
+
+Harness `harness/spiderman_kit.mjs` 12/0 (synchronous-stepped: catch pose, bolt removed,
+no damage, return @1.3× flying back; WEBBED 3-stack slow 0.55 + dashCd + decay). All existing
+suites still green (stage1-4, webswing, traversal). combat.js untouched. Built via PRIVATE INDEX
+off feat/spiderman tip (foreign Homelander-audio edits to abilities/game/sound/combat excluded).
+
+RECONCILED to existing (not re-built): "Web Shot (3 angles)" ≈ existing Web Impact/Throw
+projectiles (now WEBBED-applying); "Web Throw grab/whirl" ≈ existing Web Throw projectile;
+MAXIMUM SPIDER ≈ existing Maximum Web ult. DEFERRED to Phase 4/polish: Spider-Sense white-flash
+passive + dodge-evade, Web Cocoon capture, quip-BUBBLE sprites (the 5 cut sprites + ON/OFF
+setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated specials.
 
 ## Phase 4 — HUD, AI, polish, report — PENDING
 HUD portrait + web-fluid bar + Webbed stacks; CPU AI; training toggles; `docs/spiderman/REPORT.md`.

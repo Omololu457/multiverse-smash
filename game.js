@@ -204,6 +204,7 @@ import {
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
   updateSpidermanTraversal,      // Spider-Man per-frame traversal upkeep (steps zip/hang, refills web-fluid, resets 2-swing counter on landing, clears on hit)
+  tickWebbed,                    // Spider-Man WEBBED debuff per-frame tick (universal loop; holds slow + dash-disable, restores on decay)
   updateNaoyaCommandCombat,      // Naoya Fwd+Heavy → PLANNED ROUTE committed timing rekka (drop a window → Naoya self-freezes 1s)
   updateNaoyaSnare,              // Naoya 24FPS SNARE per-frame enforcement (snared opponent that inputs anything → 1s freeze)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
@@ -10601,7 +10602,7 @@ function updateMiscTimers(fighter) {
   if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   if (fighter._spideyAtkVoiceCd > 0) fighter._spideyAtkVoiceCd--          // Spider-Man light-normal effort grunt cooldown (combat.applySpidermanAttackVoice)
   if (fighter._swinging) updateSpidermanWebSwing(fighter, getAbilityContext())   // Spider-Man WEB-SWING pendulum step (owns position; applyGravity yields)
-  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") updateSpidermanTraversal(fighter)   // Spider-Man traversal upkeep: step zip/hang, web-fluid regen, re-arm 2-swing counter on landing, clear-on-hit
+  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") updateSpidermanTraversal(fighter, getAbilityContext())   // Spider-Man traversal upkeep: step zip/hang, web-fluid regen, re-arm 2-swing counter, WEBBED debuff upkeep, clear-on-hit
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
@@ -10737,6 +10738,7 @@ function updateMiscTimers(fighter) {
     fighter.speedMultiplier = (fighter._madaraDrowsyBaseSpd || 1) * 0.45
     if (--fighter._madaraDrowsy <= 0) fighter.speedMultiplier = fighter._madaraDrowsyBaseSpd || 1
   }
+  if ((fighter._webStackDecay || 0) > 0 || fighter._webbedBaseSpd) tickWebbed(fighter)   // Spider-Man WEBBED debuff: hold the stacking slow + dash-disable, restore on decay (gated → no-op for everyone unwebbed)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -27945,6 +27947,7 @@ gameLoop()
     setP1Pos: (x, y) => { if (p1) { if (x != null) p1.x = x; if (y != null) p1.y = y } },
     setVx: (who, v) => { const f = who === "p2" ? p2 : p1; if (f) f.vx = v },   // inject velocity → a running physics step would move them; a FROZEN one won't (cinematic-freeze proof)
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
+    spiderWebbed: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { stacks: f._webStacks || 0, speedMult: +((f.speedMultiplier || 1)).toFixed(3), dashCd: f.dashCooldown || 0, decay: f._webStackDecay || 0 } : null },   // Spider-Man WEBBED debuff readout
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

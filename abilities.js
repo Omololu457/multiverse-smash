@@ -30143,9 +30143,48 @@ function fireSpidermanKickup(fighter) {
 // ── STAGE 3 SPECIALS (web + mobility). Web Impact/Web Throw = cast-pose + web PROJECTILE (spawnProjectile).
 // Dash Attack/Handstand Flip Kick = melee (createAttackFromMove; currentMove identity-maps the sprite). ──
 // WEB IMPACT (neutral) — a QUICK, cheap, SHORT-RANGE web puff (fast recovery, low commitment).
+// CATCH AND RETURN (Phase 3) — a context-sensitive read folded into the neutral Web Impact: if an enemy
+// NORMAL projectile is incoming in front within catch range, the web ball GROWS around it, ownership transfers
+// to Spider-Man, and it is hurled back at ~1.3x its damage & speed so it can hit the thrower. Not beams, not
+// ultimates, not grabs. If nothing is there to catch, it's just the normal Web Impact (the whiff = the risk).
+const CATCH = { range: 170, yTol: 95, dmgMul: 1.3, spdMul: 1.3 }
+function tryCatchAndReturn(fighter, context) {
+  const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 110) * 0.4
+  let caught = null
+  for (const p of activeProjectiles) {
+    if (!p || p.owner === fighter) continue
+    if (p.isUltimate || p.visualOnly || (p.damage || 0) >= 180) continue        // not ultimates / beams (heavy) / pure-visual
+    const px = p.x + (p.w || 0) / 2, dx = px - cx
+    if (Math.sign(dx) !== face || Math.abs(dx) > CATCH.range) continue           // must be in FRONT within range
+    if (Math.abs((p.y + (p.h || 0) / 2) - cy) > CATCH.yTol) continue             // roughly at his level
+    if (Math.sign(p.vx || 0) === face) continue                                  // must be INCOMING (not already flying away)
+    caught = p; break
+  }
+  if (!caught) return false
+  const idx = activeProjectiles.indexOf(caught); if (idx >= 0) activeProjectiles.splice(idx, 1)   // take it out of play
+  fighter._spriteCastMove = "spiderWebThrow"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._rekkaNext = null; fighter._quipEvent = "catch"
+  spideyVoice(fighter, "webCast", 150)
+  const retSpeed = Math.max(10, Math.round((Math.abs(caught.vx) || 11) * CATCH.spdMul))
+  const retDmg = Math.round((caught.damage || 60) * CATCH.dmgMul)
+  const retSheet = caught.sheet || "./spiderman_webball_uniform.png"
+  spawnProjectile(fighter, "spiderWebReturn", {
+    damage: retDmg, w: caught.w || 44, h: caught.h || 44,
+    speed: retSpeed, vx: face * retSpeed, lifetime: 100, hitstun: caught.hitstun || 18, knockbackX: 9, knockbackY: -2,
+    isSpecial: true, color: caught.color || "#cdd8f5", hitFlag: "_webHitLanded",
+    sheet: retSheet, spriteFrames: caught.spriteFrames || 1,
+    spriteW: caught.spriteW || 75, spriteH: caught.spriteH || 50, spriteScale: caught.spriteScale || 1.3,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 44, spawnY: cy,
+  }, context)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
 function fireSpidermanWebImpact(fighter, context) {
   const cost = 16
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (tryCatchAndReturn(fighter, context)) return true          // CATCH & RETURN read (free — no fluid spent on a successful catch)
   if (!spendEnergy(fighter, cost)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove = "spiderWebImpact"; fighter._spriteCastTimer = 22
@@ -30155,7 +30194,7 @@ function fireSpidermanWebImpact(fighter, context) {
   schedulePendingSpawn(6, () => {
     spawnProjectile(fighter, "spiderWebPuff", {
       damage: 50, w: 40, h: 34, speed: 14, lifetime: 26, hitstun: 16, knockbackX: 7, knockbackY: -1,
-      isSpecial: true, color: "#dfe8ff",
+      isSpecial: true, color: "#dfe8ff", hitFlag: "_webHitLanded",   // clean connect → +1 WEBBED stack (updateSpidermanTraversal)
       sheet: "./spiderman_webpuff_uniform.png", spriteFrames: 4, spriteW: 34, spriteH: 34, spriteSpeed: 4, spriteScale: 1.4,
       spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 40,
       spawnY: fighter.y + (fighter.h || 110) * 0.42,
@@ -30179,7 +30218,7 @@ function fireSpidermanWebThrow(fighter, context, opts = {}) {
   schedulePendingSpawn(8, () => {
     spawnProjectile(fighter, "spiderWebBall", {
       damage: 78, w: 60, h: 50, speed: 11, lifetime: 90, hitstun: 22, knockbackX: 10, knockbackY: -2,
-      isSpecial: true, color: "#cdd8f5",
+      isSpecial: true, color: "#cdd8f5", hitFlag: "_webHitLanded",   // clean connect → +1 WEBBED stack
       sheet: "./spiderman_webball_uniform.png", spriteFrames: 1, spriteW: 75, spriteH: 50, spriteScale: 1.35,
       spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 60,
       spawnY: fighter.y + (fighter.h || 110) * 0.40,
@@ -30418,8 +30457,36 @@ export function executeSpidermanSpecial(fighter, context) {
 // Per-frame traversal upkeep (game.js, no inputState needed): step zip/hang, refill web-fluid (faster when
 // still on the ground), reset the 2-swing counter on touchdown, and knock Spider-Man out of any traversal
 // state when he's hit. Gated to spiderman via the caller.
-export function updateSpidermanTraversal(fighter) {
+// ─── WEBBED debuff (Phase 3) ─── a stacking slow applied by Web Shot / Web Impact / Web Throw / Catch&Return.
+// Self-contained timer on the VICTIM (no change to any other character's code): at WEB_MAX stacks the opponent
+// is slowed and their dash is disabled; stacks decay over time. Managed entirely from Spider-Man's per-frame
+// driver (there is exactly one opponent), mirroring the _madaraDrowsy speed-cut pattern. Deterministic.
+const WEBBED = { max: 3, decay: 150, slowPerStack: 0.12, slowAt3: 0.55 }
+export function applyWebbed(target, n = 1) {
+  if (!target) return
+  if (!target._webbedBaseSpd) target._webbedBaseSpd = target.speedMultiplier || 1   // capture the clean base once
+  target._webStacks = Math.min(WEBBED.max, (target._webStacks || 0) + n)
+  target._webStackDecay = WEBBED.decay                                               // refresh the decay window on each application
+}
+// Per-frame WEBBED tick — called for EVERY fighter from game.js's universal timer loop (right beside the
+// _madaraDrowsy speed-cut), so the slow is re-asserted AFTER the victim's own logic and can't be overwritten.
+export function tickWebbed(target) {
+  if (!target || (target._webStackDecay || 0) <= 0) {
+    if (target && target._webbedBaseSpd) { target.speedMultiplier = target._webbedBaseSpd; target._webbedBaseSpd = 0; target._webStacks = 0 }
+    return
+  }
+  const base = target._webbedBaseSpd || 1
+  const st = target._webStacks || 0
+  target.speedMultiplier = base * (st >= WEBBED.max ? WEBBED.slowAt3 : (1 - WEBBED.slowPerStack * st))
+  if (st >= WEBBED.max) target.dashCooldown = Math.max(target.dashCooldown || 0, 8)   // 3 stacks → dash disabled (kept on cooldown)
+  if (--target._webStackDecay <= 0) { target.speedMultiplier = base; target._webbedBaseSpd = 0; target._webStacks = 0 }
+}
+export function updateSpidermanTraversal(fighter, context) {
   if (!fighter) return
+  // WEBBED upkeep: apply a stack when a web projectile connected (hitFlag _webHitLanded), then tick the
+  // opponent's debuff. One opponent in 1v1, so manage it entirely from here.
+  const _opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
+  if (fighter._webHitLanded) { fighter._webHitLanded = false; if (_opp) applyWebbed(_opp, 1) }   // the per-frame WEBBED slow is ticked universally in game.js (tickWebbed)
   if ((fighter.hitstun || 0) > 0 || (fighter.knockdown || 0) > 0) {   // hit out of traversal → fall normally
     if (fighter._swinging) { fighter._swinging = false; fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
     if (fighter._zipT) { fighter._zipT = 0; fighter._zipVX = 0; fighter._zipVY = 0 }

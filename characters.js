@@ -7796,6 +7796,8 @@ const spiderman = {
   // HUD-only until the ultimate stage (real logic + cost land in S4). Stage 0 confirmed a real path:
   // escalate the Web Throw (rows 17-19) into a cinematic giant web-trap reusing his own web assets.
   ultimate: { name: "Maximum Web", cost: 100, description: "Spider-Man unloads every web-shooter he has — a full-screen barrage of webbing that engulfs and pins the opponent in a giant web trap." },
+  // Text voice lines (young, nervous-funny MCU register) — surfaced on the intro/win/lose/taunt/super beats.
+  voiceLines: { intro: "Hey. Uh, we don't have to do this.", win: "Okay, that went better than I thought.", lose: "I told you I wasn't ready.", taunt: "Does this outfit make me look fat?", super: "Sorry! Sorry! Not sorry." },
   hasSprites: true,
   // idle content ≈98px; scale 1.1 → ~108px on-screen (mid roster band). anchorY:0 everywhere → feet
   // planted, no anchor rescale. He crouches in his idle/prowl (canon low spider-stance) and stands

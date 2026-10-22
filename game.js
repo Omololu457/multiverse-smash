@@ -203,6 +203,8 @@ import {
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
+  updateSpidermanTraversal,      // Spider-Man per-frame traversal upkeep (steps zip/hang, refills web-fluid, resets 2-swing counter on landing, clears on hit)
+  tickWebbed,                    // Spider-Man WEBBED debuff per-frame tick (universal loop; holds slow + dash-disable, restores on decay)
   updateNaoyaCommandCombat,      // Naoya Fwd+Heavy → PLANNED ROUTE committed timing rekka (drop a window → Naoya self-freezes 1s)
   updateNaoyaSnare,              // Naoya 24FPS SNARE per-frame enforcement (snared opponent that inputs anything → 1s freeze)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
@@ -573,6 +575,7 @@ import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
 import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
 import { pickGhostfaceVoice, GHOSTFACE_VOICE } from "./ghostfaceVoice.js"   // Ghostface intro + win voice pools (audio-only)
 import { pickGhostfaceSfx, playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface"; Billy/.exe keep the aliased old pools)
+import { playHomelanderSfx, HL_POOL_ORDER } from "./homelander_sfx_map.js"   // Homelander MK1 voice/SFX dispatch + pool order (Training sound test)
 let _gfIntroN = 0
 import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
@@ -689,6 +692,10 @@ touch.setup(canvas, {
 // debris + heavier droplets that arc and fall (see _seedSparkParticles). Visual-only: no
 // hitstop/knockback/shake changes, so it can't affect balance or desync AI/net play.
 let bloodFx = (() => { try { return localStorage.getItem("ms_blood_fx") === "1" } catch (_) { return false } })()
+// Spider-Man "Quip bubbles" on/off (default ON) — his comic shout balloons are a render-only layer; people
+// who find them noisy can turn them off (mirrors the ms_blood_fx pattern). Also respects Reduce Flashing.
+let quipBubbles = (() => { try { return localStorage.getItem("ms_quip_bubbles") !== "0" } catch (_) { return true } })()
+function setQuipBubbles(on) { quipBubbles = !!on; try { localStorage.setItem("ms_quip_bubbles", on ? "1" : "0") } catch (_) {} }
 function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_fx", bloodFx ? "1" : "0") } catch (_) {} }
 
 // BRUTALITIES (stylized finishing move, opt-in per character — scope A). INDEPENDENT toggle from bloodFx
@@ -4156,7 +4163,7 @@ function endFFA() {
 //     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
 //     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false, lastAdvantage: null }
-const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo"]
+const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo", "projectiles"]   // "projectiles" = dummy fires bolts (drill Catch & Return / Spider-Sense)
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 // COMBO TRIALS detection: a monotonically-increasing id per player attack instance, so the trial
 // observer counts each landed move ONCE (a multi-hit move still = one sequence step).
@@ -4448,6 +4455,8 @@ function getAbilityContext() {
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
+    frame: globalFrameCount,              // Homelander audio: deterministic clip pick = hash(seed, frame, player)
+    seed: (matchConfig.seed >>> 0) || 1,  // match RNG seed (stamped in startMatch) — LAN/replay-safe audio
     cinematicSafe: !_rewindUnsafeNow(),   // GAARA (Phase 4): false during cinematics/KO/Brutality/domains/Rick-rewind — gates the Shukaku summon
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
   }
@@ -10600,6 +10609,7 @@ function updateMiscTimers(fighter) {
   if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   if (fighter._spideyAtkVoiceCd > 0) fighter._spideyAtkVoiceCd--          // Spider-Man light-normal effort grunt cooldown (combat.applySpidermanAttackVoice)
   if (fighter._swinging) updateSpidermanWebSwing(fighter, getAbilityContext())   // Spider-Man WEB-SWING pendulum step (owns position; applyGravity yields)
+  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") updateSpidermanTraversal(fighter, getAbilityContext())   // Spider-Man traversal upkeep: step zip/hang, web-fluid regen, re-arm 2-swing counter, WEBBED debuff upkeep, clear-on-hit
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
@@ -10735,6 +10745,7 @@ function updateMiscTimers(fighter) {
     fighter.speedMultiplier = (fighter._madaraDrowsyBaseSpd || 1) * 0.45
     if (--fighter._madaraDrowsy <= 0) fighter.speedMultiplier = fighter._madaraDrowsyBaseSpd || 1
   }
+  if ((fighter._webStackDecay || 0) > 0 || fighter._webbedBaseSpd) tickWebbed(fighter)   // Spider-Man WEBBED debuff: hold the stacking slow + dash-disable, restore on decay (gated → no-op for everyone unwebbed)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -19276,6 +19287,15 @@ function updateTrainingMode() {
     }
   }
 
+  // DUMMY PROJECTILE SPAMMER (F4 → "projectiles") — the dummy periodically fires a bolt at P1 so Spider-Man's
+  // Catch & Return and Spider-Sense can be drilled. (Infinite WEB FLUID is the F3 infinite-resources toggle —
+  // web_fluid is his energy.) Generic: works for any P1, named for his Catch & Return practice.
+  if (trainingState.dummyBehavior === "projectiles" && p1 && p2 && (globalFrameCount % 70) === 0) {
+    const dir = (p1.x >= p2.x) ? 1 : -1
+    spawnProjectile(p2, "trainBolt", { damage: 30, speed: 9, lifetime: 130, w: 26, h: 26, hitstun: 12, knockbackX: 5,
+      vx: dir * 9, spawnX: dir === 1 ? p2.x + (p2.w || 60) : p2.x - 26, spawnY: p1.y + (p1.h || 100) * 0.4 }, {})
+  }
+
   // FRAME ADVANTAGE (Track B) — DISPLAY-LAYER arithmetic on existing state, computed on the
   // exact frame a move CONNECTS. Advantage = defender's stun frames − the attacker's remaining
   // recovery (frames left in its move). Positive = attacker acts first (+ on hit/block).
@@ -20563,6 +20583,10 @@ function renderHybridFighter(fighter) {
     drawVilgaxVoidAuraOverlay(c, fighter)     // Vilgax Void Sovereign — rising dark tentacle-tendrils (tentacle-beard motif) + green glow + glowing red eyes, ON TOP of the void-black silhouette
     drawIppoVoidAuraOverlay(c, fighter)       // Ippo Void Sovereign — drifting white sweat/impact-spark motes (boxer motif) + pale glow + glowing pale eyes, ON TOP of the void-black silhouette
     drawSpidermanWebSwing(c, fighter)        // Spider-Man WEB-SWING — the web LINE from his hand up to the sky anchor while pendulum-swinging (spiderman only, _swinging)
+    drawSpidermanQuipBubble(c, fighter)      // Spider-Man QUIP BUBBLES — comic shout balloons above him on events (render-only; "Quip bubbles" + Reduce Flashing settings)
+    drawSpiderSenseFlash(c, fighter)         // Spider-Man SPIDER-SENSE — white flash + head rings when the passive warns / evades (render-only; Reduce Flashing)
+    drawSpidermanWebbedPips(c, fighter)      // Spider-Man WEBBED indicator — web-pips above any webbed fighter (1 per stack; red at 3) (render-only)
+    drawSpidermanCocoon(c, fighter)          // Spider-Man WEB COCOON — translucent web-wrap over a captured fighter while held (render-only)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -21587,6 +21611,99 @@ function drawBrainiacPillarCinematic(ctx, canvas) {
 // (t≈0.62, synced to applySpidermanMaxWebDamage @ frame 52/84), then fades. No-op otherwise.
 let _spiderMaxWebImg = null
 let _spiderMaxWebRenders = 0   // Stage-4 probe: counts frames the Maximum Web overlay actually drew
+// ── Spider-Man QUIP BUBBLES (Phase 4) — his comic shout balloons (cut from the sheet, in spiderman_quips/)
+// pop above him on events: small balloons (HEY!/DO YOUR JOB!/C'MON PAL!) on a counter / catch / evade, and
+// the big "Does this outfit make me look fat?" on his taunt. Render-ONLY (reads fighter._quipBubble set by
+// abilities.updateSpidermanTraversal — never feeds the sim). Respects the "Quip bubbles" + Reduce Flashing
+// settings, clamps inside the camera, and fades when it would overlap the opponent so it never blocks a view.
+const _SPIDER_QUIP_SRC = { hey: "./spiderman_quips/spiderman_quip_hey.png", dojob: "./spiderman_quips/spiderman_quip_dojob.png", cmonpal: "./spiderman_quips/spiderman_quip_cmonpal.png", taunt: "./spiderman_quips/spiderman_quip_taunt.png", ohyeah: "./spiderman_quips/spiderman_quip_ohyeah.png" }
+const _spiderQuipImgs = {}
+let _spiderQuipRenders = 0     // probe: frames a quip bubble actually drew
+function _spiderQuipImg(key) { let im = _spiderQuipImgs[key]; if (!im && _SPIDER_QUIP_SRC[key]) { im = new Image(); im.src = _SPIDER_QUIP_SRC[key]; _spiderQuipImgs[key] = im } return im }
+function drawSpidermanQuipBubble(c, fighter) {
+  if (!c || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  if (!quipBubbles || juiceSettings.reduceMotion || juiceSettings.reduceFlashing) return
+  const q = fighter._quipBubble; if (!q || (q.t || 0) <= 0) return
+  const img = _spiderQuipImg(q.key); if (!img || !img.complete || !img.naturalWidth) return
+  const big = q.key === "taunt" || q.key === "ohyeah"
+  const targetW = big ? 150 : 72                                   // on-screen width (world px); big bubbles scale down, small up
+  const s = targetW / img.naturalWidth, w = img.naturalWidth * s, h = img.naturalHeight * s
+  const face = fighter.facing || 1
+  let bx = fighter.x + (fighter.w || 60) / 2 - w / 2 + face * (fighter.w || 60) * 0.25
+  let by = fighter.y - h - 4                                        // above the head
+  // fade timing: ease in over the first 20%, hold, ease out over the last 30%
+  const life = q.max || 90
+  let a = q.t > life * 0.8 ? (life - q.t) / (life * 0.2) : (q.t < life * 0.3 ? q.t / (life * 0.3) : 1)
+  // fade if it would overlap the opponent (never block a fighter from view)
+  const opp = fighter === p1 ? p2 : p1
+  if (opp) { const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (bx + w / 2)); if (dx < w * 0.7) a *= Math.max(0.15, dx / (w * 0.7)) }
+  a = Math.max(0, Math.min(1, a))
+  if (a <= 0.02) return
+  _spiderQuipRenders++
+  c.save(); c.globalAlpha = a * 0.97; c.drawImage(img, Math.round(bx), Math.round(by), Math.round(w), Math.round(h)); c.restore()
+}
+// Spider-Sense WARNING tell (Phase 4) — a white flash + 3 code-drawn rings pulsing from his head when the
+// passive fires, plus a brief evade sparkle. Render-only (reads _senseFlash/_senseEvadeFx). Respects Reduce
+// Flashing (the strobe is exactly what the photosensitivity setting guards).
+let _spiderSenseRenders = 0
+function drawSpiderSenseFlash(c, fighter) {
+  if (!c || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  if (juiceSettings.reduceFlashing) return
+  const hx = fighter.x + (fighter.w || 60) / 2, hy = fighter.y + (fighter.h || 100) * 0.12
+  const flash = fighter._senseFlash || 0, evade = fighter._senseEvadeFx || 0
+  if (flash <= 0 && evade <= 0) return
+  _spiderSenseRenders++
+  c.save()
+  if (flash > 0) {
+    const prog = (2 - Math.min(2, flash)) / 2                    // 0 → 1 over the 2-frame flash
+    for (let i = 0; i < 3; i++) {
+      c.globalAlpha = Math.max(0, 0.55 - i * 0.14 - prog * 0.2)
+      c.strokeStyle = "#eaf4ff"; c.lineWidth = 2.6
+      c.beginPath(); c.arc(hx, hy, 15 + i * 11 + prog * 10, 0, Math.PI * 2); c.stroke()
+    }
+    c.globalAlpha = 0.28 * (1 - prog); c.fillStyle = "#ffffff"
+    c.beginPath(); c.arc(hx, hy, 22, 0, Math.PI * 2); c.fill()
+  }
+  if (evade > 0) {                                               // brief evade sparkle (ring that expands + fades)
+    const e = evade / 12
+    c.globalAlpha = 0.5 * e; c.strokeStyle = "#cfe6ff"; c.lineWidth = 2
+    c.beginPath(); c.arc(hx, fighter.y + (fighter.h || 100) * 0.4, 20 + (1 - e) * 26, 0, Math.PI * 2); c.stroke()
+  }
+  c.restore()
+}
+// WEBBED-stacks indicator (Phase 4) — small white web-pips above the victim's head (1 per stack), so the
+// Spider-Man WEBBED debuff is readable at a glance. Fighter-anchored (not the health bar) so it rides the
+// slowed fighter. Render-only (reads _webStacks). Draws for ANY webbed fighter (the victim, usually the foe).
+// WEB COCOON wrap (Phase 4) — a translucent white web-cocoon drawn over a captured fighter while held
+// (reads _cocooned). Render-only; draws for any cocooned fighter (the victim).
+function drawSpidermanCocoon(c, fighter) {
+  const t = fighter._cocooned || 0; if (!c || t <= 0) return
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5
+  const rw = (fighter.w || 60) * 0.7, rh = (fighter.h || 100) * 0.62
+  c.save()
+  c.globalAlpha = 0.5; c.fillStyle = "#eef3ff"
+  c.beginPath(); c.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.85; c.strokeStyle = "#ffffff"; c.lineWidth = 1.5     // criss-cross web strands
+  for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(cx - rw, cy + i * rh * 0.4); c.lineTo(cx + rw, cy + i * rh * 0.25); c.stroke(); }
+  for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(cx + i * rw * 0.4, cy - rh); c.lineTo(cx + i * rw * 0.25, cy + rh); c.stroke(); }
+  c.restore()
+}
+let _webbedPipRenders = 0
+function drawSpidermanWebbedPips(c, fighter) {
+  const st = fighter._webStacks || 0; if (!c || st <= 0) return
+  _webbedPipRenders++
+  const cx = fighter.x + (fighter.w || 60) / 2, topY = fighter.y - 12
+  const r = 4, gap = 12, total = (st - 1) * gap
+  c.save()
+  for (let i = 0; i < st; i++) {
+    const px = cx - total / 2 + i * gap
+    c.globalAlpha = 0.9; c.fillStyle = st >= 3 ? "#ff5d6c" : "#eaf4ff"     // red at max (slow + dash off)
+    c.beginPath(); c.arc(px, topY, r, 0, Math.PI * 2); c.fill()
+    c.globalAlpha = 0.7; c.strokeStyle = "#8aa0c0"; c.lineWidth = 1        // tiny web cross
+    c.beginPath(); c.moveTo(px - r, topY); c.lineTo(px + r, topY); c.moveTo(px, topY - r); c.lineTo(px, topY + r); c.stroke()
+  }
+  c.restore()
+}
 function drawSpidermanMaxWebCinematic(ctx, canvas) {
   const caster = [p1, p2].find(f => f && (f._maxWebTimer || 0) > 0)
   if (!caster) return
@@ -27943,6 +28060,15 @@ gameLoop()
     setP1Pos: (x, y) => { if (p1) { if (x != null) p1.x = x; if (y != null) p1.y = y } },
     setVx: (who, v) => { const f = who === "p2" ? p2 : p1; if (f) f.vx = v },   // inject velocity → a running physics step would move them; a FROZEN one won't (cinematic-freeze proof)
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
+    spiderWebbed: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { stacks: f._webStacks || 0, speedMult: +((f.speedMultiplier || 1)).toFixed(3), dashCd: f.dashCooldown || 0, decay: f._webStackDecay || 0, pipRenders: _webbedPipRenders, cocooned: f._cocooned || 0 } : null },   // Spider-Man WEBBED/cocoon readout
+    spiderQuip: () => ({ renders: _spiderQuipRenders, bubble: (p1 && p1._quipBubble) ? { key: p1._quipBubble.key, t: p1._quipBubble.t } : null, on: quipBubbles }),   // Spider-Man quip-bubble readout
+    spiderQuipEvent: (ev = "catch", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._quipEvent = ev; return !!f },   // fire a quip event
+    forceWebbed: (n = 3, who = "p2") => { const f = who === "p2" ? p2 : p1; if (f) { f._webbedBaseSpd = f._webbedBaseSpd || f.speedMultiplier || 1; f._webStacks = n; f._webStackDecay = 150; } return f ? f._webStacks : 0 },   // test hook: force WEBBED stacks
+    setQuipBubbles: (on = true) => { setQuipBubbles(on); return quipBubbles },
+    spiderSense: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { window: f._senseWindow || 0, flash: f._senseFlash || 0, counter: f._senseCounter || 0, invuln: f.invulnTimer || 0, cd: f._senseCd || 0, renders: _spiderSenseRenders, atkMul: +((f.attackMultiplier || 1)).toFixed(3) } : null },   // Spider-Sense readout
+    spiderSenseDodge: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._senseDodgeIntent = true; return !!f },   // simulate the dodge tap inside the window
+    spiderSwingAttack: () => { if (!p1) return null; p1._cmdPrevLight = false; const r = updateSpidermanCommandCombat(p1, { light: true }, getAbilityContext(), getAttackPhase); return { fired: !!r, swinging: !!p1._swinging, move: p1.currentMove || null, vx: Math.round(p1.vx || 0) } },   // test: attack out of a swing (Web Swing Kick)
+    trainDummy: (behavior = "projectiles") => { trainingState.enabled = true; trainingState.dummyBehavior = behavior; return { enabled: trainingState.enabled, behavior: trainingState.dummyBehavior, behaviors: DUMMY_BEHAVIORS } },   // test/drive the training dummy behavior
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

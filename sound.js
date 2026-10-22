@@ -968,7 +968,7 @@ class SoundManager {
       // already playing, so one character never overlaps / talks over itself. Untagged cues (owner=null:
       // intro / win / menu) are exempt — stopOwnedSfx no-ops on null — so cross-CHARACTER overlap (owner A
       // vs owner B) is left completely untouched, which is the desired behaviour.
-      if (owner) this.stopOwnedSfx(owner)
+      if (owner) this.stopOwnedSfx(owner, opts.fadeMs)   // opts.fadeMs → crossfade the outgoing owned cue (Homelander: 40ms); default = hard cut (unchanged)
       const a = new Audio(src)        // fresh element: fire-and-forget one-shot
       a.volume = this._sfxVol
       // ITEM 3 (2026-09-06): per-character voice volume. Scale HIS cues by the VOICE_VOLUME_MULT prefix map
@@ -1001,8 +1001,24 @@ class SoundManager {
   }
 
   // Immediately stop + deregister one tracked cue (pause, rewind, release its music-duck).
-  _killSfxEntry(entry) {
-    try { entry.audio.pause(); entry.audio.currentTime = 0 } catch (_) {}
+  // fadeMs > 0: ramp the element's volume to 0 over fadeMs first (a soft cut so a new voice line
+  // doesn't click over the old one), THEN pause + release. Default (0/undefined) = the hard cut.
+  _killSfxEntry(entry, fadeMs = 0) {
+    if (entry._fading) return
+    const a = entry.audio
+    if (fadeMs > 0 && a) {
+      entry._fading = true
+      this._activeSfx.delete(entry)                 // de-list now so a later stop won't re-process it
+      const v0 = a.volume, steps = 5
+      let i = 0
+      const fin = () => { try { a.pause(); a.currentTime = 0 } catch (_) {} if (entry.release) entry.release() }
+      const t = setInterval(() => {
+        i++; try { a.volume = Math.max(0, v0 * (1 - i / steps)) } catch (_) {}
+        if (i >= steps) { clearInterval(t); fin() }
+      }, Math.max(4, fadeMs / steps))
+      return
+    }
+    try { a.pause(); a.currentTime = 0 } catch (_) {}
     if (entry.release) entry.release(); else this._activeSfx.delete(entry)
   }
 
@@ -1019,10 +1035,10 @@ class SoundManager {
   // for the incoming owner right before starting a new owned cue, so that character's previous line is
   // cut and the two never overlap. (No longer called on animation-end — clips finish naturally.)
   // Persistent cues (none are owner-tagged today, but be safe) are left alone.
-  stopOwnedSfx(owner) {
+  stopOwnedSfx(owner, fadeMs = 0) {
     if (!owner) return
     for (const entry of [...this._activeSfx]) {
-      if (entry.owner === owner && !entry.persistent) this._killSfxEntry(entry)
+      if (entry.owner === owner && !entry.persistent) this._killSfxEntry(entry, fadeMs)
     }
   }
 

@@ -72,6 +72,7 @@ import { pickAltSukunaVoice } from "./alt_sukunaVoice.js"   // Alternate Sukuna 
 import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / grunt / offense-bark / taunt / low-health voice pools (audio-only)
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
 import { playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface" only; Billy/.exe keep the old pools)
+import { playHomelanderSfx } from "./homelander_sfx_map.js"   // Homelander MK1 voice/SFX pools (audio-only; gated on rosterKey)
 import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort / hit-react (light/heavy) / knockdown / offense-quip voice pools (audio-only, EN Marvel-Rivals pack)
 
 // ========================
@@ -1336,6 +1337,17 @@ function applyChrolloLowHealthVoice(defender) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickChrolloVoice("lowHealth"), null) } catch (_) {}
   }
+}
+
+// ── HOMELANDER combat voice (audio-only; MK1 pack) — HIT_REACT on taking a hit, ATTACK_EFFORT on a
+// heavy/long-string connect, a defiant LOSE line at low HP. Rate-limited by per-fighter frame timers
+// (_hlHitCd 30f / _hlAtkCd 45f, decremented generically in game.js) so he doesn't chatter. Deterministic
+// clip pick (hash) via the map — no Math.random. Gated on rosterKey → no effect on anyone else.
+function applyHomelanderCombatVoice(f, cat) {
+  if (!f || (f.rosterKey || "").toLowerCase() !== "homelander") return
+  if (cat === "HIT_REACT")      { if (f._hlHitCd > 0) return; f._hlHitCd = 30 }
+  else if (cat === "ATTACK_EFFORT") { if (f._hlAtkCd > 0) return; f._hlAtkCd = 45 }
+  try { playHomelanderSfx(cat, f) } catch (_) {}
 }
 
 // ── GHOSTFACE VOICE LINES (audio-only; English MK1 pack) — mirrors the Chrollo shape ──
@@ -3434,6 +3446,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyChrolloHitVoice(defender, cat, dmg)
     // GHOSTFACE hit-reaction voice — single reaction pool ("Where'd you learn to punch like that?").
     applyGhostfaceHitVoice(defender, cat, dmg)
+    applyHomelanderCombatVoice(defender, "HIT_REACT")   // Homelander grunt on taking a hit (30f cooldown)
     // HISOKA hit-reaction voice — delighted/dismissive pool ("No no~" / "Impressive~" / "Irresistible~").
     applyHisokaHitVoice(defender, cat, dmg)
     // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
@@ -3642,6 +3655,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyChrolloOffenseVoice(attacker, cat, !defender.isBlocking)  // Chrollo combat bark (+ ~30% taunt one-liner) on a heavy/long-string connect (specials/ult use their own cast lines)
   applyGhostfaceOffenseVoice(attacker, cat, !defender.isBlocking)  // Ghostface combat bark (+ ~30% taunt one-liner) on a heavy/long-string connect (knife specials/ult use their own cast lines)
+  if (!defender.isBlocking) applyHomelanderCombatVoice(attacker, "ATTACK_EFFORT")   // Homelander effort grunt on a clean connect (45f cooldown)
   applyZenitsuOffenseVoice(attacker, cat, !defender.isBlocking)  // Zenitsu determination/combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyRengokuOffenseVoice(attacker, cat, !defender.isBlocking)  // Rengoku flame/taunt-combat bark on a heavy/long-string connect (flame specials use their own cast lines)
   applyShinobuOffenseVoice(attacker, cat, !defender.isBlocking)  // Shinobu "Here I go!" bark on a heavy/long-string connect (poison/dance specials use their own cast lines)

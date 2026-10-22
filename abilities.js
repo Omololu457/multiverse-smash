@@ -6,6 +6,7 @@ import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
 import { sound, juicePickVariant, juicePitch }      from "./sound.js"
+import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
@@ -16020,6 +16021,8 @@ function fireHomelanderSupersonic(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)   // sonic-boom i-frames → passes through projectiles at the start
   fighter._hlBoomFx = 18                                   // shockwave ring + crack (drawHomelanderHeatVision)
   shakeCamera(context, 5, 8)
+  playHomelanderSfx("SUPERSONIC", fighter, { seed: context.seed, frame: context.frame })        // sonic-boom SFX
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })   // voice callout
   return true
 }
 
@@ -16045,6 +16048,7 @@ function fireHomelanderSonicClap(fighter, context) {
   fighter._spriteCastMove = "hlClap"; fighter._spriteCastTimer = 12
   fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 22)
   shakeCamera(context, 4, 6)
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })
   return true
 }
 
@@ -16058,6 +16062,7 @@ function fireHomelanderBarrage(fighter, context) {
   fighter.vx = (fighter.facing || 1) * 7     // advance into the flurry
   fighter._hlBarrageFx = 16
   shakeCamera(context, 3, 5)
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })
   return true
 }
 
@@ -16071,6 +16076,7 @@ function startHomelanderHeatVision(fighter, dir) {
   fighter._hvAngle = airborne ? 0.38 : (dir === "U" ? -0.5 : 0)   // air → down-diagonal; Up → anti-air; ground → level
   fighter._hvBaseAngle = fighter._hvAngle
   fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 8   // flex / eyes-bright startup pose
+  playHomelanderSfx("LASER_CHARGE", fighter)                            // charge-up SFX during the flex startup
   return true
 }
 
@@ -16081,7 +16087,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
   if (fighter._hlClapFx > 0) fighter._hlClapFx--
   if (fighter._hlBarrageFx > 0) fighter._hlBarrageFx--
   if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
-  if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; return }
+  if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; stopHomelanderLaser(fighter); return }
   // a hard hit / knockdown kills the beam
   if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._hvActive = false; fighter._hv = null }
 
@@ -16091,6 +16097,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
     if ((!held && fighter._hvMinBurst <= 0) || fighter._laserHeat <= 0) {
       fighter._hvActive = false; fighter._hv = null
       if (fighter._laserHeat <= 0) { fighter._hvOverheat = HV_OVERHEAT; fighter._laserHeat = 0 }   // overheat lockout
+      stopHomelanderLaser(fighter)                                       // release → fade out the beam loop
       return
     }
     fighter._laserHeat = Math.max(0, fighter._laserHeat - HV_DRAIN)
@@ -16122,8 +16129,10 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
       }
     }
     fighter._hv = { ox, oy, impX, impY, hit, tick: fighter._hvTick || 0 }   // render state for game.js drawHomelanderHeatVision
+    startHomelanderLaser(fighter, { seed: context.seed, frame: context.frame })   // held beam loop (no-op if already looping)
   } else {
     fighter._hv = null; fighter._hvBaseAngle = null
+    stopHomelanderLaser(fighter)
     fighter._laserHeat = Math.min(HV_HEAT_MAX, fighter._laserHeat + HV_REFILL)   // idle → heat recovers
   }
 }
@@ -16134,6 +16143,7 @@ export function resetHomelanderKit(fighter) {
   fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
   fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
   fighter._f37 = null; fighter._f37slam = 0
+  stopHomelanderLaser(fighter, 0)   // kill the beam loop instantly on round reset (no leak across rounds)
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -16156,6 +16166,8 @@ export function executeHomelanderUltimate(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F37.startup)   // invuln ONLY during the dark silhouette
   fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = F37.startup
   fighter.attacking = false; fighter.attackCooldown = 0
+  stopHomelanderLaser(fighter)                                                            // ult overrides the beam
+  playHomelanderSfx("ULTIMATE", fighter, { seed: context.seed, frame: context.frame })    // "You're gonna love this."
   return true
 }
 
@@ -30143,9 +30155,48 @@ function fireSpidermanKickup(fighter) {
 // ── STAGE 3 SPECIALS (web + mobility). Web Impact/Web Throw = cast-pose + web PROJECTILE (spawnProjectile).
 // Dash Attack/Handstand Flip Kick = melee (createAttackFromMove; currentMove identity-maps the sprite). ──
 // WEB IMPACT (neutral) — a QUICK, cheap, SHORT-RANGE web puff (fast recovery, low commitment).
+// CATCH AND RETURN (Phase 3) — a context-sensitive read folded into the neutral Web Impact: if an enemy
+// NORMAL projectile is incoming in front within catch range, the web ball GROWS around it, ownership transfers
+// to Spider-Man, and it is hurled back at ~1.3x its damage & speed so it can hit the thrower. Not beams, not
+// ultimates, not grabs. If nothing is there to catch, it's just the normal Web Impact (the whiff = the risk).
+const CATCH = { range: 170, yTol: 95, dmgMul: 1.3, spdMul: 1.3 }
+function tryCatchAndReturn(fighter, context) {
+  const face = fighter.facing || 1
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 110) * 0.4
+  let caught = null
+  for (const p of activeProjectiles) {
+    if (!p || p.owner === fighter) continue
+    if (p.isUltimate || p.visualOnly || (p.damage || 0) >= 180) continue        // not ultimates / beams (heavy) / pure-visual
+    const px = p.x + (p.w || 0) / 2, dx = px - cx
+    if (Math.sign(dx) !== face || Math.abs(dx) > CATCH.range) continue           // must be in FRONT within range
+    if (Math.abs((p.y + (p.h || 0) / 2) - cy) > CATCH.yTol) continue             // roughly at his level
+    if (Math.sign(p.vx || 0) === face) continue                                  // must be INCOMING (not already flying away)
+    caught = p; break
+  }
+  if (!caught) return false
+  const idx = activeProjectiles.indexOf(caught); if (idx >= 0) activeProjectiles.splice(idx, 1)   // take it out of play
+  fighter._spriteCastMove = "spiderWebThrow"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  fighter._rekkaNext = null; fighter._quipEvent = "catch"
+  spideyVoice(fighter, "webCast", 150)
+  const retSpeed = Math.max(10, Math.round((Math.abs(caught.vx) || 11) * CATCH.spdMul))
+  const retDmg = Math.round((caught.damage || 60) * CATCH.dmgMul)
+  const retSheet = caught.sheet || "./spiderman_webball_uniform.png"
+  spawnProjectile(fighter, "spiderWebReturn", {
+    damage: retDmg, w: caught.w || 44, h: caught.h || 44,
+    speed: retSpeed, vx: face * retSpeed, lifetime: 100, hitstun: caught.hitstun || 18, knockbackX: 9, knockbackY: -2,
+    isSpecial: true, color: caught.color || "#cdd8f5", hitFlag: "_webHitLanded",
+    sheet: retSheet, spriteFrames: caught.spriteFrames || 1,
+    spriteW: caught.spriteW || 75, spriteH: caught.spriteH || 50, spriteScale: caught.spriteScale || 1.3,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 44, spawnY: cy,
+  }, context)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
 function fireSpidermanWebImpact(fighter, context) {
   const cost = 16
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (tryCatchAndReturn(fighter, context)) return true          // CATCH & RETURN read (free — no fluid spent on a successful catch)
   if (!spendEnergy(fighter, cost)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove = "spiderWebImpact"; fighter._spriteCastTimer = 22
@@ -30155,7 +30206,7 @@ function fireSpidermanWebImpact(fighter, context) {
   schedulePendingSpawn(6, () => {
     spawnProjectile(fighter, "spiderWebPuff", {
       damage: 50, w: 40, h: 34, speed: 14, lifetime: 26, hitstun: 16, knockbackX: 7, knockbackY: -1,
-      isSpecial: true, color: "#dfe8ff",
+      isSpecial: true, color: "#dfe8ff", hitFlag: "_webHitLanded",   // clean connect → +1 WEBBED stack (updateSpidermanTraversal)
       sheet: "./spiderman_webpuff_uniform.png", spriteFrames: 4, spriteW: 34, spriteH: 34, spriteSpeed: 4, spriteScale: 1.4,
       spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 40,
       spawnY: fighter.y + (fighter.h || 110) * 0.42,
@@ -30179,7 +30230,7 @@ function fireSpidermanWebThrow(fighter, context, opts = {}) {
   schedulePendingSpawn(8, () => {
     spawnProjectile(fighter, "spiderWebBall", {
       damage: 78, w: 60, h: 50, speed: 11, lifetime: 90, hitstun: 22, knockbackX: 10, knockbackY: -2,
-      isSpecial: true, color: "#cdd8f5",
+      isSpecial: true, color: "#cdd8f5", hitFlag: "_webHitLanded",   // clean connect → +1 WEBBED stack
       sheet: "./spiderman_webball_uniform.png", spriteFrames: 1, spriteW: 75, spriteH: 50, spriteScale: 1.35,
       spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 60,
       spawnY: fighter.y + (fighter.h || 110) * 0.40,
@@ -30191,7 +30242,11 @@ function fireSpidermanWebThrow(fighter, context, opts = {}) {
 // Dash Attack (Back, rushdown gap-closer) + Handstand Flip Kick (Up, anti-air launcher) — melee specials.
 const SPIDERMAN_SPECIALS = {
   spiderDashAttack: { damage: 72, startup: 6, active: 5, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 94, rangeY: 56, cost: 20, advance: 16, superArmor: true, isSpecial: true },
-  spiderHandstand:  { damage: 64, startup: 6, active: 5, recovery: 18, hitstun: 20, knockbackX: 3, knockbackY: -11, launchVy: -26, launcher: true, rangeX: 80, rangeY: 94, cost: 20, isSpecial: true },
+  // SPIDER STING (Up+Special) — rising uppercut REVERSAL: brief invulnerable startup (his only true wake-up
+  // tool) in exchange for high recovery. invuln = startup i-frames granted on cast.
+  spiderHandstand:  { damage: 64, startup: 6, active: 5, recovery: 26, hitstun: 20, knockbackX: 3, knockbackY: -11, launchVy: -26, launcher: true, rangeX: 80, rangeY: 94, cost: 20, invuln: 10, isSpecial: true },
+  // WEB SWING KICK (attack out of a swing) — a committed aerial kick carrying the arc's momentum.
+  spiderSwingKick:  { damage: 86, startup: 4, active: 6, recovery: 20, hitstun: 24, knockbackX: 11, knockbackY: -4, rangeX: 96, rangeY: 70, cost: 0, isSpecial: true },
 }
 function fireSpidermanMeleeSpecial(fighter, key, context) {
   const md = SPIDERMAN_SPECIALS[key]
@@ -30202,6 +30257,7 @@ function fireSpidermanMeleeSpecial(fighter, key, context) {
   if (md.launchVy != null) attack.launchY = md.launchVy   // createAttackFromMove doesn't carry launchVy → set on the attack
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   fighter._rekkaNext = null
+  if (md.invuln) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.invuln)   // Spider Sting reversal i-frames
   if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance   // lunging gap-closer travels forward
   return true
 }
@@ -30218,6 +30274,20 @@ export function updateSpidermanCommandCombat(fighter, inputState, context, getPh
   fighter._cmdPrevHeavy   = !!inputState.heavy
   fighter._cmdPrevLight   = !!inputState.light
   fighter._cmdPrevSpecial = !!inputState.special
+  // WEB SWING KICK — an attack out of a swing: Light/Heavy while swinging RELEASES the web (keeping the arc's
+  // tangent momentum) INTO a committed aerial kick. Big reward, punishable if blocked (makes the swing a real
+  // approach tool, not just travel).
+  if (fighter._swinging && (heavyEdge || lightEdge)) {
+    releaseSpidermanWebSwing(fighter)
+    const vx = fighter.vx, vy = fighter.vy                        // preserve the fling momentum through the kick
+    const md = SPIDERMAN_SPECIALS.spiderSwingKick
+    const attack = createAttackFromMove(fighter, "spiderSwingKick", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    attack.isSpecial = true
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter.vx = vx; fighter.vy = vy; fighter.isLaunched = true   // ride the arc momentum
+    spideyVoice(fighter, "webCast", 120)
+    return true
+  }
   // WEB-THROW COMBO CANCEL (the real combo-extension mechanic): during spiderCombo, once it has landed a
   // CLEAN hit, a Special edge CANCELS the string into Web Throw (via the row_15 fanning web-net bridge pose).
   if (fighter.attacking && fighter.currentMove === "spiderCombo" && fighter._cmdHitLanded && specialEdge) {
@@ -30246,26 +30316,55 @@ export function updateSpidermanCommandCombat(fighter, inputState, context, getPh
 // torque), not a scripted arc — feels like actual web-slinging. physics.applyGravity yields position
 // control to updateSpidermanWebSwing while _swinging. Auto-releases on a ~1.7s cap or floor contact.
 // ─────────────────────────────────────────────────────────────────────────────
-const SW_COST = 8, SW_MAXT = 105, SW_GRAV = 1.7, SW_FLING = 1.15, SW_VMAX = 26   // SW_GRAV tuned up → a snappier ~1s swing (a slow real-scale pendulum felt floaty)
+// ─── TRAVERSAL DATA PROFILE (Phase 2) — every swing/zip/hang/fluid number lives here, no magic constants
+// in the per-frame math (design doc: docs/spiderman/TRAVERSAL_DESIGN.md). Mirrors the flight.js pattern of a
+// pure data profile driving the motion; the drag/clamp helpers here are the inline analogues of flight.js
+// axisStep/softLimit (flight.js keeps them module-private), and determinism uses no RNG at all. ───
+export const SPIDERMAN_TRAVERSAL = {
+  swing: {
+    cost: 8,            // web-fluid per swing cast
+    maxT: 120,          // auto-release cap (~2s) — long enough for a full pronounced arc
+    grav: 1.5,          // pendulum gravity torque (snappy, not flat)
+    fling: 1.18,        // tangential launch multiplier on release
+    vmax: 28,           // release speed clamp
+    aheadX: 250,        // anchor placed this far AHEAD (bigger → wider, more pronounced arc)
+    upY: 250,           // anchor placed this far ABOVE (bigger → taller arc)
+    ceil: -330,         // clamp the anchor near the stage ceiling
+    ropeMin: 90,        // minimum rope length
+    gripY: 0.30,        // rope grips ~30% up the body (not the feet)
+    floorRel: 0.55,     // release when the body's lower-55% reaches the floor
+    maxSwings: 2,       // consecutive swings allowed before touching the ground
+    seedVel: 0.035,     // minimum decisive forward angular velocity on cast
+    drag: 0.999,        // per-frame angular damping (the flight.js "drag" analogue)
+    speedMax: 30,       // max in-arc LINEAR speed (px/frame) — keeps the bottom of the arc smooth, not a blur
+    minPoseHold: 3,     // smoothness gate: a traversal pose holds ≥ this many frames
+  },
+  zip: { cost: 10, dur: 12, windup: 3, speed: 30, upBias: -5.5, vmax: 32 },   // fast straight air-pull (reposition, not an attack)
+  hang: { cost: 6, maxT: 90, upY: 120, dropVY: 2 },                           // ceiling-hang: fire a web up, hang, drop
+  fluid: { regenGround: 0.9, regenStill: 1.9, stillVx: 0.6, spendDelay: 40 }, // web-fluid regen (ground / faster when still); pause ~0.66s after a spend
+}
+const _SWP = SPIDERMAN_TRAVERSAL.swing
 function _swCenterX(f) { return f.x + (f.w || 60) / 2 }
-function _swAnchorOffY(f) { return (f.h || 100) * 0.30 }   // rope grips ~upper-body, not the feet
+function _swAnchorOffY(f) { return (f.h || 100) * _SWP.gripY }   // rope grips ~upper-body, not the feet
 export function fireSpidermanWebSwing(fighter, context) {
   if (!fighter || fighter._swinging) return false
-  if (!spendEnergy(fighter, SW_COST)) return false
+  if ((fighter._swingsSinceGround || 0) >= _SWP.maxSwings) return false   // max 2 swings before touching the ground
+  if (!spendEnergy(fighter, _SWP.cost)) return false
   const face = fighter.facing || 1
   const cx = _swCenterX(fighter), cy = fighter.y + _swAnchorOffY(fighter)
-  fighter._swAX = cx + face * 155                              // anchor up-AND-AHEAD ("the sky")
-  fighter._swAY = Math.max(cy - 245, -330)                     // clamp near the ceiling
+  fighter._swAX = cx + face * _SWP.aheadX                      // anchor up-AND-AHEAD ("the sky")
+  fighter._swAY = Math.max(cy - _SWP.upY, _SWP.ceil)           // clamp near the ceiling
   const dx = cx - fighter._swAX, dy = cy - fighter._swAY
-  fighter._swL = Math.max(70, Math.hypot(dx, dy))
+  fighter._swL = Math.max(_SWP.ropeMin, Math.hypot(dx, dy))
   fighter._swAng = Math.atan2(dx, dy)                          // 0 = straight down from anchor (fighter starts behind → swings forward)
   const tvx = Math.cos(fighter._swAng), tvy = -Math.sin(fighter._swAng)
   fighter._swVel = ((fighter.vx || 0) * tvx + (fighter.vy || 0) * tvy) / fighter._swL   // seed from current momentum (tangential)
-  if (fighter._swVel < 0.03) fighter._swVel = 0.03                     // ensure a decisive FORWARD swing (toward the anchor)
+  if (fighter._swVel < _SWP.seedVel) fighter._swVel = _SWP.seedVel                      // ensure a decisive FORWARD swing (toward the anchor)
   fighter._swFace = face
   fighter._swinging = true
-  fighter._swTimer = SW_MAXT
-  fighter._spriteCastMove = "spiderSwing"; fighter._spriteCastTimer = SW_MAXT
+  fighter._swTimer = _SWP.maxT
+  fighter._swingsSinceGround = (fighter._swingsSinceGround || 0) + 1
+  fighter._spriteCastMove = "spiderSwing"; fighter._spriteCastTimer = _SWP.maxT
   fighter.attacking = false; fighter.attackCooldown = 0; fighter.isLaunched = false
   try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
   return true
@@ -30273,9 +30372,9 @@ export function fireSpidermanWebSwing(fighter, context) {
 export function releaseSpidermanWebSwing(fighter) {
   if (!fighter?._swinging) return false
   const tvx = Math.cos(fighter._swAng), tvy = -Math.sin(fighter._swAng)
-  let sp = fighter._swVel * fighter._swL * SW_FLING             // tangential launch speed
-  fighter.vx = Math.max(-SW_VMAX, Math.min(SW_VMAX, tvx * sp))
-  fighter.vy = Math.max(-SW_VMAX, Math.min(SW_VMAX, tvy * sp))
+  let sp = fighter._swVel * fighter._swL * _SWP.fling           // tangential launch speed (release at bottom = flat+fast; late = high)
+  fighter.vx = Math.max(-_SWP.vmax, Math.min(_SWP.vmax, tvx * sp))
+  fighter.vy = Math.max(-_SWP.vmax, Math.min(_SWP.vmax, tvy * sp))
   fighter._swinging = false
   fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
   fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = true
@@ -30284,8 +30383,11 @@ export function releaseSpidermanWebSwing(fighter) {
 // Per-frame while swinging (game.js). physics.applyGravity is a no-op for a swinger, so this OWNS position.
 export function updateSpidermanWebSwing(fighter, context) {
   if (!fighter?._swinging) return
-  fighter._swVel += -(SW_GRAV / fighter._swL) * Math.sin(fighter._swAng)   // pendulum gravity torque
-  fighter._swVel *= 0.999
+  fighter._swVel += -(_SWP.grav / fighter._swL) * Math.sin(fighter._swAng)   // pendulum gravity torque — REAL angular motion, not a scripted path
+  fighter._swVel *= _SWP.drag
+  const maxAng = _SWP.speedMax / fighter._swL                                 // clamp in-arc LINEAR speed → smooth bottom-of-arc (no per-frame blur/snap)
+  if (fighter._swVel > maxAng) fighter._swVel = maxAng
+  else if (fighter._swVel < -maxAng) fighter._swVel = -maxAng
   fighter._swAng += fighter._swVel
   const cx = fighter._swAX + fighter._swL * Math.sin(fighter._swAng)
   const cy = fighter._swAY + fighter._swL * Math.cos(fighter._swAng)
@@ -30297,20 +30399,245 @@ export function updateSpidermanWebSwing(fighter, context) {
   fighter.onGround = false; fighter.grounded = false
   fighter._swTimer--
   const floor = (fighter.groundY != null ? fighter.groundY : 470)
-  if (fighter._swTimer <= 0 || cy + (fighter.h || 100) * 0.55 >= floor) releaseSpidermanWebSwing(fighter)
+  if (fighter._swTimer <= 0 || cy + (fighter.h || 100) * _SWP.floorRel >= floor) releaseSpidermanWebSwing(fighter)
+}
+// WEB ZIP (Phase 2) — a fast straight air-pull toward a point (forward, from Fwd+Special in the air). ~12f of
+// committed straight-line travel ending in the floor/land. A REPOSITION tool (no hitbox), costs web-fluid.
+// physics.applyGravity yields while _zipT, so this owns position (mirrors the swing).
+export function fireSpidermanWebZip(fighter) {
+  if (!fighter || fighter._swinging || fighter._zipT) return false
+  const Z = SPIDERMAN_TRAVERSAL.zip
+  if (!spendEnergy(fighter, Z.cost)) return false
+  const face = fighter.facing || 1
+  fighter._zipT = Z.dur + Z.windup
+  fighter._zipVX = face * Z.speed
+  fighter._zipVY = Z.upBias
+  fighter._spriteCastMove = "spiderWebImpact"; fighter._spriteCastTimer = Z.dur + Z.windup   // crouched web-cast windup pose
+  fighter.attacking = false; fighter.attackCooldown = 0; fighter.isLaunched = false
+  try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
+  return true
+}
+export function updateSpidermanWebZip(fighter) {
+  if (!fighter?._zipT) return
+  const Z = SPIDERMAN_TRAVERSAL.zip
+  const windup = fighter._zipT > Z.dur
+  // Drive via VELOCITY only (gravity is gated for _zipT, so physics.moveFighter applies exactly this once →
+  // no double-move). Windup frames hold in place, then the straight pull fires.
+  if (!windup) { fighter.vx = fighter._zipVX; fighter.vy = fighter._zipVY }
+  else { fighter.vx = 0; fighter.vy = 0 }
+  fighter.onGround = false; fighter.grounded = false
+  fighter._zipT--
+  const floor = (fighter.groundY != null ? fighter.groundY : 470)
+  if (fighter._zipT <= 0 || fighter.y + (fighter.h || 100) >= floor) {
+    fighter._zipT = 0; fighter._zipVX = 0; fighter._zipVY = 0
+    fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+    fighter.isLaunched = true                                  // hand off to normal physics (lands next frame)
+  }
+}
+// CEILING HANG (Phase 2, wall-cling TIER 3) — the engine has NO collidable wall/ceiling surfaces (stage
+// bounds are soft camera clamps), so a true wall-stick would fake a surface the engine can't collide with.
+// Instead Spider-Man fires a web straight UP and HANGS from it above the fight (Back+Special in the air),
+// for a short time, then drops or acts out of it. Honest, deterministic, no faked surface. Owns position.
+export function fireSpidermanHang(fighter) {
+  if (!fighter || fighter._swinging || fighter._hangT) return false
+  const Hg = SPIDERMAN_TRAVERSAL.hang
+  if (!spendEnergy(fighter, Hg.cost)) return false
+  fighter._hangT = Hg.maxT
+  fighter._hangX = fighter.x
+  fighter._hangY = Math.max(fighter.y - Hg.upY, -300)          // rise to the hang point (clamped under the ceiling)
+  fighter._spriteCastMove = "spiderSwing"; fighter._spriteCastTimer = Hg.maxT   // reaching/hanging pose (chain-hang art banked — see LEDGER)
+  fighter.attacking = false; fighter.attackCooldown = 0; fighter.isLaunched = false
+  try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
+  return true
+}
+export function updateSpidermanHang(fighter) {
+  if (!fighter?._hangT) return
+  const dy = fighter._hangY - fighter.y
+  fighter.y += Math.abs(dy) < 3 ? dy : Math.sign(dy) * 3       // ease up to the hang point
+  fighter.x = fighter._hangX
+  fighter.vx = 0; fighter.vy = 0
+  fighter.onGround = false; fighter.grounded = false
+  fighter._hangT--
+  if (fighter._hangT <= 0) releaseSpidermanHang(fighter)
+}
+export function releaseSpidermanHang(fighter) {
+  if (!fighter?._hangT) return false
+  fighter._hangT = 0
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter.vy = SPIDERMAN_TRAVERSAL.hang.dropVY; fighter.isLaunched = true   // drop
+  return true
 }
 export function executeSpidermanSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return false
   if (fighter._swinging) return releaseSpidermanWebSwing(fighter)     // Special WHILE swinging → release (fling)
+  if (fighter._hangT)    return releaseSpidermanHang(fighter)         // Special WHILE hanging  → drop
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
   const grounded = fighter.onGround ?? fighter.grounded ?? true
-  if (!grounded && dir === "U") return fireSpidermanWebSwing(fighter, context)   // AIR + Up → WEB-SWING
+  if (!grounded) {                                                   // ── AIR traversal map ──
+    if (dir === "U") return fireSpidermanWebSwing(fighter, context)  // AIR + Up   → WEB-SWING (pendulum)
+    if (dir === "F") return fireSpidermanWebZip(fighter)             // AIR + Fwd  → WEB ZIP (fast straight pull)
+    if (dir === "B") return fireSpidermanHang(fighter)               // AIR + Back → CEILING HANG (Tier-3 cling)
+    if (dir === "D") return fireSpidermanWebCocoon(fighter, context) // AIR + Down → WEB COCOON (committed capture)
+  }
   if (dir === "D") return fireSpidermanCrawl(fighter, context)       // Down → Ground Crawl evasive
   if (dir === "F") return fireSpidermanWebThrow(fighter, context)    // Fwd  → Web Throw (signature)
   if (dir === "B") return fireSpidermanDashAttack(fighter, context)  // Back → Dash Attack (rushdown gap-closer)
   if (dir === "U") return fireSpidermanHandstand(fighter, context)   // GROUND Up → Handstand Flip Kick (launcher)
   return fireSpidermanWebImpact(fighter, context)                    // neutral → Web Impact (quick short web)
+}
+// Per-frame traversal upkeep (game.js, no inputState needed): step zip/hang, refill web-fluid (faster when
+// still on the ground), reset the 2-swing counter on touchdown, and knock Spider-Man out of any traversal
+// state when he's hit. Gated to spiderman via the caller.
+// ─── WEBBED debuff (Phase 3) ─── a stacking slow applied by Web Shot / Web Impact / Web Throw / Catch&Return.
+// Self-contained timer on the VICTIM (no change to any other character's code): at WEB_MAX stacks the opponent
+// is slowed and their dash is disabled; stacks decay over time. Managed entirely from Spider-Man's per-frame
+// driver (there is exactly one opponent), mirroring the _madaraDrowsy speed-cut pattern. Deterministic.
+const WEBBED = { max: 3, decay: 150, slowPerStack: 0.12, slowAt3: 0.55 }
+export function applyWebbed(target, n = 1) {
+  if (!target) return
+  if (!target._webbedBaseSpd) target._webbedBaseSpd = target.speedMultiplier || 1   // capture the clean base once
+  target._webStacks = Math.min(WEBBED.max, (target._webStacks || 0) + n)
+  target._webStackDecay = WEBBED.decay                                               // refresh the decay window on each application
+}
+// Per-frame WEBBED tick — called for EVERY fighter from game.js's universal timer loop (right beside the
+// _madaraDrowsy speed-cut), so the slow is re-asserted AFTER the victim's own logic and can't be overwritten.
+export function tickWebbed(target) {
+  if (!target || (target._webStackDecay || 0) <= 0) {
+    if (target && target._webbedBaseSpd) { target.speedMultiplier = target._webbedBaseSpd; target._webbedBaseSpd = 0; target._webStacks = 0 }
+    return
+  }
+  const base = target._webbedBaseSpd || 1
+  const st = target._webStacks || 0
+  target.speedMultiplier = base * (st >= WEBBED.max ? WEBBED.slowAt3 : (1 - WEBBED.slowPerStack * st))
+  if (st >= WEBBED.max) target.dashCooldown = Math.max(target.dashCooldown || 0, 8)   // 3 stacks → dash disabled (kept on cooldown)
+  if (--target._webStackDecay <= 0) { target.speedMultiplier = base; target._webbedBaseSpd = 0; target._webStacks = 0 }
+}
+// ─── WEB COCOON (Phase 4) — a slow, committed web that WRAPS the opponent on hit (capture state), holding
+// them briefly before it unravels on its own. His setup / mix-up tool, NOT a combo starter → long cooldown.
+// A slow web projectile (hitFlag _cocoonHit) applies the capture from Spider-Man's per-frame driver; the hold
+// is escapable by mashing (grabInputBuffer shortens it). Self-contained on the victim (no other char touched).
+const WEBCOCOON = { cost: 26, cd: 150, hold: 80, mashCut: 8 }
+export function fireSpidermanWebCocoon(fighter, context) {
+  if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._cocoonCd || 0) > 0) return false
+  if (!spendEnergy(fighter, WEBCOCOON.cost)) return false
+  const face = fighter.facing || 1
+  fighter._cocoonCd = WEBCOCOON.cd
+  fighter._spriteCastMove = "spiderWebBridge"; fighter._spriteCastTimer = 28   // fanning web-net cast pose
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  fighter._rekkaNext = null
+  spideyVoice(fighter, "webCast", 160)
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "spiderWebCocoon", {
+      damage: 40, w: 66, h: 56, speed: 7, lifetime: 80, hitstun: 14, knockbackX: 2, knockbackY: 0,
+      isSpecial: true, color: "#e8eefc", hitFlag: "_cocoonHit",
+      sheet: "./spiderman_webball_uniform.png", spriteFrames: 1, spriteW: 75, spriteH: 50, spriteScale: 1.7,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 66, spawnY: fighter.y + (fighter.h || 110) * 0.4,
+    }, context)
+  })
+  return true
+}
+function applyCocoon(target) {
+  if (!target) return
+  target._cocooned = WEBCOCOON.hold
+  target.vx = 0; target.vy = 0
+  target.hitstun = Math.max(target.hitstun || 0, WEBCOCOON.hold)   // held
+}
+export function tickCocoon(target) {
+  if (!target || (target._cocooned || 0) <= 0) return
+  target.hitstun = Math.max(target.hitstun || 0, 2)                // keep them held while wrapped
+  target.vx = 0
+  if ((target.grabInputBuffer || 0) > 0) { target._cocooned = Math.max(0, target._cocooned - WEBCOCOON.mashCut); target.grabInputBuffer = 0 }   // mashing shortens the wrap
+  if (--target._cocooned <= 0) { target._cocooned = 0 }            // unravels on its own
+}
+
+// ─── SPIDER-SENSE (Phase 4) — the defining passive. When an attack is about to hit him in neutral, a WARNING
+// fires (white-flash + 3 code-drawn rings, render-only) and a short window opens. Tapping the dodge input
+// (block edge) inside it performs a TRUE EVADE: brief invulnerability + his next attack within ~20f is a
+// counter hit (×1.3). It's a read, not free defence. Grabs & unblockables do NOT trigger it. Deterministic.
+const SENSE = { range: 155, projRange: 230, window: 9, flash: 2, cd: 48, invuln: 15, counter: 20, counterMul: 1.3 }
+function _senseIncomingThreat(fighter, opp) {
+  const cx = fighter.x + (fighter.w || 60) / 2
+  if (opp && opp.attacking && opp.currentAttack && !opp.currentAttack.isGrab && !opp.currentAttack.unblockable && (opp.hitstun || 0) <= 0) {
+    if (Math.abs((opp.x + (opp.w || 60) / 2) - cx) < SENSE.range) return true   // incoming melee (not a grab/unblockable)
+  }
+  for (const p of activeProjectiles) {                                           // incoming enemy projectile
+    if (!p || p.owner === fighter || p.isUltimate || p.visualOnly) continue
+    const px = p.x + (p.w || 0) / 2, dx = px - cx
+    if (Math.abs(dx) < SENSE.projRange && Math.sign(p.vx || 0) !== Math.sign(dx || 1)) return true
+  }
+  return false
+}
+function updateSpiderSense(fighter, opp) {
+  if ((fighter._senseCd || 0) > 0) fighter._senseCd--
+  if ((fighter._senseFlash || 0) > 0) fighter._senseFlash--
+  if ((fighter._senseEvadeFx || 0) > 0) fighter._senseEvadeFx--
+  if ((fighter._senseCounter || 0) > 0) {                                        // counter-hit buff (×1.3) after an evade
+    if (!fighter._senseBaseAtk) fighter._senseBaseAtk = fighter.attackMultiplier || 1
+    fighter.attackMultiplier = fighter._senseBaseAtk * SENSE.counterMul
+    if (--fighter._senseCounter <= 0) { fighter.attackMultiplier = fighter._senseBaseAtk; fighter._senseBaseAtk = 0 }
+  }
+  const neutral = !fighter.attacking && (fighter.hitstun || 0) <= 0 && (fighter.blockstun || 0) <= 0 && !fighter._swinging && !fighter._zipT && !fighter._hangT
+  if ((fighter._senseWindow || 0) <= 0 && (fighter._senseCd || 0) <= 0 && neutral && _senseIncomingThreat(fighter, opp)) {
+    fighter._senseWindow = SENSE.window; fighter._senseFlash = SENSE.flash; fighter._senseCd = SENSE.cd   // WARNING
+  }
+  const blockEdge = !!fighter.isBlocking && !fighter._sensePrevBlock
+  if (blockEdge || fighter._senseDodgeIntent) fighter._senseDodgeBuf = 6          // buffer the dodge tap (lenient reaction window)
+  if ((fighter._senseDodgeBuf || 0) > 0) fighter._senseDodgeBuf--
+  if ((fighter._senseWindow || 0) > 0) {
+    fighter._senseWindow--
+    if ((fighter._senseDodgeBuf || 0) > 0 && neutral) {                          // DODGE inside the window → true evade
+      fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SENSE.invuln)
+      fighter._spriteCastMove = "rollBack"; fighter._spriteCastTimer = SENSE.invuln   // tumble frames
+      fighter._senseWindow = 0; fighter._senseDodgeBuf = 0; fighter._senseCounter = SENSE.counter; fighter._senseEvadeFx = 12
+      try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
+    }
+  }
+  fighter._sensePrevBlock = !!fighter.isBlocking
+  fighter._senseDodgeIntent = false
+}
+export function updateSpidermanTraversal(fighter, context) {
+  if (!fighter) return
+  // WEBBED upkeep: apply a stack when a web projectile connected (hitFlag _webHitLanded), then tick the
+  // opponent's debuff. One opponent in 1v1, so manage it entirely from here.
+  const _opp = (typeof context?.getOpponent === "function") ? context.getOpponent(fighter) : null
+  if (fighter._webHitLanded) { fighter._webHitLanded = false; if (_opp) applyWebbed(_opp, 1) }   // the per-frame WEBBED slow is ticked universally in game.js (tickWebbed)
+  if ((fighter._cocoonCd || 0) > 0) fighter._cocoonCd--
+  if (fighter._cocoonHit) { fighter._cocoonHit = false; if (_opp) applyCocoon(_opp) }   // Web Cocoon connected → wrap the foe
+  if (_opp && (_opp._cocooned || 0) > 0) tickCocoon(_opp)                               // hold + mash-escape + unravel
+  updateSpiderSense(fighter, _opp)   // SPIDER-SENSE passive: warning window + dodge-evade + counter buff
+  // Quip-bubble upkeep (RENDER-ONLY state — game.js drawSpidermanQuipBubble reads it; never feeds the sim).
+  // Events set fighter._quipEvent (catch in tryCatchAndReturn; counter/taunt below) → a timed bubble.
+  if ((fighter.currentMove === "taunt" || fighter._spriteCastMove === "taunt") && !fighter._quipBubble) fighter._quipEvent = "taunt"
+  if (fighter._quipEvent) {
+    const map = { catch: "cmonpal", counter: "hey", evade: "dojob", taunt: "taunt", roundwin: "ohyeah" }
+    fighter._quipBubble = { key: map[fighter._quipEvent] || "hey", t: fighter._quipEvent === "taunt" ? 70 : 90, max: fighter._quipEvent === "taunt" ? 70 : 90 }
+    fighter._quipEvent = null
+  } else if (fighter._quipBubble && fighter._quipBubble.t > 0) { fighter._quipBubble.t-- }
+  if ((fighter.hitstun || 0) > 0 || (fighter.knockdown || 0) > 0) {   // hit out of traversal → fall normally
+    if (fighter._swinging) { fighter._swinging = false; fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
+    if (fighter._zipT) { fighter._zipT = 0; fighter._zipVX = 0; fighter._zipVY = 0 }
+    if (fighter._hangT) { fighter._hangT = 0 }
+  }
+  if (fighter._zipT) updateSpidermanWebZip(fighter)
+  if (fighter._hangT) updateSpidermanHang(fighter)
+  const F = SPIDERMAN_TRAVERSAL.fluid
+  // Spending web-fluid pauses the refill briefly (energy just dropped → arm a regen delay), so a web move's
+  // cost reads true and he can't instantly recoup it mid-pressure.
+  if ((fighter.energy || 0) < (fighter._fluidPrev ?? (fighter.energy || 0)) - 0.01) fighter._fluidRegenDelay = F.spendDelay
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  if (grounded && !fighter._swinging && !fighter._zipT && !fighter._hangT) {
+    fighter._swingsSinceGround = 0                                    // re-arm 2 swings once he touches down
+    if ((fighter._fluidRegenDelay || 0) > 0) { fighter._fluidRegenDelay-- }
+    else {
+      const still = Math.abs(fighter.vx || 0) < F.stillVx && !fighter.attacking
+      const regen = still ? F.regenStill : F.regenGround
+      const cap = fighter.maxEnergy || 180
+      fighter.energy = Math.min(cap, (fighter.energy || 0) + regen)   // web-fluid refills on the ground; faster when standing still
+    }
+  }
+  fighter._fluidPrev = fighter.energy || 0
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════

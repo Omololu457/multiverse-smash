@@ -7844,7 +7844,7 @@ const spiderman = {
     spiderKickup: { frames: 5, width: 143, height: 96, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./spiderman_kickup_uniform.png" },
     // WEB-SWING (air mobility): extended reaching pose (row_25), rendered while pendulum-swinging from a
     // web anchored to the sky. The web LINE is drawn procedurally (game.js drawSpidermanWebSwing).
-    spiderSwing:  { frames: 1, width: 105, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./spiderman_swing_uniform.png" },
+    spiderSwing:  { frames: 1, width: 91, height: 73, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./spiderman_swing_uniform.png" },
     // ── STAGE 3 SPECIAL POSES (_spriteCastMove/currentMove identity keys → sprite.js). Web Impact (neutral)
     // = quick short web puff / Web Throw (Fwd) = signature full-range web-ball / Web Bridge = the row_15
     // fanning web-net CANCEL pose from spiderCombo into Web Throw / Dash Attack (Back) = row_20 spin-punch
@@ -11318,7 +11318,10 @@ const _WIPED_FOR_REDO = [
   "omniman",
   "handler", "naoya",
   "iron_man", "iron_man_2", "iron_man_3", "miles",
-  "spiderman", "spiderman_mci", "spiderman_raimi", "spiderman_ssf2",
+  // `spiderman` (Peter, CPS2) REVIVED 2026-10-21 (feat/spiderman): art generated from the Alvin-Earthworm
+  // sheet via tools/reslice_spiderman.py (24 *_uniform.png sheets + portrait at repo root) → un-wiped here.
+  // The other three variants stay wiped (separate art status).
+  "spiderman_mci", "spiderman_raimi", "spiderman_ssf2",
   "boruto", "hiruzen", "kiba", "naruto_hokage", "onoki", "orochimaru",
   "shisui_trinity", "shisui_itachi_kids",
   // shisui_trinity's alt-identity sub-forms (already hidden in their own entries): their sprite files were

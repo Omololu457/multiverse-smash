@@ -1,0 +1,418 @@
+{
+  "character": "Spider-Man",
+  "rosterKey": "spiderman",
+  "universe": "marvel (EXISTING \u2014 accent #e62429; no new universe created)",
+  "source_sheet": "assets/source/spiderman_original.gif (byte-identical copy of the attached Arcade Marvel Super Heroes CPS2 rip)",
+  "source_md5": "fdcd21dfc385307d5f74fb9f91498bad",
+  "ripper_credit": "Ripped by Alvin-Earthworm, http://alvin-earthworm.deviantart.com/ (credited in docs/ASSET_CREDITS.md; the credit box itself is NEVER rendered)",
+  "sheet_dimensions": [
+    1690,
+    4748
+  ],
+  "background_color": {
+    "detected": "#008000 (0,128,0)",
+    "note": "prompt said ~#00A000; TRUE value is #008000 \u2014 keyed on the detected value"
+  },
+  "pipeline": {
+    "note": "PRE-EXISTING project pipeline REUSED (conservative choice \u2014 this exact sheet was already inventoried/grouped by a prior wiped Spider-Man build). Strip-green + connected-component frame-detect + feet-aligned repack.",
+    "row_strips": "spiderman_sliced/spiderman_row_01..27.png (27 TRACKED green-stripped RGBA row strips, derived from this sheet)",
+    "reslicer": "tools/reslice_spiderman.py (alpha-gutter frame detect \u2192 per-frame content bbox \u2192 centered-X bottom-aligned uniform cell; even()/xrects for touching-frame strips; scrub_isolated() removes baked-in [ ] loop-bracket annotation marks from character cells only)",
+    "output": "24 spiderman_*_uniform.png action/FX sheets + spiderman_portrait.png (repo root)"
+  },
+  "annotations_excluded": [
+    "BLACK GROUP BOXES ('Start','Land') \u2014 rectangle outlines + label text around the row-03 acrobatic arc; avoided via explicit xrects so only the character frames are cut",
+    "BLACK LOOP BRACKETS [ ] \u2014 marking loop ranges (e.g. row-07 walk); the baked-in bracket mark is removed per-cell by scrub_isolated() (small + thin + mostly-black component, never a body part)",
+    "MOTION ARROWS \u2014 travel-direction arrows on the arc; not part of any cut frame",
+    "CREDIT BOX \u2014 white box (648,4562)-(1163,4729) 'Spiderman from Marvel Superheroes... Ripped by Alvin-Earthworm...'; attribution only, NEVER rendered (credited in docs/ASSET_CREDITS.md)"
+  ],
+  "not_spiderman_excluded": [
+    "DINOSAUR/CREATURE \u2014 a creature figure in the lower-right of the row-17/section-2 band; NOT built, NOT a character",
+    "VENOM-LIKE BLUE FIGURE \u2014 bottom-right (~x1500,y4500); its figure is NOT used and NOT built as a character",
+    "DINOSAUR BUBBLE 'There's something really bad behind me, huh?' (1068,2182)-(1345,2351) \u2014 belongs to the excluded creature panel; NOT used"
+  ],
+  "reclaimed_bubbles": [
+    {
+      "text": "Oh yeah? Well my dad is bigger than your dad, so nyeh!",
+      "sprite": "spiderman_quips/spiderman_quip_ohyeah.png",
+      "use": "Phase-3 ROUND-WIN taunt quip (the figure it belonged to is excluded; only the BUBBLE is reused, per the prompt's explicit allowance)"
+    }
+  ],
+  "quip_bubbles_cut": [
+    {
+      "text": "Does this outfit make me look fat?",
+      "sprite": "spiderman_quips/spiderman_quip_taunt.png",
+      "use": "Phase-3 BIG taunt bubble"
+    },
+    {
+      "text": "HEY!",
+      "sprite": "spiderman_quips/spiderman_quip_hey.png",
+      "use": "Phase-3 auto quip (small balloon)"
+    },
+    {
+      "text": "DO YOUR JOB!",
+      "sprite": "spiderman_quips/spiderman_quip_dojob.png",
+      "use": "Phase-3 auto quip (small balloon)"
+    },
+    {
+      "text": "C'MON PAL!",
+      "sprite": "spiderman_quips/spiderman_quip_cmonpal.png",
+      "use": "Phase-3 auto quip (small balloon)"
+    }
+  ],
+  "deferred_assets_for_later_phases": [
+    "row-17/18 ANGLED WEB-LINE sprites (shallow/steep/vertical/horizontal strands w/ anchor tip) \u2014 Phase 2 swing/zip/grapple line art (currently line is code-drawn by drawSpidermanWebSwing)",
+    "row-25 CHAIN-HANG (2 upside-down web-hang frames) \u2014 Phase 2 ceiling-hang tier candidate",
+    "row-25 WHITE/BLUE NEGATIVE-PALETTE figure (far right ~x1557) \u2014 Phase 3 SPIDER-SENSE flash frame + a genuine alt-costume skin candidate",
+    "DARK PURPLE SILHOUETTE crouched figure \u2014 Phase 3 Ultimate cinematic opener (precise cut deferred to the ult phase)",
+    "rows 26/27 secondary idle-taunt variants; rows 06/13/14/21/19 unassigned aerial/extra strips"
+  ],
+  "confirmed_content_gap": "No hit-reaction / knockdown / getup frames exist anywhere on the sheet (verified). Ships NO hurt/knockdown/getup strips \u2192 engine renders the safe idle-pose fallback + procedural hit flash/shake (honest, no invented art). Stage-1 harness proves the fallback is the idle pose, NOT a 128x128 box.",
+  "rows": [
+    {
+      "row": 1,
+      "content": "crouched-stance breathing loop",
+      "status": "USED",
+      "use": "idle",
+      "sheets": [
+        "spiderman_idle_uniform.png"
+      ]
+    },
+    {
+      "row": 2,
+      "content": "crouch-to-stand transition",
+      "status": "USED",
+      "use": "intro (introPool, plays once\u2192idle)",
+      "sheets": [
+        "spiderman_intro_uniform.png"
+      ]
+    },
+    {
+      "row": 3,
+      "content": "jump arc \u2014 SERPENTINE multi-band w/ Start/Land boxes",
+      "status": "USED",
+      "use": "jump=TOP band rise / fall=BOTTOM band tumble\u2192dive (Start/Land boxes avoided via xrects)",
+      "sheets": [
+        "spiderman_jump_uniform.png",
+        "spiderman_fall_uniform.png"
+      ]
+    },
+    {
+      "row": 4,
+      "content": "5-frame punch combo + rising spin-kick",
+      "status": "USED",
+      "use": "light=punch (even5-split) / heavy=spin-kick launcher (xrects)",
+      "sheets": [
+        "spiderman_light_uniform.png",
+        "spiderman_heavy_uniform.png"
+      ]
+    },
+    {
+      "row": 5,
+      "content": "aerial spin combo",
+      "status": "USED",
+      "use": "up=f1-4 reach-spin launcher / air=f4-8 curled spin",
+      "sheets": [
+        "spiderman_up_uniform.png",
+        "spiderman_air_uniform.png"
+      ]
+    },
+    {
+      "row": 6,
+      "content": "aerial tumble poses",
+      "status": "RESERVE",
+      "use": "unassigned \u2014 banked for future air strings",
+      "sheets": []
+    },
+    {
+      "row": 7,
+      "content": "bracketed walk loop ([ ] loop-bracket marks scrubbed)",
+      "status": "USED",
+      "use": "walk (run reuses walk faster); loop-bracket annotation removed per-cell by scrub_isolated()",
+      "sheets": [
+        "spiderman_walk_uniform.png"
+      ]
+    },
+    {
+      "row": 8,
+      "content": "crawl loop + forward roll",
+      "status": "USED",
+      "use": "rollForward (roll region, even7-split)",
+      "sheets": [
+        "spiderman_rollf_uniform.png"
+      ]
+    },
+    {
+      "row": 9,
+      "content": "low all-fours crawl loop",
+      "status": "USED",
+      "use": "spiderCrawl (Ground Crawl evasive loop, even7-split)",
+      "sheets": [
+        "spiderman_crawl_uniform.png"
+      ]
+    },
+    {
+      "row": 10,
+      "content": "handstand kick-up + prone",
+      "status": "USED",
+      "use": "spiderKickup (crawl-exit launcher, f1-5)",
+      "sheets": [
+        "spiderman_kickup_uniform.png"
+      ]
+    },
+    {
+      "row": 11,
+      "content": "Jump Attack Combo (leap\u2192spin)",
+      "status": "USED",
+      "use": "spiderCombo (Fwd+Heavy command normal, even9-split)",
+      "sheets": [
+        "spiderman_cmdchain_uniform.png"
+      ]
+    },
+    {
+      "row": 12,
+      "content": "diving spin",
+      "status": "USED",
+      "use": "down_air (spike)",
+      "sheets": [
+        "spiderman_downair_uniform.png"
+      ]
+    },
+    {
+      "row": 13,
+      "content": "extra strip",
+      "status": "RESERVE",
+      "use": "unassigned",
+      "sheets": []
+    },
+    {
+      "row": 14,
+      "content": "extra strip",
+      "status": "RESERVE",
+      "use": "unassigned",
+      "sheets": []
+    },
+    {
+      "row": 15,
+      "content": "aerial tumbles + BOTTOM fanning web-net",
+      "status": "USED",
+      "use": "spiderWebBridge (bottom band = combo-cancel/ult-cast pose, 5f)",
+      "sheets": [
+        "spiderman_webbridge_uniform.png"
+      ]
+    },
+    {
+      "row": 16,
+      "content": "web windup + impact-puff FX",
+      "status": "USED",
+      "use": "spiderWebImpact cast (6f) + web-puff projectile FX (4f)",
+      "sheets": [
+        "spiderman_webimpact_uniform.png",
+        "spiderman_webpuff_uniform.png"
+      ]
+    },
+    {
+      "row": 17,
+      "content": "multi-band: big web-net FX + throw poses + angled web-lines",
+      "status": "USED (partial)",
+      "use": "TOP band = Maximum Web ULT FX (8 growing web-net frames). Angled web-line sprites = BANKED for Phase 2 swing/zip line art",
+      "sheets": [
+        "spiderman_maxweb_uniform.png"
+      ]
+    },
+    {
+      "row": 18,
+      "content": "Web Throw (windup\u2192line\u2192web-ball)",
+      "status": "USED",
+      "use": "spiderWebThrow cast (1f) + web-ball projectile FX (1f)",
+      "sheets": [
+        "spiderman_webthrow_uniform.png",
+        "spiderman_webball_uniform.png"
+      ]
+    },
+    {
+      "row": 19,
+      "content": "web retraction + reaction",
+      "status": "RESERVE",
+      "use": "covered by row 18",
+      "sheets": []
+    },
+    {
+      "row": 20,
+      "content": "speed-trail dash + spin-punch",
+      "status": "USED",
+      "use": "dash=leftmost blur (1f) / spiderDashAttack=spin-punch (Back special, even6-split)",
+      "sheets": [
+        "spiderman_dash_uniform.png",
+        "spiderman_dashatk_uniform.png"
+      ]
+    },
+    {
+      "row": 21,
+      "content": "extra strip",
+      "status": "RESERVE",
+      "use": "unassigned",
+      "sheets": []
+    },
+    {
+      "row": 22,
+      "content": "backward roll",
+      "status": "USED",
+      "use": "rollBack (6 mid frames)",
+      "sheets": [
+        "spiderman_rollb_uniform.png"
+      ]
+    },
+    {
+      "row": 23,
+      "content": "dash\u2192handstand\u2192flip kick",
+      "status": "USED",
+      "use": "spiderHandstand (Up special launcher, 10f)",
+      "sheets": [
+        "spiderman_handstand_uniform.png"
+      ]
+    },
+    {
+      "row": 24,
+      "content": "glow-FX victory pose (hands-on-hips)",
+      "status": "USED",
+      "use": "win (auto victory screen) + taunt + PORTRAIT bust (frame 2 cropped)",
+      "sheets": [
+        "spiderman_win_uniform.png",
+        "spiderman_portrait.png"
+      ]
+    },
+    {
+      "row": 25,
+      "content": "crouch/getup + CHAIN-HANG + reaching lunges + point-taunt + white/blue negative figure",
+      "status": "USED (partial)",
+      "use": "spiderSwing = reaching lunge x671-759 (NEW this phase). CHAIN-HANG (2 web-hang frames), point-taunt variants, white/blue negative-palette figure = BANKED (Phase 2/3)",
+      "sheets": [
+        "spiderman_swing_uniform.png"
+      ]
+    },
+    {
+      "row": 26,
+      "content": "idle taunt variant (point/taunt)",
+      "status": "RESERVE",
+      "use": "banked secondary taunt",
+      "sheets": []
+    },
+    {
+      "row": 27,
+      "content": "idle taunt variant",
+      "status": "RESERVE",
+      "use": "banked secondary taunt",
+      "sheets": []
+    }
+  ],
+  "action_sheets": {
+    "spiderman_idle_uniform.png": {
+      "cell_w": 1150,
+      "cell_h": 100
+    },
+    "spiderman_intro_uniform.png": {
+      "cell_w": 924,
+      "cell_h": 94
+    },
+    "spiderman_jump_uniform.png": {
+      "cell_w": 1100,
+      "cell_h": 131
+    },
+    "spiderman_fall_uniform.png": {
+      "cell_w": 1540,
+      "cell_h": 132
+    },
+    "spiderman_light_uniform.png": {
+      "cell_w": 640,
+      "cell_h": 79
+    },
+    "spiderman_heavy_uniform.png": {
+      "cell_w": 978,
+      "cell_h": 139
+    },
+    "spiderman_up_uniform.png": {
+      "cell_w": 625,
+      "cell_h": 113
+    },
+    "spiderman_air_uniform.png": {
+      "cell_w": 625,
+      "cell_h": 113
+    },
+    "spiderman_walk_uniform.png": {
+      "cell_w": 912,
+      "cell_h": 76
+    },
+    "spiderman_rollf_uniform.png": {
+      "cell_w": 1001,
+      "cell_h": 88
+    },
+    "spiderman_crawl_uniform.png": {
+      "cell_w": 910,
+      "cell_h": 57
+    },
+    "spiderman_kickup_uniform.png": {
+      "cell_w": 715,
+      "cell_h": 96
+    },
+    "spiderman_cmdchain_uniform.png": {
+      "cell_w": 1071,
+      "cell_h": 136
+    },
+    "spiderman_downair_uniform.png": {
+      "cell_w": 675,
+      "cell_h": 98
+    },
+    "spiderman_webbridge_uniform.png": {
+      "cell_w": 520,
+      "cell_h": 104
+    },
+    "spiderman_webimpact_uniform.png": {
+      "cell_w": 714,
+      "cell_h": 77
+    },
+    "spiderman_webpuff_uniform.png": {
+      "cell_w": 136,
+      "cell_h": 34
+    },
+    "spiderman_maxweb_uniform.png": {
+      "cell_w": 1352,
+      "cell_h": 140
+    },
+    "spiderman_webthrow_uniform.png": {
+      "cell_w": 208,
+      "cell_h": 84
+    },
+    "spiderman_webball_uniform.png": {
+      "cell_w": 75,
+      "cell_h": 50
+    },
+    "spiderman_dash_uniform.png": {
+      "cell_w": 161,
+      "cell_h": 115
+    },
+    "spiderman_dashatk_uniform.png": {
+      "cell_w": 726,
+      "cell_h": 109
+    },
+    "spiderman_rollb_uniform.png": {
+      "cell_w": 906,
+      "cell_h": 57
+    },
+    "spiderman_handstand_uniform.png": {
+      "cell_w": 1220,
+      "cell_h": 123
+    },
+    "spiderman_win_uniform.png": {
+      "cell_w": 1012,
+      "cell_h": 133
+    },
+    "spiderman_portrait.png": {
+      "cell_w": 216,
+      "cell_h": 216
+    },
+    "spiderman_swing_uniform.png": {
+      "cell_w": 91,
+      "cell_h": 73
+    }
+  }
+}

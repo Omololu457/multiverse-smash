@@ -176,6 +176,10 @@ JOBS = [
     dict(src="spiderman_row_20.png", out="spiderman_dashatk_uniform.png", xrects=even(756, 1469, 6)),
     # HANDSTAND FLIP KICK — row 23: dash → handstand → flip kick → land crouch (10 frames).
     dict(src="spiderman_row_23.png", out="spiderman_handstand_uniform.png", pick=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    # WEB-SWING pose — row 25's extended forward-reaching lunge (body only; the web LINE up to the sky anchor is
+    # drawn procedurally by game.js drawSpidermanWebSwing). Single pose held while pendulum-swinging. The chain-
+    # hang/taunt/alt-costume content elsewhere in row 25 stays BANKED (see SPIDERMAN_ASSET_MAP.md).
+    dict(src="spiderman_row_25.png", out="spiderman_swing_uniform.png", xrects=[(671, 759)]),
 
     # ── STAGE 4 JOB: ULTIMATE FX ────────────────────────────────────────────────
     # "MAXIMUM WEB" cinematic FX — row 17 TOP band: the big EXPANDING WEB-NET/COCOON (8 growing frames). The

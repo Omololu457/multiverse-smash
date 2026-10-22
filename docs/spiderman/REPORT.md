@@ -169,7 +169,13 @@ normal, audio quips) is now live.
   above the webbed fighter's head so the debuff is readable at a glance. Fighter-anchored rather
   than health-bar-integrated (a deliberate low-risk choice — avoids touching the shared HUD
   layout). The web-fluid bar already renders via the `web_fluid` energyConfig.
-- **CPU AI** tuning + **Training** toggles — not yet added.
+- **CPU AI** — ✅ DONE (Phase 4): a Spider-Man signature layer (`decideSpidermanSignatureMove`,
+  mirroring Homelander's) makes the CPU use his web kit — web pokes at range (which apply
+  WEBBED) and Maximum Web at full meter. Gated to `rosterKey === "spiderman"`, routed through
+  the seeded AI RNG (deterministic). Verified via AI-vs-AI (`spiderman_ai.mjs` 6/0): web
+  projectiles appear, the opponent gets WEBBED, same seed → identical, different seed → differs.
+  Fuller behaviors (swing-to-approach, zip-escape-corner) are a future refinement.
+- **Training** toggles — not yet added.
 - Dedicated **Web Swing Kick** / **Spider Sting** specials — the input slots are full; these
   would repurpose existing directional specials.
 

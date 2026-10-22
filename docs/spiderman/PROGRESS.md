@@ -98,5 +98,10 @@ setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated spec
 - **WEBBED HUD indicator** ✅ — web-pips (1/stack, red at 3) above the webbed fighter
   (`drawSpidermanWebbedPips`, render-only; fighter-anchored, not health-bar-integrated — a
   deliberate low-risk choice). web-fluid bar already renders via the `web_fluid` energyConfig.
-- Still OPEN: Web Cocoon capture; CPU AI; Training toggles; the "Quip bubbles" toggle in the
-  Settings MENU (flag + default wired); dedicated Web Swing Kick / Spider Sting specials.
+- **CPU AI** ✅ — `ai.js decideSpidermanSignatureMove` (mirrors Homelander's signature layer):
+  web pokes at range (apply WEBBED) + Maximum Web at full meter; gated to spiderman, seeded-RNG
+  (deterministic). Harness `spiderman_ai.mjs` 6/0 (verified via web projectiles + opponent WEBBED
+  in AI-vs-AI; p1() omits cast/move in aiVsAi, so projectiles()/spiderWebbed() are the signal).
+- Still OPEN: Web Cocoon capture; Training toggles; the "Quip bubbles" toggle in the Settings
+  MENU (flag + default wired); dedicated Web Swing Kick / Spider Sting specials; fuller AI
+  (swing-to-approach, zip-escape-corner).

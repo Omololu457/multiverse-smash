@@ -142,6 +142,8 @@ const SIGNATURE_MOTIONS = {
   rasengan: [],    shadowClone: ["D", "F"], chakraArm: ["F", "F"],
   // Homelander — heatVision [] (neutral) | supersonic F | sonicClap D | barrage B (verified vs executeHomelanderSpecial)
   heatVision: [],  supersonic: ["F"], sonicClap: ["D"], barrage: ["B"],
+  // Spider-Man — webImpact [] (neutral) | webThrow F (verified vs executeSpidermanSpecial)
+  webImpact: [],   webThrow: ["F"],
   ultimate: []     // fires on the dedicated ultimate key — no motion needed
 }
 const SIGNATURE_MOTION_FRAME_MS = 1000 / 60   // ~16.7ms — one frame of spacing between synthesized inputs
@@ -800,6 +802,27 @@ function decideHomelanderSignatureMove(controller, fighter, opponent) {
   return null
 }
 
+// Called from choosePlan ONLY when fighter.rosterKey === "spiderman". Agile web skirmisher: throws webs at
+// mid-range (Web Throw when forward is held, else neutral Web Impact — both apply WEBBED + set up Catch &
+// Return) and unloads Maximum Web at full meter. Same shape as Homelander/Gojo.
+function decideSpidermanSignatureMove(controller, fighter, opponent) {
+  if ((controller.memory._sigCooldown || 0) > 0) return null
+  const profile = controller.profile
+  const iq = profile.situationalIQ || 0
+  if (iq <= 0 || !chance(iq)) return null
+  const distanceX = getHorizontalDistance(fighter, opponent)
+  const energy = getEnergy(fighter), maxEnergy = getMaxEnergy(fighter)
+  if (energy >= maxEnergy && distanceX < 440 && chance(iq * 0.3)) {        // MAXIMUM WEB ult at full meter
+    controller.memory._sigTarget = "ultimate"
+    return "ultimate"
+  }
+  if (distanceX >= 95 && distanceX <= 470 && energy >= 16 && chance(iq * 0.55)) {   // web poke at range (applies WEBBED)
+    controller.memory._sigTarget = "webThrow"
+    return "special"
+  }
+  return null
+}
+
 function choosePlan(controller, fighter, opponent, world = {}) {
   controller.memory._sigActive = false   // reset each decision; a signature layer below sets it true if it fires
   const profile = controller.profile
@@ -847,6 +870,16 @@ function choosePlan(controller, fighter, opponent, world = {}) {
   // Sonic Clap point-blank. Same shape as Gojo/Sukuna; invoked ONLY for Homelander.
   if (fighter.rosterKey === "homelander") {
     const sigPlan = decideHomelanderSignatureMove(controller, fighter, opponent)
+    if (sigPlan) {
+      controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
+      controller.memory._sigActive   = true
+      return sigPlan
+    }
+  }
+
+  // SPIDER-MAN-ONLY signature layer — agile web skirmisher: web pokes at range + Maximum Web at full meter.
+  if (fighter.rosterKey === "spiderman") {
+    const sigPlan = decideSpidermanSignatureMove(controller, fighter, opponent)
     if (sigPlan) {
       controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
       controller.memory._sigActive   = true

@@ -528,6 +528,7 @@
     "test:spiderman-sense": "node harness/spiderman_sense.mjs",
     "test:spiderman-ai": "node harness/spiderman_ai.mjs",
     "test:spiderman-kit2": "node harness/spiderman_kit2.mjs",
+    "test:spiderman-training": "node harness/spiderman_training.mjs",
     "test:spiderman-raimi": "node harness/raimi_shots.mjs",
     "test:spiderman-raimi-specials": "node harness/spiderman_raimi_specials.test.mjs",
     "test:green-lantern": "node harness/green_lantern.test.mjs",

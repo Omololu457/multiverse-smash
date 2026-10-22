@@ -181,7 +181,15 @@ normal, audio quips) is now live.
   attacking out of a swing releases it into a committed kick that keeps the arc's momentum;
   Spider Sting = Up+Special (Handstand) now grants brief reversal i-frames (10f) + higher
   recovery. Harness `spiderman_kit2.mjs` 8/0.
-- **Training** toggles — not yet added.
+- **Training** toggles — ✅ DONE (Phase 4): **infinite web fluid** is the existing F3
+  infinite-resources toggle (web_fluid *is* his energy, so it's pinned to max); **dummy
+  projectile spammer** = a new `"projectiles"` dummy behavior (F4) that fires bolts at the
+  player to drill Catch & Return / Spider-Sense; **spider-sense display** — the warning flash +
+  head rings already render whenever the passive detects a threat (visible in training). Harness
+  `spiderman_training.mjs` 4/0.
+- **"Quip bubbles" setting** — ✅ the setting itself is done (persisted `ms_quip_bubbles`,
+  default ON, respected by the render). The only remaining gap is surfacing a toggle on the
+  on-screen Settings *menu* page (hand-drawn UI; deferred as cosmetic).
 
 ## ⚠️ Concurrency note (important for the merge)
 

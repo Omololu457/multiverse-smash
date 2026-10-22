@@ -106,5 +106,8 @@ setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated spec
   attack out of a swing (committed kick, keeps momentum); Spider Sting = Up+Special Handstand
   with reversal i-frames; Web Cocoon = air Down+Special slow web → capture/wrap (held, mash,
   unravel) + code-drawn web-wrap visual.
-- Still OPEN: Training toggles; the "Quip bubbles" toggle in the Settings MENU (flag + default
-  wired); fuller AI (swing-to-approach, zip-escape-corner).
+- **Training support** ✅ (`spiderman_training.mjs` 4/0): infinite web fluid = F3 infinite-resources
+  (web_fluid is energy); dummy projectile spammer = new F4 "projectiles" behavior (Catch & Return
+  drill); spider-sense display = the warning flash already renders on detection.
+- Still OPEN (cosmetic/polish): surfacing the "Quip bubbles" toggle on the Settings MENU page
+  (the setting/flag is fully wired + persisted); fuller AI nuances (swing-to-approach, zip-escape).

@@ -4162,7 +4162,7 @@ function endFFA() {
 //     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
 //     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false, lastAdvantage: null }
-const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo"]
+const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo", "projectiles"]   // "projectiles" = dummy fires bolts (drill Catch & Return / Spider-Sense)
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 // COMBO TRIALS detection: a monotonically-increasing id per player attack instance, so the trial
 // observer counts each landed move ONCE (a multi-hit move still = one sequence step).
@@ -19284,6 +19284,15 @@ function updateTrainingMode() {
     }
   }
 
+  // DUMMY PROJECTILE SPAMMER (F4 → "projectiles") — the dummy periodically fires a bolt at P1 so Spider-Man's
+  // Catch & Return and Spider-Sense can be drilled. (Infinite WEB FLUID is the F3 infinite-resources toggle —
+  // web_fluid is his energy.) Generic: works for any P1, named for his Catch & Return practice.
+  if (trainingState.dummyBehavior === "projectiles" && p1 && p2 && (globalFrameCount % 70) === 0) {
+    const dir = (p1.x >= p2.x) ? 1 : -1
+    spawnProjectile(p2, "trainBolt", { damage: 30, speed: 9, lifetime: 130, w: 26, h: 26, hitstun: 12, knockbackX: 5,
+      vx: dir * 9, spawnX: dir === 1 ? p2.x + (p2.w || 60) : p2.x - 26, spawnY: p1.y + (p1.h || 100) * 0.4 }, {})
+  }
+
   // FRAME ADVANTAGE (Track B) — DISPLAY-LAYER arithmetic on existing state, computed on the
   // exact frame a move CONNECTS. Advantage = defender's stun frames − the attacker's remaining
   // recovery (frames left in its move). Positive = attacker acts first (+ on hit/block).
@@ -28056,6 +28065,7 @@ gameLoop()
     spiderSense: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { window: f._senseWindow || 0, flash: f._senseFlash || 0, counter: f._senseCounter || 0, invuln: f.invulnTimer || 0, cd: f._senseCd || 0, renders: _spiderSenseRenders, atkMul: +((f.attackMultiplier || 1)).toFixed(3) } : null },   // Spider-Sense readout
     spiderSenseDodge: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._senseDodgeIntent = true; return !!f },   // simulate the dodge tap inside the window
     spiderSwingAttack: () => { if (!p1) return null; p1._cmdPrevLight = false; const r = updateSpidermanCommandCombat(p1, { light: true }, getAbilityContext(), getAttackPhase); return { fired: !!r, swinging: !!p1._swinging, move: p1.currentMove || null, vx: Math.round(p1.vx || 0) } },   // test: attack out of a swing (Web Swing Kick)
+    trainDummy: (behavior = "projectiles") => { trainingState.enabled = true; trainingState.dummyBehavior = behavior; return { enabled: trainingState.enabled, behavior: trainingState.dummyBehavior, behaviors: DUMMY_BEHAVIORS } },   // test/drive the training dummy behavior
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0, shroudStage: p1.shroudStage || 0, shroudBuffed: !!p1.shroudBuffed } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

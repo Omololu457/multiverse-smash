@@ -575,6 +575,7 @@ import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
 import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
 import { pickGhostfaceVoice, GHOSTFACE_VOICE } from "./ghostfaceVoice.js"   // Ghostface intro + win voice pools (audio-only)
 import { pickGhostfaceSfx, playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface"; Billy/.exe keep the aliased old pools)
+import { playHomelanderSfx, HL_POOL_ORDER } from "./homelander_sfx_map.js"   // Homelander MK1 voice/SFX dispatch + pool order (Training sound test)
 let _gfIntroN = 0
 import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
@@ -4454,6 +4455,8 @@ function getAbilityContext() {
     groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
+    frame: globalFrameCount,              // Homelander audio: deterministic clip pick = hash(seed, frame, player)
+    seed: (matchConfig.seed >>> 0) || 1,  // match RNG seed (stamped in startMatch) — LAN/replay-safe audio
     cinematicSafe: !_rewindUnsafeNow(),   // GAARA (Phase 4): false during cinematics/KO/Brutality/domains/Rick-rewind — gates the Shukaku summon
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
   }

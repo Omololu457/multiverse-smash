@@ -6,6 +6,7 @@ import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
 import { sound, juicePickVariant, juicePitch }      from "./sound.js"
+import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
@@ -16020,6 +16021,8 @@ function fireHomelanderSupersonic(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)   // sonic-boom i-frames → passes through projectiles at the start
   fighter._hlBoomFx = 18                                   // shockwave ring + crack (drawHomelanderHeatVision)
   shakeCamera(context, 5, 8)
+  playHomelanderSfx("SUPERSONIC", fighter, { seed: context.seed, frame: context.frame })        // sonic-boom SFX
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })   // voice callout
   return true
 }
 
@@ -16045,6 +16048,7 @@ function fireHomelanderSonicClap(fighter, context) {
   fighter._spriteCastMove = "hlClap"; fighter._spriteCastTimer = 12
   fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 22)
   shakeCamera(context, 4, 6)
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })
   return true
 }
 
@@ -16058,6 +16062,7 @@ function fireHomelanderBarrage(fighter, context) {
   fighter.vx = (fighter.facing || 1) * 7     // advance into the flurry
   fighter._hlBarrageFx = 16
   shakeCamera(context, 3, 5)
+  playHomelanderSfx("SPECIAL_CALLOUT", fighter, { seed: context.seed, frame: context.frame })
   return true
 }
 
@@ -16071,6 +16076,7 @@ function startHomelanderHeatVision(fighter, dir) {
   fighter._hvAngle = airborne ? 0.38 : (dir === "U" ? -0.5 : 0)   // air → down-diagonal; Up → anti-air; ground → level
   fighter._hvBaseAngle = fighter._hvAngle
   fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 8   // flex / eyes-bright startup pose
+  playHomelanderSfx("LASER_CHARGE", fighter)                            // charge-up SFX during the flex startup
   return true
 }
 
@@ -16081,7 +16087,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
   if (fighter._hlClapFx > 0) fighter._hlClapFx--
   if (fighter._hlBarrageFx > 0) fighter._hlBarrageFx--
   if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
-  if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; return }
+  if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; stopHomelanderLaser(fighter); return }
   // a hard hit / knockdown kills the beam
   if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._hvActive = false; fighter._hv = null }
 
@@ -16091,6 +16097,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
     if ((!held && fighter._hvMinBurst <= 0) || fighter._laserHeat <= 0) {
       fighter._hvActive = false; fighter._hv = null
       if (fighter._laserHeat <= 0) { fighter._hvOverheat = HV_OVERHEAT; fighter._laserHeat = 0 }   // overheat lockout
+      stopHomelanderLaser(fighter)                                       // release → fade out the beam loop
       return
     }
     fighter._laserHeat = Math.max(0, fighter._laserHeat - HV_DRAIN)
@@ -16122,8 +16129,10 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
       }
     }
     fighter._hv = { ox, oy, impX, impY, hit, tick: fighter._hvTick || 0 }   // render state for game.js drawHomelanderHeatVision
+    startHomelanderLaser(fighter, { seed: context.seed, frame: context.frame })   // held beam loop (no-op if already looping)
   } else {
     fighter._hv = null; fighter._hvBaseAngle = null
+    stopHomelanderLaser(fighter)
     fighter._laserHeat = Math.min(HV_HEAT_MAX, fighter._laserHeat + HV_REFILL)   // idle → heat recovers
   }
 }
@@ -16134,6 +16143,7 @@ export function resetHomelanderKit(fighter) {
   fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
   fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
   fighter._f37 = null; fighter._f37slam = 0
+  stopHomelanderLaser(fighter, 0)   // kill the beam loop instantly on round reset (no leak across rounds)
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -16156,6 +16166,8 @@ export function executeHomelanderUltimate(fighter, context) {
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F37.startup)   // invuln ONLY during the dark silhouette
   fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = F37.startup
   fighter.attacking = false; fighter.attackCooldown = 0
+  stopHomelanderLaser(fighter)                                                            // ult overrides the beam
+  playHomelanderSfx("ULTIMATE", fighter, { seed: context.seed, frame: context.frame })    // "You're gonna love this."
   return true
 }
 

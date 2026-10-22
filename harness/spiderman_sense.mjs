@@ -55,6 +55,13 @@ try {
   await H("clearProjectiles"); await H("setP2X", p1x + 900); await waitFrames(60);
   check("no window without a valid (non-grab) threat", (await H("spiderSense")).window === 0);
 
+  console.log("\n── WEBBED HUD indicator (web-pips above the victim) renders ──");
+  const pr0 = (await H("spiderWebbed", "p2")).pipRenders;
+  await H("forceWebbed", 3, "p2");
+  await waitFrames(3);
+  const wp = await H("spiderWebbed", "p2");
+  check("WEBBED web-pips render above the webbed fighter", wp.pipRenders > pr0, `pipRenders ${pr0}→${wp.pipRenders}`);
+
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 4).join(" | "));
   console.log(`\n${FAIL === 0 ? "✅" : "❌"} Spider-Man SPIDER-SENSE: ${PASS} passed, ${FAIL} failed`);
 } catch (e) { console.error("HARNESS ERROR:", e); FAIL++; }

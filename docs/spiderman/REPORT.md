@@ -165,8 +165,10 @@ normal, audio quips) is now live.
   render-only, camera-clamped, fade-on-overlap, with a **"Quip bubbles" ON/OFF setting**
   (`ms_quip_bubbles`, default ON) + Reduce Flashing respected. Harness `spiderman_quips.mjs` 7/0.
   Still open: exposing the toggle in the Settings MENU (the flag + default are wired).
-- **HUD Webbed-stacks indicator** — the web-fluid bar already renders via the `web_fluid`
-  energyConfig; a dedicated Webbed-stack pip row is not yet added.
+- **HUD Webbed-stacks indicator** — ✅ DONE (Phase 4): web-pips (1 per stack, red at 3) ride
+  above the webbed fighter's head so the debuff is readable at a glance. Fighter-anchored rather
+  than health-bar-integrated (a deliberate low-risk choice — avoids touching the shared HUD
+  layout). The web-fluid bar already renders via the `web_fluid` energyConfig.
 - **CPU AI** tuning + **Training** toggles — not yet added.
 - Dedicated **Web Swing Kick** / **Spider Sting** specials — the input slots are full; these
   would repurpose existing directional specials.

@@ -95,7 +95,8 @@ setting; audio quips already fire), Web Swing Kick / Spider Sting dedicated spec
   opens a warning window + white-flash + 3 head rings (render-only, Reduce-Flashing-aware); a
   buffered dodge tap inside it = true evade (brief invuln + next-attack counter hit ×1.3).
   `abilities.updateSpiderSense` (deterministic); harness `spiderman_sense.mjs` 9/0.
-- Still OPEN: a dedicated HUD Webbed-stacks pip row (web-fluid bar already renders via the
-  `web_fluid` energyConfig); Web Cocoon capture; CPU AI; Training toggles; the "Quip bubbles"
-  toggle in the Settings MENU (the flag + default are in; menu wiring remains); dedicated
-  Web Swing Kick / Spider Sting specials.
+- **WEBBED HUD indicator** ✅ — web-pips (1/stack, red at 3) above the webbed fighter
+  (`drawSpidermanWebbedPips`, render-only; fighter-anchored, not health-bar-integrated — a
+  deliberate low-risk choice). web-fluid bar already renders via the `web_fluid` energyConfig.
+- Still OPEN: Web Cocoon capture; CPU AI; Training toggles; the "Quip bubbles" toggle in the
+  Settings MENU (flag + default wired); dedicated Web Swing Kick / Spider Sting specials.

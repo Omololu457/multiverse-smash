@@ -341,9 +341,10 @@ export const physics = {
   applyGravity(fighter) {
     if (!fighter || fighter.hitstop > 0 || fighter.dashTimer > 0) return
 
-    // SPIDER-MAN WEB-SWING: while swinging, the pendulum (abilities.updateSpidermanWebSwing) OWNS position
-    // — skip normal gravity entirely so the arc isn't fought by the fall.
-    if (fighter._swinging) return
+    // SPIDER-MAN TRAVERSAL: while swinging (pendulum), zipping (straight pull) or ceiling-hanging, the
+    // Spider-Man driver (abilities.updateSpidermanWebSwing / WebZip / Hang) OWNS position — skip gravity so
+    // it isn't fought by the fall. All three fields are spiderman-only → no-op for every other fighter.
+    if (fighter._swinging || fighter._zipT || fighter._hangT) return
 
     // FLIGHT MODULE: while airborne, flight.js already integrated y (in moveFighter) and clamped
     // to floor/ceiling — skip gravity entirely. Gated on _flightCtl → no-op for every other fighter.

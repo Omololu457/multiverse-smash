@@ -203,6 +203,7 @@ import {
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
+  updateSpidermanTraversal,      // Spider-Man per-frame traversal upkeep (steps zip/hang, refills web-fluid, resets 2-swing counter on landing, clears on hit)
   updateNaoyaCommandCombat,      // Naoya Fwd+Heavy → PLANNED ROUTE committed timing rekka (drop a window → Naoya self-freezes 1s)
   updateNaoyaSnare,              // Naoya 24FPS SNARE per-frame enforcement (snared opponent that inputs anything → 1s freeze)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
@@ -10600,6 +10601,7 @@ function updateMiscTimers(fighter) {
   if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   if (fighter._spideyAtkVoiceCd > 0) fighter._spideyAtkVoiceCd--          // Spider-Man light-normal effort grunt cooldown (combat.applySpidermanAttackVoice)
   if (fighter._swinging) updateSpidermanWebSwing(fighter, getAbilityContext())   // Spider-Man WEB-SWING pendulum step (owns position; applyGravity yields)
+  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") updateSpidermanTraversal(fighter)   // Spider-Man traversal upkeep: step zip/hang, web-fluid regen, re-arm 2-swing counter on landing, clear-on-hit
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start

@@ -34,13 +34,24 @@ after each; never merge/push `main`. Stage files by explicit path only.
   frame-data diff **zero** for every other character (`characters.js` diff is only the two
   Spider-Man hunks; combat/abilities/game/physics untouched); naruto PNG not staged.
 
-## Phase 2 — Web traversal system — PENDING
+## Phase 2 — Web traversal system ✅ DONE
 
-Write `docs/spiderman/TRAVERSAL_DESIGN.md`. The pendulum web-swing already exists
-(`abilities.updateSpidermanWebSwing`, `SW_*` consts, physics gate). Verify/refine vs
-spec: 2-swing-before-ground limit, web zip, wall-cling tier (engine has NO wall collision
-→ Tier 2 edge-cling or Tier 3 ceiling-hang; report which), web-fluid gauge, DATA profile,
-smoothness gates + test harness. Reuse `flight.js` helpers (`axisStep`/`softLimit`/`hashRandom`).
+- `docs/spiderman/TRAVERSAL_DESIGN.md` written (engine study, approach comparison, flight.js reuse).
+- **DATA profile** `SPIDERMAN_TRAVERSAL` (abilities.js) — all swing/zip/hang/fluid numbers.
+- **Swing** refined vs spec: bigger pronounced arc (anchor 250 ahead/up), in-arc `speedMax`
+  clamp (smooth bottom), tangent-velocity release, **2-swing limit** (`_swingsSinceGround`),
+  release-on-attack, cleared-on-hit.
+- **Web Zip** (air Fwd+Special) — fast straight pull, windup→travel→land, no hitbox, costs fluid.
+- **Wall-cling = TIER 3 ceiling-hang** (air Back+Special). REPORTED: engine has no collidable
+  wall/ceiling surfaces, so Tier 1/2 would fake a surface → chose honest ceiling-hang.
+- **Web-fluid gauge** — ground regen, faster-when-still, `spendDelay` pause after a cast, dry gate.
+- physics.js gate extended to `_zipT`/`_hangT`; per-frame driver `updateSpidermanTraversal` in game.js.
+- **Gates:** traversal harness `spiderman_traversal.mjs` 6/0 (maxStep 26.8px ≤38, pose-hold ≥3,
+  3 byte-identical runs); webswing 12/0, stage1 26/0, stage2 22/0, stage3 22/0, stage4 13/0;
+  determinism 14/0; roster-integrity OK; combo-standard 225/9 (baseline). combat.js untouched.
+- ⚠️ CONCURRENCY: a parallel "Homelander audio" session is editing game.js/sound.js/abilities.js
+  in the shared tree. Phase-2 commit built via PRIVATE INDEX (HEAD + only my hunks) so those
+  foreign changes are NOT absorbed.
 
 ## Phase 3 — The kit — PENDING
 Reconcile existing specials/ult/quip-voice against the spec's richer kit (3-angle Web Shot,

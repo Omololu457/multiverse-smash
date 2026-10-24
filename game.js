@@ -46,7 +46,7 @@ import {
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
-import { flightToggleInput, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + per-frame driver + round reset + profile (HUD gauge max)
+import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -12288,6 +12288,48 @@ function drawSupermanSolarFlareAura(c, fighter) {
 // SUPERMAN — FREEZE BREATH frost overlay. Drawn on ANY fighter with _supFrozen > 0 (the victim, which can
 // be any character). RENDER-ONLY: driven entirely by the sim field _supFrozen (deterministic countdown) +
 // _supFrozenMax — no render accumulator is stashed on the fighter, so nothing leaks into GAME_STATE.
+// SUPERMAN — FLIGHT ESCAPE (defensive burst). While being combo'd (in hitstun), a fresh Special press +
+// 25 Solar Energy bursts him out into flight with a short i-frame window. 10s cooldown. Reads raw input
+// (bypasses the hitstun input-gate) so it works mid-combo. Gated on superman; no-op for everyone else.
+function supermanFlightEscape(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman" || !fighter.traits?.flightProfile) return
+  if ((fighter.hitstun || 0) <= 0) { fighter._supFlightEscPrev = false; return }   // only while being combo'd
+  const raw = readRawControls(fighter) || {}
+  const press = !!raw.special
+  const edge = press && !fighter._supFlightEscPrev
+  fighter._supFlightEscPrev = press
+  if (!edge || (fighter._supFlightEscCd || 0) > 0 || (fighter.energy || 0) < 25) return
+  fighter.energy = Math.max(0, fighter.energy - 25)
+  fighter.hitstun = 0; fighter.blockstun = 0; fighter.isLaunched = false; fighter.knockdownState = false
+  if (fighter._flightCtl) fighter._flightCtl.groundedLock = 0
+  flightTakeoff(fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)   // 12-frame invincible burst
+  fighter.colorFlash = Math.max(fighter.colorFlash || 0, 10)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._supFlightEscCd = 600   // 10s cooldown
+}
+
+// SUPERMAN — X-RAY VISION tint (render-only). A subtle blue scan-tint over an opponent who is below 25%
+// health WHEN their opponent is Superman (he's "seeing their weak points" for the +8% damage). Computed
+// at render time from live health — no flag stored in GAME_STATE.
+function drawXRayTint(c, fighter) {
+  if (!c || !fighter || (fighter.maxHealth || 0) <= 0 || (fighter.health || 0) <= 0) return
+  if (fighter.health * 4 >= fighter.maxHealth) return
+  const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+  if (!opp || (opp.rosterKey || "").toLowerCase() !== "superman") return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  c.save()
+  c.globalAlpha = 0.16; c.fillStyle = "#49a7ff"
+  const r = 10, rx = x - 2, ry = y - 2, rw = w + 4, rh = h + 4
+  c.beginPath(); c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.fill()
+  c.globalAlpha = 0.22; c.strokeStyle = "#bfe3ff"; c.lineWidth = 1
+  for (let k = 1; k < 4; k++) { const yy = y + h * (k / 4); c.beginPath(); c.moveTo(x, yy); c.lineTo(x + w, yy); c.stroke() }   // scan lines
+  c.restore()
+}
+
 function drawFrozenOverlay(c, fighter) {
   const t = fighter && (fighter._supFrozen || 0)
   if (!c || t <= 0) return
@@ -19014,6 +19056,7 @@ function updateFighterState(fighter) {
   if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
+  supermanFlightEscape(updated)   // Superman defensive: burst out of a combo into flight (Special + 25 energy while in hitstun, 10s cd, 12f invuln)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
@@ -20559,6 +20602,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawFrozenOverlay(c, fighter)           // Superman — Freeze Breath: icy tint + ice shards over ANY frozen fighter (_supFrozen > 0)
+    drawXRayTint(c, fighter)                // Superman — X-Ray Vision: blue scan-tint over a sub-25%-HP opponent of Superman (render-only)
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
@@ -27755,7 +27799,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, knockdown: !!f.knockdownState } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({
@@ -28099,6 +28143,8 @@ gameLoop()
     // win/lose pose hook. Reuses the sudden-death _matchOverride path so it works in any harness mode.
     forceMatchWin: (side = "p1") => { _matchOverride = { winnerSide: side }; _checkMatchOver(); return { gameState, victory: !!victoryState.active, winner: victoryState.winnerSide || null } },
     p1ForceLight: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; startMove(p1, "light", { startup: 4, active: 6, recovery: 12, damage: 45, rangeX: 150, rangeY: 100, hitstun: 12, knockbackX: 3 }) } },   // deterministic light swing (Rendan-fire test, no keyboard flake)
+    p1ForceHeavy: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.comboCounter = 0; startMove(p1, "heavy", { startup: 10, active: 10, recovery: 26, damage: 80, rangeX: 150, rangeY: 100, hitstun: 18, knockbackX: 5, category: "heavy" }) } },   // deterministic heavy (Super Armor test)
+    setHealth: (v, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.health = Math.max(0, Math.min(f.maxHealth || 1000, v)); f.comboCounter = 0; f.comboTimer = 0 } },   // test-only: set a fighter's HP (X-Ray threshold tests)
     // Drive a REAL p2 attack of a chosen CATEGORY (heavy/special/ultimate) — used to reproduce the
     // Goku Black knockdown re-trigger soft-lock (rapid successive knockdown-class hits). Short startup
     // so it connects quickly; the category drives resolveAttackHit's knockdown gate.

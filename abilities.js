@@ -17736,6 +17736,8 @@ export function applySupermanModeSystem(fighter) {
   tickSustainedFormDrain(fighter, { active: isSupermanSolarFlare, drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanSolarFlare })
   tickSustainedFormDrain(fighter, { active: isSupermanOverload,   drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanOverload })
   if ((fighter._supFreezeCd || 0) > 0) fighter._supFreezeCd--   // FREEZE BREATH cooldown (8s) — cannot be looped
+  if ((fighter._supArmorCd || 0) > 0) fighter._supArmorCd--     // SUPER ARMOR (Heavy) cooldown (8s)
+  if ((fighter._supFlightEscCd || 0) > 0) fighter._supFlightEscCd--   // FLIGHT ESCAPE cooldown (10s)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

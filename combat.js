@@ -3298,6 +3298,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // idiom). Gated on _supFrozen, which only Superman's Freeze Breath ever sets → zero effect on any
   // other matchup (frame-data diff for every other character stays zero).
   if ((defender._supFrozen || 0) > 0) dmg = Math.floor(dmg * 1.15)
+  // SUPERMAN — X-RAY VISION (passive): +8% damage while the opponent is below 25% health ("seeing their
+  // weak points"). Gated on the ATTACKER being superman → no effect on any other character's output.
+  if ((attacker.rosterKey || "").toLowerCase() === "superman" && (defender.maxHealth || 0) > 0 && defender.health * 4 < defender.maxHealth) dmg = Math.floor(dmg * 1.08)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3351,10 +3354,17 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // WOOD-CLONE CAST ARMOR (Hashirama one-shot strike): brief window shrugging a non-launcher hit — he can't
     // be flinched out of committing the wood-clone strike (wood durability, translated to a one-shot shape).
     const castArmored = (defender._castArmor || 0) > 0 && !atk.launcher && !atk.spike && cat !== "ultimate"
+    // SUPERMAN — SUPER ARMOR on Heavy: while committing his Heavy he shrugs ONE hit without flinching (still
+    // takes the damage), then it goes on an 8s cooldown. Launchers/spikes/ultimates pierce it. Gated on
+    // superman → no effect on any other character.
+    const supArmored = (defender.rosterKey || "").toLowerCase() === "superman" && defender.attacking &&
+      defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
+      !atk.launcher && !atk.spike && cat !== "ultimate"
 
-    if (bossArmored || castArmored) {
+    if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
+      if (supArmored) defender._supArmorCd = 480   // consume the armor → 8s cooldown (one absorb per window)
     } else {
       applyHitstop(attacker, defender, getHitstopFrames(atk))
       defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)) + (isCounter ? COUNTER_HIT_BONUS_HITSTUN : 0))   // COUNTER-HIT: +8 hitstun
@@ -3388,8 +3398,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.playSfxFile?.("beerus_hit_reaction.mp3", null) } catch (_) {}
     }
 
-    if (bossArmored) {
-      // Boss shrug: no vertical displacement either — it stays planted and keeps attacking.
+    if (bossArmored || supArmored) {
+      // Armor shrug: no vertical displacement either — Superman stays planted and finishes his Heavy.
     } else if (atk.launcher) {
       // Per-character tuned launch (launchVy/selfVy) → EXACT velocities; otherwise
       // the legacy floor pop. The launcher resets attacker.airHits to 0 so the
@@ -4189,10 +4199,20 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
       let dmg = (proj.damage || 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
 
+      // SUPERMAN — X-RAY VISION (passive): his projectiles (e.g. Heat Vision) also gain +8% vs a sub-25%-HP
+      // target. Gated on the OWNER being superman; the damage write is at applyScaledDamage below.
+      if (proj.owner && (proj.owner.rosterKey || "").toLowerCase() === "superman" && (fighter.maxHealth || 0) > 0 && fighter.health * 4 < fighter.maxHealth) dmg = dmg * 1.08
+      // SUPERMAN — SUPER ARMOR on Heavy also shrugs a PROJECTILE (no hitstun/knockback), still takes the
+      // damage, consumes the armor → 8s cd. Ultimates pierce. Gated on superman; no-op for everyone else.
+      const supArmoredProj = !fighter.isBlocking && (fighter.rosterKey || "").toLowerCase() === "superman" &&
+        fighter.attacking && fighter.currentAttack && fighter.currentAttack.name === "heavy" &&
+        (fighter._supArmorCd || 0) <= 0 && !proj.isUltimate
       if (fighter.isBlocking) {
         dmg *= 0.15
         fighter.blockstun = 12
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+      } else if (supArmoredProj) {
+        fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
       } else {
         fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
         if (proj.timeSlow) fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, proj.timeSlow)   // Clockwork Time Ray: stamp the slow debuff on hit

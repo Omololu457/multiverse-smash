@@ -16285,16 +16285,106 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
 // (Omni-Man/Kurama sure-hit shape). Shared pool: the 100 cost competes with flight + specials + modes.
 // ─────────────────────────────────────────────────────────────────────────
 const SUPERMAN_ULT = { cost: 100, dmg: 380, blockRatio: 0.25 }
+// WORLD OF CARDBOARD — scripted per-frame ultimate state machine (called from game.js updateFighterState).
+// stands tall → dash FIRST STRIKE (must connect, else it fizzles) → super-speed barrage → uppercut
+// launch → fly up & catch → point-blank Heat Vision → final slam from orbit. ~380 guaranteed (bypasses
+// combo scaling), then a 4s Solar Energy lock. Deterministic (frame-counted; no RNG).
+export function applySupermanWoC(fighter, context = {}) {
+  const s = fighter && fighter._supWoC; if (!s) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  const face = fighter.facing || 1
+  const floor = supermanFloor(fighter, context)
+  supermanMoveLock(fighter)
+  const hurt = (n) => { if (opp && !opp.eliminated) applyScaledDamage(opp, n, { source: "ability", attacker: fighter, move: "ultimate", bypassScale: true }) }
+  const carry = (frac, vy) => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * frac); if (vy != null) opp.vy = vy; opp.hitstun = Math.max(opp.hitstun || 0, 10) } }
+
+  if (s.phase === "startup") {
+    fighter.vx = 0; fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 4
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+    if (--s.t <= 0) { s.phase = "dash"; s.t = 22; fighter.vx = face * 22 }
+    return
+  }
+  if (s.phase === "dash") {
+    fighter._spriteCastMove = "run"; fighter._spriteCastTimer = 4; fighter.vx = face * 22
+    if (opp && !(opp.invulnTimer > 0)) {
+      const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+      if (dx < 115 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 150) {
+        opp.vx = 0; opp.vy = 0; opp.onGround = true; opp.hitstun = Math.max(opp.hitstun || 0, 220); opp.colorFlash = 10
+        hurt(20); shakeCamera(context, 5, 6)
+        s.phase = "barrage"; s.t = 36; s.hits = 0; fighter.vx = 0
+        return
+      }
+    }
+    if (--s.t <= 0) { s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // FIRST STRIKE missed → fizzle
+    return
+  }
+  if (s.phase === "barrage") {
+    fighter.vx = 0; carry(0.55, 0); if (opp) { opp.vx = 0; opp.onGround = true }
+    if (s.t % 5 === 0 && s.hits < 6) { fighter._spriteCastMove = (s.hits % 2 ? "heavy" : "light"); fighter._spriteCastTimer = 5; hurt(15); if (opp) opp.colorFlash = 6; shakeCamera(context, 3, 3); s.hits++ }
+    if (--s.t <= 0) { s.phase = "uppercut"; s.t = 16 }
+    return
+  }
+  if (s.phase === "uppercut") {
+    fighter._spriteCastMove = "up"; fighter._spriteCastTimer = 6
+    if (s.t === 16 && opp) { opp.vy = -22; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 140); hurt(40); shakeCamera(context, 6, 8) }
+    if (--s.t <= 0) { s.phase = "flyup"; s.t = 18 }
+    return
+  }
+  if (s.phase === "flyup") {
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 6
+    fighter.vy = -16; fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
+    carry(0.4, -16); if (opp) opp.onGround = false
+    if (--s.t <= 0) { s.phase = "heatvision"; s.t = 30; fighter.vy = 0 }
+    return
+  }
+  if (s.phase === "heatvision") {
+    fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 6; fighter.vy = 0; fighter.vx = 0
+    carry(0.55, 0)
+    if (s.t % 5 === 0) { hurt(8); if (opp) opp.colorFlash = 6 }
+    if (--s.t <= 0) { s.phase = "slam"; s.t = 42 }
+    return
+  }
+  if (s.phase === "slam") {
+    fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vy = 24; fighter.vx = 0
+    if (opp && !s.slammed) {
+      opp.vy = 28; opp.x = fighter.x + face * ((fighter.w || 60) * 0.4); opp.hitstun = Math.max(opp.hitstun || 0, 10)
+      if (opp.y + (opp.h || 100) >= floor - 2) {
+        s.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 60); opp.noTech = true
+        opp.colorFlash = 18; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+        hurt(182); shakeCamera(context, 14, 16)
+      }
+    }
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+    if (s.slammed || (--s.t <= 0 && fighter.onGround)) {
+      fighter._supWoC = null; fighter.attacking = false
+      fighter.attackCooldown = getAttackDuration(18, fighter)
+      fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16
+      fighter._supEnergyLock = 240   // 4s no-specials lock
+    }
+    return
+  }
+  // whiff recovery (first strike missed)
+  fighter.vx *= 0.9; fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 4
+  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supEnergyLock = 120 }
+}
 function executeSupermanUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "superman") return false
-  if (isSupermanUltimateCinematicActive()) return false            // already mid-cinematic
+  if (fighter._supWoC || fighter._supGPound || fighter._supKGrab) return false   // already mid-move
   if (!spendEnergy(fighter, SUPERMAN_ULT.cost)) return false
-  const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
   fighter._flightActive = false                                    // ult overrides any flight/mode state
   forceRevertSupermanModes(fighter)
-  activateSupermanUltimateCinematic(fighter, opp, (cineCtx) => applySupermanUltimateDamage(fighter, opp, cineCtx))
-  supermanCastBark(fighter)   // Kryptonian ultimate cast bark (audio-only)
+  // WORLD OF CARDBOARD — scripted multi-hit super (driven per-frame by applySupermanWoC): stands tall →
+  // dash first strike (must connect) → super-speed barrage → uppercut launch → fly up & catch →
+  // point-blank Heat Vision → final slam from orbit. ~380 guaranteed, then a 4s Solar Energy lock.
+  fighter._supWoC = { phase: "startup", t: 26, hits: 0, slammed: false }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)
+  supermanMoveLock(fighter)
+  fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 26
+  supermanCastBark(fighter)   // Kryptonian ultimate cast bark ("World of Cardboard"-era line if mapped)
   return true
 }
 
@@ -17644,6 +17734,7 @@ function fireSupermanFlyingPunch(fighter, context) {
   return true
 }
 export function executeSupermanSpecial(fighter, context) {
+  if (fighter._supWoC || (fighter._supEnergyLock || 0) > 0) return false   // mid-ult, or the 4s post-ult Solar Energy lock
   // Deterministic held-direction routing (_specialHeldDir — robust, non-time-windowed; Killua pattern):
   //   Down = Solar Flare toggle · Back = Kryptonian Overload toggle · Forward = Super Flying Punch ·
   //   Neutral/Up = Heat Vision. Re-pressing a mode's direction while it's active toggles it OFF.
@@ -17738,6 +17829,7 @@ export function applySupermanModeSystem(fighter) {
   if ((fighter._supFreezeCd || 0) > 0) fighter._supFreezeCd--   // FREEZE BREATH cooldown (8s) — cannot be looped
   if ((fighter._supArmorCd || 0) > 0) fighter._supArmorCd--     // SUPER ARMOR (Heavy) cooldown (8s)
   if ((fighter._supFlightEscCd || 0) > 0) fighter._supFlightEscCd--   // FLIGHT ESCAPE cooldown (10s)
+  if ((fighter._supEnergyLock || 0) > 0) fighter._supEnergyLock--     // 4s post-ultimate Solar Energy lock
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

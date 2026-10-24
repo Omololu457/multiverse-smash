@@ -4695,8 +4695,8 @@ const superman = {
     ultimate:  { frames: 3, width: 68, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
     // ── FLIGHT (flight.js module — required pose keys)
     flyHover:  { frames: 3, width: 47, height: 69, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
-    flyCruise: { frames: 3, width: 62, height: 77, speed: 6, anchorY: 0, sheet: "./superman_flycruise_uniform.png" },
-    flyRise:   { frames: 2, width: 66, height: 71, speed: 5, anchorY: 0, sheet: "./superman_flightrise_uniform.png" },
+    flyCruise: { frames: 1, width: 59, height: 57, speed: 6, anchorY: 0, loop: true, sheet: "./superman_flycruise_uniform.png" },
+    flyRise:   { frames: 1, width: 59, height: 71, speed: 5, anchorY: 0, loop: true, sheet: "./superman_flightrise_uniform.png" },
     flyDive:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
     flyTurn:   { frames: 1, width: 57, height: 66, speed: 5, anchorY: 0, sheet: "./superman_flyturn_uniform.png" },
     flyDash:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },

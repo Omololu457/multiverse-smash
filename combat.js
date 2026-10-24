@@ -723,6 +723,15 @@ export function getHurtbox(fighter) {
     const giant = _giantHurtbox(fighter)
     if (giant) return giant   // else fall through to the normal box for the pre-first-draw frame
   }
+  // SUPERMAN — his spriteScale (2.0) draws him taller than the standard 60×100 physics box, so ~64px of
+  // his head/torso sat ABOVE the hurtbox and couldn't be hit. Raise the hurtbox TOP to cover the visible
+  // body (just below the head), keeping x/width centred on the physics box (so the trailing cape isn't
+  // hittable) and the bottom at the feet. Gated on superman → every other character is byte-identical.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman" && fighter._lastDrawH != null && fighter._lastDrawY != null) {
+    const top = Math.min(fighter.y + 6, fighter._lastDrawY + fighter._lastDrawH * 0.12)
+    const bottom = fighter.y + fighter.h
+    return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
+  }
   return {
     x: fighter.x + 6,
     y: fighter.y + 6,

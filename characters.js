@@ -4645,7 +4645,7 @@ const superman = {
   traits: { hasEnergy: true, energyType: "solar_energy", energyName: "Solar Energy", mobility: "high", scaling: "damage", animeMovement: false, flightProfile: "superman" },
   passive: { name: "Kryptonian Physiology", effect: "Yellow-sun-charged strength and durability — tough, fast, and free to take to the sky on a 5-second flight budget. X-Ray Vision: +8% damage while the opponent is below 25% health." },
   // POWERHOUSE-but-fair: tougher + faster than Homelander (1050/99), far below the old apex (1450).
-  stats: { maxHealth: 1150, maxEnergy: 100, attack: 95, defense: 92, speed: 94, maxJumps: 2, jumpPower: 30, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 30 },
+  stats: { maxHealth: 1150, maxEnergy: 100, attack: 95, defense: 92, speed: 99, maxJumps: 2, jumpPower: 32, dashSpeed: 30, dashDuration: 12, dashCooldownMax: 20 },
   movement: { dashTeleport: true },
   // ── NORMALS (Phase 4 brief). No energy cost. Diminishing-returns combo scaling is engine-global.
   basic_attacks: {

@@ -90,6 +90,7 @@ import {
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
   applySupermanWoC,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
+  applySupermanHeatVision,   // Superman HEAT VISION: sustained auto-aim hitscan beam while Special is HELD (tap = single shot)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -17315,6 +17316,29 @@ function drawHomelanderHeatVision(c, fighter) {
   c.restore()
 }
 
+// SUPERMAN — HEAT VISION sustained beam. Reads the SIM-stamped _supHvBeam render-state
+// (abilities.applySupermanHeatVision) and draws a red (gold in Solar Flare) eye-laser to the auto-aimed
+// target. Render-only (never writes sim state). superman only.
+function drawSupermanHeatVision(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "superman") return
+  const b = fighter._supHvBeam
+  if (!b) return
+  const core = b.flare ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.95)"
+  const mid  = b.flare ? "rgba(255,210,90,0.9)"   : "rgba(255,120,90,0.85)"
+  const glow = b.flare ? "rgba(255,180,40,0.55)"  : "rgba(255,40,30,0.55)"
+  c.save(); c.lineCap = "round"
+  c.strokeStyle = glow; c.lineWidth = b.flare ? 13 : 9; c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.strokeStyle = mid;  c.lineWidth = b.flare ? 7 : 5;  c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.strokeStyle = core; c.lineWidth = 2;                c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.fillStyle = b.flare ? "rgba(255,210,90,0.95)" : "rgba(255,90,60,0.95)"; c.beginPath(); c.arc(b.ox, b.oy, 3.5, 0, Math.PI * 2); c.fill()
+  if (b.hit) {
+    const r = 8 + ((b.tick || 0) % 4)
+    c.fillStyle = b.flare ? "rgba(255,230,150,0.7)" : "rgba(255,180,120,0.7)"; c.beginPath(); c.arc(b.tx, b.ty, r, 0, Math.PI * 2); c.fill()
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.beginPath(); c.arc(b.tx, b.ty, r * 0.4, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 function drawZoldyckFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "zoldyck") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -19059,6 +19083,7 @@ function updateFighterState(fighter) {
   applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
   supermanFlightEscape(updated)   // Superman defensive: burst out of a combo into flight (Special + 25 energy while in hitstun, 10s cd, 12f invuln)
   applySupermanWoC(updated, getAbilityContext())   // Superman ULTIMATE "World of Cardboard": scripted multi-hit state machine
+  applySupermanHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Superman HEAT VISION: HOLD Special → sustained auto-aim beam + drain + hitscan ticks (gated on rosterKey)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
@@ -20621,6 +20646,7 @@ function renderHybridFighter(fighter) {
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawHomelanderHeatVision(c, fighter)    // Homelander — twin code-drawn Heat Vision beam (white core + red glow + impact burst) from the eye anchor; dim-eye overheat tell (homelander only)
+    drawSupermanHeatVision(c, fighter)      // Superman — sustained auto-aim Heat Vision beam (held Special), red/gold eye-laser to the target (superman only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawVilgaxDrone(c, fighter)             // Vilgax — Chimerian hover gun-drone summon (s716cB art blit; vilgax only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
@@ -27801,7 +27827,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, woc: f._supWoC ? f._supWoC.phase : null, energyLock: f._supEnergyLock || 0, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, woc: f._supWoC ? f._supWoC.phase : null, energyLock: f._supEnergyLock || 0, hvBeam: !!f._supHvBeam, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

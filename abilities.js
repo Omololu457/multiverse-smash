@@ -17713,8 +17713,51 @@ function fireSupermanHeatVision(fighter, context) {
       spawnY: fighter.y + (fighter.h || 100) * 0.18   // eye height
     }, context)
   })
+  // Arm the HOLD tracker: a quick tap = just this single beam shot; keep holding Special and the
+  // sustained auto-aim beam (applySupermanHeatVision) kicks in after SUP_HV_HOLD_THRESHOLD frames.
+  fighter._supHvHold = { t: 0 }
   supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
   return true
+}
+// SUPERMAN — HEAT VISION sustained auto-aim beam (Omni-Man-style). TAP neutral Special = the single beam
+// shot above. HOLD it and, after a short window, this per-frame driver fires a continuous hitscan beam that
+// LOCKS ONTO the opponent wherever they are (turns to face them), ticking damage and draining Solar Energy
+// until released or the meter empties. game.js passes raw input + draws the beam (drawSupermanHeatVision).
+const SUP_HV_HOLD_THRESHOLD = 9   // frames the Special must stay held before the sustained beam begins
+const SUP_HV_TICK = 6             // damage every N active frames
+const SUP_HV_TICK_DMG = 8         // raw per tick (scaled on the write)
+const SUP_HV_DRAIN = 0.35         // Solar Energy per frame while sustaining
+export function applySupermanHeatVision(fighter, raw = {}, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const h = fighter._supHvHold
+  if (!h) { if (fighter._supHvBeam) fighter._supHvBeam = null; return }
+  if (!raw.special) { fighter._supHvHold = null; fighter._supHvBeam = null; fighter._supHvTick = 0; return }   // released
+  h.t++
+  if (h.t < SUP_HV_HOLD_THRESHOLD) return   // still the tap window (the single shot already fired)
+  // mid-ult / other scripted move → suppress the sustained beam
+  if (fighter._supWoC || fighter._supGPound || fighter._supKGrab) { fighter._supHvBeam = null; return }
+  if ((fighter.energy || 0) <= 0) { fighter._supHvHold = null; fighter._supHvBeam = null; return }   // out of Solar Energy
+  fighter.energy = Math.max(0, fighter.energy - SUP_HV_DRAIN)
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1   // AUTO-AIM: turn to the target
+  const face = fighter.facing || 1
+  if (fighter.onGround || fighter.grounded) fighter.vx = 0
+  fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 4
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 3)   // hold the beam stance
+  const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
+  let tx = ox + face * 600, ty = oy, hit = false
+  if (opp) {
+    tx = opp.x + (opp.w || 50) / 2; ty = opp.y + (opp.h || 100) * 0.40; hit = true
+    if (!(opp.invulnTimer > 0)) {
+      fighter._supHvTick = (fighter._supHvTick || 0) + 1
+      if (fighter._supHvTick % SUP_HV_TICK === 0) {
+        const dmg = fighter._solarFlareActive ? SUP_HV_TICK_DMG * 1.5 : SUP_HV_TICK_DMG
+        if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 6); applyScaledDamage(opp, dmg * 0.3, { source: "ability" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.colorFlash = 5; applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "heatVision" }) }
+      }
+    }
+  }
+  fighter._supHvBeam = { ox, oy, tx, ty, hit, flare: !!fighter._solarFlareActive, tick: fighter._supHvTick || 0 }
 }
 function fireSupermanFlyingPunch(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false

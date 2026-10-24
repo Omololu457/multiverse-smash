@@ -16157,7 +16157,7 @@ export function resetHomelanderKit(fighter) {
 // Uses normal physics for the victim's arc (launch vy → driven down) so no two-actor carry gating is
 // needed. Deterministic (no Math.random).
 // ─────────────────────────────────────────────────────────────────────────
-const F37 = { cost: 100, startup: 24, lunge: 16, slam: 26, whiffRecover: 44, grabRange: 140, dmg: 320 }
+const F37 = { cost: 100, startup: 20, laser: 32, flyup: 22, run: 74, grabRange: 190 }   // "FLIGHT 37": laser-stun → fast fly-up grab → run across the maps → throw to the back
 
 export function executeHomelanderUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
@@ -16179,52 +16179,69 @@ export function applyHomelanderFlight37(fighter, context = {}) {
   const s = fighter._f37; if (!s) return
   const opp = context.getOpponent ? context.getOpponent(fighter) : null
   const face = fighter.facing || 1
-  fighter.attacking = false
+  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : 520)
+  fighter.attacking = true; fighter.currentAttack = null   // lock the player out for the whole cinematic
   s.t--
   if (s.phase === "startup") {
-    fighter.vx = 0
-    fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
-    if (s.t <= 0) { s.phase = "lunge"; s.t = F37.lunge; fighter.vx = face * 26 }   // supersonic grab lunge
+    fighter.vx = 0; fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
+    if (s.t <= 0) { s.phase = "laser"; s.t = F37.laser }
     return
   }
-  if (s.phase === "lunge") {
-    fighter._hlBoomFx = 6
+  if (s.phase === "laser") {   // LASER the enemy → STUN
+    fighter.vx = 0; fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 4
+    if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1
+    const eye = getHomelanderEyeWorld(fighter)
     if (opp && !(opp.invulnTimer > 0)) {
-      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
-      if (dx < F37.grabRange && Math.abs(opp.y - fighter.y) < 150) {   // grab connects → launch them up for the slam
-        opp.vy = -16; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 70); opp.colorFlash = 10
-        s.phase = "slam"; s.t = F37.slam; fighter.vx = 0
-        return
-      }
+      fighter._hv = { ox: eye.x, oy: eye.y, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
+      opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = 0; opp.colorFlash = 6
+      if (s.t % 5 === 0) applyScaledDamage(opp, 10, { source: "ability", attacker: fighter, move: "ultimate" })
     }
-    if (s.t <= 0) { s.phase = "whiff"; s.t = F37.whiffRecover; fighter.vx = face * 6 }   // missed → overshoot + long recovery
+    if (s.t <= 0) { fighter._hv = null; s.phase = "flyup"; s.t = F37.flyup }
     return
   }
-  if (s.phase === "slam") {
-    fighter.vx = 0
+  if (s.phase === "flyup") {   // fly super fast to grab the stunned enemy, carry upward
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 4
+    fighter.onGround = false; fighter.grounded = false; fighter._hlBoomFx = 6
+    const toOpp = opp ? (Math.sign((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2)) || face) : face
+    fighter.vx = toOpp * 24; fighter.vy = -12
     if (opp) {
-      opp.hitstun = Math.max(opp.hitstun || 0, 4)
-      if (s.t < F37.slam - 6) opp.vy = Math.max(opp.vy || 0, 16)   // after a beat, HEAT VISION drives them down
-      const floor = (opp.groundY != null ? opp.groundY : 520)
-      if (opp.y + (opp.h || 100) >= floor - 2 && !s.slammed) {     // impact
-        s.slammed = true
-        opp.y = floor - (opp.h || 100); opp.vy = 0
-        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48); opp.colorFlash = 16
-        opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
-        applyScaledDamage(opp, F37.dmg, { source: "ability", attacker: fighter, move: "ultimate" })
-        shakeCamera(context, 8, 12)
-        fighter._f37slam = 22   // impact ring/dust render timer
+      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
+      if (dx < F37.grabRange) {
+        opp.vx = 0; opp.vy = -12; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.onGround = false; opp.isLaunched = false; opp.knockdownState = false
+        opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.4); opp.y = fighter.y
+        if (s.t <= 0 || fighter.y <= floor - 170) { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
       }
-      // render the slam beam from Homelander's eyes (per-frame anchor) down onto the victim
-      const _eye37 = getHomelanderEyeWorld(fighter); const ox = _eye37.x, oy = _eye37.y
-      fighter._hv = { ox, oy, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
     }
-    if (s.t <= 0) { fighter._hv = null; fighter._f37 = null }
+    if (s.t <= 0 && s.phase === "flyup") { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
     return
   }
-  // whiff recovery
-  fighter.vx *= 0.9
-  if (s.t <= 0) fighter._f37 = null
+  if (s.phase === "run") {   // RUN ACROSS THE MAPS — the world blurs past (drawHomelanderSpeedRun), rapid hits
+    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 3
+    fighter._hlRunFx = 16   // drives the maps-blur backdrop
+    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, floor - 150)
+    if (opp) {
+      opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.5); opp.y = fighter.y; opp.vx = 0; opp.vy = 0; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 10)
+      if (s.t % 6 === 0 && (s.hits || 0) < 10) { applyScaledDamage(opp, 12, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 6; shakeCamera(context, 3, 3); fighter._hlBoomFx = 5; s.hits = (s.hits || 0) + 1 }
+    }
+    if (s.t <= 0) { s.phase = "throw"; s.t = 32; s.thrown = false }
+    return
+  }
+  if (s.phase === "throw") {   // hurl them to the BACK of the map
+    fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 4
+    fighter._hlRunFx = Math.max(0, (fighter._hlRunFx || 0) - 3)
+    if (!s.thrown && opp) {
+      const dir = -fighter.facing   // away from Homelander → toward the far wall
+      opp.vx = dir * 36; opp.vy = -8; opp.isLaunched = true; opp.onGround = false
+      opp.hitstun = Math.max(opp.hitstun || 0, 60); opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 70); opp.noTech = true; opp.colorFlash = 18; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+      applyScaledDamage(opp, 150, { source: "ability", attacker: fighter, move: "ultimate" })
+      shakeCamera(context, 14, 18)
+      try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
+      s.thrown = true
+    }
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true } else fighter.vy = 12
+    if (s.t <= 0) { fighter._hlRunFx = 0; fighter._hv = null; fighter.attacking = false; fighter._f37 = null; fighter.attackCooldown = getAttackDuration(16, fighter) }
+    return
+  }
 }
 
 export function isHomelanderUltActive(fighter) { return !!(fighter && fighter._f37) }

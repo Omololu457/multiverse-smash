@@ -12359,6 +12359,26 @@ function drawSupermanMoonBackdrop(ctx, canvas) {
   ctx.restore()
 }
 
+// HOMELANDER — ULTIMATE "run across the maps". While he carries the enemy at hyper-speed (_hlRunFx > 0,
+// stamped by applyHomelanderFlight37) the WORLD blurs past: real stage backgrounds scroll + motion streaks,
+// screen-space UNDER the fighters (reuses the Flash speed-run panel helpers). Render-only.
+function drawHomelanderSpeedRun(ctx, canvas) {
+  if (!ctx || !canvas) return
+  const hl = [p1, p2].find(f => f && (f._hlRunFx || 0) > 0 && (f.rosterKey || "").toLowerCase() === "homelander")
+  if (!hl) return
+  const cw = canvas.width, ch = canvas.height, elapsed = globalFrameCount, dir = hl.facing || 1
+  ctx.save()
+  _drawRunPanels(ctx, cw, ch, elapsed, dir, SPEEDRUN_PANELS, 0.14)
+  ctx.globalAlpha = 0.25; ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2; ctx.lineCap = "round"
+  for (let i = 0; i < 22; i++) {
+    const h = (Math.imul(i, 2654435761) >>> 0) / 4294967296, yy = h * ch, len = cw * (0.3 + ((Math.imul(i, 40503) >>> 0) / 4294967296) * 0.5)
+    const sx = cw - ((elapsed * cw * 0.5 + h * cw * 3) % (cw + len))
+    ctx.beginPath(); ctx.moveTo(sx, yy); ctx.lineTo(sx - dir * len, yy); ctx.stroke()
+  }
+  ctx.globalAlpha = 1; ctx.fillStyle = "rgba(90,150,255,0.07)"; ctx.fillRect(0, 0, cw, ch)
+  ctx.restore()
+}
+
 // SUPERMAN — throw-down SWIRL: a spiralling streak around an enemy being hurled to the ground during the
 // ultimate (_supSwirl > 0, stamped on the victim). Render-only; ticks itself down.
 function drawSupermanThrowSwirl(c, fighter) {
@@ -22420,6 +22440,7 @@ function drawBattleScene() {
   _drawKamuiDimensionBg(ctx, canvas)
   _drawSpeedRunBackdrop(ctx, canvas)   // Flash SPEED FORCE finisher — other maps blur past, under the fighters
   drawSupermanMoonBackdrop(ctx, canvas)   // Superman ULTIMATE — space-black sky + stars + Moon while mid-ult, under the fighters
+  drawHomelanderSpeedRun(ctx, canvas)     // Homelander ULTIMATE — maps blur past while he runs the enemy across the world, under the fighters
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE

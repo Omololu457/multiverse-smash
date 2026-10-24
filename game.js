@@ -12265,6 +12265,38 @@ function drawSupermanSolarFlareAura(c, fighter) {
   c.restore()
 }
 
+// SUPERMAN — FREEZE BREATH frost overlay. Drawn on ANY fighter with _supFrozen > 0 (the victim, which can
+// be any character). RENDER-ONLY: driven entirely by the sim field _supFrozen (deterministic countdown) +
+// _supFrozenMax — no render accumulator is stashed on the fighter, so nothing leaks into GAME_STATE.
+function drawFrozenOverlay(c, fighter) {
+  const t = fighter && (fighter._supFrozen || 0)
+  if (!c || t <= 0) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const max = fighter._supFrozenMax || 72
+  const fade = Math.min(1, t / max)              // fades as the freeze wears off
+  const cx = x + w / 2, cy = y + h / 2
+  c.save()
+  // icy body tint
+  c.globalAlpha = 0.30 * fade
+  c.fillStyle = "#a9e0ff"
+  const r = 12, rx = x - 3, ry = y - 3, rw = w + 6, rh = h + 6
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.fill()
+  // frosted rim
+  c.globalAlpha = 0.5 * fade; c.strokeStyle = "#e6f6ff"; c.lineWidth = 2; c.shadowBlur = 10; c.shadowColor = "#bfeaff"; c.stroke()
+  // ice shards radiating out (deterministic phase from the countdown — no render field)
+  c.globalAlpha = 0.45 * fade; c.strokeStyle = "#ffffff"; c.lineWidth = 2; c.shadowBlur = 0
+  const R0 = Math.max(w, h) * 0.42, R1 = R0 + 12
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2 + t * 0.012
+    c.beginPath(); c.moveTo(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0); c.lineTo(cx + Math.cos(a) * R1, cy + Math.sin(a) * R1); c.stroke()
+  }
+  c.restore()
+}
+
 // SUPERMAN KRYPTONIAN OVERLOAD (Stage 4) — blue electric crackle while _overloadActive (OVERLAY). A blue
 // pulsing outline + jagged lightning arcs around the body. Drawn BEHIND the body. No-op otherwise.
 function drawSupermanOverloadAura(c, fighter) {
@@ -20505,6 +20537,7 @@ function renderHybridFighter(fighter) {
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
+    drawFrozenOverlay(c, fighter)           // Superman — Freeze Breath: icy tint + ice shards over ANY frozen fighter (_supFrozen > 0)
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
@@ -27701,7 +27734,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0) } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

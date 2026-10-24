@@ -3276,6 +3276,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // BATMAN (dark_knight) — RAGE MODE reckless trade-off: WHILE raging he hits harder (dmg×) but guards worse,
   // taking +15% damage. The berserker's real cost, tied to the same dmg-taken amp (active-window, not post-revert).
   if (defender._dkRageActive) dmg = Math.floor(dmg * 1.15)
+  // SUPERMAN — FREEZE BREATH: a frozen opponent takes +15% damage from follow-ups (same dmg-taken amp
+  // idiom). Gated on _supFrozen, which only Superman's Freeze Breath ever sets → zero effect on any
+  // other matchup (frame-data diff for every other character stays zero).
+  if ((defender._supFrozen || 0) > 0) dmg = Math.floor(dmg * 1.15)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3818,6 +3822,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   }
 
   if (fighter.hitstun > 0) fighter.hitstun--
+  // SUPERMAN — FREEZE BREATH lock: while _supFrozen, keep the fighter action-locked (top up hitstun) and
+  // count the status down. Only Superman's Freeze Breath ever sets _supFrozen (no-op for everyone else).
+  if ((fighter._supFrozen || 0) > 0) { fighter._supFrozen--; if (fighter.hitstun < fighter._supFrozen) fighter.hitstun = fighter._supFrozen; fighter.vx = 0 }
   if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
   if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window

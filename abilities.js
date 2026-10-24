@@ -17657,14 +17657,12 @@ export function executeSupermanSpecial(fighter, context) {
     if (enterSupermanSolarFlare(fighter, context)) return true
     return fireSupermanHeatVision(fighter, context)   // not enough Solar Energy → fall back to the beam
   }
-  if (dir === "B") {
-    if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-    if (fighter._overloadActive) { revertSupermanOverload(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
-    if (enterSupermanOverload(fighter, context)) return true
-    return fireSupermanHeatVision(fighter, context)
-  }
+  // BACK (or UP) + Special = FREEZE BREATH. The brief's ↓↓ motion maps here: Down is the Solar Flare
+  // toggle and Up collides with jump, so Back is the clean, reliable slot. (The old Kryptonian Overload
+  // mode is dropped from the kit per the rebuild brief; its code stays defined but is no longer routed.)
+  if (dir === "B" || dir === "U") return fireSupermanFreezeBreath(fighter, context)
   if (dir === "F") return fireSupermanFlyingPunch(fighter, context)   // FORWARD = charged dash-strike (Overload-enhanced)
-  return fireSupermanHeatVision(fighter, context)                     // NEUTRAL/UP = eye-beam (Solar-Flare-enhanced)
+  return fireSupermanHeatVision(fighter, context)                     // NEUTRAL = eye-beam (Solar-Flare-enhanced)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17734,6 +17732,55 @@ export function applySupermanModeSystem(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
   tickSustainedFormDrain(fighter, { active: isSupermanSolarFlare, drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanSolarFlare })
   tickSustainedFormDrain(fighter, { active: isSupermanOverload,   drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanOverload })
+  if ((fighter._supFreezeCd || 0) > 0) fighter._supFreezeCd--   // FREEZE BREATH cooldown (8s) — cannot be looped
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN — FREEZE BREATH (Phase 4). Up+Special: a medium-range forward CONE of super-cooled breath
+// (hitscan — no projectile plumbing). On a clean hit it deals 30 and FREEZES the target for 1.2 s
+// (72f): the FROZEN opponent can't act (hitstun lock, ticked in combat.js) and takes +15% damage from
+// follow-ups (combat.js dmg-taken amp). 8-second cooldown so it can't be spammed/looped. The frozen
+// render overlay is drawn in game.js (drawFrozenOverlay). The brief's ↓↓ motion is mapped to Up+Special
+// because Superman's Special button is already direction-branched (Down/Back are the two mode toggles).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_FREEZE = { cost: 20, dmg: 30, dur: 72, cdFrames: 480, reach: 520, vBand: 150, windup: 9 }
+function applySupermanFreeze(opp, fighter, context) {
+  if (!opp || (opp.invulnTimer || 0) > 0) return false
+  opp.vx = 0; opp.vy = 0
+  opp._supFrozen    = SUPERMAN_FREEZE.dur
+  opp._supFrozenMax = SUPERMAN_FREEZE.dur   // render: overlay opacity fades with _supFrozen / _supFrozenMax
+  opp.hitstun       = Math.max(opp.hitstun || 0, SUPERMAN_FREEZE.dur)
+  opp.colorFlash    = Math.max(opp.colorFlash || 0, 10)
+  applyScaledDamage(opp, SUPERMAN_FREEZE.dmg, { source: "ability", attacker: fighter, move: "freezeBreath" })
+  return true
+}
+function fireSupermanFreezeBreath(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._supFreezeCd || 0) > 0) return false      // 8s cooldown — cannot loop
+  if (!spendEnergy(fighter, SUPERMAN_FREEZE.cost)) return false
+  fighter._spriteCastMove  = "beam"        // inhale → exhale cast pose (reuses the beam strip)
+  fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  fighter.vx = 0
+  fighter._supFreezeCd = SUPERMAN_FREEZE.cdFrames
+  const opp = getTargetResolver(context)(fighter)   // resolve the live opponent ref now; read its position at hit time
+  const face0 = fighter.facing || 1
+  // ACTIVE WINDOW — sample the cone across a few frames so a transient i-frame (wake-up/neutral invuln)
+  // doesn't nullify the whole cast. The first frame the opponent is hittable freezes them; once frozen
+  // (or blockstunned) this cast is done.
+  const coneCheck = () => {
+    if (!opp || (opp._supFrozen || 0) > 0) return
+    const face = fighter.facing || face0
+    const cx = fighter.x + (fighter.w || 50) / 2, ox = opp.x + (opp.w || 50) / 2
+    const dx = ox - cx
+    const inFront = dx * face > -40 || Math.abs(dx) < 70   // forward cone (point-blank tolerant)
+    if (!inFront || Math.abs(dx) >= SUPERMAN_FREEZE.reach || Math.abs((opp.y || 0) - (fighter.y || 0)) >= SUPERMAN_FREEZE.vBand) return
+    if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 22); opp.vx = face * 4 }
+    else applySupermanFreeze(opp, fighter, context)
+  }
+  for (const off of [0, 3, 6, 9, 12]) schedulePendingSpawn(SUPERMAN_FREEZE.windup + off, coneCheck)
+  supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

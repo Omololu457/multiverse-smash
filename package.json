@@ -531,6 +531,7 @@
     "test:spiderman-training": "node harness/spiderman_training.mjs",
     "test:soldier-boy-p1": "node harness/soldier_boy_p1_render.mjs",
     "test:soldier-boy-energy": "node harness/soldier_boy_energy.test.mjs",
+    "test:soldier-boy-armed": "node harness/soldier_boy_armed.test.mjs",
     "test:spiderman-raimi": "node harness/raimi_shots.mjs",
     "test:spiderman-raimi-specials": "node harness/spiderman_raimi_specials.test.mjs",
     "test:green-lantern": "node harness/green_lantern.test.mjs",

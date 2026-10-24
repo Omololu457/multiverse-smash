@@ -202,6 +202,7 @@ import {
   updateYamamotoCommandCombat,   // Yamamoto Fwd+Heavy single command-normal (yamamotoCombo 11f multi-hit slash string)
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
+  updateSoldierBoyCommandCombat, updateSoldierBoyArmed, toggleSoldierBoyArmed,  // Soldier Boy — Armed Mode toggle (Down+Heavy) + armed Jab/Heavy gun swaps + per-frame drain/cooldown tick
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
   updateSpidermanTraversal,      // Spider-Man per-frame traversal upkeep (steps zip/hang, refills web-fluid, resets 2-swing counter on landing, clears on hit)
   tickWebbed,                    // Spider-Man WEBBED debuff per-frame tick (universal loop; holds slow + dash-disable, restores on decay)
@@ -10691,6 +10692,7 @@ function updateMiscTimers(fighter) {
   if (fighter._handlerShadowSinkCd > 0) fighter._handlerShadowSinkCd--     // Megumi Shadow Sink dedicated cooldown (anti-spam)
   if (fighter._shadowSinkT   > 0) fighter._shadowSinkT--                   // Megumi Shadow Sink sink→hidden→emerge window (drives the render)
   if (fighter._castArmor     > 0) fighter._castArmor--                     // Hashirama one-shot strike super-armor window (combat.js)
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy") updateSoldierBoyArmed(fighter)   // Soldier Boy — Armed Mode drain / 12s window / 8s cooldown
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -11838,6 +11840,11 @@ function _updatePlayerCombatBody(fighter) {
   // Neutral light/heavy/up/air/down_air otherwise stay on the normal path. Consumes the input on fire.
   if ((fighter.rosterKey || "").toLowerCase() === "spiderman" && !charging &&
       updateSpidermanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SOLDIER BOY — Down+Heavy toggles ARMED MODE (loadout swap); while armed, Jab→SMG burst / Heavy→rifle
+  // shot (the Up-Launcher stays melee). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&
+      updateSoldierBoyCommandCombat(fighter, inputState, getAbilityContext())) return
 
   // NAOYA — Fwd+Heavy → naoyaCombo (single 6f MULTI-HIT low combo string, row_08). Neutral light/heavy/up/
   // air/down_air stay on the normal path. Consumes the input only when it fires.

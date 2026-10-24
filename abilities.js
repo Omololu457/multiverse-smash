@@ -34065,6 +34065,118 @@ export function applyZoldyckGodspeed(fighter, context) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY — kit helpers + ARMED MODE (Phase 3). Grounded Bruiser/Gunner (The Boys, Marvel group).
+// All randomness is deterministic hash(seed, frame, playerIndex) — no Math.random / gameRng. The Phase 4
+// motion specials + Nuclear Burst ultimate build on these shared SMG/rifle/shield spawns.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+function isSoldierBoy(f) { return !!f && (f.rosterKey || "").toLowerCase() === "soldier_boy" }
+function sbIdx(f) { return (f && (f.side === "p2" || f.playerIndex === 1)) ? 1 : 0 }
+// local deterministic 0..1 hash (mirrors flight.js hashRandom; kept local so abilities.js needs no new import)
+function sbHash(seed, frame, idx) {
+  let h = ((seed | 0) ^ 0x9e3779b9) >>> 0
+  h = Math.imul(h ^ ((frame | 0) + 0x85ebca6b), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((idx | 0) + 0x27d4eb2f), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  return (h >>> 0) / 4294967296
+}
+
+// Tunables (frames @60fps; Charge = the Nuclear Charge meter).
+const SB_SMG    = { bullets: 6, perBullet: 12, overFrames: 30, speed: 19, cost: 20 }
+const SB_RIFLE  = { damage: 90, speed: 22, startup: 20, cost: 25 }
+const SB_SHIELD = { out: 40, back: 22, range: 420, speed: 15, cost: 15 }
+const SB_ARMED  = { dur: 720, drainPerFrame: 0.025, cdFrames: 480, smgBullets: 4, smgDmg: 12, rifleDmg: 60 }
+
+// SFX hook — fleshed out in Phase 7 (WebAudio placeholder synth, +/-3% pitch from sbHash). No-op until then.
+function sbSound(fighter, id, context) { /* Phase 7 */ }
+
+// ── Shared projectile spawns (used by the Armed-Mode normals AND the Phase-4 specials) ──
+function sbSpawnSMG(fighter, context, bullets, perDmg) {
+  const seed = ((context && context.seed) >>> 0) || 1, idx = sbIdx(fighter)
+  const baseFrame = (context && context.frame) || 0
+  for (let i = 0; i < bullets; i++) {
+    const at = Math.round(i * (SB_SMG.overFrames / Math.max(1, bullets)))
+    const fAt = baseFrame + i
+    schedulePendingSpawn(at, () => {
+      const spread = (sbHash(seed, fAt, idx) - 0.5) * 12            // +/-6px vertical, deterministic (no Math.random)
+      spawnProjectile(fighter, "sbSmgBullet", {
+        damage: perDmg, speed: SB_SMG.speed, lifetime: 54, hitstun: 8,
+        knockbackX: 2, knockbackY: 0, w: 12, h: 6, radius: 5, isSpecial: true,
+        color: "#ffcc33", spawnY: fighter.y + (fighter.h || 100) * 0.42 + spread
+      }, context)
+    })
+  }
+}
+function sbSpawnRifle(fighter, context, dmg) {
+  spawnProjectile(fighter, "sbRifleBullet", {
+    damage: dmg, speed: SB_RIFLE.speed, lifetime: 72, hitstun: 20,
+    knockbackX: 11, knockbackY: -3, w: 22, h: 6, radius: 8, isSpecial: true,
+    piercesMulti: true, color: "#e0a040", spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+}
+
+// ── ARMED MODE (loadout swap; Ghostface killer-swap pattern) ──
+function endSoldierBoyArmed(fighter) {
+  fighter._sbArmed = false
+  fighter._sbArmedTimer = 0
+  fighter._sbArmedCd = SB_ARMED.cdFrames          // 8s cooldown after it ends OR is cancelled
+  fighter._spriteCastMove = "sbArmedDraw"; fighter._spriteCastTimer = 18   // holster pose
+}
+export function toggleSoldierBoyArmed(fighter, context) {
+  if (!isSoldierBoy(fighter) || fighter.isUltimateActive) return false
+  if (fighter._sbArmed) { endSoldierBoyArmed(fighter); return true }       // re-press = cancel (-> cooldown)
+  if ((fighter._sbArmedCd || 0) > 0) return false                         // on cooldown
+  fighter._sbArmed = true
+  fighter._sbArmedTimer = SB_ARMED.dur             // 12s
+  fighter._spriteCastMove = "sbArmedDraw"; fighter._spriteCastTimer = 18   // draw pose
+  sbSound(fighter, "sb_armedToggle", context)
+  return true
+}
+// Ticked every frame from game.js updateMiscTimers. Drains Charge, counts the 12s window + 8s cooldown,
+// and auto-holsters when the timer or the meter runs out, or when the Ultimate starts.
+export function updateSoldierBoyArmed(fighter) {
+  if (!isSoldierBoy(fighter)) return
+  if ((fighter._sbArmedCd || 0) > 0) fighter._sbArmedCd--
+  if (!fighter._sbArmed) return
+  if (fighter.isUltimateActive) { endSoldierBoyArmed(fighter); return }   // unavailable during the Ultimate
+  fighter.energy = Math.max(0, (fighter.energy || 0) - SB_ARMED.drainPerFrame)   // 1.5 Charge/s
+  if ((fighter.energy || 0) <= 0) { endSoldierBoyArmed(fighter); return }
+  if ((fighter._sbArmedTimer || 0) > 0 && --fighter._sbArmedTimer <= 0) endSoldierBoyArmed(fighter)
+}
+function fireSoldierBoyArmedSMG(fighter, context) {
+  fighter._spriteCastMove = "sbArmedJab"; fighter._spriteCastTimer = 14
+  sbSpawnSMG(fighter, context, SB_ARMED.smgBullets, SB_ARMED.smgDmg)       // armed Jab = a 4-round SMG check (FREE normal)
+  sbSound(fighter, "sb_smg", context)
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+}
+function fireSoldierBoyArmedRifle(fighter, context) {
+  fighter._spriteCastMove = "sbArmedHeavy"; fighter._spriteCastTimer = 20
+  sbSpawnRifle(fighter, context, SB_ARMED.rifleDmg)                        // armed Heavy = a 60-dmg rifle shot (FREE normal)
+  sbSound(fighter, "sb_rifle", context)
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+}
+// Command-combat driver (mirrors updateSpidermanCommandCombat). Handles the Down+Heavy ARMED toggle and,
+// while armed, swaps Jab->SMG / Heavy->rifle (the Up-Launcher stays melee). Returns true when it consumes
+// the input (-> the caller skips the normal path this frame).
+export function updateSoldierBoyCommandCombat(fighter, inputState, context) {
+  if (!isSoldierBoy(fighter) || !inputState) return false
+  const lightEdge = !!inputState.light && !fighter._sbPrevLight
+  const heavyEdge = !!inputState.heavy && !fighter._sbPrevHeavy
+  fighter._sbPrevLight = !!inputState.light
+  fighter._sbPrevHeavy = !!inputState.heavy
+  const canAct = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  // TOGGLE: Down + Heavy (fresh), grounded. Works whether or not already armed (re-press cancels).
+  if (canAct && heavyEdge && inputState.down && (fighter.grounded ?? fighter.onGround ?? true)) {
+    if (toggleSoldierBoyArmed(fighter, context)) { inputState.heavy = false; return true }
+  }
+  // While ARMED: Jab->SMG, Heavy->rifle. Up-Launcher (Up held) stays melee -> not intercepted.
+  if (fighter._sbArmed && canAct && !inputState.up) {
+    if (lightEdge) { fireSoldierBoyArmedSMG(fighter, context);  inputState.light = false; return true }
+    if (heavyEdge) { fireSoldierBoyArmedRifle(fighter, context); inputState.heavy = false; return true }
+  }
+  return false
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false

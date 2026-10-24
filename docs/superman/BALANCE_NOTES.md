@@ -50,7 +50,7 @@ the nearest reliable slot:
 | Solar Flare | ↓↘→↗ + Special | Down + Special (grounded) | **existing** gold mode toggle (+25% dmg, enhances Heat Vision) — not yet the 360° one-shot burst |
 | Ground Pound | ↓↓ + Special (air) | **Down + Special (airborne)** | **shipped (4b)** — dive-slam, direct 110 / shockwave 40+trip |
 | Kryptonian Grab | → + Grab (close) | **Grab (close, flight-ready)** | **shipped (4b)** — fly-up-slam 130, untechable; falls back to normal grab w/o energy |
-| World of Cardboard | full meter | Ultimate button | **existing** "Solar Overload" cinematic (~380, full meter) — not yet re-themed/re-choreographed |
+| World of Cardboard | full meter | Ultimate button | **shipped** — scripted multi-hit: dash first strike → barrage → uppercut → fly up → heat vision → orbital slam. ~380 guaranteed, 4s energy lock after |
 
 Super Flying Punch (Forward + Special) is an extra committed dash-strike kept from the
 existing kit. The old Kryptonian Overload mode (Back + Special) was **dropped** per the
@@ -93,10 +93,11 @@ and driven purely by the sim countdown (no render field stashed on the fighter).
 2. Passive Solar regen kept at the engine default (not 0.8/sec) so the ult is buildable.
 3. Specials use **held-direction** inputs, not QCF motions (engine design).
 4. **Shipped new:** Freeze Breath + FROZEN (4a); Ground Pound + Kryptonian Grab (4b);
-   defensive tools — Super Armor on Heavy, Flight Escape, X-Ray Vision (Phase 6).
-   **Reused (functional) existing kit:** Heat Vision, Super Speed Rush (rekka), Solar
-   Flare (mode), Solar Overload ult. **Not yet wired:** synthesized SFX, Freeze
-   mash-break, World-of-Cardboard re-choreography.
+   defensive tools — Super Armor on Heavy, Flight Escape, X-Ray Vision (Phase 6);
+   **World of Cardboard** scripted ultimate. **Reused (functional) existing kit:** Heat
+   Vision, Super Speed Rush (rekka), Solar Flare (mode). **Not yet wired:** synthesized
+   SFX, Freeze mash-break. **Sprites:** all animations re-posed to match their move
+   (body-anchored).
 
 ## Defensive tools (shipped, Phase 6)
 

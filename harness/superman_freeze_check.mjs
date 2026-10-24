@@ -36,27 +36,38 @@ try {
   await frames(20)
   await page.evaluate(() => window.__harness.fillEnergy())
 
-  // Walk Superman toward Goku so he's inside the freeze cone.
-  const a0 = await p1p(), b0 = await p2p()
-  const toward = b0.x > a0.x ? "d" : "a"
-  await hold(toward, 36)
-
-  const hp0 = (await p2p()).health
-  // FIRE FREEZE BREATH — Back + Special (l). Back is facing-relative (he faces the opponent).
-  const faceRight = (await p2p()).x > (await p1p()).x
-  const BACK = faceRight ? "a" : "d"
-  await page.keyboard.down(BACK); await page.keyboard.down("l"); await frames(3)
-  await page.keyboard.up("l"); await page.keyboard.up(BACK)
-  await frames(14)   // let the windup resolve + cone connect
-  const bFroze = await p2p(), aFire = await p1p()
+  // Robust vs CPU variance (no fixed seed → Goku's AI differs per run): retry the cast until Freeze
+  // Breath actually FIRES (cooldown set) and CONNECTS (opponent frozen). Reposition + wait for Superman
+  // to be actionable between attempts.
+  let hp0 = (await p2p()).health, bFroze = await p2p(), aFire = await p1p()
+  let fired = false
+  for (let attempt = 0; attempt < 8 && (bFroze.supFrozen <= 0); attempt++) {
+    // close to point-blank so the post-freeze follow-up heavy is already in range
+    for (let c = 0; c < 6; c++) { const a = await p1p(), b = await p2p(); if (Math.abs(a.x - b.x) <= 95) break; await hold(b.x > a.x ? "d" : "a", 16) }
+    // wait until Superman can act (not stunned / mid-move)
+    for (let w = 0; w < 20 && ((await p1p()).hitstun > 0); w++) await frames(4)
+    const faceRight = (await p2p()).x > (await p1p()).x
+    const BACK = faceRight ? "a" : "d"
+    hp0 = (await p2p()).health
+    await page.keyboard.down(BACK); await page.keyboard.down("l"); await frames(3)
+    await page.keyboard.up("l"); await page.keyboard.up(BACK)
+    await frames(16)   // windup + active window
+    aFire = await p1p(); bFroze = await p2p()
+    if (aFire.freezeCd > 0) fired = true
+    if (aFire.freezeCd > 0 && bFroze.supFrozen <= 0) {
+      // fired but whiffed (Goku moved / i-frame) — wait out the 8s CD before retrying
+      for (let w = 0; w < 70 && (await p1p()).freezeCd > 0; w++) await frames(8)
+    }
+  }
+  ok(fired, "Freeze Breath never fired (freezeCd never set across attempts)")
   await shot("1_frozen")
   ok(bFroze.supFrozen > 0, `opponent not frozen after Freeze Breath (supFrozen=${bFroze.supFrozen})`)
   ok(bFroze.health < hp0, `freeze dealt no chip (hp ${hp0} → ${bFroze.health})`)
   ok(bFroze.hitstun > 0, `frozen opponent not action-locked (hitstun=${bFroze.hitstun})`)
   ok(aFire.freezeCd > 0, `freeze cooldown not set (cd=${aFire.freezeCd})`)
 
-  // FOLLOW-UP while frozen: close the gap (frozen Goku can't move), then a heavy (k) connects for bonus.
-  await hold(toward, 34)
+  // FOLLOW-UP while frozen: nudge to melee range (frozen Goku can't move), then a heavy (k) connects.
+  for (let c = 0; c < 4; c++) { const a = await p1p(), b = await p2p(); if (Math.abs(a.x - b.x) <= 80) break; await hold(b.x > a.x ? "d" : "a", 10) }
   const hpBeforeFollow = (await p2p()).health
   await hold("k", 10); await frames(4)
   const bFollow = await p2p()
@@ -76,7 +87,6 @@ try {
   console.log(`  SUPERMAN FREEZE BREATH: ${passed} passed, ${failed} failed`)
   console.log(`  froze=${bFroze.supFrozen} chip ${hp0}->${bFroze.health} lock(hitstun)=${bFroze.hitstun} cd=${aFire.freezeCd}`)
   console.log(`  follow-up ${hpBeforeFollow}->${bFollow.health}  thawed=${thawed.supFrozen}  JS-exceptions=${jsErrors.length}`)
-  console.log(`  DIAG a0.x=${a0.x} b0.x=${b0.x} |dx0|=${Math.abs(a0.x-b0.x)}  aFire.x=${aFire.x} aFire.y=${aFire.y} aFire.onGround=${aFire.onGround} bFroze.x=${bFroze.x} |dxFire|=${Math.abs(aFire.x-bFroze.x)}`)
   console.log("════════════════════════════════════════════")
   if (failed) fails.slice(0, 12).forEach(m => console.log("  ✗ " + m))
 } catch (e) {

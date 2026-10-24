@@ -175,6 +175,14 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
+  // SOLDIER BOY — GOLD BRACE absorbs the next damaging hit outright (one hit, 6s cooldown): zero damage,
+  // consume the brace. Checked before any scaling. Gated on rosterKey -> byte-identical for everyone else.
+  if ((target._sbBraceActive || 0) > 0 && (rawDamage || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") {
+    target._sbBraceActive = 0
+    return 0
+  }
+  // SOLDIER BOY — SECOND WIND: while the 3s comeback window holds, incoming damage is reduced 25%.
+  if ((target._sbSecondWind || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") rawDamage = (rawDamage || 0) * 0.75
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled

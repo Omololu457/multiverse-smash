@@ -961,12 +961,17 @@ export const BEN10_ALIEN_POOL = {
 export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast", "fourarms", "upgrade", "eyeguy", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
 const _artAlienSet = new Set(BEN10_ART_ALIENS)
 export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
+// Phase 3: whether an alien has ACTUAL sprite sheets on disk. They were wiped with the Ben 10 redo, so
+// every form currently renders as a PLACEHOLDER (human-Ben frames + a render-only Omnitrix tint). When
+// real ben10_<alien>_*.png sheets are sourced, list the ready keys here and the retag path lights up.
+const _artOnDiskSet = new Set([])
+export function benAlienHasArt(key) { return _artOnDiskSet.has(key) }
 
 // Loadout pick-cap. MUST match BEN10_SLOT_COMBOS.length in game.js (the in-fight transform
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
 // 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
 // the leaf-module mirror of that single source of truth; keep the two numbers equal.
-export const MAX_OMNITRIX_SLOTS = 4
+export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
 export const DEFAULT_OMNITRIX = [...BEN10_ART_ALIENS].slice(0, MAX_OMNITRIX_SLOTS)
@@ -1375,7 +1380,21 @@ export function createOmnitrixState(selected = DEFAULT_OMNITRIX) {
   let aliens = (selected || []).filter(k => _artAlienSet.has(k) && BEN10_ALIEN_POOL[k])
   aliens = [...new Set(aliens)].slice(0, MAX_OMNITRIX_SLOTS)
   if (aliens.length === 0) aliens = [...DEFAULT_OMNITRIX]
-  return { aliens, index: 0, switchCooldown: 0 }
+  // Phase 3: the Omnitrix state object IS the GAME_STATE sub-structure. currentForm mirrors
+  // activeAlien; power mirrors fighter.energy; the lockouts/timers drive transform/swap/timeout.
+  return {
+    aliens, index: 0, switchCooldown: 0,
+    currentForm: null,      // active alien key (null = human)
+    formTimer: 0,           // frames spent in the current alien form
+    power: 0,               // mirror of fighter.energy (Omnitrix Power), kept in sync each frame
+    startup: 0,             // transform startup frames remaining (vulnerable); applies the alien at 0
+    pendingSlot: 0,         // slot the in-progress transform will land on
+    swapLockout: 0,         // frames until the next alien→alien swap is allowed
+    timeoutCooldown: 0,     // frames until a transform is allowed again after a 0-Power forced revert
+    manualLockout: 0,       // frames until re-transform after a DELIBERATE revert (no timeout penalty)
+    vowActive: false,       // BINDING VOW glitch mode (opt-in) — transform/swap picks the alien by hash
+    lastVowPick: -1         // last hash-picked slot (determinism harness reads this)
+  }
 }
 
 export function applyAlien(fighter, alienKey) {
@@ -1416,11 +1435,20 @@ export function applyAlien(fighter, alienKey) {
   fighter.y = (fighter.y ?? 0) + (oldH - sh)
   fighter.h = sh; fighter.height = sh
 
-  // Form sprite-swap: art-backed aliens carry their own animationData set; others
-  // fall back to the Ben-human base (_skinAnim = null). See BEN10_FORM_ANIM.
-  // Retag to the active recolor SKIN variant so a skinned Ben keeps his skin in-alien. (An Edo-reanimated Ben
-  // has _recolorTag=null → raw alien sheets, tinted live by EDO_REANIM_TINT since he stays _edoActive.)
-  fighter._skinAnim = _retagAlienAnim(BEN10_FORM_ANIM[alienKey] || null, fighter._recolorTag)
+  // PLACEHOLDER-ALIEN RENDER (Phase 3 framework): alien sprite art is not yet sourced, so every form
+  // renders the HUMAN-Ben frames with a render-only green/colour Omnitrix overlay (fighter.skinTint →
+  // tintColor at draw) instead of a missing sheet — fully playable before art lands. The form's move
+  // table still swaps in above. When a form's real sheets arrive (benAlienHasArt), the retag path
+  // (art-backed animationData, recolor-aware) lights up with no other change.
+  if (benAlienHasArt(alienKey)) {
+    fighter._skinAnim = _retagAlienAnim(BEN10_FORM_ANIM[alienKey] || null, fighter._recolorTag)
+    fighter.skinTint  = fighter._baseSkinTint ?? null
+  } else {
+    fighter._skinAnim    = null                                  // human-Ben frames
+    fighter.skinTint     = alien.color || "#39ff14"              // render-only Omnitrix tint (placeholder)
+    fighter.tintStrength = 0.5
+    fighter._benPlaceholderForm = true
+  }
 
   fighter.colorFlash = 6
   return true
@@ -1465,6 +1493,94 @@ export function updateOmnitrix(fighter) {
   if (omx && omx.switchCooldown > 0) omx.switchCooldown--
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BEN 10 OMNITRIX ENGINE (Phase 3) — transform / swap / timeout / Binding Vow.
+// All randomness is a deterministic hash(matchSeed, frame, playerIndex) — NO Math.random/gameRng,
+// so LAN/replay-identical. All mutable state lives on fighter.omnitrix (the sim fighter = GAME_STATE).
+// ═══════════════════════════════════════════════════════════════════════════════
+function _omxHash(seed, frame, playerIndex) {
+  let h = ((seed | 0) ^ 0x9e3779b9) >>> 0
+  h = Math.imul(h ^ ((frame | 0) + 0x85ebca6b), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((playerIndex | 0) + 0x27d4eb2f), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  return (h >>> 0) / 4294967296
+}
+
+// BINDING VOW pick: alien = hash(seed, frame, playerIndex) mod nSlots. Re-hash with frame+1 (≤5 tries)
+// if it equals the CURRENT form so a vow swap always lands on a different alien. Deterministic → the
+// determinism harness replays the exact same sequence for a given seed.
+export function ben10VowPick(fighter, seed = 1, frame = 0, playerIndex = 0) {
+  const omx = fighter?.omnitrix; if (!omx) return 0
+  const n = Math.max(1, omx.aliens.length)
+  const cur = fighter.transformed ? omx.index : -1
+  let pick = Math.floor(_omxHash(seed, frame, playerIndex) * n) % n
+  for (let t = 1; t <= 5 && pick === cur; t++) pick = Math.floor(_omxHash(seed, frame + t, playerIndex) * n) % n
+  omx.lastVowPick = pick
+  return pick
+}
+
+// Begin a HUMAN→alien transform: spend TRANSFORM_COST, open a 40-frame VULNERABLE startup (the alien is
+// applied when startup hits 0, in updateTransformDevice). Gated by the timeout cooldown + manual-revert
+// lockout + enough Power. Returns true if armed.
+export function ben10BeginTransform(fighter, slot) {
+  const omx = fighter?.omnitrix; if (!omx || fighter.transformed) return false
+  if ((omx.timeoutCooldown || 0) > 0 || (omx.manualLockout || 0) > 0) return false
+  if ((omx.startup || 0) > 0) return false                              // already mid-transform
+  if ((fighter.energy || 0) < TRANSFORM_ENERGY.TRANSFORM_COST) return false
+  slot = Math.max(0, Math.min(omx.aliens.length - 1, slot | 0))
+  fighter.energy -= TRANSFORM_ENERGY.TRANSFORM_COST
+  omx.pendingSlot = slot
+  omx.startup = TRANSFORM_ENERGY.TRANSFORM_STARTUP                      // vulnerable flash; alien applied at 0
+  fighter._omxVulnerable = true
+  fighter.attacking = false; fighter.currentAttack = null
+  fighter.isCharging = false; fighter.vx = 0
+  fighter._spriteCastMove = "transform"; fighter._spriteCastTimer = TRANSFORM_ENERGY.TRANSFORM_STARTUP
+  fighter._attackInputLock = 6
+  fighter.teleportFlash = 8
+  return true
+}
+
+// Swap ALIEN→alien (allowed mid-combo / mid-air): flat SWAP_COST (VOW_SWAP_COST under a vow), 30-frame
+// lockout + a short flash. Rejected during hitstun, during an existing swap lockout, or into the SAME form.
+export function ben10Swap(fighter, slot) {
+  const omx = fighter?.omnitrix; if (!omx || !fighter.transformed) return false
+  if ((omx.swapLockout || 0) > 0) return false
+  if ((fighter.hitstun || 0) > 0) return false                         // cannot swap during hitstun
+  slot = Math.max(0, Math.min(omx.aliens.length - 1, slot | 0))
+  if (omx.index === slot) return false                                 // same form — rejected
+  const cost = omx.vowActive ? TRANSFORM_ENERGY.VOW_SWAP_COST : TRANSFORM_ENERGY.SWAP_COST
+  if ((fighter.energy || 0) < cost) return false
+  fighter.energy -= cost
+  omx.index = slot
+  applyAlien(fighter, omx.aliens[slot])
+  fighter.transformed = true
+  omx.swapLockout = TRANSFORM_ENERGY.SWAP_LOCKOUT
+  fighter._attackInputLock = 6
+  fighter.teleportFlash = 6
+  return true
+}
+
+// Unified transform/swap entry for the input handler. Under a Binding Vow the chosen slot is IGNORED —
+// the alien is the deterministic hash pick (player can't choose). Returns "transform" | "swap" | null.
+export function ben10TransformOrSwap(fighter, slot, vowCtx = null) {
+  const omx = fighter?.omnitrix; if (!omx) return null
+  if (omx.vowActive && vowCtx) slot = ben10VowPick(fighter, vowCtx.seed, vowCtx.frame, vowCtx.playerIndex)
+  if (!fighter.transformed) return ben10BeginTransform(fighter, slot) ? "transform" : null
+  return ben10Swap(fighter, slot) ? "swap" : null
+}
+
+// Manual revert (↓↓ + Light+Special): 20-frame lockout, NO timeout penalty (that is only for a 0-Power
+// forced revert). Cancels any in-progress transform startup too.
+export function ben10Revert(fighter) {
+  const omx = fighter?.omnitrix; if (!omx) return false
+  if (!fighter.transformed && (omx.startup || 0) <= 0) return false
+  omx.startup = 0; omx.pendingSlot = 0; fighter._omxVulnerable = false
+  revertToHuman(fighter, { forced: false })
+  omx.manualLockout = TRANSFORM_ENERGY.MANUAL_REVERT_LOCKOUT
+  fighter._attackInputLock = 6
+  return true
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // TRANSFORM-DEVICE ENERGY SYSTEM   (Omnitrix = Ben, Ultimatrix = Albedo)
 // Shared by every transform-device fighter. While transformed into an alien a
@@ -1476,13 +1592,23 @@ export function updateOmnitrix(fighter) {
 // All rates are per-SECOND and tuned here.
 // ═══════════════════════════════════════════════════════════════════
 export const TRANSFORM_ENERGY = {
-  DRAIN_PER_SEC:          6,    // base meter lost/sec while transformed
+  DRAIN_PER_SEC:          5,    // base meter lost/sec while transformed (Phase 3 spec: ~20s from full; was 6)
   ATTACK_DRAIN_BONUS:     10,   // extra drain/sec while an attack is active
   STRONG_FORM_SCALE:      1.0,  // how much (alienHP/1000) amplifies drain (titans drain more)
   CHARGE_RESTORE_PER_SEC: 45,   // refill/sec while holding Charge alone
   HUMAN_REGEN_PER_SEC:    4,    // passive Omnitrix-Power regen/sec while human (Phase 2 spec; was 10)
-  MIN_TRANSFORM_ENERGY:   15,   // energy needed to (re)transform
-  RECHARGE_FRAMES:        150   // forced-revert lockout (~2.5s @60fps)
+  MIN_TRANSFORM_ENERGY:   15,   // energy needed to (re)transform (legacy gate, kept for tryTransform)
+  RECHARGE_FRAMES:        150,  // legacy forced-revert lockout (deviceRecharge; superseded by TIMEOUT_FRAMES)
+  // ── Phase 3 Omnitrix framework economy ──
+  TRANSFORM_COST:         20,   // Power spent to transform HUMAN→alien
+  TRANSFORM_STARTUP:      40,   // vulnerable startup frames (transform_flash) before the alien is applied
+  TIMEOUT_FRAMES:         360,  // forced-revert (0 Power) timeout cooldown, 6s @60fps — no transform allowed
+  MANUAL_REVERT_LOCKOUT:  20,   // lockout after a DELIBERATE revert (no timeout penalty)
+  SWAP_COST:              15,   // Power spent to swap ALIEN→alien (mid-combo/mid-air)
+  SWAP_LOCKOUT:           30,   // frames between swaps
+  VOW_DMG_MULT:           1.25, // Binding Vow: alien damage ×1.25
+  VOW_DRAIN_MULT:         1.6,  // Binding Vow: drain ×1.6
+  VOW_SWAP_COST:          22    // Binding Vow: swap costs 22 (vs 15)
 }
 
 // Weak un-transformed baseline so a reverted fighter is functional, never stuck.
@@ -1539,6 +1665,8 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   fighter.currentAttack = null
   fighter.currentMove = null
   fighter._skinAnim = null   // human form uses the base Ben-human sprite set
+  fighter.skinTint = fighter._baseSkinTint ?? null   // clear the placeholder-alien Omnitrix tint
+  fighter._benPlaceholderForm = false
   if (forced) {
     fighter.deviceRecharge = TRANSFORM_ENERGY.RECHARGE_FRAMES
     fighter.colorFlash = 12
@@ -1550,29 +1678,54 @@ export function revertToHuman(fighter, { forced = false } = {}) {
 export function tryTransform(fighter) {
   if (!isTransformDevice(fighter) || !fighter.omnitrix) return false
   if (fighter.transformed) return false
-  if ((fighter.deviceRecharge || 0) > 0) return false
-  if ((fighter.energy || 0) < TRANSFORM_ENERGY.MIN_TRANSFORM_ENERGY) return false
-  applyAlien(fighter, fighter.omnitrix.aliens[fighter.omnitrix.index])
-  fighter.transformed = true
-  fighter.teleportFlash = 10
-  return true
+  // Phase 3: route through the framework transform (cost 20 + 40f vulnerable startup + timeout gate)
+  // so AI / auto-re-engage obeys the same economy a human player does.
+  return ben10BeginTransform(fighter, fighter.omnitrix.index)
 }
 
 // Per-frame device update — call from the game loop with real delta ms.
 export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   if (!isTransformDevice(fighter) || !fighter.omnitrix) return
-  // Alien X's ultimate has a ~3.3s vulnerable windup; PAUSE the drain meter (and thus the 0-energy
-  // forced human-revert) for its duration so the long cast can't cancel itself mid-windup.
-  if (fighter._axUltWindup) return
+  const omx = fighter.omnitrix
+  // Phase 3: tick lockouts/cooldowns every frame (even during Alien X windup / transform startup).
+  if ((omx.swapLockout || 0) > 0) omx.swapLockout--
+  if ((omx.timeoutCooldown || 0) > 0) omx.timeoutCooldown--
+  if ((omx.manualLockout || 0) > 0) omx.manualLockout--
+  if ((fighter._attackInputLock || 0) > 0) fighter._attackInputLock--
+
+  // TRANSFORM STARTUP: a vulnerable windup — the alien is APPLIED when it completes. No drain/regen meanwhile.
+  if ((omx.startup || 0) > 0) {
+    omx.startup--
+    fighter._omxVulnerable = omx.startup > 0
+    if (omx.startup <= 0) {
+      const slot = Math.max(0, Math.min(omx.aliens.length - 1, omx.pendingSlot | 0))
+      omx.index = slot
+      applyAlien(fighter, omx.aliens[slot])
+      fighter.transformed = true
+      fighter._omxVulnerable = false
+    }
+    omx.power = fighter.energy; omx.currentForm = fighter.activeAlien
+    return
+  }
+
+  // Alien X's ultimate has a ~3.3s vulnerable windup; PAUSE the drain meter for its duration.
+  if (fighter._axUltWindup) { omx.power = fighter.energy; return }
+
   const dt  = Math.max(0, deltaMs) / 1000
   const max = fighter.maxEnergy || 100
   if ((fighter.deviceRecharge || 0) > 0) fighter.deviceRecharge--
 
+  // BINDING VOW: alien damage ×1.25 while transformed (generic offense buff; Ben has no other source).
+  if (omx.vowActive) fighter.damageMultiplier = fighter.transformed ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1
+
   if (!fighter.transformed) {
+    omx.currentForm = null; omx.formTimer = 0
     fighter.energy = Math.min(max, (fighter.energy || 0) + TRANSFORM_ENERGY.HUMAN_REGEN_PER_SEC * dt)
+    omx.power = fighter.energy
     return
   }
 
+  omx.currentForm = fighter.activeAlien; omx.formTimer = (omx.formTimer || 0) + 1
   if (fighter.hitstun > 0) fighter.isCharging = false   // a hit interrupts the charge
 
   if (fighter.isCharging) {
@@ -1582,10 +1735,17 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
     const strong = alien ? Math.max(0.6, (alien.maxHealth || 1000) / 1000) : 1   // titans drain faster
     let drain = TRANSFORM_ENERGY.DRAIN_PER_SEC * (1 + (strong - 1) * TRANSFORM_ENERGY.STRONG_FORM_SCALE)
     if (fighter.attacking && fighter.currentAttack) drain += TRANSFORM_ENERGY.ATTACK_DRAIN_BONUS
+    if (omx.vowActive) drain *= TRANSFORM_ENERGY.VOW_DRAIN_MULT
     fighter.energy = Math.max(0, (fighter.energy || 0) - drain * dt)
   }
+  omx.power = fighter.energy
 
-  if ((fighter.energy || 0) <= 0) revertToHuman(fighter, { forced: true })
+  // 0 Power → FORCED revert + 6s timeout cooldown (no transform allowed during it).
+  if ((fighter.energy || 0) <= 0) {
+    revertToHuman(fighter, { forced: true })
+    omx.timeoutCooldown = TRANSFORM_ENERGY.TIMEOUT_FRAMES
+    omx.currentForm = null; omx.formTimer = 0
+  }
 }
 
 export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
@@ -1594,6 +1754,8 @@ export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   fighter.omnitrix       = createOmnitrixState(selected)
   fighter.deviceRecharge = 0
   fighter.isCharging     = false
+  fighter._baseSkinTint  = fighter.skinTint ?? null   // Phase 3: restored on revert (placeholder tint clears)
+  fighter._attackInputLock = 0
   // Albedo renders as a red/gray recolor of Ben: tag his forms so applyAlien (on the first mid-match
   // transform) retags each alien's sheets to its __albedo variant. Set BEFORE revertToHuman so the tag
   // persists into the human base render too. Cosmetic only — no mechanics change.

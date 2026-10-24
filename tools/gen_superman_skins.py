@@ -41,6 +41,8 @@ CHARS = {
 # tag -> dict(SUIT, CAPE, BELT, EMBLEM_BG, EMBLEM_S). Trunks = CAPE. (Void/KingdomCome handled specially.)
 GOLD = "#E0B23A"; SILVER = "#C8CCD2"; WHITE = "#ECECEC"; BLACK = "#17171A"
 TEMPLATE = {
+    # ── Ben 10 "Albedo" homage (white reflectivity + red accents — NOT a black skin) ──
+    "albedo":           dict(SUIT="#E8E8EC", CAPE="#C21E1E", BELT="#17171A", EMBLEM_BG="#E8E8EC", EMBLEM_S="#C21E1E"),  # white suit / red cape+trunks+boots / red-S-on-white
     # ── Group 1 ──
     "crimsonreversal":  dict(SUIT="#C21E1E", CAPE="#1E2E5A", BELT=GOLD,     EMBLEM_BG=WHITE, EMBLEM_S="#2A4DA8"),  # suit red / cape+trunks+boots dark blue / S blue-on-white
     "verdantguardian":  dict(SUIT="#1F6B2E", CAPE="#141414", BELT=GOLD,     EMBLEM_BG=WHITE, EMBLEM_S="#1F6B2E"),  # suit deep green / cape black / S green-on-white

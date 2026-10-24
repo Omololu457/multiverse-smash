@@ -536,6 +536,7 @@
     "test:soldier-boy-kit-live": "node harness/soldier_boy_kit_live.mjs",
     "test:soldier-boy-combo": "node harness/soldier_boy_combo.test.mjs",
     "test:soldier-boy-defense": "node harness/soldier_boy_defense.test.mjs",
+    "test:soldier-boy-sound": "node harness/soldier_boy_sound.test.mjs",
     "test:spiderman-raimi": "node harness/raimi_shots.mjs",
     "test:spiderman-raimi-specials": "node harness/spiderman_raimi_specials.test.mjs",
     "test:green-lantern": "node harness/green_lantern.test.mjs",

@@ -34237,7 +34237,15 @@ const SB_SHIELD = { out: 40, back: 22, range: 420, speed: 15, cost: 15 }
 const SB_ARMED  = { dur: 720, drainPerFrame: 0.025, cdFrames: 480, smgBullets: 4, smgDmg: 12, rifleDmg: 60 }
 
 // SFX hook — fleshed out in Phase 7 (WebAudio placeholder synth, +/-3% pitch from sbHash). No-op until then.
-function sbSound(fighter, id, context) { /* Phase 7 */ }
+function sbSound(fighter, id, context) {
+  // Phase 7 — deterministic placeholder synth: +/-3% pitch + a noise seed from hash(seed, frame, idx).
+  const seed = ((context && context.seed) >>> 0) || 1
+  const frame = (context && context.frame) || 0
+  const h = sbHash(seed, frame, sbIdx(fighter))
+  const pitch = 1 + (h - 0.5) * 0.06                 // +/-3% pitch variance
+  const noiseSeed = (((seed ^ Math.imul(frame + 1, 2654435761)) >>> 0) || 1)
+  try { sound.playSoldierBoy?.(id, pitch, noiseSeed) } catch (_) {}
+}
 
 // ── Shared projectile spawns (used by the Armed-Mode normals AND the Phase-4 specials) ──
 function sbSpawnSMG(fighter, context, bullets, perDmg) {

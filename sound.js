@@ -292,6 +292,25 @@ function oscAt(ctx, gain, type, freq, start, duration, gainVal, freqEnd = null) 
   o.stop(ctx.currentTime + start + duration)
 }
 
+// SOLDIER BOY (Phase 7) — DETERMINISTIC filtered noise: the sample buffer is filled from a seeded LCG
+// (NOT Math.random), so the SFX is identical for a given hash seed. Mirrors noise() otherwise.
+function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
+  const bufSize = Math.max(1, Math.floor(ctx.sampleRate * duration))
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
+  const data = buf.getChannelData(0)
+  let s = (seed >>> 0) || 1
+  for (let i = 0; i < bufSize; i++) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0          // LCG — deterministic, no Math.random
+    data[i] = (s / 4294967296) * 2 - 1
+  }
+  const src = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), g = ctx.createGain()
+  src.buffer = buf; filter.type = "bandpass"; filter.frequency.value = filterFreq; filter.Q.value = 1.2
+  g.gain.setValueAtTime(gainVal, ctx.currentTime)
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration)
+  src.connect(filter); filter.connect(g); g.connect(gain)
+  src.start(ctx.currentTime); src.stop(ctx.currentTime + duration)
+}
+
 const SOUNDS = {
   // ── Hits ──────────────────────────────────────────────────────
   hit_light(ctx, out) {
@@ -834,6 +853,56 @@ class SoundManager {
     if (!fn) return
     try { fn(this._ctx, this._master) } catch(_) {}
   }
+
+  // ── SOLDIER BOY SFX (Phase 7, placeholder WebAudio synth) ─────
+  // id + a hash-derived pitch (+/-3%) + noise seed are supplied by abilities.sbSound (deterministic — no
+  // Math.random). Each move maps to the brief's waveform recipe; noise comes from the seeded sbSeededNoise.
+  playSoldierBoy(id, pitch = 1, seed = 1) {
+    if (this._sfxMuted || !this._ctx || !this._ready) return
+    if (this._ctx.state === "suspended") { this._ctx.resume().then(() => this._sbSynth(id, pitch, seed)); return }
+    this._sbSynth(id, pitch, seed)
+  }
+  _sbSynth(id, pitch, seed) {
+    const ctx = this._ctx, out = this._master, p = pitch || 1
+    try {
+      switch (id) {
+        case "sb_shield":      osc(ctx, out, "triangle", 880 * p, 0.25, 0.22, 440 * p); break                 // 880->440, 0.25s
+        case "sb_smg":         for (let i = 0; i < 4; i++) oscAt(ctx, out, "square", 140 * p, i * 0.05, 0.04, 0.18); sbSeededNoise(ctx, out, 0.18, 0.08, 1800 * p, seed); break
+        case "sb_rifle":       osc(ctx, out, "sawtooth", 90 * p, 0.12, 0.3); sbSeededNoise(ctx, out, 0.2, 0.18, 2200 * p, seed); break
+        case "sb_goldRush":    osc(ctx, out, "sawtooth", 200 * p, 0.3, 0.2, 900 * p); break                    // 200->900 sweep
+        case "sb_cyclone":     this._sbWhoosh(0.5, p); break                                                    // sine + 6Hz LFO
+        case "sb_dive":        osc(ctx, out, "triangle", 600 * p, 0.3, 0.22, 150 * p); break                   // 600->150
+        case "sb_armedToggle": osc(ctx, out, "square", 330 * p, 0.08, 0.16, 660 * p); break                    // 330->660 click
+        case "sb_chargeFull":  osc(ctx, out, "sine", 1320 * p, 0.08, 0.2); break                                // 1320 ping
+        case "sb_nuke":        this._sbNuke(p, seed); break
+      }
+    } catch (_) {}
+  }
+  _sbWhoosh(dur, p) {
+    const ctx = this._ctx, out = this._master
+    const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain()
+    o.type = "sine"; o.frequency.value = 220 * p
+    lfo.type = "sine"; lfo.frequency.value = 6; lg.gain.value = 40 * p    // 6 Hz LFO whoosh
+    lfo.connect(lg); lg.connect(o.frequency)
+    g.gain.setValueAtTime(0.0001, ctx.currentTime)
+    g.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.05)
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur)
+    o.connect(g); g.connect(out)
+    o.start(); lfo.start(); o.stop(ctx.currentTime + dur); lfo.stop(ctx.currentTime + dur)
+  }
+  _sbNuke(p, seed) {
+    const ctx = this._ctx, out = this._master, t0 = ctx.currentTime, build = 1.2, total = 2.0   // 1.2s build + 0.8s decay
+    const filt = ctx.createBiquadFilter(); filt.type = "lowpass"
+    filt.frequency.setValueAtTime(200, t0); filt.frequency.linearRampToValueAtTime(4000, t0 + build); filt.frequency.linearRampToValueAtTime(300, t0 + total)
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.3, t0 + build); g.gain.exponentialRampToValueAtTime(0.0001, t0 + total)
+    const saw = ctx.createOscillator(); saw.type = "sawtooth"; saw.frequency.value = 55 * p   // sawtooth 55
+    const sq  = ctx.createOscillator(); sq.type = "square"; sq.frequency.value = 110 * p       // square 110
+    saw.connect(filt); sq.connect(filt); filt.connect(g); g.connect(out)
+    saw.start(t0); sq.start(t0); saw.stop(t0 + total); sq.stop(t0 + total)
+    sbSeededNoise(ctx, out, total, 0.12, 1200 * p, seed)
+  }
+
 
   // ── COMBO HELPER ──────────────────────────────────────────────
   playCombo(comboCount = 1) {

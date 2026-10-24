@@ -11844,6 +11844,11 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "spiderman" && !charging &&
       updateSpidermanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // SOLDIER BOY — Down+Heavy toggles ARMED MODE (loadout swap); while armed, Jab→SMG burst / Heavy→rifle
+  // shot (the Up-Launcher stays melee). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&
+      updateSoldierBoyCommandCombat(fighter, inputState, getAbilityContext())) return
+
   // SOLDIER BOY — DEFENSIVE block-cancels (Gold Brace = Block+Heavy, Back Roll = Block+Light). Checked
   // before the Armed/normal path so a blocking Heavy/Light becomes the defensive option.
   if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&

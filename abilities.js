@@ -35443,6 +35443,10 @@ export function regenEnergy(fighter) {
   if (key === "naruto") regen += 0.02
   if (key === "gojo"   || key === "sukuna") regen += 0.01
   if (key === "omololu") regen += 0.015
+  // Soldier Boy — Nuclear Charge passive regen is exactly 3/s (0.05/frame @60fps), a touch below the
+  // 0.06 base so the meter economy leans on IN-COMBAT gains (+6 landed / +4 taken, combat.applyScaledDamage):
+  // "every special is a choice against the nuke." Overrides the base rate (set, not add).
+  if (key === "soldier_boy") regen = 0.05
   if (fighter.domainBuff)      regen += 0.04
   if (fighter.energyRegenBoost) regen += 0.06
 

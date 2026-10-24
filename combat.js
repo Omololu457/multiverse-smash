@@ -204,6 +204,16 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
     target._hudDmgTier = opts.tier
       || (dealt / Math.max(1, target.maxHealth || 100) >= 0.055 ? "big" : "light")
   }
+  // SOLDIER BOY — Nuclear Charge builds IN COMBAT: +6 when he lands a damaging hit, +4 when he takes one
+  // (spec Phase 2). Gated on rosterKey → a strict no-op for every other character (their damage + meter
+  // stay byte-identical). Meter lives in fighter.energy (GAME_STATE), capped at maxEnergy; self-hits can't feed.
+  if (dealt > 0) {
+    const _sbAtk = opts.attacker
+    if (_sbAtk && _sbAtk !== target && (_sbAtk.rosterKey || "").toLowerCase() === "soldier_boy")
+      _sbAtk.energy = Math.min(_sbAtk.maxEnergy || 100, (_sbAtk.energy || 0) + 6)
+    if ((target.rosterKey || "").toLowerCase() === "soldier_boy")
+      target.energy = Math.min(target.maxEnergy || 100, (target.energy || 0) + 4)
+  }
   if (typeof globalThis !== "undefined" && globalThis.__DMG_LOG) {
     try {
       console.log(`[DMG] ${opts.source || "?"} raw=${raw} scale=${scale} dealt=${dealt} ${before}->${target.health}`)

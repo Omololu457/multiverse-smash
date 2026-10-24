@@ -7,6 +7,7 @@ import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from ".
 import { moveset }    from "./moveset.js"
 import { sound, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
+import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
@@ -17706,11 +17707,12 @@ function fireSupermanHeatVision(fighter, context) {
   // SOLAR FLARE mode ENHANCES it into a wide gold "Solar Flare Beam" (bigger + higher damage).
   const flare = !!fighter._solarFlareActive
   schedulePendingSpawn(5, () => {
+    const eye = getSupermanEyeWorld(fighter)   // per-frame eye anchor (beam pose is active by now)
     spawnProjectile(fighter, flare ? "superman_solarbeam" : "superman_heatvision", {
       drawKind: "heatvision", color: flare ? "#ffcc2e" : "#ff3a1a",
       damage: flare ? 84 : 52, speed: 15, hitstun: flare ? 20 : 16, knockbackX: flare ? 12 : 8, knockbackY: -2,
       w: flare ? 74 : 46, h: flare ? 22 : 14, radius: flare ? 22 : 16, lifetime: 80, isSpecial: true,
-      spawnY: fighter.y + (fighter.h || 100) * 0.18   // eye height
+      spawnX: eye.x + (fighter.facing || 1) * 4, spawnY: eye.y   // fire from the eyes
     }, context)
   })
   // Arm the HOLD tracker: a quick tap = just this single beam shot; keep holding Special and the
@@ -17744,7 +17746,8 @@ export function applySupermanHeatVision(fighter, raw = {}, context = {}) {
   if (fighter.onGround || fighter.grounded) fighter.vx = 0
   fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 4
   fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 3)   // hold the beam stance
-  const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
+  const eye = getSupermanEyeWorld(fighter)   // per-frame eye anchor (tracks the actual sprite eyes)
+  const ox = eye.x, oy = eye.y
   let tx = ox + face * 600, ty = oy, hit = false
   if (opp) {
     tx = opp.x + (opp.w || 50) / 2; ty = opp.y + (opp.h || 100) * 0.40; hit = true

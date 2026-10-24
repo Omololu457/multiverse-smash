@@ -4,7 +4,7 @@ import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBin
 import { isChrolloSkillHunterCinematicActive, updateChrolloSkillHunterCinematic, drawChrolloSkillHunterCinematic, clearChrolloSkillHunterCinematic } from "./chrolloSkillHunterCinematic.js"   // Chrollo Skill Hunter transform cinematic (SAME freeze contract as Edo Tensei: update+draw+clear driven from updateBattle; body-swap fires at the reveal beat via onResolve)
 import { characters, characterList } from "./characters.js"
 import {
-  switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10,
+  switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10, applyBen10VariantStats,
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
 } from "./fighters.js"
 import { camera } from "./camera.js"
@@ -4787,6 +4787,11 @@ function resetRound() {
   }
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
+  // BEN 10 (Phase 2): the three variants (Alien Force / Classic / Prime) carry their own base stats —
+  // apply AFTER applySkin (which re-reads char/skin spriteScale) so the variant's health pool + move
+  // speed + jump land on top. No-op for every non-ben10/albedo fighter.
+  applyBen10VariantStats(p1, matchConfig.p1Skin)
+  applyBen10VariantStats(p2, matchConfig.p2Skin)
   // Shisui (Trinity) — INTRO: the Loyalist arrives with a Mangekyō flash + a banter line above the head.
   for (const f of [p1, p2]) {
     if (f && (f.rosterKey || "").toLowerCase() === "shisui_trinity") {

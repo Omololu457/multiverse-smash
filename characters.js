@@ -2862,7 +2862,13 @@ const ben10 = {
   primary: "transformations", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
   passive: { name: "Omnitrix", effect: "Press the transform/charge button to cycle through 5 aliens, each with its own moveset" },
-  stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // BEN10-FRAMEWORK Phase 2: base = ALIEN FORCE variant (health 950). Classic (900) / Prime (1000)
+  // override via fighters.js BEN10_VARIANT_STATS, applied after applySkin. Health is a SHARED pool —
+  // transforming never heals/resizes the bar (applyAlien keeps this maxHealth across every alien form).
+  stats: { maxHealth: 950, maxEnergy: 100, attack: 90, defense: 85, speed: 9, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // Omnitrix Power HUD meter (label + Omnitrix-green theme). Recharge 4/s while human, +3 on landing a
+  // hit, +2 on taking one (fighters.js updateTransformDevice + combat.js resolveAttackHit); drains in-alien.
+  energyConfig: { label: "Omnitrix Power", color: "#2ecc40", glowColor: "#7fff5a", emptyColor: "rgba(255,255,255,0.08)" },
   // NOTE: these MIRROR fighters.js HUMAN_FORM.basic_attacks (the LIVE values revertToHuman applies) so
   // the select screen advertises what's actually delivered. The old entry (light 53 / heavy 106) was
   // never used in play — revertToHuman overwrites basic_attacks with HUMAN_FORM — so it was misleading

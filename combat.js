@@ -3322,6 +3322,16 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // UNBLOCKABLE (atk.unblockable) — a DELIBERATE, per-move exception to the guard system: the block
   // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
   // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
+  // BEN 10 — Omnitrix Power charges on contact (Phase 2, shared pool, capped at maxEnergy): +3 when Ben
+  // LANDS a hit (connect, blocked or not), +2 when Ben TAKES one (not a clean block). ben10/albedo-gated
+  // so it is a no-op for every other fighter (zero frame-data impact).
+  {
+    const _isBen = f => { const k = (f?.rosterKey || "").toLowerCase(); return k === "ben10" || k === "albedo" }
+    if (_isBen(attacker)) attacker.energy = Math.min(attacker.maxEnergy || 100, (attacker.energy || 0) + 3)
+    const _defTook = !defender.isBlocking || !!atk.unblockable
+    if (_defTook && _isBen(defender)) defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + 2)
+  }
+
   if (defender.isBlocking && !atk.unblockable) {
     // FLAWLESS BLOCK: a fresh guard (blocked within FLAWLESS_BLOCK.window frames) negates chip and collapses
     // blockstun → a punish window; a held/late guard is a normal block. See the config comment above.

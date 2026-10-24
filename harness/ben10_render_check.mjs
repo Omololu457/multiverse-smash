@@ -28,9 +28,9 @@ const snap1 = () => page.evaluate(() => window.__harness.p1())
 async function frames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 
 const VARIANTS = [
-  { skin: "default",      label: "Alien Force" },
-  { skin: "ben10Classic", label: "Classic" },
-  { skin: "ben10Prime",   label: "Prime" },
+  { skin: "default",      label: "Alien Force", hp: 950 },
+  { skin: "ben10Classic", label: "Classic",     hp: 900 },
+  { skin: "ben10Prime",   label: "Prime",       hp: 1000 },
 ]
 
 try {
@@ -45,6 +45,7 @@ try {
     const s1 = await snap1()
     ok(s1 && s1.key === "ben10", `[${v.label}] p1 is not ben10 (${s1 && s1.key})`)
     ok(s1 && s1.health > 0, `[${v.label}] no health (HUD)`)
+    ok(s1 && s1.maxHealth === v.hp, `[${v.label}] per-variant maxHealth should be ${v.hp} (got ${s1 && s1.maxHealth})`)
     ok(s1 && s1.maxEnergy === 100, `[${v.label}] maxEnergy should be 100 (got ${s1 && s1.maxEnergy})`)
     ok(s1 && s1.hasSpriteHandler, `[${v.label}] no sprite handler (procedural box)`)
     ok(s1 && s1.spriteReady !== false, `[${v.label}] sprite not ready (fallback box / sheet missing)`)

@@ -1398,19 +1398,15 @@ export function applyAlien(fighter, alienKey) {
   fighter.jumpForce = -(s.jumpPower ?? 22)
   fighter.baseSpeed = s.speed ?? 7
   fighter.speed     = s.speed ?? 7
-  // maxHealth changes per form (XLR8 900 / Diamondhead 1100 / etc.). SCALE current health
-  // proportionally so the bar keeps the SAME percentage across a transform — otherwise a switch
-  // to a lower-max form leaves health > maxHealth (bar reads >100%) or a switch to a higher-max
-  // form makes it snap short. NOT a heal (don't reset to full) and always clamped into [0, newMax].
-  if (s.maxHealth) {
-    const oldMax = fighter.maxHealth || s.maxHealth
-    const newMax = s.maxHealth
-    if (typeof fighter.health === "number" && oldMax > 0 && newMax !== oldMax) {
-      fighter.health = Math.max(0, Math.min(newMax, Math.round(fighter.health * (newMax / oldMax))))
-    }
-    fighter.maxHealth = newMax
+  // SHARED HEALTH POOL (Ben 10 framework, Phase 2/3): the HUMAN variant's maxHealth is the ONE pool for
+  // every alien form — transforming NEVER heals and NEVER resizes the bar. Current health carries across
+  // unchanged (only clamped into the pool). The alien's own `maxHealth` stat is used ONLY for in-form
+  // drain-scaling (updateTransformDevice), never the health bar. (Replaced the old per-form maxHealth
+  // with %-scaled carry, which conflicted with the shared-pool spec.)
+  if (typeof fighter.health === "number" && (fighter.maxHealth || 0) > 0) {
+    fighter.health = Math.max(0, Math.min(fighter.maxHealth, fighter.health))
   }
-  fighter.stats = { ...(fighter.stats || {}), ...s }
+  fighter.stats = { ...(fighter.stats || {}), ...s, maxHealth: fighter.maxHealth }
 
   // Size change (Way Big / Atomix etc.), bottom-anchored so feet stay put.
   const oldH = fighter.h ?? fighter.height ?? 110
@@ -1484,7 +1480,7 @@ export const TRANSFORM_ENERGY = {
   ATTACK_DRAIN_BONUS:     10,   // extra drain/sec while an attack is active
   STRONG_FORM_SCALE:      1.0,  // how much (alienHP/1000) amplifies drain (titans drain more)
   CHARGE_RESTORE_PER_SEC: 45,   // refill/sec while holding Charge alone
-  HUMAN_REGEN_PER_SEC:    10,   // passive regen/sec while human
+  HUMAN_REGEN_PER_SEC:    4,    // passive Omnitrix-Power regen/sec while human (Phase 2 spec; was 10)
   MIN_TRANSFORM_ENERGY:   15,   // energy needed to (re)transform
   RECHARGE_FRAMES:        150   // forced-revert lockout (~2.5s @60fps)
 }
@@ -1610,6 +1606,35 @@ export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   // human also FIXES the old "advertised != actual" stat gap: maxHealth stays the char-def value
   // (Ben/Albedo 1250) instead of being overwritten by slot-1's alien (e.g. XLR8's 900).
   revertToHuman(fighter)
+}
+
+// ── BEN 10 — PER-VARIANT BASE STATS (Phase 2) ────────────────────────────────────────────────
+// The three human variants (skins.js SKINS.ben10) carry their own base stats. The brief's
+// walk/run/jump/weight are a different SCALE than the engine (createFighter floors move speed at
+// DEFAULT_SPEED=9, jumpPower norm ≈30, weight is not consumed by physics) — so the values below map
+// the brief's RELATIVE ordering (Classic faster/lighter, Prime slower/heavier) onto engine units,
+// anchored to Alien Force = the existing Ben feel (effective speed 9, jumpPower 19, dashSpeed 15).
+// Health uses the brief's ABSOLUTE values (950/900/1000) and IS the shared pool (applyAlien keeps it).
+// `weight` is stored for docs/AI only (physics has no weight field). Applied AFTER applySkin in game.js.
+export const BEN10_VARIANT_STATS = {
+  default:      { variant: "alienforce", maxHealth:  950, speed: 9.0, dashSpeed: 15, jumpPower: 19, weight: 1.0  },
+  ben10Classic: { variant: "classic",    maxHealth:  900, speed: 9.7, dashSpeed: 16, jumpPower: 20, weight: 0.9  },
+  ben10Prime:   { variant: "prime",      maxHealth: 1000, speed: 8.6, dashSpeed: 14, jumpPower: 18, weight: 1.05 },
+}
+export function applyBen10VariantStats(fighter, skinId = "default") {
+  if (!fighter) return
+  const k = (fighter.rosterKey || "").toLowerCase()
+  if (k !== "ben10" && k !== "albedo") return
+  const V = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
+  fighter.maxHealth = V.maxHealth
+  fighter.health    = V.maxHealth           // full at round start (this is the SHARED pool)
+  fighter.speed     = V.speed
+  fighter.baseSpeed = V.speed
+  fighter.dashSpeed = V.dashSpeed
+  fighter.jumpForce = -(V.jumpPower)
+  fighter._benWeight  = V.weight
+  fighter._benVariant = V.variant           // engine/HUD marker (alienforce | classic | prime)
+  fighter.stats = { ...(fighter.stats || {}), maxHealth: V.maxHealth, speed: V.speed, dashSpeed: V.dashSpeed, jumpPower: V.jumpPower }
 }
 
 // ── DRAW ──

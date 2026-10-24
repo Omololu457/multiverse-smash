@@ -3892,6 +3892,18 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // reset the juggle) — during a juggle the player uses their air normals, which
       // fall through to the `controls.air` branch below.
       startMove(fighter, "up", _getMD(fighter, "up"))
+    } else if (controls.grab && (fighter._supKGrab || fighter._supGPound)) {
+      // SUPERMAN mid air-move (Kryptonian Grab / Ground Pound): swallow the grab input, do nothing.
+    } else if (controls.grab && (fighter.rosterKey || "").toLowerCase() === "superman" && opponent &&
+               Math.abs((fighter.x + (fighter.w || 60) / 2) - (opponent.x + (opponent.w || 60) / 2)) < 120 &&
+               (fighter.energy || 0) >= 10 &&
+               (fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) <= 0 : true)) {
+      // SUPERMAN — KRYPTONIAN GRAB ("Take You For A Ride"): a close grab with Solar Energy + flight ready
+      // becomes the signature air-throw. Raise a request; the scripted rise→apex→slam is driven by
+      // applySupermanAirMoves (abilities.js). (Superman auto-faces the opponent, so a close grab is always
+      // "toward" — the brief's →; combat.js `controls` doesn't carry left/right.) Falls back to the normal
+      // grab when out of energy or flight is on cooldown. Gated on superman; no-op for everyone else.
+      fighter._supKGrabReq = true
     } else if (controls.grab) {
       fighter.grabInputBuffer = 6
       resolveGrab(fighter, opponent, options)

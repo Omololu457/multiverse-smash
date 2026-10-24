@@ -17652,6 +17652,9 @@ export function executeSupermanSpecial(fighter, context) {
   // every frame the button is held; enter() sets a cooldown, and revert() must set one too, else a held
   // press would flip the mode on→off→on across successive frames).
   if (dir === "D") {
+    // AIRBORNE Down+Special = GROUND POUND (steep dive-slam + shockwave). Grounded = Solar Flare toggle.
+    const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
+    if (airborne) { if (fighter._supGPound || fighter._supKGrab) return false; return initiateSupermanGroundPound(fighter, context) }
     if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
     if (fighter._solarFlareActive) { revertSupermanSolarFlare(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
     if (enterSupermanSolarFlare(fighter, context)) return true
@@ -17781,6 +17784,152 @@ function fireSupermanFreezeBreath(fighter, context) {
   for (const off of [0, 3, 6, 9, 12]) schedulePendingSpawn(SUPERMAN_FREEZE.windup + off, coneCheck)
   supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN — GROUND POUND (Down+Special while AIRBORNE) + KRYPTONIAN GRAB ("Take You For A Ride",
+// Forward+Grab while close). Two scripted multi-phase moves driven per-frame by applySupermanAirMoves
+// (game.js updateFighterState), mirroring Homelander's FLIGHT 37 state machine. Deterministic
+// (frame-counted phases, no RNG). Both cost Solar Energy; the grab does NOT consume flight time.
+// The player is locked for the duration via attacking=true (currentAttack cleared → no stale hitbox).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_GPOUND = { cost: 18, directDmg: 110, waveDmg: 40, waveRadius: 360, diveVx: 7, diveVy: 24, recover: 16 }
+const SUPERMAN_KGRAB  = { cost: 10, dmg: 130, rise: 16, apex: 6, slam: 18 }
+function supermanFloor(fighter, context) {
+  return (fighter.groundY != null ? fighter.groundY : (context && context.groundY != null ? context.groundY : 520))
+}
+function supermanMoveLock(fighter) { fighter.attacking = true; fighter.currentAttack = null }
+// GROUND POUND — initiate (Down+Special airborne). Usable out of flight or a normal jump.
+function initiateSupermanGroundPound(fighter, context) {
+  if (fighter._supGPound || fighter._supKGrab) return false
+  if ((fighter.energy || 0) < SUPERMAN_GPOUND.cost) return false
+  if (!spendEnergy(fighter, SUPERMAN_GPOUND.cost)) return false
+  if (fighter._flightCtl) { fighter._flightCtl.phase = "grounded"; fighter._flightCtl.dashTimer = 0 }  // leave flight → real dive (flight energy untouched)
+  fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
+  fighter._supGPound = { phase: "dive", direct: false }
+  fighter.vx = (fighter.facing || 1) * SUPERMAN_GPOUND.diveVx
+  fighter.vy = SUPERMAN_GPOUND.diveVy
+  fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 40
+  supermanMoveLock(fighter)
+  supermanCastBark(fighter)
+  return true
+}
+// KRYPTONIAN GRAB — start (raised by the _supKGrabReq flag that combat.js sets on Fwd+Grab while close).
+function startSupermanKryptGrab(fighter, opp, context) {
+  if (!opp || fighter._supKGrab || fighter._supGPound) return false
+  if (!spendEnergy(fighter, SUPERMAN_KGRAB.cost)) return false
+  fighter._supKGrab = { phase: "rise", t: SUPERMAN_KGRAB.rise, slammed: false }
+  fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
+  if (fighter._flightCtl) fighter._flightCtl.phase = "grounded"   // scripted — flight energy untouched
+  // seize the opponent via a long hitstun lock + carried position (NOT isGrabbed → no normal-throw conflict)
+  opp.hitstun = Math.max(opp.hitstun || 0, 100); opp.vx = 0; opp.vy = 0
+  opp.onGround = false; opp.grounded = false; opp.isLaunched = false; opp.knockdownState = false
+  fighter._spriteCastMove = "flightrise"; fighter._spriteCastTimer = 54
+  supermanMoveLock(fighter)
+  supermanCastBark(fighter)
+  return true
+}
+// Per-frame driver for both scripted air moves (called from game.js updateFighterState with context).
+export function applySupermanAirMoves(fighter, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  const face = fighter.facing || 1
+
+  // Kryptonian Grab request raised in combat.js (Fwd+Grab while close). Gate: flight NOT on cooldown.
+  if (fighter._supKGrabReq) {
+    fighter._supKGrabReq = false
+    const onCd = fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) > 0 : false
+    if (!onCd && !fighter._supKGrab && !fighter._supGPound) startSupermanKryptGrab(fighter, opp, context)
+  }
+
+  // ── GROUND POUND ──
+  const gp = fighter._supGPound
+  if (gp) {
+    supermanMoveLock(fighter)
+    if (gp.phase === "dive") {
+      fighter.vx = face * SUPERMAN_GPOUND.diveVx
+      fighter.vy = Math.max(fighter.vy || 0, SUPERMAN_GPOUND.diveVy)
+      fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6
+      // DIRECT HIT on the way down (airborne opponent or point-blank) → big damage + hard knockdown
+      if (opp && !opp.eliminated && !(opp.invulnTimer > 0) && !gp.direct) {
+        const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+        const dy = Math.abs((opp.y + (opp.h || 100) / 2) - (fighter.y + (fighter.h || 100) / 2))
+        if (dx < 70 && dy < 95 && !opp.isBlocking) {
+          gp.direct = true
+          opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48)
+          opp.vx = face * 6; opp.vy = 8; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.colorFlash = 12
+          applyScaledDamage(opp, SUPERMAN_GPOUND.directDmg, { source: "ability", attacker: fighter, move: "groundPound" })
+        }
+      }
+      const floor = supermanFloor(fighter, context)
+      if (fighter.y + (fighter.h || 100) >= floor - 2) {
+        fighter.y = floor - (fighter.h || 100); fighter.vx = 0; fighter.vy = 0
+        fighter.onGround = true; fighter.grounded = true
+        gp.phase = "impact"; gp.t = SUPERMAN_GPOUND.recover
+        shakeCamera(context, 16, 16)
+        fighter._spriteCastMove = "land"; fighter._spriteCastTimer = SUPERMAN_GPOUND.recover
+        fighter.attackCooldown = getAttackDuration(SUPERMAN_GPOUND.recover, fighter)
+        // SHOCKWAVE — trips anyone in radius who wasn't the direct hit
+        if (opp && !opp.eliminated && !(opp.invulnTimer > 0) && !gp.direct) {
+          const fcx = fighter.x + (fighter.w || 60) / 2, ocx = opp.x + (opp.w || 60) / 2
+          if (Math.hypot(ocx - fcx, (opp.y || 0) - (fighter.y || 0)) <= SUPERMAN_GPOUND.waveRadius) {
+            if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 20); applyScaledDamage(opp, SUPERMAN_GPOUND.waveDmg * 0.3, { source: "ability" }) }
+            else {
+              opp.vx = (ocx >= fcx ? 1 : -1) * 10; opp.vy = -5; opp.hitstun = Math.max(opp.hitstun || 0, 22)
+              opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 28); opp.colorFlash = 10
+              applyScaledDamage(opp, SUPERMAN_GPOUND.waveDmg, { source: "ability", attacker: fighter, move: "groundPound" })
+            }
+          }
+        }
+      }
+      return
+    }
+    // impact recovery
+    fighter.vx = 0
+    if (--gp.t <= 0) { fighter._supGPound = null; fighter.attacking = false }
+    return
+  }
+
+  // ── KRYPTONIAN GRAB ──
+  const kg = fighter._supKGrab
+  if (kg) {
+    supermanMoveLock(fighter)
+    const carryX = fighter.x + face * ((fighter.w || 60) * 0.25)
+    if (kg.phase === "rise") {
+      fighter.vy = -16; fighter.vx = 0
+      fighter._spriteCastMove = "flightrise"; fighter._spriteCastTimer = 6
+      if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = -16; opp.x = carryX; opp.onGround = false }
+      if (--kg.t <= 0) { kg.phase = "apex"; kg.t = SUPERMAN_KGRAB.apex; fighter.vy = 0 }
+      return
+    }
+    if (kg.phase === "apex") {
+      fighter.vy = 0; fighter.vx = 0
+      if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = carryX }
+      if (--kg.t <= 0) { kg.phase = "slam"; kg.t = SUPERMAN_KGRAB.slam }
+      return
+    }
+    // slam
+    fighter.vy = 18; fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6
+    const floor = supermanFloor(fighter, context)
+    if (opp && !kg.slammed) {
+      opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vy = 24; opp.x = carryX
+      if (opp.y + (opp.h || 100) >= floor - 2) {
+        kg.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vx = 0; opp.vy = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 52); opp.noTech = true   // untechable
+        opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+        applyScaledDamage(opp, SUPERMAN_KGRAB.dmg, { source: "ability", attacker: fighter, move: "kryptonianGrab" })
+        shakeCamera(context, 12, 14)
+      }
+    }
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+    if (kg.slammed || (--kg.t <= 0 && fighter.onGround)) {
+      fighter._supKGrab = null; fighter.attacking = false
+      fighter.attackCooldown = getAttackDuration(14, fighter)
+      fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 14
+    }
+    return
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

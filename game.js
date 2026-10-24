@@ -88,6 +88,7 @@ import {
   updateTransformJutsu, isTransformJutsuActive, transformJutsuTier,   // Transformation Jutsu (Naruto-universe): per-frame window driver + state reads
   revertTransformJutsu,   // harness/force-revert
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
+  applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -19000,6 +19001,7 @@ function updateFighterState(fighter) {
   updateGhostfacePresentation(updated)   // Ghostface visual staging: advances the Stalk-Vanish off-screen/re-entry + the 3-beat killer-swap transition (render-only)
   if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
+  applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
@@ -27741,7 +27743,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0) } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, knockdown: !!f.knockdownState } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

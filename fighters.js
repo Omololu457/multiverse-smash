@@ -1611,6 +1611,16 @@ export const TRANSFORM_ENERGY = {
   VOW_SWAP_COST:          22    // Binding Vow: swap costs 22 (vs 15)
 }
 
+// ── BEN 10 DEFENSIVE TOOLS (Phase 6) ─────────────────────────────────────────────────────────────
+// Green Flash Roll (←← + Light): a 12-frame dodge roll, i-frames on frames 4-12, 5s cooldown.
+// Energy Guard (Block + Heavy): opens a 90f absorb window that negates ONE hit, costs 10 Power, 8s cd.
+// Last Resort (passive): ONCE per round below 15% HP → +30 Power + 2s of 20% damage reduction.
+export const BEN10_DEFENSE = {
+  ROLL_FRAMES: 12, ROLL_IFRAME_FROM: 4, ROLL_IFRAME_TO: 12, ROLL_CD: 300, ROLL_SPEED: 13,
+  GUARD_COST: 10, GUARD_WINDOW: 90, GUARD_CD: 480,
+  LAST_RESORT_HP: 0.15, LAST_RESORT_POWER: 30, LAST_RESORT_DR_FRAMES: 120, LAST_RESORT_DR: 0.80   // DR = ×0.80 (−20%)
+}
+
 // Weak un-transformed baseline so a reverted fighter is functional, never stuck.
 // HUMAN_FORM — the LIVE Ben-human kit (revertToHuman applies this). SINGLE SOURCE OF TRUTH for the
 // human form's numbers; characters.ben10.basic_attacks mirrors these for the select-screen display.
@@ -1712,6 +1722,26 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   if ((omx.timeoutCooldown || 0) > 0) omx.timeoutCooldown--
   if ((omx.manualLockout || 0) > 0) omx.manualLockout--
   if ((fighter._attackInputLock || 0) > 0) fighter._attackInputLock--
+
+  // ── Phase 6 DEFENSE: cooldowns, roll i-frames (4-12), Energy Guard window, Last Resort passive ──
+  if ((fighter._benRollCd || 0) > 0) fighter._benRollCd--
+  if ((fighter._benGuardCd || 0) > 0) fighter._benGuardCd--
+  if ((fighter._benEnergyGuard || 0) > 0) fighter._benEnergyGuard--
+  if ((fighter._benDR || 0) > 0) fighter._benDR--
+  if ((fighter._benRoll || 0) > 0) {
+    const elapsed = BEN10_DEFENSE.ROLL_FRAMES - fighter._benRoll         // 0..12
+    if (elapsed >= BEN10_DEFENSE.ROLL_IFRAME_FROM && elapsed <= BEN10_DEFENSE.ROLL_IFRAME_TO) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+    fighter._benRoll--
+  }
+  // LAST RESORT: re-arm on a round-start refill (health back to full), then fire once below 15% HP.
+  const _maxH = fighter.maxHealth || 1
+  if ((fighter.health || 0) >= _maxH) fighter._benLastResortUsed = false
+  else if (!fighter._benLastResortUsed && (fighter.health || 0) > 0 && (fighter.health || 0) < BEN10_DEFENSE.LAST_RESORT_HP * _maxH) {
+    fighter._benLastResortUsed = true
+    fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + BEN10_DEFENSE.LAST_RESORT_POWER)
+    fighter._benDR = BEN10_DEFENSE.LAST_RESORT_DR_FRAMES
+    fighter.colorFlash = Math.max(fighter.colorFlash || 0, 14)
+  }
 
   // TRANSFORM STARTUP: a vulnerable windup — the alien is APPLIED when it completes. No drain/regen meanwhile.
   if ((omx.startup || 0) > 0) {

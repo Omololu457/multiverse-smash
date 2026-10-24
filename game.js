@@ -6,7 +6,7 @@ import { characters, characterList } from "./characters.js"
 import {
   switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10, applyBen10VariantStats,
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot,
-  ben10TransformOrSwap, ben10Revert, ben10VowPick, MAX_OMNITRIX_SLOTS
+  ben10TransformOrSwap, ben10Revert, ben10VowPick, MAX_OMNITRIX_SLOTS, BEN10_DEFENSE
 } from "./fighters.js"
 import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
@@ -11115,7 +11115,38 @@ function handleOmnitrixSwitch(fighter, inputState) {
   // Charge-to-refill retained: hold Charge (alone, not double-tapping down) while transformed → fast refill.
   if (!!inputState.charge && fighter.transformed && !down) fighter.isCharging = true
 
-  held.down = down; held.light = light; held.heavy = heavy; held.special = special
+  // ── Phase 6 DEFENSE INPUTS ──
+  // GREEN FLASH ROLL (←← + Light): a back double-tap arms a window; Light within it rolls (i-frames 4-12,
+  // backward dash, 5s cd). "Back" = away from the opponent (depends on facing).
+  const back = (fighter.facing === 1) ? !!inputState.left : !!inputState.right
+  if (back && !held.back) {
+    if (fighter._benBackLast != null && (globalFrameCount - fighter._benBackLast) <= OMX_DOUBLE_TAP_WINDOW) fighter._benBackArm = OMX_ARM_WINDOW
+    fighter._benBackLast = globalFrameCount
+  }
+  if ((fighter._benBackArm || 0) > 0) {
+    fighter._benBackArm--
+    if (light && !held.light && (fighter._benRollCd || 0) <= 0 && (fighter.hitstun || 0) <= 0 && (fighter._benRoll || 0) <= 0) {
+      fighter._benBackArm = 0
+      fighter._benRoll = BEN10_DEFENSE.ROLL_FRAMES
+      fighter._benRollCd = BEN10_DEFENSE.ROLL_CD
+      fighter.vx = (fighter.facing === 1 ? -1 : 1) * BEN10_DEFENSE.ROLL_SPEED
+      fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+      fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), light: true }
+      inputState.light = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 4)
+    }
+  }
+  // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
+  if (!!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
+    fighter.energy -= BEN10_DEFENSE.GUARD_COST
+    fighter._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW
+    fighter._benGuardCd = BEN10_DEFENSE.GUARD_CD
+    fighter.colorFlash = Math.max(fighter.colorFlash || 0, 10)
+    fighter._omxConsume = { ...(fighter._omxConsume || {}), heavy: true }
+    inputState.heavy = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+  }
+
+  held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
@@ -26391,6 +26422,7 @@ gameLoop()
     benOmx:           f.omnitrix ? { index: f.omnitrix.index, power: Math.round(f.energy || 0), startup: f.omnitrix.startup || 0, swapLockout: f.omnitrix.swapLockout || 0, timeoutCooldown: f.omnitrix.timeoutCooldown || 0, manualLockout: f.omnitrix.manualLockout || 0, vowActive: !!f.omnitrix.vowActive, lastVowPick: f.omnitrix.lastVowPick, slots: f.omnitrix.aliens.length } : null,
     comboCounter:     f.comboCounter || 0,       // combo-scaling state (victim) — P5 combo tests
     comboTimer:       f.comboTimer || 0,
+    benDefense:       (f.rosterKey === "ben10" || f.rosterKey === "albedo") ? { rollCd: f._benRollCd || 0, roll: f._benRoll || 0, guardCd: f._benGuardCd || 0, energyGuard: f._benEnergyGuard || 0, dr: f._benDR || 0, lastResortUsed: !!f._benLastResortUsed, invuln: f.invulnTimer || 0 } : null,
     gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
     gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
     gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
@@ -26441,6 +26473,14 @@ gameLoop()
       }
     },
     ben10SetPower: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) { f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)); if (f.omnitrix) f.omnitrix.power = f.energy } return f ? f.energy : null },
+    ben10SetHealth: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) f.health = Math.max(0, Math.min(f.maxHealth || 1000, v)); return f ? f.health : null },
+    // Fire a defensive tool directly (bypasses input): "roll" (Green Flash Roll) / "guard" (Energy Guard).
+    ben10Defense: (who = "p1", kind = "guard") => {
+      const f = who === "p2" ? p2 : p1; if (!f) return null
+      if (kind === "roll") { if ((f._benRollCd || 0) > 0) return { fired: false }; f._benRoll = BEN10_DEFENSE.ROLL_FRAMES; f._benRollCd = BEN10_DEFENSE.ROLL_CD; f.invulnTimer = Math.max(f.invulnTimer || 0, 2); return { fired: true, roll: f._benRoll, cd: f._benRollCd } }
+      if (kind === "guard") { if ((f._benGuardCd || 0) > 0 || (f.energy || 0) < BEN10_DEFENSE.GUARD_COST) return { fired: false }; f.energy -= BEN10_DEFENSE.GUARD_COST; f._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW; f._benGuardCd = BEN10_DEFENSE.GUARD_CD; return { fired: true, guard: f._benEnergyGuard, cd: f._benGuardCd, power: Math.round(f.energy) } }
+      return null
+    },
     // Fire a slot transform/swap (slot 0-4) or "revert" directly (bypasses the ↓↓ input for deterministic tests).
     ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: (f.side === "p2" || f.side === "p4") ? 1 : 0 }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },
     ben10VowSequence: (who = "p1", frames = []) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const pIdx = (f.side === "p2" || f.side === "p4") ? 1 : 0; const seed = (matchConfig?.seed || 1) >>> 0; return frames.map(fr => ben10VowPick(f, seed, fr, pIdx)) },

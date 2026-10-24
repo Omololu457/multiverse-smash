@@ -183,6 +183,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   }
   // SOLDIER BOY — SECOND WIND: while the 3s comeback window holds, incoming damage is reduced 25%.
   if ((target._sbSecondWind || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") rawDamage = (rawDamage || 0) * 0.75
+  // BEN 10 — LAST RESORT: while the 2s comeback window holds, incoming damage is reduced 20%. ben10/albedo-gated.
+  if ((target._benDR || 0) > 0) { const _bk = (target.rosterKey || "").toLowerCase(); if (_bk === "ben10" || _bk === "albedo") rawDamage = (rawDamage || 0) * 0.80 }
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
@@ -3200,6 +3202,20 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
+  }
+
+  // BEN 10 — ENERGY GUARD (Block+Heavy): absorbs the next incoming hit outright while its window holds.
+  // Consume the window + the swing. ben10/albedo-gated → a strict no-op for every other fighter.
+  if ((defender._benEnergyGuard || 0) > 0) {
+    const _bk = (defender.rosterKey || "").toLowerCase()
+    if (_bk === "ben10" || _bk === "albedo") {
+      defender._benEnergyGuard = 0
+      attacker.currentAttack.hasHit = true
+      defender.colorFlash = Math.max(defender.colorFlash || 0, 10)
+      defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
+      try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+      return
+    }
   }
 
   // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow

@@ -132,8 +132,14 @@ export const SKINS = {
   // natural) via tools/gen_gojo_creative.py, registered DIRECTLY here (like the Rengoku/Shinobu/Sukuna
   // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
-    // Alternate skins removed per request (2026-10-24) — default only.
-    { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null }
+    { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
+    // ── 2026-10-24 curated set (tools/gen_gojo_creative.py). Coordinated hair + eyes + outfit. ──
+    { id: "gojoAlbedo",       name: "Albedo",        unlockLevel: 0, portrait: recolorPortrait("gojo", "albedo"),       spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "albedo") },
+    { id: "gojoBen10",        name: "Ben 10",        unlockLevel: 0, portrait: recolorPortrait("gojo", "ben10"),        spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ben10") },
+    { id: "gojoAlienX",       name: "Alien X",       unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"),       spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },   // starfield body via game.js drawAlienXStarfield (skinId endsWith "AlienX")
+    { id: "gojoLavender",     name: "Lavender",      unlockLevel: 0, portrait: recolorPortrait("gojo", "lavender"),     spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "lavender") },
+    { id: "gojoGeto",         name: "Cursed Bond",   unlockLevel: 0, portrait: recolorPortrait("gojo", "geto"),         spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "geto") },
+    { id: "gojoHollowPurple", name: "Hollow Purple", unlockLevel: 0, portrait: recolorPortrait("gojo", "hollowpurple"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "hollowpurple") }
   ],
   // SUKUNA — base sprite transparency-repaired (2026-08-03). "Regular" = the iconic pink-haired Sukuna.
   // 2026-08-03: ALL prior alt-skins DELETED (the 10 palette-swap pack + the orphaned Cerulean creative +
@@ -1151,8 +1157,15 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback and he renders at native ~53px (half size). Sources his real
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
-    // Alt skins removed per request (2026-10-24) — default only.
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null },
+    // ── 2026-10-24 curated set (tools/gen_killua_skins.py). Coordinated hair + clothes + lightning. ──
+    { id: "killuaAlbedo",    name: "Albedo",        unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"),    spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
+    { id: "killuaBen10",     name: "Ben 10",        unlockLevel: 0, portrait: recolorPortrait("killua", "ben10"),     spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "ben10") },
+    { id: "killuaAlienX",    name: "Alien X",       unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"),    spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },   // starfield body via game.js drawAlienXStarfield
+    { id: "killuaLavender",  name: "Lavender",      unlockLevel: 0, portrait: recolorPortrait("killua", "lavender"),  spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "lavender") },
+    { id: "killuaNightfall", name: "Nightfall",     unlockLevel: 0, portrait: recolorPortrait("killua", "deepblack"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "deepblack") },   // deep-black hair + tan skin + dark high-collar top
+    { id: "killuaGon",       name: "Best Friends",  unlockLevel: 0, portrait: recolorPortrait("killua", "gon"),       spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "gon") },
+    { id: "killuaGodspeed",  name: "Godspeed",      unlockLevel: 0, portrait: recolorPortrait("killua", "godspeed"),  spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "godspeed") }
   ],
 
   // Gon Freecss (Hunter x Hunter) — AmandioHype re-skin (2026-10-11). Same gate: WITHOUT a default skin,
@@ -2516,6 +2529,12 @@ export const SKINS = {
   ],
   soldier_boy: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.soldier_boy?.portrait, spriteScale: characters.soldier_boy?.spriteScale, animationData: null },
+    // ── 2026-10-24 curated set (tools/gen_soldier_boy_skins.py). Coordinated hair + suit + shield + boots. ──
+    { id: "soldier_boyAlbedo",  name: "Albedo",           unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "albedo"),  spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "albedo") },
+    { id: "soldier_boyBen10",   name: "Ben 10",           unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "ben10"),   spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "ben10") },
+    { id: "soldier_boyAlienX",  name: "Alien X",          unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "alienx"),  spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "alienx") },   // starfield body via game.js drawAlienXStarfield
+    { id: "soldier_boyNuclear", name: "Nuclear Meltdown", unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "nuclear"), spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "nuclear") },   // his radioactive blast — signature power
+    { id: "soldier_boyPayback", name: "Payback",          unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "payback"), spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "payback") }
   ],
   spiderman: [
     { id: "default",                    name: "Default",             unlockLevel: 0, portrait: characters.spiderman?.portrait,                       spriteScale: characters.spiderman?.spriteScale, animationData: null },

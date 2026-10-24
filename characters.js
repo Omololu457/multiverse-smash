@@ -4670,38 +4670,38 @@ const superman = {
   spriteScale: 2.0,
   animationData: {
     // ── MOVEMENT / STATE
-    idle:   { frames: 3, width: 67, height: 67, speed: 11, anchorY: 0, sheet: "./superman_idle_uniform.png" },
+    idle:   { frames: 2, width: 57, height: 67, speed: 12, anchorY: 0, sheet: "./superman_idle_uniform.png" },
     walk:   { frames: 3, width: 86, height: 63, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
     run:    { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
     dash:   { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
-    jump:   { frames: 2, width: 45, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
-    fall:   { frames: 2, width: 61, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_fall_uniform.png" },
-    crouch: { frames: 1, width: 52, height: 65, speed: 6, anchorY: 0, loop: true, sheet: "./superman_crouch_uniform.png" },
-    hurt:   { frames: 1, width: 62, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hurt_uniform.png" },
-    block:  { frames: 1, width: 52, height: 56, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
-    guard:  { frames: 1, width: 52, height: 56, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
-    charge: { frames: 3, width: 57, height: 75, speed: 6, anchorY: 0, loop: true, sheet: "./superman_beam_uniform.png" },
-    // ── NORMAL ATTACK POSES
-    light:     { frames: 2, width: 51, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
-    heavy:     { frames: 2, width: 68, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
-    up:        { frames: 2, width: 68, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_uppercut_uniform.png" },
-    air:       { frames: 2, width: 68, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
-    sweep:     { frames: 2, width: 68, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_sweep_uniform.png" },
-    down_air:  { frames: 1, width: 40, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    jump:   { frames: 2, width: 66, height: 71, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    fall:   { frames: 2, width: 47, height: 69, speed: 7, anchorY: 0, sheet: "./superman_fall_uniform.png" },
+    crouch: { frames: 1, width: 52, height: 62, speed: 6, anchorY: 0, loop: true, sheet: "./superman_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 70, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hurt_uniform.png" },
+    block:  { frames: 1, width: 54, height: 58, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    guard:  { frames: 1, width: 54, height: 58, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    charge: { frames: 2, width: 64, height: 66, speed: 6, anchorY: 0, loop: true, sheet: "./superman_beam_uniform.png" },
+    // ── NORMAL ATTACK POSES (each pose matches its move)
+    light:    { frames: 2, width: 81, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
+    heavy:    { frames: 2, width: 76, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
+    up:       { frames: 2, width: 62, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_uppercut_uniform.png" },
+    air:      { frames: 2, width: 76, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
+    sweep:    { frames: 2, width: 70, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_sweep_uniform.png" },
+    down_air: { frames: 1, width: 42, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
     // ── SPECIAL / ULT POSES
-    heatCharge:{ frames: 3, width: 57, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
-    beam:      { frames: 3, width: 57, height: 75, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
-    dive:      { frames: 1, width: 40, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
-    ultimate:  { frames: 3, width: 57, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
-    // ── FLIGHT (flight.js module — required pose keys; selectFlightPose maps velocity → these)
-    flyHover:  { frames: 3, width: 45, height: 67, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
+    heatCharge:{ frames: 2, width: 64, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    beam:      { frames: 2, width: 64, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    dive:      { frames: 1, width: 42, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    ultimate:  { frames: 3, width: 68, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
+    // ── FLIGHT (flight.js module — required pose keys)
+    flyHover:  { frames: 3, width: 47, height: 69, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
     flyCruise: { frames: 3, width: 62, height: 77, speed: 6, anchorY: 0, sheet: "./superman_flycruise_uniform.png" },
-    flyRise:   { frames: 3, width: 61, height: 65, speed: 5, anchorY: 0, sheet: "./superman_flightrise_uniform.png" },
-    flyDive:   { frames: 1, width: 40, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
-    flyTurn:   { frames: 3, width: 45, height: 67, speed: 5, anchorY: 0, sheet: "./superman_flight_uniform.png" },
-    flyDash:   { frames: 1, width: 40, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
-    takeoff:   { frames: 2, width: 45, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
-    land:      { frames: 2, width: 62, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_land_uniform.png" }
+    flyRise:   { frames: 2, width: 66, height: 71, speed: 5, anchorY: 0, sheet: "./superman_flightrise_uniform.png" },
+    flyDive:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    flyTurn:   { frames: 1, width: 57, height: 66, speed: 5, anchorY: 0, sheet: "./superman_flyturn_uniform.png" },
+    flyDash:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    takeoff:   { frames: 2, width: 66, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    land:      { frames: 2, width: 64, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_land_uniform.png" }
   }
 }
 

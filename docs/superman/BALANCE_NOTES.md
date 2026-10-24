@@ -92,8 +92,18 @@ and driven purely by the sim countdown (no render field stashed on the fighter).
    absent; beam/cape-spread moments are substituted + code-drawn FX (see SPRITE_LEDGER).
 2. Passive Solar regen kept at the engine default (not 0.8/sec) so the ult is buildable.
 3. Specials use **held-direction** inputs, not QCF motions (engine design).
-4. **Shipped new:** Freeze Breath + FROZEN status (4a); Ground Pound + Kryptonian Grab
-   (4b). **Reused (functional) existing kit:** Heat Vision, Super Speed Rush (rekka),
-   Solar Flare (mode), Solar Overload ult. **Not yet wired:** defensive tools (super
-   armor / flight-escape / X-Ray damage bonus beyond the passive text), synthesized SFX,
-   Freeze mash-break, World-of-Cardboard re-choreography.
+4. **Shipped new:** Freeze Breath + FROZEN (4a); Ground Pound + Kryptonian Grab (4b);
+   defensive tools — Super Armor on Heavy, Flight Escape, X-Ray Vision (Phase 6).
+   **Reused (functional) existing kit:** Heat Vision, Super Speed Rush (rekka), Solar
+   Flare (mode), Solar Overload ult. **Not yet wired:** synthesized SFX, Freeze
+   mash-break, World-of-Cardboard re-choreography.
+
+## Defensive tools (shipped, Phase 6)
+
+- **Super Armor on Heavy** — while committing his Heavy, Superman shrugs ONE hit (melee
+  or projectile) without flinching; he still takes the damage. 8s cooldown.
+  Launchers/spikes/ultimates pierce it.
+- **Flight Escape** — while being combo'd (in hitstun), a fresh Special press + 25 Solar
+  Energy bursts him into flight with a 12-frame i-frame window. 10s cooldown.
+- **X-Ray Vision (passive)** — +8% damage (melee + projectiles) while the opponent is
+  below 25% health; a subtle blue scan-tint marks the opponent (render-only).

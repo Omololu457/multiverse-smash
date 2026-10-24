@@ -48,8 +48,8 @@ the nearest reliable slot:
 | Super Speed Rush | →→ + Attack | Fwd + Heavy (rekka) | **existing** 3-stage flying-punch flurry → launcher (combo-standard conformer) |
 | Freeze Breath | ↓↓ + Attack | **Back/Up + Special** | **NEW** — ↓↓ collides with the Down mode-toggle / jump, so Back is the clean slot |
 | Solar Flare | ↓↘→↗ + Special | Down + Special (grounded) | **existing** gold mode toggle (+25% dmg, enhances Heat Vision) — not yet the 360° one-shot burst |
-| Ground Pound | ↓↓ + Special (air) | — | **not yet wired** |
-| Kryptonian Grab | → + Grab (close) | — | **not yet wired** |
+| Ground Pound | ↓↓ + Special (air) | **Down + Special (airborne)** | **shipped (4b)** — dive-slam, direct 110 / shockwave 40+trip |
+| Kryptonian Grab | → + Grab (close) | **Grab (close, flight-ready)** | **shipped (4b)** — fly-up-slam 130, untechable; falls back to normal grab w/o energy |
 | World of Cardboard | full meter | Ultimate button | **existing** "Solar Overload" cinematic (~380, full meter) — not yet re-themed/re-choreographed |
 
 Super Flying Punch (Forward + Special) is an extra committed dash-strike kept from the
@@ -92,8 +92,8 @@ and driven purely by the sim countdown (no render field stashed on the fighter).
    absent; beam/cape-spread moments are substituted + code-drawn FX (see SPRITE_LEDGER).
 2. Passive Solar regen kept at the engine default (not 0.8/sec) so the ult is buildable.
 3. Specials use **held-direction** inputs, not QCF motions (engine design).
-4. **Shipped new:** Freeze Breath + FROZEN status. **Reused (functional) existing kit:**
-   Heat Vision, Super Speed Rush (rekka), Solar Flare (mode), Solar Overload ult.
-   **Not yet wired:** Ground Pound, Kryptonian Grab, defensive tools (super armor /
-   flight-escape / X-Ray damage bonus beyond the passive text), synthesized SFX,
+4. **Shipped new:** Freeze Breath + FROZEN status (4a); Ground Pound + Kryptonian Grab
+   (4b). **Reused (functional) existing kit:** Heat Vision, Super Speed Rush (rekka),
+   Solar Flare (mode), Solar Overload ult. **Not yet wired:** defensive tools (super
+   armor / flight-escape / X-Ray damage bonus beyond the passive text), synthesized SFX,
    Freeze mash-break, World-of-Cardboard re-choreography.

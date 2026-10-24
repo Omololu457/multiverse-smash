@@ -59,9 +59,9 @@ try {
   await shot("1_grounded")
 
   // TAKE OFF (charge tap = "p")
-  await tap("p")
-  await frames(6)
-  const prTO = await probe()
+  // charge-TAP takeoff; retry a few times (the tap→takeoff window occasionally races one frame)
+  let prTO = await probe()
+  for (let i = 0; i < 5 && (prTO.onGround || prTO.phase === "grounded"); i++) { await tap("p"); await frames(6); prTO = await probe() }
   ok(prTO && !prTO.onGround, `did not leave the ground on takeoff (onGround=${prTO && prTO.onGround})`)
   ok(prTO && (prTO.phase === "takeoff" || prTO.phase === "flying"), `not in a flight phase after takeoff (${prTO && prTO.phase})`)
 

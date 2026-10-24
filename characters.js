@@ -4670,10 +4670,10 @@ const superman = {
   spriteScale: 2.0,
   animationData: {
     // ── MOVEMENT / STATE
-    idle:   { frames: 4, width: 57, height: 67, speed: 8, anchorY: 0, sheet: "./superman_idle_uniform.png" },
-    walk:   { frames: 4, width: 70, height: 64, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
-    run:    { frames: 4, width: 57, height: 75, speed: 4, anchorY: 0, sheet: "./superman_run_uniform.png" },
-    dash:   { frames: 4, width: 57, height: 75, speed: 4, anchorY: 0, sheet: "./superman_run_uniform.png" },
+    idle:   { frames: 3, width: 67, height: 67, speed: 11, anchorY: 0, sheet: "./superman_idle_uniform.png" },
+    walk:   { frames: 3, width: 86, height: 63, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    run:    { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    dash:   { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
     jump:   { frames: 2, width: 45, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
     fall:   { frames: 2, width: 61, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_fall_uniform.png" },
     crouch: { frames: 1, width: 52, height: 65, speed: 6, anchorY: 0, loop: true, sheet: "./superman_crouch_uniform.png" },
@@ -4695,7 +4695,7 @@ const superman = {
     ultimate:  { frames: 3, width: 57, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
     // ── FLIGHT (flight.js module — required pose keys; selectFlightPose maps velocity → these)
     flyHover:  { frames: 3, width: 45, height: 67, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
-    flyCruise: { frames: 4, width: 57, height: 75, speed: 6, anchorY: 0, sheet: "./superman_run_uniform.png" },
+    flyCruise: { frames: 3, width: 62, height: 77, speed: 6, anchorY: 0, sheet: "./superman_flycruise_uniform.png" },
     flyRise:   { frames: 3, width: 61, height: 65, speed: 5, anchorY: 0, sheet: "./superman_flightrise_uniform.png" },
     flyDive:   { frames: 1, width: 40, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
     flyTurn:   { frames: 3, width: 45, height: 67, speed: 5, anchorY: 0, sheet: "./superman_flight_uniform.png" },

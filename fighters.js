@@ -1537,6 +1537,7 @@ export function ben10BeginTransform(fighter, slot) {
   fighter._spriteCastMove = "transform"; fighter._spriteCastTimer = TRANSFORM_ENERGY.TRANSFORM_STARTUP
   fighter._attackInputLock = 6
   fighter.teleportFlash = 8
+  fighter._benSfx = "ben_transform"
   return true
 }
 
@@ -1557,6 +1558,7 @@ export function ben10Swap(fighter, slot) {
   omx.swapLockout = TRANSFORM_ENERGY.SWAP_LOCKOUT
   fighter._attackInputLock = 6
   fighter.teleportFlash = 6
+  fighter._benSfx = "ben_swap"
   return true
 }
 
@@ -1564,9 +1566,12 @@ export function ben10Swap(fighter, slot) {
 // the alien is the deterministic hash pick (player can't choose). Returns "transform" | "swap" | null.
 export function ben10TransformOrSwap(fighter, slot, vowCtx = null) {
   const omx = fighter?.omnitrix; if (!omx) return null
-  if (omx.vowActive && vowCtx) slot = ben10VowPick(fighter, vowCtx.seed, vowCtx.frame, vowCtx.playerIndex)
-  if (!fighter.transformed) return ben10BeginTransform(fighter, slot) ? "transform" : null
-  return ben10Swap(fighter, slot) ? "swap" : null
+  const vowPicked = omx.vowActive && vowCtx
+  if (vowPicked) slot = ben10VowPick(fighter, vowCtx.seed, vowCtx.frame, vowCtx.playerIndex)
+  const act = !fighter.transformed ? (ben10BeginTransform(fighter, slot) ? "transform" : null)
+                                   : (ben10Swap(fighter, slot) ? "swap" : null)
+  if (act && vowPicked) fighter._benSfx = "ben_vowpick"   // Vow pick overrides the transform/swap cue
+  return act
 }
 
 // Manual revert (↓↓ + Light+Special): 20-frame lockout, NO timeout penalty (that is only for a 0-Power
@@ -1578,6 +1583,7 @@ export function ben10Revert(fighter) {
   revertToHuman(fighter, { forced: false })
   omx.manualLockout = TRANSFORM_ENERGY.MANUAL_REVERT_LOCKOUT
   fighter._attackInputLock = 6
+  fighter._benSfx = "ben_revert"
   return true
 }
 
@@ -1795,6 +1801,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
     revertToHuman(fighter, { forced: true })
     omx.timeoutCooldown = TRANSFORM_ENERGY.TIMEOUT_FRAMES
     omx.currentForm = null; omx.formTimer = 0
+    fighter._benSfx = "ben_timeout"
   }
 }
 

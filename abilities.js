@@ -29442,6 +29442,7 @@ function fireDhRisingDiamonds(fighter, context) {
 function fireBenEnergyShot(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 12)) return false
+  fighter._benSfx = "ben_energyshot"
   fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 16   // cast on the punch frame
   fighter.attackCooldown = getAttackDuration(22, fighter)
   const face = fighter.facing || 1
@@ -29459,6 +29460,7 @@ function fireBenEnergyShot(fighter, context) {
 function fireBenDashStrike(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 10)) return false
+  fighter._benSfx = "ben_dash"
   const md = { damage: 42, startup: 6, active: 5, recovery: 15, hitstun: 18, blockstun: 10, knockbackX: 7, knockbackY: -3, rangeX: 96, rangeY: 54, isSpecial: true }
   const attack = createAttackFromMove(fighter, "up", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
@@ -29473,6 +29475,7 @@ function fireBenDashStrike(fighter, context) {
 function fireBenShockwave(fighter, context) {   // Prime only (Down Special)
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 18)) return false
+  fighter._benSfx = "ben_shockwave"
   fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(30, fighter); fighter.vx = 0
   const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5, RAD = 190
@@ -30038,6 +30041,7 @@ function executeBen10Ultimate(fighter, context) {
     if ((fighter.energy || 0) < 100) return false
     fighter.energy = 0
     if (fighter.omnitrix) fighter.omnitrix.power = 0
+    fighter._benSfx = "ben_overload"
     fighter._spriteCastMove = "transform"; fighter._spriteCastTimer = 90
     fighter.attackCooldown = getAttackDuration(90, fighter); fighter.vx = 0
     fighter._benOverloadFx = { t: 90, max: 90, prime: fighter._benVariant === "prime" }   // render-only radial burst

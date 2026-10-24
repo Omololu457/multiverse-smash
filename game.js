@@ -11048,6 +11048,22 @@ const OMX_ARM_WINDOW        = 18   // frames the menu stays armed waiting for th
 
 function _benPlayerIndex(fighter) { return (fighter.side === "p2" || fighter.side === "p4") ? 1 : 0 }
 
+// BEN 10 SFX (Phase 7): play the placeholder WebAudio synth for an Omnitrix event. Pitch is ±3% from a
+// deterministic hash(matchSeed, frame, playerIndex) — NO Math.random, so LAN/replay-identical. Event
+// points set fighter._benSfx = "<id>" (fighters.js + abilities.js, no sound import there); this drains it.
+function ben10Sfx(fighter, id) {
+  if (!fighter || !id) return
+  const player = _benPlayerIndex(fighter)
+  const seed = (matchConfig?.seed || 1) >>> 0
+  let h = ((seed ^ 0x9e3779b9) >>> 0)
+  h = Math.imul(h ^ ((globalFrameCount | 0) + 0x85ebca6b), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((player | 0) + 0x27d4eb2f), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  const r = (h >>> 0) / 4294967296
+  const pitch = 1 + (r * 2 - 1) * 0.03                 // ±3% pitch variance from the hash
+  try { sound.playBen10(id, pitch, (h >>> 0) || 1) } catch (_) {}
+}
+
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
   const held = (fighter._omx = fighter._omx || {})
@@ -19311,7 +19327,7 @@ function updateFighterState(fighter) {
   // Ben/Albedo run the transform-device drain/charge/revert system instead of
   // the generic passive regen (which would fight the drain). Driven by real
   // per-frame delta ms.
-  if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
+  if (isTransformDevice(updated)) { updateTransformDevice(updated, getAbilityContext().deltaMs); if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
   else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
   if (updated._meterDrain && !updated.infiniteEnergy && (updated.maxEnergy || 0) > 0) updated.energy = Math.max(0, (updated.energy || 0) - 0.5)   // Stage 24A "Meter Drain" modifier
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event

@@ -1809,6 +1809,15 @@ export const SKINS = {
     // id ENDS "AlienX" so game.js drawAlienXStarfield auto-gates the colourful Celestialsapien starfield
     // overlay onto the matte-black (alienx) sheets — matching every other character's Alien X skin.
     { id: "homelanderAlienX",  name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("homelander", "alienx"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "alienx") },
+    // CREATIVE hair recolours (tools/gen_homelander_hair_skins.py — recolours just his blond hair, suit/face kept).
+    { id: "homelanderPinkHair",    name: "Pink Hair",    unlockLevel: 0, portrait: "./homelander_portrait__pinkhair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "pinkhair") },
+    { id: "homelanderGreenHair",   name: "Green Hair",   unlockLevel: 0, portrait: "./homelander_portrait__greenhair.png",   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "greenhair") },
+    { id: "homelanderSilverHair",  name: "Silver Fox",   unlockLevel: 0, portrait: "./homelander_portrait__silverhair.png",  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "silverhair") },
+    { id: "homelanderRavenHair",   name: "Raven",        unlockLevel: 0, portrait: "./homelander_portrait__ravenhair.png",   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "ravenhair") },
+    { id: "homelanderBlueHair",    name: "Electric Blue", unlockLevel: 0, portrait: "./homelander_portrait__bluehair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "bluehair") },
+    { id: "homelanderCrimsonHair", name: "Crimson",      unlockLevel: 0, portrait: "./homelander_portrait__crimsonhair.png", spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "crimsonhair") },
+    { id: "homelanderPurpleHair",  name: "Royal Purple", unlockLevel: 0, portrait: "./homelander_portrait__purplehair.png",  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "purplehair") },
+    { id: "homelanderTealHair",    name: "Teal",         unlockLevel: 0, portrait: "./homelander_portrait__tealhair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "tealhair") },
   ],
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },

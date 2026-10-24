@@ -34326,6 +34326,140 @@ export function updateSoldierBoyCommandCombat(fighter, inputState, context) {
   return false
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY — SPECIALS + NUCLEAR BURST ULTIMATE (Phase 4). Normals (Jab/Heavy/Low/Launcher/Air) come
+// from characters.js basic_attacks. Input mapping uses the engine's held-direction special system (same
+// convention as Goku/Homelander; motionInput.js is Naruto-only): N=Gold Rush, F=Shield Toss, B=Rifle Shot,
+// U=Cape Cyclone, Down(ground)=SMG Barrage, Down(air)=Diving Kick; Ultimate button = Nuclear Burst.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const SOLDIER_BOY_SPECIALS = {
+  // melee specials (createAttackFromMove). Damage values are UNSCALED (global 0.60 applied in applyScaledDamage).
+  sbGoldRush: { damage: 85, startup: 6, active: 8,  recovery: 28, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 120, rangeY: 62,  cost: 20, advance: 18 },
+  sbCyclone:  { damage: 30, startup: 4, active: 14, recovery: 16, hitstun: 14, knockbackX: 4,  knockbackY: -5, rangeX: 96,  rangeY: 150, cost: 25 },   // 3-hit spin (re-armed hitbox)
+  sbDive:     { damage: 60, startup: 8, active: 12, recovery: 12, hitstun: 20, knockbackX: 5,  knockbackY: 8,  rangeX: 92,  rangeY: 80,  cost: 15 },
+}
+
+// ── GOLD RUSH (neutral+Special) — armored forward lunge; one hit absorbed in startup f1-6 ──
+function fireSbGoldRush(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbGoldRush
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbGoldRush", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._castArmor = Math.max(fighter._castArmor || 0, md.startup)      // absorb one hit during startup f1-6 (combat.js castArmored; ticks in game.js)
+  fighter.vx = (fighter.facing || 1) * (md.advance || 18)                // armored lunge travels forward
+  sbSound(fighter, "sb_goldRush", context)
+  return true
+}
+// ── CAPE CYCLONE (Up+Special) — anti-air spin: 3 hits of 30, upper-body invuln on active f3-8 ──
+function fireSbCapeCyclone(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbCyclone
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbCyclone", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  // re-arm the hitbox twice inside the active window → up to 3 hits of 30 (the spin).
+  schedulePendingSpawn(md.startup + 4, () => { if (fighter.currentMove === "sbCyclone" && fighter.currentAttack) fighter.currentAttack.hasHit = false })
+  schedulePendingSpawn(md.startup + 8, () => { if (fighter.currentMove === "sbCyclone" && fighter.currentAttack) fighter.currentAttack.hasHit = false })
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)            // upper-body invuln (active f3-8)
+  sbSound(fighter, "sb_cyclone", context)
+  return true
+}
+// ── DIVING KICK (air Down+Special) — angled overhead dive ──
+function fireSbDivingKick(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbDive
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbDive", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.spike = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 10; fighter.vy = 12               // dive down-forward
+  sbSound(fighter, "sb_dive", context)
+  return true
+}
+// ── SHIELD TOSS (Fwd+Special) — gold boomerang, 420px round-trip, ONE on screen (= its cooldown) ──
+function fireSbShieldToss(fighter, context) {
+  if (activeProjectiles.some(p => p && p.name === "sbShield" && p.owner === fighter)) return false   // one on screen at a time
+  if (!spendEnergy(fighter, SB_SHIELD.cost)) return false
+  fighter._spriteCastMove = "sbShieldThrow"; fighter._spriteCastTimer = 18
+  spawnProjectile(fighter, "sbShield", {
+    damage: SB_SHIELD.out, speed: SB_SHIELD.speed, hitstun: 16, knockbackX: 6, knockbackY: -2,
+    w: 46, h: 46, radius: 24, isSpecial: true, boomerang: true,
+    maxRange: SB_SHIELD.range, retractSpeed: SB_SHIELD.speed, color: "#c9a227",
+    sheet: "./soldier_boy_shieldproj_uniform.png", spriteFrames: 6, spriteW: 149, spriteH: 63, spriteSpeed: 2, spriteScale: 1.1,
+    spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  sbSound(fighter, "sb_shield", context)
+  return true
+}
+// ── SMG BARRAGE (Down+Special, ground) — 6 bullets over 30f, 12 each, hashed +/-6px spread ──
+function fireSbSMGBarrage(fighter, context) {
+  if (!spendEnergy(fighter, SB_SMG.cost)) return false
+  fighter._spriteCastMove = "sbSMG"; fighter._spriteCastTimer = 30
+  sbSpawnSMG(fighter, context, SB_SMG.bullets, SB_SMG.perBullet)
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  sbSound(fighter, "sb_smg", context)
+  return true
+}
+// ── RIFLE SHOT (Back+Special) — 20f startup, fast piercing round, 90 dmg, strong knockback ──
+function fireSbRifleShot(fighter, context) {
+  if (!spendEnergy(fighter, SB_RIFLE.cost)) return false
+  fighter._spriteCastMove = "sbRifle"; fighter._spriteCastTimer = SB_RIFLE.startup + 10
+  schedulePendingSpawn(SB_RIFLE.startup, () => sbSpawnRifle(fighter, context, SB_RIFLE.damage))   // 20f startup
+  fighter.attackCooldown = getAttackDuration(SB_RIFLE.startup + 14, fighter)
+  sbSound(fighter, "sb_rifle", context)
+  return true
+}
+
+// ── SPECIAL ROUTER (held-direction). Called from triggerSpecial. ──
+function executeSoldierBoySpecial(fighter, context = {}) {
+  if (!isSoldierBoy(fighter)) return false
+  if (fighter.attacking || (fighter.attackCooldown || 0) > 0) return false
+  const air = !(fighter.onGround ?? fighter.grounded ?? true)
+  const dir = fighter._specialHeldDir || null
+  if (air) return (dir === "D") ? fireSbDivingKick(fighter, context) : false   // AIR Down = Diving Kick
+  if (dir === "F") return fireSbShieldToss(fighter, context)     // toward  (canonical qcf)
+  if (dir === "B") return fireSbRifleShot(fighter, context)      // away    (canonical qcb)
+  if (dir === "U") return fireSbCapeCyclone(fighter, context)    // up      (anti-air dp)
+  if (dir === "D") return fireSbSMGBarrage(fighter, context)     // down    (down-down)
+  return fireSbGoldRush(fighter, context)                        // neutral = armored lunge (dash)
+}
+
+// ── NUCLEAR BURST (Ultimate button) — needs the FULL meter. 3-phase radial blast (r=360),
+// 80+80+120 = 280 unscaled, 90f recovery lockout. White/orange flash, radial particles and shake are
+// RENDER-ONLY (drawn in game.js from _sbNuke* render flags; not in GAME_STATE). Does NOT set
+// isUltimateActive (that forces the idle pose) — the 90f attackCooldown is the lockout. ──
+function executeSoldierBoyUltimate(fighter, context = {}) {
+  if (!isSoldierBoy(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (context && context.cinematicSafe === false) return false            // refuse during KO/Brutality/domains/rewind
+  if (!spendEnergy(fighter, 100)) return false                            // full meter only
+  fighter._sbArmed = false; fighter._sbArmedTimer = 0                     // the nuke ends Armed Mode
+  fighter.vx = 0
+  fighter._spriteCastMove = "sbUltPose"; fighter._spriteCastTimer = 54
+  fighter._sbNukeFlash = 60                                               // render-only white/orange wash flag
+  const resolve = getTargetResolver(context)
+  const PULSES = [{ at: 8, dmg: 80 }, { at: 26, dmg: 80 }, { at: 44, dmg: 120 }]
+  for (const p of PULSES) {
+    schedulePendingSpawn(p.at, () => {
+      const o = resolve ? resolve(fighter) : null
+      if (!o) return
+      const dx = (o.x || 0) - (fighter.x || 0), dy = (o.y || 0) - (fighter.y || 0)
+      if (Math.hypot(dx, dy) <= 360 && (o.invulnTimer || 0) <= 0) {
+        applyScaledDamage(o, p.dmg, { attacker: fighter, move: "ultimate", source: "ability", tier: "big" })
+        o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 10
+        o.vx = (dx >= 0 ? 1 : -1) * 8; o.vy = -6
+      }
+    })
+  }
+  schedulePendingSpawn(50, () => { fighter._spriteCastMove = "sbUltRecover"; fighter._spriteCastTimer = 40 })
+  fighter.attackCooldown = getAttackDuration(90, fighter)                 // 90f recovery lockout (also blocks re-arm)
+  try { shakeCamera(context, 9, 60) } catch (_) {}                        // render-only
+  fighter.colorFlash = 18
+  sbSound(fighter, "sb_nuke", context)
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -34437,6 +34571,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "superman_fighter": return executeSupermanFighterSpecial(fighter, context)  // ★ALL REAL FX (disjoint): neutral=Heat Vision beam / Fwd=X red blast / U=Frost Breath (tall) / Down=Ice Beam (long) / Back=Flying Retreat / AIR=Aerial Ice
     case "onoki":   return executeOnokiSpecial(fighter, context)     // Dust Release — neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Down=Cape Spin+rock projectiles / Up=Taunting Combo Finisher (launcher). Jutsu Charge/Launch = separate P-hold release.
     case "kiba":    return executeKibaSpecial(fighter, context)      // Gatsuga (Fang Passing Fang) — neutral=Weak drill-rush / Fwd=Strong drill-rush (superArmor, further, ~2× energy)
+    case "soldier_boy": return executeSoldierBoySpecial(fighter, context)
     case "spiderman": return executeSpidermanSpecial(fighter, context)   // Stage 2: Down = Ground Crawl evasive (i-frames + reposition; Light/Heavy during crawl → kick-up). Web specials (neutral/F/B/U) land Stage 3.
     case "naoya":   return executeNaoyaSpecial(fighter, context)   // neutral=Energy Dart spread / Fwd=Pitch Throw (fast dart) / Back=Frame-Skip retreat blink / Up=Frame-Skip advance blink / Down=Frame-Trap (L→H→L strict-link → freeze finish)
     case "boruto":  return executeBorutoSpecial(fighter, context)    // GROUND: Rasengan(neutral)/Shiden(Fwd)/Wind-Water(Back)/Palm Blast(Up)/Shadow Clone(Down). AIR: Rasengan(neutral)/Throw Weapon(Fwd)/Vanishing Rasengan(Back)
@@ -34648,6 +34783,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "handler": cast = executeHandlerUltimate(fighter, context); break     // Mahoraga — ADAPTATION FORM (NEW engine): transforms into Mahoraga (_skinAnim art-swap), swaps in WEAK, adapts per-move (damage-reduction ladder against him) + GROWS (dmg/def/regen with distinct-adapted), ~10s auto-revert. Kit: normals=attack combo, Special=adapted counter (row_05).
       case "yuta": cast = executeYutaUltimate(fighter, context); break          // Rika's Invocation (owner decision #8 = AI assist-ally) — invocation cast (row_16) hands off to a PERSISTENT AI Rika assist (summons.js rikaAssist): emerges → advances → strikes ~6s, per-hit ×0.60 scaled (Megumi-flag)
       case "mayuri": cast = executeMayuriUltimate(fighter, context); break      // Bankai: Konjiki Ashisogi Jizō — inline freeze cinematic (live fighter, no dup): golden construct assembles→crushes, guaranteed ~198 EFF
+      case "soldier_boy": cast = executeSoldierBoyUltimate(fighter, context); break
       case "spiderman": cast = executeSpidermanUltimate(fighter, context); break  // Maximum Web — inline freeze cinematic (live fighter, no dup): giant web-net engulfs+PINS the foe, guaranteed ~204 EFF
       case "spiderman_raimi": cast = executeRaimiUltimate(fighter, context); break  // Web Cocoon — same web-trap escalation: live fighter holds his OWN overhead web-thwip pose (webThwip), shared web-net cocoon overlay grows+PINS the frozen foe, guaranteed ~204 EFF. Reuses generic web-net FX (flagged)
       case "naoya":   cast = executeNaoyaUltimate(fighter, context); break   // Projection Sorcery: Frame-Trap — PROMOTED guaranteed auto-execution (L→H→L → white-wing FREEZE finish) on live fighter, no dup, ~198 EFF; reuses S4 cast poses (no unique ult art — flagged gap)

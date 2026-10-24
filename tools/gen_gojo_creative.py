@@ -100,8 +100,10 @@ SKINS = {
     "lavender": dict(name="Lavender", hair="#E8C8EA", eyes="#D9A8D4", shirt=None),
     # Cursed Bond (Suguru Geto — his best friend turned greatest enemy): deep-black hair, dark navy robe.
     "geto":     dict(name="Cursed Bond", hair="#15151C", eyes="#3A4A6E", shirt="#1E2334", shirt_sp=1.8),
-    # Hollow Purple (Gojo's signature Imaginary Technique, red+blue → purple): deep violet head-to-toe.
-    "hollowpurple": dict(name="Hollow Purple", hair="#7A3CD0", eyes="#A368F5", shirt="#44199A", shirt_sp=2.2, pants="#3A1680"),
+    # Hollow Purple (Gojo's signature Imaginary Technique, red+blue → purple): violet hair + top, but
+    # WHITE pants kept (like every other skin) so the silhouette has contrast and doesn't read as a
+    # solid purple blob at gameplay scale.
+    "hollowpurple": dict(name="Hollow Purple", hair="#8A4CE0", eyes="#A368F5", shirt="#4A1EA6", shirt_sp=2.2),
 }
 
 def passes(cfg):

@@ -132,39 +132,8 @@ export const SKINS = {
   // natural) via tools/gen_gojo_creative.py, registered DIRECTLY here (like the Rengoku/Shinobu/Sukuna
   // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
-    { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "gojoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gojo", "valkyrie"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "valkyrie") },
-    { id: "gojoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },
-    { id: "gojoCerulean",  name: "Cerulean", unlockLevel: 0, portrait: "./gojo_portrait__cerulean.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cerulean") },
-    { id: "gojoAmethyst",  name: "Amethyst", unlockLevel: 0, portrait: "./gojo_portrait__amethyst.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethyst") },
-    { id: "gojoSolar",     name: "Solar",    unlockLevel: 0, portrait: "./gojo_portrait__solar.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "solar") },
-    { id: "gojoRose",      name: "Rose",     unlockLevel: 0, portrait: "./gojo_portrait__rose.png",     spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rose") },
-    // ── Batch 2 · named/requested (coordinated hair+eyes; outfit per-skin) ──
-    { id: "gojoBlossom",   name: "Blossom Limitless", unlockLevel: 0, portrait: "./gojo_portrait__blossom.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "blossom") },
-    { id: "gojoOmnitrix",  name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./gojo_portrait__omnitrix.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "omnitrix") },
-    { id: "gojoAlbedo",    name: "Albedo Protocol",   unlockLevel: 0, portrait: "./gojo_portrait__albedopr.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "albedopr") },
-    { id: "gojoInfinityVoid", name: "Infinity Void",  unlockLevel: 0, portrait: "./gojo_portrait__infinivoid.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "infinivoid") },   // + procedural blue-white motes & barrier-ring pulses (game.js drawGojoInfinityVoidOverlay, gated on this id)
-    // ── Batch 2 · deep hair+eyes, natural BLACK outfit (white pants kept) ──
-    { id: "gojoCobalt",  name: "Cobalt Six Eyes",  unlockLevel: 0, portrait: "./gojo_portrait__cobalt.png",  spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cobalt") },
-    { id: "gojoCrimson", name: "Crimson Domain",   unlockLevel: 0, portrait: "./gojo_portrait__crimson.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "crimson") },
-    { id: "gojoEmerald", name: "Emerald Sorcerer", unlockLevel: 0, portrait: "./gojo_portrait__emerald.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "emerald") },
-    { id: "gojoGolden",  name: "Golden Jujutsu",   unlockLevel: 0, portrait: "./gojo_portrait__golden.png",  spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "golden") },
-    // ── Batch 3 · deep hair+eyes, natural BLACK outfit (Amethyst Gaze ≠ light "Amethyst"; Sunfire ≠ "Solar") ──
-    { id: "gojoAmethystGaze", name: "Amethyst Gaze",   unlockLevel: 0, portrait: "./gojo_portrait__amethystgaze.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethystgaze") },
-    { id: "gojoIvory",   name: "Ivory Strongest", unlockLevel: 0, portrait: "./gojo_portrait__ivory.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ivory") },
-    { id: "gojoTeal",    name: "Teal Barrier",    unlockLevel: 0, portrait: "./gojo_portrait__teal.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "teal") },
-    { id: "gojoSunfire", name: "Sunfire Sorcerer",unlockLevel: 0, portrait: "./gojo_portrait__sunfire.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "sunfire") },
-    // ── Batch 4 · (Rose Quartz = pink-lavender ≠ warm "Rose" / vivid "Blossom"; Obsidian near-black + cyan-eye accent; Ashen dark-red top; Storm dark-gray top + cyan eyes) ──
-    { id: "gojoRoseQuartz", name: "Rose Quartz Gaze",  unlockLevel: 0, portrait: "./gojo_portrait__rosequartz.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rosequartz") },
-    { id: "gojoObsidian",   name: "Obsidian Strongest",unlockLevel: 0, portrait: "./gojo_portrait__obsidian.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "obsidian") },
-    { id: "gojoAshen",      name: "Ashen Sorcerer",    unlockLevel: 0, portrait: "./gojo_portrait__ashen.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ashen") },
-    { id: "gojoStorm",      name: "Storm Barrier",     unlockLevel: 0, portrait: "./gojo_portrait__storm.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "storm") },
-    // ADDITIVE — 4 procedural-pattern skins on the outfit (Infinity Void already exists, not duplicated); hair+eyes+outfit coordinated
-    { id: "gojoGradientLimitless", name: "Gradient Limitless", unlockLevel: 0, portrait: "./gojo_portrait__gojoGradientLimitless.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoGradientLimitless") },
-    { id: "gojoHarlequinSorcerer", name: "Harlequin Sorcerer", unlockLevel: 0, portrait: "./gojo_portrait__gojoHarlequinSorcerer.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoHarlequinSorcerer") },
-    { id: "gojoCircuitBarrier", name: "Circuit Barrier", unlockLevel: 0, portrait: "./gojo_portrait__gojoCircuitBarrier.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoCircuitBarrier") },
-    { id: "gojoChevronStrike", name: "Chevron Strike", unlockLevel: 0, portrait: "./gojo_portrait__gojoChevronStrike.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoChevronStrike") }
+    // Alternate skins removed per request (2026-10-24) — default only.
+    { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null }
   ],
   // SUKUNA — base sprite transparency-repaired (2026-08-03). "Regular" = the iconic pink-haired Sukuna.
   // 2026-08-03: ALL prior alt-skins DELETED (the 10 palette-swap pack + the orphaned Cerulean creative +
@@ -920,9 +889,8 @@ export const SKINS = {
     // 3 palettes from the sheet's PALETTE BOX (Anime = default; Anime Old + Manga = recolor LUT via
     // zoldyck_work/gen_recolor.py). GODSPEED frames keep their own blue palette (zdRecolorAnim excludes them).
     // All skins share the DEFAULT portrait (the detailed illustration corrupts under the body LUT).
+    // Alt skins removed per request (2026-10-24) — default only.
     { id: "default",  name: "Anime",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: null },
-    { id: "animeold", name: "Anime Old", unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("animeold") },
-    { id: "manga",    name: "Manga",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("manga") },
   ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
@@ -1183,11 +1151,8 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback and he renders at native ~53px (half size). Sources his real
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
+    // Alt skins removed per request (2026-10-24) — default only.
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "killuaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
-    { id: "killuaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("killua", "valkyrie"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "valkyrie") },
-    { id: "killuaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },
   ],
 
   // Gon Freecss (Hunter x Hunter) — AmandioHype re-skin (2026-10-11). Same gate: WITHOUT a default skin,

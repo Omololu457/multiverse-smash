@@ -2531,6 +2531,9 @@ export const SKINS = {
     { id: "ironMan3VoidSovereign",    name: "Void Sovereign",    unlockLevel: 0, portrait: "./iron_man_3_portrait__voidsovereign.png",    spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "voidsovereign"),    recolorTag: "voidsovereign" },
     { id: "ironMan3MarkFortyTwo",     name: "Mark 42 (Extremis)",unlockLevel: 0, portrait: "./iron_man_3_portrait__markfortytwo.png",     spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "markfortytwo"),     recolorTag: "markfortytwo" }               // HOMAGE Mark 42 (Extremis): darker red + champagne-gold
   ],
+  soldier_boy: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.soldier_boy?.portrait, spriteScale: characters.soldier_boy?.spriteScale, animationData: null },
+  ],
   spiderman: [
     { id: "default",                    name: "Default",             unlockLevel: 0, portrait: characters.spiderman?.portrait,                       spriteScale: characters.spiderman?.spriteScale, animationData: null },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).

@@ -11215,6 +11215,90 @@ const shisuiItachiKids = {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY (The Boys' original super-soldier) — rosterKey `soldier_boy`, MARVEL universe roster group.
+// Grounded BRUISER / GUNNER: strength + durability up close, SMG/rifle/boomerang-shield zoning at range,
+// a loadout-swap "ARMED MODE" (Ghostface killer-swap pattern), and a full-meter NUCLEAR BURST ultimate.
+// Art: 58-row metalsonictypeone sheet, sliced feet-aligned via tools/reslice_soldier_boy.py (faces RIGHT
+// on the sheet = engine P1 orientation → NO flip). REQUIRES the spritesheets.js SPRITE_MANIFEST idle gate
+// (else procedural box) + the skins.js `soldier_boy` default entry (else applySkin native-shrink).
+// See docs/soldier_boy/SPRITE_LEDGER.md for every frame → animation → move.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const soldierBoy = {
+  rosterKey: "soldier_boy", name: "Soldier Boy", displayName: "Soldier Boy", universe: "marvel", color: "#b8912f",
+  portrait: "./soldier_boy_portrait.png",   // upright idle bust (row 1 f0); no dedicated mugshot art on the sheet
+  tagline: "The original. The loudest. Still standing.",
+  difficulty: 2,            // out of 5 — Bruiser/Gunner; Nuclear Charge economy + Armed Mode timing are the depth
+  archetype: "Bruiser / Gunner",
+  bio: "Vought's first super-soldier, decorated across a century of glory and grudges. Kryptonian-tough and strong enough to end a fight with one swing, he answers every problem with a gun — SMG, rifle, or his gold shield — and a nuclear temper he can let off the leash when it matters most.",
+  archetypes: ["bruiser", "zoner"],
+  primary: "melee", secondary: ["zoner", "mobility"],
+  // NUCLEAR CHARGE = his meter (ui.js ENERGY_TYPE_LABELS "nuclear_charge" → "Nuclear Charge"). Passive 3/s
+  // (abilities.regenEnergy soldier_boy branch) + builds in combat (+6 on a landed hit, +4 on one taken —
+  // combat.applyScaledDamage). Every special spends it; the ULT needs the full 100 → each cast is a choice
+  // against the nuke. mobility "low" = grounded heavy-jump bruiser (no flight).
+  traits: { hasEnergy: true, energyType: "nuclear_charge", energyName: "Nuclear Charge", mobility: "low", scaling: "damage", animeMovement: false },
+  passive: { name: "Compound V Super-Soldier", effect: "A century of super-strength and durability — heavy hits, armored lunges, and a nuclear reserve that builds as he dishes out and eats punishment." },
+  // BRUISER band: high HP/attack, above-median weight; moves SLOW on the ground (walk ~4.8) with a heavy jump
+  // — his range game (guns + shield) and armor answer his mobility deficit. speed 79 → walk velocity ≈4.8
+  // (physics.js maps 78→4.5 … 98→9.5). maxEnergy 100 = the Nuclear Charge pool. weight 1.2 = heavy.
+  stats: { maxHealth: 1080, maxEnergy: 100, attack: 92, defense: 88, speed: 79, maxJumps: 2, jumpPower: 27, dashSpeed: 15, dashDuration: 9, dashCooldownMax: 34, weight: 1.2 },
+  movement: { crouchIdle: true },   // holding Down shows the dedicated crouch strip (rows 3 + 9)
+  // ── NORMALS (Phase 4). No energy cost. Diminishing-returns combo scaling is engine-global (85%/hit).
+  basic_attacks: {
+    light:    { damage: 22, startup: 5,  active: 3, recovery: 7,  hitstun: 12, knockbackX: 3,  knockbackY: 0 },   // Jab (-1 on block)
+    heavy:    { damage: 62, startup: 14, active: 4, recovery: 18, hitstun: 20, knockbackX: 10, knockbackY: 2 },   // Heavy shield swing (-6 on block)
+    upAttack: { type: "launcher", damage: 55, startup: 11, active: 4, recovery: 16, hitstun: 20, blockstun: 7, knockbackX: 2, knockbackY: -11, launch: 13, airOK: false },   // Launcher uppercut (-9 on block)
+    airAttack:{ damage: 38, startup: 8,  active: 3, recovery: 11, hitstun: 14, knockbackX: 4,  knockbackY: -2 },   // Air attack (+2 on landing)
+    lowAttack:{ damage: 30, startup: 7,  active: 3, recovery: 10, hitstun: 14, knockbackX: 3,  knockbackY: 0, hitsLow: true }   // Low (-4 on block, hits low)
+  },
+  ultimate: { name: "Nuclear Burst", cost: 100, description: "Soldier Boy lets the Compound V off the leash — a three-phase radial nuclear blast that erupts outward, scorching everything in a 360px radius for massive damage." },
+  voiceLines: { intro: "You wanna go? Fine. Let's go.", win: "The original. Still standing.", lose: "...This isn't how it ends.", taunt: "That the best you got? Pathetic.", super: "You have no idea what I am." },
+  hasSprites: true,
+  // idle content ≈93px wide / 115px tall; scale 1.15 → ~132px — a big, heavy silhouette (top of the roster band).
+  spriteScale: 1.15,
+  introPool: ["intro"],
+  animationData: {
+    // ── MOVEMENT / STATE (Phase 1) — anchorY:0 everywhere → feet planted, no anchor rescale. ──
+    idle:  { frames: 5, width: 93,  height: 115, speed: 7, anchorY: 0, sheet: "./soldier_boy_idle_uniform.png" },        // row 1 upright bob loop
+    intro: { frames: 5, width: 93,  height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_idle_uniform.png" },  // no dedicated entrance → idle bob plays once
+    walk:  { frames: 6, width: 101, height: 121, speed: 5, anchorY: 0, sheet: "./soldier_boy_walk_uniform.png" },        // row 4 f0-5
+    run:   { frames: 6, width: 105, height: 123, speed: 3, anchorY: 0, sheet: "./soldier_boy_run_uniform.png" },         // row 4 f6-11
+    jump:  { frames: 3, width: 84,  height: 156, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_jump_uniform.png" },  // row 5 f0-2 (start+rise)
+    fall:  { frames: 2, width: 100, height: 83,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_fall_uniform.png" },  // row 5 f3-4
+    dash:  { frames: 8, width: 144, height: 129, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_roll_uniform.png" },  // row 8 roll/slide
+    guard: { frames: 2, width: 99,  height: 115, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_block_uniform.png" }, // row 2 Gold Brace block
+    crouch:{ frames: 4, width: 108, height: 95,  speed: 6, anchorY: 0, sheet: "./soldier_boy_crouch_uniform.png" },      // rows 3 + 9
+    hurt:  { frames: 9, width: 108, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_hurt_uniform.png" },  // rows 11/46/47
+    knockdown: { frames: 8, width: 155, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_knockdown_uniform.png" }, // row 26
+    getup: { frames: 7, width: 177, height: 85,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_getup_uniform.png" }, // rows 55+56
+    win:   { frames: 7, width: 107, height: 107, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_win_uniform.png" },   // rows 57+58
+    taunt: { frames: 7, width: 107, height: 107, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_win_uniform.png" },
+    lose:  { frames: 4, width: 177, height: 85,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_lose_uniform.png" },  // row 55
+    // ── NORMALS (Phase 4). loop:false + lockLastFrame holds the strike through recovery. ──
+    light: { frames: 5, width: 140, height: 114, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_light_uniform.png" }, // rows 7 f0-2 + 16 (Jab)
+    heavy: { frames: 6, width: 168, height: 120, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_heavy_uniform.png" }, // rows 7 f3-5 + 15
+    up:    { frames: 3, width: 109, height: 168, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_up_uniform.png" },    // row 12 Launcher
+    low:   { frames: 3, width: 161, height: 121, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_low_uniform.png" },   // row 22 Low
+    air:   { frames: 3, width: 181, height: 124, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_air_uniform.png" },   // row 20 f0-2 Air attack
+    // ── SPECIAL / ULT CAST POSES (Phase 4). currentMove/_spriteCastMove identity keys → sprite.js resolves
+    // "key || move" so a cast recovery tail never falls to the box (same pattern as spiderman specials). ──
+    sbDive:       { frames: 8, width: 159, height: 123, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_downair_uniform.png" },     // Diving Kick (rows 37+20 f3-5+31)
+    sbShieldThrow:{ frames: 3, width: 164, height: 146, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_shieldthrow_uniform.png" },  // Shield Toss release (row 28)
+    sbSMG:        { frames: 4, width: 167, height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_smg_uniform.png" },          // SMG Barrage (row 39)
+    sbRifle:      { frames: 4, width: 193, height: 119, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_rifle_uniform.png" },        // Rifle Shot (row 40)
+    sbGoldRush:   { frames: 13, width: 239, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_goldrush_uniform.png" },    // Gold Rush (rows 33+17+18)
+    sbCyclone:    { frames: 5, width: 165, height: 134, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_cyclone_uniform.png" },      // Cape Cyclone (row 41)
+    sbArmedDraw:  { frames: 4, width: 170, height: 167, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armeddraw_uniform.png" },    // Armed Mode draw/holster (row 36)
+    sbArmedJab:   { frames: 4, width: 160, height: 111, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedjab_uniform.png" },     // Armed Jab (SMG, row 43)
+    sbArmedHeavy: { frames: 4, width: 187, height: 112, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedheavy_uniform.png" },   // Armed Heavy (rifle, row 44)
+    sbArmedAA:    { frames: 4, width: 170, height: 154, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedaa_uniform.png" },       // Armed anti-air (row 42)
+    sbUltPose:    { frames: 1, width: 273, height: 150, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultpose_uniform.png" },      // Nuclear Burst pose hold (row 38)
+    sbUltBlast:   { frames: 6, width: 197, height: 176, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultblast_uniform.png" },     // Nuclear Burst detonation (row 29)
+    sbUltRecover: { frames: 2, width: 127, height: 111, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultrecover_uniform.png" }    // Nuclear Burst recovery (row 30)
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -11299,7 +11383,8 @@ export const characters = {
   shisui_puppeteer: shisuiPuppeteer, // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
   shisui_fallen: shisuiFallen,       // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
   shizuku,                           // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
-  zoldyck                            // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
+  zoldyck,                           // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
+  soldier_boy: soldierBoy            // NEW additive standalone (Soldier Boy / The Boys, rosterKey `soldier_boy`, MARVEL group) — grounded Bruiser/Gunner: Armed Mode loadout swap + SMG/rifle/boomerang-shield + Nuclear Burst ult; metalsonictypeone sheet; all others untouched
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

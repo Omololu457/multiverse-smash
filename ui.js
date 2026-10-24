@@ -46,6 +46,7 @@ const ENERGY_TYPE_LABELS = {
   kira:             "Kira",                      // Death Note (Light Yagami) — the Kira meter; fuels his Ryuk/L call-ins, notebook specials + both ultimates
   deduction:        "Deduction",                // Death Note (L "Ryuuzaki") — the detective's meter; fuels his capoeira/call-in special kit
   web_fluid:        "Web Fluid",                // Marvel (Spider-Man) — his web-shooter reserve; fuels Web Impact/Web Throw specials + the cinematic Ultimate
+  nuclear_charge:   "Nuclear Charge",           // Marvel (Soldier Boy) — Compound V reserve; passive 3/s + builds in combat; every special spends it, the Nuclear Burst ult needs the full meter
   repulsor:         "Repulsor",                 // Marvel (Iron Man) — the arc-reactor charge powering the suit; fuels the Charge→Blast repulsor + Spider-legs special kit + the Proton Cannon Ultimate
   venom:            "Venom",                     // Marvel (Miles Morales) — his bio-electric venom-strike charge; fuels the venom punch/beam specials + the ring-burst Ultimate
   adrenaline:       "Adrenaline",               // DC (Deathstroke) — the enhanced merc's combat reserve; fuels sword/gun/martial specials + the promoted spin-finish Ultimate

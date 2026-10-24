@@ -258,6 +258,7 @@ export const BASE_NORMAL_EXCEPTIONS = {
   zaraki:        ["airAttack", "downAir"], // brute: air normals intentionally absent (per its own comment)
   zaraki_shikai: ["airAttack", "downAir"], // inherits Zaraki base
   light:         ["airAttack", "downAir"], // Death Note kit: aerial game is specials (see CORE_NORMAL_EXCEPTIONS)
+  soldier_boy:   ["downAir"],              // deliberate — his aerial DOWN is the Diving Kick SPECIAL (air ↓+P), not a normal; he keeps a standing air attack (airAttack present)
   // NOTE: madara/pain replace downAir with `air_heavy` (present) → they are NOT flagged.
 }
 // Resolve a normal against a character's basic_attacks the same way combat.js _getMD does (alt spellings).

@@ -12332,6 +12332,54 @@ function drawXRayTint(c, fighter) {
   c.restore()
 }
 
+// SUPERMAN — "World of Cardboard" ULTIMATE Moon backdrop. Fullscreen space-black sky + stars + a pale
+// Moon while a superman is mid-ult (_supMoonBg = 0..1 intensity, stamped by applySupermanWoC). Render-only;
+// star positions are a deterministic hash (cosmetic, not the sim RNG).
+function drawSupermanMoonBackdrop(ctx, canvas) {
+  if (!ctx || !canvas) return
+  const sm = [p1, p2].find(f => f && (f._supMoonBg || 0) > 0 && (f.rosterKey || "").toLowerCase() === "superman")
+  if (!sm) return
+  const a = Math.min(1, sm._supMoonBg), W = canvas.width, H = canvas.height
+  const rnd = (i, k) => { let h = ((i * 73856093) ^ (k * 19349663)) >>> 0; h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
+  ctx.save()
+  ctx.globalAlpha = a * 0.92; ctx.fillStyle = "#05060d"; ctx.fillRect(0, 0, W, H)
+  for (let i = 0; i < 90; i++) {
+    const x = rnd(i, 1) * W, y = rnd(i, 2) * H * 0.92, r = 0.6 + rnd(i, 3) * 1.7
+    const tw = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.08 + i)
+    ctx.globalAlpha = a * (0.35 + tw * 0.6); ctx.fillStyle = i % 7 === 0 ? "#bfd0ff" : "#ffffff"
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
+  }
+  const mx = W * 0.8, my = H * 0.2, mr = Math.min(W, H) * 0.09
+  const g = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, mr * 0.2, mx, my, mr)
+  g.addColorStop(0, "#f4f4ec"); g.addColorStop(1, "#b8bcc8")
+  ctx.globalAlpha = a * 0.92; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fill()
+  ctx.globalAlpha = a * 0.25; ctx.fillStyle = "#9a9eaa"
+  ctx.beginPath(); ctx.arc(mx - mr * 0.3, my + mr * 0.1, mr * 0.22, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(mx + mr * 0.35, my - mr * 0.25, mr * 0.14, 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+}
+
+// SUPERMAN — throw-down SWIRL: a spiralling streak around an enemy being hurled to the ground during the
+// ultimate (_supSwirl > 0, stamped on the victim). Render-only; ticks itself down.
+function drawSupermanThrowSwirl(c, fighter) {
+  const t = fighter && (fighter._supSwirl || 0)
+  if (!c || t <= 0) return
+  const x = fighter.x + (fighter.w || 60) / 2, y = fighter.y + (fighter.h || 100) / 2
+  const spin = (90 - t) * 0.5 + globalFrameCount * 0.3
+  c.save(); c.strokeStyle = "#bfe0ff"; c.lineWidth = 2; c.shadowBlur = 6; c.shadowColor = "#7fb8ff"
+  for (let k = 0; k < 3; k++) {
+    c.globalAlpha = 0.55 - k * 0.14; c.beginPath()
+    for (let a = 0; a <= Math.PI * 2; a += 0.3) {
+      const rr = 10 + a * (8 + k * 4), ang = a + spin + k * 2.1
+      const px = x + Math.cos(ang) * rr, py = y + Math.sin(ang) * rr
+      if (a === 0) c.moveTo(px, py); else c.lineTo(px, py)
+    }
+    c.stroke()
+  }
+  c.restore()
+  fighter._supSwirl--
+}
+
 function drawFrozenOverlay(c, fighter) {
   const t = fighter && (fighter._supFrozen || 0)
   if (!c || t <= 0) return
@@ -20630,6 +20678,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawFrozenOverlay(c, fighter)           // Superman — Freeze Breath: icy tint + ice shards over ANY frozen fighter (_supFrozen > 0)
     drawXRayTint(c, fighter)                // Superman — X-Ray Vision: blue scan-tint over a sub-25%-HP opponent of Superman (render-only)
+    drawSupermanThrowSwirl(c, fighter)      // Superman ULTIMATE — spiral swirl around an enemy hurled to the ground (render-only)
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
@@ -22370,6 +22419,7 @@ function drawBattleScene() {
   // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
   _drawKamuiDimensionBg(ctx, canvas)
   _drawSpeedRunBackdrop(ctx, canvas)   // Flash SPEED FORCE finisher — other maps blur past, under the fighters
+  drawSupermanMoonBackdrop(ctx, canvas)   // Superman ULTIMATE — space-black sky + stars + Moon while mid-ult, under the fighters
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE

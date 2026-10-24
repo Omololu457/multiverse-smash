@@ -5,7 +5,7 @@
 import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
-import { sound, juicePickVariant, juicePitch }      from "./sound.js"
+import { sound, SFX, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
 import { getHomelanderEyeWorld } from "./homelanderEyeAnchors.js"   // per-frame eye anchor → world-space Heat Vision origin (fires from the eyes, not a fixed body fraction)
 import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
@@ -16302,76 +16302,84 @@ export function applySupermanWoC(fighter, context = {}) {
   const hurt = (n) => { if (opp && !opp.eliminated) applyScaledDamage(opp, n, { source: "ability", attacker: fighter, move: "ultimate", bypassScale: true }) }
   const carry = (frac, vy) => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * frac); if (vy != null) opp.vy = vy; opp.hitstun = Math.max(opp.hitstun || 0, 10) } }
 
+  // grip the opponent in front of + slightly above Superman (carried together).
+  const grip = () => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * 0.35); opp.y = fighter.y - (opp.h || 100) * 0.12; opp.vx = 0; opp.vy = 0; opp.hitstun = Math.max(opp.hitstun || 0, 12); opp.onGround = false; opp.grounded = false; opp.isLaunched = false; opp.knockdownState = false } }
+  const riseTarget = floor - 440   // cap the ascent so the camera stays framed; the Moon backdrop sells "space"
+
   if (s.phase === "startup") {
     fighter.vx = 0; fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 4
     fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
-    if (--s.t <= 0) { s.phase = "dash"; s.t = 22; fighter.vx = face * 22 }
+    if (--s.t <= 0) { s.phase = "charge"; s.t = 22; fighter.vx = face * 26 }
     return
   }
-  if (s.phase === "dash") {
-    fighter._spriteCastMove = "run"; fighter._spriteCastTimer = 4; fighter.vx = face * 22
+  if (s.phase === "charge") {   // fly STRAIGHT at the enemy
+    fighter._spriteCastMove = "flyCruise"; fighter._spriteCastTimer = 4
+    fighter.vx = face * 26; fighter.onGround = false; fighter.grounded = false
     if (opp && !(opp.invulnTimer > 0)) {
       const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
-      if (dx < 115 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 150) {
-        opp.vx = 0; opp.vy = 0; opp.onGround = true; opp.hitstun = Math.max(opp.hitstun || 0, 220); opp.colorFlash = 10
-        hurt(20); shakeCamera(context, 5, 6)
-        s.phase = "barrage"; s.t = 36; s.hits = 0; fighter.vx = 0
+      if (dx < 120 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 160) {
+        hurt(30); shakeCamera(context, 6, 8); opp.colorFlash = 12
+        grip(); s.phase = "rise"; s.t = 48; fighter.vx = 0
         return
       }
     }
-    if (--s.t <= 0) { s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // FIRST STRIKE missed → fizzle
+    if (--s.t <= 0) { s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // missed the grab → fizzle
     return
   }
-  if (s.phase === "barrage") {
-    fighter.vx = 0; carry(0.55, 0); if (opp) { opp.vx = 0; opp.onGround = true }
-    if (s.t % 5 === 0 && s.hits < 6) { fighter._spriteCastMove = (s.hits % 2 ? "heavy" : "light"); fighter._spriteCastTimer = 5; hurt(15); if (opp) opp.colorFlash = 6; shakeCamera(context, 3, 3); s.hits++ }
-    if (--s.t <= 0) { s.phase = "uppercut"; s.t = 16 }
-    return
-  }
-  if (s.phase === "uppercut") {
-    fighter._spriteCastMove = "up"; fighter._spriteCastTimer = 6
-    if (s.t === 16 && opp) { opp.vy = -22; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 140); hurt(40); shakeCamera(context, 6, 8) }
-    if (--s.t <= 0) { s.phase = "flyup"; s.t = 18 }
-    return
-  }
-  if (s.phase === "flyup") {
+  if (s.phase === "rise") {   // carry them STRAIGHT UP — continuous camera rumble, sky fading to space
     fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 6
-    fighter.vy = -16; fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
-    carry(0.4, -16); if (opp) opp.onGround = false
-    if (--s.t <= 0) { s.phase = "heatvision"; s.t = 30; fighter.vy = 0 }
+    fighter.vx = 0; fighter.vy = -20; fighter.onGround = false; fighter.grounded = false
+    if (fighter.y <= riseTarget) { fighter.y = riseTarget; fighter.vy = 0 }
+    grip()
+    fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.035)   // sky darkens toward the Moon
+    shakeCamera(context, 3, 3)   // feel the power
+    if ((fighter.y <= riseTarget && --s.t <= 0) || --s.t <= 0) { s.phase = "moon"; s.t = 42; fighter.vy = 0 }
     return
   }
-  if (s.phase === "heatvision") {
-    fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 6; fighter.vy = 0; fighter.vx = 0
-    carry(0.55, 0)
-    if (s.t % 5 === 0) { hurt(8); if (opp) opp.colorFlash = 6 }
-    if (--s.t <= 0) { s.phase = "slam"; s.t = 42 }
+  if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex
+    fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
+    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget)
+    fighter._supMoonBg = 1
+    grip()
+    if (s.t === 42) shakeCamera(context, 4, 6)
+    if (--s.t <= 0) { s.phase = "throwdown"; s.t = 90; s.thrown = false; s.slammed = false }
     return
   }
-  if (s.phase === "slam") {
-    fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vy = 24; fighter.vx = 0
+  if (s.phase === "throwdown") {   // hurl them STRAIGHT DOWN — they fall, SWIRLING, to the ground
+    fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vx = 0; fighter.vy = 0
+    fighter.y = Math.min(fighter.y, riseTarget); fighter._supMoonBg = 1
+    if (!s.thrown && opp) { opp.vx = 0; opp.vy = 34; opp.hitstun = Math.max(opp.hitstun || 0, 140); opp._supSwirl = 90; s.thrown = true; shakeCamera(context, 4, 4) }
     if (opp && !s.slammed) {
-      opp.vy = 28; opp.x = fighter.x + face * ((fighter.w || 60) * 0.4); opp.hitstun = Math.max(opp.hitstun || 0, 10)
+      opp.vy = Math.max(opp.vy || 0, 30); opp.vx = 0; opp._supSwirl = Math.max(opp._supSwirl || 0, 8); opp.hitstun = Math.max(opp.hitstun || 0, 8)
       if (opp.y + (opp.h || 100) >= floor - 2) {
         s.slammed = true
         opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
-        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 60); opp.noTech = true
-        opp.colorFlash = 18; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
-        hurt(182); shakeCamera(context, 14, 16)
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 72); opp.noTech = true
+        opp.colorFlash = 20; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 14); opp._supSwirl = 0
+        hurt(350); shakeCamera(context, 18, 22)   // BIG impact
+        try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
+        s.phase = "outro"; s.t = 28
       }
     }
+    if (--s.t <= 0 && !s.slammed) { if (opp) { opp.knockdownState = true; opp.knockdownTimer = 60 } s.phase = "outro"; s.t = 24 }
+    return
+  }
+  if (s.phase === "outro") {   // Superman descends; the sky returns
+    fighter._spriteCastMove = "flyCruise"; fighter._spriteCastTimer = 6
+    fighter.vy = 18; fighter.vx = 0
+    fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.06)
     if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
-    if (s.slammed || (--s.t <= 0 && fighter.onGround)) {
-      fighter._supWoC = null; fighter.attacking = false
-      fighter.attackCooldown = getAttackDuration(18, fighter)
-      fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16
+    if (--s.t <= 0) {
+      fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0
+      fighter.attackCooldown = getAttackDuration(16, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16
       fighter._supEnergyLock = 240   // 4s no-specials lock
     }
     return
   }
-  // whiff recovery (first strike missed)
+  // whiff recovery (grab missed)
   fighter.vx *= 0.9; fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 4
-  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supEnergyLock = 120 }
+  fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.1)
+  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supEnergyLock = 120 }
 }
 function executeSupermanUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "superman") return false

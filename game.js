@@ -184,6 +184,7 @@ import {
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
   applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX,   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
+  applyHomelanderKit,   // Homelander secondary: Take A Ride (Fwd+Grab air-throw) + Flex Parry (tap Block) + Super Hearing (passive ping)
   applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
@@ -12386,6 +12387,33 @@ function drawHomelanderSpeedRun(ctx, canvas) {
   ctx.restore()
 }
 
+// HOMELANDER — FLEX PARRY burst: a golden flex ring + flash on a successful flex (_hlFlexFx). Render-only.
+function drawHomelanderFlexFx(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const t = fighter._hlFlexFx || 0; if (t <= 0) return
+  const x = fighter.x + (fighter.w || 60) / 2, y = fighter.y + (fighter.h || 100) * 0.45, p = 1 - t / 16
+  c.save()
+  c.globalAlpha = 0.6 * (1 - p); c.strokeStyle = "#ffd24a"; c.lineWidth = 4; c.shadowBlur = 12; c.shadowColor = "#ffcc2e"
+  c.beginPath(); c.arc(x, y, 12 + p * 48, 0, Math.PI * 2); c.stroke()
+  c.globalAlpha = 0.5 * (1 - p); c.strokeStyle = "#ffffff"; c.lineWidth = 2; c.shadowBlur = 0
+  c.beginPath(); c.arc(x, y, 8 + p * 30, 0, Math.PI * 2); c.stroke()
+  c.restore()
+}
+
+// HOMELANDER — SUPER HEARING ping: concentric sonar arcs from his ear + a marker on the opponent he hears
+// winding up (_hlHearFx). Render-only.
+function drawHomelanderHearPing(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const t = fighter._hlHearFx || 0; if (t <= 0) return
+  const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+  const ex = fighter.x + (fighter.w || 60) * ((fighter.facing || 1) >= 0 ? 0.68 : 0.32), ey = fighter.y + (fighter.h || 100) * 0.16, p = 1 - t / 10
+  c.save()
+  c.globalAlpha = 0.5 * (1 - p); c.strokeStyle = "#9fe6ff"; c.lineWidth = 2; c.shadowBlur = 8; c.shadowColor = "#7fd0ff"
+  for (let k = 0; k < 3; k++) { const r = 6 + p * 26 + k * 10; c.beginPath(); c.arc(ex, ey, r, -0.9, 0.9); c.stroke() }
+  if (opp) { c.globalAlpha = 0.4 * (1 - p); c.fillStyle = "#9fe6ff"; c.beginPath(); c.arc(opp.x + (opp.w || 60) / 2, opp.y + (opp.h || 100) * 0.1, 4, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
 // SUPERMAN — throw-down SWIRL: a spiralling streak around an enemy being hurled to the ground during the
 // ultimate (_supSwirl > 0, stamped on the victim). Render-only; ticks itself down.
 function drawSupermanThrowSwirl(c, fighter) {
@@ -19179,6 +19207,7 @@ function updateFighterState(fighter) {
   tickFlightDriver(updated, {})      // FLIGHT MODULE (Homelander): energy drain/refill, takeoff/land/grounded-lock timers, velocity-derived pose hold (gated on _flightCtl; BEFORE applyGravity)
   if (updated._flightCtl) { const _opp = updated === p1 ? p2 : updated === p2 ? p1 : null; if (_opp) updated._flightOpponentX = _opp.x + (_opp.w || 0) / 2 }   // auto-face target while hovering
   applyHomelanderHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander HEAT VISION: sustained/sweep beam + laser-heat drain/overheat + hitscan damage (gated on rosterKey)
+  applyHomelanderKit(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander: Take A Ride + Flex Parry + Super Hearing (gated on rosterKey)
   applyHomelanderFlight37(updated, getAbilityContext())   // Homelander ULT FLIGHT 37: dark-silhouette → supersonic grab → launch + Heat-Vision slam (gated on _f37)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
@@ -20722,6 +20751,8 @@ function renderHybridFighter(fighter) {
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawHomelanderHeatVision(c, fighter)    // Homelander — twin code-drawn Heat Vision beam (white core + red glow + impact burst) from the eye anchor; dim-eye overheat tell (homelander only)
+    drawHomelanderFlexFx(c, fighter)        // Homelander — Flex Parry golden burst ring (homelander only)
+    drawHomelanderHearPing(c, fighter)      // Homelander — Super Hearing sonar ping when the opponent winds up (homelander only)
     drawSupermanHeatVision(c, fighter)      // Superman — sustained auto-aim Heat Vision beam (held Special), red/gold eye-laser to the target (superman only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawVilgaxDrone(c, fighter)             // Vilgax — Chimerian hover gun-drone summon (s716cB art blit; vilgax only)
@@ -27905,7 +27936,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, woc: f._supWoC ? f._supWoC.phase : null, energyLock: f._supEnergyLock || 0, hvBeam: !!f._supHvBeam, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), bw: f.w, bh: f.h, ldy: f._lastDrawY != null ? Math.round(f._lastDrawY) : null, ldh: f._lastDrawH != null ? Math.round(f._lastDrawH) : null, ldx: f._lastDrawX != null ? Math.round(f._lastDrawX) : null, ldw: f._lastDrawW != null ? Math.round(f._lastDrawW) : null, invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, woc: f._supWoC ? f._supWoC.phase : null, energyLock: f._supEnergyLock || 0, hvBeam: !!f._supHvBeam, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), bw: f.w, bh: f.h, ldy: f._lastDrawY != null ? Math.round(f._lastDrawY) : null, ldh: f._lastDrawH != null ? Math.round(f._lastDrawH) : null, ldx: f._lastDrawX != null ? Math.round(f._lastDrawX) : null, ldw: f._lastDrawW != null ? Math.round(f._lastDrawW) : null, invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null, hlRide: f._hlRide ? f._hlRide.phase : null, flexCounter: f._hlFlexCounter || 0, flexCd: f._hlFlexCd || 0, heard: f._hlHeard || 0, invuln: f.invulnTimer || 0 } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

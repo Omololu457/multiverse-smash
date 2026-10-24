@@ -3310,6 +3310,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // SUPERMAN / HOMELANDER — X-RAY VISION (passive): +8% damage while the opponent is below 25% health
   // ("seeing their weak points"). Gated on the ATTACKER → no effect on any other character's output.
   if (["superman", "homelander"].includes((attacker.rosterKey || "").toLowerCase()) && (defender.maxHealth || 0) > 0 && defender.health * 4 < defender.maxHealth) dmg = Math.floor(dmg * 1.08)
+  // HOMELANDER — FLEX PARRY counter window: for a short beat after a successful flex, his hits do +25%.
+  // Gated on _hlFlexCounter, which only his Flex ever sets → zero effect on any other matchup.
+  if ((attacker.rosterKey || "").toLowerCase() === "homelander" && (attacker._hlFlexCounter || 0) > 0) dmg = Math.floor(dmg * 1.25)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3919,8 +3922,15 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // reset the juggle) — during a juggle the player uses their air normals, which
       // fall through to the `controls.air` branch below.
       startMove(fighter, "up", _getMD(fighter, "up"))
-    } else if (controls.grab && (fighter._supKGrab || fighter._supGPound)) {
-      // SUPERMAN mid air-move (Kryptonian Grab / Ground Pound): swallow the grab input, do nothing.
+    } else if (controls.grab && (fighter._supKGrab || fighter._supGPound || fighter._hlRide)) {
+      // mid air-move (Superman Kryptonian Grab / Ground Pound, Homelander Take A Ride): swallow the grab input.
+    } else if (controls.grab && (fighter.rosterKey || "").toLowerCase() === "homelander" && opponent &&
+               Math.abs((fighter.x + (fighter.w || 60) / 2) - (opponent.x + (opponent.w || 60) / 2)) < 120 &&
+               (fighter._hlRideCd || 0) <= 0 &&
+               (fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) <= 0 : true)) {
+      // HOMELANDER — "TAKE A RIDE": a close grab (flight ready, off cooldown) becomes his signature air-throw.
+      // Raise a request; the scripted seize → fly up → slam is driven by applyHomelanderKit (abilities.js).
+      fighter._hlRideReq = true
     } else if (controls.grab && (fighter.rosterKey || "").toLowerCase() === "superman" && opponent &&
                Math.abs((fighter.x + (fighter.w || 60) / 2) - (opponent.x + (opponent.w || 60) / 2)) < 120 &&
                (fighter.energy || 0) >= 10 &&

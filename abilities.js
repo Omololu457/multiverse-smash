@@ -16248,6 +16248,74 @@ export function applyHomelanderFlight37(fighter, context = {}) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMELANDER — canonical SECONDARY abilities: TAKE A RIDE (Fwd+Grab air-throw), FLEX PARRY (tap Block → a
+// brief flex: i-frames + a counter-damage window), SUPER HEARING (passive: HEARS the opponent wind up → a
+// sonar ping that also primes a cleaner flex). Driven per-frame (game.js) with raw input.
+// ─────────────────────────────────────────────────────────────────────────────
+function startHomelanderRide(fighter, opp, context) {
+  if (!opp) return false
+  fighter._hlRide = { phase: "rise", t: 20, slammed: false }
+  fighter._hlRideCd = 360   // 6s
+  fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
+  if (fighter._flightCtl) fighter._flightCtl.phase = "grounded"
+  opp.hitstun = Math.max(opp.hitstun || 0, 100); opp.vx = 0; opp.vy = 0; opp.onGround = false; opp.isLaunched = false; opp.knockdownState = false
+  fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 44
+  try { playHomelanderSfx("SUPERSONIC", fighter, { seed: context.seed, frame: context.frame }) } catch (_) {}
+  return true
+}
+function applyHomelanderRide(fighter, opp, context) {
+  const r = fighter._hlRide; if (!r) return
+  const face = fighter.facing || 1
+  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : 520)
+  fighter.attacking = true; fighter.currentAttack = null
+  const carryX = fighter.x + face * ((fighter.w || 50) * 0.3)
+  if (r.phase === "rise") {   // seize + fly UP together
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 4; fighter.vy = -16; fighter.vx = 0
+    if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = -16; opp.x = carryX; opp.onGround = false }
+    if (--r.t <= 0) { r.phase = "slam"; r.t = 22 }
+    return
+  }
+  // slam them down
+  fighter._spriteCastMove = "flyDive"; fighter._spriteCastTimer = 4; fighter.vy = 20; fighter.vx = 0
+  if (opp && !r.slammed) {
+    opp.vy = 28; opp.x = carryX; opp.hitstun = Math.max(opp.hitstun || 0, 8)
+    if (opp.y + (opp.h || 100) >= floor - 2) {
+      r.slammed = true
+      opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+      opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 56); opp.noTech = true; opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+      applyScaledDamage(opp, 130, { source: "ability", attacker: fighter, move: "takeARide" }); shakeCamera(context, 10, 12)
+    }
+  }
+  if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+  if (r.slammed || (--r.t <= 0 && fighter.onGround)) { fighter._hlRide = null; fighter.attacking = false; fighter.attackCooldown = getAttackDuration(14, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 12 }
+}
+export function applyHomelanderKit(fighter, raw = {}, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  if ((fighter._hlRideCd || 0) > 0) fighter._hlRideCd--
+  if ((fighter._hlFlexCd || 0) > 0) fighter._hlFlexCd--
+  if ((fighter._hlFlexCounter || 0) > 0) fighter._hlFlexCounter--
+  if ((fighter._hlHeard || 0) > 0) fighter._hlHeard--
+  if ((fighter._hlFlexFx || 0) > 0) fighter._hlFlexFx--
+  if ((fighter._hlHearFx || 0) > 0) fighter._hlHearFx--
+  // SUPER HEARING — hear the opponent wind up: ping + prime a flex read.
+  if (opp && opp.attacking && opp.currentAttack) { fighter._hlHeard = 14; if (!(fighter._hlHearFx > 2)) fighter._hlHearFx = 10 }
+  // FLEX PARRY — a fresh Block TAP (not a held guard) flexes: i-frames + a short counter-damage window.
+  const block = !!raw.block
+  const edge = block && !fighter._hlBlockPrev; fighter._hlBlockPrev = block
+  if (edge && (fighter._hlFlexCd || 0) <= 0 && (fighter.hitstun || 0) <= 0 && !fighter._hlRide && !fighter._f37) {
+    const heardBonus = (fighter._hlHeard || 0) > 0 ? 8 : 0   // Super Hearing → a cleaner, longer flex
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 14 + heardBonus)
+    fighter._hlFlexFx = 16; fighter._hlFlexCounter = 36 + heardBonus * 2; fighter._hlFlexCd = 240   // 4s cd
+    fighter.colorFlash = Math.max(fighter.colorFlash || 0, 8); fighter.parryFlash = Math.max(fighter.parryFlash || 0, 10)
+    try { playHomelanderSfx("SUPE_DURABILITY", fighter, { seed: context.seed, frame: context.frame }) } catch (_) {}
+  }
+  // TAKE A RIDE — picked up from combat.js (Fwd+Grab close), then the scripted rise → slam.
+  if (fighter._hlRideReq) { fighter._hlRideReq = false; if (!fighter._hlRide && !fighter._f37 && (fighter._hlRideCd || 0) <= 0) startHomelanderRide(fighter, opp, context) }
+  if (fighter._hlRide) applyHomelanderRide(fighter, opp, context)
+}
+
 export function isHomelanderUltActive(fighter) { return !!(fighter && fighter._f37) }
 export function homelanderUltStartup(fighter) { return !!(fighter && fighter._f37 && fighter._f37.phase === "startup") }
 

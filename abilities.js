@@ -16341,27 +16341,29 @@ export function applySupermanWoC(fighter, context = {}) {
       const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
       if (dx < 120 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 160) {
         hurt(30); shakeCamera(context, 6, 8); opp.colorFlash = 12
-        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 48; fighter.vx = 0
+        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 46; fighter.vx = 0
         return
       }
     }
     if (--s.t <= 0) { fighter._supHvBeam = null; s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // missed the grab → fizzle
     return
   }
-  if (s.phase === "rise") {   // carry them STRAIGHT UP — continuous camera rumble, sky fading to space
+  if (s.phase === "rise") {   // ROCKET STRAIGHT UP — stars STREAK past (fast scroll) to sell the altitude
     fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 6
-    fighter.vx = 0; fighter.vy = -20; fighter.onGround = false; fighter.grounded = false
-    if (fighter.y <= riseTarget) { fighter.y = riseTarget; fighter.vy = 0 }
+    fighter.vx = 0; fighter.vy = -22; fighter.onGround = false; fighter.grounded = false
+    if (fighter.y <= riseTarget) { fighter.y = riseTarget; fighter.vy = 0 }   // cap position (camera) — the MOVING stars convey the real height
     grip()
-    fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.035)   // sky darkens toward the Moon
-    shakeCamera(context, 3, 3)   // feel the power
-    if (fighter.y <= riseTarget || --s.t <= 0) { s.phase = "moon"; s.t = 120; fighter.vy = 0; fighter._supMoonBg = 1; shakeCamera(context, 11, 12); if (opp) opp.colorFlash = 14 }   // BOOM — he's in the sky
+    fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.06)        // fully replace the map with space, fast
+    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 48               // STARS STREAM DOWN fast = he's taking them WAY up
+    fighter._supMoonScrollSpd = 48
+    shakeCamera(context, 3, 3)
+    if (--s.t <= 0) { s.phase = "moon"; s.t = 120; fighter.vy = 0; fighter._supMoonBg = 1; fighter._supMoonScrollSpd = 6; shakeCamera(context, 12, 13); if (opp) opp.colorFlash = 14 }   // arrived — BOOM
     return
   }
   if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex (a long, held beat)
     fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
     fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget)
-    fighter._supMoonBg = 1
+    fighter._supMoonBg = 1; fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 5; fighter._supMoonScrollSpd = 5   // gentle drift at the apex
     grip()
     if (s.t % 26 === 0) shakeCamera(context, 2, 3)   // gentle rumble while they hang in space
     if (s.t === 18) { fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 18 }   // wind up for the throw
@@ -16371,6 +16373,7 @@ export function applySupermanWoC(fighter, context = {}) {
   if (s.phase === "throwdown") {   // hurl them STRAIGHT DOWN — they fall, SWIRLING, to the ground
     fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vx = 0; fighter.vy = 0
     fighter.y = Math.min(fighter.y, riseTarget); fighter._supMoonBg = 1
+    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 6; fighter._supMoonScrollSpd = 6
     if (!s.thrown && opp) { opp.vx = 0; opp.vy = 34; opp.hitstun = Math.max(opp.hitstun || 0, 140); opp._supSwirl = 90; s.thrown = true; shakeCamera(context, 4, 4) }
     if (opp && !s.slammed) {
       opp.vy = Math.max(opp.vy || 0, 30); opp.vx = 0; opp._supSwirl = Math.max(opp._supSwirl || 0, 8); opp.hitstun = Math.max(opp.hitstun || 0, 8)
@@ -16393,7 +16396,7 @@ export function applySupermanWoC(fighter, context = {}) {
     fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.06)
     if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
     if (--s.t <= 0) {
-      fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0
+      fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supMoonScroll = 0; fighter._supMoonScrollSpd = 0
       fighter.attackCooldown = getAttackDuration(16, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16
       fighter._supEnergyLock = 240   // 4s no-specials lock
     }
@@ -16402,7 +16405,7 @@ export function applySupermanWoC(fighter, context = {}) {
   // whiff recovery (grab missed)
   fighter.vx *= 0.9; fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 4
   fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.1)
-  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supEnergyLock = 120 }
+  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supMoonScroll = 0; fighter._supMoonScrollSpd = 0; fighter._supEnergyLock = 120 }
 }
 function executeSupermanUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "superman") return false

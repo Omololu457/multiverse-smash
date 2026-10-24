@@ -12340,14 +12340,21 @@ function drawSupermanMoonBackdrop(ctx, canvas) {
   const sm = [p1, p2].find(f => f && (f._supMoonBg || 0) > 0 && (f.rosterKey || "").toLowerCase() === "superman")
   if (!sm) return
   const a = Math.min(1, sm._supMoonBg), W = canvas.width, H = canvas.height
+  const scroll = sm._supMoonScroll || 0, spd = sm._supMoonScrollSpd || 0
   const rnd = (i, k) => { let h = ((i * 73856093) ^ (k * 19349663)) >>> 0; h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
   ctx.save()
-  ctx.globalAlpha = a * 0.92; ctx.fillStyle = "#05060d"; ctx.fillRect(0, 0, W, H)
-  for (let i = 0; i < 90; i++) {
-    const x = rnd(i, 1) * W, y = rnd(i, 2) * H * 0.92, r = 0.6 + rnd(i, 3) * 1.7
+  ctx.globalAlpha = a * 0.99; ctx.fillStyle = "#04050c"; ctx.fillRect(0, 0, W, H)   // fully replace the map with space
+  for (let i = 0; i < 120; i++) {
+    const par = 0.55 + rnd(i, 4) * 0.9                                 // per-star parallax (depth)
+    const x = rnd(i, 1) * W
+    const y = (((rnd(i, 2) * H + scroll * par) % H) + H) % H           // STARS SCROLL — he's rising, so they stream DOWN
+    const r = 0.6 + rnd(i, 3) * 1.7
+    const streak = Math.min(H * 0.3, spd * par)                        // fast scroll → long warp streaks (altitude)
     const tw = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.08 + i)
-    ctx.globalAlpha = a * (0.35 + tw * 0.6); ctx.fillStyle = i % 7 === 0 ? "#bfd0ff" : "#ffffff"
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
+    ctx.globalAlpha = a * (0.35 + tw * 0.6)
+    const col = i % 7 === 0 ? "#bfd0ff" : "#ffffff"
+    if (streak > 4) { ctx.strokeStyle = col; ctx.lineWidth = r; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - streak); ctx.stroke() }
+    else { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill() }
   }
   const mx = W * 0.8, my = H * 0.2, mr = Math.min(W, H) * 0.09
   const g = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, mr * 0.2, mx, my, mr)

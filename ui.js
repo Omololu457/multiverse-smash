@@ -46,6 +46,7 @@ const ENERGY_TYPE_LABELS = {
   kira:             "Kira",                      // Death Note (Light Yagami) — the Kira meter; fuels his Ryuk/L call-ins, notebook specials + both ultimates
   deduction:        "Deduction",                // Death Note (L "Ryuuzaki") — the detective's meter; fuels his capoeira/call-in special kit
   web_fluid:        "Web Fluid",                // Marvel (Spider-Man) — his web-shooter reserve; fuels Web Impact/Web Throw specials + the cinematic Ultimate
+  nuclear_charge:   "Nuclear Charge",           // Marvel (Soldier Boy) — Compound V reserve; passive 3/s + builds in combat; every special spends it, the Nuclear Burst ult needs the full meter
   repulsor:         "Repulsor",                 // Marvel (Iron Man) — the arc-reactor charge powering the suit; fuels the Charge→Blast repulsor + Spider-legs special kit + the Proton Cannon Ultimate
   venom:            "Venom",                     // Marvel (Miles Morales) — his bio-electric venom-strike charge; fuels the venom punch/beam specials + the ring-burst Ultimate
   adrenaline:       "Adrenaline",               // DC (Deathstroke) — the enhanced merc's combat reserve; fuels sword/gun/martial specials + the promoted spin-finish Ultimate
@@ -3654,6 +3655,20 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.closePath(); ctx.fill()
         ctx.globalAlpha = 0.75; ctx.fillStyle = "#e0f2fe"
         ctx.fillRect(x - 2, y - h / 2, 4, h)                    // bright center seam
+      } else if (p.drawKind === "bullet") {
+        // SOLDIER BOY gunfire — an actual bullet: brass casing + bright tip + a short tracer streak behind.
+        const dir = (p.vx || 0) >= 0 ? 1 : -1
+        const L = Math.max(10, p.w || 12), H = Math.max(3, p.h || 6)
+        const bcol = p.color || "#ffd23f"
+        ctx.translate(x, y)
+        ctx.globalAlpha = 0.5; ctx.strokeStyle = bcol; ctx.lineWidth = Math.max(2, H * 0.7)   // tracer streak
+        ctx.shadowBlur = 8; ctx.shadowColor = bcol
+        ctx.beginPath(); ctx.moveTo(-dir * L * 2.4, 0); ctx.lineTo(-dir * L * 0.4, 0); ctx.stroke()
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1
+        ctx.fillStyle = "#b8860b"; ctx.fillRect(-L * 0.36, -H / 2, L * 0.62, H)                // brass casing
+        ctx.fillStyle = "#fff3b0"                                                              // bright tip
+        ctx.beginPath(); ctx.moveTo(dir * L * 0.26, -H / 2); ctx.lineTo(dir * L * 0.6, 0); ctx.lineTo(dir * L * 0.26, H / 2); ctx.closePath(); ctx.fill()
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(-L * 0.12, -H * 0.22, L * 0.26, H * 0.44)      // hot core
       } else if (p.drawKind === "kunai") {
         // KAKASHI WEAPON THROW — a spinning steel kunai wrapped in an orange spinning-slash streak.
         // Blade + ring-handle rotate; two opposed orange arcs sweep around it for the "spinning slash" read.

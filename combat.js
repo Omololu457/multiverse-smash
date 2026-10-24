@@ -175,6 +175,14 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
+  // SOLDIER BOY — GOLD BRACE absorbs the next damaging hit outright (one hit, 6s cooldown): zero damage,
+  // consume the brace. Checked before any scaling. Gated on rosterKey -> byte-identical for everyone else.
+  if ((target._sbBraceActive || 0) > 0 && (rawDamage || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") {
+    target._sbBraceActive = 0
+    return 0
+  }
+  // SOLDIER BOY — SECOND WIND: while the 3s comeback window holds, incoming damage is reduced 25%.
+  if ((target._sbSecondWind || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") rawDamage = (rawDamage || 0) * 0.75
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
@@ -203,6 +211,16 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (dealt > 0) {
     target._hudDmgTier = opts.tier
       || (dealt / Math.max(1, target.maxHealth || 100) >= 0.055 ? "big" : "light")
+  }
+  // SOLDIER BOY — Nuclear Charge builds IN COMBAT: +6 when he lands a damaging hit, +4 when he takes one
+  // (spec Phase 2). Gated on rosterKey → a strict no-op for every other character (their damage + meter
+  // stay byte-identical). Meter lives in fighter.energy (GAME_STATE), capped at maxEnergy; self-hits can't feed.
+  if (dealt > 0) {
+    const _sbAtk = opts.attacker
+    if (_sbAtk && _sbAtk !== target && (_sbAtk.rosterKey || "").toLowerCase() === "soldier_boy")
+      _sbAtk.energy = Math.min(_sbAtk.maxEnergy || 100, (_sbAtk.energy || 0) + 6)
+    if ((target.rosterKey || "").toLowerCase() === "soldier_boy")
+      target.energy = Math.min(target.maxEnergy || 100, (target.energy || 0) + 4)
   }
   if (typeof globalThis !== "undefined" && globalThis.__DMG_LOG) {
     try {
@@ -704,6 +722,15 @@ export function getHurtbox(fighter) {
   if (fighter._canvasHeightFrac) {
     const giant = _giantHurtbox(fighter)
     if (giant) return giant   // else fall through to the normal box for the pre-first-draw frame
+  }
+  // SUPERMAN — his spriteScale (2.0) draws him taller than the standard 60×100 physics box, so ~64px of
+  // his head/torso sat ABOVE the hurtbox and couldn't be hit. Raise the hurtbox TOP to cover the visible
+  // body (just below the head), keeping x/width centred on the physics box (so the trailing cape isn't
+  // hittable) and the bottom at the feet. Gated on superman → every other character is byte-identical.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman" && fighter._lastDrawH != null && fighter._lastDrawY != null) {
+    const top = Math.min(fighter.y + 6, fighter._lastDrawY + fighter._lastDrawH * 0.12)
+    const bottom = fighter.y + fighter.h
+    return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
   }
   return {
     x: fighter.x + 6,
@@ -3276,6 +3303,16 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // BATMAN (dark_knight) — RAGE MODE reckless trade-off: WHILE raging he hits harder (dmg×) but guards worse,
   // taking +15% damage. The berserker's real cost, tied to the same dmg-taken amp (active-window, not post-revert).
   if (defender._dkRageActive) dmg = Math.floor(dmg * 1.15)
+  // SUPERMAN — FREEZE BREATH: a frozen opponent takes +15% damage from follow-ups (same dmg-taken amp
+  // idiom). Gated on _supFrozen, which only Superman's Freeze Breath ever sets → zero effect on any
+  // other matchup (frame-data diff for every other character stays zero).
+  if ((defender._supFrozen || 0) > 0) dmg = Math.floor(dmg * 1.15)
+  // SUPERMAN / HOMELANDER — X-RAY VISION (passive): +8% damage while the opponent is below 25% health
+  // ("seeing their weak points"). Gated on the ATTACKER → no effect on any other character's output.
+  if (["superman", "homelander"].includes((attacker.rosterKey || "").toLowerCase()) && (defender.maxHealth || 0) > 0 && defender.health * 4 < defender.maxHealth) dmg = Math.floor(dmg * 1.08)
+  // HOMELANDER — FLEX PARRY counter window: for a short beat after a successful flex, his hits do +25%.
+  // Gated on _hlFlexCounter, which only his Flex ever sets → zero effect on any other matchup.
+  if ((attacker.rosterKey || "").toLowerCase() === "homelander" && (attacker._hlFlexCounter || 0) > 0) dmg = Math.floor(dmg * 1.25)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3329,10 +3366,17 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // WOOD-CLONE CAST ARMOR (Hashirama one-shot strike): brief window shrugging a non-launcher hit — he can't
     // be flinched out of committing the wood-clone strike (wood durability, translated to a one-shot shape).
     const castArmored = (defender._castArmor || 0) > 0 && !atk.launcher && !atk.spike && cat !== "ultimate"
+    // SUPERMAN — SUPER ARMOR on Heavy: while committing his Heavy he shrugs ONE hit without flinching (still
+    // takes the damage), then it goes on an 8s cooldown. Launchers/spikes/ultimates pierce it. Gated on
+    // superman → no effect on any other character.
+    const supArmored = (defender.rosterKey || "").toLowerCase() === "superman" && defender.attacking &&
+      defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
+      !atk.launcher && !atk.spike && cat !== "ultimate"
 
-    if (bossArmored || castArmored) {
+    if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
+      if (supArmored) defender._supArmorCd = 480   // consume the armor → 8s cooldown (one absorb per window)
     } else {
       applyHitstop(attacker, defender, getHitstopFrames(atk))
       defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)) + (isCounter ? COUNTER_HIT_BONUS_HITSTUN : 0))   // COUNTER-HIT: +8 hitstun
@@ -3366,8 +3410,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.playSfxFile?.("beerus_hit_reaction.mp3", null) } catch (_) {}
     }
 
-    if (bossArmored) {
-      // Boss shrug: no vertical displacement either — it stays planted and keeps attacking.
+    if (bossArmored || supArmored) {
+      // Armor shrug: no vertical displacement either — Superman stays planted and finishes his Heavy.
     } else if (atk.launcher) {
       // Per-character tuned launch (launchVy/selfVy) → EXACT velocities; otherwise
       // the legacy floor pop. The launcher resets attacker.airHits to 0 so the
@@ -3818,6 +3862,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   }
 
   if (fighter.hitstun > 0) fighter.hitstun--
+  // SUPERMAN — FREEZE BREATH lock: while _supFrozen, keep the fighter action-locked (top up hitstun) and
+  // count the status down. Only Superman's Freeze Breath ever sets _supFrozen (no-op for everyone else).
+  if ((fighter._supFrozen || 0) > 0) { fighter._supFrozen--; if (fighter.hitstun < fighter._supFrozen) fighter.hitstun = fighter._supFrozen; fighter.vx = 0 }
   if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
   if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
@@ -3875,6 +3922,25 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // reset the juggle) — during a juggle the player uses their air normals, which
       // fall through to the `controls.air` branch below.
       startMove(fighter, "up", _getMD(fighter, "up"))
+    } else if (controls.grab && (fighter._supKGrab || fighter._supGPound || fighter._hlRide)) {
+      // mid air-move (Superman Kryptonian Grab / Ground Pound, Homelander Take A Ride): swallow the grab input.
+    } else if (controls.grab && (fighter.rosterKey || "").toLowerCase() === "homelander" && opponent &&
+               Math.abs((fighter.x + (fighter.w || 60) / 2) - (opponent.x + (opponent.w || 60) / 2)) < 120 &&
+               (fighter._hlRideCd || 0) <= 0 &&
+               (fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) <= 0 : true)) {
+      // HOMELANDER — "TAKE A RIDE": a close grab (flight ready, off cooldown) becomes his signature air-throw.
+      // Raise a request; the scripted seize → fly up → slam is driven by applyHomelanderKit (abilities.js).
+      fighter._hlRideReq = true
+    } else if (controls.grab && (fighter.rosterKey || "").toLowerCase() === "superman" && opponent &&
+               Math.abs((fighter.x + (fighter.w || 60) / 2) - (opponent.x + (opponent.w || 60) / 2)) < 120 &&
+               (fighter.energy || 0) >= 10 &&
+               (fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) <= 0 : true)) {
+      // SUPERMAN — KRYPTONIAN GRAB ("Take You For A Ride"): a close grab with Solar Energy + flight ready
+      // becomes the signature air-throw. Raise a request; the scripted rise→apex→slam is driven by
+      // applySupermanAirMoves (abilities.js). (Superman auto-faces the opponent, so a close grab is always
+      // "toward" — the brief's →; combat.js `controls` doesn't carry left/right.) Falls back to the normal
+      // grab when out of energy or flight is on cooldown. Gated on superman; no-op for everyone else.
+      fighter._supKGrabReq = true
     } else if (controls.grab) {
       fighter.grabInputBuffer = 6
       resolveGrab(fighter, opponent, options)
@@ -4152,10 +4218,20 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
       let dmg = (proj.damage || 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
 
+      // SUPERMAN / HOMELANDER — X-RAY VISION (passive): their beams/projectiles also gain +8% vs a
+      // sub-25%-HP target. Gated on the OWNER; the damage write is at applyScaledDamage below.
+      if (proj.owner && ["superman", "homelander"].includes((proj.owner.rosterKey || "").toLowerCase()) && (fighter.maxHealth || 0) > 0 && fighter.health * 4 < fighter.maxHealth) dmg = dmg * 1.08
+      // SUPERMAN — SUPER ARMOR on Heavy also shrugs a PROJECTILE (no hitstun/knockback), still takes the
+      // damage, consumes the armor → 8s cd. Ultimates pierce. Gated on superman; no-op for everyone else.
+      const supArmoredProj = !fighter.isBlocking && (fighter.rosterKey || "").toLowerCase() === "superman" &&
+        fighter.attacking && fighter.currentAttack && fighter.currentAttack.name === "heavy" &&
+        (fighter._supArmorCd || 0) <= 0 && !proj.isUltimate
       if (fighter.isBlocking) {
         dmg *= 0.15
         fighter.blockstun = 12
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+      } else if (supArmoredProj) {
+        fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
       } else {
         fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
         if (proj.timeSlow) fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, proj.timeSlow)   // Clockwork Time Ray: stamp the slow debuff on hit

@@ -133,38 +133,13 @@ export const SKINS = {
   // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
     { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "gojoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gojo", "valkyrie"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "valkyrie") },
-    { id: "gojoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },
-    { id: "gojoCerulean",  name: "Cerulean", unlockLevel: 0, portrait: "./gojo_portrait__cerulean.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cerulean") },
-    { id: "gojoAmethyst",  name: "Amethyst", unlockLevel: 0, portrait: "./gojo_portrait__amethyst.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethyst") },
-    { id: "gojoSolar",     name: "Solar",    unlockLevel: 0, portrait: "./gojo_portrait__solar.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "solar") },
-    { id: "gojoRose",      name: "Rose",     unlockLevel: 0, portrait: "./gojo_portrait__rose.png",     spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rose") },
-    // ── Batch 2 · named/requested (coordinated hair+eyes; outfit per-skin) ──
-    { id: "gojoBlossom",   name: "Blossom Limitless", unlockLevel: 0, portrait: "./gojo_portrait__blossom.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "blossom") },
-    { id: "gojoOmnitrix",  name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./gojo_portrait__omnitrix.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "omnitrix") },
-    { id: "gojoAlbedo",    name: "Albedo Protocol",   unlockLevel: 0, portrait: "./gojo_portrait__albedopr.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "albedopr") },
-    { id: "gojoInfinityVoid", name: "Infinity Void",  unlockLevel: 0, portrait: "./gojo_portrait__infinivoid.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "infinivoid") },   // + procedural blue-white motes & barrier-ring pulses (game.js drawGojoInfinityVoidOverlay, gated on this id)
-    // ── Batch 2 · deep hair+eyes, natural BLACK outfit (white pants kept) ──
-    { id: "gojoCobalt",  name: "Cobalt Six Eyes",  unlockLevel: 0, portrait: "./gojo_portrait__cobalt.png",  spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cobalt") },
-    { id: "gojoCrimson", name: "Crimson Domain",   unlockLevel: 0, portrait: "./gojo_portrait__crimson.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "crimson") },
-    { id: "gojoEmerald", name: "Emerald Sorcerer", unlockLevel: 0, portrait: "./gojo_portrait__emerald.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "emerald") },
-    { id: "gojoGolden",  name: "Golden Jujutsu",   unlockLevel: 0, portrait: "./gojo_portrait__golden.png",  spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "golden") },
-    // ── Batch 3 · deep hair+eyes, natural BLACK outfit (Amethyst Gaze ≠ light "Amethyst"; Sunfire ≠ "Solar") ──
-    { id: "gojoAmethystGaze", name: "Amethyst Gaze",   unlockLevel: 0, portrait: "./gojo_portrait__amethystgaze.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethystgaze") },
-    { id: "gojoIvory",   name: "Ivory Strongest", unlockLevel: 0, portrait: "./gojo_portrait__ivory.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ivory") },
-    { id: "gojoTeal",    name: "Teal Barrier",    unlockLevel: 0, portrait: "./gojo_portrait__teal.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "teal") },
-    { id: "gojoSunfire", name: "Sunfire Sorcerer",unlockLevel: 0, portrait: "./gojo_portrait__sunfire.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "sunfire") },
-    // ── Batch 4 · (Rose Quartz = pink-lavender ≠ warm "Rose" / vivid "Blossom"; Obsidian near-black + cyan-eye accent; Ashen dark-red top; Storm dark-gray top + cyan eyes) ──
-    { id: "gojoRoseQuartz", name: "Rose Quartz Gaze",  unlockLevel: 0, portrait: "./gojo_portrait__rosequartz.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rosequartz") },
-    { id: "gojoObsidian",   name: "Obsidian Strongest",unlockLevel: 0, portrait: "./gojo_portrait__obsidian.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "obsidian") },
-    { id: "gojoAshen",      name: "Ashen Sorcerer",    unlockLevel: 0, portrait: "./gojo_portrait__ashen.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ashen") },
-    { id: "gojoStorm",      name: "Storm Barrier",     unlockLevel: 0, portrait: "./gojo_portrait__storm.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "storm") },
-    // ADDITIVE — 4 procedural-pattern skins on the outfit (Infinity Void already exists, not duplicated); hair+eyes+outfit coordinated
-    { id: "gojoGradientLimitless", name: "Gradient Limitless", unlockLevel: 0, portrait: "./gojo_portrait__gojoGradientLimitless.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoGradientLimitless") },
-    { id: "gojoHarlequinSorcerer", name: "Harlequin Sorcerer", unlockLevel: 0, portrait: "./gojo_portrait__gojoHarlequinSorcerer.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoHarlequinSorcerer") },
-    { id: "gojoCircuitBarrier", name: "Circuit Barrier", unlockLevel: 0, portrait: "./gojo_portrait__gojoCircuitBarrier.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoCircuitBarrier") },
-    { id: "gojoChevronStrike", name: "Chevron Strike", unlockLevel: 0, portrait: "./gojo_portrait__gojoChevronStrike.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoChevronStrike") }
+    // ── 2026-10-24 curated set (tools/gen_gojo_creative.py). Coordinated hair + eyes + outfit. ──
+    { id: "gojoAlbedo",       name: "Albedo",        unlockLevel: 0, portrait: recolorPortrait("gojo", "albedo"),       spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "albedo") },
+    { id: "gojoBen10",        name: "Ben 10",        unlockLevel: 0, portrait: recolorPortrait("gojo", "ben10"),        spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ben10") },
+    { id: "gojoAlienX",       name: "Alien X",       unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"),       spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },   // starfield body via game.js drawAlienXStarfield (skinId endsWith "AlienX")
+    { id: "gojoLavender",     name: "Lavender",      unlockLevel: 0, portrait: recolorPortrait("gojo", "lavender"),     spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "lavender") },
+    { id: "gojoGeto",         name: "Cursed Bond",   unlockLevel: 0, portrait: recolorPortrait("gojo", "geto"),         spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "geto") },
+    { id: "gojoHollowPurple", name: "Hollow Purple", unlockLevel: 0, portrait: recolorPortrait("gojo", "hollowpurple"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "hollowpurple") }
   ],
   // SUKUNA — base sprite transparency-repaired (2026-08-03). "Regular" = the iconic pink-haired Sukuna.
   // 2026-08-03: ALL prior alt-skins DELETED (the 10 palette-swap pack + the orphaned Cerulean creative +
@@ -920,9 +895,8 @@ export const SKINS = {
     // 3 palettes from the sheet's PALETTE BOX (Anime = default; Anime Old + Manga = recolor LUT via
     // zoldyck_work/gen_recolor.py). GODSPEED frames keep their own blue palette (zdRecolorAnim excludes them).
     // All skins share the DEFAULT portrait (the detailed illustration corrupts under the body LUT).
+    // Alt skins removed per request (2026-10-24) — default only.
     { id: "default",  name: "Anime",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: null },
-    { id: "animeold", name: "Anime Old", unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("animeold") },
-    { id: "manga",    name: "Manga",     unlockLevel: 0, portrait: characters.zoldyck?.portrait, spriteScale: characters.zoldyck?.spriteScale, animationData: zdRecolorAnim("manga") },
   ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
@@ -1184,10 +1158,14 @@ export const SKINS = {
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "killuaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
-    { id: "killuaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("killua", "valkyrie"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "valkyrie") },
-    { id: "killuaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },
+    // ── 2026-10-24 curated set (tools/gen_killua_skins.py). Coordinated hair + clothes + lightning. ──
+    { id: "killuaAlbedo",    name: "Albedo",        unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"),    spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
+    { id: "killuaBen10",     name: "Ben 10",        unlockLevel: 0, portrait: recolorPortrait("killua", "ben10"),     spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "ben10") },
+    { id: "killuaAlienX",    name: "Alien X",       unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"),    spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },   // starfield body via game.js drawAlienXStarfield
+    { id: "killuaLavender",  name: "Lavender",      unlockLevel: 0, portrait: recolorPortrait("killua", "lavender"),  spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "lavender") },
+    { id: "killuaNightfall", name: "Nightfall",     unlockLevel: 0, portrait: recolorPortrait("killua", "deepblack"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "deepblack") },   // deep-black hair + tan skin + dark high-collar top
+    { id: "killuaGon",       name: "Best Friends",  unlockLevel: 0, portrait: recolorPortrait("killua", "gon"),       spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "gon") },
+    { id: "killuaGodspeed",  name: "Godspeed",      unlockLevel: 0, portrait: recolorPortrait("killua", "godspeed"),  spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "godspeed") }
   ],
 
   // Gon Freecss (Hunter x Hunter) — AmandioHype re-skin (2026-10-11). Same gate: WITHOUT a default skin,
@@ -1358,7 +1336,16 @@ export const SKINS = {
     { id: "supermanAshfall",         name: "Ashfall Sentinel",  unlockLevel: 0, portrait: "./superman_portrait__ashfall.png",        spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "ashfall") },
     // ── Specialty ──
     { id: "supermanVoidSovereign",   name: "Void Sovereign",   unlockLevel: 0, portrait: "./superman_portrait__voidsovereign.png",   spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "voidsovereign") },
-    { id: "supermanKingdomCome",     name: "Kingdom Come",     unlockLevel: 0, portrait: "./superman_portrait__kingdomcome.png",     spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "kingdomcome") }
+    { id: "supermanKingdomCome",     name: "Kingdom Come",     unlockLevel: 0, portrait: "./superman_portrait__kingdomcome.png",     spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "kingdomcome") },
+    // ── CANONICAL costumes (tools/gen_superman_skins.py region recolour) ──
+    { id: "supermanBlackRecovery",   name: "Recovery Suit",    unlockLevel: 0, portrait: "./superman_portrait__blackrecovery.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "blackrecovery") },
+    { id: "supermanRedSon",          name: "Red Son",          unlockLevel: 0, portrait: "./superman_portrait__redson.png",        spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "redson") },
+    { id: "supermanElectricBlue",    name: "Superman Blue",    unlockLevel: 0, portrait: "./superman_portrait__electricblue.png",   spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "electricblue") },
+    { id: "supermanNew52Suit",       name: "New 52",           unlockLevel: 0, portrait: "./superman_portrait__new52.png",          spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "new52") },
+    { id: "supermanRegime",          name: "Regime",           unlockLevel: 0, portrait: "./superman_portrait__regime.png",         spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "regime") },
+    { id: "supermanBizarro",         name: "Bizarro",          unlockLevel: 0, portrait: "./superman_portrait__bizarro.png",        spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "bizarro") },
+    // ── SPECIAL (per-pixel: tools/gen_superman_special.py) ──
+    { id: "supermanCyborg",          name: "Cyborg Superman",  unlockLevel: 0, portrait: "./superman_portrait__cyborg.png",         spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "cyborg") }
   ],
 
   // Superman (Custom / DC Universe Customs) — rosterKey "superman_dcuc". Same gate: WITHOUT a default
@@ -1809,6 +1796,15 @@ export const SKINS = {
     // id ENDS "AlienX" so game.js drawAlienXStarfield auto-gates the colourful Celestialsapien starfield
     // overlay onto the matte-black (alienx) sheets — matching every other character's Alien X skin.
     { id: "homelanderAlienX",  name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("homelander", "alienx"), spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "alienx") },
+    // CREATIVE hair recolours (tools/gen_homelander_hair_skins.py — recolours just his blond hair, suit/face kept).
+    { id: "homelanderPinkHair",    name: "Pink Hair",    unlockLevel: 0, portrait: "./homelander_portrait__pinkhair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "pinkhair") },
+    { id: "homelanderGreenHair",   name: "Green Hair",   unlockLevel: 0, portrait: "./homelander_portrait__greenhair.png",   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "greenhair") },
+    { id: "homelanderSilverHair",  name: "Silver Fox",   unlockLevel: 0, portrait: "./homelander_portrait__silverhair.png",  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "silverhair") },
+    { id: "homelanderRavenHair",   name: "Raven",        unlockLevel: 0, portrait: "./homelander_portrait__ravenhair.png",   spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "ravenhair") },
+    { id: "homelanderBlueHair",    name: "Electric Blue", unlockLevel: 0, portrait: "./homelander_portrait__bluehair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "bluehair") },
+    { id: "homelanderCrimsonHair", name: "Crimson",      unlockLevel: 0, portrait: "./homelander_portrait__crimsonhair.png", spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "crimsonhair") },
+    { id: "homelanderPurpleHair",  name: "Royal Purple", unlockLevel: 0, portrait: "./homelander_portrait__purplehair.png",  spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "purplehair") },
+    { id: "homelanderTealHair",    name: "Teal",         unlockLevel: 0, portrait: "./homelander_portrait__tealhair.png",    spriteScale: characters.homelander?.spriteScale, animationData: recolorSkinAnim("homelander", "tealhair") },
   ],
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },
@@ -2530,6 +2526,15 @@ export const SKINS = {
     // ── Specialty ──
     { id: "ironMan3VoidSovereign",    name: "Void Sovereign",    unlockLevel: 0, portrait: "./iron_man_3_portrait__voidsovereign.png",    spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "voidsovereign"),    recolorTag: "voidsovereign" },
     { id: "ironMan3MarkFortyTwo",     name: "Mark 42 (Extremis)",unlockLevel: 0, portrait: "./iron_man_3_portrait__markfortytwo.png",     spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "markfortytwo"),     recolorTag: "markfortytwo" }               // HOMAGE Mark 42 (Extremis): darker red + champagne-gold
+  ],
+  soldier_boy: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.soldier_boy?.portrait, spriteScale: characters.soldier_boy?.spriteScale, animationData: null },
+    // ── 2026-10-24 curated set (tools/gen_soldier_boy_skins.py). Coordinated hair + suit + shield + boots. ──
+    { id: "soldier_boyAlbedo",  name: "Albedo",           unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "albedo"),  spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "albedo") },
+    { id: "soldier_boyBen10",   name: "Ben 10",           unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "ben10"),   spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "ben10") },
+    { id: "soldier_boyAlienX",  name: "Alien X",          unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "alienx"),  spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "alienx") },   // starfield body via game.js drawAlienXStarfield
+    { id: "soldier_boyNuclear", name: "Nuclear Meltdown", unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "nuclear"), spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "nuclear") },   // his radioactive blast — signature power
+    { id: "soldier_boyPayback", name: "Payback",          unlockLevel: 0, portrait: recolorPortrait("soldier_boy", "payback"), spriteScale: characters.soldier_boy?.spriteScale, animationData: recolorSkinAnim("soldier_boy", "payback") }
   ],
   spiderman: [
     { id: "default",                    name: "Default",             unlockLevel: 0, portrait: characters.spiderman?.portrait,                       spriteScale: characters.spiderman?.spriteScale, animationData: null },

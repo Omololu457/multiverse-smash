@@ -53,14 +53,20 @@ export const FLIGHT_PROFILES = {
     cruiseFastFrac: 0.70,   // |v| fraction of max that counts as "fast cruise" (speed-line threshold)
   },
 
-  // SUPERMAN (future) — NOT wired. Illustrative values for SUPERMAN_NOTES.md; a stronger,
-  // longer flyer. Enabling is a one-field change (traits.flightProfile:"superman") once his
-  // art + a freeze-breath slot exist. Kept here so the module ships "Superman-ready".
-  // superman: { accel: 0.72, maxH: 8.0, maxV: 7.0, drag: 0.88, reverseBrake: 0.70,
-  //   overspeedDrag: 0.90, ceilEaseZone: 56, dashSpeed: 13, dashFrames: 14, maxAirDash: 2,
-  //   dashCost: 22, energyMax: 420, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -5,
-  //   takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 90,
-  //   landThreshold: 80, minPoseFrames: 4, cruiseFastFrac: 0.68 },
+  // SUPERMAN (feat/superman, 2026-10-23) — WIRED (traits.flightProfile:"superman"). Values per the
+  // build brief Phase 3: slightly more agile + longer-lasting than Homelander — a more precise, floatier
+  // flyer (lower cruise than Homelander's GODSPEED numbers, but 3 air-dashes + a 5-second budget).
+  //   accel 0.60 px/f²  ·  cruiseH 7.0  ·  cruiseV 6.0  ·  drag 0.84  ·  3 air-dashes
+  //   5.0 s flight = energyMax 300 / drainPerFrame 1  ·  groundedAfterHardHit 1.2 s = groundedLock 72
+  superman: {
+    // GODSPEED tuning — matches Homelander's blistering flight (user: "as fast as Homelander"), while
+    // keeping Superman's edge: 3 air-dashes + a 5-second budget (energyMax 300) + a shorter grounded-lock.
+    accel: 2.2, maxH: 22.0, maxV: 18.0, drag: 0.84, reverseBrake: 0.64,
+    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 34, dashFrames: 14, maxAirDash: 3,
+    dashCost: 30, energyMax: 300, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,
+    takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 72,
+    landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,
+  },
 }
 
 export const FLIGHT_PHASE = Object.freeze({

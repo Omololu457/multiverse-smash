@@ -221,7 +221,9 @@ export const physics = {
         const FT_ZIP = 14, FT_SKID_FRIC = 0.90
         // AMBER identity: slightly higher ground movement speed (skin modifier; see GHOSTFACE_SKIN_MODS).
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
-        const walkSpeed = fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed
+        // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
+        const _sbArmedMul = fighter._sbArmed ? 0.9 : 1
+        const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : -walkSpeed
           fighter.facing = -1

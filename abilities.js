@@ -5,8 +5,10 @@
 import { characters } from "./characters.js"
 import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
-import { sound, juicePickVariant, juicePitch }      from "./sound.js"
+import { sound, SFX, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
+import { getHomelanderEyeWorld } from "./homelanderEyeAnchors.js"   // per-frame eye anchor → world-space Heat Vision origin (fires from the eyes, not a fixed body fraction)
+import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
@@ -16102,24 +16104,29 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
     }
     fighter._laserHeat = Math.max(0, fighter._laserHeat - HV_DRAIN)
     fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = Math.max(fighter._spriteCastTimer || 0, 3)
-    // SWEEP: up/down adjust the firing angle at a capped rate around the base axis (down = +, up = −)
-    const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
-    if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
-    else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
-    // eye origin (approx eye anchor: head height, facing side — per-frame anchor refinement is a later polish)
+    const opp = context.getOpponent ? context.getOpponent(fighter) : null
+    const manualSweep = !!(raw.down || raw.up)
+    // AUTO-AIM: with no manual sweep, Homelander LOCKS the beam onto the opponent (turns to face them) and
+    // fires at them wherever they are. Hold up/down to override and sweep the beam by hand instead.
+    if (opp && !manualSweep) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1
+    // PER-FRAME eye origin (homelanderEyeAnchors.js maps the current sprite frame's eye → world space).
     const face = fighter.facing || 1
-    const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30)
-    const oy = fighter.y + (fighter.h || 100) * 0.18
+    const _eye = getHomelanderEyeWorld(fighter)
+    const ox = _eye.x, oy = _eye.y
+    const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
+    if (opp && !manualSweep) { const ocx = opp.x + (opp.w || 50) / 2, ocy = opp.y + (opp.h || 100) * 0.45; fighter._hvAngle = Math.atan2(ocy - oy, (ocx - ox) * face) }   // lock onto the target
+    else if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
+    else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
     const bx = Math.cos(fighter._hvAngle) * face
     const by = Math.sin(fighter._hvAngle)
     // hitscan vs the opponent AABB (first contact = impact point)
-    const opp = context.getOpponent ? context.getOpponent(fighter) : null
     let impX = ox + bx * HV_LEN, impY = oy + by * HV_LEN, hit = false
     if (opp) {
       for (let t = 0; t <= HV_LEN; t += 10) {
         const px = ox + bx * t, py = oy + by * t
         if (px >= opp.x && px <= opp.x + (opp.w || 50) && py >= opp.y && py <= opp.y + (opp.h || 100)) { impX = px; impY = py; hit = true; break }
       }
+      if (!hit && !manualSweep) { impX = opp.x + (opp.w || 50) / 2; impY = opp.y + (opp.h || 100) * 0.45; hit = true }   // auto-aim connects at any range
     }
     if (hit && opp && !(opp.invulnTimer > 0)) {
       fighter._hvTick = (fighter._hvTick || 0) + 1
@@ -16154,7 +16161,7 @@ export function resetHomelanderKit(fighter) {
 // Uses normal physics for the victim's arc (launch vy → driven down) so no two-actor carry gating is
 // needed. Deterministic (no Math.random).
 // ─────────────────────────────────────────────────────────────────────────
-const F37 = { cost: 100, startup: 24, lunge: 16, slam: 26, whiffRecover: 44, grabRange: 140, dmg: 320 }
+const F37 = { cost: 100, startup: 20, laser: 32, flyup: 22, run: 74, grabRange: 190 }   // "FLIGHT 37": laser-stun → fast fly-up grab → run across the maps → throw to the back
 
 export function executeHomelanderUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
@@ -16176,52 +16183,137 @@ export function applyHomelanderFlight37(fighter, context = {}) {
   const s = fighter._f37; if (!s) return
   const opp = context.getOpponent ? context.getOpponent(fighter) : null
   const face = fighter.facing || 1
-  fighter.attacking = false
+  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : 520)
+  fighter.attacking = true; fighter.currentAttack = null   // lock the player out for the whole cinematic
   s.t--
   if (s.phase === "startup") {
-    fighter.vx = 0
-    fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
-    if (s.t <= 0) { s.phase = "lunge"; s.t = F37.lunge; fighter.vx = face * 26 }   // supersonic grab lunge
+    fighter.vx = 0; fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
+    if (s.t <= 0) { s.phase = "laser"; s.t = F37.laser }
     return
   }
-  if (s.phase === "lunge") {
-    fighter._hlBoomFx = 6
+  if (s.phase === "laser") {   // LASER the enemy → STUN
+    fighter.vx = 0; fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 4
+    if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1
+    const eye = getHomelanderEyeWorld(fighter)
     if (opp && !(opp.invulnTimer > 0)) {
-      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
-      if (dx < F37.grabRange && Math.abs(opp.y - fighter.y) < 150) {   // grab connects → launch them up for the slam
-        opp.vy = -16; opp.vx = 0; opp.isLaunched = true; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 70); opp.colorFlash = 10
-        s.phase = "slam"; s.t = F37.slam; fighter.vx = 0
-        return
-      }
+      fighter._hv = { ox: eye.x, oy: eye.y, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
+      opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = 0; opp.colorFlash = 6
+      if (s.t % 5 === 0) applyScaledDamage(opp, 10, { source: "ability", attacker: fighter, move: "ultimate" })
     }
-    if (s.t <= 0) { s.phase = "whiff"; s.t = F37.whiffRecover; fighter.vx = face * 6 }   // missed → overshoot + long recovery
+    if (s.t <= 0) { fighter._hv = null; s.phase = "flyup"; s.t = F37.flyup }
     return
   }
-  if (s.phase === "slam") {
-    fighter.vx = 0
+  if (s.phase === "flyup") {   // fly super fast to grab the stunned enemy, carry upward
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 4
+    fighter.onGround = false; fighter.grounded = false; fighter._hlBoomFx = 6
+    const toOpp = opp ? (Math.sign((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2)) || face) : face
+    fighter.vx = toOpp * 24; fighter.vy = -12
     if (opp) {
-      opp.hitstun = Math.max(opp.hitstun || 0, 4)
-      if (s.t < F37.slam - 6) opp.vy = Math.max(opp.vy || 0, 16)   // after a beat, HEAT VISION drives them down
-      const floor = (opp.groundY != null ? opp.groundY : 520)
-      if (opp.y + (opp.h || 100) >= floor - 2 && !s.slammed) {     // impact
-        s.slammed = true
-        opp.y = floor - (opp.h || 100); opp.vy = 0
-        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48); opp.colorFlash = 16
-        opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
-        applyScaledDamage(opp, F37.dmg, { source: "ability", attacker: fighter, move: "ultimate" })
-        shakeCamera(context, 8, 12)
-        fighter._f37slam = 22   // impact ring/dust render timer
+      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
+      if (dx < F37.grabRange) {
+        opp.vx = 0; opp.vy = -12; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.onGround = false; opp.isLaunched = false; opp.knockdownState = false
+        opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.4); opp.y = fighter.y
+        if (s.t <= 0 || fighter.y <= floor - 170) { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
       }
-      // render the slam beam from Homelander's eyes down onto the victim
-      const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
-      fighter._hv = { ox, oy, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
     }
-    if (s.t <= 0) { fighter._hv = null; fighter._f37 = null }
+    if (s.t <= 0 && s.phase === "flyup") { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
     return
   }
-  // whiff recovery
-  fighter.vx *= 0.9
-  if (s.t <= 0) fighter._f37 = null
+  if (s.phase === "run") {   // RUN ACROSS THE MAPS — the world blurs past (drawHomelanderSpeedRun), rapid hits
+    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 3
+    fighter._hlRunFx = 16   // drives the maps-blur backdrop
+    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, floor - 150)
+    if (opp) {
+      opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.5); opp.y = fighter.y; opp.vx = 0; opp.vy = 0; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 10)
+      if (s.t % 6 === 0 && (s.hits || 0) < 10) { applyScaledDamage(opp, 12, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 6; shakeCamera(context, 3, 3); fighter._hlBoomFx = 5; s.hits = (s.hits || 0) + 1 }
+    }
+    if (s.t <= 0) { s.phase = "throw"; s.t = 32; s.thrown = false }
+    return
+  }
+  if (s.phase === "throw") {   // hurl them to the BACK of the map
+    fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 4
+    fighter._hlRunFx = Math.max(0, (fighter._hlRunFx || 0) - 3)
+    if (!s.thrown && opp) {
+      const dir = -fighter.facing   // away from Homelander → toward the far wall
+      opp.vx = dir * 36; opp.vy = -8; opp.isLaunched = true; opp.onGround = false
+      opp.hitstun = Math.max(opp.hitstun || 0, 60); opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 70); opp.noTech = true; opp.colorFlash = 18; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+      applyScaledDamage(opp, 150, { source: "ability", attacker: fighter, move: "ultimate" })
+      shakeCamera(context, 14, 18)
+      try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
+      s.thrown = true
+    }
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true } else fighter.vy = 12
+    if (s.t <= 0) { fighter._hlRunFx = 0; fighter._hv = null; fighter.attacking = false; fighter._f37 = null; fighter.attackCooldown = getAttackDuration(16, fighter) }
+    return
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMELANDER — canonical SECONDARY abilities: TAKE A RIDE (Fwd+Grab air-throw), FLEX PARRY (tap Block → a
+// brief flex: i-frames + a counter-damage window), SUPER HEARING (passive: HEARS the opponent wind up → a
+// sonar ping that also primes a cleaner flex). Driven per-frame (game.js) with raw input.
+// ─────────────────────────────────────────────────────────────────────────────
+function startHomelanderRide(fighter, opp, context) {
+  if (!opp) return false
+  fighter._hlRide = { phase: "rise", t: 20, slammed: false }
+  fighter._hlRideCd = 360   // 6s
+  fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
+  if (fighter._flightCtl) fighter._flightCtl.phase = "grounded"
+  opp.hitstun = Math.max(opp.hitstun || 0, 100); opp.vx = 0; opp.vy = 0; opp.onGround = false; opp.isLaunched = false; opp.knockdownState = false
+  fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 44
+  try { playHomelanderSfx("SUPERSONIC", fighter, { seed: context.seed, frame: context.frame }) } catch (_) {}
+  return true
+}
+function applyHomelanderRide(fighter, opp, context) {
+  const r = fighter._hlRide; if (!r) return
+  const face = fighter.facing || 1
+  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : 520)
+  fighter.attacking = true; fighter.currentAttack = null
+  const carryX = fighter.x + face * ((fighter.w || 50) * 0.3)
+  if (r.phase === "rise") {   // seize + fly UP together
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 4; fighter.vy = -16; fighter.vx = 0
+    if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = -16; opp.x = carryX; opp.onGround = false }
+    if (--r.t <= 0) { r.phase = "slam"; r.t = 22 }
+    return
+  }
+  // slam them down
+  fighter._spriteCastMove = "flyDive"; fighter._spriteCastTimer = 4; fighter.vy = 20; fighter.vx = 0
+  if (opp && !r.slammed) {
+    opp.vy = 28; opp.x = carryX; opp.hitstun = Math.max(opp.hitstun || 0, 8)
+    if (opp.y + (opp.h || 100) >= floor - 2) {
+      r.slammed = true
+      opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+      opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 56); opp.noTech = true; opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+      applyScaledDamage(opp, 130, { source: "ability", attacker: fighter, move: "takeARide" }); shakeCamera(context, 10, 12)
+    }
+  }
+  if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+  if (r.slammed || (--r.t <= 0 && fighter.onGround)) { fighter._hlRide = null; fighter.attacking = false; fighter.attackCooldown = getAttackDuration(14, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 12 }
+}
+export function applyHomelanderKit(fighter, raw = {}, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const opp = context.getOpponent ? context.getOpponent(fighter) : null
+  if ((fighter._hlRideCd || 0) > 0) fighter._hlRideCd--
+  if ((fighter._hlFlexCd || 0) > 0) fighter._hlFlexCd--
+  if ((fighter._hlFlexCounter || 0) > 0) fighter._hlFlexCounter--
+  if ((fighter._hlHeard || 0) > 0) fighter._hlHeard--
+  if ((fighter._hlFlexFx || 0) > 0) fighter._hlFlexFx--
+  if ((fighter._hlHearFx || 0) > 0) fighter._hlHearFx--
+  // SUPER HEARING — hear the opponent wind up: ping + prime a flex read.
+  if (opp && opp.attacking && opp.currentAttack) { fighter._hlHeard = 14; if (!(fighter._hlHearFx > 2)) fighter._hlHearFx = 10 }
+  // FLEX PARRY — a fresh Block TAP (not a held guard) flexes: i-frames + a short counter-damage window.
+  const block = !!raw.block
+  const edge = block && !fighter._hlBlockPrev; fighter._hlBlockPrev = block
+  if (edge && (fighter._hlFlexCd || 0) <= 0 && (fighter.hitstun || 0) <= 0 && !fighter._hlRide && !fighter._f37) {
+    const heardBonus = (fighter._hlHeard || 0) > 0 ? 8 : 0   // Super Hearing → a cleaner, longer flex
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 14 + heardBonus)
+    fighter._hlFlexFx = 16; fighter._hlFlexCounter = 36 + heardBonus * 2; fighter._hlFlexCd = 240   // 4s cd
+    fighter.colorFlash = Math.max(fighter.colorFlash || 0, 8); fighter.parryFlash = Math.max(fighter.parryFlash || 0, 10)
+    try { playHomelanderSfx("SUPE_DURABILITY", fighter, { seed: context.seed, frame: context.frame }) } catch (_) {}
+  }
+  // TAKE A RIDE — picked up from combat.js (Fwd+Grab close), then the scripted rise → slam.
+  if (fighter._hlRideReq) { fighter._hlRideReq = false; if (!fighter._hlRide && !fighter._f37 && (fighter._hlRideCd || 0) <= 0) startHomelanderRide(fighter, opp, context) }
+  if (fighter._hlRide) applyHomelanderRide(fighter, opp, context)
 }
 
 export function isHomelanderUltActive(fighter) { return !!(fighter && fighter._f37) }
@@ -16285,16 +16377,119 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
 // (Omni-Man/Kurama sure-hit shape). Shared pool: the 100 cost competes with flight + specials + modes.
 // ─────────────────────────────────────────────────────────────────────────
 const SUPERMAN_ULT = { cost: 100, dmg: 380, blockRatio: 0.25 }
+// WORLD OF CARDBOARD — scripted per-frame ultimate state machine (called from game.js updateFighterState).
+// stands tall → dash FIRST STRIKE (must connect, else it fizzles) → super-speed barrage → uppercut
+// launch → fly up & catch → point-blank Heat Vision → final slam from orbit. ~380 guaranteed (bypasses
+// combo scaling), then a 4s Solar Energy lock. Deterministic (frame-counted; no RNG).
+export function applySupermanWoC(fighter, context = {}) {
+  const s = fighter && fighter._supWoC; if (!s) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  const face = fighter.facing || 1
+  const floor = supermanFloor(fighter, context)
+  supermanMoveLock(fighter)
+  const hurt = (n) => { if (opp && !opp.eliminated) applyScaledDamage(opp, n, { source: "ability", attacker: fighter, move: "ultimate", bypassScale: true }) }
+  const carry = (frac, vy) => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * frac); if (vy != null) opp.vy = vy; opp.hitstun = Math.max(opp.hitstun || 0, 10) } }
+
+  // grip the opponent in front of + slightly above Superman (carried together).
+  const grip = () => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * 0.35); opp.y = fighter.y - (opp.h || 100) * 0.12; opp.vx = 0; opp.vy = 0; opp.hitstun = Math.max(opp.hitstun || 0, 12); opp.onGround = false; opp.grounded = false; opp.isLaunched = false; opp.knockdownState = false } }
+  const riseTarget = floor - 440   // cap the ascent so the camera stays framed; the Moon backdrop sells "space"
+
+  if (s.phase === "startup") {
+    fighter.vx = 0; fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 4
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+    if (--s.t <= 0) { s.phase = "charge"; s.t = 22; fighter.vx = face * 26 }
+    return
+  }
+  if (s.phase === "charge") {   // SHOOT toward the enemy (eye-beam) then fly in and GRAB
+    fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 4
+    fighter.vx = face * 26; fighter.onGround = false; fighter.grounded = false
+    if (opp) { const _e = getSupermanEyeWorld(fighter); fighter._supHvBeam = { ox: _e.x, oy: _e.y, tx: opp.x + (opp.w || 60) / 2, ty: opp.y + (opp.h || 100) * 0.4, hit: true, flare: false } }
+    if (opp && !(opp.invulnTimer > 0)) {
+      const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+      if (dx < 120 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 160) {
+        hurt(30); shakeCamera(context, 6, 8); opp.colorFlash = 12
+        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 46; fighter.vx = 0
+        return
+      }
+    }
+    if (--s.t <= 0) { fighter._supHvBeam = null; s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // missed the grab → fizzle
+    return
+  }
+  if (s.phase === "rise") {   // ROCKET STRAIGHT UP — stars STREAK past (fast scroll) to sell the altitude
+    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 6
+    fighter.vx = 0; fighter.vy = -22; fighter.onGround = false; fighter.grounded = false
+    if (fighter.y <= riseTarget) { fighter.y = riseTarget; fighter.vy = 0 }   // cap position (camera) — the MOVING stars convey the real height
+    grip()
+    fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.06)        // fully replace the map with space, fast
+    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 48               // STARS STREAM DOWN fast = he's taking them WAY up
+    fighter._supMoonScrollSpd = 48
+    shakeCamera(context, 3, 3)
+    if (--s.t <= 0) { s.phase = "moon"; s.t = 120; fighter.vy = 0; fighter._supMoonBg = 1; fighter._supMoonScrollSpd = 6; shakeCamera(context, 12, 13); if (opp) opp.colorFlash = 14 }   // arrived — BOOM
+    return
+  }
+  if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex (a long, held beat)
+    fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
+    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget)
+    fighter._supMoonBg = 1; fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 5; fighter._supMoonScrollSpd = 5   // gentle drift at the apex
+    grip()
+    if (s.t % 26 === 0) shakeCamera(context, 2, 3)   // gentle rumble while they hang in space
+    if (s.t === 18) { fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 18 }   // wind up for the throw
+    if (--s.t <= 0) { s.phase = "throwdown"; s.t = 90; s.thrown = false; s.slammed = false }
+    return
+  }
+  if (s.phase === "throwdown") {   // hurl them STRAIGHT DOWN — they fall, SWIRLING, to the ground
+    fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vx = 0; fighter.vy = 0
+    fighter.y = Math.min(fighter.y, riseTarget); fighter._supMoonBg = 1
+    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 6; fighter._supMoonScrollSpd = 6
+    if (!s.thrown && opp) { opp.vx = 0; opp.vy = 34; opp.hitstun = Math.max(opp.hitstun || 0, 140); opp._supSwirl = 90; s.thrown = true; shakeCamera(context, 4, 4) }
+    if (opp && !s.slammed) {
+      opp.vy = Math.max(opp.vy || 0, 30); opp.vx = 0; opp._supSwirl = Math.max(opp._supSwirl || 0, 8); opp.hitstun = Math.max(opp.hitstun || 0, 8)
+      if (opp.y + (opp.h || 100) >= floor - 2) {
+        s.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 72); opp.noTech = true
+        opp.colorFlash = 20; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 14); opp._supSwirl = 0
+        hurt(350); shakeCamera(context, 18, 22)   // BIG impact
+        try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
+        s.phase = "outro"; s.t = 28
+      }
+    }
+    if (--s.t <= 0 && !s.slammed) { if (opp) { opp.knockdownState = true; opp.knockdownTimer = 60 } s.phase = "outro"; s.t = 24 }
+    return
+  }
+  if (s.phase === "outro") {   // Superman descends; the sky returns
+    fighter._spriteCastMove = "flyCruise"; fighter._spriteCastTimer = 6
+    fighter.vy = 18; fighter.vx = 0
+    fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.06)
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+    if (--s.t <= 0) {
+      fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supMoonScroll = 0; fighter._supMoonScrollSpd = 0
+      fighter.attackCooldown = getAttackDuration(16, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16
+      fighter._supEnergyLock = 240   // 4s no-specials lock
+    }
+    return
+  }
+  // whiff recovery (grab missed)
+  fighter.vx *= 0.9; fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 4
+  fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.1)
+  if (--s.t <= 0) { fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supMoonScroll = 0; fighter._supMoonScrollSpd = 0; fighter._supEnergyLock = 120 }
+}
 function executeSupermanUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "superman") return false
-  if (isSupermanUltimateCinematicActive()) return false            // already mid-cinematic
+  if (fighter._supWoC || fighter._supGPound || fighter._supKGrab) return false   // already mid-move
   if (!spendEnergy(fighter, SUPERMAN_ULT.cost)) return false
-  const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
   fighter._flightActive = false                                    // ult overrides any flight/mode state
   forceRevertSupermanModes(fighter)
-  activateSupermanUltimateCinematic(fighter, opp, (cineCtx) => applySupermanUltimateDamage(fighter, opp, cineCtx))
-  supermanCastBark(fighter)   // Kryptonian ultimate cast bark (audio-only)
+  // WORLD OF CARDBOARD — scripted multi-hit super (driven per-frame by applySupermanWoC): stands tall →
+  // dash first strike (must connect) → super-speed barrage → uppercut launch → fly up & catch →
+  // point-blank Heat Vision → final slam from orbit. ~380 guaranteed, then a 4s Solar Energy lock.
+  fighter._supWoC = { phase: "startup", t: 26, hits: 0, slammed: false }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 26)
+  supermanMoveLock(fighter)
+  fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 26
+  supermanCastBark(fighter)   // Kryptonian ultimate cast bark ("World of Cardboard"-era line if mapped)
   return true
 }
 
@@ -17616,15 +17811,61 @@ function fireSupermanHeatVision(fighter, context) {
   // SOLAR FLARE mode ENHANCES it into a wide gold "Solar Flare Beam" (bigger + higher damage).
   const flare = !!fighter._solarFlareActive
   schedulePendingSpawn(5, () => {
+    const eye = getSupermanEyeWorld(fighter)   // per-frame eye anchor (beam pose is active by now)
     spawnProjectile(fighter, flare ? "superman_solarbeam" : "superman_heatvision", {
       drawKind: "heatvision", color: flare ? "#ffcc2e" : "#ff3a1a",
       damage: flare ? 84 : 52, speed: 15, hitstun: flare ? 20 : 16, knockbackX: flare ? 12 : 8, knockbackY: -2,
       w: flare ? 74 : 46, h: flare ? 22 : 14, radius: flare ? 22 : 16, lifetime: 80, isSpecial: true,
-      spawnY: fighter.y + (fighter.h || 100) * 0.18   // eye height
+      spawnX: eye.x + (fighter.facing || 1) * 4, spawnY: eye.y   // fire from the eyes
     }, context)
   })
+  // Arm the HOLD tracker: a quick tap = just this single beam shot; keep holding Special and the
+  // sustained auto-aim beam (applySupermanHeatVision) kicks in after SUP_HV_HOLD_THRESHOLD frames.
+  fighter._supHvHold = { t: 0 }
   supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
   return true
+}
+// SUPERMAN — HEAT VISION sustained auto-aim beam (Omni-Man-style). TAP neutral Special = the single beam
+// shot above. HOLD it and, after a short window, this per-frame driver fires a continuous hitscan beam that
+// LOCKS ONTO the opponent wherever they are (turns to face them), ticking damage and draining Solar Energy
+// until released or the meter empties. game.js passes raw input + draws the beam (drawSupermanHeatVision).
+const SUP_HV_HOLD_THRESHOLD = 9   // frames the Special must stay held before the sustained beam begins
+const SUP_HV_TICK = 6             // damage every N active frames
+const SUP_HV_TICK_DMG = 8         // raw per tick (scaled on the write)
+const SUP_HV_DRAIN = 0.35         // Solar Energy per frame while sustaining
+export function applySupermanHeatVision(fighter, raw = {}, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  if (fighter._supWoC) return   // the ultimate owns the beam render (its approach laser) — don't clear it
+  const h = fighter._supHvHold
+  if (!h) { if (fighter._supHvBeam) fighter._supHvBeam = null; return }
+  if (!raw.special) { fighter._supHvHold = null; fighter._supHvBeam = null; fighter._supHvTick = 0; return }   // released
+  h.t++
+  if (h.t < SUP_HV_HOLD_THRESHOLD) return   // still the tap window (the single shot already fired)
+  // mid-ult / other scripted move → suppress the sustained beam
+  if (fighter._supWoC || fighter._supGPound || fighter._supKGrab) { fighter._supHvBeam = null; return }
+  if ((fighter.energy || 0) <= 0) { fighter._supHvHold = null; fighter._supHvBeam = null; return }   // out of Solar Energy
+  fighter.energy = Math.max(0, fighter.energy - SUP_HV_DRAIN)
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1   // AUTO-AIM: turn to the target
+  const face = fighter.facing || 1
+  if (fighter.onGround || fighter.grounded) fighter.vx = 0
+  fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 4
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 3)   // hold the beam stance
+  const eye = getSupermanEyeWorld(fighter)   // per-frame eye anchor (tracks the actual sprite eyes)
+  const ox = eye.x, oy = eye.y
+  let tx = ox + face * 600, ty = oy, hit = false
+  if (opp) {
+    tx = opp.x + (opp.w || 50) / 2; ty = opp.y + (opp.h || 100) * 0.40; hit = true
+    if (!(opp.invulnTimer > 0)) {
+      fighter._supHvTick = (fighter._supHvTick || 0) + 1
+      if (fighter._supHvTick % SUP_HV_TICK === 0) {
+        const dmg = fighter._solarFlareActive ? SUP_HV_TICK_DMG * 1.5 : SUP_HV_TICK_DMG
+        if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 6); applyScaledDamage(opp, dmg * 0.3, { source: "ability" }) }
+        else { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.colorFlash = 5; applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "heatVision" }) }
+      }
+    }
+  }
+  fighter._supHvBeam = { ox, oy, tx, ty, hit, flare: !!fighter._solarFlareActive, tick: fighter._supHvTick || 0 }
 }
 function fireSupermanFlyingPunch(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -17644,6 +17885,7 @@ function fireSupermanFlyingPunch(fighter, context) {
   return true
 }
 export function executeSupermanSpecial(fighter, context) {
+  if (fighter._supWoC || (fighter._supEnergyLock || 0) > 0) return false   // mid-ult, or the 4s post-ult Solar Energy lock
   // Deterministic held-direction routing (_specialHeldDir — robust, non-time-windowed; Killua pattern):
   //   Down = Solar Flare toggle · Back = Kryptonian Overload toggle · Forward = Super Flying Punch ·
   //   Neutral/Up = Heat Vision. Re-pressing a mode's direction while it's active toggles it OFF.
@@ -17652,19 +17894,20 @@ export function executeSupermanSpecial(fighter, context) {
   // every frame the button is held; enter() sets a cooldown, and revert() must set one too, else a held
   // press would flip the mode on→off→on across successive frames).
   if (dir === "D") {
+    // AIRBORNE Down+Special = GROUND POUND (steep dive-slam + shockwave). Grounded = Solar Flare toggle.
+    const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
+    if (airborne) { if (fighter._supGPound || fighter._supKGrab) return false; return initiateSupermanGroundPound(fighter, context) }
     if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
     if (fighter._solarFlareActive) { revertSupermanSolarFlare(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
     if (enterSupermanSolarFlare(fighter, context)) return true
     return fireSupermanHeatVision(fighter, context)   // not enough Solar Energy → fall back to the beam
   }
-  if (dir === "B") {
-    if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-    if (fighter._overloadActive) { revertSupermanOverload(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
-    if (enterSupermanOverload(fighter, context)) return true
-    return fireSupermanHeatVision(fighter, context)
-  }
+  // BACK (or UP) + Special = FREEZE BREATH. The brief's ↓↓ motion maps here: Down is the Solar Flare
+  // toggle and Up collides with jump, so Back is the clean, reliable slot. (The old Kryptonian Overload
+  // mode is dropped from the kit per the rebuild brief; its code stays defined but is no longer routed.)
+  if (dir === "B" || dir === "U") return fireSupermanFreezeBreath(fighter, context)
   if (dir === "F") return fireSupermanFlyingPunch(fighter, context)   // FORWARD = charged dash-strike (Overload-enhanced)
-  return fireSupermanHeatVision(fighter, context)                     // NEUTRAL/UP = eye-beam (Solar-Flare-enhanced)
+  return fireSupermanHeatVision(fighter, context)                     // NEUTRAL = eye-beam (Solar-Flare-enhanced)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17734,6 +17977,204 @@ export function applySupermanModeSystem(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
   tickSustainedFormDrain(fighter, { active: isSupermanSolarFlare, drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanSolarFlare })
   tickSustainedFormDrain(fighter, { active: isSupermanOverload,   drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanOverload })
+  if ((fighter._supFreezeCd || 0) > 0) fighter._supFreezeCd--   // FREEZE BREATH cooldown (8s) — cannot be looped
+  if ((fighter._supArmorCd || 0) > 0) fighter._supArmorCd--     // SUPER ARMOR (Heavy) cooldown (8s)
+  if ((fighter._supFlightEscCd || 0) > 0) fighter._supFlightEscCd--   // FLIGHT ESCAPE cooldown (10s)
+  if ((fighter._supEnergyLock || 0) > 0) fighter._supEnergyLock--     // 4s post-ultimate Solar Energy lock
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN — FREEZE BREATH (Phase 4). Up+Special: a medium-range forward CONE of super-cooled breath
+// (hitscan — no projectile plumbing). On a clean hit it deals 30 and FREEZES the target for 1.2 s
+// (72f): the FROZEN opponent can't act (hitstun lock, ticked in combat.js) and takes +15% damage from
+// follow-ups (combat.js dmg-taken amp). 8-second cooldown so it can't be spammed/looped. The frozen
+// render overlay is drawn in game.js (drawFrozenOverlay). The brief's ↓↓ motion is mapped to Up+Special
+// because Superman's Special button is already direction-branched (Down/Back are the two mode toggles).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_FREEZE = { cost: 20, dmg: 30, dur: 72, cdFrames: 480, reach: 520, vBand: 150, windup: 9 }
+function applySupermanFreeze(opp, fighter, context) {
+  if (!opp || (opp.invulnTimer || 0) > 0) return false
+  opp.vx = 0; opp.vy = 0
+  opp._supFrozen    = SUPERMAN_FREEZE.dur
+  opp._supFrozenMax = SUPERMAN_FREEZE.dur   // render: overlay opacity fades with _supFrozen / _supFrozenMax
+  opp.hitstun       = Math.max(opp.hitstun || 0, SUPERMAN_FREEZE.dur)
+  opp.colorFlash    = Math.max(opp.colorFlash || 0, 10)
+  applyScaledDamage(opp, SUPERMAN_FREEZE.dmg, { source: "ability", attacker: fighter, move: "freezeBreath" })
+  return true
+}
+function fireSupermanFreezeBreath(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._supFreezeCd || 0) > 0) return false      // 8s cooldown — cannot loop
+  if (!spendEnergy(fighter, SUPERMAN_FREEZE.cost)) return false
+  fighter._spriteCastMove  = "beam"        // inhale → exhale cast pose (reuses the beam strip)
+  fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  fighter.vx = 0
+  fighter._supFreezeCd = SUPERMAN_FREEZE.cdFrames
+  const opp = getTargetResolver(context)(fighter)   // resolve the live opponent ref now; read its position at hit time
+  const face0 = fighter.facing || 1
+  // ACTIVE WINDOW — sample the cone across a few frames so a transient i-frame (wake-up/neutral invuln)
+  // doesn't nullify the whole cast. The first frame the opponent is hittable freezes them; once frozen
+  // (or blockstunned) this cast is done.
+  const coneCheck = () => {
+    if (!opp || (opp._supFrozen || 0) > 0) return
+    const face = fighter.facing || face0
+    const cx = fighter.x + (fighter.w || 50) / 2, ox = opp.x + (opp.w || 50) / 2
+    const dx = ox - cx
+    const inFront = dx * face > -40 || Math.abs(dx) < 70   // forward cone (point-blank tolerant)
+    if (!inFront || Math.abs(dx) >= SUPERMAN_FREEZE.reach || Math.abs((opp.y || 0) - (fighter.y || 0)) >= SUPERMAN_FREEZE.vBand) return
+    if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 22); opp.vx = face * 4 }
+    else applySupermanFreeze(opp, fighter, context)
+  }
+  for (const off of [0, 3, 6, 9, 12]) schedulePendingSpawn(SUPERMAN_FREEZE.windup + off, coneCheck)
+  supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN — GROUND POUND (Down+Special while AIRBORNE) + KRYPTONIAN GRAB ("Take You For A Ride",
+// Forward+Grab while close). Two scripted multi-phase moves driven per-frame by applySupermanAirMoves
+// (game.js updateFighterState), mirroring Homelander's FLIGHT 37 state machine. Deterministic
+// (frame-counted phases, no RNG). Both cost Solar Energy; the grab does NOT consume flight time.
+// The player is locked for the duration via attacking=true (currentAttack cleared → no stale hitbox).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_GPOUND = { cost: 18, directDmg: 110, waveDmg: 40, waveRadius: 360, diveVx: 7, diveVy: 24, recover: 16 }
+const SUPERMAN_KGRAB  = { cost: 10, dmg: 130, rise: 16, apex: 6, slam: 18 }
+function supermanFloor(fighter, context) {
+  return (fighter.groundY != null ? fighter.groundY : (context && context.groundY != null ? context.groundY : 520))
+}
+function supermanMoveLock(fighter) { fighter.attacking = true; fighter.currentAttack = null }
+// GROUND POUND — initiate (Down+Special airborne). Usable out of flight or a normal jump.
+function initiateSupermanGroundPound(fighter, context) {
+  if (fighter._supGPound || fighter._supKGrab) return false
+  if ((fighter.energy || 0) < SUPERMAN_GPOUND.cost) return false
+  if (!spendEnergy(fighter, SUPERMAN_GPOUND.cost)) return false
+  if (fighter._flightCtl) { fighter._flightCtl.phase = "grounded"; fighter._flightCtl.dashTimer = 0 }  // leave flight → real dive (flight energy untouched)
+  fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
+  fighter._supGPound = { phase: "dive", direct: false }
+  fighter.vx = (fighter.facing || 1) * SUPERMAN_GPOUND.diveVx
+  fighter.vy = SUPERMAN_GPOUND.diveVy
+  fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 40
+  supermanMoveLock(fighter)
+  supermanCastBark(fighter)
+  return true
+}
+// KRYPTONIAN GRAB — start (raised by the _supKGrabReq flag that combat.js sets on Fwd+Grab while close).
+function startSupermanKryptGrab(fighter, opp, context) {
+  if (!opp || fighter._supKGrab || fighter._supGPound) return false
+  if (!spendEnergy(fighter, SUPERMAN_KGRAB.cost)) return false
+  fighter._supKGrab = { phase: "rise", t: SUPERMAN_KGRAB.rise, slammed: false }
+  fighter.vx = 0; fighter.onGround = false; fighter.grounded = false
+  if (fighter._flightCtl) fighter._flightCtl.phase = "grounded"   // scripted — flight energy untouched
+  // seize the opponent via a long hitstun lock + carried position (NOT isGrabbed → no normal-throw conflict)
+  opp.hitstun = Math.max(opp.hitstun || 0, 100); opp.vx = 0; opp.vy = 0
+  opp.onGround = false; opp.grounded = false; opp.isLaunched = false; opp.knockdownState = false
+  fighter._spriteCastMove = "flightrise"; fighter._spriteCastTimer = 54
+  supermanMoveLock(fighter)
+  supermanCastBark(fighter)
+  return true
+}
+// Per-frame driver for both scripted air moves (called from game.js updateFighterState with context).
+export function applySupermanAirMoves(fighter, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
+  const face = fighter.facing || 1
+
+  // Kryptonian Grab request raised in combat.js (Fwd+Grab while close). Gate: flight NOT on cooldown.
+  if (fighter._supKGrabReq) {
+    fighter._supKGrabReq = false
+    const onCd = fighter._flightCtl ? (fighter._flightCtl.groundedLock || 0) > 0 : false
+    if (!onCd && !fighter._supKGrab && !fighter._supGPound) startSupermanKryptGrab(fighter, opp, context)
+  }
+
+  // ── GROUND POUND ──
+  const gp = fighter._supGPound
+  if (gp) {
+    supermanMoveLock(fighter)
+    if (gp.phase === "dive") {
+      fighter.vx = face * SUPERMAN_GPOUND.diveVx
+      fighter.vy = Math.max(fighter.vy || 0, SUPERMAN_GPOUND.diveVy)
+      fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6
+      // DIRECT HIT on the way down (airborne opponent or point-blank) → big damage + hard knockdown
+      if (opp && !opp.eliminated && !(opp.invulnTimer > 0) && !gp.direct) {
+        const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
+        const dy = Math.abs((opp.y + (opp.h || 100) / 2) - (fighter.y + (fighter.h || 100) / 2))
+        if (dx < 70 && dy < 95 && !opp.isBlocking) {
+          gp.direct = true
+          opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48)
+          opp.vx = face * 6; opp.vy = 8; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.colorFlash = 12
+          applyScaledDamage(opp, SUPERMAN_GPOUND.directDmg, { source: "ability", attacker: fighter, move: "groundPound" })
+        }
+      }
+      const floor = supermanFloor(fighter, context)
+      if (fighter.y + (fighter.h || 100) >= floor - 2) {
+        fighter.y = floor - (fighter.h || 100); fighter.vx = 0; fighter.vy = 0
+        fighter.onGround = true; fighter.grounded = true
+        gp.phase = "impact"; gp.t = SUPERMAN_GPOUND.recover
+        shakeCamera(context, 16, 16)
+        fighter._spriteCastMove = "land"; fighter._spriteCastTimer = SUPERMAN_GPOUND.recover
+        fighter.attackCooldown = getAttackDuration(SUPERMAN_GPOUND.recover, fighter)
+        // SHOCKWAVE — trips anyone in radius who wasn't the direct hit
+        if (opp && !opp.eliminated && !(opp.invulnTimer > 0) && !gp.direct) {
+          const fcx = fighter.x + (fighter.w || 60) / 2, ocx = opp.x + (opp.w || 60) / 2
+          if (Math.hypot(ocx - fcx, (opp.y || 0) - (fighter.y || 0)) <= SUPERMAN_GPOUND.waveRadius) {
+            if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 20); applyScaledDamage(opp, SUPERMAN_GPOUND.waveDmg * 0.3, { source: "ability" }) }
+            else {
+              opp.vx = (ocx >= fcx ? 1 : -1) * 10; opp.vy = -5; opp.hitstun = Math.max(opp.hitstun || 0, 22)
+              opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 28); opp.colorFlash = 10
+              applyScaledDamage(opp, SUPERMAN_GPOUND.waveDmg, { source: "ability", attacker: fighter, move: "groundPound" })
+            }
+          }
+        }
+      }
+      return
+    }
+    // impact recovery
+    fighter.vx = 0
+    if (--gp.t <= 0) { fighter._supGPound = null; fighter.attacking = false }
+    return
+  }
+
+  // ── KRYPTONIAN GRAB ──
+  const kg = fighter._supKGrab
+  if (kg) {
+    supermanMoveLock(fighter)
+    const carryX = fighter.x + face * ((fighter.w || 60) * 0.25)
+    if (kg.phase === "rise") {
+      fighter.vy = -16; fighter.vx = 0
+      fighter._spriteCastMove = "flightrise"; fighter._spriteCastTimer = 6
+      if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = -16; opp.x = carryX; opp.onGround = false }
+      if (--kg.t <= 0) { kg.phase = "apex"; kg.t = SUPERMAN_KGRAB.apex; fighter.vy = 0 }
+      return
+    }
+    if (kg.phase === "apex") {
+      fighter.vy = 0; fighter.vx = 0
+      if (opp) { opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = carryX }
+      if (--kg.t <= 0) { kg.phase = "slam"; kg.t = SUPERMAN_KGRAB.slam }
+      return
+    }
+    // slam
+    fighter.vy = 18; fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6
+    const floor = supermanFloor(fighter, context)
+    if (opp && !kg.slammed) {
+      opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vy = 24; opp.x = carryX
+      if (opp.y + (opp.h || 100) >= floor - 2) {
+        kg.slammed = true
+        opp.y = floor - (opp.h || 100); opp.vx = 0; opp.vy = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+        opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 52); opp.noTech = true   // untechable
+        opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+        applyScaledDamage(opp, SUPERMAN_KGRAB.dmg, { source: "ability", attacker: fighter, move: "kryptonianGrab" })
+        shakeCamera(context, 12, 14)
+      }
+    }
+    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+    if (kg.slammed || (--kg.t <= 0 && fighter.onGround)) {
+      fighter._supKGrab = null; fighter.attacking = false
+      fighter.attackCooldown = getAttackDuration(14, fighter)
+      fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 14
+    }
+    return
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34018,6 +34459,325 @@ export function applyZoldyckGodspeed(fighter, context) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY — kit helpers + ARMED MODE (Phase 3). Grounded Bruiser/Gunner (The Boys, Marvel group).
+// All randomness is deterministic hash(seed, frame, playerIndex) — no Math.random / gameRng. The Phase 4
+// motion specials + Nuclear Burst ultimate build on these shared SMG/rifle/shield spawns.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+function isSoldierBoy(f) { return !!f && (f.rosterKey || "").toLowerCase() === "soldier_boy" }
+function sbIdx(f) { return (f && (f.side === "p2" || f.playerIndex === 1)) ? 1 : 0 }
+// local deterministic 0..1 hash (mirrors flight.js hashRandom; kept local so abilities.js needs no new import)
+function sbHash(seed, frame, idx) {
+  let h = ((seed | 0) ^ 0x9e3779b9) >>> 0
+  h = Math.imul(h ^ ((frame | 0) + 0x85ebca6b), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((idx | 0) + 0x27d4eb2f), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  return (h >>> 0) / 4294967296
+}
+
+// Tunables (frames @60fps; Charge = the Nuclear Charge meter).
+const SB_SMG    = { bullets: 6, perBullet: 12, overFrames: 30, speed: 19, cost: 20 }
+const SB_RIFLE  = { damage: 90, speed: 22, startup: 20, cost: 25 }
+const SB_SHIELD = { out: 40, back: 22, range: 420, speed: 15, cost: 15 }
+const SB_ARMED  = { dur: 720, drainPerFrame: 0.025, cdFrames: 480, smgBullets: 4, smgDmg: 12, rifleDmg: 60 }
+
+// SFX hook — fleshed out in Phase 7 (WebAudio placeholder synth, +/-3% pitch from sbHash). No-op until then.
+function sbSound(fighter, id, context) {
+  // Phase 7 — deterministic placeholder synth: +/-3% pitch + a noise seed from hash(seed, frame, idx).
+  const seed = ((context && context.seed) >>> 0) || 1
+  const frame = (context && context.frame) || 0
+  const h = sbHash(seed, frame, sbIdx(fighter))
+  const pitch = 1 + (h - 0.5) * 0.06                 // +/-3% pitch variance
+  const noiseSeed = (((seed ^ Math.imul(frame + 1, 2654435761)) >>> 0) || 1)
+  try { sound.playSoldierBoy?.(id, pitch, noiseSeed) } catch (_) {}
+}
+
+// ── Shared projectile spawns (used by the Armed-Mode normals AND the Phase-4 specials) ──
+function sbSpawnSMG(fighter, context, bullets, perDmg) {
+  const seed = ((context && context.seed) >>> 0) || 1, idx = sbIdx(fighter)
+  const baseFrame = (context && context.frame) || 0
+  for (let i = 0; i < bullets; i++) {
+    const at = Math.round(i * (SB_SMG.overFrames / Math.max(1, bullets)))
+    const fAt = baseFrame + i
+    schedulePendingSpawn(at, () => {
+      const spread = (sbHash(seed, fAt, idx) - 0.5) * 12            // +/-6px vertical, deterministic (no Math.random)
+      const mz = (fighter.facing === 1) ? fighter.x + (fighter.w || 50) + 30 : fighter.x - 30   // fire from the SMG muzzle, not the hip
+      spawnProjectile(fighter, "sbSmgBullet", {
+        damage: perDmg, speed: SB_SMG.speed, lifetime: 54, hitstun: 8,
+        knockbackX: 2, knockbackY: 0, w: 14, h: 6, radius: 5, isSpecial: true, drawKind: "bullet",
+        color: "#ffd23f", spawnX: mz, spawnY: fighter.y + (fighter.h || 100) * 0.40 + spread
+      }, context)
+    })
+  }
+}
+function sbSpawnRifle(fighter, context, dmg) {
+  const mz = (fighter.facing === 1) ? fighter.x + (fighter.w || 50) + 48 : fighter.x - 48   // fire from the rifle muzzle, not the hip
+  spawnProjectile(fighter, "sbRifleBullet", {
+    damage: dmg, speed: SB_RIFLE.speed, lifetime: 72, hitstun: 20,
+    knockbackX: 11, knockbackY: -3, w: 24, h: 6, radius: 8, isSpecial: true, drawKind: "bullet",
+    piercesMulti: true, color: "#ffcc66", spawnX: mz, spawnY: fighter.y + (fighter.h || 100) * 0.40
+  }, context)
+}
+
+// ── ARMED MODE (loadout swap; Ghostface killer-swap pattern) ──
+function endSoldierBoyArmed(fighter) {
+  fighter._sbArmed = false
+  fighter._sbArmedTimer = 0
+  fighter._sbArmedCd = SB_ARMED.cdFrames          // 8s cooldown after it ends OR is cancelled
+  fighter._spriteCastMove = "sbArmedDraw"; fighter._spriteCastTimer = 18   // holster pose
+}
+export function toggleSoldierBoyArmed(fighter, context) {
+  if (!isSoldierBoy(fighter) || fighter.isUltimateActive) return false
+  if (fighter._sbArmed) { endSoldierBoyArmed(fighter); return true }       // re-press = cancel (-> cooldown)
+  if ((fighter._sbArmedCd || 0) > 0) return false                         // on cooldown
+  fighter._sbArmed = true
+  fighter._sbArmedTimer = SB_ARMED.dur             // 12s
+  fighter._spriteCastMove = "sbArmedDraw"; fighter._spriteCastTimer = 18   // draw pose
+  sbSound(fighter, "sb_armedToggle", context)
+  return true
+}
+// Ticked every frame from game.js updateMiscTimers. Drains Charge, counts the 12s window + 8s cooldown,
+// and auto-holsters when the timer or the meter runs out, or when the Ultimate starts.
+export function updateSoldierBoyArmed(fighter) {
+  if (!isSoldierBoy(fighter)) return
+  if ((fighter._sbArmedCd || 0) > 0) fighter._sbArmedCd--
+  if (!fighter._sbArmed) return
+  if (fighter.isUltimateActive) { endSoldierBoyArmed(fighter); return }   // unavailable during the Ultimate
+  fighter.energy = Math.max(0, (fighter.energy || 0) - SB_ARMED.drainPerFrame)   // 1.5 Charge/s
+  if ((fighter.energy || 0) <= 0) { endSoldierBoyArmed(fighter); return }
+  if ((fighter._sbArmedTimer || 0) > 0 && --fighter._sbArmedTimer <= 0) endSoldierBoyArmed(fighter)
+}
+function fireSoldierBoyArmedSMG(fighter, context) {
+  fighter._spriteCastMove = "sbArmedJab"; fighter._spriteCastTimer = 14
+  sbSpawnSMG(fighter, context, SB_ARMED.smgBullets, SB_ARMED.smgDmg)       // armed Jab = a 4-round SMG check (FREE normal)
+  sbSound(fighter, "sb_smg", context)
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+}
+function fireSoldierBoyArmedRifle(fighter, context) {
+  fighter._spriteCastMove = "sbArmedHeavy"; fighter._spriteCastTimer = 20
+  sbSpawnRifle(fighter, context, SB_ARMED.rifleDmg)                        // armed Heavy = a 60-dmg rifle shot (FREE normal)
+  sbSound(fighter, "sb_rifle", context)
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+}
+// Command-combat driver (mirrors updateSpidermanCommandCombat). Handles the Down+Heavy ARMED toggle and,
+// while armed, swaps Jab->SMG / Heavy->rifle (the Up-Launcher stays melee). Returns true when it consumes
+// the input (-> the caller skips the normal path this frame).
+export function updateSoldierBoyCommandCombat(fighter, inputState, context) {
+  if (!isSoldierBoy(fighter) || !inputState) return false
+  const lightEdge = !!inputState.light && !fighter._sbPrevLight
+  const heavyEdge = !!inputState.heavy && !fighter._sbPrevHeavy
+  fighter._sbPrevLight = !!inputState.light
+  fighter._sbPrevHeavy = !!inputState.heavy
+  const canAct = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  // TOGGLE: Down + Heavy (fresh), grounded. Works whether or not already armed (re-press cancels).
+  if (canAct && heavyEdge && inputState.down && (fighter.grounded ?? fighter.onGround ?? true)) {
+    if (toggleSoldierBoyArmed(fighter, context)) { inputState.heavy = false; return true }
+  }
+  // While ARMED: Jab->SMG, Heavy->rifle. Up-Launcher (Up held) stays melee -> not intercepted.
+  if (fighter._sbArmed && canAct && !inputState.up) {
+    if (lightEdge) { fireSoldierBoyArmedSMG(fighter, context);  inputState.light = false; return true }
+    if (heavyEdge) { fireSoldierBoyArmedRifle(fighter, context); inputState.heavy = false; return true }
+  }
+  return false
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY — SPECIALS + NUCLEAR BURST ULTIMATE (Phase 4). Normals (Jab/Heavy/Low/Launcher/Air) come
+// from characters.js basic_attacks. Input mapping uses the engine's held-direction special system (same
+// convention as Goku/Homelander; motionInput.js is Naruto-only): N=Gold Rush, F=Shield Toss, B=Rifle Shot,
+// U=Cape Cyclone, Down(ground)=SMG Barrage, Down(air)=Diving Kick; Ultimate button = Nuclear Burst.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const SOLDIER_BOY_SPECIALS = {
+  // melee specials (createAttackFromMove). Damage values are UNSCALED (global 0.60 applied in applyScaledDamage).
+  sbGoldRush: { damage: 85, startup: 6, active: 8,  recovery: 28, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 120, rangeY: 62,  cost: 20, advance: 18 },
+  sbCyclone:  { damage: 30, startup: 4, active: 14, recovery: 16, hitstun: 14, knockbackX: 4,  knockbackY: -5, rangeX: 96,  rangeY: 150, cost: 25 },   // 3-hit spin (re-armed hitbox)
+  sbDive:     { damage: 60, startup: 8, active: 12, recovery: 12, hitstun: 20, knockbackX: 5,  knockbackY: 8,  rangeX: 92,  rangeY: 80,  cost: 15 },
+}
+
+// ── GOLD RUSH (neutral+Special) — armored forward lunge; one hit absorbed in startup f1-6 ──
+function fireSbGoldRush(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbGoldRush
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbGoldRush", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._castArmor = Math.max(fighter._castArmor || 0, md.startup)      // absorb one hit during startup f1-6 (combat.js castArmored; ticks in game.js)
+  fighter.vx = (fighter.facing || 1) * (md.advance || 18)                // armored lunge travels forward
+  sbSound(fighter, "sb_goldRush", context)
+  return true
+}
+// ── CAPE CYCLONE (Up+Special) — anti-air spin: 3 hits of 30, upper-body invuln on active f3-8 ──
+function fireSbCapeCyclone(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbCyclone
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbCyclone", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  // re-arm the hitbox twice inside the active window → up to 3 hits of 30 (the spin).
+  schedulePendingSpawn(md.startup + 4, () => { if (fighter.currentMove === "sbCyclone" && fighter.currentAttack) fighter.currentAttack.hasHit = false })
+  schedulePendingSpawn(md.startup + 8, () => { if (fighter.currentMove === "sbCyclone" && fighter.currentAttack) fighter.currentAttack.hasHit = false })
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)            // upper-body invuln (active f3-8)
+  sbSound(fighter, "sb_cyclone", context)
+  return true
+}
+// ── DIVING KICK (air Down+Special) — angled overhead dive ──
+function fireSbDivingKick(fighter, context) {
+  const md = SOLDIER_BOY_SPECIALS.sbDive
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "sbDive", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.spike = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 10; fighter.vy = 12               // dive down-forward
+  sbSound(fighter, "sb_dive", context)
+  return true
+}
+// ── SHIELD TOSS (Fwd+Special) — gold boomerang, 420px round-trip, ONE on screen (= its cooldown) ──
+function fireSbShieldToss(fighter, context) {
+  if (activeProjectiles.some(p => p && p.name === "sbShield" && p.owner === fighter)) return false   // one on screen at a time
+  if (!spendEnergy(fighter, SB_SHIELD.cost)) return false
+  fighter._spriteCastMove = "sbShieldThrow"; fighter._spriteCastTimer = 18
+  spawnProjectile(fighter, "sbShield", {
+    damage: SB_SHIELD.out, speed: SB_SHIELD.speed, hitstun: 16, knockbackX: 6, knockbackY: -2,
+    w: 46, h: 46, radius: 24, isSpecial: true, boomerang: true,
+    maxRange: SB_SHIELD.range, retractSpeed: SB_SHIELD.speed, color: "#c9a227",
+    sheet: "./soldier_boy_shieldproj_uniform.png", spriteFrames: 6, spriteW: 149, spriteH: 63, spriteSpeed: 2, spriteScale: 1.1,
+    spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  sbSound(fighter, "sb_shield", context)
+  return true
+}
+// ── SMG BARRAGE (Down+Special, ground) — 6 bullets over 30f, 12 each, hashed +/-6px spread ──
+function fireSbSMGBarrage(fighter, context) {
+  if (!spendEnergy(fighter, SB_SMG.cost)) return false
+  fighter._spriteCastMove = "sbSMG"; fighter._spriteCastTimer = 30
+  sbSpawnSMG(fighter, context, SB_SMG.bullets, SB_SMG.perBullet)
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  sbSound(fighter, "sb_smg", context)
+  return true
+}
+// ── RIFLE SHOT (Back+Special) — 20f startup, fast piercing round, 90 dmg, strong knockback ──
+function fireSbRifleShot(fighter, context) {
+  if (!spendEnergy(fighter, SB_RIFLE.cost)) return false
+  fighter._spriteCastMove = "sbRifle"; fighter._spriteCastTimer = SB_RIFLE.startup + 10
+  schedulePendingSpawn(SB_RIFLE.startup, () => sbSpawnRifle(fighter, context, SB_RIFLE.damage))   // 20f startup
+  fighter.attackCooldown = getAttackDuration(SB_RIFLE.startup + 14, fighter)
+  sbSound(fighter, "sb_rifle", context)
+  return true
+}
+
+// ── SPECIAL ROUTER (held-direction). Called from triggerSpecial. ──
+function executeSoldierBoySpecial(fighter, context = {}) {
+  if (!isSoldierBoy(fighter)) return false
+  if (fighter.attacking || (fighter.attackCooldown || 0) > 0) return false
+  const air = !(fighter.onGround ?? fighter.grounded ?? true)
+  const dir = fighter._specialHeldDir || null
+  if (air) return (dir === "D") ? fireSbDivingKick(fighter, context) : false   // AIR Down = Diving Kick
+  if (dir === "F") return fireSbShieldToss(fighter, context)     // toward  (canonical qcf)
+  if (dir === "B") return fireSbRifleShot(fighter, context)      // away    (canonical qcb)
+  if (dir === "U") return fireSbCapeCyclone(fighter, context)    // up      (anti-air dp)
+  if (dir === "D") return fireSbSMGBarrage(fighter, context)     // down    (down-down)
+  return fireSbGoldRush(fighter, context)                        // neutral = armored lunge (dash)
+}
+
+// ── NUCLEAR BURST (Ultimate button) — needs the FULL meter. 3-phase radial blast (r=360),
+// 80+80+120 = 280 unscaled, 90f recovery lockout. White/orange flash, radial particles and shake are
+// RENDER-ONLY (drawn in game.js from _sbNuke* render flags; not in GAME_STATE). Does NOT set
+// isUltimateActive (that forces the idle pose) — the 90f attackCooldown is the lockout. ──
+function executeSoldierBoyUltimate(fighter, context = {}) {
+  if (!isSoldierBoy(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (context && context.cinematicSafe === false) return false            // refuse during KO/Brutality/domains/rewind
+  if (!spendEnergy(fighter, 100)) return false                            // full meter only
+  fighter._sbArmed = false; fighter._sbArmedTimer = 0                     // the nuke ends Armed Mode
+  fighter.vx = 0
+  fighter._spriteCastMove = "sbUltPose"; fighter._spriteCastTimer = 54
+  fighter._sbNukeFlash = 60                                               // render-only white/orange wash flag
+  const resolve = getTargetResolver(context)
+  const PULSES = [{ at: 8, dmg: 80 }, { at: 26, dmg: 80 }, { at: 44, dmg: 120 }]
+  for (const p of PULSES) {
+    schedulePendingSpawn(p.at, () => {
+      const o = resolve ? resolve(fighter) : null
+      if (!o) return
+      const dx = (o.x || 0) - (fighter.x || 0), dy = (o.y || 0) - (fighter.y || 0)
+      if (Math.hypot(dx, dy) <= 360 && (o.invulnTimer || 0) <= 0) {
+        applyScaledDamage(o, p.dmg, { attacker: fighter, move: "ultimate", source: "ability", tier: "big" })
+        o.hitstun = Math.max(o.hitstun || 0, 22); o.colorFlash = 10
+        o.vx = (dx >= 0 ? 1 : -1) * 8; o.vy = -6
+      }
+    })
+  }
+  schedulePendingSpawn(50, () => { fighter._spriteCastMove = "sbUltRecover"; fighter._spriteCastTimer = 40 })
+  fighter.attackCooldown = getAttackDuration(90, fighter)                 // 90f recovery lockout (also blocks re-arm)
+  try { shakeCamera(context, 9, 60) } catch (_) {}                        // render-only
+  fighter.colorFlash = 18
+  sbSound(fighter, "sb_nuke", context)
+  return true
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY — DEFENSIVE TOOLS (Phase 6). Gold Brace (Block+Heavy), Back Roll (Block+Light), Second
+// Wind (passive). Brace absorb + Second Wind damage-reduction are applied in combat.applyScaledDamage.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const SB_BRACE = { window: 40, cd: 360 }                                   // Gold Brace: 40f absorb window, 6s cooldown
+const SB_ROLL  = { iframes: 14, cd: 300, hop: 8, lock: 16 }                // Back Roll: i-frames through ~f14, 5s cooldown
+const SB_SECONDWIND = { dur: 180, charge: 20, hpFrac: 0.20 }               // Second Wind: 3s window, +20 Charge, below 20% HP, once/round (25% DR lives in combat.js)
+
+// GOLD BRACE (Block + Heavy) — the gold shield braces; the next damaging hit is absorbed. 6s cooldown.
+function fireSoldierBoyGoldBrace(fighter, context) {
+  if ((fighter._sbBraceCd || 0) > 0 || (fighter._sbBraceActive || 0) > 0) return false
+  fighter._sbBraceActive = SB_BRACE.window
+  fighter._sbBraceCd = SB_BRACE.cd
+  fighter._spriteCastMove = "guard"; fighter._spriteCastTimer = SB_BRACE.window
+  sbSound(fighter, "sb_armedToggle", context)
+  return true
+}
+// BACK ROLL (Block + Light) — a quick evasive roll: i-frames through ~frame 14, backward hop, 5s cooldown.
+// (The brief's left-left+Special, mapped to the engine's block-cancel defensive slot: Back+Special is the
+// Rifle Shot and the held-direction system has no distinct double-tap-back + Special input.)
+function fireSoldierBoyBackRoll(fighter, context) {
+  if ((fighter._sbRollCd || 0) > 0) return false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, SB_ROLL.iframes)   // i-frames (through ~f14)
+  fighter._sbRollCd = SB_ROLL.cd
+  fighter.vx = -(fighter.facing || 1) * SB_ROLL.hop                           // roll backward
+  fighter.attackCooldown = getAttackDuration(SB_ROLL.lock, fighter)
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = SB_ROLL.lock    // roll pose (row 8 slide)
+  sbSound(fighter, "sb_dive", context)
+  return true
+}
+// Per-frame defensive tick: Gold Brace window/cooldown, Back Roll cooldown, Second Wind window + the PASSIVE
+// (once per round, below 20% HP -> 3s of 25% damage reduction + 20 Charge). Fresh fighter objects each round
+// naturally reset _sbSecondWindUsed.
+export function updateSoldierBoyDefense(fighter) {
+  if (!isSoldierBoy(fighter)) return
+  if ((fighter._sbBraceActive || 0) > 0) fighter._sbBraceActive--
+  if ((fighter._sbBraceCd || 0) > 0) fighter._sbBraceCd--
+  if ((fighter._sbRollCd || 0) > 0) fighter._sbRollCd--
+  if ((fighter._sbSecondWind || 0) > 0) fighter._sbSecondWind--
+  if (!fighter._sbSecondWindUsed && (fighter.health || 0) > 0 &&
+      (fighter.health || 0) <= (fighter.maxHealth || 1080) * SB_SECONDWIND.hpFrac) {
+    fighter._sbSecondWindUsed = true
+    fighter._sbSecondWind = SB_SECONDWIND.dur
+    fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + SB_SECONDWIND.charge)
+    fighter.colorFlash = 14
+    sbSound(fighter, "sb_chargeFull", { seed: 1, frame: 0 })
+  }
+}
+// Defensive input (block-cancel). Checked BEFORE the Armed/normal path so a blocking Heavy/Light becomes the
+// defensive option. Returns true when it consumes the input.
+export function updateSoldierBoyDefensiveInput(fighter, inputState, context) {
+  if (!isSoldierBoy(fighter) || !inputState) return false
+  const heavyEdge = !!inputState.heavy && !fighter._sbPrevDefHeavy
+  const lightEdge = !!inputState.light && !fighter._sbPrevDefLight
+  fighter._sbPrevDefHeavy = !!inputState.heavy
+  fighter._sbPrevDefLight = !!inputState.light
+  if (!inputState.block) return false
+  if (fighter.attacking || (fighter.attackCooldown || 0) > 0) return false
+  if (heavyEdge && fireSoldierBoyGoldBrace(fighter, context)) { inputState.heavy = false; return true }
+  if (lightEdge && fireSoldierBoyBackRoll(fighter, context)) { inputState.light = false; return true }
+  return false
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -34129,6 +34889,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "superman_fighter": return executeSupermanFighterSpecial(fighter, context)  // ★ALL REAL FX (disjoint): neutral=Heat Vision beam / Fwd=X red blast / U=Frost Breath (tall) / Down=Ice Beam (long) / Back=Flying Retreat / AIR=Aerial Ice
     case "onoki":   return executeOnokiSpecial(fighter, context)     // Dust Release — neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Down=Cape Spin+rock projectiles / Up=Taunting Combo Finisher (launcher). Jutsu Charge/Launch = separate P-hold release.
     case "kiba":    return executeKibaSpecial(fighter, context)      // Gatsuga (Fang Passing Fang) — neutral=Weak drill-rush / Fwd=Strong drill-rush (superArmor, further, ~2× energy)
+    case "soldier_boy": return executeSoldierBoySpecial(fighter, context)
     case "spiderman": return executeSpidermanSpecial(fighter, context)   // Stage 2: Down = Ground Crawl evasive (i-frames + reposition; Light/Heavy during crawl → kick-up). Web specials (neutral/F/B/U) land Stage 3.
     case "naoya":   return executeNaoyaSpecial(fighter, context)   // neutral=Energy Dart spread / Fwd=Pitch Throw (fast dart) / Back=Frame-Skip retreat blink / Up=Frame-Skip advance blink / Down=Frame-Trap (L→H→L strict-link → freeze finish)
     case "boruto":  return executeBorutoSpecial(fighter, context)    // GROUND: Rasengan(neutral)/Shiden(Fwd)/Wind-Water(Back)/Palm Blast(Up)/Shadow Clone(Down). AIR: Rasengan(neutral)/Throw Weapon(Fwd)/Vanishing Rasengan(Back)
@@ -34340,6 +35101,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "handler": cast = executeHandlerUltimate(fighter, context); break     // Mahoraga — ADAPTATION FORM (NEW engine): transforms into Mahoraga (_skinAnim art-swap), swaps in WEAK, adapts per-move (damage-reduction ladder against him) + GROWS (dmg/def/regen with distinct-adapted), ~10s auto-revert. Kit: normals=attack combo, Special=adapted counter (row_05).
       case "yuta": cast = executeYutaUltimate(fighter, context); break          // Rika's Invocation (owner decision #8 = AI assist-ally) — invocation cast (row_16) hands off to a PERSISTENT AI Rika assist (summons.js rikaAssist): emerges → advances → strikes ~6s, per-hit ×0.60 scaled (Megumi-flag)
       case "mayuri": cast = executeMayuriUltimate(fighter, context); break      // Bankai: Konjiki Ashisogi Jizō — inline freeze cinematic (live fighter, no dup): golden construct assembles→crushes, guaranteed ~198 EFF
+      case "soldier_boy": cast = executeSoldierBoyUltimate(fighter, context); break
       case "spiderman": cast = executeSpidermanUltimate(fighter, context); break  // Maximum Web — inline freeze cinematic (live fighter, no dup): giant web-net engulfs+PINS the foe, guaranteed ~204 EFF
       case "spiderman_raimi": cast = executeRaimiUltimate(fighter, context); break  // Web Cocoon — same web-trap escalation: live fighter holds his OWN overhead web-thwip pose (webThwip), shared web-net cocoon overlay grows+PINS the frozen foe, guaranteed ~204 EFF. Reuses generic web-net FX (flagged)
       case "naoya":   cast = executeNaoyaUltimate(fighter, context); break   // Projection Sorcery: Frame-Trap — PROMOTED guaranteed auto-execution (L→H→L → white-wing FREEZE finish) on live fighter, no dup, ~198 EFF; reuses S4 cast poses (no unique ult art — flagged gap)
@@ -35396,6 +36158,10 @@ export function regenEnergy(fighter) {
   if (key === "naruto") regen += 0.02
   if (key === "gojo"   || key === "sukuna") regen += 0.01
   if (key === "omololu") regen += 0.015
+  // Soldier Boy — Nuclear Charge passive regen is exactly 3/s (0.05/frame @60fps), a touch below the
+  // 0.06 base so the meter economy leans on IN-COMBAT gains (+6 landed / +4 taken, combat.applyScaledDamage):
+  // "every special is a choice against the nuke." Overrides the base rate (set, not add).
+  if (key === "soldier_boy") regen = 0.05
   if (fighter.domainBuff)      regen += 0.04
   if (fighter.energyRegenBoost) regen += 0.06
 

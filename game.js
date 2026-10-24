@@ -46,7 +46,7 @@ import {
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
-import { flightToggleInput, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + per-frame driver + round reset + profile (HUD gauge max)
+import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -88,6 +88,9 @@ import {
   updateTransformJutsu, isTransformJutsuActive, transformJutsuTier,   // Transformation Jutsu (Naruto-universe): per-frame window driver + state reads
   revertTransformJutsu,   // harness/force-revert
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
+  applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
+  applySupermanWoC,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
+  applySupermanHeatVision,   // Superman HEAT VISION: sustained auto-aim hitscan beam while Special is HELD (tap = single shot)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -181,6 +184,7 @@ import {
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
   applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX,   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
+  applyHomelanderKit,   // Homelander secondary: Take A Ride (Fwd+Grab air-throw) + Flex Parry (tap Block) + Super Hearing (passive ping)
   applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
@@ -202,6 +206,8 @@ import {
   updateYamamotoCommandCombat,   // Yamamoto Fwd+Heavy single command-normal (yamamotoCombo 11f multi-hit slash string)
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
+  updateSoldierBoyCommandCombat, updateSoldierBoyArmed, toggleSoldierBoyArmed,  // Soldier Boy — Armed Mode toggle (Down+Heavy) + armed Jab/Heavy gun swaps + per-frame drain/cooldown tick
+  updateSoldierBoyDefense, updateSoldierBoyDefensiveInput,  // Soldier Boy — Phase 6 defensives: Gold Brace / Back Roll / Second Wind tick + block-cancel input
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
   updateSpidermanTraversal,      // Spider-Man per-frame traversal upkeep (steps zip/hang, refills web-fluid, resets 2-swing counter on landing, clears on hit)
   tickWebbed,                    // Spider-Man WEBBED debuff per-frame tick (universal loop; holds slow + dash-disable, restores on decay)
@@ -581,6 +587,7 @@ import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
+import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // Cyborg Superman skin — glowing red robotic eye at the per-frame eye anchor
 import { pickOnokiVoice, ONOKI_VOICE } from "./onokiVoice.js"     // Onoki intro ("for the future") + win ("you're the one going to sleep") — JA
 import { pickGenosVoice, GENOS_VOICE } from "./genosVoice.js"     // Genos intro ("a hero nobody knows") — EN
 import { pickAlbedoVoice, ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
@@ -4954,11 +4961,6 @@ function initIntroVariant(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "killua" && fighter._introVariant === "intro") {
     fighter._introHomeX = fighter.x
     fighter.x = fighter.x - (fighter.facing || 1) * KILLUA_ROLLIN_DIST
-  } else if ((fighter.rosterKey || "").toLowerCase() === "superman") {
-    // SUPERMAN entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind him.
-    // updateSupermanIntro eases him home across the Clark run-in + liftoff while the CAMERA tracks him.
-    fighter._introHomeX = fighter.x
-    fighter.x = fighter.x - (fighter.facing || 1) * SUPERMAN_RUNIN_DIST
   } else if ((fighter.rosterKey || "").toLowerCase() === "shinobu") {
     // SHINOBU entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind her.
     // updateShinobuIntro glides her home (haori spread as wings) while the CAMERA tracks the travel.
@@ -10696,6 +10698,8 @@ function updateMiscTimers(fighter) {
   if (fighter._handlerShadowSinkCd > 0) fighter._handlerShadowSinkCd--     // Megumi Shadow Sink dedicated cooldown (anti-spam)
   if (fighter._shadowSinkT   > 0) fighter._shadowSinkT--                   // Megumi Shadow Sink sink→hidden→emerge window (drives the render)
   if (fighter._castArmor     > 0) fighter._castArmor--                     // Hashirama one-shot strike super-armor window (combat.js)
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy") updateSoldierBoyArmed(fighter)   // Soldier Boy — Armed Mode drain / 12s window / 8s cooldown
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy") updateSoldierBoyDefense(fighter)   // Soldier Boy — Gold Brace / Back Roll / Second Wind timers + passive
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -11844,6 +11848,21 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "spiderman" && !charging &&
       updateSpidermanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // SOLDIER BOY — Down+Heavy toggles ARMED MODE (loadout swap); while armed, Jab→SMG burst / Heavy→rifle
+  // shot (the Up-Launcher stays melee). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&
+      updateSoldierBoyCommandCombat(fighter, inputState, getAbilityContext())) return
+
+  // SOLDIER BOY — DEFENSIVE block-cancels (Gold Brace = Block+Heavy, Back Roll = Block+Light). Checked
+  // before the Armed/normal path so a blocking Heavy/Light becomes the defensive option.
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&
+      updateSoldierBoyDefensiveInput(fighter, inputState, getAbilityContext())) return
+
+  // SOLDIER BOY — Down+Heavy toggles ARMED MODE (loadout swap); while armed, Jab→SMG burst / Heavy→rifle
+  // shot (the Up-Launcher stays melee). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "soldier_boy" && !charging &&
+      updateSoldierBoyCommandCombat(fighter, inputState, getAbilityContext())) return
+
   // NAOYA — Fwd+Heavy → naoyaCombo (single 6f MULTI-HIT low combo string, row_08). Neutral light/heavy/up/
   // air/down_air stay on the normal path. Consumes the input only when it fires.
   if ((fighter.rosterKey || "").toLowerCase() === "naoya" && !charging &&
@@ -12265,6 +12284,195 @@ function drawSupermanSolarFlareAura(c, fighter) {
   const R0 = Math.max(w, h) * 0.5, R1 = R0 + 14 + pulse * 8
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2 + fighter._solarFlarePulse * 0.05
+    c.beginPath(); c.moveTo(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0); c.lineTo(cx + Math.cos(a) * R1, cy + Math.sin(a) * R1); c.stroke()
+  }
+  c.restore()
+}
+
+// SUPERMAN — FREEZE BREATH frost overlay. Drawn on ANY fighter with _supFrozen > 0 (the victim, which can
+// be any character). RENDER-ONLY: driven entirely by the sim field _supFrozen (deterministic countdown) +
+// _supFrozenMax — no render accumulator is stashed on the fighter, so nothing leaks into GAME_STATE.
+// SUPERMAN — FLIGHT ESCAPE (defensive burst). While being combo'd (in hitstun), a fresh Special press +
+// 25 Solar Energy bursts him out into flight with a short i-frame window. 10s cooldown. Reads raw input
+// (bypasses the hitstun input-gate) so it works mid-combo. Gated on superman; no-op for everyone else.
+function supermanFlightEscape(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman" || !fighter.traits?.flightProfile) return
+  if ((fighter.hitstun || 0) <= 0) { fighter._supFlightEscPrev = false; return }   // only while being combo'd
+  const raw = readRawControls(fighter) || {}
+  const press = !!raw.special
+  const edge = press && !fighter._supFlightEscPrev
+  fighter._supFlightEscPrev = press
+  if (!edge || (fighter._supFlightEscCd || 0) > 0 || (fighter.energy || 0) < 25) return
+  fighter.energy = Math.max(0, fighter.energy - 25)
+  fighter.hitstun = 0; fighter.blockstun = 0; fighter.isLaunched = false; fighter.knockdownState = false
+  if (fighter._flightCtl) fighter._flightCtl.groundedLock = 0
+  flightTakeoff(fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 12)   // 12-frame invincible burst
+  fighter.colorFlash = Math.max(fighter.colorFlash || 0, 10)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._supFlightEscCd = 600   // 10s cooldown
+}
+
+// SUPERMAN — X-RAY VISION tint (render-only). A subtle blue scan-tint over an opponent who is below 25%
+// health WHEN their opponent is Superman (he's "seeing their weak points" for the +8% damage). Computed
+// at render time from live health — no flag stored in GAME_STATE.
+function drawXRayTint(c, fighter) {
+  if (!c || !fighter || (fighter.maxHealth || 0) <= 0 || (fighter.health || 0) <= 0) return
+  if (fighter.health * 4 >= fighter.maxHealth) return
+  const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+  if (!opp || !["superman", "homelander"].includes((opp.rosterKey || "").toLowerCase())) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  c.save()
+  c.globalAlpha = 0.16; c.fillStyle = "#49a7ff"
+  const r = 10, rx = x - 2, ry = y - 2, rw = w + 4, rh = h + 4
+  c.beginPath(); c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.fill()
+  c.globalAlpha = 0.22; c.strokeStyle = "#bfe3ff"; c.lineWidth = 1
+  for (let k = 1; k < 4; k++) { const yy = y + h * (k / 4); c.beginPath(); c.moveTo(x, yy); c.lineTo(x + w, yy); c.stroke() }   // scan lines
+  c.restore()
+}
+
+// SUPERMAN — "World of Cardboard" ULTIMATE Moon backdrop. Fullscreen space-black sky + stars + a pale
+// Moon while a superman is mid-ult (_supMoonBg = 0..1 intensity, stamped by applySupermanWoC). Render-only;
+// star positions are a deterministic hash (cosmetic, not the sim RNG).
+function drawSupermanMoonBackdrop(ctx, canvas) {
+  if (!ctx || !canvas) return
+  const sm = [p1, p2].find(f => f && (f._supMoonBg || 0) > 0 && (f.rosterKey || "").toLowerCase() === "superman")
+  if (!sm) return
+  const a = Math.min(1, sm._supMoonBg), W = canvas.width, H = canvas.height
+  const scroll = sm._supMoonScroll || 0, spd = sm._supMoonScrollSpd || 0
+  const rnd = (i, k) => { let h = ((i * 73856093) ^ (k * 19349663)) >>> 0; h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
+  ctx.save()
+  ctx.globalAlpha = a * 0.99; ctx.fillStyle = "#04050c"; ctx.fillRect(0, 0, W, H)   // fully replace the map with space
+  for (let i = 0; i < 120; i++) {
+    const par = 0.55 + rnd(i, 4) * 0.9                                 // per-star parallax (depth)
+    const x = rnd(i, 1) * W
+    const y = (((rnd(i, 2) * H + scroll * par) % H) + H) % H           // STARS SCROLL — he's rising, so they stream DOWN
+    const r = 0.6 + rnd(i, 3) * 1.7
+    const streak = Math.min(H * 0.3, spd * par)                        // fast scroll → long warp streaks (altitude)
+    const tw = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.08 + i)
+    ctx.globalAlpha = a * (0.35 + tw * 0.6)
+    const col = i % 7 === 0 ? "#bfd0ff" : "#ffffff"
+    if (streak > 4) { ctx.strokeStyle = col; ctx.lineWidth = r; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - streak); ctx.stroke() }
+    else { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill() }
+  }
+  const mx = W * 0.8, my = H * 0.2, mr = Math.min(W, H) * 0.09
+  const g = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, mr * 0.2, mx, my, mr)
+  g.addColorStop(0, "#f4f4ec"); g.addColorStop(1, "#b8bcc8")
+  ctx.globalAlpha = a * 0.92; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fill()
+  ctx.globalAlpha = a * 0.25; ctx.fillStyle = "#9a9eaa"
+  ctx.beginPath(); ctx.arc(mx - mr * 0.3, my + mr * 0.1, mr * 0.22, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(mx + mr * 0.35, my - mr * 0.25, mr * 0.14, 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+}
+
+// HOMELANDER — ULTIMATE "run across the maps". While he carries the enemy at hyper-speed (_hlRunFx > 0,
+// stamped by applyHomelanderFlight37) the WORLD blurs past: real stage backgrounds scroll + motion streaks,
+// screen-space UNDER the fighters (reuses the Flash speed-run panel helpers). Render-only.
+function drawHomelanderSpeedRun(ctx, canvas) {
+  if (!ctx || !canvas) return
+  const hl = [p1, p2].find(f => f && (f._hlRunFx || 0) > 0 && (f.rosterKey || "").toLowerCase() === "homelander")
+  if (!hl) return
+  const cw = canvas.width, ch = canvas.height, elapsed = globalFrameCount, dir = hl.facing || 1
+  ctx.save()
+  _drawRunPanels(ctx, cw, ch, elapsed, dir, SPEEDRUN_PANELS, 0.14)
+  ctx.globalAlpha = 0.25; ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2; ctx.lineCap = "round"
+  for (let i = 0; i < 22; i++) {
+    const h = (Math.imul(i, 2654435761) >>> 0) / 4294967296, yy = h * ch, len = cw * (0.3 + ((Math.imul(i, 40503) >>> 0) / 4294967296) * 0.5)
+    const sx = cw - ((elapsed * cw * 0.5 + h * cw * 3) % (cw + len))
+    ctx.beginPath(); ctx.moveTo(sx, yy); ctx.lineTo(sx - dir * len, yy); ctx.stroke()
+  }
+  ctx.globalAlpha = 1; ctx.fillStyle = "rgba(90,150,255,0.07)"; ctx.fillRect(0, 0, cw, ch)
+  ctx.restore()
+}
+
+// SUPERMAN — CYBORG SUPERMAN skin: a glowing red robotic eye at the per-frame eye anchor (the metallic
+// front half of the sprite). Render-only; gated on the skinId.
+function drawCyborgSupermanEye(c, fighter) {
+  if (!c || !fighter || !((fighter.skinId || "").toLowerCase().includes("cyborg"))) return
+  const eye = getSupermanEyeWorld(fighter)
+  const pulse = 0.6 + 0.4 * Math.sin(globalFrameCount * 0.3)
+  c.save()
+  c.globalAlpha = 0.95; c.shadowBlur = 9; c.shadowColor = "#ff2a1a"
+  c.fillStyle = "#ff3222"; c.beginPath(); c.arc(eye.x, eye.y, 2.2 + pulse, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.6; c.fillStyle = "#ffd6c6"; c.beginPath(); c.arc(eye.x, eye.y, 1.1, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// HOMELANDER — FLEX PARRY burst: a golden flex ring + flash on a successful flex (_hlFlexFx). Render-only.
+function drawHomelanderFlexFx(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const t = fighter._hlFlexFx || 0; if (t <= 0) return
+  const x = fighter.x + (fighter.w || 60) / 2, y = fighter.y + (fighter.h || 100) * 0.45, p = 1 - t / 16
+  c.save()
+  c.globalAlpha = 0.6 * (1 - p); c.strokeStyle = "#ffd24a"; c.lineWidth = 4; c.shadowBlur = 12; c.shadowColor = "#ffcc2e"
+  c.beginPath(); c.arc(x, y, 12 + p * 48, 0, Math.PI * 2); c.stroke()
+  c.globalAlpha = 0.5 * (1 - p); c.strokeStyle = "#ffffff"; c.lineWidth = 2; c.shadowBlur = 0
+  c.beginPath(); c.arc(x, y, 8 + p * 30, 0, Math.PI * 2); c.stroke()
+  c.restore()
+}
+
+// HOMELANDER — SUPER HEARING ping: concentric sonar arcs from his ear + a marker on the opponent he hears
+// winding up (_hlHearFx). Render-only.
+function drawHomelanderHearPing(c, fighter) {
+  if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
+  const t = fighter._hlHearFx || 0; if (t <= 0) return
+  const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
+  const ex = fighter.x + (fighter.w || 60) * ((fighter.facing || 1) >= 0 ? 0.68 : 0.32), ey = fighter.y + (fighter.h || 100) * 0.16, p = 1 - t / 10
+  c.save()
+  c.globalAlpha = 0.5 * (1 - p); c.strokeStyle = "#9fe6ff"; c.lineWidth = 2; c.shadowBlur = 8; c.shadowColor = "#7fd0ff"
+  for (let k = 0; k < 3; k++) { const r = 6 + p * 26 + k * 10; c.beginPath(); c.arc(ex, ey, r, -0.9, 0.9); c.stroke() }
+  if (opp) { c.globalAlpha = 0.4 * (1 - p); c.fillStyle = "#9fe6ff"; c.beginPath(); c.arc(opp.x + (opp.w || 60) / 2, opp.y + (opp.h || 100) * 0.1, 4, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// SUPERMAN — throw-down SWIRL: a spiralling streak around an enemy being hurled to the ground during the
+// ultimate (_supSwirl > 0, stamped on the victim). Render-only; ticks itself down.
+function drawSupermanThrowSwirl(c, fighter) {
+  const t = fighter && (fighter._supSwirl || 0)
+  if (!c || t <= 0) return
+  const x = fighter.x + (fighter.w || 60) / 2, y = fighter.y + (fighter.h || 100) / 2
+  const spin = (90 - t) * 0.5 + globalFrameCount * 0.3
+  c.save(); c.strokeStyle = "#bfe0ff"; c.lineWidth = 2; c.shadowBlur = 6; c.shadowColor = "#7fb8ff"
+  for (let k = 0; k < 3; k++) {
+    c.globalAlpha = 0.55 - k * 0.14; c.beginPath()
+    for (let a = 0; a <= Math.PI * 2; a += 0.3) {
+      const rr = 10 + a * (8 + k * 4), ang = a + spin + k * 2.1
+      const px = x + Math.cos(ang) * rr, py = y + Math.sin(ang) * rr
+      if (a === 0) c.moveTo(px, py); else c.lineTo(px, py)
+    }
+    c.stroke()
+  }
+  c.restore()
+  fighter._supSwirl--
+}
+
+function drawFrozenOverlay(c, fighter) {
+  const t = fighter && (fighter._supFrozen || 0)
+  if (!c || t <= 0) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const max = fighter._supFrozenMax || 72
+  const fade = Math.min(1, t / max)              // fades as the freeze wears off
+  const cx = x + w / 2, cy = y + h / 2
+  c.save()
+  // icy body tint
+  c.globalAlpha = 0.30 * fade
+  c.fillStyle = "#a9e0ff"
+  const r = 12, rx = x - 3, ry = y - 3, rw = w + 6, rh = h + 6
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.fill()
+  // frosted rim
+  c.globalAlpha = 0.5 * fade; c.strokeStyle = "#e6f6ff"; c.lineWidth = 2; c.shadowBlur = 10; c.shadowColor = "#bfeaff"; c.stroke()
+  // ice shards radiating out (deterministic phase from the countdown — no render field)
+  c.globalAlpha = 0.45 * fade; c.strokeStyle = "#ffffff"; c.lineWidth = 2; c.shadowBlur = 0
+  const R0 = Math.max(w, h) * 0.42, R1 = R0 + 12
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2 + t * 0.012
     c.beginPath(); c.moveTo(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0); c.lineTo(cx + Math.cos(a) * R1, cy + Math.sin(a) * R1); c.stroke()
   }
   c.restore()
@@ -17225,6 +17433,29 @@ function drawHomelanderHeatVision(c, fighter) {
   c.restore()
 }
 
+// SUPERMAN — HEAT VISION sustained beam. Reads the SIM-stamped _supHvBeam render-state
+// (abilities.applySupermanHeatVision) and draws a red (gold in Solar Flare) eye-laser to the auto-aimed
+// target. Render-only (never writes sim state). superman only.
+function drawSupermanHeatVision(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "superman") return
+  const b = fighter._supHvBeam
+  if (!b) return
+  const core = b.flare ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.95)"
+  const mid  = b.flare ? "rgba(255,210,90,0.9)"   : "rgba(255,120,90,0.85)"
+  const glow = b.flare ? "rgba(255,180,40,0.55)"  : "rgba(255,40,30,0.55)"
+  c.save(); c.lineCap = "round"
+  c.strokeStyle = glow; c.lineWidth = b.flare ? 13 : 9; c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.strokeStyle = mid;  c.lineWidth = b.flare ? 7 : 5;  c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.strokeStyle = core; c.lineWidth = 2;                c.beginPath(); c.moveTo(b.ox, b.oy); c.lineTo(b.tx, b.ty); c.stroke()
+  c.fillStyle = b.flare ? "rgba(255,210,90,0.95)" : "rgba(255,90,60,0.95)"; c.beginPath(); c.arc(b.ox, b.oy, 3.5, 0, Math.PI * 2); c.fill()
+  if (b.hit) {
+    const r = 8 + ((b.tick || 0) % 4)
+    c.fillStyle = b.flare ? "rgba(255,230,150,0.7)" : "rgba(255,180,120,0.7)"; c.beginPath(); c.arc(b.tx, b.ty, r, 0, Math.PI * 2); c.fill()
+    c.fillStyle = "rgba(255,255,255,0.9)"; c.beginPath(); c.arc(b.tx, b.ty, r * 0.4, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 function drawZoldyckFx(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "zoldyck") return
   const w = fighter.w ?? 60, h = fighter.h ?? 100
@@ -18966,6 +19197,10 @@ function updateFighterState(fighter) {
   updateGhostfacePresentation(updated)   // Ghostface visual staging: advances the Stalk-Vanish off-screen/re-entry + the 3-beat killer-swap transition (render-only)
   if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
+  applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
+  supermanFlightEscape(updated)   // Superman defensive: burst out of a combo into flight (Special + 25 energy while in hitstun, 10s cd, 12f invuln)
+  applySupermanWoC(updated, getAbilityContext())   // Superman ULTIMATE "World of Cardboard": scripted multi-hit state machine
+  applySupermanHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Superman HEAT VISION: HOLD Special → sustained auto-aim beam + drain + hitscan ticks (gated on rosterKey)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
@@ -18986,6 +19221,7 @@ function updateFighterState(fighter) {
   tickFlightDriver(updated, {})      // FLIGHT MODULE (Homelander): energy drain/refill, takeoff/land/grounded-lock timers, velocity-derived pose hold (gated on _flightCtl; BEFORE applyGravity)
   if (updated._flightCtl) { const _opp = updated === p1 ? p2 : updated === p2 ? p1 : null; if (_opp) updated._flightOpponentX = _opp.x + (_opp.w || 0) / 2 }   // auto-face target while hovering
   applyHomelanderHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander HEAT VISION: sustained/sweep beam + laser-heat drain/overheat + hitscan damage (gated on rosterKey)
+  applyHomelanderKit(updated, readRawControls(updated) || {}, getAbilityContext())   // Homelander: Take A Ride + Flex Parry + Super Hearing (gated on rosterKey)
   applyHomelanderFlight37(updated, getAbilityContext())   // Homelander ULT FLIGHT 37: dark-silhouette → supersonic grab → launch + Heat-Vision slam (gated on _f37)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
@@ -20510,6 +20746,10 @@ function renderHybridFighter(fighter) {
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
+    drawFrozenOverlay(c, fighter)           // Superman — Freeze Breath: icy tint + ice shards over ANY frozen fighter (_supFrozen > 0)
+    drawXRayTint(c, fighter)                // Superman — X-Ray Vision: blue scan-tint over a sub-25%-HP opponent of Superman (render-only)
+    drawCyborgSupermanEye(c, fighter)       // Superman — Cyborg skin: glowing red robotic eye (render-only, skinId-gated)
+    drawSupermanThrowSwirl(c, fighter)      // Superman ULTIMATE — spiral swirl around an enemy hurled to the ground (render-only)
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)
     drawSasukeWarTorso(c, fighter)          // War-Susano'o (sensei/adult) — Tier-2 torso bust following Sasuke (behind the guard/arm)
@@ -20526,6 +20766,9 @@ function renderHybridFighter(fighter) {
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawHomelanderHeatVision(c, fighter)    // Homelander — twin code-drawn Heat Vision beam (white core + red glow + impact burst) from the eye anchor; dim-eye overheat tell (homelander only)
+    drawHomelanderFlexFx(c, fighter)        // Homelander — Flex Parry golden burst ring (homelander only)
+    drawHomelanderHearPing(c, fighter)      // Homelander — Super Hearing sonar ping when the opponent winds up (homelander only)
+    drawSupermanHeatVision(c, fighter)      // Superman — sustained auto-aim Heat Vision beam (held Special), red/gold eye-laser to the target (superman only)
     drawShisuiItachiKidsFx(c, fighter)      // Shisui & Itachi (Kids) — Itachi assist body + blind-spot overhead (sheet blits) + flicker streak + genjutsu white flash (code-draw; kids only)
     drawVilgaxDrone(c, fighter)             // Vilgax — Chimerian hover gun-drone summon (s716cB art blit; vilgax only)
     drawShisuiFx(c, fighter)                // Shisui (Trinity) — genjutsu rings on the victim + guard ribcage + Susanoo Tsukumo ult (code-draw + torso-sheet blit; shisui only, except genjutsu runs on the victim)
@@ -22249,6 +22492,8 @@ function drawBattleScene() {
   // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
   _drawKamuiDimensionBg(ctx, canvas)
   _drawSpeedRunBackdrop(ctx, canvas)   // Flash SPEED FORCE finisher — other maps blur past, under the fighters
+  drawSupermanMoonBackdrop(ctx, canvas)   // Superman ULTIMATE — space-black sky + stars + Moon while mid-ult, under the fighters
+  drawHomelanderSpeedRun(ctx, canvas)     // Homelander ULTIMATE — maps blur past while he runs the enemy across the world, under the fighters
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE
@@ -27706,7 +27951,7 @@ gameLoop()
     // p1State/p2State feet+grounding snapshot for the climb/recede assertions (feet = y+h; floorPlatformId = which surface).
     fighterFloor: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { x: f.x, y: f.y, feet: f.y + (f.h || 0), vy: f.vy || 0, onGround: !!(f.onGround || f.grounded), floorPlatformId: f._floorPlatformId ?? null } },
     // FLIGHT MODULE (Homelander) read-only probe: phase / energy / pose / resolved sprite action.
-    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null } },
+    flightProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const c = f._flightCtl; return { rosterKey: f.rosterKey, has: !!c, phase: c ? c.phase : null, energy: c ? Math.round(c.energy) : null, pose: c ? c.poseKey : null, onGround: !!(f.onGround || f.grounded), y: Math.round(f.y), vx: +(f.vx || 0).toFixed(2), vy: +(f.vy || 0).toFixed(2), action: f.spriteHandler?._actionName || f.spriteHandler?._actionDef?.sheet || null, laserHeat: f._laserHeat != null ? Math.round(f._laserHeat) : null, hvActive: !!f._hvActive, hvHit: !!(f._hv && f._hv.hit), overheat: f._hvOverheat || 0, dashTimer: c ? c.dashTimer : null, airDashCount: c ? c.airDashCount : null, wantDescend: c ? !!c.wantDescend : null, supFrozen: f._supFrozen || 0, freezeCd: f._supFreezeCd || 0, hitstun: f.hitstun || 0, health: Math.round(f.health || 0), x: Math.round(f.x || 0), gp: f._supGPound ? f._supGPound.phase : null, kg: f._supKGrab ? f._supKGrab.phase : null, woc: f._supWoC ? f._supWoC.phase : null, energyLock: f._supEnergyLock || 0, hvBeam: !!f._supHvBeam, knockdown: !!f.knockdownState, solarE: Math.round(f.energy || 0), bw: f.w, bh: f.h, ldy: f._lastDrawY != null ? Math.round(f._lastDrawY) : null, ldh: f._lastDrawH != null ? Math.round(f._lastDrawH) : null, ldx: f._lastDrawX != null ? Math.round(f._lastDrawX) : null, ldw: f._lastDrawW != null ? Math.round(f._lastDrawW) : null, invuln: f.invulnTimer || 0, armorCd: f._supArmorCd || 0, flEscCd: f._supFlightEscCd || 0, attacking: !!f.attacking, move: (f.currentAttack && f.currentAttack.name) || f.currentMove || null, hlRide: f._hlRide ? f._hlRide.phase : null, flexCounter: f._hlFlexCounter || 0, flexCd: f._hlFlexCd || 0, heard: f._hlHeard || 0, invuln: f.invulnTimer || 0 } },
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({
@@ -28050,6 +28295,8 @@ gameLoop()
     // win/lose pose hook. Reuses the sudden-death _matchOverride path so it works in any harness mode.
     forceMatchWin: (side = "p1") => { _matchOverride = { winnerSide: side }; _checkMatchOver(); return { gameState, victory: !!victoryState.active, winner: victoryState.winnerSide || null } },
     p1ForceLight: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; startMove(p1, "light", { startup: 4, active: 6, recovery: 12, damage: 45, rangeX: 150, rangeY: 100, hitstun: 12, knockbackX: 3 }) } },   // deterministic light swing (Rendan-fire test, no keyboard flake)
+    p1ForceHeavy: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.comboCounter = 0; startMove(p1, "heavy", { startup: 10, active: 10, recovery: 26, damage: 80, rangeX: 150, rangeY: 100, hitstun: 18, knockbackX: 5, category: "heavy" }) } },   // deterministic heavy (Super Armor test)
+    setHealth: (v, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.health = Math.max(0, Math.min(f.maxHealth || 1000, v)); f.comboCounter = 0; f.comboTimer = 0 } },   // test-only: set a fighter's HP (X-Ray threshold tests)
     // Drive a REAL p2 attack of a chosen CATEGORY (heavy/special/ultimate) — used to reproduce the
     // Goku Black knockdown re-trigger soft-lock (rapid successive knockdown-class hits). Short startup
     // so it connects quickly; the category drives resolveAttackHit's knockdown gate.

@@ -78,8 +78,7 @@ const CONFIG = {
   aoi_todo:   { p1: "aoi_todo",   skins: [{ id: "aoi_todoAlbedo", tag: "albedo" }, { id: "aoi_todoValkyrie", tag: "valkyrie" }, { id: "aoi_todoAlienX", tag: "alienx" }] },
   yuji:       { p1: "yuji",       skins: [{ id: "yujiAlbedo", tag: "albedo" }, { id: "yujiValkyrie", tag: "valkyrie" }, { id: "yujiAlienX", tag: "alienx" }] },
   handler:    { p1: "handler",    skins: [{ id: "handlerAlbedo", tag: "albedo" }, { id: "handlerValkyrie", tag: "valkyrie" }, { id: "handlerAlienX", tag: "alienx" }] },
-  // ── JJK part 2 ──
-  gojo:  { p1: "gojo",  skins: [{ id: "gojoValkyrie", tag: "valkyrie" }, { id: "gojoAlienX", tag: "alienx" }] },
+  // ── JJK part 2 ── (gojo alt skins removed 2026-10-24)
   toji:  { p1: "toji",  skins: [{ id: "tojiAlbedo", tag: "albedo" }, { id: "tojiAlienX", tag: "alienx" }] },
   naoya: { p1: "naoya", skins: [{ id: "naoyaAlbedo", tag: "albedo" }, { id: "naoyaValkyrie", tag: "valkyrie" }, { id: "naoyaAlienX", tag: "alienx" }] },
   maki:  { p1: "maki",  skins: [{ id: "makiAlbedo", tag: "albedo" }, { id: "makiValkyrie", tag: "valkyrie" }, { id: "makiAlienX", tag: "alienx" }] },
@@ -117,7 +116,7 @@ const CONFIG = {
   miles:      { p1: "miles",      skins: [{ id: "milesValkyrie", tag: "valkyrie" }, { id: "milesAlienX", tag: "alienx" }] },
   // ── Hunter x Hunter ──
   netero:  { p1: "netero",  skins: [{ id: "neteroAlbedo", tag: "albedo" }, { id: "neteroValkyrie", tag: "valkyrie" }, { id: "neteroAlienX", tag: "alienx" }] },
-  killua:  { p1: "killua",  skins: [{ id: "killuaAlbedo", tag: "albedo" }, { id: "killuaValkyrie", tag: "valkyrie" }, { id: "killuaAlienX", tag: "alienx" }] },
+  // killua alt skins removed 2026-10-24
   gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
   hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
   chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },

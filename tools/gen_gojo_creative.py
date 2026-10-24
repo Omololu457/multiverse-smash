@@ -86,10 +86,28 @@ SKINS = {
     "ashen":      dict(name="Ashen Sorcerer", hair="#8C8C92", eyes="#9C9CA2", shirt="#6B2222", shirt_sp=2.2),
     # Storm Barrier: slate-blue hair, electric-cyan eyes, DARK-GRAY outfit accent.
     "storm":      dict(name="Storm Barrier", hair="#3E5A82", eyes="#38E0F0", shirt="#3A3F47", shirt_sp=2.4),
+
+    # ── GROUP 5 · 2026-10-24 requested set (shared concept across Gojo/Killua/Soldier Boy) ──
+    # Albedo (Ben 10 negative): GRAY hair, RED eyes, reddish/dark-red outfit.
+    "albedo":   dict(name="Albedo", hair="#9A9AA2", eyes="#E23A32", shirt="#7A2630", shirt_sp=2.2),
+    # Ben 10: BROWN hair like Ben, GREEN eyes like Ben, greenish outfit.
+    "ben10":    dict(name="Ben 10", hair="#6E4A2C", eyes="#43C24A", shirt="#2E7D37", shirt_sp=2.1),
+    # Alien X (Celestialsapien): FULL near-black silhouette (hair+top+pants+eyes) → the colourful
+    # star-field is drawn at runtime by game.js drawAlienXStarfield (skinId endsWith "AlienX").
+    "alienx":   dict(name="Alien X", void=True),   # full near-black silhouette; stars drawn by game.js drawAlienXStarfield
+    # Lavender ("part" look, shared with Killua): very light lavender-pink hair + eyes, LOW emphasis
+    # (outfit kept its natural black so it isn't heavy-handed).
+    "lavender": dict(name="Lavender", hair="#E8C8EA", eyes="#D9A8D4", shirt=None),
+    # Cursed Bond (Suguru Geto — his best friend turned greatest enemy): deep-black hair, dark navy robe.
+    "geto":     dict(name="Cursed Bond", hair="#15151C", eyes="#3A4A6E", shirt="#1E2334", shirt_sp=1.8),
+    # Hollow Purple (Gojo's signature Imaginary Technique, red+blue → purple): violet hair + top, but
+    # WHITE pants kept (like every other skin) so the silhouette has contrast and doesn't read as a
+    # solid purple blob at gameplay scale.
+    "hollowpurple": dict(name="Hollow Purple", hair="#8A4CE0", eyes="#A368F5", shirt="#4A1EA6", shirt_sp=2.2),
 }
 
 def passes(cfg):
-    ps = [EYES(cfg["eyes"]), HAIR(cfg["hair"])]
+    ps = [EYES(cfg["eyes"]), HAIR(cfg["hair"], cfg.get("hair_sp", 1.15))]
     if cfg.get("shirt"):
         ps.append(SHIRT(cfg["shirt"], cfg.get("shirt_sp", 2.4)))
     if cfg.get("pants"):
@@ -120,9 +138,34 @@ def make_portrait(tag):
         bust = fr
     bust.save(os.path.join(ROOT, f"gojo_portrait__{tag}.png"))
 
+import colorsys
+def void_crush_sheet(src, dst):
+    """Alien X: crush EVERY opaque pixel (incl. protected skin) to near-black so the whole
+    silhouette reads solid — the colourful stars are drawn at runtime by drawAlienXStarfield."""
+    im = Image.open(src).convert("RGBA"); px = im.load(); W, H = im.size
+    for y in range(H):
+        for x in range(W):
+            r, g, b, a = px[x, y]
+            if a == 0: continue
+            v = colorsys.rgb_to_hsv(r/255, g/255, b/255)[2]
+            nv = max(0.02, min(0.14, 0.03 + v*0.10)); gg = round(nv*255)
+            px[x, y] = (gg, gg, max(gg, round(gg*1.14)), a)
+    im.save(dst)
+
 def build(tag, only_sheet=None):
-    cfg = SKINS[tag]; ps = passes(cfg)
+    cfg = SKINS[tag]
     total = 0
+    if cfg.get("void"):
+        for name, cell_w in wired_sheets():
+            if only_sheet and only_sheet not in name: continue
+            path = os.path.join(ROOT, name)
+            if not os.path.exists(path): print(f"  SKIP (missing) {name}"); continue
+            void_crush_sheet(path, os.path.join(ROOT, name.replace(".png", f"__{tag}.png")))
+            print(f"  void   {name}")
+        if not only_sheet:
+            make_portrait(tag); print(f"  portrait -> gojo_portrait__{tag}.png")
+        print(f"DONE {tag}: void"); return
+    ps = passes(cfg)
     for name, cell_w in wired_sheets():
         if only_sheet and only_sheet not in name:
             continue

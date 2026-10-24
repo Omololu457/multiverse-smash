@@ -41,6 +41,8 @@ CHARS = {
 # tag -> dict(SUIT, CAPE, BELT, EMBLEM_BG, EMBLEM_S). Trunks = CAPE. (Void/KingdomCome handled specially.)
 GOLD = "#E0B23A"; SILVER = "#C8CCD2"; WHITE = "#ECECEC"; BLACK = "#17171A"
 TEMPLATE = {
+    # ── Ben 10 "Albedo" homage (white reflectivity + red accents — NOT a black skin) ──
+    "albedo":           dict(SUIT="#E8E8EC", CAPE="#C21E1E", BELT="#17171A", EMBLEM_BG="#E8E8EC", EMBLEM_S="#C21E1E"),  # white suit / red cape+trunks+boots / red-S-on-white
     # ── Group 1 ──
     "crimsonreversal":  dict(SUIT="#C21E1E", CAPE="#1E2E5A", BELT=GOLD,     EMBLEM_BG=WHITE, EMBLEM_S="#2A4DA8"),  # suit red / cape+trunks+boots dark blue / S blue-on-white
     "verdantguardian":  dict(SUIT="#1F6B2E", CAPE="#141414", BELT=GOLD,     EMBLEM_BG=WHITE, EMBLEM_S="#1F6B2E"),  # suit deep green / cape black / S green-on-white
@@ -53,6 +55,13 @@ TEMPLATE = {
     "ashfall":          dict(SUIT="#7A7E85", CAPE="#45474D", BELT="#8A7A50", EMBLEM_BG="#2A2A2E", EMBLEM_S="#9A9EA5"),  # grey / dark grey / dull bronze belt / S grey-on-black
     # ── Specialty ──
     "kingdomcome":      dict(SUIT="#22345E", CAPE="#16181E", BELT="#C89A34", EMBLEM_BG="#16181E", EMBLEM_S="#7A2E2E"),  # Kingdom Come homage: darker muted blue / black accent cape+trunks / simplified dark shield
+    # ── CANONICAL costumes ──
+    "blackrecovery":    dict(SUIT="#121216", CAPE="#121216", BELT=SILVER,     EMBLEM_BG="#121216", EMBLEM_S=SILVER),    # "Death of Superman" regeneration suit: all-black / silver S
+    "redson":           dict(SUIT="#2A2A30", CAPE="#9A1414", BELT="#C8A838",  EMBLEM_BG="#C8A838", EMBLEM_S="#9A1414"),  # Red Son (Soviet): dark steel suit / red cape / gold-and-red hammer-shield
+    "electricblue":     dict(SUIT="#2A86E6", CAPE="#D8EAFA", BELT="#8FC4F0",  EMBLEM_BG="#D8EAFA", EMBLEM_S="#2A86E6"),  # Superman Blue: electric-blue containment suit / pale cape / blue-on-white
+    "new52":            dict(SUIT="#152E80", CAPE="#9A1414", BELT="#152E80",  EMBLEM_BG="#9A1414", EMBLEM_S="#152E80"),  # New 52: deep armoured blue / red cape, no yellow belt / blue-on-red shield
+    "regime":           dict(SUIT="#1E3550", CAPE="#1C1C22", BELT=SILVER,     EMBLEM_BG="#1C1C22", EMBLEM_S="#C0C4CC"),  # Injustice Regime: dark steel-blue / near-black cape / silver S
+    "bizarro":          dict(SUIT="#3C4A66", CAPE="#5A2E3A", BELT="#6A6A50",  EMBLEM_BG="#8A8A90", EMBLEM_S="#5A2E3A"),  # Bizarro: dull cold "wrong" blue-grey / muted purple-red cape / washed-out shield
 }
 GROUPS = {
     "group1": ["crimsonreversal", "verdantguardian", "obsidiansteel", "goldensentinel"],

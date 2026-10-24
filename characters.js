@@ -4620,84 +4620,88 @@ const hisoka = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// SUPERMAN  (rosterKey "superman", universe "dc" — 3rd DC char after The Flash
-// + Batman, 20th sprite char overall). Source art = 25 curated superman_*.png
-// crops (see SUPERMAN_ASSET_MAP.md). Archetype: super-strength/flight powerhouse.
-// Energy = "Solar Energy" (traits.energyType "solar_energy" → ui.js label). FLIGHT
-// reuses Omni-Man's toggleable flight system verbatim (traits.canFly gate) — shared
-// Solar Energy pool for flight + specials + modes + ultimate. Idle is the FLOATING
-// hover (not grounded). Intro = off-screen Clark-Kent run-in → shirt-rip reveal →
-// liftoff → floating idle, camera-tracked (updateSupermanIntro in game.js).
+// SUPERMAN  (rosterKey "superman", universe "dc"). FULL REBUILD 2026-10-23
+// (feat/superman): art re-sliced from superman_jus_addons_by_planeptunearte_deaeqvi.png
+// (26 frames / 10 rows, grey #727272 chroma-key → superman_*_uniform.png; see
+// docs/superman/SPRITE_LEDGER.md). FLIGHT now runs on the reusable flight.js module
+// (traits.flightProfile:"superman" — the Homelander system, NOT the old canFly path):
+// double-tap / charge-tap to take off, directional steer, 3 air-dashes, 5 s flight
+// budget, hard-hit forces him down. Energy = "Solar Energy" (traits.energyType
+// "solar_energy" → ui.js label) fuels specials + ultimate; flight has its own budget
+// inside flight.js. Archetype: versatile all-rounder (difficulty 3). See
+// docs/superman/BALANCE_NOTES.md.
 // ─────────────────────────────────────────────────────────────────
 const superman = {
-  rosterKey: "superman", name: "Superman", universe: "dc", color: "#1c4fd8",
+  rosterKey: "superman", name: "Superman", displayName: "Superman", universe: "dc", color: "#1c4fd8",
   portrait: "./superman_portrait.png",
-  archetypes: ["melee", "flight"],
-  primary: "melee", secondary: ["flight"],
-  traits: { hasEnergy: true, energyType: "solar_energy", mobility: "high", scaling: "damage", animeMovement: false, canFly: true },
-  passive: { name: "Kryptonian Physiology", effect: "Yellow-sun-charged strength and durability — the roster's toughest bruiser, with free flight on Solar Energy" },
-  // POWERHOUSE stats — the durability/strength apex (edges Omni-Man 1400/98 by design; flagged for Stage 6 balance).
-  stats: { maxHealth: 1450, maxEnergy: 200, attack: 100, defense: 92, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 36 },
+  tagline: "The Man of Steel",
+  difficulty: 3,            // out of 5 — versatile but Solar-Energy management matters
+  archetype: "All-Rounder",
+  bio: "Kal-El of Krypton. Raised in Smallville, he fights for truth and justice with power unmatched by any mortal. His restraint is his greatest strength.",
+  archetypes: ["flight", "melee"],
+  primary: "flight", secondary: ["melee"],
+  // ★ FLIGHT: traits.flightProfile wires the flight.js module (see flight.js FLIGHT_PROFILES.superman).
+  // NOT traits.canFly (that is the older simple Omni-Man flight — left byte-identical for Omni-Man).
+  traits: { hasEnergy: true, energyType: "solar_energy", energyName: "Solar Energy", mobility: "high", scaling: "damage", animeMovement: false, flightProfile: "superman" },
+  passive: { name: "Kryptonian Physiology", effect: "Yellow-sun-charged strength and durability — tough, fast, and free to take to the sky on a 5-second flight budget. X-Ray Vision: +8% damage while the opponent is below 25% health." },
+  // POWERHOUSE-but-fair: tougher + faster than Homelander (1050/99), far below the old apex (1450).
+  stats: { maxHealth: 1150, maxEnergy: 100, attack: 95, defense: 92, speed: 99, maxJumps: 2, jumpPower: 32, dashSpeed: 30, dashDuration: 12, dashCooldownMax: 20 },
   movement: { dashTeleport: true },
-  // STAGE 2 normals — heavy-hitting super-strength blows with large knockback (attack stat 100).
+  // ── NORMALS (Phase 4 brief). No energy cost. Diminishing-returns combo scaling is engine-global.
   basic_attacks: {
-    light:    { damage: 36, startup: 4, active: 3, recovery: 9,  hitstun: 14, knockbackX: 5,  knockbackY: 0 },
-    heavy:    { damage: 72, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },
-    upAttack: { type: "launcher", damage: 56, startup: 5, active: 4, recovery: 10, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, launchVy: -33, selfVy: -9, airOK: false },   // Up-Attack launcher — HEAVY-TANK archetype (Toji ref +1 rec, heavier pop); HP 1450 powerhouse
-    airAttack:{ damage: 48, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },
-    downAir:  { damage: 62, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },
+    light:    { damage: 45, startup: 4, active: 3, recovery: 8,  hitstun: 14, knockbackX: 4,  knockbackY: 0 },   // Light jab (+2 on block via low recovery)
+    heavy:    { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },   // Heavy straight (-3 on block) — Super Armor layered in Phase 6
+    upAttack: { type: "launcher", damage: 70, startup: 5, active: 4, recovery: 12, hitstun: 20, knockbackX: 2, knockbackY: -12, launch: 14, launchVy: -33, selfVy: -9, airOK: false },   // Crouch uppercut launcher
+    airAttack:{ damage: 50, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },   // Air punch
+    downAir:  { damage: 60, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },   // dive kick
     grab:     { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 8, throwForceY: -3 }
   },
-  ultimate: { name: "Solar Overload", cost: 100, description: "Superman channels every ounce of stored yellow-sun energy — surging green, dissolving to pure particles — then DETONATES it in a screen-clearing blast (freeze-cinematic, guaranteed ~380, chipped by block)." },
+  // ── SPECIALS (metadata / move-list; handlers in abilities.js). Costs are Solar Energy.
+  specials: {
+    heatVision:    { cost: 15, damage: 60, effect: "Eye beam (↓↘→+Attack). Tap = 60 burst; hold = sustained 8/tick beam, angleable ±30°, extra 5 energy/sec." },
+    freezeBreath:  { cost: 20, damage: 30, effect: "Cone of frost (↓↓+Attack). FROZEN 1.2s, +15% follow-up damage. 8s cooldown, mashable break-out." },
+    speedRush:     { cost: 12, damage: 150, effect: "Super Speed Rush (→→+Attack / Fwd+Heavy rekka). Dash into a 5-hit auto-combo, launcher finish." },
+    groundPound:   { cost: 18, damage: 110, effect: "Ground Pound (↓↓+Special, air). Steep dive slam + 40 shockwave that trips." },
+    kryptonianGrab:{ cost: 10, damage: 130, effect: "Take You For A Ride (→+Grab, close). Fly up and slam down — untechable." },
+    solarFlare:    { cost: 35, damage: 120, effect: "Solar Flare (↓↘→↗+Special). 360° golden burst, knockback + 2s stun. 15s cooldown." }
+  },
+  ultimate: { name: "World of Cardboard", cost: 100, description: "Full-meter cinematic super. Superman lands the first strike, then a super-speed barrage → uppercut launch → fly up and catch → point-blank heat vision → final slam from orbit. ~380, costs all 100 Solar Energy, then a 4-second energy lock." },
   hasSprites: true,
-  spriteScale: 1.6,
-  // Off-screen Clark run-in → liftoff → floating hover. Steps play in FIXED ORDER.
-  introSequence: ["introRunIn", "introLiftoff", "introHover"],
+  spriteScale: 2.0,
   animationData: {
     // ── MOVEMENT / STATE
-    idle:  { frames: 6, width: 56, height: 85, speed: 8, anchorY: 0, sheet: "./superman_idle_uniform.png" },
-    walk:  { frames: 6, width: 62, height: 82, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
-    run:   { frames: 6, width: 62, height: 82, speed: 4, anchorY: 0, sheet: "./superman_walk_uniform.png" },
-    dash:  { frames: 6, width: 62, height: 82, speed: 4, anchorY: 0, sheet: "./superman_walk_uniform.png" },
-    // He floats — jump/fall reuse the hover idle (rises as a hover, no crouch-spring art needed).
-    jump:  { frames: 6, width: 56, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_idle_uniform.png" },
-    fall:  { frames: 6, width: 56, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_idle_uniform.png" },
-    hurt:  { frames: 1, width: 55, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hit_uniform.png" },
-    charge:{ frames: 1, width: 50, height: 82, speed: 6, anchorY: 0, loop: true, sheet: "./superman_charge_uniform.png" },
-    // ── STAGE 2 NORMALS (5 slots) — heavy-hitting super-strength blows.
-    light:    { frames: 5, width: 88,  height: 80, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
-    heavy:    { frames: 5, width: 88,  height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
-    up:       { frames: 4, width: 65,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_up_uniform.png" },
-    air:      { frames: 7, width: 104, height: 41, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
-    down_air: { frames: 5, width: 88,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_downair_uniform.png" },
-    // ── STAGE 2 REKKA "Kryptonian Rush" — Fwd+Heavy flying punch flurry, cancel-on-hit (Toji-Rekka).
-    // Keys = chain order; sheets = fast flying cross → flying charged jab → big charged haymaker launcher.
-    supRush1:   { frames: 9,  width: 104, height: 41, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprush1_uniform.png" },
-    supRush2:   { frames: 8,  width: 93,  height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprush2_uniform.png" },
-    supRushFin: { frames: 16, width: 88,  height: 82, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprushfin_uniform.png" },
-    // ── STAGE 3 SPECIAL cast pose — Super Flying Punch (charge glow → forward lunge). Heat Vision reuses charge.
-    superPunch: { frames: 16, width: 88, height: 85, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_superpunch_uniform.png" },
-    // ── STAGE 4 MODE entry-cast poses (dedicated transform art). Solar Flare = gold radiant burst;
-    // Kryptonian Overload = blue electric crackle. Play once on activation, then aura overlay carries the mode.
-    solarFlareCast: { frames: 6,  width: 60, height: 85, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_solarflare_uniform.png" },
-    overloadCast:   { frames: 15, width: 55, height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_overload_uniform.png" },
-    // ── STAGE 5 ULTIMATE "Solar Overload" cinematic pose (green energy surge → particle dissolve).
-    ultimate: { frames: 13, width: 55, height: 81, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_ultimate_uniform.png" },
-    // ── STAGE 6 TAUNT — enrolls Superman in the universal hold-Down-10s → heal-50% system (game.js
-    // updateTauntState; the `taunt` action IS the entire gate). Grounded confident flourish. The airborne
-    // taunt variant (taunt_air) is drawn when a taunt somehow resolves while airborne (rare — the trigger
-    // is grounded-only by design), reusing the hurt/hurt_air variant-resolution idiom.
-    taunt:     { frames: 4, width: 81, height: 82, speed: 14, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_taunt_uniform.png" },
-    taunt_air: { frames: 4, width: 81, height: 85, speed: 14, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_airtaunt_uniform.png" },
-    // ── FLIGHT (Omni-Man system): fly = neutral hover streak, flyMove = directional streak (same sheet).
-    fly:           { frames: 6, width: 93, height: 43, speed: 6, anchorY: 0, sheet: "./superman_fly_uniform.png" },
-    flyMove:       { frames: 6, width: 93, height: 43, speed: 5, anchorY: 0, sheet: "./superman_fly_uniform.png" },
-    forcedDescent: { frames: 6, width: 93, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_fly_uniform.png" },
-    descentLand:   { frames: 8, width: 81, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_descentland_uniform.png" },
-    // ── INTRO (off-screen run-in → liftoff → hover). introHover == idle art.
-    introRunIn:   { frames: 21, width: 60,  height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_intro1_uniform.png" },
-    introLiftoff: { frames: 17, width: 198, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_intro2_uniform.png" },
-    introHover:   { frames: 6,  width: 56,  height: 85, speed: 8, anchorY: 0, loop: true, sheet: "./superman_intro3_uniform.png" }
+    idle:   { frames: 2, width: 57, height: 67, speed: 12, anchorY: 0, sheet: "./superman_idle_uniform.png" },
+    walk:   { frames: 3, width: 86, height: 63, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    run:    { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    dash:   { frames: 3, width: 86, height: 63, speed: 3, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    jump:   { frames: 2, width: 66, height: 71, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    fall:   { frames: 2, width: 47, height: 69, speed: 7, anchorY: 0, sheet: "./superman_fall_uniform.png" },
+    crouch: { frames: 1, width: 52, height: 62, speed: 6, anchorY: 0, loop: true, sheet: "./superman_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 70, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hurt_uniform.png" },
+    block:  { frames: 1, width: 54, height: 58, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    guard:  { frames: 1, width: 54, height: 58, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    charge: { frames: 2, width: 64, height: 66, speed: 6, anchorY: 0, loop: true, sheet: "./superman_beam_uniform.png" },
+    // ── NORMAL ATTACK POSES (each pose matches its move)
+    light:    { frames: 2, width: 81, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
+    heavy:    { frames: 2, width: 76, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
+    up:       { frames: 2, width: 62, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_uppercut_uniform.png" },
+    air:      { frames: 2, width: 76, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
+    sweep:    { frames: 2, width: 70, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_sweep_uniform.png" },
+    down_air: { frames: 1, width: 42, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    // ── SPECIAL / ULT POSES
+    heatCharge:{ frames: 2, width: 64, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    beam:      { frames: 2, width: 64, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    dive:      { frames: 1, width: 42, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    ultimate:  { frames: 3, width: 68, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
+    // ── FLIGHT (flight.js module — required pose keys)
+    flyHover:  { frames: 3, width: 47, height: 69, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
+    flyCruise: { frames: 1, width: 59, height: 57, speed: 6, anchorY: 0, loop: true, sheet: "./superman_flycruise_uniform.png" },
+    flyRise:   { frames: 1, width: 59, height: 71, speed: 5, anchorY: 0, loop: true, sheet: "./superman_flightrise_uniform.png" },
+    flyDive:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    flyTurn:   { frames: 1, width: 57, height: 66, speed: 5, anchorY: 0, sheet: "./superman_flyturn_uniform.png" },
+    flyDash:   { frames: 1, width: 42, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    takeoff:   { frames: 2, width: 66, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    land:      { frames: 2, width: 64, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_land_uniform.png" }
   }
 }
 
@@ -11211,6 +11215,90 @@ const shisuiItachiKids = {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SOLDIER BOY (The Boys' original super-soldier) — rosterKey `soldier_boy`, MARVEL universe roster group.
+// Grounded BRUISER / GUNNER: strength + durability up close, SMG/rifle/boomerang-shield zoning at range,
+// a loadout-swap "ARMED MODE" (Ghostface killer-swap pattern), and a full-meter NUCLEAR BURST ultimate.
+// Art: 58-row metalsonictypeone sheet, sliced feet-aligned via tools/reslice_soldier_boy.py (faces RIGHT
+// on the sheet = engine P1 orientation → NO flip). REQUIRES the spritesheets.js SPRITE_MANIFEST idle gate
+// (else procedural box) + the skins.js `soldier_boy` default entry (else applySkin native-shrink).
+// See docs/soldier_boy/SPRITE_LEDGER.md for every frame → animation → move.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const soldierBoy = {
+  rosterKey: "soldier_boy", name: "Soldier Boy", displayName: "Soldier Boy", universe: "marvel", color: "#b8912f",
+  portrait: "./soldier_boy_portrait.png",   // upright idle bust (row 1 f0); no dedicated mugshot art on the sheet
+  tagline: "The original. The loudest. Still standing.",
+  difficulty: 2,            // out of 5 — Bruiser/Gunner; Nuclear Charge economy + Armed Mode timing are the depth
+  archetype: "Bruiser / Gunner",
+  bio: "Vought's first super-soldier, decorated across a century of glory and grudges. Kryptonian-tough and strong enough to end a fight with one swing, he answers every problem with a gun — SMG, rifle, or his gold shield — and a nuclear temper he can let off the leash when it matters most.",
+  archetypes: ["bruiser", "zoner"],
+  primary: "melee", secondary: ["zoner", "mobility"],
+  // NUCLEAR CHARGE = his meter (ui.js ENERGY_TYPE_LABELS "nuclear_charge" → "Nuclear Charge"). Passive 3/s
+  // (abilities.regenEnergy soldier_boy branch) + builds in combat (+6 on a landed hit, +4 on one taken —
+  // combat.applyScaledDamage). Every special spends it; the ULT needs the full 100 → each cast is a choice
+  // against the nuke. mobility "low" = grounded heavy-jump bruiser (no flight).
+  traits: { hasEnergy: true, energyType: "nuclear_charge", energyName: "Nuclear Charge", mobility: "low", scaling: "damage", animeMovement: false },
+  passive: { name: "Compound V Super-Soldier", effect: "A century of super-strength and durability — heavy hits, armored lunges, and a nuclear reserve that builds as he dishes out and eats punishment." },
+  // BRUISER band: high HP/attack, above-median weight; moves SLOW on the ground (walk ~4.8) with a heavy jump
+  // — his range game (guns + shield) and armor answer his mobility deficit. speed 79 → walk velocity ≈4.8
+  // (physics.js maps 78→4.5 … 98→9.5). maxEnergy 100 = the Nuclear Charge pool. weight 1.2 = heavy.
+  stats: { maxHealth: 1080, maxEnergy: 100, attack: 92, defense: 88, speed: 79, maxJumps: 2, jumpPower: 27, dashSpeed: 15, dashDuration: 9, dashCooldownMax: 34, weight: 1.2 },
+  movement: { crouchIdle: true },   // holding Down shows the dedicated crouch strip (rows 3 + 9)
+  // ── NORMALS (Phase 4). No energy cost. Diminishing-returns combo scaling is engine-global (85%/hit).
+  basic_attacks: {
+    light:    { damage: 22, startup: 5,  active: 3, recovery: 7,  hitstun: 12, knockbackX: 3,  knockbackY: 0 },   // Jab (-1 on block)
+    heavy:    { damage: 62, startup: 14, active: 4, recovery: 18, hitstun: 20, knockbackX: 10, knockbackY: 2 },   // Heavy shield swing (-6 on block)
+    upAttack: { type: "launcher", damage: 55, startup: 11, active: 4, recovery: 16, hitstun: 20, blockstun: 7, knockbackX: 2, knockbackY: -11, launch: 13, airOK: false },   // Launcher uppercut (-9 on block)
+    airAttack:{ damage: 38, startup: 8,  active: 3, recovery: 11, hitstun: 14, knockbackX: 4,  knockbackY: -2 },   // Air attack (+2 on landing)
+    lowAttack:{ damage: 30, startup: 7,  active: 3, recovery: 10, hitstun: 14, knockbackX: 3,  knockbackY: 0, hitsLow: true }   // Low (-4 on block, hits low)
+  },
+  ultimate: { name: "Nuclear Burst", cost: 100, description: "Soldier Boy lets the Compound V off the leash — a three-phase radial nuclear blast that erupts outward, scorching everything in a 360px radius for massive damage." },
+  voiceLines: { intro: "You wanna go? Fine. Let's go.", win: "The original. Still standing.", lose: "...This isn't how it ends.", taunt: "That the best you got? Pathetic.", super: "You have no idea what I am." },
+  hasSprites: true,
+  // idle content ≈93px wide / 115px tall; scale 1.15 → ~132px — a big, heavy silhouette (top of the roster band).
+  spriteScale: 1.15,
+  introPool: ["intro"],
+  animationData: {
+    // ── MOVEMENT / STATE (Phase 1) — anchorY:0 everywhere → feet planted, no anchor rescale. ──
+    idle:  { frames: 5, width: 93,  height: 115, speed: 7, anchorY: 0, sheet: "./soldier_boy_idle_uniform.png" },        // row 1 upright bob loop
+    intro: { frames: 5, width: 93,  height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_idle_uniform.png" },  // no dedicated entrance → idle bob plays once
+    walk:  { frames: 6, width: 101, height: 121, speed: 5, anchorY: 0, sheet: "./soldier_boy_walk_uniform.png" },        // row 4 f0-5
+    run:   { frames: 6, width: 105, height: 123, speed: 3, anchorY: 0, sheet: "./soldier_boy_run_uniform.png" },         // row 4 f6-11
+    jump:  { frames: 3, width: 84,  height: 156, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_jump_uniform.png" },  // row 5 f0-2 (start+rise)
+    fall:  { frames: 2, width: 100, height: 83,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_fall_uniform.png" },  // row 5 f3-4
+    dash:  { frames: 8, width: 144, height: 129, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_roll_uniform.png" },  // row 8 roll/slide
+    guard: { frames: 2, width: 99,  height: 115, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_block_uniform.png" }, // row 2 Gold Brace block
+    crouch:{ frames: 4, width: 108, height: 95,  speed: 6, anchorY: 0, sheet: "./soldier_boy_crouch_uniform.png" },      // rows 3 + 9
+    hurt:  { frames: 9, width: 108, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_hurt_uniform.png" },  // rows 11/46/47
+    knockdown: { frames: 8, width: 155, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_knockdown_uniform.png" }, // row 26
+    getup: { frames: 7, width: 177, height: 85,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_getup_uniform.png" }, // rows 55+56
+    win:   { frames: 7, width: 107, height: 107, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_win_uniform.png" },   // rows 57+58
+    taunt: { frames: 7, width: 107, height: 107, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_win_uniform.png" },
+    lose:  { frames: 4, width: 177, height: 85,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_lose_uniform.png" },  // row 55
+    // ── NORMALS (Phase 4). loop:false + lockLastFrame holds the strike through recovery. ──
+    light: { frames: 5, width: 140, height: 114, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_light_uniform.png" }, // rows 7 f0-2 + 16 (Jab)
+    heavy: { frames: 6, width: 168, height: 120, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_heavy_uniform.png" }, // rows 7 f3-5 + 15
+    up:    { frames: 3, width: 109, height: 168, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_up_uniform.png" },    // row 12 Launcher
+    low:   { frames: 3, width: 161, height: 121, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_low_uniform.png" },   // row 22 Low
+    air:   { frames: 3, width: 181, height: 124, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_air_uniform.png" },   // row 20 f0-2 Air attack
+    // ── SPECIAL / ULT CAST POSES (Phase 4). currentMove/_spriteCastMove identity keys → sprite.js resolves
+    // "key || move" so a cast recovery tail never falls to the box (same pattern as spiderman specials). ──
+    sbDive:       { frames: 8, width: 159, height: 123, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_downair_uniform.png" },     // Diving Kick (rows 37+20 f3-5+31)
+    sbShieldThrow:{ frames: 3, width: 164, height: 146, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_shieldthrow_uniform.png" },  // Shield Toss release (row 28)
+    sbSMG:        { frames: 4, width: 167, height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_smg_uniform.png" },          // SMG Barrage (row 39)
+    sbRifle:      { frames: 4, width: 193, height: 119, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_rifle_uniform.png" },        // Rifle Shot (row 40)
+    sbGoldRush:   { frames: 13, width: 239, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_goldrush_uniform.png" },    // Gold Rush (rows 33+17+18)
+    sbCyclone:    { frames: 5, width: 165, height: 134, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_cyclone_uniform.png" },      // Cape Cyclone (row 41)
+    sbArmedDraw:  { frames: 4, width: 170, height: 167, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armeddraw_uniform.png" },    // Armed Mode draw/holster (row 36)
+    sbArmedJab:   { frames: 4, width: 160, height: 111, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedjab_uniform.png" },     // Armed Jab (SMG, row 43)
+    sbArmedHeavy: { frames: 4, width: 187, height: 112, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedheavy_uniform.png" },   // Armed Heavy (rifle, row 44)
+    sbArmedAA:    { frames: 4, width: 170, height: 154, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_armedaa_uniform.png" },       // Armed anti-air (row 42)
+    sbUltPose:    { frames: 1, width: 273, height: 150, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultpose_uniform.png" },      // Nuclear Burst pose hold (row 38)
+    sbUltBlast:   { frames: 6, width: 197, height: 176, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultblast_uniform.png" },     // Nuclear Burst detonation (row 29)
+    sbUltRecover: { frames: 2, width: 127, height: 111, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./soldier_boy_ultrecover_uniform.png" }    // Nuclear Burst recovery (row 30)
+  }
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
@@ -11295,7 +11383,8 @@ export const characters = {
   shisui_puppeteer: shisuiPuppeteer, // SHISUI — THE PUPPETEER identity (P3). HIDDEN (isPlayable:false); reached via the Variant Swap (P4), boots directly in the harness
   shisui_fallen: shisuiFallen,       // SHISUI (FALLEN) — "The Curse-Breaker": NEW standalone selectable fighter (evil Uchiha-hunter variant, Haickal23 sheet in a Fallen palette)
   shizuku,                           // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
-  zoldyck                            // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
+  zoldyck,                           // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
+  soldier_boy: soldierBoy            // NEW additive standalone (Soldier Boy / The Boys, rosterKey `soldier_boy`, MARVEL group) — grounded Bruiser/Gunner: Armed Mode loadout swap + SMG/rifle/boomerang-shield + Nuclear Burst ult; metalsonictypeone sheet; all others untouched
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -11311,7 +11400,9 @@ const _WIPED_FOR_REDO = [
   "albedo", "ben10",   // vilgax REMOVED: rebuilt onto the new regulardor8go sheet (full kit + brutalities) — stays live
   "yamamoto",
   "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
-  "superman", "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",
+  // superman REMOVED from the wipe (2026-10-23, feat/superman): full rebuild on the JUS-addons sheet
+  // (flight.js flight + new moveset) — stays LIVE. The other four variants stay wiped (separate art).
+  "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",
   // goku REMOVED from the wipe (2026-10-20): clean-slate 7-level transformation-ladder rebuild on the new
   // sheet (per-action strips + fresh ladder kit) — stays LIVE (same convention as vilgax's rebuild above).
   "bardock", "frieza", "gogeta", "goku_rose", "gotenks", "piccolo", "gohan", "vegito",

@@ -370,6 +370,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./spiderman_idle_uniform.png" }
   },
 
+  // Soldier Boy (universe: marvel, MARVEL roster group), grounded Bruiser/Gunner — gates spritesReady()
+  // by decoding the idle strip → flips Soldier Boy from procedural box to sprite handler. Per-action
+  // rendering reads characters.js → soldierBoy.animationData (each action carries its own .sheet). Idle
+  // is the RE-SLICED uniform strip (tools/reslice_soldier_boy.py; metalsonictypeone 58-row sheet).
+  soldier_boy: {
+    actions: { idle: "./soldier_boy_idle_uniform.png" }
+  },
+
   // Naoya Zenin (universe: jujutsu_kaisen), Projection-Sorcery frame-trap technician — STAGE 1. Gates
   // spritesReady() by decoding the idle strip → flips Naoya from procedural box to sprite handler. Per-action
   // rendering reads characters.js → naoya.animationData (each action carries its own .sheet). Idle is the

@@ -55,6 +55,21 @@ try {
     console.log(`  ${v.label.padEnd(12)} key=${s1 && s1.key} spriteReady=${s1 && s1.spriteReady} action=${act} hp=${s1 && s1.health}/${s1 && s1.maxHealth} energy=${s1 && s1.maxEnergy}`)
   }
 
+  // ── PLACEHOLDER ALIEN + BINDING VOW render (Phase 10 requirement) ──
+  await page.goto(`${base}/index.html?harness=1&p1=ben10&p2=goku`, { waitUntil: "load" })
+  await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 })
+  await page.evaluate(() => window.__harness.start({ p1Skin: "default" }))
+  await frames(4); await page.evaluate(() => window.__harness.skipToBattle()); await frames(20)
+  await page.evaluate(() => { window.__harness.ben10Vow("p1", true); window.__harness.ben10SetPower("p1", 100); window.__harness.ben10Morph("p1", 0) })
+  await frames(46)
+  const sv = await snap1()
+  ok(sv && sv.benTransformed, "placeholder/Vow: should be transformed into an alien")
+  ok(sv && sv.benPlaceholder, "placeholder/Vow: alien should render as a PLACEHOLDER (human + tint)")
+  ok(sv && sv.spriteReady !== false, "placeholder/Vow: alien form must still render as sprites")
+  ok(sv && sv.benOmx && sv.benOmx.vowActive, "placeholder/Vow: Binding Vow should be active")
+  await page.screenshot({ path: path.join(OUT, `_render_placeholder_vow.png`) })
+  console.log(`  Placeholder+Vow key=${sv && sv.key} form=${sv && sv.benForm} placeholder=${sv && sv.benPlaceholder} vow=${sv && sv.benOmx && sv.benOmx.vowActive} spriteReady=${sv && sv.spriteReady}`)
+
   ok(jsErrors.length === 0, `page errors: ${jsErrors.slice(0, 3).join(" | ")}`)
   ok(my404.length === 0, `ben10_ asset 404s: ${[...new Set(my404)].slice(0, 6).join(", ")}`)
 } catch (e) {

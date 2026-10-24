@@ -34258,19 +34258,21 @@ function sbSpawnSMG(fighter, context, bullets, perDmg) {
     const fAt = baseFrame + i
     schedulePendingSpawn(at, () => {
       const spread = (sbHash(seed, fAt, idx) - 0.5) * 12            // +/-6px vertical, deterministic (no Math.random)
+      const mz = (fighter.facing === 1) ? fighter.x + (fighter.w || 50) + 30 : fighter.x - 30   // fire from the SMG muzzle, not the hip
       spawnProjectile(fighter, "sbSmgBullet", {
         damage: perDmg, speed: SB_SMG.speed, lifetime: 54, hitstun: 8,
-        knockbackX: 2, knockbackY: 0, w: 12, h: 6, radius: 5, isSpecial: true,
-        color: "#ffcc33", spawnY: fighter.y + (fighter.h || 100) * 0.42 + spread
+        knockbackX: 2, knockbackY: 0, w: 14, h: 6, radius: 5, isSpecial: true, drawKind: "bullet",
+        color: "#ffd23f", spawnX: mz, spawnY: fighter.y + (fighter.h || 100) * 0.40 + spread
       }, context)
     })
   }
 }
 function sbSpawnRifle(fighter, context, dmg) {
+  const mz = (fighter.facing === 1) ? fighter.x + (fighter.w || 50) + 48 : fighter.x - 48   // fire from the rifle muzzle, not the hip
   spawnProjectile(fighter, "sbRifleBullet", {
     damage: dmg, speed: SB_RIFLE.speed, lifetime: 72, hitstun: 20,
-    knockbackX: 11, knockbackY: -3, w: 22, h: 6, radius: 8, isSpecial: true,
-    piercesMulti: true, color: "#e0a040", spawnY: fighter.y + (fighter.h || 100) * 0.42
+    knockbackX: 11, knockbackY: -3, w: 24, h: 6, radius: 8, isSpecial: true, drawKind: "bullet",
+    piercesMulti: true, color: "#ffcc66", spawnX: mz, spawnY: fighter.y + (fighter.h || 100) * 0.40
   }, context)
 }
 

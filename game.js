@@ -12318,7 +12318,7 @@ function drawXRayTint(c, fighter) {
   if (!c || !fighter || (fighter.maxHealth || 0) <= 0 || (fighter.health || 0) <= 0) return
   if (fighter.health * 4 >= fighter.maxHealth) return
   const opp = fighter === p1 ? p2 : fighter === p2 ? p1 : null
-  if (!opp || (opp.rosterKey || "").toLowerCase() !== "superman") return
+  if (!opp || !["superman", "homelander"].includes((opp.rosterKey || "").toLowerCase())) return
   const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
   c.save()
   c.globalAlpha = 0.16; c.fillStyle = "#49a7ff"

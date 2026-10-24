@@ -16104,25 +16104,29 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
     }
     fighter._laserHeat = Math.max(0, fighter._laserHeat - HV_DRAIN)
     fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = Math.max(fighter._spriteCastTimer || 0, 3)
-    // SWEEP: up/down adjust the firing angle at a capped rate around the base axis (down = +, up = −)
-    const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
-    if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
-    else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
+    const opp = context.getOpponent ? context.getOpponent(fighter) : null
+    const manualSweep = !!(raw.down || raw.up)
+    // AUTO-AIM: with no manual sweep, Homelander LOCKS the beam onto the opponent (turns to face them) and
+    // fires at them wherever they are. Hold up/down to override and sweep the beam by hand instead.
+    if (opp && !manualSweep) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1
     // PER-FRAME eye origin (homelanderEyeAnchors.js maps the current sprite frame's eye → world space).
     const face = fighter.facing || 1
     const _eye = getHomelanderEyeWorld(fighter)
-    const ox = _eye.x
-    const oy = _eye.y
+    const ox = _eye.x, oy = _eye.y
+    const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
+    if (opp && !manualSweep) { const ocx = opp.x + (opp.w || 50) / 2, ocy = opp.y + (opp.h || 100) * 0.45; fighter._hvAngle = Math.atan2(ocy - oy, (ocx - ox) * face) }   // lock onto the target
+    else if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
+    else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
     const bx = Math.cos(fighter._hvAngle) * face
     const by = Math.sin(fighter._hvAngle)
     // hitscan vs the opponent AABB (first contact = impact point)
-    const opp = context.getOpponent ? context.getOpponent(fighter) : null
     let impX = ox + bx * HV_LEN, impY = oy + by * HV_LEN, hit = false
     if (opp) {
       for (let t = 0; t <= HV_LEN; t += 10) {
         const px = ox + bx * t, py = oy + by * t
         if (px >= opp.x && px <= opp.x + (opp.w || 50) && py >= opp.y && py <= opp.y + (opp.h || 100)) { impX = px; impY = py; hit = true; break }
       }
+      if (!hit && !manualSweep) { impX = opp.x + (opp.w || 50) / 2; impY = opp.y + (opp.h || 100) * 0.45; hit = true }   // auto-aim connects at any range
     }
     if (hit && opp && !(opp.invulnTimer > 0)) {
       fighter._hvTick = (fighter._hvTick || 0) + 1

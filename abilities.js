@@ -16329,18 +16329,19 @@ export function applySupermanWoC(fighter, context = {}) {
     if (--s.t <= 0) { s.phase = "charge"; s.t = 22; fighter.vx = face * 26 }
     return
   }
-  if (s.phase === "charge") {   // fly STRAIGHT at the enemy
-    fighter._spriteCastMove = "flyCruise"; fighter._spriteCastTimer = 4
+  if (s.phase === "charge") {   // SHOOT toward the enemy (eye-beam) then fly in and GRAB
+    fighter._spriteCastMove = "beam"; fighter._spriteCastTimer = 4
     fighter.vx = face * 26; fighter.onGround = false; fighter.grounded = false
+    if (opp) { const _e = getSupermanEyeWorld(fighter); fighter._supHvBeam = { ox: _e.x, oy: _e.y, tx: opp.x + (opp.w || 60) / 2, ty: opp.y + (opp.h || 100) * 0.4, hit: true, flare: false } }
     if (opp && !(opp.invulnTimer > 0)) {
       const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
       if (dx < 120 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 160) {
         hurt(30); shakeCamera(context, 6, 8); opp.colorFlash = 12
-        grip(); s.phase = "rise"; s.t = 48; fighter.vx = 0
+        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 48; fighter.vx = 0
         return
       }
     }
-    if (--s.t <= 0) { s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // missed the grab → fizzle
+    if (--s.t <= 0) { fighter._supHvBeam = null; s.phase = "whiff"; s.t = 22; fighter.vx = face * 4 }   // missed the grab → fizzle
     return
   }
   if (s.phase === "rise") {   // carry them STRAIGHT UP — continuous camera rumble, sky fading to space
@@ -16350,15 +16351,16 @@ export function applySupermanWoC(fighter, context = {}) {
     grip()
     fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.035)   // sky darkens toward the Moon
     shakeCamera(context, 3, 3)   // feel the power
-    if ((fighter.y <= riseTarget && --s.t <= 0) || --s.t <= 0) { s.phase = "moon"; s.t = 42; fighter.vy = 0 }
+    if (fighter.y <= riseTarget || --s.t <= 0) { s.phase = "moon"; s.t = 120; fighter.vy = 0; fighter._supMoonBg = 1; shakeCamera(context, 11, 12); if (opp) opp.colorFlash = 14 }   // BOOM — he's in the sky
     return
   }
-  if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex
+  if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex (a long, held beat)
     fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
     fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget)
     fighter._supMoonBg = 1
     grip()
-    if (s.t === 42) shakeCamera(context, 4, 6)
+    if (s.t % 26 === 0) shakeCamera(context, 2, 3)   // gentle rumble while they hang in space
+    if (s.t === 18) { fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 18 }   // wind up for the throw
     if (--s.t <= 0) { s.phase = "throwdown"; s.t = 90; s.thrown = false; s.slammed = false }
     return
   }
@@ -17758,6 +17760,7 @@ const SUP_HV_TICK_DMG = 8         // raw per tick (scaled on the write)
 const SUP_HV_DRAIN = 0.35         // Solar Energy per frame while sustaining
 export function applySupermanHeatVision(fighter, raw = {}, context = {}) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  if (fighter._supWoC) return   // the ultimate owns the beam render (its approach laser) — don't clear it
   const h = fighter._supHvHold
   if (!h) { if (fighter._supHvBeam) fighter._supHvBeam = null; return }
   if (!raw.special) { fighter._supHvHold = null; fighter._supHvBeam = null; fighter._supHvTick = 0; return }   // released

@@ -29433,6 +29433,64 @@ function fireDhRisingDiamonds(fighter, context) {
 }
 
 // Ben-human — neutral Hoverboard Dash: a mobility lunge with brief startup i-frames + a strike.
+// ── BEN 10 HUMAN SPECIALS (Phase 4) ──────────────────────────────────────────────────────────────
+// Two per variant (shared inputs): ENERGY SHOT (neutral Special, 12 Power) = a green Omnitrix-energy
+// projectile; DASH STRIKE (Forward Special ≈ →→, 10 Power) = an i-frame lunge. PRIME adds SHOCKWAVE
+// (Down Special ≈ ←↙↓, 18 Power) = an expanding radial ring. Alien Force / Classic build Energy Shot as
+// a render-only green palette-overlay projectile on a punch frame; Prime's is the "real" energy blast.
+// All visuals are render-only; damage/economy is deterministic (no Math.random).
+function fireBenEnergyShot(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 12)) return false
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 16   // cast on the punch frame
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const face = fighter.facing || 1
+  const prime = (fighter._benVariant === "prime")
+  schedulePendingSpawn(7, () => {
+    spawnProjectile(fighter, "ben_energy_shot", {
+      damage: 46, speed: 15, hitstun: 16, knockbackX: 6, knockbackY: -1,
+      w: 24, h: 20, radius: 12, color: prime ? "#39ff14" : "#8aff5a", lifetime: 120, isSpecial: true,
+      vx: face * 15, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  shakeCamera(context, 2, 4)
+  return true
+}
+function fireBenDashStrike(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 10)) return false
+  const md = { damage: 42, startup: 6, active: 5, recovery: 15, hitstun: 18, blockstun: 10, knockbackX: 7, knockbackY: -3, rangeX: 96, rangeY: 54, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "up", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 15
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 6)
+  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack) fighter.vx = dir * 15 })
+  shakeCamera(context, 3, 5)
+  return true
+}
+function fireBenShockwave(fighter, context) {   // Prime only (Down Special)
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 18)) return false
+  fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(30, fighter); fighter.vx = 0
+  const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5, RAD = 190
+  schedulePendingSpawn(10, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (opp && !opp.eliminated) {
+      const ox = opp.x + (opp.w || 60) / 2, oy = opp.y + (opp.h || 100) / 2
+      if (Math.hypot(ox - cx, oy - cy) <= RAD) {
+        applyScaledDamage(opp, 70, { source: "ben-shockwave" })
+        opp.hitstun = Math.max(opp.hitstun || 0, 20); opp.vx = (ox >= cx ? 1 : -1) * 9; opp.vy = -4
+      }
+    }
+    fighter._benShockwaveFx = { r: 0, max: RAD, t: 18 }   // render-only expanding ring
+  })
+  shakeCamera(context, 5, 8)
+  return true
+}
+
 function fireBenHoverboard(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 15)) return false
@@ -29519,9 +29577,11 @@ function fireFbEnergyDischarge(fighter, context) {
 
 function executeBen10Special(fighter, context) {
   const dir = fighter._specialHeldDir || null
-  if (fighter.transformed === false) {   // Ben-human
-    if (dir === "D") return fireBenHoverBash(fighter, context)
-    return fireBenHoverboard(fighter, context)
+  if (fighter.transformed === false) {   // Ben-human (Phase 4): Energy Shot / Dash Strike / (Prime) Shockwave
+    const variant = fighter._benVariant || "alienforce"
+    if (dir === "F") return fireBenDashStrike(fighter, context)                      // →→ + Special
+    if (dir === "D" && variant === "prime") return fireBenShockwave(fighter, context) // ←↙↓ + Special (Prime only)
+    return fireBenEnergyShot(fighter, context)                                        // ↓↘→ + Special (neutral)
   }
   const a = (fighter.activeAlien || "").toLowerCase()
   if (a === "diamondhead") {
@@ -29970,16 +30030,29 @@ function fireFbOverload(fighter, context) {
 }
 
 function executeBen10Ultimate(fighter, context) {
-  if (fighter.transformed === false) {   // Ben-human / Albedo → "HERO TIME": Omnitrix-slam force-transform into the loadout alien for one oversized blow, then revert
-    if (isBen10OmnitrixCinematicActive()) return false
-    if (!spendEnergy(fighter, BEN10_HERO_TIME.cost)) return false
-    const opp = getTargetResolver(context)(fighter)
-    // the currently-active loadout alien (whatever the Omnitrix dial is set to) — the form Ben becomes for the finisher.
-    const omx = fighter.omnitrix
-    const heroAlien = (omx && Array.isArray(omx.aliens) && omx.aliens.length)
-      ? (omx.aliens[omx.index] || omx.aliens[0]) : DEFAULT_OMNITRIX[0]
-    fighter.vx = 0
-    activateBen10OmnitrixCinematic(fighter, opp, (cineCtx) => applyBen10HeroTime(fighter, opp, heroAlien, cineCtx))
+  if (fighter.transformed === false) {   // Ben-human / Albedo → "OMNITRIX OVERLOAD" (Phase 4): a 3-hit
+    // radial burst (70+70+110 = 250 unscaled, radius 320), 90f recovery lockout, then a forced 3s timeout.
+    // Visuals RENDER-ONLY (transform-flash frames + green palette; Prime reads as the aura/sphere). Costs
+    // FULL Power (100).
+    if ((fighter.attackCooldown || 0) > 0) return false
+    if ((fighter.energy || 0) < 100) return false
+    fighter.energy = 0
+    if (fighter.omnitrix) fighter.omnitrix.power = 0
+    fighter._spriteCastMove = "transform"; fighter._spriteCastTimer = 90
+    fighter.attackCooldown = getAttackDuration(90, fighter); fighter.vx = 0
+    fighter._benOverloadFx = { t: 90, max: 90, prime: fighter._benVariant === "prime" }   // render-only radial burst
+    const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.45, RAD = 320
+    const hitAt = (t, dmg) => schedulePendingSpawn(t, () => {
+      const opp = getTargetResolver(context)(fighter)
+      if (opp && !opp.eliminated) {
+        const ox = opp.x + (opp.w || 60) / 2, oy = opp.y + (opp.h || 100) / 2
+        if (Math.hypot(ox - cx, oy - cy) <= RAD) { applyScaledDamage(opp, dmg, { source: "ben-overload" }); opp.hitstun = Math.max(opp.hitstun || 0, 16) }
+      }
+    })
+    hitAt(18, 70); hitAt(40, 70); hitAt(66, 110)
+    schedulePendingSpawn(90, () => { if (fighter.omnitrix) fighter.omnitrix.timeoutCooldown = Math.max(fighter.omnitrix.timeoutCooldown || 0, 180) })   // forced 3s timeout after recovery
+    focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.9, 20)
+    shakeCamera(context, 8, 14)
     return true
   }
   const a = (fighter.activeAlien || "").toLowerCase()

@@ -8,6 +8,7 @@ import {
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot,
   ben10TransformOrSwap, ben10Revert, ben10VowPick, MAX_OMNITRIX_SLOTS
 } from "./fighters.js"
+import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
@@ -26422,6 +26423,8 @@ gameLoop()
     skipToBattle,
     // ── BEN 10 OMNITRIX harness (Phase 3) ──────────────────────────────────────
     ben10Vow: (who = "p1", on = true) => { const f = who === "p2" ? p2 : p1; if (f?.omnitrix) f.omnitrix.vowActive = !!on; return !!(f?.omnitrix?.vowActive) },
+    ben10Registry: () => ({ registry: BEN10_ALIEN_REGISTRY, loadout: buildLoadout(5), placeholder: makePlaceholder(5) }),   // Phase 4 catalog read
+    ben10Normals: (who = "p1") => { const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks; return b ? { light: b.light?.damage, lightStartup: b.light?.startup, heavy: b.heavy?.damage, up: b.up?.damage, air: b.air?.damage } : null },   // live human normals (per-variant)
     ben10SetPower: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) { f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)); if (f.omnitrix) f.omnitrix.power = f.energy } return f ? f.energy : null },
     // Fire a slot transform/swap (slot 0-4) or "revert" directly (bypasses the ↓↓ input for deterministic tests).
     ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: (f.side === "p2" || f.side === "p4") ? 1 : 0 }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },

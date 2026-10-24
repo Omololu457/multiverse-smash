@@ -2873,16 +2873,24 @@ const ben10 = {
   // the select screen advertises what's actually delivered. The old entry (light 53 / heavy 106) was
   // never used in play — revertToHuman overwrites basic_attacks with HUMAN_FORM — so it was misleading
   // dead data. Keep the two in sync; HUMAN_FORM is the source of truth.
+  // Phase 4: these ADVERTISE the ALIEN FORCE human normals (the default variant) — they mirror
+  // fighters.js BEN10_VARIANT_NORMALS.alienforce, the LIVE values revertToHuman applies. Classic/Prime
+  // swap in their own normals at runtime (per-variant). Human Ben is a deliberately weak baseline; his
+  // power is the Omnitrix forms + the Energy Shot / Dash Strike specials + Omnitrix Overload ultimate.
   basic_attacks: {
-    light:     { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
-    upAttack:  { damage: 62, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 50, startup: 6, active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
-    downAir:   { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
-    grab:      { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
+    light:     { damage: 20, startup: 5,  active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 55, startup: 13, active: 4, recovery: 20, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 50, startup: 11, active: 4, recovery: 19, hitstun: 18, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 34, startup: 8,  active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 28, startup: 7,  active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 26, startup: 6,  active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
-  specials: {},
-  ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
+  specials: {
+    energyShot:  { name: "Energy Shot",  input: "↓↘→ + Special", cost: 12, effect: "Green Omnitrix-energy projectile" },
+    dashStrike:  { name: "Dash Strike",  input: "→→ + Special",   cost: 10, effect: "I-frame energy lunge" },
+    shockwave:   { name: "Shockwave",    input: "←↙↓ + Special",  cost: 18, effect: "Expanding radial ring (Prime only)" }
+  },
+  ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "3-hit radial burst (250), human Ben only" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   // Without this the intro state falls back to the shared "transform" slot — which for Ben is the

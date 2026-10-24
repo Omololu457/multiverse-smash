@@ -1632,6 +1632,26 @@ const HUMAN_FORM = {
   baseW: 56, baseH: 108
 }
 
+// ── PER-VARIANT HUMAN NORMALS (Phase 4) ──────────────────────────────────────────────────────────
+// Brief frame data (startup / damage, + an on-block feel): Alien Force balanced, Classic faster-but-
+// weaker, Prime slower-but-stronger. jab→light, heavy→heavy, launcher→up, air→air, low→down_air; grab
+// kept from HUMAN_FORM. Recovery is tuned to the brief's on-block ordering (safest Classic → least-safe
+// Prime); exact on-block is approximate (documented in docs/ben10/SPRITE_LEDGER.md). Human Ben is
+// deliberately a weak-but-honest baseline — his power is the Omnitrix forms (see BALANCE_NOTES).
+const _mkBenNormals = (o) => ({
+  light:    { ...HUMAN_FORM.basic_attacks.light,    startup: o.jab[0],      damage: o.jab[1],      recovery: o.jab[2] },
+  heavy:    { ...HUMAN_FORM.basic_attacks.heavy,    startup: o.heavy[0],    damage: o.heavy[1],    recovery: o.heavy[2] },
+  up:       { ...HUMAN_FORM.basic_attacks.up,       startup: o.launcher[0], damage: o.launcher[1], recovery: o.launcher[2] },
+  air:      { ...HUMAN_FORM.basic_attacks.air,      startup: o.air[0],      damage: o.air[1],      recovery: o.air[2] },
+  down_air: { ...HUMAN_FORM.basic_attacks.down_air, startup: o.low[0],      damage: o.low[1],      recovery: o.low[2] },
+  grab:     { ...HUMAN_FORM.basic_attacks.grab }
+})
+export const BEN10_VARIANT_NORMALS = {
+  alienforce: _mkBenNormals({ jab: [5, 20, 11], heavy: [13, 55, 20], low: [7, 28, 15], launcher: [11, 50, 19], air: [8, 34, 11] }),
+  classic:    _mkBenNormals({ jab: [4, 18, 10], heavy: [11, 46, 18], low: [6, 26, 14], launcher: [10, 44, 18], air: [7, 30, 11] }),
+  prime:      _mkBenNormals({ jab: [5, 22, 12], heavy: [14, 60, 21], low: [7, 30, 16], launcher: [12, 54, 20], air: [8, 36, 12] }),
+}
+
 export function isTransformDevice(fighter) {
   const k = (fighter?.rosterKey || "").toLowerCase()
   return k === "ben10" || k === "albedo"
@@ -1646,7 +1666,7 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   const oldH = fighter.h ?? fighter.height ?? 110
   fighter.transformed    = false
   fighter.isCharging     = false
-  fighter.basic_attacks  = HUMAN_FORM.basic_attacks
+  fighter.basic_attacks  = BEN10_VARIANT_NORMALS[fighter._benVariant] || HUMAN_FORM.basic_attacks   // Phase 4: per-variant human normals
   fighter.specials       = {}
   fighter.ultimate       = null
   fighter.activeAlien    = null

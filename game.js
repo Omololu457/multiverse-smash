@@ -4954,11 +4954,6 @@ function initIntroVariant(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "killua" && fighter._introVariant === "intro") {
     fighter._introHomeX = fighter.x
     fighter.x = fighter.x - (fighter.facing || 1) * KILLUA_ROLLIN_DIST
-  } else if ((fighter.rosterKey || "").toLowerCase() === "superman") {
-    // SUPERMAN entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind him.
-    // updateSupermanIntro eases him home across the Clark run-in + liftoff while the CAMERA tracks him.
-    fighter._introHomeX = fighter.x
-    fighter.x = fighter.x - (fighter.facing || 1) * SUPERMAN_RUNIN_DIST
   } else if ((fighter.rosterKey || "").toLowerCase() === "shinobu") {
     // SHINOBU entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind her.
     // updateShinobuIntro glides her home (haori spread as wings) while the CAMERA tracks the travel.

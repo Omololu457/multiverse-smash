@@ -4662,10 +4662,24 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       const albedo = fighter.rosterKey === "albedo"
       mainCol = albedo ? "#ef4444" : "#22c55e"
       glowC   = mainCol
-      label   = charging ? "CHARGING"
-              : reverted ? "RECHARGE"
-              : (albedo ? "ULTIMATRIX" : "OMNITRIX")
-      if (reverted) mainCol = "#f59e0b"   // amber while locked out in human form
+      const device = albedo ? "ULTIMATRIX" : "OMNITRIX"
+      const inTimeout = (fighter.omnitrix?.timeoutCooldown || 0) > 0   // 6s forced-revert lockout
+      if (albedo) {
+        label = charging ? "CHARGING" : reverted ? "RECHARGE" : "ULTIMATRIX"
+        if (reverted) mainCol = "#f59e0b"
+      } else {
+        // BEN 10 (Phase 8): the Omnitrix Power bar also shows the current FORM — the variant name while
+        // human (Alien Force / Classic / Prime) or the active ALIEN while transformed — plus a Vow mark.
+        // All read straight from GAME_STATE (fighter._benVariant / activeAlienName / omnitrix); no new
+        // render-layer state.
+        const variantName = ({ classic: "Classic", prime: "Prime", alienforce: "Alien Force" })[fighter._benVariant] || "Alien Force"
+        const vow = fighter.omnitrix?.vowActive ? " ⟡" : ""   // ⟡ = Binding Vow active
+        label = charging  ? `CHARGING · ${variantName}`
+              : inTimeout ? `TIMEOUT · ${variantName}${vow}`
+              : reverted  ? `${device} · ${variantName}${vow}`
+              : `${(fighter.activeAlienName || "ALIEN").toUpperCase()}${vow}`
+        if (reverted) mainCol = "#f59e0b"   // amber while human (recharging / locked)
+      }
     }
 
     _metalPanel(ctx, x, enY - 14, pbw + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)

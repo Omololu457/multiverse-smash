@@ -2855,8 +2855,14 @@ const rickPrime = {
 // they're matched to the default starting alien (Four Arms) so the HUD is right.
 // ─────────────────────────────────────────────────────────────────
 const ben10 = {
-  rosterKey: "ben10", name: "Ben 10", universe: "ben_10",
+  rosterKey: "ben10", name: "Ben 10", displayName: "Ben Tennyson", universe: "ben_10",
   portrait: "./ben10_portrait.png",   // Ben Tennyson headshot (cropped from the idle strip) — one select-screen mugshot for the single "Ben 10" fighter; skins.js + ui.js read characters.ben10.portrait
+
+  // BEN10-FRAMEWORK Phase 8 metadata (select-screen + bio panel).
+  tagline: "It's hero time.",
+  difficulty: 4,            // out of 5 — the Omnitrix Power economy + form juggling reward commitment
+  archetype: "Shapeshifter / Rushdown",
+  bio: "An ordinary kid who found the Omnitrix, an alien watch that turns him into a roster of aliens. Weak on his own, Ben trades 20-second alien forms on a draining Power meter — a hero for every problem, if he picks the right one in time.",
 
   archetypes: ["transformations", "melee"],
   primary: "transformations", secondary: ["melee"],

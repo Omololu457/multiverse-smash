@@ -587,6 +587,7 @@ import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
+import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // Cyborg Superman skin — glowing red robotic eye at the per-frame eye anchor
 import { pickOnokiVoice, ONOKI_VOICE } from "./onokiVoice.js"     // Onoki intro ("for the future") + win ("you're the one going to sleep") — JA
 import { pickGenosVoice, GENOS_VOICE } from "./genosVoice.js"     // Genos intro ("a hero nobody knows") — EN
 import { pickAlbedoVoice, ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
@@ -12387,6 +12388,19 @@ function drawHomelanderSpeedRun(ctx, canvas) {
   ctx.restore()
 }
 
+// SUPERMAN — CYBORG SUPERMAN skin: a glowing red robotic eye at the per-frame eye anchor (the metallic
+// front half of the sprite). Render-only; gated on the skinId.
+function drawCyborgSupermanEye(c, fighter) {
+  if (!c || !fighter || !((fighter.skinId || "").toLowerCase().includes("cyborg"))) return
+  const eye = getSupermanEyeWorld(fighter)
+  const pulse = 0.6 + 0.4 * Math.sin(globalFrameCount * 0.3)
+  c.save()
+  c.globalAlpha = 0.95; c.shadowBlur = 9; c.shadowColor = "#ff2a1a"
+  c.fillStyle = "#ff3222"; c.beginPath(); c.arc(eye.x, eye.y, 2.2 + pulse, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.6; c.fillStyle = "#ffd6c6"; c.beginPath(); c.arc(eye.x, eye.y, 1.1, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
 // HOMELANDER — FLEX PARRY burst: a golden flex ring + flash on a successful flex (_hlFlexFx). Render-only.
 function drawHomelanderFlexFx(c, fighter) {
   if (!c || !fighter || (fighter.rosterKey || "").toLowerCase() !== "homelander") return
@@ -20734,6 +20748,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawFrozenOverlay(c, fighter)           // Superman — Freeze Breath: icy tint + ice shards over ANY frozen fighter (_supFrozen > 0)
     drawXRayTint(c, fighter)                // Superman — X-Ray Vision: blue scan-tint over a sub-25%-HP opponent of Superman (render-only)
+    drawCyborgSupermanEye(c, fighter)       // Superman — Cyborg skin: glowing red robotic eye (render-only, skinId-gated)
     drawSupermanThrowSwirl(c, fighter)      // Superman ULTIMATE — spiral swirl around an enemy hurled to the ground (render-only)
     drawSasukeSenseiEyeHud(c, fighter)      // Sasuke (Sensei) — active eye-set name flashes above the head on an Up+Ult cycle (sasuke_sensei only)
     drawSasukeDojutsuFx(c, fighter)         // Sasuke (any) — Rinnegan portals / swap flash / strain aura + lock HUD (code-drawn, no art)

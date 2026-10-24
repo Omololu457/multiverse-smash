@@ -1365,7 +1365,9 @@ export const SKINS = {
     { id: "supermanElectricBlue",    name: "Superman Blue",    unlockLevel: 0, portrait: "./superman_portrait__electricblue.png",   spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "electricblue") },
     { id: "supermanNew52Suit",       name: "New 52",           unlockLevel: 0, portrait: "./superman_portrait__new52.png",          spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "new52") },
     { id: "supermanRegime",          name: "Regime",           unlockLevel: 0, portrait: "./superman_portrait__regime.png",         spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "regime") },
-    { id: "supermanBizarro",         name: "Bizarro",          unlockLevel: 0, portrait: "./superman_portrait__bizarro.png",        spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "bizarro") }
+    { id: "supermanBizarro",         name: "Bizarro",          unlockLevel: 0, portrait: "./superman_portrait__bizarro.png",        spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "bizarro") },
+    // ── SPECIAL (per-pixel: tools/gen_superman_special.py) ──
+    { id: "supermanCyborg",          name: "Cyborg Superman",  unlockLevel: 0, portrait: "./superman_portrait__cyborg.png",         spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "cyborg") }
   ],
 
   // Superman (Custom / DC Universe Customs) — rosterKey "superman_dcuc". Same gate: WITHOUT a default

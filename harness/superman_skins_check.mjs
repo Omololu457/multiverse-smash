@@ -21,7 +21,7 @@ const ok = (c, m) => { if (c) passed++; else { failed++; fails.push(m) } }
 const state = () => page.evaluate(() => window.__harness.state())
 async function frames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 
-const SKINS = ["supermanAlbedo", "supermanValkyrie", "supermanAlienX", "supermanCrimsonReversal", "supermanVerdantGuardian", "supermanObsidianSteel", "supermanGoldenSentinel", "supermanAzureDepths", "supermanVioletEclipse", "supermanFrostbound", "supermanAshfall", "supermanVoidSovereign", "supermanKingdomCome", "supermanBlackRecovery", "supermanRedSon", "supermanElectricBlue", "supermanNew52Suit", "supermanRegime", "supermanBizarro"]
+const SKINS = ["supermanAlbedo", "supermanValkyrie", "supermanAlienX", "supermanCrimsonReversal", "supermanVerdantGuardian", "supermanObsidianSteel", "supermanGoldenSentinel", "supermanAzureDepths", "supermanVioletEclipse", "supermanFrostbound", "supermanAshfall", "supermanVoidSovereign", "supermanKingdomCome", "supermanBlackRecovery", "supermanRedSon", "supermanElectricBlue", "supermanNew52Suit", "supermanRegime", "supermanBizarro", "supermanCyborg"]
 
 try {
   await page.goto(`${base}/index.html?harness=1&p1=superman&p2=goku`, { waitUntil: "load" })

@@ -60,6 +60,7 @@ import {
   attackIsActive,                     // Edo Tensei: only an ACTIVE swing can cancel via the standing dummy
   rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
   GLOBAL_DAMAGE_SCALE,                // Edo Tensei: scale a dummy-cancel hit to the same net damage a normal hit deals
+  COMBO_DAMAGE_CURVE,                 // Ben 10 Phase 5: per-hit combo decay (for the combo-total calc hook)
   applyScaledDamage,                  // Stage 1a: the one scaled-damage choke-point (DOT ticks + Hisoka portal-drop route through it)
   tryComboBreaker, COMBO_BREAKER,     // MK-feel Stage 2d: universal block+special combo breaker (fires only vs a >=3 combo)
   tryComebackFinisher, comebackFinisherReady, comebackFinisherDamage, COMEBACK_FINISHER,   // Fatal-Blow-style comeback finisher (once/match, <30% HP, block+grab)
@@ -26388,6 +26389,8 @@ gameLoop()
     benVulnerable:    !!f._omxVulnerable,         // mid-transform startup (vulnerable)
     benPlaceholder:   !!f._benPlaceholderForm,    // alien is rendering as a placeholder (human + tint)
     benOmx:           f.omnitrix ? { index: f.omnitrix.index, power: Math.round(f.energy || 0), startup: f.omnitrix.startup || 0, swapLockout: f.omnitrix.swapLockout || 0, timeoutCooldown: f.omnitrix.timeoutCooldown || 0, manualLockout: f.omnitrix.manualLockout || 0, vowActive: !!f.omnitrix.vowActive, lastVowPick: f.omnitrix.lastVowPick, slots: f.omnitrix.aliens.length } : null,
+    comboCounter:     f.comboCounter || 0,       // combo-scaling state (victim) — P5 combo tests
+    comboTimer:       f.comboTimer || 0,
     gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
     gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
     gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
@@ -26425,6 +26428,18 @@ gameLoop()
     ben10Vow: (who = "p1", on = true) => { const f = who === "p2" ? p2 : p1; if (f?.omnitrix) f.omnitrix.vowActive = !!on; return !!(f?.omnitrix?.vowActive) },
     ben10Registry: () => ({ registry: BEN10_ALIEN_REGISTRY, loadout: buildLoadout(5), placeholder: makePlaceholder(5) }),   // Phase 4 catalog read
     ben10Normals: (who = "p1") => { const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks; return b ? { light: b.light?.damage, lightStartup: b.light?.startup, heavy: b.heavy?.damage, up: b.up?.damage, air: b.air?.damage } : null },   // live human normals (per-variant)
+    // Phase 5: the three brief combos' UNSCALED totals under the engine's per-hit COMBO_DAMAGE_CURVE
+    // (design targets ≈122/112/138). Pure calc from the live Alien Force normals + special damages.
+    ben10ComboTotals: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks || {}
+      const dmg = { jab: b.light?.damage ?? 20, heavy: b.heavy?.damage ?? 55, low: b.down_air?.damage ?? 28, launcher: b.up?.damage ?? 50, air: b.air?.damage ?? 34, energyShot: 46, dashStrike: 42 }
+      const total = (seq) => seq.reduce((sum, mv, i) => sum + dmg[mv] * COMBO_DAMAGE_CURVE[Math.min(i, COMBO_DAMAGE_CURVE.length - 1)], 0)
+      return {
+        c1: Math.round(total(["jab", "jab", "launcher", "air"])),            // ≈122
+        c2: Math.round(total(["low", "jab", "heavy", "energyShot"])),         // ≈112
+        c3: Math.round(total(["dashStrike", "heavy", "launcher"])),           // ≈138
+      }
+    },
     ben10SetPower: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) { f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)); if (f.omnitrix) f.omnitrix.power = f.energy } return f ? f.energy : null },
     // Fire a slot transform/swap (slot 0-4) or "revert" directly (bypasses the ↓↓ input for deterministic tests).
     ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: (f.side === "p2" || f.side === "p4") ? 1 : 0 }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },

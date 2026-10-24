@@ -7,6 +7,7 @@ import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from ".
 import { moveset }    from "./moveset.js"
 import { sound, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
+import { getHomelanderEyeWorld } from "./homelanderEyeAnchors.js"   // per-frame eye anchor → world-space Heat Vision origin (fires from the eyes, not a fixed body fraction)
 import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
@@ -16107,10 +16108,11 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
     const base = fighter._hvBaseAngle != null ? fighter._hvBaseAngle : (fighter._hvBaseAngle = fighter._hvAngle)
     if (raw.down && !raw.up) fighter._hvAngle = Math.min(base + HV_SWEEP_CAP, fighter._hvAngle + HV_SWEEP)
     else if (raw.up && !raw.down) fighter._hvAngle = Math.max(base - HV_SWEEP_CAP, fighter._hvAngle - HV_SWEEP)
-    // eye origin (approx eye anchor: head height, facing side — per-frame anchor refinement is a later polish)
+    // PER-FRAME eye origin (homelanderEyeAnchors.js maps the current sprite frame's eye → world space).
     const face = fighter.facing || 1
-    const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30)
-    const oy = fighter.y + (fighter.h || 100) * 0.18
+    const _eye = getHomelanderEyeWorld(fighter)
+    const ox = _eye.x
+    const oy = _eye.y
     const bx = Math.cos(fighter._hvAngle) * face
     const by = Math.sin(fighter._hvAngle)
     // hitscan vs the opponent AABB (first contact = impact point)
@@ -16213,8 +16215,8 @@ export function applyHomelanderFlight37(fighter, context = {}) {
         shakeCamera(context, 8, 12)
         fighter._f37slam = 22   // impact ring/dust render timer
       }
-      // render the slam beam from Homelander's eyes down onto the victim
-      const ox = fighter.x + (fighter.w || 50) * (face >= 0 ? 0.70 : 0.30), oy = fighter.y + (fighter.h || 100) * 0.18
+      // render the slam beam from Homelander's eyes (per-frame anchor) down onto the victim
+      const _eye37 = getHomelanderEyeWorld(fighter); const ox = _eye37.x, oy = _eye37.y
       fighter._hv = { ox, oy, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
     }
     if (s.t <= 0) { fighter._hv = null; fighter._f37 = null }

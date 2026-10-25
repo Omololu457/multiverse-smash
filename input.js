@@ -551,6 +551,11 @@ export function getFighterInput(fighter) {
   const summonJumpGrace = !!(keys[ctrl.up] && _recentCloneSummonMotion(fighter))
   if ((keys[ctrl.jump] || keys[ctrl.up]) && !doingUpSpecial && !summonJumpGrace) buffer.jump = BUFFER_WINDOW
 
+  // ATTACK-INPUT LOCK: a few-frame window during which attack buttons are swallowed. Generic field set
+  // by the Ben 10 Omnitrix morph (↓↓+button) so the slot-select press is NOT also read as an attack/
+  // special. Directions, jump, block, grab stay live (movement + the ↓↓ itself must still register).
+  const _atkLock = (fighter._attackInputLock | 0) > 0
+
   // 3. Unified output
   return {
     // `_noJumpUp` tells mapInputToVirtualKeys to withhold the UP vKey (the one physics actually jumps on),
@@ -561,11 +566,11 @@ export function getFighterInput(fighter) {
     down: !!keys[ctrl.down],
     up: !!keys[ctrl.up],
     jump: buffer.jump > 0,
-    light: buffer.light > 0,
-    heavy: buffer.heavy > 0,
-    upAttack: buffer.upAttack > 0,
-    special: buffer.special > 0,
-    ultimate: buffer.ultimate > 0,
+    light: !_atkLock && buffer.light > 0,
+    heavy: !_atkLock && buffer.heavy > 0,
+    upAttack: !_atkLock && buffer.upAttack > 0,
+    special: !_atkLock && buffer.special > 0,
+    ultimate: !_atkLock && buffer.ultimate > 0,
     dash: !!keys[ctrl.dash],                  // unbound key ("") → always false; dash = double-tap
     grab: !!keys[ctrl.grab],
     charge: !!keys[ctrl.charge],

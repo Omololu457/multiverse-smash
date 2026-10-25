@@ -126,6 +126,39 @@ function _altBodySkin(baseKey, sheet, frames, w, h) {
 function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", sheet, frames, w, h) }
 function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
 
+// BEN 10 — CLASSIC variant map (2026-10-24, feat/ben10-omnitrix-framework). Human-Ben frames
+// extracted from the real Classic source sheet (assets/sprites/ben10/ben_classic.png — white/black
+// raglan shirt + green cargo pants, white bg chroma-keyed) → ben10_<action>_uniform__classic.png
+// uniform strips. An EXPLICIT map (not a recolor retag) because Classic's cell dims differ from the
+// Alien Force base. Frame→move ledger + reuse notes: docs/ben10/SPRITE_LEDGER.md.
+const BEN10_CLASSIC_ANIM = {
+  idle:  { frames: 2, width: 36, height: 55, speed: 10, anchorY: 0, sheet: "./ben10_idle_uniform__classic.png" },
+  walk:  { frames: 4, width: 36, height: 56, speed: 7, anchorY: 0, sheet: "./ben10_walk_uniform__classic.png" },
+  run:   { frames: 6, width: 45, height: 53, speed: 4, anchorY: 0, sheet: "./ben10_run_uniform__classic.png" },
+  dash:  { frames: 6, width: 45, height: 53, speed: 3, anchorY: 0, sheet: "./ben10_run_uniform__classic.png" },
+  jump:  { frames: 1, width: 46, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform__classic.png" },
+  fall:  { frames: 1, width: 38, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fall_uniform__classic.png" },
+  crouch:{ frames: 1, width: 36, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_crouch_uniform__classic.png" },
+  guard: { frames: 1, width: 35, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_guard_uniform__classic.png" },
+  hurt:  { frames: 1, width: 36, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_hurt_uniform__classic.png" },      // reuse crouch pose (no dedicated hit art)
+  knockdown: { frames: 1, width: 38, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_knockdown_uniform__classic.png" }, // reuse shield-jump lean
+  getup: { frames: 1, width: 36, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_getup_uniform__classic.png" },     // reuse crouch
+  intro: { frames: 2, width: 59, height: 65, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_intro_uniform__classic.png" },
+  win:   { frames: 1, width: 31, height: 64, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_win_uniform__classic.png" },
+  lose:  { frames: 1, width: 36, height: 60, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_lose_uniform__classic.png" },
+  light:    { frames: 2, width: 44, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform__classic.png" },
+  heavy:    { frames: 2, width: 44, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heavy_uniform__classic.png" },
+  up:       { frames: 2, width: 46, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_up_uniform__classic.png" },
+  air:      { frames: 1, width: 46, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_air_uniform__classic.png" },
+  down_air: { frames: 1, width: 46, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_down_air_uniform__classic.png" },
+  grab:     { frames: 1, width: 44, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_grab_uniform__classic.png" },
+  benJab1:  { frames: 1, width: 44, height: 55, speed: 3, sourceX: 0,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform__classic.png" },
+  benJab2:  { frames: 1, width: 44, height: 55, speed: 3, sourceX: 44, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform__classic.png" },
+  benHover: { frames: 1, width: 46, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_air_uniform__classic.png" },
+  transform: { frames: 3, width: 59, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform__classic.png" },
+  taunt: { frames: 1, width: 31, height: 64, speed: 26, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_taunt_uniform__classic.png" }
+}
+
 export const SKINS = {
   // Gojo — base sprite transparency-repaired (2026-07-30), then rebuilt with 4 coordinated head-to-toe
   // colour skins (HAIR + main clothing/top + EYES all in one hue family; face/skin + white pants kept
@@ -1949,12 +1982,18 @@ export const SKINS = {
   // sources the Ben-human spriteScale (alien forms swap the whole set via _skinAnim
   // in fighters.js, NOT via alt skins). WITHOUT this default entry, applySkin() pulls
   // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
+  // BEN 10 — THREE OMNITRIX VARIANTS (2026-10-24, feat/ben10-omnitrix-framework). The variant
+  // mechanism (not cosmetic recolor): each carries its own human-Ben sprite map. Alien Force is the
+  // DEFAULT (base characters.ben10.animationData). Classic swaps in its own extracted frames. Prime
+  // is PENDING art — it falls back to the Alien Force frames + a render-only green aura (benVariant
+  // "prime"/primePending, aura wired in the render layer; see docs/ben10/PRIME_PENDING.md). Per-variant
+  // base stats + base specials attach in characters.js / game.js (Phases 2 & 4). The old cosmetic
+  // Valkyrie/AlienX recolors were dropped (their __valkyrie/__alienx sheets were wiped → would miss).
   ben10: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo tag reserved for the Albedo character's base art → ben10 gets Valk+AlienX)
-    { id: "ben10Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ben10", "valkyrie"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "valkyrie") },
-    { id: "ben10AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ben10", "alienx"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "alienx") },
-    { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
+    { id: "default",      name: "Alien Force", unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "alienforce" },
+    { id: "ben10Classic", name: "Classic",     unlockLevel: 0, portrait: "./ben10_portrait__classic.png",   spriteScale: characters.ben10?.spriteScale, animationData: BEN10_CLASSIC_ANIM, benVariant: "classic" },
+    { id: "ben10Prime",   name: "Prime",       unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "prime", primePending: true, auraOverlay: "#39ff14" },
+    { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
     { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
 

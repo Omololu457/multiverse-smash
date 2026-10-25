@@ -2855,28 +2855,48 @@ const rickPrime = {
 // they're matched to the default starting alien (Four Arms) so the HUD is right.
 // ─────────────────────────────────────────────────────────────────
 const ben10 = {
-  rosterKey: "ben10", name: "Ben 10", universe: "ben_10",
+  rosterKey: "ben10", name: "Ben 10", displayName: "Ben Tennyson", universe: "ben_10",
   portrait: "./ben10_portrait.png",   // Ben Tennyson headshot (cropped from the idle strip) — one select-screen mugshot for the single "Ben 10" fighter; skins.js + ui.js read characters.ben10.portrait
+
+  // BEN10-FRAMEWORK Phase 8 metadata (select-screen + bio panel).
+  tagline: "It's hero time.",
+  difficulty: 4,            // out of 5 — the Omnitrix Power economy + form juggling reward commitment
+  archetype: "Shapeshifter / Rushdown",
+  bio: "An ordinary kid who found the Omnitrix, an alien watch that turns him into a roster of aliens. Weak on his own, Ben trades 20-second alien forms on a draining Power meter — a hero for every problem, if he picks the right one in time.",
 
   archetypes: ["transformations", "melee"],
   primary: "transformations", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
   passive: { name: "Omnitrix", effect: "Press the transform/charge button to cycle through 5 aliens, each with its own moveset" },
-  stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // BEN10-FRAMEWORK Phase 2: base = ALIEN FORCE variant (health 950). Classic (900) / Prime (1000)
+  // override via fighters.js BEN10_VARIANT_STATS, applied after applySkin. Health is a SHARED pool —
+  // transforming never heals/resizes the bar (applyAlien keeps this maxHealth across every alien form).
+  stats: { maxHealth: 950, maxEnergy: 100, attack: 90, defense: 85, speed: 9, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // Omnitrix Power HUD meter (label + Omnitrix-green theme). Recharge 4/s while human, +3 on landing a
+  // hit, +2 on taking one (fighters.js updateTransformDevice + combat.js resolveAttackHit); drains in-alien.
+  energyConfig: { label: "Omnitrix Power", color: "#2ecc40", glowColor: "#7fff5a", emptyColor: "rgba(255,255,255,0.08)" },
   // NOTE: these MIRROR fighters.js HUMAN_FORM.basic_attacks (the LIVE values revertToHuman applies) so
   // the select screen advertises what's actually delivered. The old entry (light 53 / heavy 106) was
   // never used in play — revertToHuman overwrites basic_attacks with HUMAN_FORM — so it was misleading
   // dead data. Keep the two in sync; HUMAN_FORM is the source of truth.
+  // Phase 4: these ADVERTISE the ALIEN FORCE human normals (the default variant) — they mirror
+  // fighters.js BEN10_VARIANT_NORMALS.alienforce, the LIVE values revertToHuman applies. Classic/Prime
+  // swap in their own normals at runtime (per-variant). Human Ben is a deliberately weak baseline; his
+  // power is the Omnitrix forms + the Energy Shot / Dash Strike specials + Omnitrix Overload ultimate.
   basic_attacks: {
-    light:     { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
-    upAttack:  { damage: 62, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 50, startup: 6, active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
-    downAir:   { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
-    grab:      { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
+    light:     { damage: 20, startup: 5,  active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 55, startup: 13, active: 4, recovery: 20, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 50, startup: 11, active: 4, recovery: 19, hitstun: 18, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 34, startup: 8,  active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 28, startup: 7,  active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 26, startup: 6,  active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
-  specials: {},
-  ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
+  specials: {
+    energyShot:  { name: "Energy Shot",  input: "↓↘→ + Special", cost: 12, effect: "Green Omnitrix-energy projectile" },
+    dashStrike:  { name: "Dash Strike",  input: "→→ + Special",   cost: 10, effect: "I-frame energy lunge" },
+    shockwave:   { name: "Shockwave",    input: "←↙↓ + Special",  cost: 18, effect: "Expanding radial ring (Prime only)" }
+  },
+  ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "3-hit radial burst (250), human Ben only" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   // Without this the intro state falls back to the shared "transform" slot — which for Ben is the
@@ -2895,38 +2915,43 @@ const ben10 = {
   // set via fighter._skinAnim (see fighters.js BEN10_FORM_ANIM). Uniform strips re-sliced
   // from the raw on-disk sheets (harness alpha-gutter repack → *_uniform.png). guard omitted
   // → falls to idle; hurt/intro reuse idle (no dedicated hit/entrance art yet — flagged).
+  // BEN10-OMNITRIX-FRAMEWORK (2026-10-24): human-Ben sprite set re-extracted from the real
+  // ALIEN FORCE source sheet (assets/sprites/ben10/ben_alienforce.png, green-jacket Ben, blue
+  // bg chroma-keyed) via ben10_work/extract.py+pack.py → uniform feet-baseline strips. This is
+  // the DEFAULT variant; Classic (white/black shirt, green pants) + Prime (pending, falls back
+  // to these frames + a render-only green aura) live in skins.js. Full frame→move ledger:
+  // docs/ben10/SPRITE_LEDGER.md. Dims below are the packer's measured cell sizes (authoritative).
   animationData: {
-    idle:  { frames: 8, width: 36, height: 52, speed: 6, anchorY: 0, sheet: "./ben10_idle_uniform.png" },
-    walk:  { frames: 6, width: 45, height: 51, speed: 7, anchorY: 0, sheet: "./ben10_run_uniform.png" },
-    run:   { frames: 6, width: 45, height: 51, speed: 4, anchorY: 0, sheet: "./ben10_run_uniform.png" },
-    dash:  { frames: 6, width: 45, height: 51, speed: 3, anchorY: 0, sheet: "./ben10_run_uniform.png" },
-    jump:  { frames: 1, width: 46, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform.png" },
-    fall:  { frames: 1, width: 46, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform.png" },
-    hurt:  { frames: 1, width: 36, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_idle_uniform.png" },   // STOPGAP: no hit art
-    intro: { frames: 8, width: 36, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_idle_uniform.png" },   // STOPGAP: no intro art
-    // STAGE-2 NORMALS (Ben-human). light/air/grab share the jab strip; heavy reuses it slower (no
-    // dedicated heavy art — flagged). up = up_attack strip, down_air = the dive-kick strip.
-    light:    { frames: 3, width: 44, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
-    heavy:    { frames: 3, width: 44, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },       // STOPGAP: reuse jab
-    up:       { frames: 3, width: 47, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_up_uniform.png" },
-    air:      { frames: 3, width: 44, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },       // STOPGAP: reuse jab
-    down_air: { frames: 3, width: 46, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_down_air_uniform.png" },
-    grab:     { frames: 3, width: 44, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
-    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy): 2-hit jab string sliced from the jab strip.
-    benJab1:  { frames: 2, width: 44, height: 53, speed: 3, sourceX: 0,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
-    benJab2:  { frames: 2, width: 44, height: 53, speed: 3, sourceX: 44, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
-    // STAGE-3 special: Hoverboard Dash (neutral mobility+strike) / Hoverboard Bash (Down launcher) — both
-    // ride the hoverboard strip (the only mobility art Ben-human has; the two specials share the pose).
-    benHover: { frames: 4, width: 57, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_hoverboard_uniform.png" },
-    // STAGE-4 ultimate: Omnitrix Transformation cast pose (Ben raises the dial → green flash → alien
-    // silhouette). Played on Ben's body during the freeze cinematic (ben10OmnitrixCinematic.js).
-    transform: { frames: 16, width: 63, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform.png" },
-    // TAUNT (re-audit 2026-07-28): enrolls Ben in the EXISTING universal taunt-heal (game.js
-    // updateTauntState — hold Down 10s un-hit → heal 50%). Uses the previously-UNUSED ben10_taunt.png
-    // (frames 0-1, the clean single poses re-sliced to _uniform; frames 2-4 were an unusable
-    // alien-select cluster). speed 26 → 2×26 = 52-frame flourish. Thematic for the weak human "catch
-    // your breath while energy regens" window. Alien forms taunt in-form via their _skinAnim.taunt→idle.
-    taunt: { frames: 2, width: 28, height: 58, speed: 26, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_taunt_uniform.png" }
+    idle:  { frames: 2, width: 32, height: 59, speed: 10, anchorY: 0, sheet: "./ben10_idle_uniform.png" },
+    walk:  { frames: 4, width: 40, height: 58, speed: 7, anchorY: 0, sheet: "./ben10_walk_uniform.png" },
+    run:   { frames: 7, width: 58, height: 51, speed: 4, anchorY: 0, sheet: "./ben10_run_uniform.png" },
+    dash:  { frames: 7, width: 58, height: 51, speed: 3, anchorY: 0, sheet: "./ben10_run_uniform.png" },
+    jump:  { frames: 1, width: 41, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform.png" },
+    fall:  { frames: 1, width: 54, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fall_uniform.png" },
+    crouch:{ frames: 1, width: 42, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_crouch_uniform.png" },
+    guard: { frames: 1, width: 30, height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_guard_uniform.png" },
+    hurt:  { frames: 2, width: 48, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_hurt_uniform.png" },
+    knockdown: { frames: 2, width: 62, height: 35, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_knockdown_uniform.png" },
+    getup: { frames: 1, width: 40, height: 37, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_getup_uniform.png" },
+    intro: { frames: 2, width: 52, height: 66, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_intro_uniform.png" },
+    win:   { frames: 1, width: 52, height: 53, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_win_uniform.png" },
+    lose:  { frames: 1, width: 54, height: 39, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_lose_uniform.png" },
+    // STAGE-2 NORMALS (Ben-human), from the real AF punch/kick rows.
+    light:    { frames: 2, width: 40, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform.png" },
+    heavy:    { frames: 3, width: 58, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heavy_uniform.png" },
+    up:       { frames: 2, width: 48, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_up_uniform.png" },     // high-kick launcher
+    air:      { frames: 1, width: 45, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_air_uniform.png" },
+    down_air: { frames: 1, width: 45, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_down_air_uniform.png" },
+    grab:     { frames: 1, width: 39, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_grab_uniform.png" },
+    // Command chain (benJab1→benJab2) slices the 2-frame light strip (40px cells) by sourceX.
+    benJab1:  { frames: 1, width: 40, height: 59, speed: 3, sourceX: 0,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform.png" },
+    benJab2:  { frames: 1, width: 40, height: 59, speed: 3, sourceX: 40, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_light_uniform.png" },
+    // Human mobility-special pose (Energy Shot / Dash Strike share it until Phase-4 art lands) — reuse air.
+    benHover: { frames: 1, width: 45, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_air_uniform.png" },
+    // Omnitrix TRANSFORMATION cast pose (raise dial → green flash), 3 real AF Omnitrix-raise frames.
+    transform: { frames: 3, width: 40, height: 66, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform.png" },
+    // TAUNT: universal taunt-heal (game.js updateTauntState). Single clean hand-raised AF pose.
+    taunt: { frames: 1, width: 52, height: 53, speed: 26, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_taunt_uniform.png" }
   }
 }
 
@@ -11397,7 +11422,9 @@ export const characters = {
 // guards keyed on rosterKey) keep resolving and never throw. To bring one back:
 // remove its key from this list and restore its sprite PNGs from git history.
 const _WIPED_FOR_REDO = [
-  "albedo", "ben10",   // vilgax REMOVED: rebuilt onto the new regulardor8go sheet (full kit + brutalities) — stays live
+  "albedo",   // ben10 REMOVED from the wipe (2026-10-24, feat/ben10-omnitrix-framework): human-Ben
+              // art re-extracted from the Alien Force + Classic source sheets (3-variant skins) → LIVE.
+              // albedo (the Ultimatrix clone) stays wiped — its __albedo recolor sheets are not regenerated here.
   "yamamoto",
   "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
   // superman REMOVED from the wipe (2026-10-23, feat/superman): full rebuild on the JUS-addons sheet

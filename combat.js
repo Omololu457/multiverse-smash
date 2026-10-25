@@ -183,6 +183,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   }
   // SOLDIER BOY — SECOND WIND: while the 3s comeback window holds, incoming damage is reduced 25%.
   if ((target._sbSecondWind || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") rawDamage = (rawDamage || 0) * 0.75
+  // BEN 10 — LAST RESORT: while the 2s comeback window holds, incoming damage is reduced 20%. ben10/albedo-gated.
+  if ((target._benDR || 0) > 0) { const _bk = (target.rosterKey || "").toLowerCase(); if (_bk === "ben10" || _bk === "albedo") rawDamage = (rawDamage || 0) * 0.80 }
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
@@ -3202,6 +3204,20 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // BEN 10 — ENERGY GUARD (Block+Heavy): absorbs the next incoming hit outright while its window holds.
+  // Consume the window + the swing. ben10/albedo-gated → a strict no-op for every other fighter.
+  if ((defender._benEnergyGuard || 0) > 0) {
+    const _bk = (defender.rosterKey || "").toLowerCase()
+    if (_bk === "ben10" || _bk === "albedo") {
+      defender._benEnergyGuard = 0
+      attacker.currentAttack.hasHit = true
+      defender.colorFlash = Math.max(defender.colorFlash || 0, 10)
+      defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
+      try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+      return
+    }
+  }
+
   // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow
   // is dodged outright (meter cost + brief i-frames handled in shouldVegitoUIEvade). See VEGITO_UI.
   if (shouldVegitoUIEvade(defender)) {
@@ -3322,6 +3338,16 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // UNBLOCKABLE (atk.unblockable) — a DELIBERATE, per-move exception to the guard system: the block
   // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
   // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
+  // BEN 10 — Omnitrix Power charges on contact (Phase 2, shared pool, capped at maxEnergy): +3 when Ben
+  // LANDS a hit (connect, blocked or not), +2 when Ben TAKES one (not a clean block). ben10/albedo-gated
+  // so it is a no-op for every other fighter (zero frame-data impact).
+  {
+    const _isBen = f => { const k = (f?.rosterKey || "").toLowerCase(); return k === "ben10" || k === "albedo" }
+    if (_isBen(attacker)) attacker.energy = Math.min(attacker.maxEnergy || 100, (attacker.energy || 0) + 3)
+    const _defTook = !defender.isBlocking || !!atk.unblockable
+    if (_defTook && _isBen(defender)) defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + 2)
+  }
+
   if (defender.isBlocking && !atk.unblockable) {
     // FLAWLESS BLOCK: a fresh guard (blocked within FLAWLESS_BLOCK.window frames) negates chip and collapses
     // blockstun → a punish window; a held/late guard is a normal block. See the config comment above.

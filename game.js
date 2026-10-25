@@ -4,9 +4,11 @@ import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBin
 import { isChrolloSkillHunterCinematicActive, updateChrolloSkillHunterCinematic, drawChrolloSkillHunterCinematic, clearChrolloSkillHunterCinematic } from "./chrolloSkillHunterCinematic.js"   // Chrollo Skill Hunter transform cinematic (SAME freeze contract as Edo Tensei: update+draw+clear driven from updateBattle; body-swap fires at the reveal beat via onResolve)
 import { characters, characterList } from "./characters.js"
 import {
-  switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10,
-  isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
+  switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10, applyBen10VariantStats,
+  isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot,
+  ben10TransformOrSwap, ben10Revert, ben10VowPick, MAX_OMNITRIX_SLOTS, BEN10_DEFENSE
 } from "./fighters.js"
+import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
@@ -58,6 +60,7 @@ import {
   attackIsActive,                     // Edo Tensei: only an ACTIVE swing can cancel via the standing dummy
   rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
   GLOBAL_DAMAGE_SCALE,                // Edo Tensei: scale a dummy-cancel hit to the same net damage a normal hit deals
+  COMBO_DAMAGE_CURVE,                 // Ben 10 Phase 5: per-hit combo decay (for the combo-total calc hook)
   applyScaledDamage,                  // Stage 1a: the one scaled-damage choke-point (DOT ticks + Hisoka portal-drop route through it)
   tryComboBreaker, COMBO_BREAKER,     // MK-feel Stage 2d: universal block+special combo breaker (fires only vs a >=3 combo)
   tryComebackFinisher, comebackFinisherReady, comebackFinisherDamage, COMEBACK_FINISHER,   // Fatal-Blow-style comeback finisher (once/match, <30% HP, block+grab)
@@ -4787,6 +4790,11 @@ function resetRound() {
   }
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
+  // BEN 10 (Phase 2): the three variants (Alien Force / Classic / Prime) carry their own base stats —
+  // apply AFTER applySkin (which re-reads char/skin spriteScale) so the variant's health pool + move
+  // speed + jump land on top. No-op for every non-ben10/albedo fighter.
+  applyBen10VariantStats(p1, matchConfig.p1Skin)
+  applyBen10VariantStats(p2, matchConfig.p2Skin)
   // Shisui (Trinity) — INTRO: the Loyalist arrives with a Mangekyō flash + a banter line above the head.
   for (const f of [p1, p2]) {
     if (f && (f.rosterKey || "").toLowerCase() === "shisui_trinity") {
@@ -11020,52 +11028,141 @@ function updateMovementInput(fighter) {
 // (slotCap on the select screen + the draft.push validation below). Lowered 6->4 in the 2026-09-07
 // simplification pass (dropped the +Light/+Heavy slots). Its length MUST match
 // fighters.js MAX_OMNITRIX_SLOTS. Extend both together to add more slots.
+// BEN 10 OMNITRIX — Phase 3 transform input. The Omnitrix "menu" is entered with a DOUBLE-TAP DOWN
+// (↓↓); the next attack-button press within the arm window picks the slot (or reverts). ↓↓ stays
+// reserved for the Omnitrix and never collides with a normal crouch-normal (a single Down-hold never
+// arms). Slot→button map (length = slot count; mirrors fighters.js MAX_OMNITRIX_SLOTS). Labels feed
+// the kit/UI; the detection below is what actually fires.
 const BEN10_SLOT_COMBOS = [
-  { field: "down",     label: "↓" },   // slot 1
-  { field: "left",     label: "←" },   // slot 2
-  { field: "right",    label: "→" },   // slot 3
-  { field: "jump",     label: "↑" },   // slot 4  (up; consumed so it won't also jump)
+  { field: "light",         label: "↓↓ + Light" },     // slot 1
+  { field: "heavy",         label: "↓↓ + Heavy" },     // slot 2
+  { field: "special",       label: "↓↓ + Special" },   // slot 3
+  { field: "light+heavy",   label: "↓↓ + L+H" },       // slot 4
+  { field: "heavy+special", label: "↓↓ + H+S" },       // slot 5
 ]
 // Public so the pre-match slot-select UI can label each slot with its real combo (single source of truth).
 export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
 
+const OMX_DOUBLE_TAP_WINDOW = 16   // frames: a 2nd ↓ edge within this of the 1st ARMS the Omnitrix menu
+const OMX_ARM_WINDOW        = 18   // frames the menu stays armed waiting for the slot button
+
+function _benPlayerIndex(fighter) { return (fighter.side === "p2" || fighter.side === "p4") ? 1 : 0 }
+
+// BEN 10 SFX (Phase 7): play the placeholder WebAudio synth for an Omnitrix event. Pitch is ±3% from a
+// deterministic hash(matchSeed, frame, playerIndex) — NO Math.random, so LAN/replay-identical. Event
+// points set fighter._benSfx = "<id>" (fighters.js + abilities.js, no sound import there); this drains it.
+function ben10Sfx(fighter, id) {
+  if (!fighter || !id) return
+  const player = _benPlayerIndex(fighter)
+  const seed = (matchConfig?.seed || 1) >>> 0
+  let h = ((seed ^ 0x9e3779b9) >>> 0)
+  h = Math.imul(h ^ ((globalFrameCount | 0) + 0x85ebca6b), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((player | 0) + 0x27d4eb2f), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  const r = (h >>> 0) / 4294967296
+  const pitch = 1 + (r * 2 - 1) * 0.03                 // ±3% pitch variance from the hash
+  try { sound.playBen10(id, pitch, (h >>> 0) || 1) } catch (_) {}
+}
+
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
   const held = (fighter._omx = fighter._omx || {})
-  const charge   = !!inputState.charge
-  const nSlots   = Math.min(fighter.omnitrix.aliens?.length || 0, BEN10_SLOT_COMBOS.length)
+  fighter._omxConsume = null
+  fighter.isCharging = false
 
-  fighter.isCharging = false   // re-evaluated each frame below
-  fighter._omxConsume = null   // reset each frame; set only on the frame a slot-combo actually fires
-  let comboFired = false
+  // BINDING VOW opt-in (glitch mode): HOLD Heavy continuously through the first ~30 battle frames to
+  // enter the Vow (the swing is suppressed while opting in). A brief tap does nothing → it stays a normal
+  // Heavy. Tests/AI can also set fighter.omnitrix.vowActive directly (harness ben10Vow). Documented in
+  // docs/ben10/BALANCE_NOTES.md. While active: alien dmg ×1.25, drain ×1.6, swap 22, and EVERY transform/
+  // swap is a deterministic hash pick (player can't choose the alien).
+  if (fighter._omxVowStart == null) fighter._omxVowStart = globalFrameCount
+  if (!fighter._omxVowLatchDone) {
+    if ((globalFrameCount - fighter._omxVowStart) < 30) {
+      if (!!inputState.heavy) {
+        fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 2)   // suppress the opt-in swing
+        fighter._omxVowHeavyFrames = (fighter._omxVowHeavyFrames || 0) + 1
+        if (fighter._omxVowHeavyFrames >= 20) { fighter.omnitrix.vowActive = true; fighter._omxVowLatchDone = true }
+      } else fighter._omxVowHeavyFrames = 0
+    } else fighter._omxVowLatchDone = true
+  }
 
-  if (charge) {
-    // Deliberate slot transform: first slot-combo whose input just went down (edge) wins.
-    for (let i = 0; i < nSlots; i++) {
-      const f = BEN10_SLOT_COMBOS[i].field
-      const down = !!inputState[f]
-      if (down && !held[f]) {
-        if (selectAlienSlot(fighter, i)) {
-          comboFired = true
-          fighter.vx = 0                                   // plant + morph (don't slide on the combo)
-          fighter._omxConsume = { light: f === "light", heavy: f === "heavy", jump: f === "jump" }
-        }
-        break
-      }
+  const down    = !!inputState.down
+  const light   = !!inputState.light
+  const heavy   = !!inputState.heavy
+  const special = !!inputState.special
+
+  // ↓↓ detector: a fresh Down EDGE within OMX_DOUBLE_TAP_WINDOW of the previous one arms the menu.
+  if (down && !held.down) {
+    if (fighter._omxLastDown != null && (globalFrameCount - fighter._omxLastDown) <= OMX_DOUBLE_TAP_WINDOW) {
+      fighter._omxArm = OMX_ARM_WINDOW
     }
-    // CHARGE alone (no slot combo held this frame):
-    //   • TRANSFORMED → charge the drain meter (hold P).
-    //   • HUMAN → intentionally NOTHING. Transforming from human is DELIBERATE and slot-only (P+combo);
-    //     a bare-P auto-re-engage used to fire on the P-hold frame BEFORE the direction was added,
-    //     flickering into the wrong (last-used) alien and making P+slot unreliable. Removed.
-    const anyComboHeld = BEN10_SLOT_COMBOS.slice(0, nSlots).some(c => !!inputState[c.field])
-    if (!comboFired && !anyComboHeld && fighter.transformed) {
-      fighter.isCharging = true
+    fighter._omxLastDown = globalFrameCount
+  }
+
+  if ((fighter._omxArm || 0) > 0) {
+    fighter._omxArm--
+    // Resolve the slot button on a fresh attack edge. Buffered inputs overlap → L+H / H+S detectable.
+    const eL = light && !held.light, eH = heavy && !held.heavy, eS = special && !held.special
+    let pick = null                                   // { slot } | "revert"
+    if ((light && special) && (eL || eS)) pick = "revert"
+    else if ((light && heavy)   && (eL || eH)) pick = { slot: 3 }   // slot 4 (L+H)
+    else if ((heavy && special) && (eH || eS)) pick = { slot: 4 }   // slot 5 (H+S)
+    else if (eL && !heavy && !special) pick = { slot: 0 }           // slot 1 (Light)
+    else if (eH && !light && !special) pick = { slot: 1 }           // slot 2 (Heavy)
+    else if (eS && !light && !heavy)   pick = { slot: 2 }           // slot 3 (Special)
+
+    if (pick === "revert") {
+      if (ben10Revert(fighter)) {
+        fighter._omxArm = 0; fighter.vx = 0
+        fighter._omxConsume = { light: true, heavy: false }
+        inputState.light = inputState.special = false              // consume this frame's press too
+      }
+    } else if (pick) {
+      const vowCtx = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: _benPlayerIndex(fighter) }
+      const act = ben10TransformOrSwap(fighter, pick.slot, vowCtx)
+      if (act) {
+        fighter._omxArm = 0; fighter.vx = 0
+        fighter._omxConsume = { light: pick.slot === 0 || pick.slot === 3, heavy: pick.slot === 1 || pick.slot === 3 || pick.slot === 4 }
+        inputState.light = inputState.heavy = inputState.special = false   // consume this frame's press
+      }
     }
   }
 
-  held.charge = charge
-  for (const c of BEN10_SLOT_COMBOS) held[c.field] = !!inputState[c.field]
+  // Charge-to-refill retained: hold Charge (alone, not double-tapping down) while transformed → fast refill.
+  if (!!inputState.charge && fighter.transformed && !down) fighter.isCharging = true
+
+  // ── Phase 6 DEFENSE INPUTS ──
+  // GREEN FLASH ROLL (←← + Light): a back double-tap arms a window; Light within it rolls (i-frames 4-12,
+  // backward dash, 5s cd). "Back" = away from the opponent (depends on facing).
+  const back = (fighter.facing === 1) ? !!inputState.left : !!inputState.right
+  if (back && !held.back) {
+    if (fighter._benBackLast != null && (globalFrameCount - fighter._benBackLast) <= OMX_DOUBLE_TAP_WINDOW) fighter._benBackArm = OMX_ARM_WINDOW
+    fighter._benBackLast = globalFrameCount
+  }
+  if ((fighter._benBackArm || 0) > 0) {
+    fighter._benBackArm--
+    if (light && !held.light && (fighter._benRollCd || 0) <= 0 && (fighter.hitstun || 0) <= 0 && (fighter._benRoll || 0) <= 0) {
+      fighter._benBackArm = 0
+      fighter._benRoll = BEN10_DEFENSE.ROLL_FRAMES
+      fighter._benRollCd = BEN10_DEFENSE.ROLL_CD
+      fighter.vx = (fighter.facing === 1 ? -1 : 1) * BEN10_DEFENSE.ROLL_SPEED
+      fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+      fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), light: true }
+      inputState.light = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 4)
+    }
+  }
+  // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
+  if (!!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
+    fighter.energy -= BEN10_DEFENSE.GUARD_COST
+    fighter._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW
+    fighter._benGuardCd = BEN10_DEFENSE.GUARD_CD
+    fighter.colorFlash = Math.max(fighter.colorFlash || 0, 10)
+    fighter._omxConsume = { ...(fighter._omxConsume || {}), heavy: true }
+    inputState.heavy = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+  }
+
+  held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
@@ -19230,7 +19327,7 @@ function updateFighterState(fighter) {
   // Ben/Albedo run the transform-device drain/charge/revert system instead of
   // the generic passive regen (which would fight the drain). Driven by real
   // per-frame delta ms.
-  if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
+  if (isTransformDevice(updated)) { updateTransformDevice(updated, getAbilityContext().deltaMs); if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
   else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
   if (updated._meterDrain && !updated.infiniteEnergy && (updated.maxEnergy || 0) > 0) updated.energy = Math.max(0, (updated.energy || 0) - 0.5)   // Stage 24A "Meter Drain" modifier
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
@@ -26332,6 +26429,16 @@ gameLoop()
     kuramaHide:       !!f._kuramaHide,          // real body suppressed from renderHybridFighter (Minato Kurama + Edo Tensei two-vessel fix)
     name:             f.name || null,           // display name (identity proof during Ghostface Companion Swap)
     infiniteEnergy:   !!f.infiniteEnergy,        // Ghostface Swap grants this for the window (unlimited resource)
+    // ── BEN 10 Omnitrix (Phase 3) ──
+    benTransformed:   !!f.transformed,
+    benForm:          f.activeAlien || null,
+    benVariant:       f._benVariant || null,
+    benVulnerable:    !!f._omxVulnerable,         // mid-transform startup (vulnerable)
+    benPlaceholder:   !!f._benPlaceholderForm,    // alien is rendering as a placeholder (human + tint)
+    benOmx:           f.omnitrix ? { index: f.omnitrix.index, power: Math.round(f.energy || 0), startup: f.omnitrix.startup || 0, swapLockout: f.omnitrix.swapLockout || 0, timeoutCooldown: f.omnitrix.timeoutCooldown || 0, manualLockout: f.omnitrix.manualLockout || 0, vowActive: !!f.omnitrix.vowActive, lastVowPick: f.omnitrix.lastVowPick, slots: f.omnitrix.aliens.length } : null,
+    comboCounter:     f.comboCounter || 0,       // combo-scaling state (victim) — P5 combo tests
+    comboTimer:       f.comboTimer || 0,
+    benDefense:       (f.rosterKey === "ben10" || f.rosterKey === "albedo") ? { rollCd: f._benRollCd || 0, roll: f._benRoll || 0, guardCd: f._benGuardCd || 0, energyGuard: f._benEnergyGuard || 0, dr: f._benDR || 0, lastResortUsed: !!f._benLastResortUsed, invuln: f.invulnTimer || 0 } : null,
     gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
     gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
     gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
@@ -26365,6 +26472,34 @@ gameLoop()
     dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
     start:       startHarnessMatch,
     skipToBattle,
+    // ── BEN 10 OMNITRIX harness (Phase 3) ──────────────────────────────────────
+    ben10Vow: (who = "p1", on = true) => { const f = who === "p2" ? p2 : p1; if (f?.omnitrix) f.omnitrix.vowActive = !!on; return !!(f?.omnitrix?.vowActive) },
+    ben10Registry: () => ({ registry: BEN10_ALIEN_REGISTRY, loadout: buildLoadout(5), placeholder: makePlaceholder(5) }),   // Phase 4 catalog read
+    ben10Normals: (who = "p1") => { const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks; return b ? { light: b.light?.damage, lightStartup: b.light?.startup, heavy: b.heavy?.damage, up: b.up?.damage, air: b.air?.damage } : null },   // live human normals (per-variant)
+    // Phase 5: the three brief combos' UNSCALED totals under the engine's per-hit COMBO_DAMAGE_CURVE
+    // (design targets ≈122/112/138). Pure calc from the live Alien Force normals + special damages.
+    ben10ComboTotals: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks || {}
+      const dmg = { jab: b.light?.damage ?? 20, heavy: b.heavy?.damage ?? 55, low: b.down_air?.damage ?? 28, launcher: b.up?.damage ?? 50, air: b.air?.damage ?? 34, energyShot: 46, dashStrike: 42 }
+      const total = (seq) => seq.reduce((sum, mv, i) => sum + dmg[mv] * COMBO_DAMAGE_CURVE[Math.min(i, COMBO_DAMAGE_CURVE.length - 1)], 0)
+      return {
+        c1: Math.round(total(["jab", "jab", "launcher", "air"])),            // ≈122
+        c2: Math.round(total(["low", "jab", "heavy", "energyShot"])),         // ≈112
+        c3: Math.round(total(["dashStrike", "heavy", "launcher"])),           // ≈138
+      }
+    },
+    ben10SetPower: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) { f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)); if (f.omnitrix) f.omnitrix.power = f.energy } return f ? f.energy : null },
+    ben10SetHealth: (who = "p1", v = 100) => { const f = who === "p2" ? p2 : p1; if (f) f.health = Math.max(0, Math.min(f.maxHealth || 1000, v)); return f ? f.health : null },
+    // Fire a defensive tool directly (bypasses input): "roll" (Green Flash Roll) / "guard" (Energy Guard).
+    ben10Defense: (who = "p1", kind = "guard") => {
+      const f = who === "p2" ? p2 : p1; if (!f) return null
+      if (kind === "roll") { if ((f._benRollCd || 0) > 0) return { fired: false }; f._benRoll = BEN10_DEFENSE.ROLL_FRAMES; f._benRollCd = BEN10_DEFENSE.ROLL_CD; f.invulnTimer = Math.max(f.invulnTimer || 0, 2); return { fired: true, roll: f._benRoll, cd: f._benRollCd } }
+      if (kind === "guard") { if ((f._benGuardCd || 0) > 0 || (f.energy || 0) < BEN10_DEFENSE.GUARD_COST) return { fired: false }; f.energy -= BEN10_DEFENSE.GUARD_COST; f._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW; f._benGuardCd = BEN10_DEFENSE.GUARD_CD; return { fired: true, guard: f._benEnergyGuard, cd: f._benGuardCd, power: Math.round(f.energy) } }
+      return null
+    },
+    // Fire a slot transform/swap (slot 0-4) or "revert" directly (bypasses the ↓↓ input for deterministic tests).
+    ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: (f.side === "p2" || f.side === "p4") ? 1 : 0 }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },
+    ben10VowSequence: (who = "p1", frames = []) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const pIdx = (f.side === "p2" || f.side === "p4") ? 1 : 0; const seed = (matchConfig?.seed || 1) >>> 0; return frames.map(fr => ben10VowPick(f, seed, fr, pIdx)) },
     // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).
     // Returns the grid roster keys so a test can assert a character is present/selectable.
     gotoCharacterSelect: (universe) => { matchConfig.selectedUniverse = universe; gameState = GAME_STATES.SELECT_CHARACTER; return getCharacterRosterForSelectedUniverse().map(c => c.rosterKey || c.id || c.key) },

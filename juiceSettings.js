@@ -31,6 +31,12 @@ const LS_KEYS = {
   atmosphere: "ms_atmosphere",           // "1" (moody grade + fog + vignette) | "0"
   perfOverlay: "ms_perf_overlay",        // "1" (show FPS / frame-time / counts overlay) | "0" — default OFF
   autoSuggestLow: "ms_autosuggest_low",  // "1" (offer Low graphics when FPS is low) | "0" — default ON
+  hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "scaled")
+  battleDamage: "ms_battle_damage",      // "off" | "marks" | "full"  (FEEL PASS Phase 2; default "marks")
+  weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; legacy — superseded by weatherSource)
+  weatherIntensity: "ms_weather_intensity",   // "low" | "full"  (FEEL PASS Phase 3; default "full")
+  weatherSource: "ms_weather_source",    // "off" | "random" | "manual" | "local"  (FEEL PASS Phase 4; default "off")
+  manualWeather: "ms_weather_manual",    // a weather TYPE string for Manual source  (FEEL PASS Phase 4; default "rain")
 }
 
 // Tolerant load: missing/blocked storage → the conservative default. Shake &
@@ -119,15 +125,16 @@ export const juiceSettings = {
   // preset just calls the existing per-setting setters (each still round-trips individually), and
   // the ACTIVE preset is DERIVED from the current values — so tweaking any one setting reads back as
   // "custom", there's no stored-label desync, and the OLD per-setting behaviour is fully restorable.
-  // Covers only settings present on this build: particles, shake, atmosphere(=weather), hit effects,
+  // Presets also control battle damage and weather intensity, never weather source.
+  // Legacy preset scope: particles, shake, atmosphere(=weather), hit effects,
   // anime finisher, slow-mo. (Reduce Flashing / Damage Numbers / Hit Sounds are owned elsewhere —
   // accessibility / preference — and are intentionally NOT swept by a graphics preset.) Battle Damage
   // and decals are a separate concurrent feature not on this base; wire them in here when they land.
-  // Presentation-only; no sim/balance/determinism effect.
+  // Hitstop style is independent. Slow motion follows existing LAN scheduling rules.
   GRAPHICS_PRESETS: {
-    low:      { particles: "low",  screenShake: "low",  atmosphere: false, hitEffects: "low",  animFinisher: false, slowMo: false },
-    standard: { particles: "full", screenShake: "full", atmosphere: false, hitEffects: "full", animFinisher: true,  slowMo: true  },
-    full:     { particles: "full", screenShake: "full", atmosphere: true,  hitEffects: "full", animFinisher: true,  slowMo: true  },
+    low:      { particles: "low",  screenShake: "low",  atmosphere: false, hitEffects: "low",  animFinisher: false, slowMo: false, battleDamage: "off", weatherIntensity: "low" },
+    standard: { particles: "full", screenShake: "full", atmosphere: false, hitEffects: "full", animFinisher: true,  slowMo: true, battleDamage: "marks", weatherIntensity: "low" },
+    full:     { particles: "full", screenShake: "full", atmosphere: true,  hitEffects: "full", animFinisher: true,  slowMo: true, battleDamage: "full", weatherIntensity: "full" },
   },
   applyGraphicsPreset(name) {
     const p = this.GRAPHICS_PRESETS[name]; if (!p) return false
@@ -137,6 +144,8 @@ export const juiceSettings = {
     this.setHitEffects(p.hitEffects)
     this.setAnimFinisher(p.animFinisher)
     this.setSlowMo(p.slowMo)
+    this.setBattleDamage(p.battleDamage)
+    this.setWeatherIntensity(p.weatherIntensity)
     return true
   },
   // Which preset the CURRENT settings exactly match, or "custom" once any one is tweaked.
@@ -145,7 +154,8 @@ export const juiceSettings = {
       const p = this.GRAPHICS_PRESETS[name]
       if (this.particles === p.particles && this.screenShake === p.screenShake &&
           this.atmosphere === p.atmosphere && this.hitEffects === p.hitEffects &&
-          this.animFinisher === p.animFinisher && this.slowMo === p.slowMo) return name
+          this.animFinisher === p.animFinisher && this.slowMo === p.slowMo &&
+          this.battleDamage === p.battleDamage && this.weatherIntensity === p.weatherIntensity) return name
     }
     return "custom"
   },
@@ -166,6 +176,46 @@ export const juiceSettings = {
   autoSuggestLow: _get(LS_KEYS.autoSuggestLow, "1") === "1",
   setAutoSuggestLow(on) { this.autoSuggestLow = !!on; _set(LS_KEYS.autoSuggestLow, this.autoSuggestLow ? "1" : "0") },
   toggleAutoSuggestLow() { this.setAutoSuggestLow(!this.autoSuggestLow) },
+  // ── Hitstop Style (Scaled / Classic) — FEEL PASS Phase 1. "Scaled" (default) = power-scaled impact
+  // freeze + block tick + multi-hit discipline; "Classic" restores the exact pre-pass hitstop values
+  // and behaviour. This is the ONE juice setting that affects a SIM-visible value (the shared impact
+  // freeze), so — exactly like Slow-Mo — the EFFECTIVE style is host-authoritative in LAN (game.js
+  // replicates it via MATCH_SETUP) and combat.js is told the agreed style, keeping peers in lockstep.
+  // Frame advantage is identical in both styles (both fighters freeze equally; stun never ticks during
+  // hitstop), so this only changes impact WEIGHT, never match outcome.
+  hitstopStyle: (() => { const v = _get(LS_KEYS.hitstop, "scaled"); return (v === "classic" || v === "scaled") ? v : "scaled" })(),
+  setHitstopStyle(v) { if (v !== "classic" && v !== "scaled") return; this.hitstopStyle = v; _set(LS_KEYS.hitstop, v) },
+  cycleHitstopStyle() { this.setHitstopStyle(this.hitstopStyle === "scaled" ? "classic" : "scaled") },
+
+  // ── Battle Damage (Off / Marks Only / Full) — FEEL PASS Phase 2. RENDER-LAYER ONLY (persistent scuffs/
+  // scorch/frost marks on fighters + floor decals; never part of GAME_STATE / replays / determinism).
+  // "Marks Only" (default) = non-blood marks + decals. "Full" additionally shows BLOOD, but ONLY where the
+  // EXISTING Brutality eligibility rule allows AND the blood setting (bloodFx) is ON. "Off" restores the
+  // exact old look. Reduce Particles (this.particles) scales the mark/decal/drip budget.
+  battleDamage: (() => { const v = _get(LS_KEYS.battleDamage, "marks"); return (v === "off" || v === "marks" || v === "full") ? v : "marks" })(),
+  setBattleDamage(v) { if (v !== "off" && v !== "marks" && v !== "full") return; this.battleDamage = v; _set(LS_KEYS.battleDamage, v) },
+  cycleBattleDamage() { const o = ["off", "marks", "full"]; this.setBattleDamage(o[(o.indexOf(this.battleDamage) + 1) % o.length]) },
+  battleDamageOn() { return this.battleDamage !== "off" },
+  battleDamageBlood() { return this.battleDamage === "full" },   // blood STILL additionally gated on bloodFx + eligibility at the call site
+
+  // ── Weather (Off / On) + Intensity (Low / Full) — FEEL PASS Phase 3. COSMETIC ONLY (rain/snow/fog/…
+  // overlay; no gameplay effect). Default OFF. Weather TYPE/source is decided in Phase 4 (real-world /
+  // random / manual, host-authoritative in LAN); this is the master enable + the particle budget. Lightning
+  // flash respects Reduce Flashing; Reduce Particles (this.particles) also scales the budget.
+  // Weather SOURCE (Phase 4) is the authority: off / random / manual / local("My Local Weather"). The
+  // Phase-3 on/off toggle maps onto it (setWeather(true) → random). weatherOn() = source is not off.
+  weatherSource: (() => { const v = _get(LS_KEYS.weatherSource, _get(LS_KEYS.weather, "0") === "1" ? "random" : "off"); return ["off", "random", "manual", "local"].includes(v) ? v : "off" })(),
+  setWeatherSource(v) { if (!["off", "random", "manual", "local"].includes(v)) return; this.weatherSource = v; _set(LS_KEYS.weatherSource, v) },
+  cycleWeatherSource() { const o = ["off", "random", "manual", "local"]; this.setWeatherSource(o[(o.indexOf(this.weatherSource) + 1) % o.length]) },
+  weatherOn() { return this.weatherSource !== "off" },
+  setWeather(on) { this.setWeatherSource(on ? (this.weatherSource === "off" ? "random" : this.weatherSource) : "off") },   // Phase-3 compat
+  toggleWeather() { this.setWeather(!this.weatherOn()) },
+  // Manual weather TYPE (used when source === "manual").
+  manualWeather: (() => { const v = _get(LS_KEYS.manualWeather, "rain"); return v || "rain" })(),
+  setManualWeather(type) { if (!type) return; this.manualWeather = type; _set(LS_KEYS.manualWeather, type) },
+  weatherIntensity: (() => { const v = _get(LS_KEYS.weatherIntensity, "full"); return (v === "low" || v === "full") ? v : "full" })(),
+  setWeatherIntensity(v) { if (v !== "low" && v !== "full") return; this.weatherIntensity = v; _set(LS_KEYS.weatherIntensity, v) },
+  cycleWeatherIntensity() { this.setWeatherIntensity(this.weatherIntensity === "full" ? "low" : "full") },
 }
 
 export default juiceSettings

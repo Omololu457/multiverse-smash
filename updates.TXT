@@ -15,7 +15,7 @@ Integration clone:
 Integration branch:
     integration/ben10-complete-feel-polish
 
-Current milestone: committed Ben framework fast-forwarded from current main.
+Current milestone: Ben and overnight polish integrated; timing/weather reconciled.
 Implementation and combined verification are in progress. This is not a completion
 or release claim. No merge into main or deployment is authorized.
 
@@ -79,3 +79,23 @@ No replacement sprite art will be generated or borrowed from another character.
 
 Tests, fixes, conflict resolutions, readiness policy, final hashes and PR URL will
 be recorded here as implementation milestones complete. No PR is ready yet.
+
+6. Committed feature integration milestone
+
+Ben baseline: Omnitrix P3 29/0, human/placeholder render 27/0. Overnight render:
+both fighters and HUD visible, no page errors. Overnight merge: 3ca9e297.
+
+Timing/weather conflicts were resolved by combining setting declarations, layout
+and rendering, preserving both historical progress records, and regenerating the
+module map. The graphics preset row moved below weather and scroll bounds grew.
+Plain F8 remains performance overlay; Shift+F8 cycles training weather. Presets
+control battle damage/weather intensity but never enable external weather.
+
+Combined initial phase checks: P1 12/0, P2 16/1, P3 33/0, P4 25/0, P5 22/0,
+Ben P3 29/0. P2's failure was a stale Naruto eligibility assertion: modern main
+explicitly lifted that gate by owner request on 2026-10-19. Runtime policy was
+preserved. The test now checks that approved eligibility and separately checks
+Ben remains excluded, rather than changing gameplay to satisfy old branch text.
+A focused rerun will be recorded before accepting the merge.
+
+Focused battle-damage rerun: 18 passed, zero failed. Modern eligibility preserved.

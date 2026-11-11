@@ -1,47 +1,63 @@
-# BEN 10 — ADDING AN ALIEN
+# Adding an Omnitrix alien
 
-The Omnitrix engine is **data-driven**. A new alien is a registry entry + a sheet + a ledger —
-**no engine edits**. This doc is the schema + the 5-step procedure.
+Readiness, mechanics and art are separate concerns. A registry label alone does
+not make a form playable or finished. Do not add a new roster character for an alien.
 
-## Registry schema (`aliens.js` → `BEN10_ALIEN_REGISTRY`)
+## Extension points
 
-```js
-{
-  id:          "wildvine",                 // stable registry id
-  displayName: "Wildvine",                 // HUD / select label
-  slot:        1..5,                        // Omnitrix dial slot (↓↓ + Light/Heavy/Special/L+H/H+S)
-  status:      "ready" | "placeholder",    // ready = defined form; placeholder = generic
-  poolKey:     "wildvine" | null,           // fighters.js BEN10_ALIEN_POOL key the form runs on
-  sheetPath:   "./ben10_wildvine_idle_uniform.png" | null,   // null → placeholder render (human + tint)
-  ledgerPath:  "docs/ben10/aliens/wildvine.md" | null,
-  mods:        { speed, damage, defense, weight },   // 1.0 = identity; placeholders are ×1.0 (average)
-  moves:       { jab, heavy, low, launcher, air, special1, special2?, special3?, ultimate? },
-  movement:    "grounded"                    // aliens are grounded by default
-}
-```
+- Add declarative identity, modifiers, moves, readiness, sheet and ledger metadata
+  in `aliens.js` (Swampfire's definition lives in the leaf `swampfire.js`).
+- Add or reuse a mechanical pool entry in `fighters.js` and route its actual
+  special/ultimate functions in `abilities.js`. Do not pre-scale raw move damage
+  and then also apply the same form modifier in the damage pipeline.
+- Add real animation definitions and verified sprite files. `benAlienHasArt` is
+  actual runtime art availability, not the old misleading whitelist name.
+- Supply a labeled contact sheet, geometry and source-frame ledger with every
+  frame used, reused, or excluded for a stated reason.
+- Extend generic optional hooks only when needed. Swampfire's exact-frame profile,
+  explicit rectangle/radial projectile colliders and bounded connecting hold are
+  opt-in; they do not retime unrelated authored moves.
 
-`makePlaceholder(slot)` mints `slot1`..`slot5` / "Alien 1".."Alien 5" — status `placeholder`, identity
-mods, the basic move table + **Placeholder Blast** (a 12-Power projectile). Every slot is therefore
-always playable (the engine can be tested before any art).
+## Exposure contract
 
-## The 5-step procedure (NO engine edits)
+`isAlienAvailable(key, experimental)` is the common capability rule. Normal play
+requires status ready plus actual sheet/ledger references. Experimental access is
+explicit, separate from roster developer unlocks, and labels placeholder forms.
+Currently only Swampfire is approved; 13 former picker forms remain experimental.
+The other mechanical pool records remain retained and unexposed.
 
-1. **Registry entry** — add one object to `BEN10_ALIEN_REGISTRY` in `aliens.js` (or change a
-   placeholder's `status` to `"ready"` and set its `poolKey`). Set `mods` + `moves`.
-2. **Move table** — if the form needs bespoke specials/ultimate, add them to `BEN10_ALIEN_POOL`
-   (`fighters.js`, via `mkAlien({...})`) under `poolKey`, and route them in `abilities.js`
-   `executeBen10Special` / `executeBen10Ultimate` (one `if (a === "<poolKey>")` branch). Art-less
-   forms can skip this and fall back to the generic special/ultimate.
-3. **Sheet** — drop the sprite sheets on disk and set `sheetPath`. Slice per-action `_uniform` strips
-   (reuse `ben10_work/extract.py` + `pack.py`). Add the `poolKey` to `fighters.js` `_artOnDiskSet`
-   (`benAlienHasArt`) so `applyAlien` switches from the placeholder (human + tint) render to the real
-   sheets — this is a one-word data add, not engine logic.
-4. **Ledger** — write `ledgerPath` (per-alien frame→move map, like `SPRITE_LEDGER.md`).
-5. **Loadout** — to make it selectable, add its `poolKey` to `BEN10_ART_ALIENS` (`fighters.js`) /
-   the player's saved loadout. The transform/swap/timeout/Vow engine, the HUD, the Power economy,
-   and the placeholder fallback are untouched.
+`createOmnitrixState` prunes invalid or disallowed old selections and falls back to
+an approved form. `applyAlien` and framework transform/swap entry points validate
+availability again. Never offer a slot merely because a pool key exists. The
+legacy BEN10_ART_ALIENS export is a compatibility catalog, not proof of real art.
+`buildLoadout` / `getAlienBySlot` default to approved definitions, with explicit
+experimental options; empty metadata slots are not selectable production forms.
 
-## Balancing rule
+Normal default loadout is Swampfire. Ben-only development mode can be opened with
+`?benExperimental=1`; harness matches have an explicit experimental override and
+retain the legacy five-form development default. A match carries its policy and
+loadouts in replay/host setup, so local preferences cannot change peer eligibility.
+Prime is a pending-art experiment and is filtered from normal skin selection.
 
-Real aliens are balanced by **`mods` + move tables ONLY**, never by engine edits. Placeholders ship
-with deliberately average (×1.0) mods. See `docs/ben10/BALANCE_NOTES.md`.
+## Required lifecycle contract
+
+- Store authoritative gameplay state as ordinary serializable fighter/device data.
+- Use simulation frames and the established match-seed/frame/player hash for RNG.
+- Keep frame ledgers, sprite drawing, sounds and particles outside collision state.
+- Preserve the selected human's HP pool and complete stat/art snapshot on reversion.
+- Clear form-local state on switching/reversion and all device transients on round,
+  rematch or general training reset. Identity replacement clears old Ben-owned state.
+- Tag delayed Ben actions with an owner/form/action generation. Invalidated work
+  cannot execute; already emitted detached projectiles keep their authored lifetime.
+- KO clears executable transient state and recovery, retaining art only for the
+  defeat pose until a full human/device reset. Never regenerate at zero HP.
+- Distinguish once-per-round passives from once-per-match rules. Full healing does
+  not counterfeit a new round for Last Resort.
+
+## Verification before approval
+
+Test actual move dispatch, Power spending, spawn-to-hit collision, effective damage,
+block/interrupt/launch behavior, human restore, resets, art in both directions and
+supported replay/network modes. Test stale saved loadouts and direct entry points.
+Do not replace failed assertions with broad tolerances or mark placeholders ready.
+Review Swampfire's README and ledger as an implemented example.

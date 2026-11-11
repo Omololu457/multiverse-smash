@@ -1,101 +1,143 @@
-MULTIVERSE SMASH ULTIMATE — BEN / SWAMPFIRE INTEGRATION
+MULTIVERSE SMASH ULTIMATE — INTEGRATION HANDOFF
 
-1. Scope and current milestone
+1. Completion status
 
-The user confirmed these feature branches:
-- feat/ben10-omnitrix-framework
-- feat/overnight-polish
-- feat/feel-timing-weather
+Implementation and focused verification are complete in this checkout. The tested
+source includes the Ben device framework fixes, Swampfire moves and Regrowth,
+production readiness gating, replay/LAN state, the three feature merges, and the
+regressions listed below. No integration edits followed the final passing runs;
+only this report is being finalized. The source tree is committed in the next
+checkpoint step; the exact commit is recorded in LUFFY HANDOFF after commit.
 
-Uncommitted Swampfire work is preserved separately and will be recovered by
-explicit reviewed paths. The original checkout is not the integration workspace.
+2. Branches and integration
 
-Integration clone:
-    /private/tmp/ms-ben10-integration
-Integration branch:
-    integration/ben10-complete-feel-polish
+Base is modern main, 2ad979bc78be8fb50c6b12e80cfa472df040fb1f. Full feature
+history was integrated in this order:
+- feat/ben10-omnitrix-framework at 890bf4d3f64876b1eca2ba9fe7554b7eb5b46481
+- feat/overnight-polish at 0a465313549653a390bce7d3c273cdd63a490fd8
+- feat/feel-timing-weather at 776d34f8bb23a5f72dc67f62b14258bb681179ff
 
-Current milestone: Ben and overnight polish integrated; timing/weather reconciled.
-Implementation and combined verification are in progress. This is not a completion
-or release claim. No merge into main or deployment is authorized.
+The integration commits are 3ca9e297 (overnight polish) and 409b90ab (feel,
+timing and optional weather). The original checkout was preserved separately;
+no branch was merged into main and no deployment was made.
 
-2. Preservation checkpoint
+Manual overlap resolutions combined settings declarations and graphics layout,
+kept performance display at F8 and moved training weather to Shift+F8, merged
+juice presets without enabling an external weather source, and retained modern
+main's module map and roster restrictions. Disabled-content startup loads were
+gated. Network match setup now carries Ben policy/loadouts and feel settings.
 
-Private, complete backup outside the original checkout:
-    /Users/omololu/Desktop/project/ms-ben10-preservation-20261110
+3. Ben and Swampfire implementation
 
-The private directory contains checkout/, .git/index and objects/refs, tracked
-working files, untracked files, ignored files, status/diffs, a SHA-256 manifest,
-and RESTORE.txt. It is private local recovery data: do not upload it.
+- Human variants retain AF/Classic/Prime movement and jump values across device
+  setup, transform, revert, timeout and rematch; canonical one-jump state restores.
+- Shared HP is preserved. Alien stats do not multiply cumulatively or leak into
+  the human form. Prime requires development mode.
+- Production selection exposes Swampfire only. Thirteen legacy aliens remain
+  explicit development experiments with tinted human art; activation checks do
+  not certify finished kits. Albedo stays disabled. Invalid old loadouts recover.
+- Clockwork slowdown reaches the projectile hit pipeline and expires after 96
+  simulation frames. Diamondhead eruption launches and resets juggle state.
+- Energy Guard consumes one melee or projectile contact. Ordinary hit interruption
+  invalidates pending Ben actions while preserving Superman's authored heavy armor.
+- Projectile fields use explicit supported options and nullish defaults so zero
+  and false survive. Swampfire melee block chip applies defense only once.
+- Reset, KO, round and identity paths clear device transients and action epochs;
+  detached shots persist. Vow randomness remains seeded and serializable.
+- Swampfire uses the supplied 2611x3219 sheet, 30 row bands/250 source cells,
+  labeled contact sheet, source ledger, 29 body strips and eight effect strips.
+  Background keys preserve body palette; FX are separate and cosmetic.
+- Swampfire modifiers: speed .92, damage 1.10, defense divisor 1.10, weight 1.15.
+  Regrowth banks 35% actual eligible HP damage, waits 120 ticks, heals 2 per 10,
+  and restores at most 80 per transformation.
+- Normals, Flame Jet, Vine Eruption, Blaze Dash, Methane Inferno and Green Flash
+  Roll are implemented through the shared input/combat systems. Exact move frame,
+  range, damage, cost and timing conventions are in
+  docs/ben10/aliens/swampfire/README.md.
+- Four synthesized sound cues are placeholders; no voice pack is claimed. Walk
+  reuses restrained run poses; emergence poses stand in for intro/victory. The
+  contact ledger documents every source frame use/reuse/exclusion.
 
-Verified: 51,887 files, 7,903,033,457 bytes; no concurrent recopy was needed.
-Swampfire's source PNG, extraction scripts, geometry and contact sheet were
-individually verified. No credential or secret content is included in this report.
+4. Test results
 
-Original index SHA-256:
-    7cbe793ab877fcb73e860dca39b32ee71e90142fb57bc485f1cffbe53e6ce70e
-Original branch: feat/ben10-swampfire
-Original HEAD:
-    890bf4d3f64876b1eca2ba9fe7554b7eb5b46481
-Original status: 986 staged paths, 80 unstaged modifications, 1,538 untracked files.
+Passing focused checks (commands run from repository root):
+- node harness/ben10_integration.test.mjs — 31 passed, 0 failed.
+- node harness/ben10_experimental_catalog.test.mjs — 52 passed, 0 failed;
+  activation only, not complete-kit certification.
+- node harness/ben10_omnitrix_p3.mjs — 29/0.
+- node harness/ben10_moveset_p4.mjs — 15/0.
+- node harness/ben10_combo_p5.mjs — 13/0.
+- node harness/ben10_defense_p6.mjs — 15/0.
+- node harness/ben10_sound_p7.mjs — 9/0.
+- node harness/ben10_render_check.mjs — 27/0.
+- node harness/ben10_vow_determinism.test.mjs — 7/0.
+- node harness/ben10_swampfire_live.mjs — 60/0. Real keyboard, art/facing,
+  moves/cues, Regrowth, three human variants, settings, KO, victory and rematch.
+- node harness/ben10_replay_lan.mjs — 12/0; replay checkpoints matched 9/9,
+  LAN shared frames 139, mismatches 0, no uncaught browser errors.
+- node harness/roster_integrity.test.mjs — pass, roster size 126.
+- node harness/determinism.test.mjs — 14/0.
+- node harness/replay_playback.test.mjs — 10/0.
+- node harness/net_online.test.mjs — 11/0; 150 shared frames, no mismatch.
+- harness/overnight_render_check.mjs — both fighters/HUD visible, no page errors.
+- feel phases 1–5 — 12/0, 18/0, 33/0, 25/0, 22/0 (110 total).
+- node tools/stamp_version.mjs — module map regenerated (209 modules).
+- git diff --check — pass. Contact sheet visually inspected; Swampfire live
+  screenshots verified both facing, Inferno effect, and real victory screen.
 
-Restore into a NEW empty directory, never over the original:
-    cp -a <backup>/checkout /chosen/new/restore-path
-Then inspect status-v2.txt and refs.txt and verify manifest.private.json hashes.
-The copied .git/index preserves staged state separately from physical files.
-A bundle/patch alone would not preserve this state; the full tree was copied.
+The multi-browser combined runner once closed the adjacent Swampfire page while
+running relay tests. The Swampfire live test was rerun alone and passed 60/60.
+The harness reports missing /vilgax_portrait.png and /api/health; these are
+pre-existing disabled-character portrait and optional-save-service requests, not
+Swampfire failures. Browser uncaught-error and Swampfire-asset-failure checks pass.
 
-3. Starting refs and integration order
+Modern-main baseline comparisons are unchanged by this work:
+- combo-standard: 226 passed / 9 failed, same on main and integration; the failures
+  are roster classification/core normal gaps for gogeta and goku_rose plus coverage
+  drift. Authored moves were not altered to force a pass.
+- goku_stage3: 3 passed / 7 failed on both; old Goku rush sheets/stage expectations
+  conflict with the rebuilt main character.
+- superman_fighter_movement: 38 passed / 1 failed on both; disabled legacy Omni-Man
+  ultimate-action expectation. These are recorded baseline failures, not regressions.
 
-Remote information was refreshed only in the integration clone. Current remote
-main and feature tips matched the historical audit's local tracking refs.
-Local-only refs remain available under preserved-local/* in the clone.
+Not fully certified: full balance/armor for experimental aliens, their artwork,
+external live weather service, prolonged FFA interactions, and a full roster-wide
+playtest. Weather failure/geolocation fallback mocks pass; no external service was
+contacted. Existing non-Ben baseline failures remain open upstream.
 
-main:
-    2ad979bc78be8fb50c6b12e80cfa472df040fb1f
-feat/ben10-omnitrix-framework:
-    890bf4d3f64876b1eca2ba9fe7554b7eb5b46481
-feat/overnight-polish:
-    0a465313549653a390bce7d3c273cdd63a490fd8
-feat/feel-timing-weather:
-    776d34f8bb23a5f72dc67f62b14258bb681179ff
+5. Preservation and startup
 
-Order retained: main -> Ben framework -> overnight polish -> timing/weather.
-Ben descends directly from main; F/O each lack 156 commits on modern main.
-The modern base protects rebuilt characters, skins, roster restrictions and art.
+The original dirty checkout was copied to the private recovery directory
+/Users/omololu/Desktop/project/ms-ben10-preservation-20261110. It holds the full
+working tree, Git/index state and SHA-256 manifest (51,887 entries). Restore by
+copying its checkout/ directory into a new empty path; never copy over the
+original. Original branch and index hashes were rechecked; pre-existing updates.TXT
+and IDE metadata differences were observed and left untouched.
 
-4. Historical audit versus current evidence
+Install dependencies with npm ci (Node 24.16.0, npm 11.13.0 used here). Start the
+local game with npm run serve (port 8000) or npm run dev:noserver. Tests use the
+harness URLs at http://127.0.0.1:<ephemeral-port>/index.html; browser tests need
+Playwright Chromium and localhost binding. No credentials are needed in this file.
 
-The prior 1,585-line updates.TXT is preserved in the private full checkpoint.
-Its findings are leads, not proof of the implementation now being produced.
-The backup and this branch retain committed histories; no staged deletion or
-untracked asset from the original was interpreted as a request to remove content.
+6. Remaining work and limitations
 
-The actual Swampfire PNG exists and was inspected visually. Existing grid work
-identifies 30 rows and 250 cells, including separate flame/vine/explosion FX.
-No replacement sprite art will be generated or borrowed from another character.
+- Experimental aliens need authored art and separate kit, armor, balance and
+  multiplayer approval before production exposure.
+- Prime is pending art and development-only; no alien art was fabricated.
+- Older shared-engine failures listed above remain baseline failures.
+- Live external weather and broad FFA balance were not tested.
 
-5. Verification ledger
+7. LUFFY HANDOFF
 
-Tests, fixes, conflict resolutions, readiness policy, final hashes and PR URL will
-be recorded here as implementation milestones complete. No PR is ready yet.
+STATUS: READY only after the exact tested implementation commit below is present
+in the durable checkout. The integration branch is based on current main and
+contains both feature merges plus the Ben/Swampfire work.
 
-6. Committed feature integration milestone
+CHECKOUT: pending durable clone verification.
+BRANCH: integration/ben10-complete-feel-polish
+TESTED IMPLEMENTATION COMMIT: pending explicit-path commit.
+FINAL HEAD: pending documentation commit.
+DRAFT PR: pending push and PR creation.
 
-Ben baseline: Omnitrix P3 29/0, human/placeholder render 27/0. Overnight render:
-both fighters and HUD visible, no page errors. Overnight merge: 3ca9e297.
-
-Timing/weather conflicts were resolved by combining setting declarations, layout
-and rendering, preserving both historical progress records, and regenerating the
-module map. The graphics preset row moved below weather and scroll bounds grew.
-Plain F8 remains performance overlay; Shift+F8 cycles training weather. Presets
-control battle damage/weather intensity but never enable external weather.
-
-Combined initial phase checks: P1 12/0, P2 16/1, P3 33/0, P4 25/0, P5 22/0,
-Ben P3 29/0. P2's failure was a stale Naruto eligibility assertion: modern main
-explicitly lifted that gate by owner request on 2026-10-19. Runtime policy was
-preserved. The test now checks that approved eligibility and separately checks
-Ben remains excluded, rather than changing gameplay to satisfy old branch text.
-A focused rerun will be recorded before accepting the merge.
-
-Focused battle-damage rerun: 18 passed, zero failed. Modern eligibility preserved.
+Luffy should branch from this exact commit after the checkpoint fields above are
+updated and verified. Do not use the original dirty checkout as the branch base.

@@ -1,0 +1,298 @@
+# Swampfire sprite ledger
+
+Source: assets/sprites/ben10/aliens/swampfire.png (2611x3219).
+SHA-256: 0f9a8abb633a05ecc7a1e2c69fa72df0b6f522920aa1e487ae9b0faee0f6c8a0
+
+30 row bands; 250 cells. Row.column IDs match source_grid.json and contact_sheet.png.
+Exact key colors: teal (0,128,128), cyan (0,248,248), gold (240,184,48), magenta (248,0,248).
+No tolerance, recoloring, smoothing or generated art. All scaling is nearest-neighbor.
+Body strips use a 160x112 cell. Lower green-body centroid anchors x, feet anchor y.
+Body proportions are unchanged. Walk intentionally reuses restrained running poses at a slower cadence.
+Vine FX crops the separate right-hand growth from row 5; wisp isolates growth above the body in row 29.
+Wisp and cloud/patch FX are cosmetic. Hitboxes are authored independently of sprite bounds.
+Transform/victory reuse the actual emergence/standing sequence; defeat uses the supplied prone poses.
+
+## Per-frame use or exclusion
+
+- 0.0: light, benJab1.
+- 0.1: light, benJab1.
+- 0.2: light, benJab1.
+- 0.3: light, benJab2.
+- 0.4: light, benJab2.
+- 0.5: light, benJab2.
+- 1.0: up.
+- 1.1: up.
+- 1.2: up.
+- 1.3: up.
+- 1.4: up.
+- 1.5: up.
+- 1.6: up.
+- 1.7: up.
+- 1.8: up.
+- 2.0: heavy.
+- 2.1: heavy.
+- 2.2: heavy.
+- 2.3: heavy.
+- 2.4: heavy.
+- 2.5: heavy.
+- 2.6: heavy.
+- 2.7: heavy.
+- 3.0: FX eruption.
+- 3.1: FX eruption.
+- 3.2: FX eruption.
+- 3.3: FX eruption.
+- 3.4: FX eruption.
+- 4.0: sfInferno.
+- 4.1: sfInferno.
+- 4.2: sfInferno.
+- 4.3: sfInferno.
+- 4.4: sfInferno.
+- 4.5: sfInferno.
+- 4.6: sfInferno.
+- 5.0: sfVine.
+- 5.1: sfVine.
+- 5.2: sfVine.
+- 5.3: sfVine.
+- 5.4: FX vine.
+- 5.5: FX vine.
+- 5.6: FX vine.
+- 5.7: FX vine.
+- 5.8: FX vine.
+- 5.9: FX vine.
+- 5.10: sfVine.
+- 5.11: sfVine.
+- 5.12: sfVine.
+- 6.0: FX flame.
+- 6.1: FX flame.
+- 6.2: FX flame.
+- 6.3: FX flame.
+- 6.4: FX flame.
+- 7.0: sfFlameJet.
+- 7.1: sfFlameJet.
+- 7.2: sfFlameJet.
+- 7.3: sfFlameJet.
+- 8.0: air.
+- 8.1: air.
+- 8.2: air.
+- 8.3: air.
+- 8.4: air.
+- 8.5: air.
+- 8.6: air.
+- 9.0: FX jetTrail.
+- 9.1: FX jetTrail.
+- 9.2: FX jetTrail.
+- 9.3: FX jetTrail.
+- 9.4: FX jetTrail.
+- 10.0: sfBlaze.
+- 10.1: sfBlaze.
+- 10.2: sfBlaze.
+- 10.3: sfBlaze.
+- 10.4: sfBlaze.
+- 11.0: FX ember (retained alternative; not used by current kit).
+- 11.1: FX ember (retained alternative; not used by current kit).
+- 11.2: FX ember (retained alternative; not used by current kit).
+- 11.3: FX ember (retained alternative; not used by current kit).
+- 11.4: FX ember (retained alternative; not used by current kit).
+- 11.5: FX ember (retained alternative; not used by current kit).
+- 12.0: sfBlaze.
+- 12.1: sfBlaze.
+- 13.0: FX patch.
+- 13.1: FX patch.
+- 13.2: FX patch.
+- 13.3: FX patch.
+- 14.0: down_air.
+- 14.1: down_air.
+- 15.0: transform, intro.
+- 15.1: transform, intro.
+- 15.2: transform, intro.
+- 15.3: transform, intro.
+- 16.0: transform, intro, win.
+- 16.1: transform, intro, win.
+- 16.2: transform, intro, win.
+- 16.3: intro, win.
+- 16.4: intro, win.
+- 16.5: intro, win.
+- 16.6: intro, win.
+- 16.7: intro, win.
+- 16.8: intro, win.
+- 16.9: intro, win.
+- 16.10: intro, win.
+- 17.0: win.
+- 18.0: crouch.
+- 18.1: crouch.
+- 18.2: crouch.
+- 18.3: crouch.
+- 18.4: crouch.
+- 18.5: crouch.
+- 18.6: crouch.
+- 19.0: FX explosion.
+- 19.1: FX explosion.
+- 19.2: FX explosion.
+- 19.3: FX explosion.
+- 19.4: FX explosion.
+- 19.5: FX explosion.
+- 19.6: FX explosion.
+- 19.7: FX explosion.
+- 19.8: FX explosion.
+- 19.9: FX explosion.
+- 19.10: FX explosion.
+- 20.0: hurt.
+- 20.1: hurt.
+- 20.2: hurt.
+- 20.3: hurt.
+- 20.4: hurt.
+- 20.5: hurt.
+- 20.6: hurt.
+- 20.7: hurt.
+- 21.0: knockdown.
+- 21.1: knockdown.
+- 21.2: knockdown.
+- 21.3: knockdown.
+- 22.0: knockdown.
+- 22.1: knockdown.
+- 22.2: knockdown, lose.
+- 22.3: knockdown, lose.
+- 22.4: knockdown, lose.
+- 22.5: knockdown, lose.
+- 23.0: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 23.1: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 23.2: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 23.3: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 23.4: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 23.5: getup.
+- 23.6: getup.
+- 23.7: getup.
+- 23.8: getup.
+- 23.9: getup.
+- 23.10: getup.
+- 23.11: getup.
+- 23.12: roll.
+- 23.13: roll.
+- 23.14: roll.
+- 23.15: roll.
+- 23.16: roll.
+- 23.17: roll.
+- 23.18: getup, roll.
+- 23.19: getup, roll.
+- 23.20: getup.
+- 24.0: guard.
+- 24.1: guard.
+- 24.2: guard.
+- 24.3: guard.
+- 24.4: guard.
+- 25.0: idle.
+- 25.1: idle.
+- 25.2: idle.
+- 25.3: idle.
+- 25.4: idle.
+- 25.5: idle.
+- 25.6: idle.
+- 25.7: idle.
+- 25.8: idle.
+- 25.9: idle.
+- 25.10: idle.
+- 25.11: idle.
+- 25.12: idle.
+- 25.13: idle.
+- 25.14: idle.
+- 26.0: jump.
+- 26.1: jump.
+- 26.2: jump.
+- 26.3: jump.
+- 26.4: jump.
+- 26.5: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.6: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.7: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.8: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.9: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.10: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.11: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.12: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.13: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.14: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 26.15: fall.
+- 26.16: fall.
+- 27.0: walk, run, dash.
+- 27.1: walk, run, dash.
+- 27.2: walk, run, dash.
+- 27.3: run, dash.
+- 27.4: run, dash.
+- 27.5: run, dash.
+- 27.6: walk, run, dash.
+- 27.7: walk, run, dash.
+- 27.8: walk, run, dash.
+- 27.9: run, dash.
+- 27.10: run, dash.
+- 28.0: taunt, grab.
+- 28.1: taunt, grab.
+- 28.2: taunt, grab.
+- 28.3: taunt, grab.
+- 28.4: taunt.
+- 28.5: taunt.
+- 28.6: taunt.
+- 28.7: taunt.
+- 28.8: taunt.
+- 28.9: taunt.
+- 28.10: taunt.
+- 28.11: taunt.
+- 29.0: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.1: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.2: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.3: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.4: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.5: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.6: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.7: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.8: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.9: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.10: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.11: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.12: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.13: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.14: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.15: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.16: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.17: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.18: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.19: excluded: alternate/sustained source pose; no additional gameplay action needed.
+- 29.20: FX wisp.
+- 29.21: FX wisp.
+- 29.22: FX wisp.
+- 29.23: FX wisp.
+- 29.24: FX wisp.
+- 29.25: FX wisp.
+- 29.26: FX wisp.
+- 29.27: FX wisp.
+- 29.28: FX wisp.
+
+## Runtime action definitions
+
+- idle: 15 frames, 160x112, 7 ticks/frame, loop.
+- walk: 6 frames, 160x112, 7 ticks/frame, loop.
+- run: 11 frames, 160x112, 4 ticks/frame, loop.
+- dash: 11 frames, 160x112, 3 ticks/frame, loop.
+- jump: 5 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- fall: 2 frames, 160x112, 5 ticks/frame, loop.
+- crouch: 7 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- light: 6 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- heavy: 8 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- up: 9 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- air: 7 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- down_air: 2 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- guard: 5 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- hurt: 8 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- knockdown: 10 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- getup: 10 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- roll: 8 frames, 160x112, 2 ticks/frame, one-shot/hold.
+- transform: 7 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- intro: 15 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- win: 12 frames, 160x112, 6 ticks/frame, one-shot/hold.
+- lose: 4 frames, 160x112, 6 ticks/frame, one-shot/hold.
+- taunt: 12 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- grab: 4 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- sfFlameJet: 4 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- sfVine: 7 frames, 160x112, 4 ticks/frame, one-shot/hold.
+- sfBlaze: 7 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- sfInferno: 7 frames, 160x112, 5 ticks/frame, one-shot/hold.
+- benJab1: 3 frames, 160x112, 3 ticks/frame, one-shot/hold.
+- benJab2: 3 frames, 160x112, 3 ticks/frame, one-shot/hold.

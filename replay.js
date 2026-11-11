@@ -17,7 +17,7 @@ export const REPLAY_VERSION = 1;
 // Reject-on-mismatch stamp (SECTION D decision): a replay recorded under a different balance will
 // desync, so playback (11C) refuses a replay whose balanceStamp != current. BUMP THIS whenever a
 // gameplay-affecting balance value changes (damage scale, move data, hitstun, etc.).
-export const BALANCE_STAMP = "mk-conv-1a";
+export const BALANCE_STAMP = "ben10-swampfire-20261110-v1";
 
 // 14-field input bitmask. Bit order is REPLAY_INPUT_FIELDS' order — stable and shared with input.js so
 // encode/decode and playback all agree. (jump shares the up key and dash is double-tap-derived, so
@@ -42,6 +42,10 @@ export function startRecording(meta = {}) {
     version:      REPLAY_VERSION,
     balanceStamp: BALANCE_STAMP,
     seed:         meta.seed ?? null,
+    slowMo: typeof meta.slowMo === "boolean" ? meta.slowMo : null,
+    hitstopStyle: ["scaled", "classic"].includes(meta.hitstopStyle) ? meta.hitstopStyle : null,
+    benExperimental: !!meta.benExperimental,
+    p1Aliens: meta.p1Aliens ? [...meta.p1Aliens] : null, p2Aliens: meta.p2Aliens ? [...meta.p2Aliens] : null,
     p1Char: meta.p1Char ?? null, p1Skin: meta.p1Skin ?? "default",
     p2Char: meta.p2Char ?? null, p2Skin: meta.p2Skin ?? "default",
     stage:  meta.stage ?? null, mode: meta.mode ?? null, rounds: meta.rounds ?? null,

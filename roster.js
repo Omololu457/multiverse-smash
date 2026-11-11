@@ -165,7 +165,7 @@ export const roster = {
     weight: "medium",
     maxEnergy: 100,
     energyType: "omnitrix",
-    passive: { name: "Omnitrix", effect: "Press the transform button to cycle through 5 aliens, each with its own moveset" },
+    passive: { name: "Omnitrix", effect: "Down, Down + Light transforms into Swampfire. Charge restores Power; experimental forms require development mode." },
     // Default moveset shown before the first transform (Heatblast). The real per-alien
     // movesets/stats are applied live by the Omnitrix (see fighters.js / physics.js).
     basic_attacks: {

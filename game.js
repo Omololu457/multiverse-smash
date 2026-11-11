@@ -1,3 +1,6 @@
+import { SWAMPFIRE_FX } from "./swampfire.js"
+import { clearBenIdentityState } from "./ben10State.js"
+import { isAlienAvailable, getAvailableAlienKeys } from "./aliens.js"
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -2215,6 +2218,7 @@ let _juiceSlowmoTimer    = 0
 let _juiceSlowmoCooldown = 0
 let _juiceImpactFrame    = null     // { timer, maxTimer, tier, reduce }
 let _juiceSlowmoNetFlag  = null     // LAN: host-authoritative Slow-Mo flag (null = standalone)
+let _replayFeel = null
 let _hitstopStyleNetFlag = null     // FEEL PASS (Phase 1): LAN host-authoritative Hitstop Style ("scaled"|"classic"|null=standalone)
 
 // FEEL PASS (Phase 1): resolve the EFFECTIVE Hitstop Style and push it into the sim. Standalone →
@@ -2222,7 +2226,7 @@ let _hitstopStyleNetFlag = null     // FEEL PASS (Phase 1): LAN host-authoritati
 // feeds combat.js the identical style and the shared impact-freeze stays in lockstep. Called at match
 // start, on the settings toggle, and whenever the net flag changes.
 function _pushHitstopStyle() {
-  const eff = (netMatch.isActive() && _hitstopStyleNetFlag != null) ? _hitstopStyleNetFlag : juiceSettings.hitstopStyle
+  const eff = (replay.isPlayback() && _replayFeel?.hitstopStyle) ? _replayFeel.hitstopStyle : (netMatch.isActive() && _hitstopStyleNetFlag != null) ? _hitstopStyleNetFlag : juiceSettings.hitstopStyle
   setHitstopStyle(eff)
   return eff
 }
@@ -2566,6 +2570,7 @@ function _juiceSlowmoBlocked() {
 // Whether slow-mo is enabled for THIS peer. Standalone → the local setting. In a LAN match → the
 // host's setting (replicated via MATCH_SETUP), so both peers skip/run the sim schedule identically.
 function _juiceSlowmoEnabled() {
+  if (replay.isPlayback() && typeof _replayFeel?.slowMo === "boolean") return _replayFeel.slowMo
   if (netMatch.isActive() && _juiceSlowmoNetFlag !== null) return !!_juiceSlowmoNetFlag
   return !!juiceSettings.slowMo
 }
@@ -3310,6 +3315,7 @@ const matchConfig = {
   p1CharKey: null, p2CharKey: null,
   // Ben 10: the 5 aliens each player picked, plus the in-progress draft.
   p1Aliens: null, p2Aliens: null,
+  benExperimental: false,
   alienDraft: [], alienSelectSide: "p1",
   // Skins (Task 4): selected skin id per side; default until the skin-select picks one.
   p1Skin: "default", p2Skin: "default",
@@ -4463,6 +4469,8 @@ function snapshotSession() {
       aiDifficulty:     matchConfig.aiDifficulty,
       selectedUniverse: matchConfig.selectedUniverse,
       selectedStage:    matchConfig.selectedStage?.name || null,   // stages have no id → key by unique name
+      benExperimental: !!matchConfig.benExperimental,
+      p1Aliens: matchConfig.p1Aliens, p2Aliens: matchConfig.p2Aliens,
       p1CharKey:        matchConfig.p1CharKey,
       p2CharKey:        matchConfig.p2CharKey,
       p1Skin:           matchConfig.p1Skin,
@@ -4903,6 +4911,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     // p1→1, p2→2, p3→3, p4→4 (p3/p4 only exist in the FFA POC). 1v1 is unchanged.
     playerNumber: { p1: 1, p2: 2, p3: 3, p4: 4 }[side] || 2,
     // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
+    benExperimental: !!matchConfig.benExperimental,
     selectedAliens: (side === "p1" ? matchConfig.p1Aliens : matchConfig.p2Aliens) || null,
     side, controls, x,
     y: groundedY,
@@ -5046,6 +5055,10 @@ function resetRound() {
       f.teleportFlash = Math.max(f.teleportFlash || 0, 20)
     }
   }
+  if (!matchConfig.benExperimental) {
+    if (isTransformDevice(p1) && matchConfig.p1Skin === "ben10Prime") matchConfig.p1Skin = "default"
+    if (isTransformDevice(p2) && matchConfig.p2Skin === "ben10Prime") matchConfig.p2Skin = "default"
+  }
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
   // BEN 10 (Phase 2): the three variants (Alien Force / Classic / Prime) carry their own base stats —
@@ -5053,6 +5066,7 @@ function resetRound() {
   // speed + jump land on top. No-op for every non-ben10/albedo fighter.
   applyBen10VariantStats(p1, matchConfig.p1Skin)
   applyBen10VariantStats(p2, matchConfig.p2Skin)
+  for (const f of [p1, p2]) if (isTransformDevice(f)) setupBen10(f, f.selectedAliens || undefined)
   // Shisui (Trinity) — INTRO: the Loyalist arrives with a Mangekyō flash + a banter line above the head.
   for (const f of [p1, p2]) {
     if (f && (f.rosterKey || "").toLowerCase() === "shisui_trinity") {
@@ -5822,6 +5836,9 @@ function beginReplayPlayback(rep) {
   if (!v.ok) { console.warn("[replay] refused:", v.reason); return { ok: false, reason: v.reason } }
   if (rep.p1Char && characters[rep.p1Char]) { matchConfig.p1CharKey = rep.p1Char; matchConfig.p1Char = characters[rep.p1Char] }
   if (rep.p2Char && characters[rep.p2Char]) { matchConfig.p2CharKey = rep.p2Char; matchConfig.p2Char = characters[rep.p2Char] }
+  _replayFeel = { slowMo: rep.slowMo, hitstopStyle: rep.hitstopStyle }
+  matchConfig.benExperimental = !!rep.benExperimental
+  matchConfig.p1Aliens = rep.p1Aliens || null; matchConfig.p2Aliens = rep.p2Aliens || null
   matchConfig.p1Skin = rep.p1Skin || "default"
   matchConfig.p2Skin = rep.p2Skin || "default"
   if (rep.mode) matchConfig.mode = rep.mode
@@ -5834,7 +5851,18 @@ function beginReplayPlayback(rep) {
 
 // Round [x,y,energy] to 4dp for float-noise-safe state checkpoints (health is an integer). Shared by
 // the recorder and playback so their snapshots are directly comparable.
-function _replaySnap(f) { const r = v => Math.round((v || 0) * 1e4) / 1e4; return f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0] }
+function _replaySnap(f) {
+  const r = v => Math.round((v || 0) * 1e4) / 1e4
+  const snap = f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0]
+  if (isTransformDevice(f)) snap.push(JSON.stringify({
+    form: f.activeAlien || null, transformed: !!f.transformed, variant: f._benVariant,
+    device: f.omnitrix, epoch: f._benActionEpoch || 0, commit: f._benPowerCommit || 0,
+    guard: f._benEnergyGuard || 0, guardCd: f._benGuardCd || 0,
+    roll: f._benRoll || 0, rollCd: f._benRollCd || 0, last: !!f._benLastResortUsed,
+    walk: f._benWalkSpeed, jump: f.jumpForce
+  }))
+  return snap
+}
 
 // Stage 11D: download the most recent finished match's replay as a JSON file (victory-screen button).
 function replayFilename(rep) { return `replay-${rep?.p1Char || "p1"}-vs-${rep?.p2Char || "p2"}-${rep?.seed || 0}.json` }
@@ -5898,6 +5926,8 @@ function startMatch() {
   } else if (shouldRecordMatch()) {
     replay.startRecording({
       seed: matchConfig.seed, mode: matchConfig.mode, rounds: MAX_ROUNDS,
+      slowMo: _juiceSlowmoEnabled(), hitstopStyle: getHitstopStyle(),
+      benExperimental: matchConfig.benExperimental, p1Aliens: p1?.omnitrix?.aliens || p1?.selectedAliens, p2Aliens: p2?.omnitrix?.aliens || p2?.selectedAliens,
       p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
       p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
       stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null
@@ -6078,10 +6108,14 @@ function getSkinSelectRects(canvas, count) {
   return rects
 }
 
+function getBenAwareSkins(key) {
+  return getSkins(key).filter(s => !s.primePending || !!matchConfig.benExperimental)
+}
+
 function drawSkinSelectScreen() {
   ctx.fillStyle = "#0a1322"; ctx.fillRect(0, 0, canvas.width, canvas.height)
   const charKey = matchConfig[skinSelectSide + "CharKey"]
-  const skins = getSkins(charKey)
+  const skins = getBenAwareSkins(charKey)
   ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 32px Arial"
   ctx.fillText(`SELECT SKIN — ${charKey?.toUpperCase() || ""}  (P${skinSelectSide === "p1" ? 1 : 2})`, canvas.width / 2, 110)
   const rects = getSkinSelectRects(canvas, skins.length)
@@ -6347,6 +6381,7 @@ function startOnlineHostMatch() {
   const seed = makeSeed()
   online.sendSetup({
     seed, mode: "pvp", rounds: MAX_ROUNDS,
+    benExperimental: !!matchConfig.benExperimental, p1Aliens: matchConfig.p1Aliens, p2Aliens: matchConfig.p2Aliens,
     p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
     p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
     stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
@@ -6368,6 +6403,8 @@ function startOnlineHostMatch() {
 function applyOnlineSetup(m) {
   if (!m || m.seed == null) return
   matchConfig.mode = "pvp"; matchConfig.online = "join"
+  matchConfig.benExperimental = !!m.benExperimental
+  matchConfig.p1Aliens = m.p1Aliens || null; matchConfig.p2Aliens = m.p2Aliens || null
   matchConfig.p1CharKey = m.p1Char; matchConfig.p1Char = characters[m.p1Char]
   matchConfig.p2CharKey = m.p2Char; matchConfig.p2Char = characters[m.p2Char]
   matchConfig.p1Skin = m.p1Skin || "default"; matchConfig.p2Skin = m.p2Skin || "default"
@@ -9992,8 +10029,12 @@ function updateCPUInput() {
   // The AI doesn't manage the transform device, so auto re-engage its alien form
   // once it has recharged — otherwise a CPU Ben/Albedo would stay weak human after
   // its first forced revert.
-  if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
-  updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)   // Goku CPU ladder decisions
+  // A training dummy must not autonomously transform or emit a Goku burst before its
+  // stand/block/jump override. Real versus and AI-vs-AI behavior is unchanged.
+  if (matchConfig.mode !== "training") {
+    if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+    updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
+  }
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
@@ -11271,7 +11312,7 @@ function updateMovementInput(fighter) {
   // (Omni-Man: while flying, Down = DESCEND — not block; and he can't block mid-crash/recovery.)
   // BLOCK is now a DEDICATED input (keyboard ctrl.block / gamepad Circle) — MK-feel Stage 1c moved it OFF
   // Down so crouch / Down-air (S+J) / Down-motion specials / the taunt Down-hold no longer double as guard.
-  if ((inputState.block || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
+  if ((inputState.block || fighter._forceGuard) && !(fighter._benPowerCommit > 0) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
       !fighter._n7KCMNoBlock &&   // Naruto (Seventh) KCM: pure offense — no guard while golden
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
@@ -11320,7 +11361,7 @@ export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
 const OMX_DOUBLE_TAP_WINDOW = 16   // frames: a 2nd ↓ edge within this of the 1st ARMS the Omnitrix menu
 const OMX_ARM_WINDOW        = 18   // frames the menu stays armed waiting for the slot button
 
-function _benPlayerIndex(fighter) { return (fighter.side === "p2" || fighter.side === "p4") ? 1 : 0 }
+function _benPlayerIndex(fighter) { return { p1: 0, p2: 1, p3: 2, p4: 3 }[fighter.side] ?? 0 }
 
 // BEN 10 SFX (Phase 7): play the placeholder WebAudio synth for an Omnitrix event. Pitch is ±3% from a
 // deterministic hash(matchSeed, frame, playerIndex) — NO Math.random, so LAN/replay-identical. Event
@@ -11349,9 +11390,9 @@ function handleOmnitrixSwitch(fighter, inputState) {
   // Heavy. Tests/AI can also set fighter.omnitrix.vowActive directly (harness ben10Vow). Documented in
   // docs/ben10/BALANCE_NOTES.md. While active: alien dmg ×1.25, drain ×1.6, swap 22, and EVERY transform/
   // swap is a deterministic hash pick (player can't choose the alien).
-  if (fighter._omxVowStart == null) fighter._omxVowStart = globalFrameCount
+  if (fighter._omxVowStart == null) fighter._omxVowStart = (fighter.omnitrix.simFrame || 0)
   if (!fighter._omxVowLatchDone) {
-    if ((globalFrameCount - fighter._omxVowStart) < 30) {
+    if (((fighter.omnitrix.simFrame || 0) - fighter._omxVowStart) < 30) {
       if (!!inputState.heavy) {
         fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 2)   // suppress the opt-in swing
         fighter._omxVowHeavyFrames = (fighter._omxVowHeavyFrames || 0) + 1
@@ -11367,10 +11408,10 @@ function handleOmnitrixSwitch(fighter, inputState) {
 
   // ↓↓ detector: a fresh Down EDGE within OMX_DOUBLE_TAP_WINDOW of the previous one arms the menu.
   if (down && !held.down) {
-    if (fighter._omxLastDown != null && (globalFrameCount - fighter._omxLastDown) <= OMX_DOUBLE_TAP_WINDOW) {
+    if (fighter._omxLastDown != null && ((fighter.omnitrix.simFrame || 0) - fighter._omxLastDown) <= OMX_DOUBLE_TAP_WINDOW) {
       fighter._omxArm = OMX_ARM_WINDOW
     }
-    fighter._omxLastDown = globalFrameCount
+    fighter._omxLastDown = (fighter.omnitrix.simFrame || 0)
   }
 
   if ((fighter._omxArm || 0) > 0) {
@@ -11392,7 +11433,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
         inputState.light = inputState.special = false              // consume this frame's press too
       }
     } else if (pick) {
-      const vowCtx = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: _benPlayerIndex(fighter) }
+      const vowCtx = { seed: (matchConfig?.seed || 1) >>> 0, frame: (fighter.omnitrix.simFrame || 0), playerIndex: _benPlayerIndex(fighter) }
       const act = ben10TransformOrSwap(fighter, pick.slot, vowCtx)
       if (act) {
         fighter._omxArm = 0; fighter.vx = 0
@@ -11403,17 +11444,17 @@ function handleOmnitrixSwitch(fighter, inputState) {
   }
 
   // Charge-to-refill retained: hold Charge (alone, not double-tapping down) while transformed → fast refill.
-  if (!!inputState.charge && fighter.transformed && !down) fighter.isCharging = true
+  fighter.isCharging = !!inputState.charge && fighter.transformed && !down && !light && !heavy && !special && !inputState.block && !fighter.attacking && !(fighter.attackCooldown > 0) && !(fighter._benPowerCommit > 0)
 
   // ── Phase 6 DEFENSE INPUTS ──
   // GREEN FLASH ROLL (←← + Light): a back double-tap arms a window; Light within it rolls (i-frames 4-12,
   // backward dash, 5s cd). "Back" = away from the opponent (depends on facing).
   const back = (fighter.facing === 1) ? !!inputState.left : !!inputState.right
   if (back && !held.back) {
-    if (fighter._benBackLast != null && (globalFrameCount - fighter._benBackLast) <= OMX_DOUBLE_TAP_WINDOW) fighter._benBackArm = OMX_ARM_WINDOW
-    fighter._benBackLast = globalFrameCount
+    if (fighter._benBackLast != null && ((fighter.omnitrix.simFrame || 0) - fighter._benBackLast) <= OMX_DOUBLE_TAP_WINDOW) fighter._benBackArm = OMX_ARM_WINDOW
+    fighter._benBackLast = (fighter.omnitrix.simFrame || 0)
   }
-  if ((fighter._benBackArm || 0) > 0) {
+  if (!(fighter._benPowerCommit > 0) && (fighter._benBackArm || 0) > 0) {
     fighter._benBackArm--
     if (light && !held.light && (fighter._benRollCd || 0) <= 0 && (fighter.hitstun || 0) <= 0 && (fighter._benRoll || 0) <= 0) {
       fighter._benBackArm = 0
@@ -11427,7 +11468,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     }
   }
   // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
-  if (!!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
+  if (!(fighter._benPowerCommit > 0) && !!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
     fighter.energy -= BEN10_DEFENSE.GUARD_COST
     fighter._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW
     fighter._benGuardCd = BEN10_DEFENSE.GUARD_CD
@@ -17602,7 +17643,7 @@ function drawMadaraRibcageGuard(c, fighter) {
 // for text pops / HUD pips / tints) + the sheet-sliced suction/impact puffs (real art, not invented).
 const _shizukuFxImgs = {}
 function _shizukuFxImg(src) { if (!_shizukuFxImgs[src]) { const i = new Image(); i.src = src; _shizukuFxImgs[src] = i } return _shizukuFxImgs[src] }
-;["./shizuku_pull_fx_uniform.png", "./shizuku_smash_fx_uniform.png", "./shizuku_blood_fx_uniform.png", "./shizuku_cutin_a.png", "./shizuku_cutin_b.png"].forEach(_shizukuFxImg)
+if (characters.shizuku?.isPlayable !== false && !characters.shizuku?.hidden) ["./shizuku_pull_fx_uniform.png", "./shizuku_smash_fx_uniform.png", "./shizuku_blood_fx_uniform.png", "./shizuku_cutin_a.png", "./shizuku_cutin_b.png"].forEach(_shizukuFxImg)
 function _shizukuBlitFx(c, img, frames, fi, cx, cy, sc, alpha) {
   if (!img || !img.complete || img.naturalWidth === 0) return
   const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
@@ -17659,7 +17700,7 @@ function drawShizukuFx(c, fighter) {
 // the opponent. Driven by state set in abilities.js (_sikAssist / _sikBlind / _sikStreak / _sikFlashFx).
 const _sikFxImgs = {}
 function _sikFxImg(src) { if (!_sikFxImgs[src]) { const i = new Image(); i.src = src; _sikFxImgs[src] = i } return _sikFxImgs[src] }
-;["./shisui_itachi_kids_itachi_idle_uniform.png", "./shisui_itachi_kids_itachi_throw_uniform.png", "./shisui_itachi_kids_itachi_blindspot_uniform.png", "./shisui_itachi_kids_streak_uniform.png", "./shisui_itachi_kids_select.png"].forEach(_sikFxImg)
+if (characters.shisui_itachi_kids?.isPlayable !== false && !characters.shisui_itachi_kids?.hidden) ["./shisui_itachi_kids_itachi_idle_uniform.png", "./shisui_itachi_kids_itachi_throw_uniform.png", "./shisui_itachi_kids_itachi_blindspot_uniform.png", "./shisui_itachi_kids_streak_uniform.png", "./shisui_itachi_kids_select.png"].forEach(_sikFxImg)
 function _sikBlitFeet(c, img, frames, fi, cx, feetY, face, sc, alpha, flipV) {
   if (!img || !img.complete || img.naturalWidth === 0) return
   const fw = img.naturalWidth / frames, fh = img.naturalHeight, dw = fw * sc, dh = fh * sc
@@ -19601,7 +19642,15 @@ function updateFighterState(fighter) {
   // Ben/Albedo run the transform-device drain/charge/revert system instead of
   // the generic passive regen (which would fight the drain). Driven by real
   // per-frame delta ms.
-  if (isTransformDevice(updated)) { updateTransformDevice(updated, getAbilityContext().deltaMs); if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
+  clearBenIdentityState(updated)
+  if (isTransformDevice(updated)) { updateTransformDevice(updated, getAbilityContext().deltaMs);
+    if (updated.omnitrix?.regrowth?.fxFrames === 10) {
+      const a = SWAMPFIRE_FX.wisp
+      spawnProjectile(updated, "sf_regrowth_wisp", { damage: 0, vx: 0, vy: -0.3, speed: 0,
+        spawnX: updated.x + updated.w / 2, spawnY: updated.y + updated.h / 2,
+        visualOnly: true, lifetime: 20, sheet: a.sheet, spriteFrames: a.frames,
+        spriteW: a.w, spriteH: a.h, spriteSpeed: 2, spriteScale: 1.5 }, {})
+    } if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
   else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
   if (updated._meterDrain && !updated.infiniteEnergy && (updated.maxEnergy || 0) > 0) updated.energy = Math.max(0, (updated.energy || 0) - 0.5)   // Stage 24A "Meter Drain" modifier
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
@@ -19854,6 +19903,11 @@ function resetTraining() {
     f.knockdownState = false; f.knockdownTimer = 0
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
+    if (isTransformDevice(f)) {
+      const selected = f.omnitrix?.aliens || f.selectedAliens
+      setupBen10(f, selected); f.energy = f.maxEnergy || 100
+      f.ultimateCooldown = 0
+    }
     revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
     revertBorutoKarma(f)   // Boruto: never start a round still in Momoshiki Karma (clears flag + art swap + stat mults)
   })
@@ -23137,7 +23191,7 @@ function captureFrameAdvantage(def, atk) {
   if (hitRose || blockRose) {
     const onBlock = blockRose && !hitRose ? true : (bs > hs)
     const stun = onBlock ? bs : hs
-    const atkRecovery = atk.currentAttack ? (atk.currentAttack.timer || 0) : 0
+    const atkRecovery = atk.currentAttack ? (atk.currentAttack.timer || 0) : ((isTransformDevice(atk) && atk.activeAlien === "swampfire" && atk._benPowerCommit > 0) ? (atk.attackCooldown || 0) : 0)
     trainingState.lastAdvantage = {
       value: stun - atkRecovery,
       stun, recovery: atkRecovery,   // exposed components (value === stun − recovery)
@@ -24868,16 +24922,11 @@ function getUniverseList() {
 }
 
 // Flat list of every Omnitrix alien for the Ben 10 loadout screen.
-let _alienPoolListCache = null
 function getAlienPoolList() {
-  if (!_alienPoolListCache) {
-    // Only ART-BACKED aliens are offered in the loadout picker (art-less entries stay in the
-    // pool as fallback data but are hidden until real sprite art is sourced — see BEN10_ART_ALIENS).
-    _alienPoolListCache = Object.entries(BEN10_ALIEN_POOL)
-      .filter(([key]) => isArtBackedAlien(key))
-      .map(([key, a]) => ({ key, name: a.name, color: a.color }))
-  }
-  return _alienPoolListCache
+  return getAvailableAlienKeys(!!matchConfig.benExperimental).filter(key => BEN10_ALIEN_POOL[key]).map(key => {
+    const a = BEN10_ALIEN_POOL[key]
+    return { key, name: a.name + (key === "swampfire" ? "" : " [EXPERIMENTAL / placeholder]"), color: a.color }
+  })
 }
 
 // Roster + control data for the loading-screen info panel.
@@ -25036,7 +25085,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { const _rost = getCharacterRosterForSelectedUniverse(); tryHover(getCharacterCardRects(canvas, _rost, charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); if (hoverCharacterIndex >= 0 && _rost[hoverCharacterIndex]) { _previewCharTheme(_rost[hoverCharacterIndex]); noteSelectBarkTarget(_rost[hoverCharacterIndex].id); } updateSelectBark(); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
-  if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v, annPool("skinSelect")); return }
+  if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v, annPool("skinSelect")); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v, annPool("stageHover")) }
 }
 
@@ -25479,7 +25528,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.SELECT_SKIN: {
       const charKey = matchConfig[skinSelectSide + "CharKey"]
-      const skins = getSkins(charKey)
+      const skins = getBenAwareSkins(charKey)
       const r = getSkinSelectRects(canvas, skins.length).find(rr => pointInRect(mouse.x, mouse.y, rr))
       if (!r) break
       const skin = skins[r.index]
@@ -25573,7 +25622,7 @@ function _padMenuRects() {
     case GAME_STATES.SELECT_UNIVERSE:  return getUniverseCardRects(canvas, getUniverseList())
     case GAME_STATES.SELECT_CHARACTER: return getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true))
     case GAME_STATES.SELECT_EDO_BACKUP:return getCharacterCardRects(canvas, getEdoBackupRoster())
-    case GAME_STATES.SELECT_SKIN:      return getSkinSelectRects(canvas, getSkins(matchConfig[skinSelectSide + "CharKey"]).length)
+    case GAME_STATES.SELECT_SKIN:      return getSkinSelectRects(canvas, getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"]).length)
     case GAME_STATES.SELECT_STAGE:     return getStageCardRects(canvas, stages)
     case GAME_STATES.ACADEMY: {
       const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses())
@@ -26565,6 +26614,9 @@ const _asyncBootReady = (async () => {
   return { server: isSaveServerAvailable(), reconnect: needsReconnect() }
 })()
 
+// Explicit Ben-only development mode; no roster unlock. Harnesses opt in independently.
+try { if (new URLSearchParams(window.location.search).get("benExperimental") === "1") matchConfig.benExperimental = true } catch (_) {}
+
 // SESSION RESTORE (universal, guests included): re-apply the last selections / training toggles /
 // unlock flags and land on the screen the player was on (never a match — mid-fight collapses to the
 // main menu). Runs AFTER account hydrate so account unlocks compose (OR-in) with session unlocks.
@@ -26597,6 +26649,8 @@ gameLoop()
     arcadeState.active = false  // …nor an arcade run
     // Default: training vs a dummy. Pass { mode:"vs", difficulty:"easy" } for a real
     // CPU match (used to test the pause-menu → Training Mode transition).
+    matchConfig.benExperimental = opts.experimental !== false
+    matchConfig.p1Aliens = opts.p1Aliens || null; matchConfig.p2Aliens = opts.p2Aliens || null
     matchConfig.mode          = opts.mode || "training"
     matchConfig.aiDifficulty  = opts.difficulty || (matchConfig.mode === "training" ? "dummy" : "easy")
     matchConfig.selectedStage = stages[0]
@@ -26851,6 +26905,17 @@ gameLoop()
     skipToBattle,
     // ── BEN 10 OMNITRIX harness (Phase 3) ──────────────────────────────────────
     ben10Vow: (who = "p1", on = true) => { const f = who === "p2" ? p2 : p1; if (f?.omnitrix) f.omnitrix.vowActive = !!on; return !!(f?.omnitrix?.vowActive) },
+    ben10Details: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1
+      return f ? { speed: f._benWalkSpeed, jump: f.jumpForce, variant: f._benVariant, form: f.activeAlien,
+        experimental: !!f.benExperimental, guard: f._benEnergyGuard || 0, guardCd: f._benGuardCd || 0,
+        attackCooldown: f.attackCooldown || 0, ultimateCooldown: f.ultimateCooldown || 0,
+        regrowth: f.omnitrix?.regrowth ? { ...f.omnitrix.regrowth } : null,
+        sheet: f._skinAnim?.idle?.sheet || null, loadout: f.omnitrix?.aliens || null } : null
+    },
+    ben10Reset: (kind = "training") => { if (kind === "round") resetRound(); else if (kind === "rematch") _doRematch(); else resetTraining() },
+    ben10Damage: (raw = 60, who = "p1") => { const f = who === "p2" ? p2 : p1; const a = who === "p2" ? p1 : p2; return applyScaledDamage(f, raw, { attacker: a, source: "harness-contact" }) },
+    ben10Cast: (dir = "N", ultimate = false) => { if (!p1) return false; p1._specialHeldDir = dir; return ultimate ? triggerUltimate(p1, getAbilityContext()) : triggerSpecial(p1, getAbilityContext()) },
     ben10Registry: () => ({ registry: BEN10_ALIEN_REGISTRY, loadout: buildLoadout(5), placeholder: makePlaceholder(5) }),   // Phase 4 catalog read
     ben10Normals: (who = "p1") => { const f = who === "p2" ? p2 : p1; const b = f?.basic_attacks; return b ? { light: b.light?.damage, lightStartup: b.light?.startup, heavy: b.heavy?.damage, up: b.up?.damage, air: b.air?.damage } : null },   // live human normals (per-variant)
     // Phase 5: the three brief combos' UNSCALED totals under the engine's per-hit COMBO_DAMAGE_CURVE
@@ -26875,8 +26940,8 @@ gameLoop()
       return null
     },
     // Fire a slot transform/swap (slot 0-4) or "revert" directly (bypasses the ↓↓ input for deterministic tests).
-    ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: globalFrameCount, playerIndex: (f.side === "p2" || f.side === "p4") ? 1 : 0 }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },
-    ben10VowSequence: (who = "p1", frames = []) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const pIdx = (f.side === "p2" || f.side === "p4") ? 1 : 0; const seed = (matchConfig?.seed || 1) >>> 0; return frames.map(fr => ben10VowPick(f, seed, fr, pIdx)) },
+    ben10Morph: (who = "p1", slot = 0) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const vc = { seed: (matchConfig?.seed || 1) >>> 0, frame: f.omnitrix.simFrame || 0, playerIndex: _benPlayerIndex(f) }; const act = (slot === "revert") ? (ben10Revert(f) ? "revert" : null) : ben10TransformOrSwap(f, slot | 0, vc); return { act, power: Math.round(f.energy || 0), startup: f.omnitrix.startup, index: f.omnitrix.index, transformed: !!f.transformed } },
+    ben10VowSequence: (who = "p1", frames = []) => { const f = who === "p2" ? p2 : p1; if (!f?.omnitrix) return null; const pIdx = _benPlayerIndex(f); const seed = (matchConfig?.seed || 1) >>> 0; return frames.map(fr => ben10VowPick(f, seed, fr, pIdx)) },
     // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).
     // Returns the grid roster keys so a test can assert a character is present/selectable.
     gotoCharacterSelect: (universe) => { matchConfig.selectedUniverse = universe; gameState = GAME_STATES.SELECT_CHARACTER; return getCharacterRosterForSelectedUniverse().map(c => c.rosterKey || c.id || c.key) },
@@ -27347,13 +27412,13 @@ gameLoop()
           case GAME_STATES.MAIN_MENU:       return getMainMenuRects(c).map((r, i) => ({ id: r.id ?? ("m" + i), x: r.x, y: r.y, w: r.w, h: r.h }))
           case GAME_STATES.GAMEPLAY_SELECT:  return getGameplaySelectRects(c).map((r, i) => ({ id: r.id ?? ("g" + i), x: r.x, y: r.y, w: r.w, h: r.h }))
           case GAME_STATES.SELECT_STAGE:     return getStageCardRects(c, stages).map((r, i) => ({ id: r.id ?? ("stage" + i), x: r.x, y: r.y, w: r.w, h: r.h }))
-          case GAME_STATES.SELECT_SKIN:      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); return getSkinSelectRects(c, sk.length).map((r, i) => ({ id: "skin" + i, x: r.x, y: r.y, w: r.w, h: r.h })) }
+          case GAME_STATES.SELECT_SKIN:      { const sk = getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"]); return getSkinSelectRects(c, sk.length).map((r, i) => ({ id: "skin" + i, x: r.x, y: r.y, w: r.w, h: r.h })) }
           case GAME_STATES.SELECT_CHARACTER: { const _r = getCharacterRosterForSelectedUniverse(); return getCharacterCardRects(c, _r, charSelectGridOpts(c, true)).map((r, i) => ({ id: _r[i]?.id ?? ("c" + i), x: r.x, y: r.y, w: r.w, h: r.h })) }
           default: return []
         }
       },
       // Jump straight to skin-select for a known character (skin-select's rects need a side + char set).
-      primeSkinSelect: (key = "goku") => { skinSelectSide = "p1"; matchConfig.p1CharKey = key; gameState = GAME_STATES.SELECT_SKIN; return getSkins(key).length },
+      primeSkinSelect: (key = "goku") => { skinSelectSide = "p1"; matchConfig.p1CharKey = key; gameState = GAME_STATES.SELECT_SKIN; return getBenAwareSkins(key).length },
       pushToast: (text, opts) => { pushToast(text, opts); return _toasts.length },
       toastCount: () => _toasts.length,
       toastTexts: () => _toasts.map(t => t.text),   // read the live toast stack (for the unlock-name fix)
@@ -27812,11 +27877,11 @@ gameLoop()
     randomSelect: (universeOnly = false) => { pickRandomCharacter(universeOnly); return { gameState, side: matchConfig.selectingSide, picked: matchConfig[matchConfig.selectingSide === "p1" ? "p1CharKey" : "p2CharKey"] } },
     selectDetail: () => { const r = getCharacterRosterForSelectedUniverse(); const hv = r[hoverCharacterIndex]; const ck = hv && characters[hv.id]; return ck ? { key: hv.id, name: ck.name, stats: ck.stats, kitType: getKit(hv.id, ck)?.type, difficulty: getKit(hv.id, ck)?.difficulty, homeStage: ck.homeStage || null } : null },
     // Jump to the REAL skin-select screen for a character (renders each skin's portrait) — for alt-skin previews.
-    showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; _skinConfirm = null; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait, portraitReady: (() => { const im = _skinPortrait(s.portrait); return !!(im && im.complete && im.naturalWidth > 0) })() })) } },
+    showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; _skinConfirm = null; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getBenAwareSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait, portraitReady: (() => { const im = _skinPortrait(s.portrait); return !!(im && im.complete && im.naturalWidth > 0) })() })) } },
     setSkinHover: (i = 0) => { hoverSkinIndex = Math.max(0, i | 0); return hoverSkinIndex },   // drive the hover animation deterministically
-    pickSkin: (i = 0) => { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); const s = sk[i]; if (!s || !isSkinUnlocked(matchConfig[skinSelectSide + "CharKey"], s.id) || _skinConfirm) return null; matchConfig[skinSelectSide + "Skin"] = s.id; _skinConfirm = { side: skinSelectSide, index: i, timer: 15, kicked: false }; return { index: i, id: s.id } },   // trigger the confirm flourish (same path as a click)
+    pickSkin: (i = 0) => { const sk = getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"]); const s = sk[i]; if (!s || !isSkinUnlocked(matchConfig[skinSelectSide + "CharKey"], s.id) || _skinConfirm) return null; matchConfig[skinSelectSide + "Skin"] = s.id; _skinConfirm = { side: skinSelectSide, index: i, timer: 15, kicked: false }; return { index: i, id: s.id } },   // trigger the confirm flourish (same path as a click)
     skinConfirmState: () => (_skinConfirm ? { ..._skinConfirm } : null),
-    skinPortraitsReady: () => { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); return sk.map(s => { const im = _skinPortrait(s.portrait); return { name: s.name, portrait: s.portrait, ready: !!(im && im.complete && im.naturalWidth > 0) } }) },   // CURRENT decode state (check AFTER images load)
+    skinPortraitsReady: () => { const sk = getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"]); return sk.map(s => { const im = _skinPortrait(s.portrait); return { name: s.name, portrait: s.portrait, ready: !!(im && im.complete && im.naturalWidth > 0) } }) },   // CURRENT decode state (check AFTER images load)
     // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
     charPortrait: key => characters[key]?.portrait || null,
     // Card rects for the CURRENT select-universe roster (same order as showCharSelect().roster) → crop a card.
@@ -27827,7 +27892,7 @@ gameLoop()
     // ── FIT-BY-SHRINK selection screens (selection-scroll audit) ────────────────────
     // These screens don't scroll — their layouts shrink cards/rows to keep every item on one page.
     // The audit checks all rects stay within the viewport at max item counts (proves reachable).
-    skinSelectRects: () => getSkinSelectRects(canvas, getSkins(matchConfig[skinSelectSide + "CharKey"] || "beerus").length),  // SELECT_SKIN = Ghostface identity picker + all skin picks
+    skinSelectRects: () => getSkinSelectRects(canvas, getBenAwareSkins(matchConfig[skinSelectSide + "CharKey"] || "beerus").length),  // SELECT_SKIN = Ghostface identity picker + all skin picks
     towerSelectRects: () => getTowerSelectRects(canvas),                       // TOWER_SELECT tier menu
     ffaTeamRects: (count = 4) => getFFATeamSelectRects(canvas, count),         // FFA_TEAMSELECT team-assignment
     // ── SCROLLABLE GRID introspection (selection-scroll audit) ──────────────────────

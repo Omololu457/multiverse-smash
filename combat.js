@@ -1,3 +1,4 @@
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -277,6 +278,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
+  if (isSwampfire(target) && !opts.defenseApplied) rawDamage = (rawDamage ?? 0) / 1.10
+  if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
               : GLOBAL_DAMAGE_SCALE
@@ -285,6 +288,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const dealt = Math.floor(raw * scale)
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
+  recordRegrowthDamage(target, Math.max(0, before - target.health), opts)
+  if (target.health <= 0) handleBenKO(target)
   // KILLING-BLOW-MOVE STAMP (Brutality engine): when THIS application is the one that crosses the
   // defender to <=0, record on the ATTACKER which move landed the fatal blow so _tryStartBrutality can
   // key a per-MOVE finisher instead of only "who won". Purely post-KO bookkeeping — never read by the
@@ -3129,10 +3134,11 @@ export function startMove(fighter, moveKey, moveData) {
   if (!fighter || !moveData) return false
   if (fighter.attacking || fighter.hitstun > 0 || fighter.attackCooldown > 0) return false
 
-  const st = moveData.startup || 5
-  const ac = moveData.active || 4
-  const rc = moveData.recovery || 10
-  const total = _dur(st + ac + rc, fighter)
+  const timingScale = moveData.frameExact ? 1 / ((fighter.attackSpeedMultiplier || 1) * (fighter._timeSlowTimer > 0 ? TIME_SLOW_FACTOR : 1)) : 1
+  const st = Math.floor((moveData.startup ?? 5) * timingScale)
+  const ac = Math.max(1, Math.floor((moveData.active ?? 4) * timingScale))
+  const rc = Math.floor((moveData.recovery ?? 10) * timingScale)
+  const total = moveData.frameExact ? st + ac + rc : _dur(st + ac + rc, fighter)
 
   // Launchers (up attacks) get a more generous hitbox so they're not
   // pixel-precise: wider reach and a taller box that also catches an enemy who
@@ -3150,7 +3156,9 @@ export function startMove(fighter, moveKey, moveData) {
     total,
     timer: total,
     activeStart: st,
-    activeEnd: st + ac,
+    activeEnd: st + ac - (moveData.frameExact ? 1 : 0),
+    blockstun: moveData.blockstun ?? null,
+    frameExact: !!moveData.frameExact,
     rangeX: moveData.rangeX || (isLauncher ? 95 : 60),
     rangeY: moveData.rangeY || (isLauncher ? 80 : 40),
     hitstun: moveData.hitstun || 15,
@@ -3304,16 +3312,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   // BEN 10 — ENERGY GUARD (Block+Heavy): absorbs the next incoming hit outright while its window holds.
   // Consume the window + the swing. ben10/albedo-gated → a strict no-op for every other fighter.
-  if ((defender._benEnergyGuard || 0) > 0) {
-    const _bk = (defender.rosterKey || "").toLowerCase()
-    if (_bk === "ben10" || _bk === "albedo") {
-      defender._benEnergyGuard = 0
-      attacker.currentAttack.hasHit = true
-      defender.colorFlash = Math.max(defender.colorFlash || 0, 10)
-      defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
-      try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
-      return
-    }
+  if (consumeBenGuard(defender)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
   }
 
   // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow
@@ -3454,8 +3456,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = flawless ? 0 : Math.floor(dmg * (chip ? 0.12 : 0.20))
 
-    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
-    defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip", defenseApplied: true, offenseApplied: true })   // chipDmg already scaled (derived from `dmg`)
+    defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (atk.blockstun ?? (10 + (cat === "special" ? 4 : 0)))
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
     // FEEL PASS (Phase 1): a BLOCK now imparts a light shared impact-freeze (Scaled only; Classic = 0,
     // the historical "freeze is a clean-hit reward" rule). Both fighters freeze equally and blockstun
@@ -3514,6 +3516,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       // faster). Read BEFORE this hit's own launcher/spike physics runs below, so a GROUNDED launcher opener
       // never self-counts. juggleCount resets to 0 on ground contact (applyGravity).
       if (!defender.onGround && !defender.grounded) defender.juggleCount = (defender.juggleCount || 0) + 1
+      delete defender._benVineHold
+      invalidateBenAction(defender)
       defender.attacking    = false
       defender.currentAttack = null
       defender.currentMove   = null
@@ -3562,6 +3566,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     } else {
       defender.vy = atk.launchY ?? -2
     }
+
+    if (isSwampfire(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
@@ -3708,7 +3714,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     }
 
     const _hudBig = !!(atk?.isUltimate || atk?.isSpecial) || cat === "heavy" || cat === "launcher" || cat === "spike"
-    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
+    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", defenseApplied: true, offenseApplied: true, tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -4087,6 +4093,8 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // only sets this control airborne), so it's a no-op for every character except the one
       // that defines it. Currently: Madara's Susanoo-hand grab.
       startMove(fighter, "air_heavy", _getMD(fighter, "air_heavy"))
+    } else if (isSwampfire(fighter) && (fighter.onGround || fighter.grounded) && controls.crouch && (controls.light || controls.heavy)) {
+      startMove(fighter, "down", fighter.basic_attacks.down)
     } else if (controls.light) {
       if (startMove(fighter, "light", _getMD(fighter, "light"))) _setCrouchVariant(fighter, controls.crouch, "crouchLight")
     } else if (controls.heavy) {
@@ -4160,10 +4168,11 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     // jump block reads `currentAttack.launcher && hasHit`, so the attack state must persist through
     // recovery here). If they don't jump-cancel, the launcher simply recovers into neutral.
     if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
+      const exactFrameRecovery = fighter.currentAttack.frameExact
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null
-      fighter.attackCooldown = 10 // ★INVARIANT: INPUT_BUFFER_FRAMES (input.js) must be >= this, else a
+      fighter.attackCooldown = exactFrameRecovery ? 0 : 10 // ★INVARIANT: INPUT_BUFFER_FRAMES (input.js) must be >= this, else a
       // correctly-timed re-press tapped in the first recovery frames buffers, decays, and expires
       // before this lock reopens the startMove() gate → silent combo drop. See input_buffer_recovery test.
     }
@@ -4259,9 +4268,17 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // projectiles authored with only {w,h} still collide at their true size.
       const r = proj.radius || proj.size ||
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
-      const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
+      const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox)) continue
+      if (proj.radial && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
+
+      if (consumeBenGuard(fighter)) {
+        if (proj.piercesMulti) { (proj._pierceHits ||= []).push(fighter.side); continue }
+        if (proj.persist) proj._struck = true
+        else projectiles.splice(i, 1)
+        break
+      }
 
       // VEGITO — Ultra Instinct evasion: phase past the shot while the UI meter holds (and NOT charging).
       // Grants brief i-frames (in shouldVegitoUIEvade) so a lingering bolt isn't re-dodged every frame; the
@@ -4345,7 +4362,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // combo is scaled by the owner's current combo count, exactly like a melee hit. A standalone
       // projectile (counter 0/1) scales by 1 → unchanged. Uses the PRE-increment counter; the owner's
       // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
-      let dmg = (proj.damage || 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
+      let dmg = (proj.damage ?? 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
 
       // SUPERMAN / HOMELANDER — X-RAY VISION (passive): their beams/projectiles also gain +8% vs a
       // sub-25%-HP target. Gated on the OWNER; the damage write is at applyScaledDamage below.
@@ -4357,18 +4374,32 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (fighter._supArmorCd || 0) <= 0 && !proj.isUltimate
       if (fighter.isBlocking) {
         dmg *= 0.15
-        fighter.blockstun = 12
+        fighter.blockstun = proj.blockstun ?? 12
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else if (supArmoredProj) {
         fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
       } else {
-        fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
+        delete fighter._benVineHold
+        invalidateBenAction(fighter)
+        fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+        fighter.isCharging = false
+        fighter.hitstun = Math.round((proj.hitstun ?? 18) * getComboHitstunScale(proj.owner))
         if (proj.timeSlow) fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, proj.timeSlow)   // Clockwork Time Ray: stamp the slow debuff on hit
         // JUGGLE GRAVITY (Stage 1b): a projectile connecting on an AIRBORNE (juggled) target also ramps
         // their fall (read before this hit's knockback vy is applied → a grounded target never self-counts).
         if (!fighter.onGround && !fighter.grounded) fighter.juggleCount = (fighter.juggleCount || 0) + 1
-        fighter.vx = (proj.vx > 0 ? 1 : -1) * (proj.knockbackX || 5)
-        fighter.vy = proj.knockbackY || -3
+        fighter.vx = (proj.vx >= 0 ? 1 : -1) * (proj.knockbackX ?? 5) * benKnockbackScale(fighter)
+        fighter.vy = (proj.knockbackY ?? -3) * benKnockbackScale(fighter)
+        if (proj.launcher) {
+          fighter.isLaunched = true; fighter.airHits = 0
+          fighter.onGround = false; fighter.grounded = false
+          fighter.vy = (proj.launchVy ?? proj.knockbackY ?? -14) * benKnockbackScale(fighter)
+        }
+        if (proj.connectHold) {
+          fighter.vx = 0; fighter.vy = 0
+          fighter.hitstun = Math.max(fighter.hitstun, Math.min(18, proj.connectHold + 2))
+          if (Number.isFinite(proj.connectToX)) fighter._benVineHold = { frames: Math.min(8, proj.connectHold), destination: proj.connectToX - fighter.w / 2 }
+        }
         fighter.colorFlash = 6
         // Projectile hit-stop — gives a connecting bolt/fireball impact weight (previously
         // projectiles applied none). Freezes the TARGET ONLY — NOT the owner: unlike a melee

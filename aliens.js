@@ -1,34 +1,20 @@
+import { SWAMPFIRE } from "./swampfire.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
 // (move tables, procedural/placeholder render, transform/swap economy) lives in fighters.js +
 // abilities.js and is keyed by `poolKey`. This file is the single place a new alien is DEFINED.
 //
-// Adding a real alien later must require ONLY: one registry entry + one sheet + one ledger — NO engine
-// edits (see docs/ben10/ADD_ALIEN.md). A placeholder becomes "ready" by flipping its status + adding its
-// art (fighters.js benAlienHasArt list) — again, data, not engine logic.
-//
-// SCHEMA (per entry):
-//   {
-//     id:          string,                      // stable registry id (e.g. "xlr8", "slot4")
-//     displayName: string,                      // HUD / select label
-//     slot:        1..5,                         // Omnitrix dial slot (↓↓ + Light/Heavy/Special/L+H/H+S)
-//     status:      "ready" | "placeholder",     // "ready" = defined form (procedural/art); placeholder = generic
-//     poolKey:     string | null,               // fighters.js BEN10_ALIEN_POOL key the form runs on (null = generic)
-//     sheetPath:   string | null,               // sprite sheet on disk (null → placeholder render: human + tint)
-//     ledgerPath:  string | null,               // per-alien sprite/move ledger (null until art lands)
-//     mods:        { speed, damage, defense, weight },   // form modifiers (1.0 = identity; placeholders are 1.0)
-//     moves:       { jab, heavy, low, launcher, air, special1, special2?, special3?, ultimate? },  // move labels
-//     movement:    "grounded"                    // aliens are grounded by default (may declare a profile later)
-//   }
-// ────────────────────────────────────────────────────────────────────────────────────────────────
-
-// The DEFAULT 5-slot loadout, wrapping the existing art-less pool aliens as status "ready" — they render
-// as placeholders (human + Omnitrix tint) until real sheets land, but carry their OWN full move tables
-// from BEN10_ALIEN_POOL (nothing regresses). mods are identity (1.0) so wrapping changes no behaviour.
+// Readiness is explicit: approved forms require status ready, source art and a ledger.
+// Mechanics / animation mappings may need scoped hooks; see docs/ben10/ADD_ALIEN.md.
+// Legacy catalog slots are historical metadata. Runtime dial position is the filtered loadout
+// index; a duplicate historical slot does not overwrite a form. Never use slot as registry identity.
+// Experimental forms preserve their existing mechanics and tinted human placeholder rendering.
+// Swampfire occupies the first production loadout slot without deleting experimental definitions.
 export const BEN10_ALIEN_REGISTRY = [
+  SWAMPFIRE,
   {
-    id: "xlr8", displayName: "XLR8", slot: 1, status: "ready", poolKey: "xlr8",
+    id: "xlr8", displayName: "XLR8", slot: 1, status: "experimental", poolKey: "xlr8",
     sheetPath: null, ledgerPath: null,
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Claw Jab", heavy: "Spin Kick", low: "Low Sweep", launcher: "Rising Slash", air: "Air Claw",
@@ -36,7 +22,7 @@ export const BEN10_ALIEN_REGISTRY = [
     movement: "grounded"
   },
   {
-    id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "ready", poolKey: "diamondhead",
+    id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",
     sheetPath: null, ledgerPath: null,
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Shard Jab", heavy: "Crystal Smash", low: "Low Shard", launcher: "Spire Rise", air: "Shard Drop",
@@ -44,7 +30,7 @@ export const BEN10_ALIEN_REGISTRY = [
     movement: "grounded"
   },
   {
-    id: "feedback", displayName: "Feedback", slot: 3, status: "ready", poolKey: "feedback",
+    id: "feedback", displayName: "Feedback", slot: 3, status: "experimental", poolKey: "feedback",
     sheetPath: null, ledgerPath: null,
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Prong Jab", heavy: "Conduit Slam", low: "Low Prong", launcher: "Surge Rise", air: "Air Prong",
@@ -52,7 +38,7 @@ export const BEN10_ALIEN_REGISTRY = [
     movement: "grounded"
   },
   {
-    id: "wildmutt", displayName: "Wildmutt", slot: 4, status: "ready", poolKey: "wildmutt",
+    id: "wildmutt", displayName: "Wildmutt", slot: 4, status: "experimental", poolKey: "wildmutt",
     sheetPath: null, ledgerPath: null,
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Claw Swipe", heavy: "Maul", low: "Low Claw", launcher: "Pounce", air: "Air Maul",
@@ -60,7 +46,7 @@ export const BEN10_ALIEN_REGISTRY = [
     movement: "grounded"
   },
   {
-    id: "heatblast", displayName: "Heatblast", slot: 5, status: "ready", poolKey: "heatblast",
+    id: "heatblast", displayName: "Heatblast", slot: 5, status: "experimental", poolKey: "heatblast",
     sheetPath: null, ledgerPath: null,
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Ember Jab", heavy: "Flame Hook", low: "Low Flame", launcher: "Flare Rise", air: "Air Ember",
@@ -90,12 +76,22 @@ export function makePlaceholder(slot = 1) {
 
 // Convenience lookups (used by docs/tests/UI). The runtime loadout itself is still built by fighters.js
 // (createOmnitrixState) from BEN10_ART_ALIENS / DEFAULT_OMNITRIX — this registry is the catalog of record.
-export function getAlienBySlot(slot) { return BEN10_ALIEN_REGISTRY.find(a => a.slot === slot) || makePlaceholder(slot) }
+export function getAlienBySlot(slot, { experimental = false } = {}) { return BEN10_ALIEN_REGISTRY.filter(a => isAlienAvailable(a.poolKey, experimental))[slot - 1] || makePlaceholder(slot) }
 export function getAlienById(id)     { return BEN10_ALIEN_REGISTRY.find(a => a.id === id) || null }
 export function readySlots()         { return BEN10_ALIEN_REGISTRY.filter(a => a.status === "ready").map(a => a.poolKey) }
 // Fill slots 1..n: a registered entry if present, else a placeholder. Guarantees every slot is playable.
-export function buildLoadout(n = 5) {
+export function buildLoadout(n = 5, options = {}) {
   const out = []
-  for (let s = 1; s <= n; s++) out.push(getAlienBySlot(s))
+  for (let s = 1; s <= n; s++) out.push(getAlienBySlot(s, options))
   return out
 }
+
+// Readiness is independent from having legacy mechanics. Never advertise a tinted human as alien art.
+const extraAliens = ["fourarms", "upgrade", "eyeguy", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
+for (const key of extraAliens) BEN10_ALIEN_REGISTRY.push({ id: key, poolKey: key, displayName: key, status: "experimental", sheetPath: null, ledgerPath: null, mods: { speed: 1, damage: 1, defense: 1, weight: 1 } })
+export const getAlienDefinition = key => BEN10_ALIEN_REGISTRY.find(a => a.poolKey === key) || null
+export const isAlienAvailable = (key, experimental = false) => {
+  const a = getAlienDefinition(key)
+  return !!a && (experimental || (a.status === "ready" && !!a.sheetPath && !!a.ledgerPath))
+}
+export const getAvailableAlienKeys = (experimental = false) => BEN10_ALIEN_REGISTRY.filter(a => isAlienAvailable(a.poolKey, experimental)).map(a => a.poolKey)

@@ -67,9 +67,13 @@ try {
   await call("ben10SetPower", "p1", 10); await frames(4)
   const pow2 = (await p1()).benOmx.power
   ok(pow2 < 20, `Last Resort must only fire ONCE per round (power should not jump again, got ${pow2})`)
-  // re-arms when health refills to full (round start)
+  // Healing does not counterfeit a new round. Only an actual reset re-arms.
   await call("ben10SetHealth", "p1", 950); await frames(3)
-  ok(!(await p1()).benDefense.lastResortUsed, "Last Resort should re-arm when health refills (round start)")
+  ok((await p1()).benDefense.lastResortUsed, "full healing must not re-arm Last Resort in the same round")
+  await call("ben10Reset", "round"); await frames(4); await call("skipToBattle"); await frames(4)
+  ok(!(await p1()).benDefense.lastResortUsed, "actual round reset re-arms Last Resort")
+  await call("ben10SetPower", "p1", 10); await call("ben10SetHealth", "p1", 100); await frames(4)
+  ok((await p1()).benDefense.lastResortUsed && (await p1()).energy >= 39, "new round can trigger its own Last Resort once")
 
   ok(jsErrors.length === 0, `page errors: ${jsErrors.slice(0, 2).join(" | ")}`)
 } catch (e) { failed++; fails.push("EXCEPTION: " + String(e && e.stack || e)) }

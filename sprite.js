@@ -456,6 +456,7 @@ const MOVE_TO_ACTION = {
   dhSwing1: "dhSwing1", dhSwing2: "dhSwing2",
   // Stage 3 specials (per-form): Ben Hoverboard, XLR8 Dash Strike / Sonic Rush, Diamondhead
   // Shard Barrage cast / Rising Diamonds cast. Identity maps (currentMove / _spriteCastMove === key).
+  sfFlameJet: "sfFlameJet", sfVine: "sfVine", sfBlaze: "sfBlaze", sfInferno: "sfInferno",
   benHover: "benHover", xlDash: "xlDash", xlRush: "xlRush", dhShoot: "dhShoot", dhRising: "dhRising",
   // Stage 4 ultimates: Ben Omnitrix-transform cast pose, XLR8 Sonic Blitz, Diamondhead Crystal Storm.
   transform: "transform", xlUlt: "xlUlt", dhUlt: "dhUlt",
@@ -664,6 +665,10 @@ function _resolveAction(fighter, currentAction = "idle") {
   // ?harness) so a screenshot tool can render a SPECIFIC action deterministically without
   // driving physics. Inert in normal play (the field is never set). Highest priority.
   if (fighter._forceAction) return fighter._forceAction;
+  if (fighter.transformed && fighter.activeAlien === "swampfire") {
+    if (fighter._benRoll > 0) return "roll";
+    if (fighter.currentAttack?.name === "down") return "crouch";
+  }
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",

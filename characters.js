@@ -2867,7 +2867,7 @@ const ben10 = {
   archetypes: ["transformations", "melee"],
   primary: "transformations", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
-  passive: { name: "Omnitrix", effect: "Press the transform/charge button to cycle through 5 aliens, each with its own moveset" },
+  passive: { name: "Omnitrix", effect: "Down, Down + Light transforms into Swampfire. Charge restores Power; experimental forms require development mode." },
   // BEN10-FRAMEWORK Phase 2: base = ALIEN FORCE variant (health 950). Classic (900) / Prime (1000)
   // override via fighters.js BEN10_VARIANT_STATS, applied after applySkin. Health is a SHARED pool —
   // transforming never heals/resizes the bar (applyAlien keeps this maxHealth across every alien form).

@@ -1,3 +1,6 @@
+import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
+import { isAlienAvailable, getAvailableAlienKeys } from "./aliens.js"
+import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
 // Called from ui.js drawFighter() — no sprites required.
@@ -881,6 +884,10 @@ function mkAlien(cfg) {
 }
 
 export const BEN10_ALIEN_POOL = {
+  swampfire: { name: "Swampfire", color: "#718a20", maxHealth: 950,
+    stats: { maxHealth: 950, speed: 8.28, maxJumps: 1, jumpPower: 19, sizeW: 60, sizeH: 110 },
+    basic_attacks: SWAMPFIRE.basic_attacks, specials: SWAMPFIRE.moves,
+    ultimate: { name: "Methane Inferno", cost: 50, damage: 220 } },
   heatblast:  mkAlien({ name: "Heatblast", color: "#f97316", role: "zoner", hp: 1000, spd: 7, dmg: 1.0,
                         special: { name: "Fireball", ranged: true, damage: 110, cost: 25, projectileId: "heatblast_fire" }, ult: { name: "Supernova", damage: 220 } }),
   fourarms:   mkAlien({ name: "Four Arms", color: "#dc2626", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 19, dmg: 1.25, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,
@@ -958,13 +965,13 @@ export const BEN10_ALIEN_POOL = {
 // an active loadout. Every other entry in BEN10_ALIEN_POOL stays as valid (procedurally-drawn)
 // data so nothing breaks — it's simply HIDDEN from selection until real sprite art is sourced.
 // This is the loadout "prune" gate (no pool data deleted); add keys here as art arrives.
-export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast", "fourarms", "upgrade", "eyeguy", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
+export const BEN10_ART_ALIENS = getAvailableAlienKeys(true) // legacy compatibility: includes experimental entries, NOT an art-ready claim
 const _artAlienSet = new Set(BEN10_ART_ALIENS)
 export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
 // Phase 3: whether an alien has ACTUAL sprite sheets on disk. They were wiped with the Ben 10 redo, so
 // every form currently renders as a PLACEHOLDER (human-Ben frames + a render-only Omnitrix tint). When
 // real ben10_<alien>_*.png sheets are sourced, list the ready keys here and the retag path lights up.
-const _artOnDiskSet = new Set([])
+const _artOnDiskSet = new Set(["swampfire"])
 export function benAlienHasArt(key) { return _artOnDiskSet.has(key) }
 
 // Loadout pick-cap. MUST match BEN10_SLOT_COMBOS.length in game.js (the in-fight transform
@@ -974,7 +981,8 @@ export function benAlienHasArt(key) { return _artOnDiskSet.has(key) }
 export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = [...BEN10_ART_ALIENS].slice(0, MAX_OMNITRIX_SLOTS)
+export const DEFAULT_OMNITRIX = ["swampfire"]
+export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
 
@@ -1372,18 +1380,18 @@ export function ben10Characters(prefix = "ben_") {
   return out
 }
 
-export function createOmnitrixState(selected = DEFAULT_OMNITRIX) {
+export function createOmnitrixState(selected, { experimental = false } = {}) {
   // Only art-backed aliens are allowed into a live loadout (the rest are hidden from the picker);
   // a stale saved loadout that names hidden aliens is filtered down, then defaulted if nothing's left.
   // De-duped so cycling never lands on the same form twice. No art-less fill (the loadout is just the
   // art-backed aliens the player picked — capped at MAX_OMNITRIX_SLOTS, matching the pick-cap/slot count).
-  let aliens = (selected || []).filter(k => _artAlienSet.has(k) && BEN10_ALIEN_POOL[k])
+  let aliens = (selected || []).filter(k => isAlienAvailable(k, experimental) && BEN10_ALIEN_POOL[k])
   aliens = [...new Set(aliens)].slice(0, MAX_OMNITRIX_SLOTS)
-  if (aliens.length === 0) aliens = [...DEFAULT_OMNITRIX]
+  if (aliens.length === 0) aliens = [...(experimental ? EXPERIMENTAL_OMNITRIX : DEFAULT_OMNITRIX)]
   // Phase 3: the Omnitrix state object IS the GAME_STATE sub-structure. currentForm mirrors
   // activeAlien; power mirrors fighter.energy; the lockouts/timers drive transform/swap/timeout.
   return {
-    aliens, index: 0, switchCooldown: 0,
+    aliens, index: 0, switchCooldown: 0, simFrame: 0,
     currentForm: null,      // active alien key (null = human)
     formTimer: 0,           // frames spent in the current alien form
     power: 0,               // mirror of fighter.energy (Omnitrix Power), kept in sync each frame
@@ -1399,13 +1407,20 @@ export function createOmnitrixState(selected = DEFAULT_OMNITRIX) {
 
 export function applyAlien(fighter, alienKey) {
   const alien = BEN10_ALIEN_POOL[alienKey]
-  if (!fighter || !alien) return false
+  if (!fighter || !alien || !isTransformDevice(fighter) || !isAlienAvailable(alienKey, !!fighter.benExperimental)) return false
 
+  clearBenFormState(fighter)
+  fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+  fighter.attackCooldown = 0
+  fighter._benWalkSpeed = null
+  fighter._benFormDamage = 1
+  fighter.damageMultiplier = 1
+  fighter.defenseMultiplier = 1
   fighter.activeAlien = alienKey
-  fighter.activeAlienName = alien.name
+  fighter.activeAlienName = alien.name + (alienKey === "swampfire" ? "" : " [EXPERIMENTAL]")
   // Albedo is Ben's clone: same aliens, different identity label.
   const who = (fighter.rosterKey || "").toLowerCase() === "albedo" ? "Albedo" : "Ben 10"
-  fighter.name = `${who} (${alien.name})`
+  fighter.name = `${who} (${fighter.activeAlienName})`
   fighter.color = alien.color
 
   fighter.basic_attacks = alien.basic_attacks
@@ -1426,6 +1441,18 @@ export function applyAlien(fighter, alienKey) {
     fighter.health = Math.max(0, Math.min(fighter.maxHealth, fighter.health))
   }
   fighter.stats = { ...(fighter.stats || {}), ...s, maxHealth: fighter.maxHealth }
+  if (alienKey === "swampfire") {
+    const V = fighter._benHumanStats || BEN10_VARIANT_STATS.default
+    fighter._benWalkSpeed = V.speed * SWAMPFIRE.mods.speed
+    fighter.baseSpeed = fighter.speed = fighter._benWalkSpeed
+    fighter.jumpForce = -V.jumpPower; fighter.maxJumps = 1
+    fighter.dashSpeed = V.dashSpeed * SWAMPFIRE.mods.speed
+    fighter._benFormDamage = SWAMPFIRE.mods.damage
+    fighter.damageMultiplier = SWAMPFIRE.mods.damage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
+    fighter.defenseMultiplier = SWAMPFIRE.mods.defense
+    fighter._benWeight = V.weight * SWAMPFIRE.mods.weight
+    beginRegrowth(fighter)
+  }
 
   // Size change (Way Big / Atomix etc.), bottom-anchored so feet stay put.
   const oldH = fighter.h ?? fighter.height ?? 110
@@ -1441,10 +1468,11 @@ export function applyAlien(fighter, alienKey) {
   // table still swaps in above. When a form's real sheets arrive (benAlienHasArt), the retag path
   // (art-backed animationData, recolor-aware) lights up with no other change.
   if (benAlienHasArt(alienKey)) {
-    fighter._skinAnim = _retagAlienAnim(BEN10_FORM_ANIM[alienKey] || null, fighter._recolorTag)
+    fighter._skinAnim = _retagAlienAnim(alienKey === "swampfire" ? SWAMPFIRE_ANIM : (BEN10_FORM_ANIM[alienKey] || null), alienKey === "swampfire" ? null : fighter._recolorTag)
     fighter.skinTint  = fighter._baseSkinTint ?? null
+    fighter._benPlaceholderForm = false
   } else {
-    fighter._skinAnim    = null                                  // human-Ben frames
+    fighter._skinAnim    = fighter._baseSkinAnim || null          // selected human variant frames
     fighter.skinTint     = alien.color || "#39ff14"              // render-only Omnitrix tint (placeholder)
     fighter.tintStrength = 0.5
     fighter._benPlaceholderForm = true
@@ -1474,7 +1502,8 @@ export function selectAlienSlot(fighter, slot) {
   if (!omx || slot < 0 || slot >= omx.aliens.length) return false
   if (fighter.transformed) {
     if (omx.switchCooldown > 0) return false           // mid-recharge between switches
-    if (omx.index === slot) return false               // already this alien — nothing to do
+    if (!isAlienAvailable(omx.aliens[slot], !!fighter.benExperimental)) return false
+  if (omx.index === slot) return false               // already this alien — nothing to do
   } else {
     // Re-engaging from human: same gate as tryTransform (recharge lockout + min energy).
     if ((fighter.deviceRecharge || 0) > 0) return false
@@ -1525,10 +1554,13 @@ export function ben10VowPick(fighter, seed = 1, frame = 0, playerIndex = 0) {
 export function ben10BeginTransform(fighter, slot) {
   const omx = fighter?.omnitrix; if (!omx || fighter.transformed) return false
   if ((omx.timeoutCooldown || 0) > 0 || (omx.manualLockout || 0) > 0) return false
-  if ((omx.startup || 0) > 0) return false                              // already mid-transform
+  if ((omx.startup || 0) > 0 || fighter.hitstun > 0 || fighter.blockstun > 0 || (fighter.health ?? 1) <= 0) return false
   if ((fighter.energy || 0) < TRANSFORM_ENERGY.TRANSFORM_COST) return false
   slot = Math.max(0, Math.min(omx.aliens.length - 1, slot | 0))
+  if (!isAlienAvailable(omx.aliens[slot], !!fighter.benExperimental)) return false
   fighter.energy -= TRANSFORM_ENERGY.TRANSFORM_COST
+  clearBenFormState(fighter)
+  fighter.currentMove = null
   omx.pendingSlot = slot
   omx.startup = TRANSFORM_ENERGY.TRANSFORM_STARTUP                      // vulnerable flash; alien applied at 0
   fighter._omxVulnerable = true
@@ -1545,7 +1577,7 @@ export function ben10BeginTransform(fighter, slot) {
 // lockout + a short flash. Rejected during hitstun, during an existing swap lockout, or into the SAME form.
 export function ben10Swap(fighter, slot) {
   const omx = fighter?.omnitrix; if (!omx || !fighter.transformed) return false
-  if ((omx.swapLockout || 0) > 0) return false
+  if ((omx.swapLockout || 0) > 0 || fighter._benPowerCommit > 0) return false
   if ((fighter.hitstun || 0) > 0) return false                         // cannot swap during hitstun
   slot = Math.max(0, Math.min(omx.aliens.length - 1, slot | 0))
   if (omx.index === slot) return false                                 // same form — rejected
@@ -1577,7 +1609,7 @@ export function ben10TransformOrSwap(fighter, slot, vowCtx = null) {
 // Manual revert (↓↓ + Light+Special): 20-frame lockout, NO timeout penalty (that is only for a 0-Power
 // forced revert). Cancels any in-progress transform startup too.
 export function ben10Revert(fighter) {
-  const omx = fighter?.omnitrix; if (!omx) return false
+  const omx = fighter?.omnitrix; if (!omx || fighter._benPowerCommit > 0) return false
   if (!fighter.transformed && (omx.startup || 0) <= 0) return false
   omx.startup = 0; omx.pendingSlot = 0; fighter._omxVulnerable = false
   revertToHuman(fighter, { forced: false })
@@ -1644,7 +1676,7 @@ const HUMAN_FORM = {
     down_air: { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
-  stats: { maxJumps: 2, jumpPower: 20, speed: 7 },
+  stats: { maxJumps: 1, jumpPower: 20, speed: 7 },
   baseW: 56, baseH: 108
 }
 
@@ -1679,6 +1711,7 @@ function _isAlbedo(fighter) { return (fighter?.rosterKey || "").toLowerCase() ==
 // revert can never leave the fighter locked mid-swing.
 export function revertToHuman(fighter, { forced = false } = {}) {
   if (!fighter) return
+  clearBenFormState(fighter)
   const oldH = fighter.h ?? fighter.height ?? 110
   fighter.transformed    = false
   fighter.isCharging     = false
@@ -1687,12 +1720,17 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   fighter.ultimate       = null
   fighter.activeAlien    = null
   fighter.activeAlienName = "Human"
-  fighter.name  = _isAlbedo(fighter) ? "Albedo" : "Ben"
+  fighter.name  = _isAlbedo(fighter) ? "Albedo" : `Ben (${fighter._benVariant === "classic" ? "Classic" : fighter._benVariant === "prime" ? "Prime — EXPERIMENTAL" : "Alien Force"})`
   fighter.color = _isAlbedo(fighter) ? "#dc2626" : "#84cc16"
-  fighter.maxJumps  = HUMAN_FORM.stats.maxJumps
-  fighter.jumpForce = -HUMAN_FORM.stats.jumpPower
-  fighter.baseSpeed = HUMAN_FORM.stats.speed
-  fighter.speed     = HUMAN_FORM.stats.speed
+  fighter.maxJumps  = fighter._benHumanStatBlock?.maxJumps ?? HUMAN_FORM.stats.maxJumps
+  const V = fighter._benHumanStats || BEN10_VARIANT_STATS.default
+  fighter.jumpForce = -V.jumpPower
+  fighter.baseSpeed = fighter.speed = V.speed
+  fighter._benWalkSpeed = V.speed
+  fighter.dashSpeed = V.dashSpeed
+  fighter._benFormDamage = 1; fighter.damageMultiplier = 1; fighter.defenseMultiplier = 1
+  fighter._benWeight = V.weight
+  fighter.stats = { ...(fighter._benHumanStatBlock || {}), speed: V.speed, dashSpeed: V.dashSpeed, jumpPower: V.jumpPower, maxJumps: 1, maxHealth: fighter.maxHealth }
   const nw = HUMAN_FORM.baseW, nh = HUMAN_FORM.baseH
   fighter.w = nw; fighter.width = nw
   fighter.y = (fighter.y ?? 0) + (oldH - nh)
@@ -1700,7 +1738,7 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   fighter.attacking = false
   fighter.currentAttack = null
   fighter.currentMove = null
-  fighter._skinAnim = null   // human form uses the base Ben-human sprite set
+  fighter._skinAnim = fighter._baseSkinAnim || null   // preserve the selected human variant
   fighter.skinTint = fighter._baseSkinTint ?? null   // clear the placeholder-alien Omnitrix tint
   fighter._benPlaceholderForm = false
   if (forced) {
@@ -1723,6 +1761,11 @@ export function tryTransform(fighter) {
 export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   if (!isTransformDevice(fighter) || !fighter.omnitrix) return
   const omx = fighter.omnitrix
+  if ((fighter.health ?? 1) <= 0) { handleBenKO(fighter); return }
+  fighter.currentForm = fighter.transformed ? "ben10_" + fighter.activeAlien : "base"
+  fighter.defenseMultiplier = fighter.transformed && fighter.activeAlien === "swampfire" ? SWAMPFIRE.mods.defense : 1
+  omx.simFrame = (omx.simFrame || 0) + 1
+  if ((fighter.hitstun > 0 || fighter.blockstun > 0) && (omx.startup > 0 || fighter._benPowerCommit > 0 || fighter._axUltWindup)) invalidateBenAction(fighter)
   // Phase 3: tick lockouts/cooldowns every frame (even during Alien X windup / transform startup).
   if ((omx.swapLockout || 0) > 0) omx.swapLockout--
   if ((omx.timeoutCooldown || 0) > 0) omx.timeoutCooldown--
@@ -1741,8 +1784,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   }
   // LAST RESORT: re-arm on a round-start refill (health back to full), then fire once below 15% HP.
   const _maxH = fighter.maxHealth || 1
-  if ((fighter.health || 0) >= _maxH) fighter._benLastResortUsed = false
-  else if (!fighter._benLastResortUsed && (fighter.health || 0) > 0 && (fighter.health || 0) < BEN10_DEFENSE.LAST_RESORT_HP * _maxH) {
+  if (!fighter._benLastResortUsed && (fighter.health || 0) > 0 && (fighter.health || 0) < BEN10_DEFENSE.LAST_RESORT_HP * _maxH) {
     fighter._benLastResortUsed = true
     fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + BEN10_DEFENSE.LAST_RESORT_POWER)
     fighter._benDR = BEN10_DEFENSE.LAST_RESORT_DR_FRAMES
@@ -1756,8 +1798,8 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
     if (omx.startup <= 0) {
       const slot = Math.max(0, Math.min(omx.aliens.length - 1, omx.pendingSlot | 0))
       omx.index = slot
-      applyAlien(fighter, omx.aliens[slot])
-      fighter.transformed = true
+      const applied = applyAlien(fighter, omx.aliens[slot])
+      fighter.transformed = !!applied
       fighter._omxVulnerable = false
     }
     omx.power = fighter.energy; omx.currentForm = fighter.activeAlien
@@ -1771,8 +1813,10 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   const max = fighter.maxEnergy || 100
   if ((fighter.deviceRecharge || 0) > 0) fighter.deviceRecharge--
 
+  tickRegrowth(fighter)
+
   // BINDING VOW: alien damage ×1.25 while transformed (generic offense buff; Ben has no other source).
-  if (omx.vowActive) fighter.damageMultiplier = fighter.transformed ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1
+  fighter.damageMultiplier = (fighter._benFormDamage || 1) * ((omx.vowActive && fighter.transformed) ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
 
   if (!fighter.transformed) {
     omx.currentForm = null; omx.formTimer = 0
@@ -1796,8 +1840,10 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   }
   omx.power = fighter.energy
 
+  if ((fighter._benPowerCommit || 0) > 0) fighter._benPowerCommit--
+
   // 0 Power → FORCED revert + 6s timeout cooldown (no transform allowed during it).
-  if ((fighter.energy || 0) <= 0) {
+  if ((fighter.energy || 0) <= 0 && !(fighter._benPowerCommit > 0)) {
     revertToHuman(fighter, { forced: true })
     omx.timeoutCooldown = TRANSFORM_ENERGY.TIMEOUT_FRAMES
     omx.currentForm = null; omx.formTimer = 0
@@ -1805,10 +1851,11 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   }
 }
 
-export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
+export function setupBen10(fighter, selected) {
   if (!fighter) return
   if (!fighter.rosterKey) fighter.rosterKey = "ben10"   // don't clobber a clone (Albedo)
-  fighter.omnitrix       = createOmnitrixState(selected)
+  resetBenDefense(fighter)
+  fighter.omnitrix       = createOmnitrixState(selected, { experimental: !!fighter.benExperimental })
   fighter.deviceRecharge = 0
   fighter.isCharging     = false
   fighter._baseSkinTint  = fighter.skinTint ?? null   // Phase 3: restored on revert (placeholder tint clears)
@@ -1825,6 +1872,7 @@ export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   // human also FIXES the old "advertised != actual" stat gap: maxHealth stays the char-def value
   // (Ben/Albedo 1250) instead of being overwritten by slot-1's alien (e.g. XLR8's 900).
   revertToHuman(fighter)
+  fighter.omnitrix.power = fighter.energy || 0
 }
 
 // ── BEN 10 — PER-VARIANT BASE STATS (Phase 2) ────────────────────────────────────────────────
@@ -1844,6 +1892,7 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   if (!fighter) return
   const k = (fighter.rosterKey || "").toLowerCase()
   if (k !== "ben10" && k !== "albedo") return
+  if (skinId === "ben10Prime" && !fighter.benExperimental) skinId = "default"
   const V = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
   fighter.maxHealth = V.maxHealth
   fighter.health    = V.maxHealth           // full at round start (this is the SHARED pool)
@@ -1851,9 +1900,12 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   fighter.baseSpeed = V.speed
   fighter.dashSpeed = V.dashSpeed
   fighter.jumpForce = -(V.jumpPower)
+  fighter._benHumanStats = { ...V }
+  fighter._benWalkSpeed = V.speed
   fighter._benWeight  = V.weight
   fighter._benVariant = V.variant           // engine/HUD marker (alienforce | classic | prime)
   fighter.stats = { ...(fighter.stats || {}), maxHealth: V.maxHealth, speed: V.speed, dashSpeed: V.dashSpeed, jumpPower: V.jumpPower }
+  fighter._benHumanStatBlock = { ...fighter.stats }
 }
 
 // ── DRAW ──

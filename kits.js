@@ -63,7 +63,7 @@ export const CONTROL_REFERENCE = {
     ["Light",           "✕ (Cross)"],
     ["Heavy",           "□ (Square)"],
     ["Special",         "△ (Triangle)"],
-    ["Dash",            "○ (Circle)"],
+    ["Block",           "○ (Circle)"],
     ["Ultimate",        "L2 / R2"],
     ["Grab",            "L1"],
     ["Charge / Omnitrix","R1"]
@@ -73,7 +73,7 @@ export const CONTROL_REFERENCE = {
     "Hold ↓ + Special = 2nd special.",
     "Hold → (toward foe) + Special = 3rd special / mobility move.",
     "Ultimate button (full meter) = ultimate / domain expansion.",
-    "Up-Attack (↑ + Light/Heavy) launches BOTH fighters up for air combos.",
+    "Up-Attack (↑ + Light/Heavy) launches the opponent; Jump to follow up.",
     "CLONES — ↓↓↑ + Special stages a clone formation; then hold a direction + Special to pick:",
     "   Neutral = Pure Attack · ↓ = Deception · ↑ = Defensive · Back = Ranged · Fwd = Grab · Ultimate = Swarm.",
     "Persistent clones (P1 / clone chars): , create · . disperse · / swap. For 2P on one keyboard, use a gamepad for P2."
@@ -878,26 +878,27 @@ export const KITS = {
 
   // ── BEN 10 ───────────────────────────────────────────────────
   ben10: {
-    type: "Shapeshifter / All-Rounder", energy: "Omnitrix", difficulty: "Hard",
-    summary: "A kid with the Omnitrix who picks 5 aliens before the match and switches between them mid-fight with Charge + ←/→, each alien bringing its own moveset, so his entire kit morphs on the fly.",
-    passive: { name: "Omnitrix", effect: "Hold Charge and tap ←/→ to cycle through the 5 chosen aliens in real time, instantly swapping the active fighter's stats, basics, specials, and ultimate." },
+    type: "Omnitrix / Regrowth", energy: "Omnitrix Power", difficulty: "Hard",
+    summary: "Start human as Alien Force or Classic. Transform into Swampfire with Down, Down, then Light. Other alien templates and Prime are explicitly experimental, not finished artwork.",
+    passive: { name: "Omnitrix / Regrowth", effect: "Human Power restores at 4/s; alien Power drains and Charge restores 45/s. Swampfire banks 35% of actual eligible damage, waits 120 frames without a hit, then restores 2 HP per 10 frames, up to 80 per transformation. Switching or reverting clears the bank." },
     basics: [
-      { name: "Alien Light", input: "Light",                   desc: "active alien's fast attack" },
-      { name: "Alien Heavy", input: "Heavy",                   desc: "active alien's heavy strike (often super-armored)" },
-      { name: "Launcher",    input: "Up-Attack",               desc: "launcher — starts air combos" },
-      { name: "Air Strike",  input: "Air (jump + Light)",      desc: "aerial attack" },
-      { name: "Dive",        input: "Down-Air (jump + Heavy)", desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                    desc: "throw" }
+      { name: "Jab", input: "Light", desc: "Swampfire: 5-frame startup, 18 raw damage, -1 on first-active block" },
+      { name: "Heavy", input: "Heavy", desc: "15-frame startup, 58 raw damage, -7 on first-active block" },
+      { name: "Low", input: "Down + Light/Heavy (grounded)", desc: "7-frame startup, 26 raw damage, -4 on first-active block" },
+      { name: "Launcher", input: "Up-Attack", desc: "12-frame startup, 48 raw damage, -10 on first-active block; Jump to follow" },
+      { name: "Air / Down-Air", input: "Light / Heavy while airborne", desc: "8-frame startup, 32 raw damage, +2 on first-active block" },
+      { name: "Green Flash Roll / Guard", input: "Back, Back + Light / Block + Heavy", desc: "Roll uses real backflip art and framework invulnerability. Energy Guard costs 10 and absorbs one melee or projectile contact; cooldowns persist through form changes." }
     ],
     specials: [
-      { name: "Alien Special",      input: "Special",        cost: 0, desc: "the active alien's primary special — changes entirely per alien" },
-      { name: "Alien Special (Alt)",input: "Down + Special", cost: 0, desc: "the active alien's secondary special, when it has one" }
+      { name: "Flame Jet", input: "Neutral + Special", cost: 12, desc: "14-frame startup, 280 reach, five 9-raw-damage hits; -12 on the first final-pulse block" },
+      { name: "Vine Eruption", input: "Down + Special", cost: 18, desc: "20-frame startup; eruptions at 80/180/280, raw 22+22+34. Clean early hits carry briefly to the next site; final hit launches." },
+      { name: "Blaze Dash", input: "Forward + Special", cost: 10, desc: "12-frame startup, 260-pixel lunge, 48 raw damage; -14 on the first impact-frame block" }
     ],
-    mobility: { name: "Omnitrix Switch", input: "Charge + ←/→", cost: 0, desc: "cycles the active alien, swapping the entire moveset to adapt to the situation" },
-    ultimate: { name: "Omnitrix Overload", input: "Ultimate (full meter)", cost: 100, desc: "unleashes the active alien's signature ultimate" },
+    mobility: { name: "Omnitrix dial", input: "Down, Down + attack combination", cost: 20, desc: "Light/Heavy/Special/Light+Heavy/Heavy+Special select slots 1-5 if present. Light+Special reverts. Swap costs 15 (22 under Vow). Human startup is 40 vulnerable frames. P1: S,S then J/K/L/J+K/K+L; S,S then J+L reverts. P is Charge, never a punch notation." },
+    ultimate: { name: "Methane Inferno / Human Overload", input: "Ultimate", cost: 50, desc: "Swampfire only: 50 Power, 40-frame startup, radius 300, three raw hits 60+60+100, then 100 recovery frames. Human Overload instead needs 100 Power. Paid alien casts finish at zero Power unless interrupted, then force reversion." },
     combos: [
-      { name: "Adapt & Smash", sequence: "Omnitrix Switch, Heavy, Alien Special", desc: "swap to the right alien, then punish" },
-      { name: "Air Juggle",    sequence: "Up-Attack, Jump, Air, Air",            desc: "launcher into aerials" }
+      { name: "Dial controls", sequence: "Down, Down, Light", desc: "P1 S,S,J. Controller Down,Down,Square. Neutral Special is L/R1; Ultimate U/R2; Charge P/L2; Block ;/Circle." },
+      { name: "Regrowth discipline", sequence: "Defend, disengage, recover", desc: "Do not revert if you want the current form's eligible bank to heal; no bank survives re-entry." }
     ]
   },
 

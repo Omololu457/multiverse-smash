@@ -1,3 +1,33 @@
+# Current integration contract — 2026-11-11
+
+This section supersedes historical phase notes below. Production exposes Swampfire
+only, with Alien Force and Classic humans. Prime and all 13 older forms require
+Ben development mode and are not finished-art releases.
+
+Swampfire uses raw supplied move values, damage 1.10, defense divisor 1.10, speed
+0.92 and knockback weight 1.15 exactly once. Regrowth banks 35% of actual eligible
+HP loss, waits 120 simulation ticks, then restores 2 per 10 up to 80 per entry.
+See aliens/swampfire/README.md for exact frames, costs and block timing.
+
+Human walk speeds are AF 9, Classic 9.7, Prime 8.6; impulses -19/-20/-18, one jump.
+The shared pool is never healed by transformation. Reset restores selected human
+stats and art. General training reset intentionally starts a clean human/device.
+Last Resort is once per actual round, not rearmed by full healing.
+
+Drain uses the existing pool-HP factor and attack/Vow additions, not a flat 5/s in
+all cases. A paid Swampfire channel finishes at zero Power and then times out;
+hits cancel remaining beats. Cast recovery cannot be canceled with charge/guard/
+roll/walking/swapping. Vow can only draw from the validated loadout: production's
+single approved form provides no random variety. Experimental loadouts retain it.
+
+Timing targets use exact active endpoints only for Swampfire. Flame Jet's raw45
+is 23 actual HP in the focused clean-target pipeline test after 1.10 offense,
+0.60 global scale, pre-increment combo decay and per-contact flooring. Old combo
+approximation targets are not balance requirements. No unrelated authored moves
+were retimed to meet them. Sounds are synthesized placeholders, not voices.
+
+# Historical phase notes (retained; not current readiness certification)
+
 # BEN 10 — BALANCE NOTES
 
 Ben 10 is a **shapeshifter / rushdown** built around a deliberately **weak human baseline** and a

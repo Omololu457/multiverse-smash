@@ -55,6 +55,27 @@ export const physics = {
       updateOmnitrix(fighter)
     }
 
+    // Bounded Swampfire connecting hold / lunge; numeric simulation state, never draw geometry.
+    if (fighter._benVineHold?.frames > 0 && fighter.health > 0) {
+      const h = fighter._benVineHold
+      fighter.x += (h.destination - fighter.x) / h.frames
+      fighter.x = clamp(fighter.x, this.stageLeft, this.stageWidth - (fighter.w || 60))
+      fighter.vx = 0; fighter.vy = 0
+      if (--h.frames <= 0) delete fighter._benVineHold
+      return
+    }
+    if (fighter._benLunge?.frames > 0 && fighter.transformed && fighter.activeAlien === "swampfire" && !(fighter.hitstun > 0)) {
+      fighter.x = clamp(fighter.x + fighter._benLunge.speed, this.stageLeft, this.stageWidth - (fighter.w || 60))
+      fighter.vx = 0
+      if (--fighter._benLunge.frames <= 0) delete fighter._benLunge
+      return
+    }
+
+    if (fighter._benPowerCommit > 0 && fighter.activeAlien === "swampfire") {
+      fighter.vx = 0
+      return // paid cast/recovery: no walk, jump or charge cancel; gravity still updates separately
+    }
+
     // ── INIT ─────────────────────────────────────────
     const rawSpeed = fighter.baseSpeed || fighter.speed || 9
     // MK-feel Stage 4a: real SPEED-TIER spread. The old `rawSpeed*0.09` gave only ~7.0–8.8 across the
@@ -65,7 +86,7 @@ export const physics = {
     //   • it protects the out-of-band cases the old [4,9] clamp caught — buff forms that SET fighter.speed
     //     to raw-scale values (Godspeed 120→cap 9.5, Gon-adult 40→floor 4.5 "lumber"), plus the low
     //     placeholders (Ben10 human 5, Morty 72) which would otherwise go negative / below-floor.
-    const speed = clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1)   // Clockwork Time Ray: halve movement while slowed (inert otherwise)
+    const speed = ((["ben10", "albedo"].includes(fighter.rosterKey) && Number.isFinite(fighter._benWalkSpeed)) ? fighter._benWalkSpeed : clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1)   // Clockwork Time Ray: halve movement while slowed (inert otherwise)
 
     const defaults = {
       vx: 0, vy: 0,

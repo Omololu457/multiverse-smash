@@ -30,9 +30,11 @@ try {
   await boot("default")
   // ── REGISTRY: 5 ready slots wrapping pool aliens + placeholder factory ──
   const reg = await call("ben10Registry")
-  ok(reg && reg.registry.length === 5, `registry should have 5 entries (got ${reg && reg.registry.length})`)
-  ok(reg && reg.registry.every(a => a.status === "ready" && a.poolKey), "all 5 registry entries should be ready + pool-backed")
-  ok(reg && reg.registry.every(a => a.mods && a.mods.speed === 1.0 && a.movement === "grounded"), "ready mods should be identity (1.0) + grounded")
+  ok(reg && reg.registry.length === 14, `registry includes Swampfire and 13 retained experiments (got ${reg?.registry.length})`)
+  const approved = reg.registry.filter(a => a.status === "ready")
+  ok(approved.length === 1 && approved[0].id === "swampfire" && approved[0].sheetPath && approved[0].ledgerPath, "only art-backed Swampfire is approved")
+  ok(reg.registry.filter(a => a.id !== "swampfire").every(a => a.status === "experimental" && a.poolKey), "all retained placeholders are explicitly experimental")
+  ok(approved[0].mods.speed === 0.92 && approved[0].mods.damage === 1.10 && approved[0].mods.defense === 1.10, "Swampfire modifiers match the intended kit")
   ok(reg && reg.placeholder && reg.placeholder.status === "placeholder" && reg.placeholder.moves.special1 === "Placeholder Blast", "placeholder must carry Placeholder Blast")
   ok(reg && reg.loadout.length === 5, "buildLoadout(5) should fill 5 slots")
 

@@ -1,3 +1,4 @@
+import { SWAMPFIRE_FX } from "./swampfire.js"
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -135,6 +136,15 @@ export function updatePendingSpawns() {
       try { s.fn() } catch (_) {}
     }
   }
+}
+
+function scheduleBenSpawn(fighter, frames, fn) {
+  const epoch = fighter._benActionEpoch || 0
+  const key = fighter.rosterKey, form = fighter.activeAlien
+  schedulePendingSpawn(frames, () => {
+    if ((fighter.health ?? 1) <= 0 || fighter.eliminated || fighter.rosterKey !== key || fighter.activeAlien !== form || fighter.hitstun > 0 || fighter.blockstun > 0 || (fighter._benActionEpoch || 0) !== epoch) return
+    fn()
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -387,9 +397,9 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
   if (!attacker) return null
 
   const lower  = String(type || "").toLowerCase()
-  const width  = moveData.w || moveData.width || (lower.includes("purple") ? 30 : 16)
-  const height = moveData.h || moveData.height || width
-  const speed  = moveData.speed || (lower.includes("purple") ? 14 : 11)
+  const width  = moveData.w ?? moveData.width ?? (lower.includes("purple") ? 30 : 16)
+  const height = moveData.h ?? moveData.height ?? width
+  const speed  = moveData.speed ?? (lower.includes("purple") ? 14 : 11)
 
   // Spawn point: overridable via spawnX/spawnY (e.g. a giant's arm height, or a
   // fixed lightning-strike column), else the default in-front-of-fighter origin.
@@ -401,7 +411,7 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
   // point at the move's `speed` (diagonal down-and-forward for a high Susanoo arm →
   // grounded opponent). Else an explicit `vx` override, else the flat forward shot.
   let velX = (moveData.vx != null) ? moveData.vx : attacker.facing * speed
-  let velY = moveData.vy || 0
+  let velY = moveData.vy ?? 0
   if (moveData.aimAt) {
     const dx = moveData.aimAt.x - spawnX
     const dy = moveData.aimAt.y - spawnY
@@ -425,22 +435,22 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     radius:     (moveData.radius != null) ? moveData.radius : width / 2,
     // OPTIONAL procedural placeholder-FX selector (Tobirama Stage 4): "water" | "dark" | "waterwall".
     // ui.drawProjectiles renders a code-drawn effect for it; a real `sheet` later takes precedence.
-    drawKind:   moveData.drawKind   || null,
-    damage:     moveData.damage || 90,
-    hitstun:    moveData.hitstun || 18,
-    knockbackX: moveData.knockbackX || 5,
-    knockbackY: moveData.knockbackY || -2,
-    lifetime:   moveData.lifetime || 110,
-    color:      moveData.color || attacker.color || "#ffd166",
+    drawKind:   moveData.drawKind ?? null,
+    damage:     moveData.damage ?? 90,
+    hitstun:    moveData.hitstun ?? 18,
+    knockbackX: moveData.knockbackX ?? 5,
+    knockbackY: moveData.knockbackY ?? -2,
+    lifetime:   moveData.lifetime ?? 110,
+    color:      moveData.color ?? attacker.color ?? "#ffd166",
     // OPTIONAL projectile sprite (Task 3) — null until the user adds art. When a
     // `sheet` is set, ui.drawProjectiles animates it instead of the colored shape.
-    sheet:        moveData.sheet        || null,
-    spriteKey:    moveData.spriteKey    || null,
-    spriteFrames: moveData.spriteFrames || 1,
-    spriteW:      moveData.spriteW      || null,
-    spriteH:      moveData.spriteH      || null,
-    spriteSpeed:  moveData.spriteSpeed  || 4,
-    spriteScale:  moveData.spriteScale  || 1,
+    sheet:        moveData.sheet ?? null,
+    spriteKey:    moveData.spriteKey ?? null,
+    spriteFrames: moveData.spriteFrames ?? 1,
+    spriteW:      moveData.spriteW ?? null,
+    spriteH:      moveData.spriteH ?? null,
+    spriteSpeed:  moveData.spriteSpeed ?? 4,
+    spriteScale:  moveData.spriteScale ?? 1,
     // OPTIONAL sprite BOTTOM-ANCHOR (Hashirama Tree Summon): when set, ui.drawProjectiles anchors the
     // sprite's BOTTOM edge at this world-Y (grows UPWARD) instead of centering it on (x,y). This decouples
     // the VISUAL size from the collision box (which stays centered on x,y) so a tree can be scaled huge —
@@ -448,49 +458,58 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     spriteBottomY: (moveData.spriteBottomY != null) ? moveData.spriteBottomY : null,
     // OPTIONAL play-ONCE growth: clamp the sprite frame at the last cell instead of looping (Hashirama's
     // Tree Summon grows frame-by-frame then HOLDS the fully-grown tree — a looping strip would re-grow).
-    spriteOnce:   moveData.spriteOnce   || false,
+    spriteOnce:   moveData.spriteOnce ?? false,
     // OPTIONAL lingering damage-over-time stamped on the target when this projectile
     // connects (resolveProjectileHits) — e.g. Naruto Rasenshuriken's wind-chip.
-    dot:        moveData.dot        || null,
+    dot:        moveData.dot ?? null,
     // OPTIONAL impact-on-connect FX: a sprite {sheet,frames,w,h,speed,scale,lifetime} spawned as a
     // visualOnly projectile at the hit point ONLY when this projectile connects (resolveProjectileHitsMulti).
-    impact:     moveData.impact     || null,
+    impact:     moveData.impact ?? null,
     // OPTIONAL owner-flag set on a clean connect (resolveProjectileHitsMulti): the name of a boolean
     // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
     // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
-    hitFlag:    moveData.hitFlag    || null,
-    onHitBlind: moveData.onHitBlind || false,   // Itachi crow clone (one-shot): stamp `obscured` blind on a clean hit (combat.js)
+    hitFlag:    moveData.hitFlag ?? null,
+    onHitBlind: moveData.onHitBlind ?? false,   // Itachi crow clone (one-shot): stamp `obscured` blind on a clean hit (combat.js)
     // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
     // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
     // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
     // the tier default (HITSTOP.projectile, or .special/.ultimate via isSpecial/isUltimate).
     hitstop:    (typeof moveData.hitstop === "number") ? moveData.hitstop : undefined,
-    noHitstop:  moveData.noHitstop  || false,
+    noHitstop:  moveData.noHitstop ?? false,
     // OPTIONAL startup gate (combat.resolveProjectileHitsMulti): the projectile cannot damage until it
     // has been alive `hitDelay` frames — lets a STATIONARY ground hazard (Madara Wood Spike) rise out of
     // the ground before it strikes, instead of hitting on the spawn frame. Absent → collides immediately.
-    hitDelay:   moveData.hitDelay   || 0,
+    hitDelay:   moveData.hitDelay ?? 0,
     age:        0,
     // SCOPED MULTI-TARGET PIERCE (combat.resolveProjectileHitsMulti): opt-in pass-through — the projectile
     // strikes each target once and keeps flying instead of despawning. Only Iron Man 2's 4* max-charge
     // repulsor sets this; everyone else's `piercing` stays a purely cosmetic/aspirational flag (unchanged).
-    piercesMulti: moveData.piercesMulti || false,
+    piercesMulti: moveData.piercesMulti ?? false,
     _pierceHits:  moveData.piercesMulti ? [] : null,
-    isSpecial:  moveData.isSpecial  || false,
-    isUltimate: moveData.isUltimate || false,
+    isSpecial:  moveData.isSpecial ?? false,
+    isUltimate: moveData.isUltimate ?? false,
     // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
     // resolution so they never stun/despawn on contact — they fade out via lifetime.
-    visualOnly: moveData.visualOnly || false,
+    visualOnly: moveData.visualOnly ?? false,
     // BOOMERANG (Killua's yo-yo): fly OUT to `maxRange` from the owner then RETRACT — homing back
     // to the owner at `retractSpeed`, despawning on pickup (combat.updateProjectiles). On contact it
     // flips to `returning` instead of despawning (resolveProjectileHitsMulti). No-op unless set.
-    boomerang:    moveData.boomerang    || false,
-    maxRange:     moveData.maxRange     || null,
-    retractSpeed: moveData.retractSpeed || null,
+    boomerang:    moveData.boomerang ?? false,
+    maxRange:     moveData.maxRange ?? null,
+    retractSpeed: moveData.retractSpeed ?? null,
     returning:    false,
     // PERSIST-AFTER-HIT (Hashirama Tree Summon): a lingering hazard strikes ONCE then STAYS for its
     // lifetime (grows to full + stands) instead of despawning on contact. `_struck` latches the used hit.
-    persist:      moveData.persist      || false,
+    persist:      moveData.persist ?? false,
+    timeSlow: moveData.timeSlow ?? 0,
+    launcher: moveData.launcher ?? false,
+    launchVy: moveData.launchVy ?? null,
+    blockstun: moveData.blockstun ?? null,
+    connectHold: moveData.connectHold ?? 0,
+    connectToX: moveData.connectToX ?? null,
+    rectHitbox: moveData.rectHitbox ?? false,
+    radial: moveData.radial ?? false,
+    spriteFrameStart: moveData.spriteFrameStart ?? 0,
     _struck:      false
   }
 
@@ -29374,7 +29393,7 @@ function fireXlr8DashStrike(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   const dir = fighter.facing || 1
   fighter.vx = dir * 16
-  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlDash") fighter.vx = dir * 16 })
+  for (const t of [2, 4, 6]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "xlDash") fighter.vx = dir * 16 })
   shakeCamera(context, 3, 5)
   return true
 }
@@ -29389,7 +29408,7 @@ function fireXlr8SonicRush(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   const dir = fighter.facing || 1
   fighter.vx = dir * 20
-  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlRush") fighter.vx = dir * 20 })
+  for (const t of [2, 4, 6, 8]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "xlRush") fighter.vx = dir * 20 })
   shakeCamera(context, 4, 6)
   return true
 }
@@ -29401,7 +29420,7 @@ function fireDhShardBarrage(fighter, context) {
   fighter._spriteCastMove = "dhShoot"; fighter._spriteCastTimer = 20
   fighter.attackCooldown = getAttackDuration(24, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(7, () => {
+  scheduleBenSpawn(fighter, 7, () => {
     // Procedural crystal shard (no dedicated projectile sprite yet — flagged in the asset map).
     spawnProjectile(fighter, "ben10_diamond_shard", {
       damage: 40, speed: 15, hitstun: 15, knockbackX: 6, knockbackY: -1,
@@ -29419,7 +29438,7 @@ function fireDhRisingDiamonds(fighter, context) {
   fighter._spriteCastMove = "dhRising"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(30, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(10, () => {
+  scheduleBenSpawn(fighter, 10, () => {
     // Stationary ground hitbox in front (procedural crystal spikes — flagged); launches on hit.
     spawnProjectile(fighter, "ben10_diamond_eruption", {
       damage: 55, speed: 0, vx: 0, lifetime: 26, hitstun: 22, knockbackX: 3, knockbackY: -14,
@@ -29447,7 +29466,7 @@ function fireBenEnergyShot(fighter, context) {
   fighter.attackCooldown = getAttackDuration(22, fighter)
   const face = fighter.facing || 1
   const prime = (fighter._benVariant === "prime")
-  schedulePendingSpawn(7, () => {
+  scheduleBenSpawn(fighter, 7, () => {
     spawnProjectile(fighter, "ben_energy_shot", {
       damage: 46, speed: 15, hitstun: 16, knockbackX: 6, knockbackY: -1,
       w: 24, h: 20, radius: 12, color: prime ? "#39ff14" : "#8aff5a", lifetime: 120, isSpecial: true,
@@ -29468,7 +29487,7 @@ function fireBenDashStrike(fighter, context) {
   const dir = fighter.facing || 1
   fighter.vx = dir * 15
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 6)
-  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack) fighter.vx = dir * 15 })
+  for (const t of [2, 4, 6]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack) fighter.vx = dir * 15 })
   shakeCamera(context, 3, 5)
   return true
 }
@@ -29479,12 +29498,12 @@ function fireBenShockwave(fighter, context) {   // Prime only (Down Special)
   fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(30, fighter); fighter.vx = 0
   const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.5, RAD = 190
-  schedulePendingSpawn(10, () => {
+  scheduleBenSpawn(fighter, 10, () => {
     const opp = getTargetResolver(context)(fighter)
     if (opp && !opp.eliminated) {
       const ox = opp.x + (opp.w || 60) / 2, oy = opp.y + (opp.h || 100) / 2
       if (Math.hypot(ox - cx, oy - cy) <= RAD) {
-        applyScaledDamage(opp, 70, { source: "ben-shockwave" })
+        applyScaledDamage(opp, 70, { source: "ben-shockwave", attacker: fighter })
         opp.hitstun = Math.max(opp.hitstun || 0, 20); opp.vx = (ox >= cx ? 1 : -1) * 9; opp.vy = -4
       }
     }
@@ -29504,7 +29523,7 @@ function fireBenHoverboard(fighter, context) {
   const dir = fighter.facing || 1
   fighter.vx = dir * 14
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)
-  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "benHover") fighter.vx = dir * 14 })
+  for (const t of [2, 4, 6, 8]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "benHover") fighter.vx = dir * 14 })
   shakeCamera(context, 3, 5)
   return true
 }
@@ -29548,7 +29567,7 @@ function fireFbDischargeCounter(fighter, pending, context) {
   fighter.vx = 0
   const face = fighter.facing || 1
   const amp  = Math.min(180, 80 + Math.round((pending?.dmg || 40) * 1.4))   // redirect scales w/ absorbed dmg
-  schedulePendingSpawn(5, () => {
+  scheduleBenSpawn(fighter, 5, () => {
     spawnProjectile(fighter, "feedback_discharge", {
       damage: amp, speed: 17, vx: face * 17, hitstun: 24, knockbackX: 10, knockbackY: -3,
       w: 32, h: 20, radius: 17, color: "#22d3ee", lifetime: 120, isSpecial: true,
@@ -29567,7 +29586,7 @@ function fireFbEnergyDischarge(fighter, context) {
   fighter._spriteCastMove = "fbShot"; fighter._spriteCastTimer = 20
   fighter.attackCooldown = getAttackDuration(24, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(7, () => {
+  scheduleBenSpawn(fighter, 7, () => {
     // Procedural electric orb (raw projectile strip split on its spark lines — reserved; flagged in map).
     spawnProjectile(fighter, "feedback_discharge", {
       damage: 90, speed: 15, vx: face * 15, hitstun: 18, knockbackX: 7, knockbackY: -1,
@@ -29575,6 +29594,83 @@ function fireFbEnergyDischarge(fighter, context) {
       spawnY: fighter.y + (fighter.h || 100) * 0.42
     }, context)
   })
+  return true
+}
+
+// Authored Swampfire channels use the regular projectile collision/damage pipeline.
+// A paid cast can finish at zero Power; interruption cancels it, then timeout/reversion applies.
+function beginSwampfireCast(f, name, cost, total) {
+  if (!f.transformed || f.activeAlien !== "swampfire" || f.attacking || (f.attackCooldown || 0) > 0 || (f.hitstun || 0) > 0 || (f.blockstun || 0) > 0) return false
+  if (!spendEnergy(f, cost)) return false
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = name; f._spriteCastTimer = total
+  f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  f._benSfx = name === "sfInferno" ? "sf_inferno" : name === "sfVine" ? "sf_vine" : name === "sfBlaze" ? "sf_dash" : "sf_flame"
+  return true
+}
+function swampfireFx(f, key, x, y, lifetime = 24, scale = 2) {
+  const a = SWAMPFIRE_FX[key]
+  return spawnProjectile(f, "sf_fx_" + key, { damage: 0, speed: 0, vx: 0, vy: 0,
+    spawnX: x, spawnY: y, lifetime, visualOnly: true, sheet: a.sheet,
+    spriteFrames: a.frames, spriteW: a.w, spriteH: a.h, spriteSpeed: a.speed,
+    spriteScale: scale, spriteOnce: true }, {})
+}
+function fireSwampfireSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir
+  const facing = fighter.facing || 1
+  if (dir === "D") {
+    // Fixed eruption positions. Clean connects carry the target to the next site over 8 ticks;
+    // blocked/missed hits do not capture. Each hold is bounded and cannot refresh itself.
+    if (!beginSwampfireCast(fighter, "sfVine", 18, 73)) return false
+    const origin = fighter.x + fighter.w / 2, floor = fighter.groundY ?? fighter.y + fighter.h
+    ;[80, 180, 280].forEach((offset, i) => scheduleBenSpawn(fighter, 20 + i * 8, () => {
+      const x = origin + facing * offset
+      spawnProjectile(fighter, "sf_vine_" + i, { damage: [22, 22, 34][i], speed: 0, vx: 0, vy: 0,
+        spawnX: x, spawnY: floor - 60, w: 90, h: 140, radius: 50, lifetime: 2,
+        isSpecial: true, noHitstop: i < 2, hitstun: i === 2 ? 24 : 10, blockstun: 20,
+        knockbackX: 0, knockbackY: i === 2 ? -15 : 0, launcher: i === 2,
+        connectHold: i < 2 ? 8 : 0, connectToX: i < 2 ? origin + facing * [180, 280][i] : null }, context)
+      swampfireFx(fighter, "vine", x, floor - 40, 24, 3)
+    }))
+    return true
+  }
+  if (dir === "F") {
+    if (!beginSwampfireCast(fighter, "sfBlaze", 10, 50)) return false
+    // 260-pixel lunge over 13 simulation frames after a 12-frame startup, stage-clamped by physics.
+    scheduleBenSpawn(fighter, 12, () => { fighter._benLunge = { frames: 13, speed: facing * 20 } })
+    scheduleBenSpawn(fighter, 24, () => {
+      spawnProjectile(fighter, "sf_blaze", { damage: 48, speed: 0, vx: 0, vy: 0,
+        spawnX: fighter.x + fighter.w / 2 + facing * 35, spawnY: fighter.y + fighter.h / 2,
+        w: 110, h: 85, radius: 55, lifetime: 2, isSpecial: true,
+        hitstun: 24, blockstun: 12, knockbackX: 8, knockbackY: -3 }, context)
+      swampfireFx(fighter, "jetTrail", fighter.x, fighter.y + fighter.h / 2)
+    })
+    return true
+  }
+  if (!beginSwampfireCast(fighter, "sfFlameJet", 12, 57)) return false
+  for (let i = 0; i < 5; i++) scheduleBenSpawn(fighter, 14 + i * 4, () => {
+    const x = fighter.x + fighter.w / 2 + facing * 140, y = fighter.y + fighter.h * 0.4
+    spawnProjectile(fighter, "sf_flame_" + i, { damage: 9, speed: 0, vx: 0, vy: 0,
+      spawnX: x, spawnY: y, w: 280, h: 65, radius: 1, rectHitbox: true,
+      lifetime: 2, isSpecial: true, hitstun: 5, blockstun: 15, knockbackX: 0, knockbackY: 0,
+      noHitstop: i < 4 }, context)
+    swampfireFx(fighter, "flame", x, y, 12, 2.5)
+  })
+  return true
+}
+function fireSwampfireUltimate(fighter, context) {
+  // 40 startup, three beats at 40/50/60, then 100 recovery ticks after the last active tick.
+  if (!beginSwampfireCast(fighter, "sfInferno", 50, 161)) return false
+  const x = fighter.x + fighter.w / 2, y = fighter.y + fighter.h / 2
+  ;[60, 60, 100].forEach((damage, i) => scheduleBenSpawn(fighter, 40 + i * 10, () => {
+    spawnProjectile(fighter, "sf_inferno_" + i, { damage, speed: 0, vx: 0, vy: 0,
+      spawnX: x, spawnY: y, radius: 300, radial: true, lifetime: 2,
+      isSpecial: true, isUltimate: true, piercesMulti: true, hitstun: 14,
+      knockbackX: i === 2 ? 10 : 0, knockbackY: i === 2 ? -7 : 0 }, context)
+    swampfireFx(fighter, i === 2 ? "explosion" : "eruption", x, y, 30, i === 2 ? 5 : 4)
+    swampfireFx(fighter, "patch", x, fighter.groundY ?? fighter.y + fighter.h, 40, 5)
+  }))
   return true
 }
 
@@ -29587,6 +29683,7 @@ function executeBen10Special(fighter, context) {
     return fireBenEnergyShot(fighter, context)                                        // ↓↘→ + Special (neutral)
   }
   const a = (fighter.activeAlien || "").toLowerCase()
+  if (a === "swampfire") return fireSwampfireSpecial(fighter, context)
   if (a === "diamondhead") {
     if (dir === "D") return fireDhRisingDiamonds(fighter, context)
     return fireDhShardBarrage(fighter, context)
@@ -29630,7 +29727,7 @@ function fireBrainstormLightning(fighter, context) {
   fighter._spriteCastMove = "bsBolt"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(28, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(9, () => {
+  scheduleBenSpawn(fighter, 9, () => {
     spawnProjectile(fighter, "brainstorm_bolt", {
       damage: 58, speed: 19, hitstun: 20, knockbackX: 7, knockbackY: -1,
       w: 34, h: 18, radius: 13, color: "#ffe14a", lifetime: 120, isSpecial: true,
@@ -29650,7 +29747,7 @@ function fireChromastoneBeam(fighter, context) {
   fighter._spriteCastMove = "csBeam"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(28, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(9, () => {
+  scheduleBenSpawn(fighter, 9, () => {
     spawnProjectile(fighter, "chromastone_beam", {
       damage: 56, speed: 17, hitstun: 20, knockbackX: 7, knockbackY: -1,
       w: 34, h: 16, radius: 13, color: "#b24bff", lifetime: 120, isSpecial: true,
@@ -29686,7 +29783,7 @@ function fireChromastoneDischarge(fighter, pending, context) {
   fighter.vx = 0
   const face = fighter.facing || 1
   const amp  = Math.min(180, 80 + Math.round((pending?.dmg || 40) * 1.4))
-  schedulePendingSpawn(5, () => {
+  scheduleBenSpawn(fighter, 5, () => {
     spawnProjectile(fighter, "chromastone_discharge", {
       damage: amp, speed: 18, vx: face * 18, hitstun: 24, knockbackX: 10, knockbackY: -3,
       w: 36, h: 18, radius: 17, color: "#b24bff", lifetime: 120, isSpecial: true,
@@ -29707,7 +29804,7 @@ function fireClockworkTimeRay(fighter, context) {
   fighter._spriteCastMove = "cwRay"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(28, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(9, () => {
+  scheduleBenSpawn(fighter, 9, () => {
     spawnProjectile(fighter, "clockwork_ray", {
       damage: 44, speed: 15, hitstun: 18, knockbackX: 4, knockbackY: -1,
       w: 30, h: 18, radius: 13, color: "#c9d14a", lifetime: 120, isSpecial: true,
@@ -29736,7 +29833,7 @@ function fireCannonboltRollSmash(fighter, context) {
   fighter._cbBounces = 0
   fighter.vx = fighter._cbRollDir * SPD
   for (let t = 2; t <= md.startup + md.active; t += 2) {
-    schedulePendingSpawn(t, () => {
+    scheduleBenSpawn(fighter, t, () => {
       if (fighter.currentAttack?.name !== "cbRoll") return
       // RICOCHET: at a wall (facing into it), reverse direction + re-arm the hitbox for the return pass.
       if (fighter._cbBounces < 2 &&
@@ -29768,8 +29865,8 @@ function fireAlienXRealityWarp(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   fighter.vx = 0
   // a rumble that builds through the windup, then a big shake on release
-  for (const t of [4, 12, 20, 28]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 4) })
-  schedulePendingSpawn(30, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 12, 16) })
+  for (const t of [4, 12, 20, 28]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 4) })
+  scheduleBenSpawn(fighter, 30, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 12, 16) })
   return true
 }
 
@@ -29786,7 +29883,7 @@ function fireEyeguyBeams(fighter, context) {
   const face = fighter.facing || 1
   const eyeY = fighter.y + (fighter.h || 100) * 0.40
   const beams = [ { vy: 0, dh: 0 }, { vy: -5, dh: -6 }, { vy: 5, dh: -6 } ]   // level, up, down
-  schedulePendingSpawn(8, () => {
+  scheduleBenSpawn(fighter, 8, () => {
     for (const b of beams) {
       spawnProjectile(fighter, "eyeguy_beam", {
         damage: 34, speed: 16, hitstun: 15, knockbackX: 6, knockbackY: b.vy < 0 ? -3 : -1,
@@ -29807,7 +29904,7 @@ function fireUpgradePlasmaBeam(fighter, context) {
   fighter._spriteCastMove = "upBeam"; fighter._spriteCastTimer = 22
   fighter.attackCooldown = getAttackDuration(26, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(9, () => {
+  scheduleBenSpawn(fighter, 9, () => {
     spawnProjectile(fighter, "upgrade_beam", {
       damage: 58, speed: 18, hitstun: 18, knockbackX: 7, knockbackY: -1,
       w: 34, h: 14, radius: 12, color: "#39d353", lifetime: 120, isSpecial: true,
@@ -29832,7 +29929,7 @@ function fireUpgradeMerge(fighter, context) {
   fighter.teleportFlash = 12
   const dir = fighter.facing || 1
   fighter.vx = dir * 16
-  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if ((fighter.invulnTimer || 0) > 0) fighter.vx = dir * 16 })
+  for (const t of [2, 4, 6]) scheduleBenSpawn(fighter, t, () => { if ((fighter.invulnTimer || 0) > 0) fighter.vx = dir * 16 })
   return true
 }
 
@@ -29879,7 +29976,7 @@ function fireHeatblastFireball(fighter, context) {
   fighter._spriteCastMove = "hbFire"; fighter._spriteCastTimer = 22
   fighter.attackCooldown = getAttackDuration(26, fighter)
   const face = fighter.facing || 1
-  schedulePendingSpawn(8, () => {
+  scheduleBenSpawn(fighter, 8, () => {
     spawnProjectile(fighter, "heatblast_fire", {
       damage: 55, speed: 14, hitstun: 18, knockbackX: 7, knockbackY: -1,
       w: 26, h: 22, radius: 13, color: "#ff8a1e", lifetime: 130, isSpecial: true,
@@ -29901,7 +29998,7 @@ function fireWildmuttPounce(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   const dir = fighter.facing || 1
   fighter.vx = dir * 18; fighter.vy = -6   // leap forward + up
-  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "wmPounce") fighter.vx = dir * 18 })
+  for (const t of [2, 4, 6]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "wmPounce") fighter.vx = dir * 18 })
   shakeCamera(context, 4, 6)
   return true
 }
@@ -29931,7 +30028,7 @@ function applyBen10OmnitrixDamage(fighter, opp, cineCtx = {}) {
     opp.vx = (fighter.facing || 1) * 16; opp.vy = -7
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED, range-independent
+  applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter })   // GUARANTEED, range-independent
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({ x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) / 2,
       timer: 20, maxTimer: 20, category: blocked ? "light" : "ultimate", color: blocked ? null : "#4ade80",
@@ -29946,7 +30043,7 @@ function applyBen10HeroTime(fighter, opp, heroAlien, cineCtx = {}) {
   // BECOME the alien for the blow (the alien "bursts out" of the transformation).
   if (heroAlien && BEN10_ALIEN_POOL[heroAlien]) { fighter.transformed = true; applyAlien(fighter, heroAlien) }
   const doRevert = () => { if (fighter && fighter.transformed) revertToHuman(fighter, { forced: true }) }
-  if (!opp || opp.eliminated) { schedulePendingSpawn(BEN10_HERO_TIME.revertDelay, doRevert); return }
+  if (!opp || opp.eliminated) { scheduleBenSpawn(fighter, BEN10_HERO_TIME.revertDelay, doRevert); return }
   const blocked = !!opp.isBlocking
   let dmg = BEN10_HERO_TIME.dmg
   if (blocked) {
@@ -29957,13 +30054,13 @@ function applyBen10HeroTime(fighter, opp, heroAlien, cineCtx = {}) {
     opp.vx = (fighter.facing || 1) * 18; opp.vy = -9
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
   }
-  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED, range-independent — the oversized finisher
+  applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter })   // GUARANTEED, range-independent — the oversized finisher
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({ x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) / 2,
       timer: 22, maxTimer: 22, category: blocked ? "light" : "ultimate", color: blocked ? null : "#a3e635",
       damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 18, radius: blocked ? 14 : 48, ...(blocked ? { isBlocking: true } : {}) })
   }
-  schedulePendingSpawn(BEN10_HERO_TIME.revertDelay, doRevert)   // ...then revert to human a beat after the blow
+  scheduleBenSpawn(fighter, BEN10_HERO_TIME.revertDelay, doRevert)   // ...then revert to human a beat after the blow
 }
 
 // XLR8 — SONIC BLITZ: a committed, high-damage blitz dash (launcher). Reuses the combo pose.
@@ -29978,7 +30075,7 @@ function fireXlr8SonicBlitz(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   const dir = fighter.facing || 1
   fighter.vx = dir * 26
-  for (const t of [2, 4, 6, 8, 10, 12]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlUlt") fighter.vx = dir * 26 })
+  for (const t of [2, 4, 6, 8, 10, 12]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "xlUlt") fighter.vx = dir * 26 })
   shakeCamera(context, 10, 12)
   focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.95, 12)
   return true
@@ -29993,7 +30090,7 @@ function fireDhCrystalStorm(fighter, context) {
   const baseX = fighter.x + (fighter.w || 60) / 2
   // 4 eruptions marching outward from Ben, staggered — a crystal field (escalated Rising Diamonds).
   for (let i = 0; i < 4; i++) {
-    schedulePendingSpawn(8 + i * 7, () => {
+    scheduleBenSpawn(fighter, 8 + i * 7, () => {
       spawnProjectile(fighter, "ben10_diamond_eruption", {
         damage: 60, speed: 0, vx: 0, lifetime: 24, hitstun: 22, knockbackX: 4, knockbackY: -13,
         w: 54, h: 88, radius: 30, color: "#5eead4", isSpecial: true, isUltimate: true, launcher: true,
@@ -30020,7 +30117,7 @@ function fireFbOverload(fighter, context) {
   // Three staggered overload orbs (raw 110 → ~66 effective each through the global melee scale). Not all
   // are guaranteed at every spacing → totals sit in ultimate range without a single point-blank one-shot.
   for (let i = 0; i < 3; i++) {
-    schedulePendingSpawn(6 + i * 6, () => {
+    scheduleBenSpawn(fighter, 6 + i * 6, () => {
       spawnProjectile(fighter, "feedback_overload", {
         damage: 110, speed: 18, vx: face * 18, hitstun: 26, knockbackX: 11, knockbackY: -4,
         w: 40, h: 30, radius: 22, color: "#22d3ee", lifetime: 130, isSpecial: true, isUltimate: true,
@@ -30046,20 +30143,21 @@ function executeBen10Ultimate(fighter, context) {
     fighter.attackCooldown = getAttackDuration(90, fighter); fighter.vx = 0
     fighter._benOverloadFx = { t: 90, max: 90, prime: fighter._benVariant === "prime" }   // render-only radial burst
     const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) * 0.45, RAD = 320
-    const hitAt = (t, dmg) => schedulePendingSpawn(t, () => {
+    const hitAt = (t, dmg) => scheduleBenSpawn(fighter, t, () => {
       const opp = getTargetResolver(context)(fighter)
       if (opp && !opp.eliminated) {
         const ox = opp.x + (opp.w || 60) / 2, oy = opp.y + (opp.h || 100) / 2
-        if (Math.hypot(ox - cx, oy - cy) <= RAD) { applyScaledDamage(opp, dmg, { source: "ben-overload" }); opp.hitstun = Math.max(opp.hitstun || 0, 16) }
+        if (Math.hypot(ox - cx, oy - cy) <= RAD) { applyScaledDamage(opp, dmg, { source: "ben-overload", attacker: fighter }); opp.hitstun = Math.max(opp.hitstun || 0, 16) }
       }
     })
     hitAt(18, 70); hitAt(40, 70); hitAt(66, 110)
-    schedulePendingSpawn(90, () => { if (fighter.omnitrix) fighter.omnitrix.timeoutCooldown = Math.max(fighter.omnitrix.timeoutCooldown || 0, 180) })   // forced 3s timeout after recovery
+    scheduleBenSpawn(fighter, 90, () => { if (fighter.omnitrix) fighter.omnitrix.timeoutCooldown = Math.max(fighter.omnitrix.timeoutCooldown || 0, 180) })   // forced 3s timeout after recovery
     focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.9, 20)
     shakeCamera(context, 8, 14)
     return true
   }
   const a = (fighter.activeAlien || "").toLowerCase()
+  if (a === "swampfire") return fireSwampfireUltimate(fighter, context)
   if (a === "xlr8")        return fireXlr8TimeSlice(fighter, context)         // opponent speed-debuff (NOT self-buff)
   if (a === "diamondhead") return fireDhCrystallineEruption(fighter, context)
   if (a === "feedback")    return fireFbOverloadDischarge(fighter, context)
@@ -30089,10 +30187,10 @@ function fireBen10FreezeUlt(fighter, context, opts = {}) {
   fighter.attackCooldown = getAttackDuration(castTime + 6, fighter)
   fighter.vx = 0
   focusCameraOnAction(context, fighter, opp, 0.92, 20)
-  for (let t = 1; t < castTime; t += 2) schedulePendingSpawn(t, () => { if (opp && !opp.eliminated) { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.vx = 0 } })
-  schedulePendingSpawn(castTime - 6, () => {
+  for (let t = 1; t < castTime; t += 2) scheduleBenSpawn(fighter, t, () => { if (opp && !opp.eliminated) { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.vx = 0 } })
+  scheduleBenSpawn(fighter, castTime - 6, () => {
     if (!opp || opp.eliminated) return
-    applyScaledDamage(opp, dmg, { source: "ability" })
+    applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter })
     opp.hitstun = Math.max(opp.hitstun || 0, 32); opp.vx = (fighter.facing || 1) * 14; opp.vy = -11; opp.colorFlash = 14
     shakeCamera(context, 13, 16)
     if (onImpact) onImpact(opp, context)
@@ -30128,7 +30226,7 @@ function fireFbOverloadDischarge(fighter, context) {
 function fireWildmuttFrenzy(fighter, context) {
   const opp = getTargetResolver(context)(fighter)
   const ok = fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 210, cast: "wmPounce", castTime: 50 })
-  if (ok) for (const t of [16, 24, 32, 40]) schedulePendingSpawn(t, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 40, { source: "ability" }); opp.colorFlash = 6; shakeCamera(context, 3, 4) } })   // maul ticks + final crush
+  if (ok) for (const t of [16, 24, 32, 40]) scheduleBenSpawn(fighter, t, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 40, { source: "ability", attacker: fighter }); opp.colorFlash = 6; shakeCamera(context, 3, 4) } })   // maul ticks + final crush
   return ok
 }
 // Heatblast — "Supernova": a self-detonating heat blast — big AoE flourish + guaranteed core hit.
@@ -30163,7 +30261,7 @@ function fireCannonboltPinball(fighter, context) {
   fighter.vx = fighter._cbRollDir * SPD
   const opp = getTargetResolver(context)(fighter)
   for (let t = 2; t <= md.startup + md.active; t += 2) {
-    schedulePendingSpawn(t, () => {
+    scheduleBenSpawn(fighter, t, () => {
       if (fighter.currentAttack?.name !== "cbRoll") return
       if (fighter._cbBounces < 4 && ((fighter.x <= 14 && fighter._cbRollDir < 0) || (fighter.x >= W - bw - 14 && fighter._cbRollDir > 0))) {
         fighter._cbRollDir *= -1; fighter.facing = fighter._cbRollDir; fighter._cbBounces++
@@ -30174,7 +30272,7 @@ function fireCannonboltPinball(fighter, context) {
     })
   }
   // guaranteed uncurl-slam finish (~198 EFF floor; the ricochet pass-hits are bonus)
-  schedulePendingSpawn(md.startup + md.active + 2, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 330, { source: "ability" }); opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = (fighter.facing || 1) * 14; opp.vy = -12; opp.colorFlash = 12; shakeCamera(context, 14, 18) } })
+  scheduleBenSpawn(fighter, md.startup + md.active + 2, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 330, { source: "ability", attacker: fighter }); opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = (fighter.facing || 1) * 14; opp.vy = -12; opp.colorFlash = 12; shakeCamera(context, 14, 18) } })
   return true
 }
 // Chromastone — "Prism Overload": a massive point-blank ultraviolet light-beam.
@@ -30212,13 +30310,13 @@ function fireAlienXUltimate(fighter, context) {
   fighter._spriteCastMove = "axWarp"; fighter._spriteCastTimer = AX_ULT.windup
   fighter.vx = 0
   fighter._axUltWindup = true   // pause the Omnitrix drain/revert during the long windup (fighters.js updateTransformDevice)
-  for (const t of [30, 70, 110, 150, 185]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 5) })
-  schedulePendingSpawn(AX_ULT.windup, () => {
+  for (const t of [30, 70, 110, 150, 185]) scheduleBenSpawn(fighter, t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 5) })
+  scheduleBenSpawn(fighter, AX_ULT.windup, () => {
     fighter._axUltWindup = false   // resume drain (whether the payoff lands or was interrupted)
     // interrupted if the windup attack is no longer current (a hit cleared it) or the caster is in hitstun
     if (fighter.currentAttack?.name !== "axWarp" || (fighter.hitstun || 0) > 0 || fighter.eliminated) return
     if (opp && !opp.eliminated) {
-      applyScaledDamage(opp, AX_ULT.dmg, { source: "ability" })   // ~270 EFF — highest on the Ben 10 roster
+      applyScaledDamage(opp, AX_ULT.dmg, { source: "ability", attacker: fighter })   // ~270 EFF — highest on the Ben 10 roster
       opp.hitstun = Math.max(opp.hitstun || 0, 36); opp.vx = (fighter.facing || 1) * 18; opp.vy = -14; opp.colorFlash = 14
       shakeCamera(context, 18, 22)
     }
@@ -30242,9 +30340,9 @@ function fireClockworkTimeStop(fighter, context) {
   }, context)
   focusCameraOnAction(context, fighter, opp, 0.9, 24)
   // Guaranteed payoff near the end of the freeze (opponent still locked): the accumulated time-crush.
-  schedulePendingSpawn(Math.floor(CW_TIMESTOP.freezeSec * 60) - 10, () => {
+  scheduleBenSpawn(fighter, Math.floor(CW_TIMESTOP.freezeSec * 60) - 10, () => {
     if (!opp || opp.eliminated) return
-    applyScaledDamage(opp, CW_TIMESTOP.dmg, { source: "ability" })   // ~198 EFF
+    applyScaledDamage(opp, CW_TIMESTOP.dmg, { source: "ability", attacker: fighter })   // ~198 EFF
     opp.hitstun = Math.max(opp.hitstun || 0, 30)
     opp.vx = (fighter.facing || 1) * 14; opp.vy = -8; opp.colorFlash = 12
     shakeCamera(context, 12, 16)
@@ -35643,6 +35741,8 @@ export function triggerTransformation(fighter, context = {}) {
 
 export function updateTransformationState(fighter, context = {}) {
   if (!fighter) return fighter
+  // Transform devices own form data and multipliers; the generic Saiyan/form layer must not overwrite them.
+  if (["ben10", "albedo"].includes((fighter.rosterKey || "").toLowerCase())) return fighter
 
   updateTransformations(fighter, context.deltaMs || 1000 / 60)
 

@@ -1992,7 +1992,7 @@ export const SKINS = {
   ben10: [
     { id: "default",      name: "Alien Force", unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "alienforce" },
     { id: "ben10Classic", name: "Classic",     unlockLevel: 0, portrait: "./ben10_portrait__classic.png",   spriteScale: characters.ben10?.spriteScale, animationData: BEN10_CLASSIC_ANIM, benVariant: "classic" },
-    { id: "ben10Prime",   name: "Prime",       unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "prime", primePending: true, auraOverlay: "#39ff14" },
+    { id: "ben10Prime",   name: "Prime (EXPERIMENTAL / pending art)",       unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "prime", primePending: true, auraOverlay: "#39ff14" },
     { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
     { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],

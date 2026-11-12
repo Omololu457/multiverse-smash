@@ -61,7 +61,7 @@ try{
    else await page.waitForTimeout(150);if(attempts%10===0){const q=await read();console.log('MATCH_PROGRESS',q.state,q.round,q.roundWins,q.p2.health)}
   }
   s=await read();check('actual attack damage reaches KO and match victory',s.state==='victory'&&s.roundWins.p1>=2&&s.p2.health===0);await shot('12-victory')
-  await tap('r');await wait(()=>__luffyLaunchRead().state==='battle'&&__luffyLaunchRead().countdown<=0,30000);s=await read();check('normal R rematch restores Luffy and clears resources/rounds',s.p1.key==='luffy'&&s.p1.health===1000&&s.p1.energy===50&&s.p1.lf.pips===0&&s.roundWins.p1===0);await shot('13-rematch')
+  await tap('r');await wait(()=>__luffyLaunchRead().state==='battle'&&__luffyLaunchRead().countdown<=0,30000);s=await read();check('normal R rematch restores Luffy and clears resources/rounds',s.p1.key==='luffy'&&s.p1.health===1000&&s.p1.energy===50&&s.p1.lf.pips===0&&s.roundWins.p1===0);check('rematch releases victory and defeat poses for both Luffys',s.p1.sprite==='idle'&&s.p2.sprite==='idle');await shot('13-rematch')
   check('normal launch has no uncaught JavaScript errors',errors.length===0);check('normal launch has no missing Luffy assets',!missing.some(x=>/luffy/i.test(x)))
   console.log('LUFFY NORMAL LAUNCH:',checks.length,'passed, 0 failed')
  }

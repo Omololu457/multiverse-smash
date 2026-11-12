@@ -25,6 +25,7 @@ try{
  check('actual KO reaches real victory',await page.evaluate(()=>__harness.matchFlow().victoryActive&&__harness.state().gameState==='victory'))
  await shot('victory-live');await page.keyboard.press('r');await page.evaluate(()=>__harness.skipToBattle());await step(2)
  check('real R rematch clears winner character state',(await st()).state?.pips===0&&(await st()).energy===50)
+ check('real rematch releases Luffy victory pose',(await st()).spriteAction==='idle')
  // Second slot uses its real distinct keyboard controls and mirrored art.
  await open('goku','luffy');await page.evaluate(()=>{__harness.luffyTest.set('p1',{x:750});__harness.luffyTest.set('p2',{x:830,energy:100})})
  await page.keyboard.down('1');await step(6);await page.keyboard.up('1');let f=await st('p2')

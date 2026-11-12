@@ -8,7 +8,7 @@ export function luffyState(f) {
   pull:null,previous:{},edges:{},buffer:{},serial:0}
 }
 export function clearLuffy(f) {
- if(f?._luffy){delete f._luffy;delete f._luffyCue;delete f._luffyLandingVisual}
+ if(f?._luffy||isLuffy(f)){delete f._luffy;delete f._luffyCue;delete f._luffyLandingVisual;delete f._forceAction}
  if(f?.currentAttack?.lf){f.currentAttack=null;f.currentMove=null;f.attacking=false;f._rekkaNext=null;f._cmdHitLanded=false}
 }
 export function luffyInterrupted(f) {

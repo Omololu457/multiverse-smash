@@ -202,4 +202,9 @@ test('Anchor Heel caps integrated falling displacement before gravity moves the 
  physics.applyGravity(f);assert.equal(f.y,18);assert.equal(f.vy,18)
 })
 
+test('Luffy resets release victory/defeat poses without clearing another fighter pose',()=>{
+ const f=fighter();f._forceAction='win';clearLuffy(f);assert.equal(f._forceAction,undefined)
+ f._forceAction='lose';luffyState(f);clearLuffy(f);assert.equal(f._forceAction,undefined)
+ const other=fighter('goku');other._forceAction='win';clearLuffy(other);assert.equal(other._forceAction,'win')
+})
 console.log(`LUFFY: ${passed} passed, 0 failed`)

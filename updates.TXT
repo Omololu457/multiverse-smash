@@ -261,3 +261,91 @@ LUFFY — ELASTIC BRAWLER IMPLEMENTATION (2026-11-12)
 - Feature: feat/luffy-elastic-brawler. All implementation, test and visual evidence
   is committed; final documentation records the published base and PR.
 - Shared checkout/assets remain preserved. No merge, deployment or new skins.
+
+LUFFY — NORMAL LAUNCH VERIFICATION (2026-11-12)
+
+1. Actual checkout and playable address
+
+- Branch: feat/luffy-elastic-brawler.
+- Tested game commit: 8a5ce0a238ea32ea8d09b1246ac4d501b510f737.
+- Durable checkout: /Users/omololu/Desktop/project/multiverse-smash-luffy.
+- Exact playable URL on this Mac: http://127.0.0.1:8000/ (no query parameters).
+- The normal project dev server is running from that checkout on port 8000.
+- Restart if needed: cd /Users/omololu/Desktop/project/multiverse-smash-luffy,
+  then npm run serve. Open the same URL; do not open index.html over file://.
+- The feature checkout was moved from /tmp into the separate durable directory;
+  the former path remains a compatibility symlink. Original dirty main is untouched.
+- The running triage server on port 8777 serves the original project, which returns
+  404 for luffyData.js. The IDE project and original double-click launcher also use
+  that older checkout. Those launch paths do not contain the unmerged Luffy branch.
+
+2. Normal startup and menu selection
+
+- Opened the plain URL in Chromium with normal animation timing and no ?harness.
+- Confirmed __harness is absent. No startup, intro or countdown skipping was used.
+- The existing first-run Goku tutorial appears automatically on a fresh profile.
+  After its intro, Escape returns to the normal main menu. This is baseline behavior.
+- Click title PLAY, then main-menu PLAY, choose a mode and One Piece -> Luffy ->
+  Default. Choose opponent/stage and allow normal intros/countdown to finish.
+- VS CPU also asks for difficulty. Training supplies the stationary opponent.
+- No dev code or experimental-roster unlock is needed for Luffy.
+
+3. Real-input match and regression fix
+
+- A complete normal-menu local two-player Luffy mirror match verified movement,
+  jump, J1/J2/J3, Heavy, three Wind-Up pips, paid confirmed Snapback, all five
+  directional specials, earned 100 Stamina and the confirmed multi-contact ultimate.
+- Two KOs were produced by actual attacks, followed by victory and a real R rematch.
+  No health setter, infinite-resource mode, forced KO or manual simulation step was used.
+- Rematch restored HP1000, Stamina50, zero Wind-Up pips and zero round wins.
+- harness/luffy_launch.mjs uses only mouse/keyboard actions and a response-only
+  read observer. It cannot write fighter state or advance time; users receive the
+  unchanged game module. Results: 23 normal-launch assertions passed, zero failed.
+- The normal KO revealed one Luffy regression: the generic finisher loader requested
+  nonexistent fatality/luffy_chopped.png. No derived gore art was supplied or invented.
+- Fixed with Luffy's optional fatalityVictimArt=false declaration. Both shared
+  finisher loaders retain their existing FX-only fallback and skip the missing image.
+  Finisher timing, KO resolution and other fighters' authored image paths are unchanged.
+- New finisher-art regression checks pass for the shared window, Shisui resolution,
+  untouched legacy paths and zero Luffy-derived-image requests. Mechanics remain35/0;
+  roster integrity, syntax/import checks, module stamp and whitespace checks pass.
+- Final normal-launch network review found no missing Luffy assets or uncaught errors.
+  /api/health is the expected optional static-server 404; saves use localStorage.
+- Evidence and instructions: docs/luffy/LAUNCH_VERIFICATION.md and launch/ screenshots.
+
+4. PR base and unfinished integration dependency
+
+- PR #10: https://github.com/Omololu457/multiverse-smash/pull/10 (open, draft).
+- Intended target remains integration/ben10-complete-feel-polish at exact base
+  736c4a68efdb58ba577897a673f029af645b4f29. It is not the older pre-integration main.
+- The feature ancestry includes Ben/Swampfire, graphics/polish and timing/weather
+  integration. PR #10's diff contains no Ben/Swampfire files; it depends on that
+  unmerged integration base rather than independently implementing those changes.
+- Production Swampfire was tested. Thirteen legacy alien experiments remain unfinished,
+  Prime art is pending/development-only, and Albedo remains disabled. Broad balance,
+  FFA and external-weather certification and the inherited handoff fields remain open.
+- Luffy does not complete or expose that unfinished work. No merge or deployment made.
+
+5. Baseline failures and practical effect
+
+- Credits11/3: four existing missing attribution entries, one stale key and coverage
+  drift. Metadata failures; they do not block startup, combat or Luffy artwork.
+- Combo audit229/9, base226/9: existing classification/total/zoner-count drift and
+  missing Gogeta/Goku Rose launcher/air definitions. The latter can limit those
+  fighters' options; there is no Luffy audit failure or startup effect.
+- Older Goku-stage3 baseline3/7 concerns old rush-sheet/stage expectations against
+  rebuilt Goku. Superman baseline38/1 concerns the disabled legacy Omni-Man ultimate
+  expectation. These older suites were not rerun here; no Luffy/startup effect observed.
+- None of these baseline failures blocked the normal title, first-run tutorial,
+  main menu, One Piece/Luffy selection, full match, victory or rematch in this check.
+
+6. Controls to play now
+
+- Open http://127.0.0.1:8000/ and select One Piece -> Monkey D. Luffy -> Default.
+- P1: A/D move, W jump, J Light, K Heavy, I launcher, L Special, U Ultimate,
+  semicolon guard, O grab. R rematches from victory.
+- Specials: neutral/forward/down/back + L; airborne down + L. P is Charge and does
+  not recover Luffy's Stamina. Fresh J retaps chain; a fresh confirmed stretch L
+  retap spends one Wind-Up pip for Snapback. Ultimate needs100 Stamina; start is50.
+- Physical controller hardware and prolonged FFA remain unverified. Prior simulated
+  controller and AI checks still apply. The original checkout/assets remain preserved.

@@ -10,7 +10,8 @@ fields remain untouched; this document does not certify that separate delivery.
 
 Published feature: [feat/luffy-elastic-brawler](https://github.com/Omololu457/multiverse-smash/tree/feat/luffy-elastic-brawler),
 tested delivery commit `a251e3f7`. The isolated full clone is
-`/tmp/ms-luffy-elastic-brawler`. The original dirty checkout, its index, uploaded
+`/Users/omololu/Desktop/project/multiverse-smash-luffy` (moved from /tmp for
+normal launch; the old path is a compatibility symlink). The original dirty checkout, its index, uploaded
 assets and the older-main Luffy branch in the durable integration checkout were
 not used as the implementation base or modified. No stash, hard reset, clean,
 worktree, forced checkout, add-all, force push, merge or deployment was used.
@@ -122,3 +123,10 @@ hardware and external weather remain untested. The Ben unfinished work and
 baseline failures remain preserved. The dependent base is published at the
 verified commit and draft PR #10 is open. The feature is delivered for review;
 merge, deployment and later skins remain outside this task.
+
+## Normal launch follow-up
+
+See [LAUNCH_VERIFICATION.md](LAUNCH_VERIFICATION.md) for the exact playable URL,
+normal menu/match evidence, tested game commit, PR ancestry and baseline impacts.
+The follow-up fixed a missing derived finisher-image request for Luffy while
+retaining the shared FX-only fallback and every other fighter's image paths.

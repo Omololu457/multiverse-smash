@@ -29,3 +29,10 @@ Small shared fixes preserve P2 human input and ordinary dash replay/LAN intent.
 Optional rendering origins/timelines preserve existing character behavior.
 Physical controller hardware, prolonged FFA and a roster-wide balance study were
 not tested. No skins, deployment or merge are included.
+
+Normal-launch follow-up: the plain local URL was tested through the title, first-boot
+tutorial, main menu, One Piece/Luffy/default selection and a complete competitive
+match: 23 checks passed, including earned meter, Snapback, ultimate, actual KOs and
+R rematch. A missing derived finisher-image request was fixed using the existing
+FX-only fallback, preserving other fighters' image paths and finisher timing.
+See [launch verification and playable instructions](https://github.com/Omololu457/multiverse-smash/blob/feat/luffy-elastic-brawler/docs/luffy/LAUNCH_VERIFICATION.md).

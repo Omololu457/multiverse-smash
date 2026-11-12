@@ -31,7 +31,7 @@ export function startFinishWindow(winner, victim) {
   const vKey = (victim.rosterKey || victim.id || "").toLowerCase()
   const style = fatalityStyleFor(wKey)
   const rec = { phase: "window", t: 0, winner, victim, style, fx: STYLE_FX[style] || STYLE_FX.slice, img: null, imgReady: false, prevUlt: true }
-  try { const img = new Image(); img.onload = () => { rec.imgReady = true }; img.src = fatalitySpritePath(wKey, vKey); rec.img = img } catch (_) {}
+  if (victim.fatalityVictimArt !== false) try { const img = new Image(); img.onload = () => { rec.imgReady = true }; img.src = fatalitySpritePath(wKey, vKey); rec.img = img } catch (_) {}
   try { winner.vx = 0; victim.vx = 0 } catch (_) {}
   _f = rec
   return true

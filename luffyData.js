@@ -47,7 +47,8 @@ const timelines={
  lfSnap:[[0,0],[2,1],[4,2],[5,3]]
 }
 export const luffy = {
- grabCastPose:'grab',rosterKey:'luffy',name:'Monkey D. Luffy',hudName:'Luffy',universe:'one_piece',
+ // No derived gore artwork was supplied; shared finishers retain their FX-only fallback.
+ fatalityVictimArt:false,grabCastPose:'grab',rosterKey:'luffy',name:'Monkey D. Luffy',hudName:'Luffy',universe:'one_piece',
  tagline:'Wind up. Let loose.', archetype:'Elastic Brawler',difficulty:'Medium',
  bio:'A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. He thrives on closing the distance, building momentum, and turning a clean opening into a flowing combo.',
  portrait:'./assets/sprites/luffy/portrait.png',hasSprites:true,spriteScale:2.3/1.18,

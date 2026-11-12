@@ -22,7 +22,7 @@ export function activateShisuiFallenFatality(attacker, victim) {
   if (_st || !victim || !attacker) return false
   const key = (victim.rosterKey || victim.id || "").toLowerCase()
   const rec = { t: 0, victim, attacker, img: null, imgReady: false, done: false, key }
-  try {
+  if (victim.fatalityVictimArt !== false) try {
     const img = new Image()
     img.onload = () => { rec.imgReady = true }
     img.src = `./fatality/${key}_chopped.png`

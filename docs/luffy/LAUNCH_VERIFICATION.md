@@ -1,6 +1,7 @@
 # Luffy — launch recovery and normal-menu verification
 
 **Already opened in the default browser (Safari): http://127.0.0.1:8000/**.
+The final desktop capture confirms the normal main menu is visible.
 
 Double-click **Play Luffy.command** in this project next time. If Safari restores
 the Settings screen, click **BACK**, then **PLAY** to choose a game mode and
@@ -10,8 +11,8 @@ the Settings screen, click **BACK**, then **PLAY** to choose a game mode and
 
 The earlier separate-checkout test did not open the build for the user. This
 follow-up explicitly ran macOS `open` and confirmed Safari's active tab URL and
-title. A desktop screenshot shows the game's Settings UI rendered at the working
-address. The user is no longer being directed to the old IDE page.
+title. The initial desktop screenshot showed the game's Settings UI; the final
+capture shows the normal main menu rendered at the working address. The user is no longer being directed to the old IDE page.
 
 - Working physical root: `/Users/omololu/Desktop/project/multiverse-smash-luffy`.
 - Server: existing PID92883, `node tools/serve.mjs`, port8000, verified by listener,
@@ -46,7 +47,7 @@ static-server/localStorage fallback. No saves, browser profiles or progression
 were erased. Browser storage/settings were left intact.
 
 Safari permits reading its active URL/title and a desktop capture confirms the
-rendered Settings page. It rejects Apple Events JavaScript (Safari setting is
+rendered Settings page and, on the final open, the normal main menu. It rejects Apple Events JavaScript (Safari setting is
 disabled), and macOS denies synthetic keystrokes (System Events error1002).
 Those security settings were not changed or bypassed. Thus native screen evidence
 confirms the opened/rendered page; the full menu/match input verification below
@@ -93,7 +94,9 @@ foreign port survives, the correct checkout is served on a free port, the second
 launch reuses the same PID, and the server survives its launcher parent exiting.
 The test stops only the servers it created; the user's existing servers remain.
 
-The default launch command was also invoked to open Safari itself. For diagnostics,
+The default launch command was also invoked to open Safari itself. A final explicit
+macOS open confirmed the active URL and a native desktop capture of the main menu
+(`launch/browser/safari_visible_main_menu.png`, browser chrome excluded). For diagnostics,
 `node tools/launch-luffy.mjs --no-open` performs the same safe server selection
 without opening a tab. Manual supported server command remains `npm run serve`.
 

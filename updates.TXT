@@ -417,3 +417,7 @@ LUFFY — USER BROWSER LAUNCH RECOVERY (2026-11-12)
   stops only its own test servers; existing8000/8777/63342 processes stay running.
 - Report and evidence: docs/luffy/LAUNCH_VERIFICATION.md and launch/browser/.
 - No merge, deployment, force push, reset, clean, stash or unrelated staging used.
+
+- Final macOS open reconfirmed Safari's active URL as http://127.0.0.1:8000/.
+  Native desktop capture now shows the normal main menu, not merely Settings.
+  Evidence: docs/luffy/launch/browser/safari_visible_main_menu.png (game viewport).

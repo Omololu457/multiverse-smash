@@ -10023,7 +10023,7 @@ function updateCPUInput() {
     applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
     return
   }
-  if (isPvP()) { clearAIControlKeys(p2); return }
+  if (isPvP()) return   // Human P2 keys must survive; startMatch clears stale AI inputs.
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
   if (!cpu)  { clearAIControlKeys(p2); return }
   // The AI doesn't manage the transform device, so auto re-engage its alien form

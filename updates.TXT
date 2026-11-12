@@ -357,3 +357,63 @@ LUFFY — NORMAL LAUNCH VERIFICATION (2026-11-12)
   the final rematch screenshot confirms both fighters render idle at full HP.
 - Fix commits: 8a5ce0a2 (missing finisher art), 00c94958 (rematch pose cleanup).
   The exact playable URL remains http://127.0.0.1:8000/; its server stays running.
+
+
+LUFFY — USER BROWSER LAUNCH RECOVERY (2026-11-12)
+
+1. User-facing failure and root evidence
+
+- The earlier automated separate-checkout check did not open the game for the user.
+  This follow-up explicitly opened the working URL in the default browser, Safari.
+- The old JetBrains game tab was not found among current matching browser tabs,
+  so its historical _ijt token was unavailable. The known path without that token,
+  http://localhost:63342/multiverse-smash/index.html, currently returns document404.
+- Reproduced original checkout startup through its existing port8777 server. Its
+  index bytes match ~/Desktop/project/multiverse-smash/index.html exactly.
+- First required-module failures: supermanEyeAnchors.js and homelanderEyeAnchors.js,
+  both script404s. Both files are absent from the dirty original tree and present
+  in the Luffy tree. Module loading aborts before game initialization can finish.
+- No original files, saves or progression were erased, restored or overwritten.
+
+2. Working server and browser actually opened
+
+- URL: http://127.0.0.1:8000/ (plain URL; no startup-skipping harness parameter).
+- Physical root: /Users/omololu/Desktop/project/multiverse-smash-luffy.
+- Reused existing server PID92883, node tools/serve.mjs, after checking occupied
+  ports, listener owner, physical working directory and served Luffy module bytes.
+- Executed macOS open and confirmed Safari active URL/title. Desktop capture shows
+  the rendered game Settings UI, not a blank blue screen. If restored there, click
+  BACK, then PLAY, choose mode, One Piece -> Luffy -> Default, opponent and stage.
+- Safari JavaScript-from-Apple-Events is disabled and macOS blocks remote keystrokes
+  (error1002). These restrictions were not changed or bypassed. Native screen/URL
+  evidence is distinguished from automated input verification below.
+
+3. Normal menu and match verification
+
+- Fresh WebKit opened the exact URL, with normal initialization, title, first-run
+  tutorial/Escape, main menu, One Piece/Luffy/default, opponent and stage selection.
+- Normal intro/countdown completed; both sprites/HUD rendered. Movement responded,
+  Light hit the opponent, and Wind-Up increased. No runtime state/resource setters
+  or manual simulation stepping were used. No uncaught errors or missing Luffy art.
+- LUFFY_BROWSER=webkit LUFFY_SMOKE_ONLY=1 node harness/luffy_launch.mjs: 11 passed.
+- Initial automation encountered a universe scroll-reset timing race. The fixture
+  now waits for the normal transition and asserts visibility before clicking;
+  game behavior and assertions were not weakened. The rerun passed all checks.
+- Only /api/health404 remains, the optional static-save-service probe. Required
+  modules load successfully from the Luffy server. Original module404s stay isolated.
+
+4. Repeatable double-click launcher
+
+- Double-click: /Users/omololu/Desktop/project/multiverse-smash-luffy/Play Luffy.command.
+- Command: node tools/launch-luffy.mjs, from the Luffy checkout. Default URL is
+  http://127.0.0.1:8000/. The launcher opens it itself using macOS open.
+- Uses the supported node tools/serve.mjs command. Existing correct servers are
+  reused only after physical-root/module checks; foreign servers are left alone.
+  If8000 is occupied by another server, the launcher safely tries8001-8009.
+- New server children are detached/unref with file logs, surviving Terminal close
+  and launcher exit. Logs: ~/Library/Logs/Multiverse Smash Luffy/server-<port>.log.
+- Real-process launcher tests passed: foreign port preserved, correct checkout
+  served, repeated launch reuses PID, and server survives parent exit. Test cleanup
+  stops only its own test servers; existing8000/8777/63342 processes stay running.
+- Report and evidence: docs/luffy/LAUNCH_VERIFICATION.md and launch/browser/.
+- No merge, deployment, force push, reset, clean, stash or unrelated staging used.

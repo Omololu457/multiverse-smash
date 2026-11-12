@@ -1,0 +1,30 @@
+{
+  "name": "original",
+  "url": "http://127.0.0.1:8777/index.html",
+  "status": 200,
+  "title": "Multiverse Smash Ultimate",
+  "errors": [],
+  "failed": [
+    {
+      "path": "/supermanEyeAnchors.js",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/homelanderEyeAnchors.js",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "bad": [
+    {
+      "path": "/supermanEyeAnchors.js",
+      "status": 404,
+      "type": "script"
+    },
+    {
+      "path": "/homelanderEyeAnchors.js",
+      "status": 404,
+      "type": "script"
+    }
+  ],
+  "harness": "undefined"
+}

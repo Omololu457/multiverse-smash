@@ -1,3 +1,107 @@
+# Luffy — launch recovery and normal-menu verification
+
+**Already opened in the default browser (Safari): http://127.0.0.1:8000/**.
+
+Double-click **Play Luffy.command** in this project next time. If Safari restores
+the Settings screen, click **BACK**, then **PLAY** to choose a game mode and
+**One Piece → Monkey D. Luffy → Default**, opponent and stage.
+
+## Actual browser/checkout recovery (2026-11-12)
+
+The earlier separate-checkout test did not open the build for the user. This
+follow-up explicitly ran macOS `open` and confirmed Safari's active tab URL and
+title. A desktop screenshot shows the game's Settings UI rendered at the working
+address. The user is no longer being directed to the old IDE page.
+
+- Working physical root: `/Users/omololu/Desktop/project/multiverse-smash-luffy`.
+- Server: existing PID92883, `node tools/serve.mjs`, port8000, verified by listener,
+  process working directory and the served luffyData.js matching this checkout.
+- The supported server was reused; no extra permanent server was needed.
+- The launcher detaches new servers with Node detached/unref and log-file stdio,
+  so closing Terminal/ending the launcher does not terminate the game server.
+- New-server logs: `~/Library/Logs/Multiverse Smash Luffy/server-<port>.log`.
+- Launcher: `/Users/omololu/Desktop/project/multiverse-smash-luffy/Play Luffy.command`.
+- Command alternative: `node tools/launch-luffy.mjs` from this checkout.
+
+### Root cause evidence and limits
+
+No existing Chrome/Safari tab at the old JetBrains address was found during the
+matching-game-tab scan. Its historical _ijt token was therefore not available;
+that exact authenticated old request was not replayed. The known path
+`http://localhost:63342/multiverse-smash/index.html` currently returns HTTP404
+from PyCharm (document failure, not a Luffy startup exception).
+
+The original checkout was independently reproduced through its already-running
+triage server at port8777. Its served index.html matches the physical original
+file byte-for-byte. Startup fails on required script HTTP404s for
+**supermanEyeAnchors.js** and **homelanderEyeAnchors.js**. Both files are absent
+from the dirty original project and present in the Luffy checkout. A failed ES
+module graph explains the background-only page; no separate page exception was
+reported by the browser. The original dirty tree was not restored, overwritten,
+or otherwise changed to hide these failures.
+
+At the Luffy URL, fresh WebKit startup loads successfully: no failed required
+modules or uncaught exceptions. The optional /api/health404 is the established
+static-server/localStorage fallback. No saves, browser profiles or progression
+were erased. Browser storage/settings were left intact.
+
+Safari permits reading its active URL/title and a desktop capture confirms the
+rendered Settings page. It rejects Apple Events JavaScript (Safari setting is
+disabled), and macOS denies synthetic keystrokes (System Events error1002).
+Those security settings were not changed or bypassed. Thus native screen evidence
+confirms the opened/rendered page; the full menu/match input verification below
+is automated WebKit, not a claim that remote clicks drove the user's Safari tab.
+
+### Normal startup test on the exact working URL
+
+Command:
+
+```sh
+LUFFY_BROWSER=webkit LUFFY_SMOKE_ONLY=1 node harness/luffy_launch.mjs
+```
+
+**11 passed, zero failed.** A fresh context uses the plain URL, no ?harness,
+no initialization/intro/countdown skip and normal requestAnimationFrame timing.
+A read-only response observer supplies snapshots/menu rectangles; every action
+is a real mouse/keyboard event. It does not write fighter state or advance time.
+The game module served to the user is not instrumented.
+
+The test went through title PLAY, the existing first-run tutorial and its normal
+Escape exit, main-menu PLAY, two-player mode, One Piece/Luffy/default on both
+sides, stage selection and the normal match intro/countdown. It confirmed visible
+sprite actions for both fighters and HUD capture, forward movement, a clean Light
+hit and Wind-Up gain, no uncaught errors and no missing Luffy assets. See
+`launch/browser/webkit_match.png` and `webkit_match_results.json`.
+
+An initial WebKit automation attempt clicked the second universe card before its
+scroll-reset animation settled. The fixture now waits for that transition and
+asserts card visibility before clicking. No game behavior or assertion was removed
+to pass this check; initialization and menu transitions still occur normally.
+
+### Launcher behavior
+
+`Play Luffy.command` finds Node in standard macOS install paths and runs
+`tools/launch-luffy.mjs`. That tool verifies the listener's physical working
+directory and served module/import-map before reusing a server. If port8000 is
+occupied by another project or unsupported server, it leaves it running and tries
+8001–8009. It prints and opens the selected URL via macOS `open`. It never opens
+file:// or the JetBrains address, never installs Electron, and never falls back
+to the original dirty checkout. No browser security or save flags are changed.
+
+`node harness/luffy_launcher.test.mjs` passed real-process checks: an occupied
+foreign port survives, the correct checkout is served on a free port, the second
+launch reuses the same PID, and the server survives its launcher parent exiting.
+The test stops only the servers it created; the user's existing servers remain.
+
+The default launch command was also invoked to open Safari itself. For diagnostics,
+`node tools/launch-luffy.mjs --no-open` performs the same safe server selection
+without opening a tab. Manual supported server command remains `npm run serve`.
+
+No merge, deployment, forced Git operation, or modification of the dirty original
+checkout occurred. The previous detailed gameplay and PR/baseline report follows.
+
+---
+
 # Luffy — normal launch verification (2026-11-12)
 
 Playable URL on this Mac: **http://127.0.0.1:8000/**.

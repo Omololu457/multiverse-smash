@@ -2,10 +2,11 @@
 // The response-only observer reads private state; all actions use real mouse/keyboard input.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
-import {chromium} from 'playwright'
+import {chromium,webkit} from 'playwright'
 const url=process.env.LUFFY_PLAY_URL||'http://127.0.0.1:8000/'
 const out='/tmp/ms-luffy-launch';fs.mkdirSync(out,{recursive:true})
-const browser=await chromium.launch({headless:true,args:['--autoplay-policy=no-user-gesture-required']}),page=await browser.newPage({viewport:{width:1280,height:720}})
+const engine=process.env.LUFFY_BROWSER==='webkit'?webkit:chromium
+const browser=await engine.launch({headless:true,...(engine===chromium?{args:['--autoplay-policy=no-user-gesture-required']}: {})}),page=await browser.newPage({viewport:{width:1280,height:720}})
 const errors=[],missing=[],checks=[]
 page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()===404)missing.push(new URL(r.url()).pathname)})
 const observer=`
@@ -21,8 +22,8 @@ const shot=async name=>page.screenshot({path:out+'/'+name+'.png'})
 const clickIndex=async i=>{const s=await read(),r=s.rects[i];assert(r,'missing menu rectangle '+i);await page.mouse.click(r.x+r.w/2,r.y+r.h/2);await page.waitForTimeout(220);console.log('MENU',JSON.stringify((await read()).state))}
 const clickId=async id=>{const s=await read();await clickIndex(s.rects.findIndex(r=>r.id===id))}
 const tap=async k=>page.keyboard.press(k,{delay:28})
-async function pickLuffy(){await wait(()=>__luffyLaunchRead().state==='selectUniverse');let s=await read();const i=s.universes.findIndex(u=>u.id==='one_piece');assert(i>=0,'One Piece absent');
- let r=s.rects[i];if(r.y>650){await page.mouse.move(600,430);await page.mouse.wheel(0,r.y-350);await page.waitForTimeout(300)}
+async function pickLuffy(){await wait(()=>__luffyLaunchRead().state==='selectUniverse');await page.waitForTimeout(350);let s=await read();const i=s.universes.findIndex(u=>u.id==='one_piece');assert(i>=0,'One Piece absent');
+ let r=s.rects[i];for(let n=0;n<6&&(r.y<150||r.y+r.h>660);n++){await page.mouse.move(600,430);await page.mouse.wheel(0,r.y-350);await page.waitForTimeout(350);r=(await read()).rects[i]}assert(r.y>=150&&r.y+r.h<=660,'One Piece card must be visible before clicking')
  await clickIndex(i);await wait(()=>__luffyLaunchRead().state==='selectCharacter');s=await read();await clickIndex(s.roster.findIndex(c=>c.id==='luffy'));
  s=await read();if(s.state==='selectSkin')await clickIndex(0)
 }
@@ -34,7 +35,17 @@ try{
  let s=await read();check('normal menus spawn Luffy with default skin',s.p1.key==='luffy'&&s.p2.key==='luffy'&&s.skin==='default');check('normal play retains production Ben restrictions',s.experimental!==true);await shot('04-match')
  // Remaining play assertions are filled below; no hidden state mutation is used.
  fs.writeFileSync(out+'/menu-result.json',JSON.stringify({url,checks,errors,missing,snapshot:s},null,2));console.log('MENU_READY',s.p1.key,s.p2.key,s.mode)
- if(process.env.LUFFY_MENU_ONLY!=='1'){
+ if(process.env.LUFFY_SMOKE_ONLY==='1'){
+  const before=await read();await page.keyboard.down('d');
+  await page.waitForFunction(()=>{const s=__luffyLaunchRead();return Math.abs(s.p2.x-s.p1.x)<=80},null,{timeout:12000,polling:'raf'});await page.keyboard.up('d')
+  check('normal match has responsive movement',(await read()).p1.x>before.p1.x+50)
+  await page.keyboard.press('j',{delay:60});await wait(()=>!!__luffyLaunchRead().p1.attack?.lfConfirmed,5000)
+  let q=await read();check('normal match Light input hits the visible opponent',q.p2.health<1000&&q.p1.lf.pips===1)
+  check('both fighters render sprites in the normal HUD match',!!q.p1.sprite&&!!q.p2.sprite)
+  await shot('browser-normal-match');check('no uncaught startup or match errors',errors.length===0)
+  check('no missing required Luffy assets',!missing.some(x=>/luffy/i.test(x)))
+  console.log('LUFFY NORMAL BROWSER SMOKE:',checks.length,'passed, 0 failed')
+ }else if(process.env.LUFFY_MENU_ONLY!=='1'){
   const idle=()=>wait(()=>{const s=__luffyLaunchRead();return s.state==='battle'&&s.countdown<=0&&s.p1.health>0&&!s.p1.attack&&s.p1.attackCooldown<=0&&!s.p1.hitstun&&!s.p1.hitstop},12000)
   async function close(gap=78){await idle();let q=await read();if(Math.abs(q.p2.x-q.p1.x)<=gap+4)return;const key=q.p2.x>q.p1.x?'d':'a';await page.keyboard.down(key);try{await page.waitForFunction(g=>{const s=__luffyLaunchRead();return Math.abs(s.p2.x-s.p1.x)<=g},gap,{timeout:12000,polling:'raf'})}finally{await page.keyboard.up(key)}}
   async function meter(min){await idle();await page.waitForFunction(n=>__luffyLaunchRead().p1.energy>=n,min,{timeout:65000,polling:'raf'})}

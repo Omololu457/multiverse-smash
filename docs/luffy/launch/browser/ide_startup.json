@@ -1,0 +1,16 @@
+{
+  "name": "ide",
+  "url": "http://localhost:63342/multiverse-smash/index.html",
+  "status": 404,
+  "title": "404 Not Found",
+  "errors": [],
+  "failed": [],
+  "bad": [
+    {
+      "path": "/multiverse-smash/index.html",
+      "status": 404,
+      "type": "document"
+    }
+  ],
+  "harness": "undefined"
+}

@@ -17,12 +17,10 @@ export const REPLAY_VERSION = 1;
 // Reject-on-mismatch stamp (SECTION D decision): a replay recorded under a different balance will
 // desync, so playback (11C) refuses a replay whose balanceStamp != current. BUMP THIS whenever a
 // gameplay-affecting balance value changes (damage scale, move data, hitstun, etc.).
-export const BALANCE_STAMP = "ben10-swampfire-20261110-v1";
+export const BALANCE_STAMP = "luffy-elastic-brawler-20261111-v1";
 
-// 14-field input bitmask. Bit order is REPLAY_INPUT_FIELDS' order — stable and shared with input.js so
-// encode/decode and playback all agree. (jump shares the up key and dash is double-tap-derived, so
-// those bits are redundant/always-0 respectively, but keeping full parity with getFighterInput keeps
-// playback's writeRawControls a straight inverse.)
+// 14-field mask shared with input.js. Dash carries the resolved ordinary double-tap intent;
+// playback and LAN consume that intent through the same physics path as local input.
 export function encodeInput(raw) {
   let m = 0;
   for (let i = 0; i < REPLAY_INPUT_FIELDS.length; i++) if (raw && raw[REPLAY_INPUT_FIELDS[i]]) m |= (1 << i);

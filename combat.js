@@ -1,3 +1,4 @@
+import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
 import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
@@ -289,7 +290,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
   recordRegrowthDamage(target, Math.max(0, before - target.health), opts)
-  if (target.health <= 0) handleBenKO(target)
+  if (target.health <= 0) { handleBenKO(target); clearLuffy(target) }
   // KILLING-BLOW-MOVE STAMP (Brutality engine): when THIS application is the one that crosses the
   // defender to <=0, record on the ATTACKER which move landed the fatal blow so _tryStartBrutality can
   // key a per-MOVE finisher instead of only "who won". Purely post-KO bookkeeping — never read by the
@@ -762,7 +763,7 @@ export function tryComebackFinisher(fighter, inputState, opponent) {
 
 export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
-  if (!fighter || !a) return null
+  if (!fighter || !a || a.lf?.noHit) return null
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -771,7 +772,9 @@ export function getAttackHitbox(fighter) {
   let w = (a.rangeX || 50) * reachMult
   let h = a.rangeY || 40
   let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
-  let y = fighter.y + 20
+  let y = fighter.y + (a.lf?.boxY ?? 20)
+
+  if (a.lf?.centered) return { x: fighter.x + fighter.w / 2 - w / 2, y, w, h }
 
   // AOE moves (e.g. Sasuke's Chidori Koiten lightning discharge): a STATIONARY box
   // CENTERED on the caster instead of the normal in-front reach, so the burst catches
@@ -786,7 +789,7 @@ export function getAttackHitbox(fighter) {
   }
 
   if (a.name === "up") {
-    y = fighter.y - 30
+    y = fighter.y + (a.lf?.boxY ?? -30)
   } else if (a.name === "down_air") {
     y = fighter.y + 30
   } else if (a.name === "air") {
@@ -3178,6 +3181,7 @@ export function startMove(fighter, moveKey, moveData) {
     hasHit: false
   }
 
+  if (isLuffy(fighter) && moveData.lf) fighter.currentAttack.lf = { ...moveData.lf }
   fighter.wasInStartup = true
   return true
 }
@@ -3252,7 +3256,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
-  if (!rectsOverlap(hitbox, hurtbox)) return
+  if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) return
 
   // NEZUKO — Counter Stance (Down+Special) takes priority over EVERYTHING (block/crouch/invuln): a hit that
   // overlaps her during the window is negated + riposted. Checked here at the top so the down-hold that arms
@@ -3312,6 +3316,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   // BEN 10 — ENERGY GUARD (Block+Heavy): absorbs the next incoming hit outright while its window holds.
   // Consume the window + the swing. ben10/albedo-gated → a strict no-op for every other fighter.
+  if (absorbLuffyStrike(defender, attacker)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
   if (consumeBenGuard(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3504,6 +3514,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
       !atk.launcher && !atk.spike && cat !== "ultimate"
 
+    luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3518,6 +3529,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       if (!defender.onGround && !defender.grounded) defender.juggleCount = (defender.juggleCount || 0) + 1
       delete defender._benVineHold
       invalidateBenAction(defender)
+      luffyInterrupted(defender)
       defender.attacking    = false
       defender.currentAttack = null
       defender.currentMove   = null
@@ -4115,6 +4127,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (fighter.attacking && fighter.currentAttack) {
     fighter.currentAttack.timer--
 
+    prepareLuffyAttack(fighter, opponent)
     if (getAttackPhase(fighter) === "active") {
       // JASON attack-effort grunt — once per attack, on its first active frame (audio-only; no-op otherwise).
       if (!fighter.currentAttack._jEffortDone) {
@@ -4169,6 +4182,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     // recovery here). If they don't jump-cancel, the launcher simply recovers into neutral.
     if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
       const exactFrameRecovery = fighter.currentAttack.frameExact
+      if (isLuffy(fighter)) luffyInterrupted(fighter)
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null
@@ -4270,7 +4284,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
       const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
-      if (!rectsOverlap(pb, hurtbox)) continue
+      if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) continue
       if (proj.radial && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
 
       if (consumeBenGuard(fighter)) {

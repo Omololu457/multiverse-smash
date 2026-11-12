@@ -1,3 +1,5 @@
+import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
+import { luffyRegen } from './luffyState.js'
 import { SWAMPFIRE_FX } from "./swampfire.js"
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
@@ -34964,6 +34966,7 @@ export function triggerSpecial(fighter, context = {}) {
   if (cloneChoreoInterceptSpecial(fighter)) return true
 
   switch (key) {
+    case 'luffy': return executeLuffySpecial(fighter)
     case "goku":    return executeGokuSpecial(fighter, context)
     case "goku_rose": return executeGokuRoseSpecial(fighter, context)
     case "gogeta":  return executeGogetaSpecial(fighter, context)
@@ -35237,6 +35240,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
 
   let cast
   switch (key) {
+      case 'luffy': cast = executeLuffyUltimate(fighter); break
       // GOKU has NO separate ultimate — his transformation LADDER moved to the CHARGE button (enterGokuNextForm),
       // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
@@ -36310,6 +36314,8 @@ export function applyOmoluPassiveSystems(fighter) {
 // ENERGY CHARGE (C key)
 // ─────────────────────────────────────────────────────────────────
 export function doEnergyCharge(fighter) {
+  if (fighter?.rosterKey === 'luffy') return
+
   if (!fighter?.maxEnergy) return
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // Charging is slower than regen but intentional
@@ -36320,6 +36326,7 @@ export function doEnergyCharge(fighter) {
 // ENERGY REGEN (passive, per frame)
 // ─────────────────────────────────────────────────────────────────
 export function regenEnergy(fighter) {
+  if (luffyRegen(fighter)) return
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
   if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down
   // Killua (Godspeed) `zoldyck`: VOLTS do NOT self-regenerate — electricity is a spent resource that only

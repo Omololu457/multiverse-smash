@@ -63,5 +63,9 @@ export function getAction(charKey, actionKey, skinAnim = null) {
     // Per-action scale correction (Toji old-row-sheet actions) — draw() multiplies it into
     // the display scale so art not tuned for the character's global spriteScale renders right.
     actionScale: a.actionScale,
+    originX: a.originX,
+    originY: a.originY,
+    frameTimeline: a.frameTimeline,
+    groundClearance: a.groundClearance,
   };
 }

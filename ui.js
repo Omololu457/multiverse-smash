@@ -2445,6 +2445,7 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
     const accent   = universe?.accent || _MK_ACCENT   // NEW per-universe identity accent (see game.js UNIVERSE_ACCENT)
     drawMkButton(ctx, rect, {
       label: universe?.name || universe?.id || universe?.label || `Universe ${i + 1}`,
+      subLabel: Number.isFinite(universe?.count) ? `${universe.count} FIGHTER${universe.count === 1 ? "" : "S"}` : undefined,
       active: i === selectedIndex, accent, id: `universe:${universe?.id || i}`, cut: 18
     })
     _holoPanelOverlay(ctx, rect.x, rect.y, rect.w, rect.h, { accent, cut: 18 })   // Stage 12: holographic treatment (universes = "info being displayed")
@@ -4382,7 +4383,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const nameColor = _colorblindHud ? (flip ? "#ffd39b" : "#7dd3fc") : (flip ? "#fca5a5" : "#7dd3fc")
     ctx.font = "bold 11px Arial"; ctx.textAlign = nameAlign; ctx.textBaseline = "alphabetic"
     ctx.fillStyle = nameColor
-    ctx.fillText(fighter.name || (flip ? "P2" : "P1"), nameX, hpY + 12)
+    ctx.fillText(fighter.hudName || fighter.name || (flip ? "P2" : "P1"), nameX, hpY + 12)
 
     // Track (deep-black chamfered well)
     ctx.fillStyle = "rgba(0,0,0,0.62)"
@@ -4474,7 +4475,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     }
 
     // NAME PLATE — accent-tinted chamfered strip behind a fitted name.
-    const name = fighter.name || (flip ? "P2" : "P1")
+    const name = fighter.hudName || fighter.name || (flip ? "P2" : "P1")
     const npX = panelX + 6, npY = hpY + 1, npW = tBarW - 4, npH = 13
     ctx.save(); _bevelPath(ctx, npX, npY, npW, npH, 3)
     ctx.fillStyle = _withAlpha(_shadeHex(accent, -0.35), 0.55); ctx.fill()
@@ -4704,6 +4705,22 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const bondTag = ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh" && (fighter._n7Bond || 0) > 0)
       ? `  · Bond ${fighter._n7Bond}` : ""
     ctx.fillText(label + bondTag + ultCd, labelX, enY - 2)
+    if (fighter.rosterKey === 'luffy') {
+      const pips = fighter._luffy?.pips || 0
+      const px = flip ? x + 44 : x + pbw - 38
+      ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 8px Arial'
+      const ls = fighter._luffy
+      const snap = ls && ls.pips > 0 && !ls.snapUsed && (ls.snapQueued || (ls.snapUntil > 0 && ls.clock <= ls.snapUntil))
+      ctx.fillStyle = snap ? '#fff1b8' : '#c6a25d'
+      ctx.fillText(snap ? (ls.snapQueued ? 'SNAP QUEUED' : 'SNAPBACK') : 'WIND-UP', flip ? px + 66 : px - 43, enY - 2)
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath(); ctx.arc(px + i * 14, enY - 6, 5, 0, Math.PI * 2)
+        ctx.fillStyle = i < pips ? '#ffd166' : '#252f40'; ctx.fill()
+        ctx.strokeStyle = '#c6a25d'; ctx.lineWidth = 1; ctx.stroke()
+        ctx.fillStyle = i < pips ? '#181c24' : '#eeeeee'; ctx.fillText(String(i + 1), px + i * 14, enY - 3)
+      }
+      ctx.restore()
+    }
 
     if (!hasEnergy) return
 

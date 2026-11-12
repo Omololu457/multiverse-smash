@@ -321,6 +321,12 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
 }
 
 const SOUNDS = {
+  // Luffy: synthesized placeholders; supplied sprite art includes no voice pack.
+  luffy_stretch(ctx,out) { osc(ctx,out,'triangle',160,0.16,0.22,780) },
+  luffy_snap(ctx,out) { osc(ctx,out,'sine',900,0.10,0.25,160) },
+  luffy_inflate(ctx,out) { osc(ctx,out,'sine',90,0.28,0.28,260) },
+  luffy_brace(ctx,out) { osc(ctx,out,'triangle',120,0.12,0.32,60) },
+  luffy_finale(ctx,out) { osc(ctx,out,'sawtooth',130,0.28,0.16,760); osc(ctx,out,'sine',70,0.35,0.24,45) },
   // ── Hits ──────────────────────────────────────────────────────
   hit_light(ctx, out) {
     osc(ctx, out, "sine", 380, 0.05, 0.35, 180)

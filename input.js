@@ -589,8 +589,26 @@ export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "ligh
 
 export function readRawControls(fighter) {
   if (!fighter || !fighter.controls) return null
+  // Luffy's recovery retaps need actual held buttons, not the buffered controller output.
+  // Reuse this raw snapshot for replay/LAN as well; no extra buffer polling or input parser.
+  const pn = fighter.playerNumber || 1
+  if (fighter.rosterKey === 'luffy' && !fighter._aiControlled && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
+    const gp = getPlayerGamepad(pn)
+    if (gp) {
+      const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []
+      const up = b(PS5_MAP.UP) || (ax[1] || 0) < -STICK_DEADZONE
+      const light = b(PS5_MAP.SQUARE), heavy = b(PS5_MAP.TRIANGLE)
+      return { left:b(PS5_MAP.LEFT)||(ax[0]||0)<-STICK_DEADZONE,
+        right:b(PS5_MAP.RIGHT)||(ax[0]||0)>STICK_DEADZONE,
+        down:b(PS5_MAP.DOWN)||(ax[1]||0)>STICK_DEADZONE, up,
+        jump:b(PS5_MAP.X), light, heavy, upAttack:up&&(light||heavy),
+        special:b(PS5_MAP.R1), ultimate:b(PS5_MAP.R2), grab:b(PS5_MAP.L1),
+        charge:b(PS5_MAP.L2), block:b(PS5_MAP.CIRCLE), dash:!!fighter._dashTap }
+    }
+  }
   const c = fighter.controls, out = {}
   for (const f of REPLAY_INPUT_FIELDS) out[f] = !!(c[f] && keys[c[f]])   // unbound key ("") → always false
+  out.dash ||= !!fighter._dashTap // preserve resolved double-tap intent in replay / LAN masks
   return out
 }
 
@@ -598,6 +616,7 @@ export function readRawControls(fighter) {
 export function writeRawControls(fighter, raw) {
   if (!fighter || !fighter.controls || !raw) return
   const c = fighter.controls
+  fighter._dashTap = !!raw.dash
   for (const f of REPLAY_INPUT_FIELDS) { const k = c[f]; if (k) keys[k] = !!raw[f] }
 }
 

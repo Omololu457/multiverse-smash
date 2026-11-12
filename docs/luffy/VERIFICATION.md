@@ -8,7 +8,8 @@ commit `736c4a68efdb58ba577897a673f029af645b4f29` (the completed tested implemen
 feel/graphics integration). The inherited handoff's pending durable-clone / PR
 fields remain untouched; this document does not certify that separate delivery.
 
-Feature: `feat/luffy-elastic-brawler` in the isolated full clone
+Published feature: [feat/luffy-elastic-brawler](https://github.com/Omololu457/multiverse-smash/tree/feat/luffy-elastic-brawler),
+tested delivery commit `a251e3f7`. The isolated full clone is
 `/tmp/ms-luffy-elastic-brawler`. The original dirty checkout, its index, uploaded
 assets and the older-main Luffy branch in the durable integration checkout were
 not used as the implementation base or modified. No stash, hard reset, clean,

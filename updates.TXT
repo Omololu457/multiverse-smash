@@ -267,7 +267,7 @@ LUFFY — NORMAL LAUNCH VERIFICATION (2026-11-12)
 1. Actual checkout and playable address
 
 - Branch: feat/luffy-elastic-brawler.
-- Tested game commit: 8a5ce0a238ea32ea8d09b1246ac4d501b510f737.
+- Tested game commit: 00c949589df050581ad00b2088c6b67525a868e7.
 - Durable checkout: /Users/omololu/Desktop/project/multiverse-smash-luffy.
 - Exact playable URL on this Mac: http://127.0.0.1:8000/ (no query parameters).
 - The normal project dev server is running from that checkout on port 8000.
@@ -300,15 +300,18 @@ LUFFY — NORMAL LAUNCH VERIFICATION (2026-11-12)
 - Rematch restored HP1000, Stamina50, zero Wind-Up pips and zero round wins.
 - harness/luffy_launch.mjs uses only mouse/keyboard actions and a response-only
   read observer. It cannot write fighter state or advance time; users receive the
-  unchanged game module. Results: 23 normal-launch assertions passed, zero failed.
+  unchanged game module. Results: 24 normal-launch assertions passed, zero failed.
 - The normal KO revealed one Luffy regression: the generic finisher loader requested
   nonexistent fatality/luffy_chopped.png. No derived gore art was supplied or invented.
 - Fixed with Luffy's optional fatalityVictimArt=false declaration. Both shared
   finisher loaders retain their existing FX-only fallback and skip the missing image.
   Finisher timing, KO resolution and other fighters' authored image paths are unchanged.
 - New finisher-art regression checks pass for the shared window, Shisui resolution,
-  untouched legacy paths and zero Luffy-derived-image requests. Mechanics remain35/0;
+  untouched legacy paths and zero Luffy-derived-image requests. Mechanics pass36/0;
   roster integrity, syntax/import checks, module stamp and whitespace checks pass.
+- Final visual review also found victory/defeat pose overrides surviving rematch.
+  Luffy cleanup now releases them; new unit, lifecycle and normal-launch assertions
+  verify idle rendering after rematch without changing another fighter's pose state.
 - Final normal-launch network review found no missing Luffy assets or uncaught errors.
   /api/health is the expected optional static-server 404; saves use localStorage.
 - Evidence and instructions: docs/luffy/LAUNCH_VERIFICATION.md and launch/ screenshots.
@@ -349,3 +352,8 @@ LUFFY — NORMAL LAUNCH VERIFICATION (2026-11-12)
   retap spends one Wind-Up pip for Snapback. Ultimate needs100 Stamina; start is50.
 - Physical controller hardware and prolonged FFA remain unverified. Prior simulated
   controller and AI checks still apply. The original checkout/assets remain preserved.
+
+- Final follow-up checks: normal launch24/0, mechanics36/0, lifecycle23/0, replay5/5;
+  the final rematch screenshot confirms both fighters render idle at full HP.
+- Fix commits: 8a5ce0a2 (missing finisher art), 00c94958 (rematch pose cleanup).
+  The exact playable URL remains http://127.0.0.1:8000/; its server stays running.

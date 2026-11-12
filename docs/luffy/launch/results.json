@@ -22,6 +22,7 @@
     "confirmed ultimate spends actual Stamina and deals follow-up damage",
     "actual attack damage reaches KO and match victory",
     "normal R rematch restores Luffy and clears resources/rounds",
+    "rematch releases victory and defeat poses for both Luffys",
     "normal launch has no uncaught JavaScript errors",
     "normal launch has no missing Luffy assets"
   ],
@@ -32,7 +33,7 @@
   "last": {
     "state": "battle",
     "tutorialActive": false,
-    "frame": 9100,
+    "frame": 9116,
     "countdown": 0,
     "roundWins": {
       "p1": 0,
@@ -69,9 +70,9 @@
       "attack": null,
       "lf": {
         "pips": 0,
-        "clock": 14,
+        "clock": 15,
         "decay": 180,
-        "neutral": 14,
+        "neutral": 15,
         "braceCd": 0,
         "anchorUsed": false,
         "wasGrounded": true,
@@ -104,7 +105,7 @@
         "serial": 0,
         "up": false
       },
-      "sprite": "win"
+      "sprite": "idle"
     },
     "p2": {
       "key": "luffy",
@@ -127,9 +128,9 @@
       "attack": null,
       "lf": {
         "pips": 0,
-        "clock": 14,
+        "clock": 15,
         "decay": 180,
-        "neutral": 14,
+        "neutral": 15,
         "braceCd": 0,
         "anchorUsed": false,
         "wasGrounded": true,
@@ -162,7 +163,7 @@
         "serial": 0,
         "up": false
       },
-      "sprite": "lose"
+      "sprite": "idle"
     }
   }
 }

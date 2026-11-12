@@ -3,7 +3,7 @@
 Playable URL on this Mac: **http://127.0.0.1:8000/**.
 
 - Feature branch: `feat/luffy-elastic-brawler`.
-- Tested game commit: `8a5ce0a238ea32ea8d09b1246ac4d501b510f737`.
+- Tested game commit: `00c949589df050581ad00b2088c6b67525a868e7`.
 - Durable checkout: `/Users/omololu/Desktop/project/multiverse-smash-luffy`.
 - Server: `node tools/serve.mjs`, rooted in that checkout, port 8000.
 - PR: [#10](https://github.com/Omololu457/multiverse-smash/pull/10), open draft.
@@ -38,6 +38,10 @@ cd /Users/omololu/Desktop/project/multiverse-smash-luffy
 npm run serve
 ```
 
+The headless run displayed the existing low-FPS suggestion at default graphics.
+If play is sluggish, F9 accepts the Low graphics preset; F10 dismisses the hint.
+No GPU performance target is certified by this verification.
+
 Then use the same URL. Opening index.html over file:// is unsupported because
 browser module/CORS restrictions apply. No merge or hosted deployment was made.
 
@@ -55,7 +59,7 @@ and the target cannot invalidate verification by AI movement. Meter is earned
 through eligible play; both KOs come from actual attacks. Screenshots in launch/
 show the main menu, combat, victory and rematch.
 
-Final result: **23 passed, 0 failed**, no uncaught errors and no missing Luffy
+Final result: **24 passed, 0 failed**, no uncaught errors and no missing Luffy
 assets. The only 404 was the optional /api/health save-service probe.
 
 The normal flow checks movement/jump, J1/J2/J3, Heavy, three Wind-Up pips, paid
@@ -64,7 +68,7 @@ confirmed four-contact ultimate, two competitive KOs, victory and R rematch.
 Rematch restores HP1000/Stamina50, zero pips and round wins. Production Ben
 experiments remain disabled. No uncaught JavaScript errors were observed.
 
-One launch regression was found and fixed: match-end finishers assumed every
+Two launch regressions were found and fixed. First, match-end finishers assumed every
 new victim had derived gore art and requested fatality/luffy_chopped.png. Luffy
 now declares that such art was not supplied. Both shared finisher loaders retain
 their existing FX-only fallback without making that request. Their durations,
@@ -73,6 +77,11 @@ transformation artwork was added. The new luffy_finisher_art.test.mjs verifies
 both the shared finish window and Shisui's existing finisher resolution, including
 unchanged legacy image paths. The normal-launch missing-asset assertion also
 covers filename-based Luffy requests, not just the assets/sprites/luffy directory.
+
+The final visual review also found victory/defeat pose overrides surviving rematch,
+despite restored HP and meter. Luffy's lifecycle cleanup now releases those
+overrides. Unit coverage preserves other fighters' pose state, and both the
+lifecycle and normal-launch tests assert that Luffy renders idle after rematch.
 
 The optional /api/health request is 404 on this static dev server. That is the
 existing localStorage save fallback, not a startup error or missing game asset.

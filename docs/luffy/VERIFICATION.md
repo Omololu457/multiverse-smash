@@ -130,3 +130,8 @@ See [LAUNCH_VERIFICATION.md](LAUNCH_VERIFICATION.md) for the exact playable URL,
 normal menu/match evidence, tested game commit, PR ancestry and baseline impacts.
 The follow-up fixed a missing derived finisher-image request for Luffy while
 retaining the shared FX-only fallback and every other fighter's image paths.
+
+The final normal launch passed 24 assertions on game commit 00c94958, including
+idle rendering for both fighters after rematch. Follow-up mechanics passed36/0;
+lifecycle passed23/0 with replay checkpoints5/5. Both discovered launch regressions
+(missing finisher art and lingering victory/defeat poses) were fixed and rechecked.

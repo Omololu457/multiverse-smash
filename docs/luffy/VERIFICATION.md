@@ -15,10 +15,12 @@ assets and the older-main Luffy branch in the durable integration checkout were
 not used as the implementation base or modified. No stash, hard reset, clean,
 worktree, forced checkout, add-all, force push, merge or deployment was used.
 
-The remote currently has no `integration/ben10-complete-feel-polish` branch.
-Draft PR creation is pending that exact base ref being published by its owner,
-or explicit permission to publish the tested ref. The feature must not target
-the pre-integration main. The prepared review text is in DRAFT_PR.md.
+Draft PR: [#10 — Add Monkey D. Luffy, the Elastic Brawler](https://github.com/Omololu457/multiverse-smash/pull/10).
+The user authorized publishing the missing integration base on 2026-11-12. Its
+remote ref now points to exactly `736c4a68efdb58ba577897a673f029af645b4f29`.
+The draft targets that branch; its diff contains the Luffy work and small shared
+fixes. This was the explicit exception to the original feature-only push rule.
+No merge or deployment occurred. The review description is in DRAFT_PR.md.
 
 ## Source and visual evidence
 
@@ -117,5 +119,6 @@ inventoried but unused by combat effects. Sound cues are synthesized placeholder
 No skins, recolors, transformations, voice pack or experimental Ben roster unlocks
 were added. Prolonged FFA, every platform/modifier matchup, physical controller
 hardware and external weather remain untested. The Ben unfinished work and
-baseline failures remain preserved. Publication of the dependent base and the
-draft PR URL remain delivery work until recorded here.
+baseline failures remain preserved. The dependent base is published at the
+verified commit and draft PR #10 is open. The feature is delivered for review;
+merge, deployment and later skins remain outside this task.

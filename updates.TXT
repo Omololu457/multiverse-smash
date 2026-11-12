@@ -241,14 +241,23 @@ LUFFY — ELASTIC BRAWLER IMPLEMENTATION (2026-11-12)
 
 - Implementation commits: f0424320 art inventory; 537c92bf PvP input fix; 689f8b1b pivot
   and attached canvases; 7d3e5908 combat/selection integration. Tests/docs follow separately.
-- Draft PR: pending publication of its exact tested integration base. That branch is
-  absent on origin; old main is not an acceptable substitute. Prepared body:
-  docs/luffy/DRAFT_PR.md. Push only feat/luffy-elastic-brawler; never merge or deploy.
+- Draft PR: https://github.com/Omololu457/multiverse-smash/pull/10 (open, draft).
+- Target: integration/ben10-complete-feel-polish, exact tested base736c4a68. The user's
+  2026-11-12 go-ahead authorized publishing this missing ref as the explicit exception
+  to feature-only pushing. No merge or deployment occurred. Body: docs/luffy/DRAFT_PR.md.
 - Physical controller hardware, prolonged FFA, every terrain/modifier matchup, external
   weather and roster-wide competitive balance are not certified. Ben unfinished work,
   ambiguous FX and source-pose fallbacks remain documented. No skins were created.
 
 - Feature pushed successfully to origin at tested delivery a251e3f7. Review branch:
   https://github.com/Omololu457/multiverse-smash/tree/feat/luffy-elastic-brawler
-- Test/documentation phase commit: a251e3f7. Draft PR body is prepared; creating the
-  absent dependent integration base needs an explicit exception to push-only-feature.
+- Test/documentation phase commit: a251e3f7. The dependent base publication is now
+  authorized and complete; draft PR #10 records its dependency and measured results.
+
+7. Final draft delivery
+
+- Draft PR: https://github.com/Omololu457/multiverse-smash/pull/10.
+- Remote base verified: 736c4a68efdb58ba577897a673f029af645b4f29.
+- Feature: feat/luffy-elastic-brawler. All implementation, test and visual evidence
+  is committed; final documentation records the published base and PR.
+- Shared checkout/assets remain preserved. No merge, deployment or new skins.

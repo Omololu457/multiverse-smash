@@ -36,12 +36,13 @@ const group = t => console.log(`\n═══ ${t} ═══`);
 
 // Slice a function body out of abilities.js: from `function <name>(` to the next top-level
 // `function ` / `export function ` (good enough for the single-requireHit cross-check below).
-function driverBody(name) {
-  const start = abilitiesSrc.search(new RegExp(`function\\s+${name}\\s*\\(`));
+function driverBody(name, sourceFile = null) {
+  const source = sourceFile ? readFileSync(join(__dir, "..", sourceFile), "utf8") : abilitiesSrc;
+  const start = source.search(new RegExp(`function\\s+${name}\\s*\\(`));
   if (start === -1) return null;
-  const after = abilitiesSrc.slice(start + 1);
+  const after = source.slice(start + 1);
   const nextRel = after.search(/\n(?:export\s+)?function\s+\w+\s*\(/);
-  return nextRel === -1 ? abilitiesSrc.slice(start) : abilitiesSrc.slice(start, start + 1 + nextRel);
+  return nextRel === -1 ? source.slice(start) : source.slice(start, start + 1 + nextRel);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,10 +76,12 @@ const keyMismatch = rosterKeys.filter(k => (characters[k].rosterKey || "").toLow
 check("each character's rosterKey field equals its roster key", keyMismatch.length === 0, keyMismatch.join(", ") || "aligned");
 
 // ─────────────────────────────────────────────────────────────────────────────
-group("§3  Every classified driver exists in abilities.js");
+group("§3  Every classified driver exists in its declared module");
 const drivers = [...new Set(REKKA.map(e => e.driver))];
 for (const d of drivers) {
-  check(`driver ${d} exists`, new RegExp(`function\\s+${d}\\s*\\(`).test(abilitiesSrc));
+  const sourceFile = REKKA.find(e => e.driver === d)?.source;
+  const source = sourceFile ? readFileSync(join(__dir, "..", sourceFile), "utf8") : abilitiesSrc;
+  check(`driver ${d} exists`, new RegExp(`function\\s+${d}\\s*\\(`).test(source));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,7 +105,7 @@ group("§3b  Standard-string roster ⟷ abilities.js STANDARD_STRING_CHARS (sour
 // ─────────────────────────────────────────────────────────────────────────────
 group("§4  requireHit source cross-check (srcRequireHit entries)");
 for (const e of REKKA.filter(x => x.srcRequireHit)) {
-  const body = driverBody(e.driver);
+  const body = driverBody(e.driver, e.source);
   if (!body) { check(`${e.key}: driver body found`, false, e.driver); continue; }
   const lits = [...body.matchAll(/requireHit:\s*(true|false)/g)].map(m => m[1] === "true");
   const uniq = [...new Set(lits)];
@@ -124,7 +127,7 @@ group("§5  Opener-direction source cross-check (claimed opener ⟷ driver gate)
 // Rush are fine — we only assert the forward derivation EXISTS, not that no Down move does.)
 const FWD_IDIOM = /fighter\.facing === 1 \? !!inputState\.right/;
 for (const e of REKKA.filter(x => x.status !== "exception")) {
-  const body = driverBody(e.driver) || "";
+  const body = driverBody(e.driver, e.source) || "";
   if (e.opener === "fwd+heavy") {
     check(`${e.key}: Fwd+Heavy driver derives the \`forward\` idiom`, FWD_IDIOM.test(body));
   } else if (e.opener === "down+heavy") {

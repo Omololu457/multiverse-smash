@@ -141,3 +141,109 @@ DRAFT PR: pending push and PR creation.
 
 Luffy should branch from this exact commit after the checkpoint fields above are
 updated and verified. Do not use the original dirty checkout as the branch base.
+
+LUFFY — ELASTIC BRAWLER IMPLEMENTATION (2026-11-12)
+
+1. Base, branch and preservation
+
+- Feature branch: feat/luffy-elastic-brawler, isolated clone /tmp/ms-luffy-elastic-brawler.
+- Base: integration/ben10-complete-feel-polish at tested implementation commit
+  736c4a68efdb58ba577897a673f029af645b4f29, inspected with the Ben updates above.
+- Work proceeded on the user's go-ahead after that tested checkpoint. The inherited
+  pending handoff/PR fields remain preserved; this does not certify their delivery.
+- The original dirty checkout and uploaded assets remain untouched. No older-main base,
+  stash, hard reset, clean, forced checkout, worktree, add-all or force push was used.
+- Preserve Ben experimental roster restrictions, default/Classic/Prime policy and all
+  unfinished certification work. No other fighter's authored moves were changed.
+
+2. Artwork, extraction and selection
+
+- Character luffy: Monkey D. Luffy, HUD Luffy, One Piece (one_piece), Elastic Brawler,
+  Medium difficulty (existing 3/5 equivalent). Tagline: Wind up. Let loose.
+- Actual repository sheet is 710x3989 RGBA; 364x2047 is the reference preview. Top-left
+  alpha is zero. Source is preserved unchanged at assets/sprites/luffy/source.png.
+- Source SHA-256: c4344b3c5284ea150812a264e25109e292c50f0324942e1779bfd67f425baa38.
+- Visible credit: Ripped by Paddy / No credit needed. Retained in PNG and credits.js.
+- Reproducible Pillow extractor: tools/luffy/extract.py. Explicit manifest and labeled
+  contact sheet account for 406 source graphics plus two attached arm assemblies.
+- Alpha, black outlines and source pixels retained. Native-facing normalization and
+  nearest-neighbor scaling only; no recolors, costumes, new art or borrowed sprites.
+- Wide 320x256 canvases use anatomical origins. Body collision remains 60x100; hurtbox
+  48x94. Separate distal-hand vulnerability and attack boxes never use canvas bounds.
+- Piston/Reel repeat supplied arm columns without scaling torsos or fists. Air legs use
+  red-shirt anchors; floor clearance selects a shorter supplied pose near landing.
+- Guard/throw are documented pose fallbacks; ambiguous circular FX remain inventoried.
+- One Piece is wired into real selection, title sorting, allowed-roster filter and
+  count. Default-only skin, supplied portrait, progression and saved selection work.
+
+3. Combat and resources
+
+- HP1000, Stamina100 max, ordinary start50; training refill100. Speed85 measures 180px
+  over 30 walking ticks; jump impulse31 measures 549.9px height. One jump, weight1.
+- Timings are exact simulation ticks. J1/J2/J3 startup5/6/9, raw18/20/28; fresh retaps
+  only. Heavy14f/raw58, sweep8f/raw27, launcher12f/raw44, air8f/raw30.
+- Forward+Heavy uses shared confirmed recovery retaps; Up+Heavy chooses the launcher
+  branch. The launcher stays grounded until a manual jump cancel.
+- Stamina: +1 per30 eligible neutral ticks, +3 once per clean normal instance. Charge
+  gives none. No passive gain while attacking/guarding/charging/stunned/ultimate.
+- Wind-Up: 0-3 pips, +1 per distinct grounded clean normal; decay180 then120 ticks.
+  No block/armor/projectile/DOT/self rewards. All authoritative state is serialized.
+- Neutral Special: Piston, cost12/start13/raw44/reach260px from body center.
+- Forward Special: Reel-In, cost18/start18/raw24/reach300px; blockable grounded pull,
+  at most110px over10 ticks, body/wall bounded, once per combo, no air restand.
+- Down Special: Pinwheel, cost20/start11; three discrete contacts12+12+22 raw.
+- Back Special: Balloon, cost18/start10/active24/recovery22/cooldown180. One ordinary
+  melee absorption gives one pip; grabs, projectiles, launchers and ultimates bypass.
+- Air Down Special: Anchor, cost15/start12/raw46; max32 active, descent capped18px/tick,
+  one use per airtime and explicit24f landing recovery. No bounce or air restand.
+- Confirmed Piston/resolved Reel offers a fresh Special retap for10 simulation frames.
+  One pip buys Snapback only in late recovery (Piston28/Reel40), once per combo.
+  Valid retaps may queue until then. Six-frame grounded ready; no damage/invulnerability.
+- Ultimate: Full-Stretch Finale, cost100/start28; four resolved contacts30+30+40+120.
+  Clean opener required. Miss/block enters60f recovery, no capture/freeze/teleport.
+- Logical Special is L for P1, 4 for P2, R1/RB on controller; Charge is P/7/L2.
+  Direction priority Down/Forward/Back/Neutral; Ultimate precedes simultaneous Special.
+- These are original game mechanics, not an exact anime-arc adaptation. Sound cues are
+  synthesized placeholders; no voice pack, transformation artwork or skins were added.
+
+4. Measured routes and shared fixes
+
+- Shared damage normalization/scaling/juggle policy retained; no private85% rule.
+- Close beginner/basic routes are true: 3hits/37HP and3hits/68HP. Close resource route
+  is3hits/70HP, costs12 Stamina/1pip; at180px its advancing follow-up misses.
+- Close Reel route is4hits/49HP; at300px its normals miss. Command launcher route is
+  4hits/71HP. Heavy into full-meter Ultimate is5hits/133HP in the measured fixture.
+- Manual air route is3hits/61HP with8 escape frames63-70 before Anchor: a reset, not a
+  true combo. Full hitstun/recovery/spacing/resource results are in docs/luffy.
+- Shared PvP fix preserves human P2 keys. First direction press now needs a real prior
+  tap before dashing; ordinary dash intent uses the existing replay/LAN bit.
+- Optional origins/timelines preserve other fighters' arithmetic. Luffy's active pose
+  remains visible through confirmed hitstop. No new command parser was introduced.
+
+5. Verification actually completed
+
+- Luffy mechanics35/0; live/visual37/0; lifecycle22/0; LAN6/0; dash replay5/0; PvP3/0.
+- Luffy replay matched5/5 checkpoints; real LAN116 shared frames, zero mismatches.
+- Nine real-input combo routes measured. Both slots, simulated controller, AI, saved
+  selection, training/round/KO/rematch/identity cleanup and every attack were checked.
+- Visual review: contact regions, stable anchors, wide limbs, inflation, reactions,
+  both facings, stage edges, victory, recovery, HUD and rematch. No Luffy missing assets
+  or uncaught browser errors. See docs/luffy/visual_verification.png.
+- Preserved Ben checks pass: integration31, experimental52, device29, moves15, combo13,
+  defense15, sound9, render27, vow7, Swampfire live60, replay/LAN12.
+- Roster integrity127; shared determinism14, replay10, net11; feel phases110 total;
+  overnight render passed. Syntax/import checks and diff whitespace passed,213 modules.
+- Credits11/3 failures match tested base: four missing old entries plus stale attribution
+  and coverage. Combo audit229/9 matches base226/9 failure categories. Tests not weakened.
+- Old Goku-stage3/Superman baseline failures remain recorded above; not rerun here.
+
+6. Delivery and remaining limits
+
+- Implementation commits: f0424320 art inventory; 537c92bf PvP input fix; 689f8b1b pivot
+  and attached canvases; 7d3e5908 combat/selection integration. Tests/docs follow separately.
+- Draft PR: pending publication of its exact tested integration base. That branch is
+  absent on origin; old main is not an acceptable substitute. Prepared body:
+  docs/luffy/DRAFT_PR.md. Push only feat/luffy-elastic-brawler; never merge or deploy.
+- Physical controller hardware, prolonged FFA, every terrain/modifier matchup, external
+  weather and roster-wide competitive balance are not certified. Ben unfinished work,
+  ambiguous FX and source-pose fallbacks remain documented. No skins were created.

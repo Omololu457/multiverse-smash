@@ -78,17 +78,17 @@
         }
       ],
       "origin": {
-        "x": 15,
+        "x": 17,
         "y": 43
       },
       "body_anchor": {
-        "x": 15,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 17,
           "y": 43
         }
       },
@@ -114,17 +114,17 @@
         }
       ],
       "origin": {
-        "x": 14,
+        "x": 16,
         "y": 44
       },
       "body_anchor": {
-        "x": 14,
+        "x": 16,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 16,
           "y": 44
         }
       },
@@ -150,17 +150,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 15,
         "y": 45
       },
       "body_anchor": {
-        "x": 13,
+        "x": 15,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 15,
           "y": 45
         }
       },
@@ -186,17 +186,17 @@
         }
       ],
       "origin": {
-        "x": 12,
+        "x": 14,
         "y": 46
       },
       "body_anchor": {
-        "x": 12,
+        "x": 14,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 12,
+          "x": 14,
           "y": 46
         }
       },
@@ -222,17 +222,17 @@
         }
       ],
       "origin": {
-        "x": 15,
+        "x": 17,
         "y": 43
       },
       "body_anchor": {
-        "x": 15,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 17,
           "y": 43
         }
       },
@@ -258,17 +258,17 @@
         }
       ],
       "origin": {
-        "x": 14,
+        "x": 16,
         "y": 44
       },
       "body_anchor": {
-        "x": 14,
+        "x": 16,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 16,
           "y": 44
         }
       },
@@ -294,17 +294,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 15,
         "y": 45
       },
       "body_anchor": {
-        "x": 13,
+        "x": 15,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 15,
           "y": 45
         }
       },
@@ -583,7 +583,7 @@
         "hand": null,
         "foot": {
           "x": 15,
-          "y": 51
+          "y": 50
         }
       },
       "facing": -1,
@@ -614,7 +614,7 @@
         "hand": null,
         "foot": {
           "x": 16,
-          "y": 55
+          "y": 54
         }
       },
       "facing": -1,
@@ -2194,17 +2194,17 @@
         }
       ],
       "origin": {
-        "x": 24,
+        "x": 16,
         "y": 39
       },
       "body_anchor": {
-        "x": 24,
+        "x": 16,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 24,
+          "x": 16,
           "y": 39
         }
       },
@@ -2234,17 +2234,17 @@
         }
       ],
       "origin": {
-        "x": 24,
+        "x": 16,
         "y": 39
       },
       "body_anchor": {
-        "x": 24,
+        "x": 16,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 24,
+          "x": 16,
           "y": 39
         }
       },
@@ -2342,17 +2342,17 @@
         }
       ],
       "origin": {
-        "x": 32,
+        "x": 33,
         "y": 42
       },
       "body_anchor": {
-        "x": 32,
+        "x": 33,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 32,
+          "x": 33,
           "y": 42
         }
       },
@@ -2386,17 +2386,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 18,
         "y": 43
       },
       "body_anchor": {
-        "x": 16,
+        "x": 18,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 18,
           "y": 43
         }
       },
@@ -2426,17 +2426,17 @@
         }
       ],
       "origin": {
-        "x": 21,
+        "x": 17,
         "y": 45
       },
       "body_anchor": {
-        "x": 21,
+        "x": 17,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 21,
+          "x": 17,
           "y": 45
         }
       },
@@ -2466,17 +2466,17 @@
         }
       ],
       "origin": {
-        "x": 21,
+        "x": 23,
         "y": 46
       },
       "body_anchor": {
-        "x": 21,
+        "x": 23,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 21,
+          "x": 23,
           "y": 46
         }
       },
@@ -2506,17 +2506,17 @@
         }
       ],
       "origin": {
-        "x": 33,
+        "x": 40,
         "y": 47
       },
       "body_anchor": {
-        "x": 33,
+        "x": 40,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 33,
+          "x": 40,
           "y": 47
         }
       },
@@ -2767,17 +2767,17 @@
         }
       ],
       "origin": {
-        "x": 25,
+        "x": 35,
         "y": 50
       },
       "body_anchor": {
-        "x": 25,
+        "x": 35,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 25,
+          "x": 35,
           "y": 50
         }
       },
@@ -2819,17 +2819,17 @@
         }
       ],
       "origin": {
-        "x": 23,
+        "x": 22,
         "y": 43
       },
       "body_anchor": {
-        "x": 23,
+        "x": 22,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 23,
+          "x": 22,
           "y": 43
         }
       },
@@ -2871,17 +2871,17 @@
         }
       ],
       "origin": {
-        "x": 28,
+        "x": 32,
         "y": 40
       },
       "body_anchor": {
-        "x": 28,
+        "x": 32,
         "y": 16
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 28,
+          "x": 32,
           "y": 40
         }
       },
@@ -2908,22 +2908,14 @@
         {
           "animation": "lfCmd3",
           "order": 2
-        },
-        {
-          "animation": "lfPiston",
-          "order": 3
-        },
-        {
-          "animation": "lfFinale",
-          "order": 10
         }
       ],
       "origin": {
-        "x": 68,
+        "x": 72,
         "y": 40
       },
       "body_anchor": {
-        "x": 68,
+        "x": 72,
         "y": 16
       },
       "attachments": {
@@ -2932,7 +2924,7 @@
           "y": 11
         },
         "foot": {
-          "x": 68,
+          "x": 72,
           "y": 40
         }
       },
@@ -2970,11 +2962,11 @@
         }
       ],
       "origin": {
-        "x": 36,
+        "x": 40,
         "y": 40
       },
       "body_anchor": {
-        "x": 36,
+        "x": 40,
         "y": 16
       },
       "attachments": {
@@ -2983,7 +2975,7 @@
           "y": 11
         },
         "foot": {
-          "x": 36,
+          "x": 40,
           "y": 40
         }
       },
@@ -3025,17 +3017,17 @@
         }
       ],
       "origin": {
-        "x": 29,
+        "x": 31,
         "y": 41
       },
       "body_anchor": {
-        "x": 29,
+        "x": 31,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 29,
+          "x": 31,
           "y": 41
         }
       },
@@ -3092,17 +3084,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 14,
         "y": 43
       },
       "body_anchor": {
-        "x": 13,
+        "x": 14,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 14,
           "y": 43
         }
       },
@@ -3159,17 +3151,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 15,
         "y": 47
       },
       "body_anchor": {
-        "x": 16,
+        "x": 15,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 15,
           "y": 47
         }
       },
@@ -3190,17 +3182,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 12,
+        "x": 17,
         "y": 50
       },
       "body_anchor": {
-        "x": 12,
+        "x": 17,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 12,
+          "x": 17,
           "y": 50
         }
       },
@@ -3221,17 +3213,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 4,
+        "x": 10,
         "y": 49
       },
       "body_anchor": {
-        "x": 4,
+        "x": 10,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 4,
+          "x": 10,
           "y": 49
         }
       },
@@ -3252,17 +3244,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 24,
+        "x": 35,
         "y": 50
       },
       "body_anchor": {
-        "x": 24,
+        "x": 35,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 24,
+          "x": 35,
           "y": 50
         }
       },
@@ -3288,17 +3280,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 47
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 17,
           "y": 47
         }
       },
@@ -3324,17 +3316,17 @@
         }
       ],
       "origin": {
-        "x": 20,
+        "x": 24,
         "y": 55
       },
       "body_anchor": {
-        "x": 20,
+        "x": 24,
         "y": 27
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 20,
+          "x": 24,
           "y": 55
         }
       },
@@ -3360,17 +3352,17 @@
         }
       ],
       "origin": {
-        "x": 46,
+        "x": 49,
         "y": 79
       },
       "body_anchor": {
-        "x": 46,
+        "x": 49,
         "y": 52
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 46,
+          "x": 49,
           "y": 79
         }
       },
@@ -3396,17 +3388,17 @@
         }
       ],
       "origin": {
-        "x": 22,
+        "x": 25,
         "y": 55
       },
       "body_anchor": {
-        "x": 22,
+        "x": 25,
         "y": 28
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 22,
+          "x": 25,
           "y": 55
         }
       },
@@ -3489,17 +3481,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 14,
         "y": 43
       },
       "body_anchor": {
-        "x": 16,
+        "x": 14,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 14,
           "y": 43
         }
       },
@@ -3520,17 +3512,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 47
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 17,
           "y": 47
         }
       },
@@ -3582,17 +3574,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 103
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 70
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 17,
           "y": 103
         }
       },
@@ -3613,17 +3605,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 71
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 38
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 17,
           "y": 71
         }
       },
@@ -5235,7 +5227,7 @@
       "source": {
         "x": 146,
         "y": 1427,
-        "width": 35,
+        "width": 30,
         "height": 52
       },
       "animations": [
@@ -5256,7 +5248,7 @@
         "hand": null,
         "foot": {
           "x": 13,
-          "y": 52
+          "y": 51
         }
       },
       "facing": -1,
@@ -5269,9 +5261,9 @@
     {
       "id": "r21_03b",
       "source": {
-        "x": 181,
+        "x": 180,
         "y": 1429,
-        "width": 50,
+        "width": 51,
         "height": 49
       },
       "animations": [
@@ -5281,18 +5273,18 @@
         }
       ],
       "origin": {
-        "x": 28,
+        "x": 29,
         "y": 49
       },
       "body_anchor": {
-        "x": 28,
+        "x": 29,
         "y": 25
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 28,
-          "y": 49
+          "x": 29,
+          "y": 48
         }
       },
       "facing": -1,
@@ -5601,24 +5593,24 @@
         }
       ],
       "origin": {
-        "x": 12,
-        "y": 37
+        "x": 13,
+        "y": 41
       },
       "body_anchor": {
-        "x": 12,
-        "y": 18
+        "x": 13,
+        "y": 17
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 12,
+          "x": 13,
           "y": 41
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "REUSED",
       "reason": null
     },
@@ -5637,24 +5629,24 @@
         }
       ],
       "origin": {
-        "x": 11,
+        "x": 14,
         "y": 33
       },
       "body_anchor": {
-        "x": 11,
-        "y": 14
+        "x": 14,
+        "y": 9
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 11,
+          "x": 14,
           "y": 33
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "USED",
       "reason": null
     },
@@ -5673,24 +5665,24 @@
         }
       ],
       "origin": {
-        "x": 9,
-        "y": 35
+        "x": 13,
+        "y": 34
       },
       "body_anchor": {
-        "x": 9,
-        "y": 16
+        "x": 13,
+        "y": 10
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 9,
+          "x": 13,
           "y": 37
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "USED",
       "reason": null
     },
@@ -5713,24 +5705,24 @@
         }
       ],
       "origin": {
-        "x": 11,
-        "y": 38
+        "x": 15,
+        "y": 40
       },
       "body_anchor": {
-        "x": 11,
-        "y": 19
+        "x": 15,
+        "y": 16
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 11,
+          "x": 15,
           "y": 55
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "REUSED",
       "reason": null
     },
@@ -5749,24 +5741,24 @@
         }
       ],
       "origin": {
-        "x": 12,
-        "y": 39
+        "x": 16,
+        "y": 40
       },
       "body_anchor": {
-        "x": 12,
-        "y": 20
+        "x": 16,
+        "y": 16
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 12,
+          "x": 16,
           "y": 68
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "USED",
       "reason": null
     },
@@ -5789,24 +5781,24 @@
         }
       ],
       "origin": {
-        "x": 14,
-        "y": 51
+        "x": 19,
+        "y": 36
       },
       "body_anchor": {
-        "x": 14,
-        "y": 32
+        "x": 19,
+        "y": 12
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 19,
           "y": 87
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "REUSED",
       "reason": null
     },
@@ -5815,7 +5807,7 @@
       "source": {
         "x": 221,
         "y": 1570,
-        "width": 32,
+        "width": 33,
         "height": 112
       },
       "animations": [
@@ -5829,33 +5821,33 @@
         }
       ],
       "origin": {
-        "x": 14,
-        "y": 69
+        "x": 19,
+        "y": 37
       },
       "body_anchor": {
-        "x": 14,
-        "y": 50
+        "x": 19,
+        "y": 13
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 19,
           "y": 111
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "REUSED",
       "reason": null
     },
     {
       "id": "r23_05b",
       "source": {
-        "x": 253,
+        "x": 257,
         "y": 1571,
-        "width": 31,
+        "width": 27,
         "height": 61
       },
       "animations": [
@@ -5869,24 +5861,24 @@
         }
       ],
       "origin": {
-        "x": 17,
-        "y": 37
+        "x": 16,
+        "y": 42
       },
       "body_anchor": {
-        "x": 17,
+        "x": 16,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 17,
+          "x": 16,
           "y": 60
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "high",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "REUSED",
       "reason": null
     },
@@ -5900,24 +5892,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 18,
-        "y": 39
+        "x": 21,
+        "y": 42
       },
       "body_anchor": {
-        "x": 18,
-        "y": 20
+        "x": 21,
+        "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 18,
+          "x": 21,
           "y": 54
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -5931,24 +5923,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 15,
-        "y": 30
+        "x": 23,
+        "y": 37
       },
       "body_anchor": {
-        "x": 15,
-        "y": 11
+        "x": 23,
+        "y": 13
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 23,
           "y": 42
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -5962,24 +5954,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 15,
-        "y": 31
+        "x": 20,
+        "y": 45
       },
       "body_anchor": {
-        "x": 15,
-        "y": 20
+        "x": 20,
+        "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 20,
           "y": 30
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -5993,24 +5985,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 23,
-        "y": 24
+        "x": 25,
+        "y": 34
       },
       "body_anchor": {
-        "x": 23,
-        "y": 7
+        "x": 25,
+        "y": 10
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 23,
+          "x": 25,
           "y": 23
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -6024,24 +6016,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 20,
-        "y": 29
+        "x": 23,
+        "y": 37
       },
       "body_anchor": {
-        "x": 20,
-        "y": 11
+        "x": 23,
+        "y": 13
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 20,
+          "x": 23,
           "y": 28
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -6055,24 +6047,24 @@
       },
       "animations": [],
       "origin": {
-        "x": 11,
-        "y": 40
+        "x": 12,
+        "y": 47
       },
       "body_anchor": {
-        "x": 11,
-        "y": 21
+        "x": 12,
+        "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 11,
+          "x": 12,
           "y": 50
         }
       },
       "facing": -1,
       "kind": "body",
       "confidence": "medium",
-      "interpretation": "downward leg extensions",
+      "interpretation": "downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading",
       "status": "UNUSED_WITH_REASON",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
     },
@@ -6163,17 +6155,17 @@
         }
       ],
       "origin": {
-        "x": 57,
+        "x": 98,
         "y": 46
       },
       "body_anchor": {
-        "x": 57,
+        "x": 98,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 57,
+          "x": 98,
           "y": 46
         }
       },
@@ -6199,17 +6191,17 @@
         }
       ],
       "origin": {
-        "x": 94,
+        "x": 96,
         "y": 48
       },
       "body_anchor": {
-        "x": 94,
+        "x": 96,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 94,
+          "x": 96,
           "y": 48
         }
       },
@@ -6235,17 +6227,17 @@
         }
       ],
       "origin": {
-        "x": 32,
+        "x": 30,
         "y": 54
       },
       "body_anchor": {
-        "x": 32,
+        "x": 30,
         "y": 24
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 32,
+          "x": 30,
           "y": 54
         }
       },
@@ -6271,17 +6263,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 18,
         "y": 41
       },
       "body_anchor": {
-        "x": 16,
+        "x": 18,
         "y": 17
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 18,
           "y": 41
         }
       },
@@ -6307,17 +6299,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 17,
         "y": 35
       },
       "body_anchor": {
-        "x": 13,
+        "x": 17,
         "y": 15
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 17,
           "y": 35
         }
       },
@@ -6338,17 +6330,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 13,
+        "x": 19,
         "y": 42
       },
       "body_anchor": {
-        "x": 13,
+        "x": 19,
         "y": 17
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 19,
           "y": 42
         }
       },
@@ -6369,17 +6361,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 15,
+        "x": 19,
         "y": 43
       },
       "body_anchor": {
-        "x": 15,
+        "x": 19,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 19,
           "y": 43
         }
       },
@@ -6981,7 +6973,7 @@
         "hand": null,
         "foot": {
           "x": 14,
-          "y": 26
+          "y": 25
         }
       },
       "facing": -1,
@@ -6996,7 +6988,7 @@
       "source": {
         "x": 158,
         "y": 1844,
-        "width": 34,
+        "width": 30,
         "height": 45
       },
       "animations": [
@@ -7017,7 +7009,7 @@
         "hand": null,
         "foot": {
           "x": 10,
-          "y": 45
+          "y": 44
         }
       },
       "facing": -1,
@@ -7030,9 +7022,9 @@
     {
       "id": "r26_02c",
       "source": {
-        "x": 192,
+        "x": 191,
         "y": 1841,
-        "width": 36,
+        "width": 37,
         "height": 48
       },
       "animations": [
@@ -7042,18 +7034,18 @@
         }
       ],
       "origin": {
-        "x": 25,
+        "x": 26,
         "y": 48
       },
       "body_anchor": {
-        "x": 25,
+        "x": 26,
         "y": 23
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 25,
-          "y": 48
+          "x": 26,
+          "y": 47
         }
       },
       "facing": -1,
@@ -7651,7 +7643,7 @@
       "source": {
         "x": 289,
         "y": 1994,
-        "width": 31,
+        "width": 27,
         "height": 71
       },
       "animations": [],
@@ -7667,7 +7659,7 @@
         "hand": null,
         "foot": {
           "x": 13,
-          "y": 71
+          "y": 70
         }
       },
       "facing": -1,
@@ -7680,25 +7672,25 @@
     {
       "id": "r28_07b",
       "source": {
-        "x": 320,
+        "x": 319,
         "y": 1994,
-        "width": 30,
+        "width": 31,
         "height": 72
       },
       "animations": [],
       "origin": {
-        "x": 14,
+        "x": 15,
         "y": 72
       },
       "body_anchor": {
-        "x": 14,
+        "x": 15,
         "y": 42
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
-          "y": 72
+          "x": 15,
+          "y": 71
         }
       },
       "facing": -1,
@@ -8281,17 +8273,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 7,
         "y": 42
       },
       "body_anchor": {
-        "x": 16,
+        "x": 7,
         "y": 19
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 7,
           "y": 42
         }
       },
@@ -8317,17 +8309,17 @@
         }
       ],
       "origin": {
-        "x": 23,
+        "x": 18,
         "y": 47
       },
       "body_anchor": {
-        "x": 23,
+        "x": 18,
         "y": 26
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 23,
+          "x": 18,
           "y": 47
         }
       },
@@ -8353,17 +8345,17 @@
         }
       ],
       "origin": {
-        "x": 19,
+        "x": 17,
         "y": 48
       },
       "body_anchor": {
-        "x": 19,
+        "x": 17,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 19,
+          "x": 17,
           "y": 48
         }
       },
@@ -8389,17 +8381,17 @@
         }
       ],
       "origin": {
-        "x": 21,
+        "x": 17,
         "y": 49
       },
       "body_anchor": {
-        "x": 21,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 21,
+          "x": 17,
           "y": 49
         }
       },
@@ -8425,11 +8417,11 @@
         }
       ],
       "origin": {
-        "x": 25,
+        "x": 16,
         "y": 47
       },
       "body_anchor": {
-        "x": 25,
+        "x": 16,
         "y": 17
       },
       "attachments": {
@@ -8438,7 +8430,7 @@
           "y": 12
         },
         "foot": {
-          "x": 25,
+          "x": 16,
           "y": 47
         }
       },
@@ -8457,18 +8449,13 @@
         "width": 108,
         "height": 44
       },
-      "animations": [
-        {
-          "animation": "lfReel",
-          "order": 5
-        }
-      ],
+      "animations": [],
       "origin": {
-        "x": 35,
+        "x": 16,
         "y": 44
       },
       "body_anchor": {
-        "x": 35,
+        "x": 16,
         "y": 12
       },
       "attachments": {
@@ -8477,7 +8464,7 @@
           "y": 7
         },
         "foot": {
-          "x": 35,
+          "x": 16,
           "y": 44
         }
       },
@@ -8485,7 +8472,7 @@
       "kind": "body",
       "confidence": "high",
       "interpretation": "backward double-arm extension",
-      "status": "USED",
+      "status": "UNUSED_WITH_REASON",
       "reason": null
     },
     {
@@ -8498,17 +8485,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 19,
+        "x": 25,
         "y": 49
       },
       "body_anchor": {
-        "x": 19,
+        "x": 25,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 19,
+          "x": 25,
           "y": 49
         }
       },
@@ -8529,17 +8516,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 40,
+        "x": 47,
         "y": 53
       },
       "body_anchor": {
-        "x": 40,
+        "x": 47,
         "y": 28
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 40,
+          "x": 47,
           "y": 53
         }
       },
@@ -8560,17 +8547,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 40,
+        "x": 33,
         "y": 53
       },
       "body_anchor": {
-        "x": 40,
+        "x": 33,
         "y": 29
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 40,
+          "x": 33,
           "y": 53
         }
       },
@@ -8591,17 +8578,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 40,
+        "x": 35,
         "y": 51
       },
       "body_anchor": {
-        "x": 40,
+        "x": 35,
         "y": 28
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 40,
+          "x": 35,
           "y": 51
         }
       },
@@ -8631,17 +8618,17 @@
         }
       ],
       "origin": {
-        "x": 25,
+        "x": 26,
         "y": 39
       },
       "body_anchor": {
-        "x": 25,
+        "x": 26,
         "y": 16
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 25,
+          "x": 26,
           "y": 39
         }
       },
@@ -8671,17 +8658,17 @@
         }
       ],
       "origin": {
-        "x": 25,
+        "x": 26,
         "y": 39
       },
       "body_anchor": {
-        "x": 25,
+        "x": 26,
         "y": 16
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 25,
+          "x": 26,
           "y": 39
         }
       },
@@ -8707,17 +8694,17 @@
         }
       ],
       "origin": {
-        "x": 14,
+        "x": 21,
         "y": 36
       },
       "body_anchor": {
-        "x": 14,
+        "x": 21,
         "y": 13
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 21,
           "y": 36
         }
       },
@@ -8743,17 +8730,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 15,
         "y": 45
       },
       "body_anchor": {
-        "x": 16,
+        "x": 15,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 15,
           "y": 45
         }
       },
@@ -9306,17 +9293,17 @@
         }
       ],
       "origin": {
-        "x": 14,
+        "x": 15,
         "y": 49
       },
       "body_anchor": {
-        "x": 14,
-        "y": 21
+        "x": 15,
+        "y": 24
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 15,
           "y": 49
         }
       },
@@ -9342,17 +9329,17 @@
         }
       ],
       "origin": {
-        "x": 9,
+        "x": 14,
         "y": 49
       },
       "body_anchor": {
-        "x": 9,
-        "y": 19
+        "x": 14,
+        "y": 24
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 9,
+          "x": 14,
           "y": 49
         }
       },
@@ -9378,17 +9365,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 16,
         "y": 50
       },
       "body_anchor": {
-        "x": 13,
-        "y": 13
+        "x": 16,
+        "y": 25
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 16,
           "y": 50
         }
       },
@@ -9414,17 +9401,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 20,
         "y": 53
       },
       "body_anchor": {
-        "x": 16,
-        "y": 13
+        "x": 20,
+        "y": 26
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 20,
           "y": 53
         }
       },
@@ -9450,17 +9437,17 @@
         }
       ],
       "origin": {
-        "x": 18,
+        "x": 24,
         "y": 55
       },
       "body_anchor": {
-        "x": 18,
-        "y": 13
+        "x": 24,
+        "y": 27
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 18,
+          "x": 24,
           "y": 55
         }
       },
@@ -9486,17 +9473,17 @@
         }
       ],
       "origin": {
-        "x": 17,
+        "x": 23,
         "y": 55
       },
       "body_anchor": {
-        "x": 17,
-        "y": 40
+        "x": 23,
+        "y": 27
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 17,
+          "x": 23,
           "y": 55
         }
       },
@@ -9522,17 +9509,17 @@
         }
       ],
       "origin": {
-        "x": 17,
+        "x": 23,
         "y": 55
       },
       "body_anchor": {
-        "x": 17,
-        "y": 12
+        "x": 23,
+        "y": 27
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 17,
+          "x": 23,
           "y": 55
         }
       },
@@ -9558,17 +9545,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 20,
         "y": 54
       },
       "body_anchor": {
-        "x": 16,
-        "y": 14
+        "x": 20,
+        "y": 27
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 20,
           "y": 54
         }
       },
@@ -9594,17 +9581,17 @@
         }
       ],
       "origin": {
-        "x": 12,
+        "x": 16,
         "y": 50
       },
       "body_anchor": {
-        "x": 12,
-        "y": 13
+        "x": 16,
+        "y": 25
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 12,
+          "x": 16,
           "y": 50
         }
       },
@@ -9630,17 +9617,17 @@
         }
       ],
       "origin": {
-        "x": 10,
+        "x": 14,
         "y": 48
       },
       "body_anchor": {
-        "x": 10,
-        "y": 17
+        "x": 14,
+        "y": 24
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 10,
+          "x": 14,
           "y": 48
         }
       },
@@ -9666,17 +9653,17 @@
         }
       ],
       "origin": {
-        "x": 14,
+        "x": 15,
         "y": 42
       },
       "body_anchor": {
-        "x": 14,
-        "y": 20
+        "x": 15,
+        "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 15,
           "y": 42
         }
       },
@@ -12050,17 +12037,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 15,
+        "x": 17,
         "y": 43
       },
       "body_anchor": {
-        "x": 15,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 17,
           "y": 43
         }
       },
@@ -12081,17 +12068,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 15,
+        "x": 17,
         "y": 45
       },
       "body_anchor": {
-        "x": 15,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 17,
           "y": 45
         }
       },
@@ -12112,17 +12099,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 13,
+        "x": 14,
         "y": 49
       },
       "body_anchor": {
-        "x": 13,
+        "x": 14,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 14,
           "y": 49
         }
       },
@@ -12143,17 +12130,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 13,
+        "x": 14,
         "y": 49
       },
       "body_anchor": {
-        "x": 13,
+        "x": 14,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 14,
           "y": 49
         }
       },
@@ -12183,17 +12170,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 15,
         "y": 40
       },
       "body_anchor": {
-        "x": 13,
+        "x": 15,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 15,
           "y": 40
         }
       },
@@ -12263,17 +12250,17 @@
         }
       ],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 51
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
+          "x": 17,
           "y": 51
         }
       },
@@ -12303,17 +12290,17 @@
         }
       ],
       "origin": {
-        "x": 17,
+        "x": 19,
         "y": 49
       },
       "body_anchor": {
-        "x": 17,
+        "x": 19,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 17,
+          "x": 19,
           "y": 49
         }
       },
@@ -12339,17 +12326,17 @@
         }
       ],
       "origin": {
-        "x": 15,
+        "x": 17,
         "y": 46
       },
       "body_anchor": {
-        "x": 15,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 15,
+          "x": 17,
           "y": 46
         }
       },
@@ -12597,17 +12584,17 @@
       },
       "animations": [],
       "origin": {
-        "x": 14,
+        "x": 15,
         "y": 41
       },
       "body_anchor": {
-        "x": 14,
+        "x": 15,
         "y": 19
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
+          "x": 15,
           "y": 41
         }
       },
@@ -12637,17 +12624,17 @@
         }
       ],
       "origin": {
-        "x": 13,
+        "x": 15,
         "y": 40
       },
       "body_anchor": {
-        "x": 13,
+        "x": 15,
         "y": 19
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
+          "x": 15,
           "y": 40
         }
       },
@@ -12973,7 +12960,7 @@
       "source": {
         "x": 87,
         "y": 3699,
-        "width": 36,
+        "width": 30,
         "height": 44
       },
       "animations": [],
@@ -12989,7 +12976,7 @@
         "hand": null,
         "foot": {
           "x": 12,
-          "y": 44
+          "y": 43
         }
       },
       "facing": -1,
@@ -13002,25 +12989,25 @@
     {
       "id": "r52_02b",
       "source": {
-        "x": 123,
+        "x": 121,
         "y": 3700,
-        "width": 40,
+        "width": 36,
         "height": 43
       },
       "animations": [],
       "origin": {
-        "x": 14,
+        "x": 16,
         "y": 43
       },
       "body_anchor": {
-        "x": 14,
+        "x": 16,
         "y": 20
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 14,
-          "y": 43
+          "x": 16,
+          "y": 42
         }
       },
       "facing": -1,
@@ -13033,25 +13020,25 @@
     {
       "id": "r52_02c",
       "source": {
-        "x": 163,
+        "x": 160,
         "y": 3702,
-        "width": 33,
+        "width": 36,
         "height": 41
       },
       "animations": [],
       "origin": {
-        "x": 13,
+        "x": 16,
         "y": 41
       },
       "body_anchor": {
-        "x": 13,
+        "x": 16,
         "y": 17
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 13,
-          "y": 41
+          "x": 16,
+          "y": 40
         }
       },
       "facing": -1,
@@ -13293,17 +13280,17 @@
         }
       ],
       "origin": {
-        "x": 42,
+        "x": 41,
         "y": 45
       },
       "body_anchor": {
-        "x": 42,
+        "x": 41,
         "y": 18
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 42,
+          "x": 41,
           "y": 45
         }
       },
@@ -13319,7 +13306,7 @@
       "source": {
         "x": 10,
         "y": 3881,
-        "width": 32,
+        "width": 25,
         "height": 30
       },
       "animations": [
@@ -13340,7 +13327,7 @@
         "hand": null,
         "foot": {
           "x": 13,
-          "y": 30
+          "y": 29
         }
       },
       "facing": -1,
@@ -13353,9 +13340,9 @@
     {
       "id": "r55_00b",
       "source": {
-        "x": 42,
+        "x": 39,
         "y": 3871,
-        "width": 32,
+        "width": 31,
         "height": 40
       },
       "animations": [
@@ -13365,18 +13352,18 @@
         }
       ],
       "origin": {
-        "x": 11,
+        "x": 14,
         "y": 40
       },
       "body_anchor": {
-        "x": 11,
+        "x": 14,
         "y": 24
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 11,
-          "y": 40
+          "x": 14,
+          "y": 39
         }
       },
       "facing": -1,
@@ -13389,9 +13376,9 @@
     {
       "id": "r55_00c",
       "source": {
-        "x": 74,
+        "x": 72,
         "y": 3873,
-        "width": 28,
+        "width": 30,
         "height": 38
       },
       "animations": [
@@ -13401,18 +13388,18 @@
         }
       ],
       "origin": {
-        "x": 11,
+        "x": 13,
         "y": 38
       },
       "body_anchor": {
-        "x": 11,
+        "x": 13,
         "y": 22
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 11,
-          "y": 38
+          "x": 13,
+          "y": 37
         }
       },
       "facing": -1,
@@ -13448,7 +13435,7 @@
         "hand": null,
         "foot": {
           "x": 12,
-          "y": 32
+          "y": 31
         }
       },
       "facing": -1,
@@ -13530,7 +13517,7 @@
       "source": {
         "x": 41,
         "y": 3923,
-        "width": 30,
+        "width": 26,
         "height": 51
       },
       "animations": [],
@@ -13546,7 +13533,7 @@
         "hand": null,
         "foot": {
           "x": 14,
-          "y": 51
+          "y": 50
         }
       },
       "facing": -1,
@@ -13559,25 +13546,25 @@
     {
       "id": "r56_01b",
       "source": {
-        "x": 71,
+        "x": 70,
         "y": 3920,
-        "width": 30,
+        "width": 31,
         "height": 54
       },
       "animations": [],
       "origin": {
-        "x": 16,
+        "x": 17,
         "y": 54
       },
       "body_anchor": {
-        "x": 16,
+        "x": 17,
         "y": 21
       },
       "attachments": {
         "hand": null,
         "foot": {
-          "x": 16,
-          "y": 54
+          "x": 17,
+          "y": 53
         }
       },
       "facing": -1,
@@ -13648,6 +13635,108 @@
       "interpretation": "Ripped by Paddy / No credit needed",
       "status": "CREDIT",
       "reason": "Alternate/expressive sequence outside this kit; intentionally retained only in source inventory"
+    },
+    {
+      "id": "piston_extended",
+      "source": {
+        "x": 188,
+        "y": 578,
+        "width": 93,
+        "height": 40
+      },
+      "animations": [
+        {
+          "animation": "lfPiston",
+          "order": 3
+        },
+        {
+          "animation": "lfFinale",
+          "order": 10
+        }
+      ],
+      "origin": {
+        "x": 72,
+        "y": 40
+      },
+      "body_anchor": {
+        "x": 72,
+        "y": 16
+      },
+      "attachments": {
+        "hand": {
+          "x": 1,
+          "y": 11
+        },
+        "foot": {
+          "x": 72,
+          "y": 40
+        }
+      },
+      "facing": -1,
+      "kind": "body",
+      "confidence": "high",
+      "interpretation": "Authored attached-arm assembly from supplied pixels; torso/feet unchanged; distal hand relocated",
+      "status": "REUSED",
+      "reason": null,
+      "assembly": {
+        "type": "extend_arm_column",
+        "cut_x": 20,
+        "repeat_pixels": 41,
+        "source_frame": "r10_03"
+      },
+      "assembly_origin": {
+        "x": 113,
+        "y": 40
+      }
+    },
+    {
+      "id": "reel_extended",
+      "source": {
+        "x": 290,
+        "y": 2291,
+        "width": 108,
+        "height": 44
+      },
+      "animations": [
+        {
+          "animation": "lfReel",
+          "order": 5
+        }
+      ],
+      "origin": {
+        "x": 16,
+        "y": 44
+      },
+      "body_anchor": {
+        "x": 16,
+        "y": 12
+      },
+      "attachments": {
+        "hand": {
+          "x": 106,
+          "y": 7
+        },
+        "foot": {
+          "x": 16,
+          "y": 44
+        }
+      },
+      "facing": 1,
+      "kind": "body",
+      "confidence": "high",
+      "interpretation": "Authored attached-arm assembly from supplied pixels; torso/feet unchanged; distal hand relocated",
+      "status": "USED",
+      "reason": null,
+      "assembly": {
+        "type": "extend_arm_column",
+        "cut_x": 60,
+        "repeat_pixels": 38,
+        "source_frame": "r32_05"
+      },
+      "assembly_origin": {
+        "x": 16,
+        "y": 44
+      }
     }
   ],
   "animations": {
@@ -13858,7 +13947,7 @@
       "r10_00",
       "r10_01",
       "r10_02",
-      "r10_03",
+      "piston_extended",
       "r10_04",
       "r10_05",
       "r00_00"
@@ -13869,7 +13958,7 @@
       "r32_02",
       "r32_03",
       "r32_04",
-      "r32_05",
+      "reel_extended",
       "r33_02a",
       "r33_02b",
       "r00_00"
@@ -13923,7 +14012,7 @@
       "r24_05",
       "r24_06",
       "r10_02",
-      "r10_03",
+      "piston_extended",
       "r10_04",
       "r10_05",
       "r00_00"

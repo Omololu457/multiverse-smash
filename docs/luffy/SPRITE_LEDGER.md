@@ -7,10 +7,12 @@ Alpha is authoritative. Black outlines are retained. No chroma key or interpolat
 Visible credit: **Ripped by Paddy** / **No credit needed**. Credit retained unchanged in source.
 
 All 57 visual regions inspected at nearest-neighbor magnification. The irregular packed
-poses below were split manually where alpha-column candidates merged adjacent bodies.
+poses below were split manually at transparent columns where initial candidates merged bodies.
 Detached hands are recorded separately; dust within a body rectangle stays attached.
-No uncertain alternate sequence is claimed as a named attack. Anatomical origins use the
-red-shirt torso and body foot plane, not the whole image center. Airborne long down-legs
+No uncertain alternate sequence is claimed as a named attack. Ground attack origins use
+feet centers; airborne long-leg origins use pure red-shirt torso anchors. Brown limb shading
+never sets the torso anchor. Authored Piston/Reel assemblies repeat existing arm columns
+and relocate supplied hand pixels; every source pixel keeps its alpha and size. Down-legs
 keep their torso at the normal airborne body plane. Manifest coordinates are source-local.
 Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 
@@ -97,7 +99,7 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r10_00 | 9,568,41,50 | REUSED | heavy[0], lfPiston[0], lfFinale[0] | horizontal punch and hand (high) |
 | r10_01 | 68,575,43,43 | REUSED | lfJ3[0], heavy[1], lfCmd3[0], lfPiston[1], lfFinale[1] | horizontal punch and hand (high) |
 | r10_02 | 123,578,53,40 | REUSED | lfJ3[1], heavy[2], lfCmd3[1], lfPiston[2], lfFinale[9] | horizontal punch and hand (high) |
-| r10_03 | 188,578,93,40 | REUSED | heavy[3], lfCmd3[2], lfPiston[3], lfFinale[10] | horizontal punch and hand (high) |
+| r10_03 | 188,578,93,40 | REUSED | heavy[3], lfCmd3[2] | horizontal punch and hand (high) |
 | r10_04 | 289,578,61,40 | REUSED | lfJ3[2], heavy[4], lfPiston[4], lfFinale[11] | horizontal punch and hand (high) |
 | r10_05 | 362,577,52,41 | REUSED | lfJ3[3], heavy[5], lfCmd3[3], lfPiston[5], lfFinale[12] | horizontal punch and hand (high) |
 | r10_06 | 433,581,24,28 | UNUSED_WITH_REASON | Unassigned supplied piece; no separate attachment required | horizontal punch and hand (medium) |
@@ -169,8 +171,8 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r21_00 | 13,1431,32,49 | USED | lfPinwheel[0] | spin kicks (high) |
 | r21_01 | 57,1430,35,43 | USED | lfPinwheel[1] | spin kicks (high) |
 | r21_02 | 105,1429,32,46 | USED | lfPinwheel[2] | spin kicks (high) |
-| r21_03a | 146,1427,35,52 | USED | lfPinwheel[3] | spin kicks (high) |
-| r21_03b | 181,1429,50,49 | USED | lfPinwheel[4] | spin kicks (high) |
+| r21_03a | 146,1427,30,52 | USED | lfPinwheel[3] | spin kicks (high) |
+| r21_03b | 180,1429,51,49 | USED | lfPinwheel[4] | spin kicks (high) |
 | r21_04 | 236,1442,54,34 | USED | lfPinwheel[5] | spin kicks (high) |
 | r22_00 | 11,1503,51,38 | REUSED | lfLow[1], lfCmd2[1], lfPinwheel[6] | extended kicks (high) |
 | r22_01 | 68,1492,50,49 | REUSED | lfLow[2], lfCmd2[2], lfPinwheel[7] | extended kicks (high) |
@@ -178,20 +180,20 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r22_03 | 166,1503,37,27 | USED | lfPinwheel[9] | extended kicks (high) |
 | r22_04 | 211,1490,30,53 | REUSED | lfLow[0], lfPinwheel[10] | extended kicks (high) |
 | r22_05 | 247,1498,40,47 | REUSED | lfLow[3], lfCmd2[3], lfPinwheel[11] | extended kicks (high) |
-| r23_00 | 12,1577,27,42 | REUSED | down_air[0], lfAnchor[0] | downward leg extensions (high) |
-| r23_01 | 51,1588,26,34 | USED | lfAnchor[1] | downward leg extensions (high) |
-| r23_02 | 83,1581,26,38 | USED | lfAnchor[2] | downward leg extensions (high) |
-| r23_03a | 114,1578,28,56 | REUSED | down_air[1], lfAnchor[3] | downward leg extensions (high) |
-| r23_03b | 145,1573,30,69 | USED | lfAnchor[4] | downward leg extensions (high) |
-| r23_04 | 182,1578,33,88 | REUSED | down_air[2], lfAnchor[5] | downward leg extensions (high) |
-| r23_05a | 221,1570,32,112 | REUSED | down_air[3], lfAnchor[6] | downward leg extensions (high) |
-| r23_05b | 253,1571,31,61 | REUSED | down_air[4], lfAnchor[7] | downward leg extensions (high) |
-| r23_06 | 298,1572,40,55 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
-| r23_07 | 345,1577,42,43 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
-| r23_08 | 395,1575,42,31 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
-| r23_09 | 445,1572,51,24 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
-| r23_10 | 503,1577,49,29 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
-| r23_11 | 565,1575,32,51 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions (medium) |
+| r23_00 | 12,1577,27,42 | REUSED | down_air[0], lfAnchor[0] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_01 | 51,1588,26,34 | USED | lfAnchor[1] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_02 | 83,1581,26,38 | USED | lfAnchor[2] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_03a | 114,1578,28,56 | REUSED | down_air[1], lfAnchor[3] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_03b | 145,1573,30,69 | USED | lfAnchor[4] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_04 | 182,1578,33,88 | REUSED | down_air[2], lfAnchor[5] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_05a | 221,1570,33,112 | REUSED | down_air[3], lfAnchor[6] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_05b | 257,1571,27,61 | REUSED | down_air[4], lfAnchor[7] | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (high) |
+| r23_06 | 298,1572,40,55 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
+| r23_07 | 345,1577,42,43 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
+| r23_08 | 395,1575,42,31 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
+| r23_09 | 445,1572,51,24 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
+| r23_10 | 503,1577,49,29 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
+| r23_11 | 565,1575,32,51 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | downward leg extensions; torso aligned with pure red shirt, not brown stretched leg shading (medium) |
 | r24_00 | 10,1703,50,42 | USED | lfFinale[2] | rapid punches (high) |
 | r24_01 | 65,1703,51,42 | USED | lfFinale[3] | rapid punches (high) |
 | r24_02 | 121,1699,163,46 | USED | lfFinale[4] | rapid punches (high) |
@@ -218,8 +220,8 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r26_00 | 12,1869,45,20 | USED | knockdown[4] | prone and get-up (high) |
 | r26_01 | 67,1870,45,19 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | prone and get-up (medium) |
 | r26_02a | 119,1863,35,26 | USED | getup[0] | prone and get-up (high) |
-| r26_02b | 158,1844,34,45 | USED | getup[1] | prone and get-up (high) |
-| r26_02c | 192,1841,36,48 | USED | getup[2] | prone and get-up (high) |
+| r26_02b | 158,1844,30,45 | USED | getup[1] | prone and get-up (high) |
+| r26_02c | 191,1841,37,48 | USED | getup[2] | prone and get-up (high) |
 | r26_03 | 236,1853,35,33 | USED | getup[3] | prone and get-up (high) |
 | r26_04 | 287,1844,36,48 | USED | getup[4] | prone and get-up (high) |
 | r26_05 | 334,1851,33,41 | USED | getup[5] | prone and get-up (high) |
@@ -238,8 +240,8 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r28_04 | 170,1992,35,72 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
 | r28_05 | 211,1994,35,69 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
 | r28_06 | 258,1994,24,69 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
-| r28_07a | 289,1994,31,71 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
-| r28_07b | 320,1994,30,72 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
+| r28_07a | 289,1994,27,71 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
+| r28_07b | 319,1994,31,72 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | overhead stretch cycle (medium) |
 | r29_00 | 14,2083,31,42 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | standing crouch (medium) |
 | r29_01 | 51,2089,34,36 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | standing crouch (medium) |
 | r30_00 | 14,2142,54,60 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | fast step with dust (medium) |
@@ -263,7 +265,7 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r32_02 | 90,2288,35,48 | USED | lfReel[2] | backward double-arm extension (high) |
 | r32_03 | 138,2287,50,49 | USED | lfReel[3] | backward double-arm extension (high) |
 | r32_04 | 195,2289,84,47 | USED | lfReel[4] | backward double-arm extension (high) |
-| r32_05 | 290,2291,108,44 | USED | lfReel[5] | backward double-arm extension (high) |
+| r32_05 | 290,2291,108,44 | UNUSED_WITH_REASON | None | backward double-arm extension (high) |
 | r32_06 | 413,2286,41,49 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | backward double-arm extension (medium) |
 | r32_07 | 463,2282,53,53 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | backward double-arm extension (medium) |
 | r33_00 | 11,2347,56,53 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | double-arm retraction (medium) |
@@ -401,9 +403,9 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r51_07 | 214,3648,18,18 | UNUSED_WITH_REASON | Unassigned supplied piece; no separate attachment required | hand pieces (medium) |
 | r52_00 | 7,3699,30,44 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
 | r52_01 | 47,3698,30,45 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
-| r52_02a | 87,3699,36,44 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
-| r52_02b | 123,3700,40,43 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
-| r52_02c | 163,3702,33,41 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
+| r52_02a | 87,3699,30,44 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
+| r52_02b | 121,3700,36,43 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
+| r52_02c | 160,3702,36,41 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
 | r52_03 | 205,3701,32,42 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted walk (medium) |
 | r53_00 | 13,3769,32,38 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted crouch (medium) |
 | r53_01 | 61,3767,32,40 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted crouch (medium) |
@@ -412,13 +414,15 @@ Guard and grab are documented pose fallbacks; no shield/grab art was invented.
 | r53_04 | 181,3773,32,34 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted crouch (medium) |
 | r53_05 | 221,3772,32,35 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | exhausted crouch (medium) |
 | r54_00 | 11,3818,52,45 | USED | lfCmd2[0] | extended kick (high) |
-| r55_00a | 10,3881,32,30 | USED | lose[0] | seated expression (high) |
-| r55_00b | 42,3871,32,40 | USED | lose[1] | seated expression (high) |
-| r55_00c | 74,3873,28,38 | USED | lose[2] | seated expression (high) |
+| r55_00a | 10,3881,25,30 | USED | lose[0] | seated expression (high) |
+| r55_00b | 39,3871,31,40 | USED | lose[1] | seated expression (high) |
+| r55_00c | 72,3873,30,38 | USED | lose[2] | seated expression (high) |
 | r55_00d | 106,3879,25,32 | USED | lose[3] | seated expression (high) |
 | r55_01 | 138,3879,25,32 | USED | lose[4] | seated expression (high) |
 | r56_00 | 9,3923,26,51 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
-| r56_01a | 41,3923,30,51 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
-| r56_01b | 71,3920,30,54 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
+| r56_01a | 41,3923,26,51 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
+| r56_01b | 70,3920,31,54 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
 | r56_02 | 110,3920,31,54 | UNUSED_WITH_REASON | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | leg gesture (medium) |
 | credit_paddy | 494,3912,166,54 | CREDIT | Alternate/expressive sequence outside this kit; intentionally retained only in source inventory | Ripped by Paddy / No credit needed (medium) |
+| piston_extended | 188,578,93,40 | REUSED | lfPiston[3], lfFinale[10] | Authored attached-arm assembly from supplied pixels; torso/feet unchanged; distal hand relocated (high) |
+| reel_extended | 290,2291,108,44 | USED | lfReel[5] | Authored attached-arm assembly from supplied pixels; torso/feet unchanged; distal hand relocated (high) |

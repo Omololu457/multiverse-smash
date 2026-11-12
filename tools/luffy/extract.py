@@ -20,18 +20,27 @@ for i,f in enumerate(frames.values()):
 contact.save(ROOT/'docs/luffy/contact_sheet.png')
 # Transparent padding aligns each source-local origin. Native left poses are mirrored as pixels,
 # never resampled. One shared scale applies to all frames, including the longest extension.
-W,H,PX,PY=320,200,160,150
+W,H,PX,PY=320,256,160,150
 assets={}
 for act,seq in m['animations'].items():
  sheet=Image.new('RGBA',(W*len(seq),H))
  for i,ident in enumerate(seq):
   f=frames[ident];c=crop(f);ox=f['origin']['x'];oy=f['origin']['y']
+  if f.get('assembly'):
+   cfg=f['assembly'];cut=cfg['cut_x'];extra=cfg['repeat_pixels']
+   extended=Image.new('RGBA',(c.width+extra,c.height))
+   extended.alpha_composite(c.crop((0,0,cut,c.height)),(0,0))
+   for dx in range(extra):extended.alpha_composite(c.crop((cut,0,cut+1,c.height)),(cut+dx,0))
+   extended.alpha_composite(c.crop((cut,0,c.width,c.height)),(cut+extra,0))
+   if f['facing']==-1:ox+=extra
+   c=extended
   if f['facing']==-1:c=c.transpose(Image.Transpose.FLIP_LEFT_RIGHT);ox=c.width-ox
   dx=PX-ox;dy=PY-oy
   assert dx>=0 and dx+c.width<=W and dy>=0 and dy+c.height<=H,(ident,dx,dy,c.size)
   sheet.alpha_composite(c,(i*W+dx,dy))
  dest=f'./assets/sprites/luffy/{act}.png';sheet.save(ROOT/dest[2:])
- assets[act]={'sheet':dest,'frames':len(seq),'width':W,'height':H,'speed':6 if act in ['idle','walk','walk_back','win'] else 4,'anchorY':-50*2.3,'loop':act in ['idle','walk','walk_back','run','dash','fall'],'lockLastFrame':True}
+ assets[act]={'sheet':dest,'frames':len(seq),'width':W,'height':H,'speed':6 if act in ['idle','walk','walk_back','win'] else 4,'anchorY':0,'originX':PX,'originY':PY,'loop':act in ['idle','walk','walk_back','run','dash','fall'],'lockLastFrame':True}
+ if act in ['lfAnchor','down_air']: assets[act]['groundClearance']=[max(0,(frames[k]['source']['height']-frames[k]['origin']['y'])) for k in seq]
 # Portrait stays pixel art and uses only the supplied standing frame.
 c=crop(frames['r00_00']);c=c.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
 c.resize((c.width*4,c.height*4),Image.Resampling.NEAREST).save(ROOT/'assets/sprites/luffy/portrait.png')
@@ -40,10 +49,12 @@ lines=['# Sprite ledger','',f"Source SHA-256: `{m['source']['sha256']}`.",'','Ac
 'Alpha is authoritative. Black outlines are retained. No chroma key or interpolated scaling.',
 'Visible credit: **Ripped by Paddy** / **No credit needed**. Credit retained unchanged in source.',
 '','All 57 visual regions inspected at nearest-neighbor magnification. The irregular packed',
-'poses below were split manually where alpha-column candidates merged adjacent bodies.',
+'poses below were split manually at transparent columns where initial candidates merged bodies.',
 'Detached hands are recorded separately; dust within a body rectangle stays attached.',
-'No uncertain alternate sequence is claimed as a named attack. Anatomical origins use the',
-'red-shirt torso and body foot plane, not the whole image center. Airborne long down-legs',
+'No uncertain alternate sequence is claimed as a named attack. Ground attack origins use',
+'feet centers; airborne long-leg origins use pure red-shirt torso anchors. Brown limb shading',
+'never sets the torso anchor. Authored Piston/Reel assemblies repeat existing arm columns',
+'and relocate supplied hand pixels; every source pixel keeps its alpha and size. Down-legs',
 'keep their torso at the normal airborne body plane. Manifest coordinates are source-local.',
 'Guard and grab are documented pose fallbacks; no shield/grab art was invented.',
 '','| ID | Rectangle x,y,w,h | Status | Roles / reason | Interpretation |','|---|---|---|---|---|']
@@ -55,5 +66,5 @@ for f in frames.values():
 mask=Image.new('L',im.size);md=ImageDraw.Draw(mask)
 for f in frames.values():s=f['source'];md.rectangle((s['x'],s['y'],s['x']+s['width']-1,s['y']+s['height']-1),fill=255)
 missing=ImageChops.subtract(im.getchannel('A'),mask)
-if missing.getbbox():print('UNACCOUNTED PIXELS',missing.getbbox());missing.save('/tmp/luffy-unaccounted.png')
+if missing.getbbox():raise SystemExit('Unaccounted alpha: '+str(missing.getbbox()))
 else:print('All source alpha accounted for;',len(frames),'graphics;',len(assets),'actions')

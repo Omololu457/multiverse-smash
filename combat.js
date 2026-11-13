@@ -7,6 +7,7 @@ import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown 
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
 import { sanjiHitbox, sanjiBlockstun, sanjiComboScale, sanjiHit, sanjiKnockback } from './sanjiState.js'   // Sanji hooks (sanji-gated no-ops for everyone else)
 import { sanjiProjectileHit } from './sanjiState.js'   // Sanji: Plate Kick hit bookkeeping (sanji-gated)
+import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack box descriptor (spd_red-gated)
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
@@ -682,6 +683,7 @@ export function getAttackHitbox(fighter) {
   if (a?.bg && fighter.rosterKey === 'buggy') return buggyHitbox(fighter)   // Buggy the Clown: his own box descriptor (buggy-gated)
   if (a?.sj && fighter.rosterKey === 'sanji') return sanjiHitbox(fighter)   // Sanji: his own box descriptor (sanji-gated)
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
+  if (a?.sr && fighter.rosterKey === 'spd_red') return spdRedHitbox(fighter)   // S.P.D. Red: his own box descriptor (spd_red-gated)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults

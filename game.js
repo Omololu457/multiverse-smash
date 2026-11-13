@@ -11,6 +11,7 @@ import { updateArlongCommandCombat } from './arlong.js'   // Arlong command laye
 import { tickArlong, isArlong, clearArlong, arlongRoundReset } from './arlongState.js'   // Arlong (arlong-gated)
 import { drawArlongFx, drawArlongUnder } from './arlongFx.js'   // Arlong render-only FX
 import { arlongHarnessApi } from './arlongHarness.js'   // Arlong test API (window.__harness.arlongTest)
+import { updateSpdRedCommandCombat } from './spdRed.js'   // S.P.D. Red command layer (spd_red-gated)
 import { tickSpdRed, isSpdRed, clearSpdRed, spdRedRoundReset } from './spdRedState.js'   // S.P.D. Red Ranger (spd_red-gated)
 import { drawSpdRedFx, drawSpdRedUnder, spdRedBodyAlpha } from './spdRedFx.js'   // S.P.D. Red render-only FX (blink streak / dissolve, sparks)
 import { spdRedHarnessApi } from './spdRedHarness.js'   // S.P.D. Red test API (window.__harness.spdRedTest)
@@ -4069,6 +4070,10 @@ function updateFFACombat(fighter, others, opts) {
   if (isSanji(fighter)) {   // Sanji command layer: 'consumed' | 'grab' | false
     const sc = updateSanjiCommandCombat(fighter, inputState, nearest, { world: SANJI_WORLD })
     if (sc) ctrlState = sc === 'grab' ? { grab: !!inputState.grab } : {}
+  }
+  if (isSpdRed(fighter)) {   // S.P.D. Red command layer: 'consumed' | 'grab' | false
+    const rc = updateSpdRedCommandCombat(fighter, inputState, nearest, { world: SPD_RED_WORLD })
+    if (rc) ctrlState = rc === 'grab' ? { grab: !!inputState.grab } : {}
   }
   if (isArlong(fighter)) {   // Arlong command layer: 'consumed' | 'grab' | false
     const ac = updateArlongCommandCombat(fighter, inputState, nearest, { world: ARLONG_WORLD })
@@ -11583,6 +11588,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isSanji(fighter)) {   // Sanji command layer: 'consumed' | 'grab' | false
     const sc = updateSanjiCommandCombat(fighter, inputState, getOpponent(fighter), { world: SANJI_WORLD })
     if (sc) { updateCombat(fighter, getOpponent(fighter), sc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
+  }
+  if (isSpdRed(fighter)) {   // S.P.D. Red command layer: 'consumed' | 'grab' | false
+    const rc = updateSpdRedCommandCombat(fighter, inputState, getOpponent(fighter), { world: SPD_RED_WORLD })
+    if (rc) { updateCombat(fighter, getOpponent(fighter), rc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
   if (isArlong(fighter)) {   // Arlong command layer: 'consumed' | 'grab' | false
     const ac = updateArlongCommandCombat(fighter, inputState, getOpponent(fighter), { world: ARLONG_WORLD })

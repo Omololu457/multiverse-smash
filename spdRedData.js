@@ -31,10 +31,16 @@ export const SPD_RED_MOVES = {
   sLow:  n(45, 7, 3, 14,  { blockstun: adv(-4, 3, 14), hitstun: 18, rangeX: 88, rangeY: 30, hitLevel: 'low' }),
   up:    n(80, 9, 4, 18,  { blockstun: adv(-8, 4, 18), hitstun: 24, rangeX: 72, rangeY: 130, launcher: true, launchVy: -22, selfVy: 0 }),
   air:   n(65, 6, 5, 10,  { blockstun: 12, hitstun: 20, rangeX: 80, rangeY: 64, knockbackX: 3, knockbackY: -2 }),
+  // JUDGMENT — point the morpher (R14F1-F2): time stops 30 f while it scans, then the verdict. Invulnerable, no hitbox.
+  sJudge: n(0, 30, 1, 10, { category: 'special', isSpecial: true, invuln: 41, damageType: 'energy', sr: { kind: 'judge', noHit: true } }),
   down_air: n(60, 8, 6, 14, { blockstun: 12, hitstun: 20, rangeX: 64, rangeY: 120, knockbackY: 8 }),   // air ↓ flip kick (R7F3)
 }
 
-const ANIM = { ...SPD_RED_ANIM }
+// Source-frame index at exact elapsed sim frames (presentation follows the simulation, never drives it).
+export const SPD_RED_TIMELINES = {
+  sJudge: [[0, 0], [6, 1]],
+}
+const ANIM = Object.fromEntries(Object.entries(SPD_RED_ANIM).map(([k, a]) => [k, SPD_RED_TIMELINES[k] ? { ...a, frameTimeline: SPD_RED_TIMELINES[k] } : a]))
 export const SPD_RED_ANIMS = ANIM
 
 export const spdRed = {

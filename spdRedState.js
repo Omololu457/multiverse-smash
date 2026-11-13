@@ -3,7 +3,7 @@
 // checkpoint snapshot, so they reproduce bit-identically. No Math.random / gameRng: sim randomness (Rapid Fire
 // spread) is rangerHash(match seed, frame, player index). Render jitter lives in spdRedFx.js.
 import { spdRed as SPD_RED_CHAR, SPD_RED_MOVES } from './spdRedData.js'
-import { tickRanger, clearRanger, rangerWalkMul, ensureRangerState } from './rangers.js'
+import { tickRanger, clearRanger, rangerWalkMul, ensureRangerState, judgmentAddHit, rangerSealAbsorb, isSealed } from './rangers.js'
 import { meleeDamageType } from './damageTypes.js'
 export const isSpdRed = f => f?.rosterKey === 'spd_red'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickSpdRed; never read by the sim).
@@ -93,7 +93,37 @@ function onRangerEvent(f, opp, s, e) {
     case 'blinkStart': rcue(f, 'blink'); break
     case 'arrive': rcue(f, 'blinkPop'); break
     case 'dodge': gainDelta(f, SPD_DELTA.perDodge); rcue(f, 'dodge'); break
+    case 'guilty': rcue(f, 'guilty'); rcue(f, 'contain'); break
+    case 'innocent': if (e.energy) gainDelta(f, e.energy); rcue(f, 'innocent'); break   // INNOCENT: +40 Delta (once per round)
+    case 'release': rcue(f, 'release'); break
   }
+}
+
+let _startMove = null   // combat.startMove, handed in by spdRed.js (avoids a combat ↔ spdRedState import cycle)
+export function registerSpdRedStartMove(fn) { _startMove = fn }
+// Start one of Red's moves through the engine's startMove (frameExact path) + attach his descriptor `sr`
+// (kind / spawn frames / hitbox shape / per-move blockstun), read by tickMove and the combat.js hooks.
+export function spdRedStartMove(f, key, startMove = _startMove) {
+  const md = SPD_RED_MOVES[key]; if (!md || !startMove) return false
+  if (f.attacking) { f.attacking = false; f.currentAttack = null; f.currentMove = null }
+  f.attackCooldown = 0
+  if (!startMove(f, key, md)) return false
+  if (md.cost) f.energy = Math.max(0, (f.energy || 0) - md.cost)   // specials / Super spend Delta on commit
+  const a = f.currentAttack, g = md.sr || {}
+  f.currentMove = key
+  a.sr = { kind: g.kind || 'normal', ...g, dir: f.facing || 1 }
+  if (g.noHit) a.hasHit = true
+  if (md.invuln) f.invulnTimer = Math.max(f.invulnTimer || 0, md.invuln)
+  if (md.isSpecial || md.isUltimate) { f.isBlocking = false; if (f.onGround || f.grounded) f.vx = 0 }
+  return true
+}
+// Hitbox: Red's own box descriptor (noHit moves → null; centred / raised / low boxes). spd_red-gated in combat.js.
+export function spdRedHitbox(f) {
+  const a = f.currentAttack, g = a?.sr
+  if (!g || g.noHit) return null
+  const reach = (a.rangeX || 60) * (f._reachMult || 1), h = a.rangeY || 40, fw = f.w || 48
+  if (g.centered) return { x: f.x + fw / 2 - reach / 2, y: f.y + (g.boxY ?? 20), w: reach, h }
+  return { x: f.facing === 1 ? f.x + fw : f.x - reach, y: f.y + (g.boxY ?? 20), w: reach, h }
 }
 
 // ── combat.js hooks (spd_red-gated no-ops for everyone else) ──
@@ -105,6 +135,7 @@ export function spdRedBlockstun(attacker, defender, atk) {
 export function spdRedHit(attacker, defender, atk) {
   if (!isSpdRed(attacker) || attacker === defender) return
   gainDelta(attacker, SPD_DELTA.perHit)       // +4 Delta per hit
+  judgmentAddHit(attacker)                     // JUDGMENT meter: 1 point per hit (20 to fill)
   const s = spdRedState(attacker); burst(s, 'hit', ctrX(defender), ctrY(defender))
   rcue(attacker, meleeDamageType(attacker, atk) === 'energy' ? 'zap' : 'impact')
 }
@@ -128,5 +159,8 @@ export { ensureRangerState }
 // applyScaledDamage hook (combat.js, the one damage choke-point). Returns rawDamage untouched unless S.P.D. Red is
 // involved (filled in by the Judgment / dodge phases).
 export function spdRedDamageMods(target, rawDamage, opts = {}) {
+  const a = opts.attacker
+  // GUILTY containment: the gem card absorbs 50% of every hit on the sealed target (whoever lands it)
+  if (a && a !== target && isSealed(target, a)) rawDamage = (rawDamage || 0) * rangerSealAbsorb(target, a)
   return rawDamage
 }

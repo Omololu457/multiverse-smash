@@ -77,6 +77,40 @@ export function drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip }) {
     ctx.fillText(st.verdict === 'guilty' ? 'JUDGMENT: GUILTY' : ready ? 'JUDGMENT READY' : 'JUDGMENT', flip ? mx + mw : mx, my + mh + 9)
   }
   ctx.restore()
+  drawJudgmentPoster(ctx, fighter)
+}
+
+// JUDGMENT (screen space, HUD pass): the WANTED poster slides down onto the HUD while time is frozen, then the
+// verdict is stamped on it — a red X (GUILTY, stays small in the corner while the card holds the foe) or a cyan O
+// (INNOCENT, while the re-attempt window is open). Pure function of f._ranger.judg.
+function drawJudgmentPoster(ctx, f) {
+  const j = f._ranger?.judg, J = getRangerProfile(f)?.judgment; if (!j || !J) return
+  const poster = img(SPD_RED_FX.poster.sheet); if (!poster) return
+  const sc = ctx.getTransform?.().a || 1, W = (ctx.canvas?.width || 1280) / sc
+  let show = 0, big = true
+  if (j.phase === 'freeze') show = Math.min(1, (j.t + 1) / 10)                    // slide in over 10 f
+  else if (j.contain > 0) { show = 1; big = J.guilty.seal - j.contain < 45 }      // GUILTY: big for 45 f, then corner
+  else if (j.hold > 0 && J.innocent.holdFull - j.hold < 60) show = 1              // INNOCENT: 1 s
+  if (!show) return
+  const k = big ? 2 : 0.9, pw = poster.width * k, ph = poster.height * k
+  const x = big ? W / 2 - pw / 2 : W / 2 - pw / 2, y = big ? -ph + (ph + 70) * show : 64
+  ctx.save(); ctx.imageSmoothingEnabled = false
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 4, y - 4, pw + 8, ph + 22 * k / 2 + 8)
+  ctx.drawImage(poster, x, y, pw, ph)
+  // verdict strip (code-drawn UI; the poster's own credit band is excluded from the game)
+  ctx.fillStyle = '#c2ab7f'; ctx.fillRect(x, y + ph, pw, 11 * k)
+  ctx.fillStyle = '#2a1a10'; ctx.font = `bold ${Math.round(9 * k)}px Arial`; ctx.textAlign = 'center'
+  const label = j.phase === 'freeze' ? 'SCANNING…' : j.verdict === 'guilty' ? 'GUILTY' : 'INNOCENT'
+  ctx.fillText(label, x + pw / 2, y + ph + 9 * k)
+  if (j.phase !== 'freeze') {   // the stamp over the mugshot
+    const cx = x + pw / 2, cy = y + ph * 0.62, r = 20 * k
+    ctx.lineWidth = 5 * k / 2; ctx.lineCap = 'round'
+    if (j.verdict === 'guilty') {
+      ctx.strokeStyle = '#ff2a1a'
+      ctx.beginPath(); ctx.moveTo(cx - r, cy - r); ctx.lineTo(cx + r, cy + r); ctx.moveTo(cx + r, cy - r); ctx.lineTo(cx - r, cy + r); ctx.stroke()
+    } else { ctx.strokeStyle = '#36d6e6'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke() }
+  }
+  ctx.restore()
 }
 
 // Behind the body: the blink streak afterimages + dissolve particles (render-only, from f._ranger.blink).
@@ -123,9 +157,37 @@ function dissolve(c, x, y, t, seed, white) {
 // In front of the body: impact sparks (sim-recorded fx list; the sprite pick + jitter are render-only).
 export function drawSpdRedFx(c, f, frame = 0) {
   if (!c || !isRed(f)) return
+  drawJudgmentWorld(c, f, frame)
   const s = f._spdRed; if (!s) return
   for (const b of s.fx || []) {
     const life = Math.min(1, b.t / 6)
     sprite(c, 'bolt', b.x, b.y, { sx: 1.8 + (12 - b.t) * 0.12, sy: 1.8 + (12 - b.t) * 0.12, rot: hash(b.n, 1) * 6.28, alpha: life })
+  }
+}
+
+// JUDGMENT in the world: a scanner sweep over the frozen foe (freeze) and the glass CONTAINMENT CARD with the gem
+// around a sealed foe (code-drawn card + the gem sprite). Reads the judge's state only.
+function drawJudgmentWorld(c, f, frame) {
+  const j = f._ranger?.judg; if (!j) return
+  if (j.phase === 'freeze') {
+    const t = j.t, x = (f.x || 0) + (f.w ?? 48) / 2 + (f.facing || 1) * 60
+    c.save(); c.strokeStyle = 'rgba(54,214,230,0.8)'; c.lineWidth = 2
+    for (let i = 0; i < 3; i++) {   // morpher scan beam fanning out
+      c.beginPath(); c.moveTo(x, (f.y || 0) + 40); c.lineTo(x + (f.facing || 1) * 900, (f.y || 0) + 40 + (i - 1) * (20 + t * 3)); c.stroke()
+    }
+    c.restore()
+  }
+  if (j.contain > 0) {
+    const w = 48 + 40, h = 94 + 40, x = j.sealX + 24 - w / 2, y = j.sealY - 20
+    const pulse = 0.5 + 0.5 * Math.sin(frame / 5)
+    c.save()
+    c.fillStyle = `rgba(120,230,255,${0.18 + 0.08 * pulse})`; c.fillRect(x, y, w, h)
+    c.strokeStyle = 'rgba(200,250,255,0.95)'; c.lineWidth = 3; c.strokeRect(x, y, w, h)
+    c.strokeStyle = 'rgba(54,214,230,0.6)'; c.lineWidth = 1
+    for (let k = 1; k < 4; k++) { c.beginPath(); c.moveTo(x + k * w / 4, y); c.lineTo(x + k * w / 4 - 10, y + h); c.stroke() }   // glass glints
+    c.restore()
+    sprite(c, 'gem', x + w / 2, y - 4, { sx: 1.6, sy: 1.6, rot: Math.sin(frame / 12) * 0.2 })
+    c.save(); c.font = 'bold 13px Arial'; c.textAlign = 'center'; c.fillStyle = '#ff3a2a'
+    c.fillText('GUILTY', x + w / 2, y + h + 14); c.restore()
   }
 }

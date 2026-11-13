@@ -1,4 +1,4 @@
-// harness/arlong_skins_check.mjs — Arlong's 13 alt skins: each is listed + applies (recoloured sheets), SURVIVES his
+// harness/arlong_skins_check.mjs — Arlong's 14 alt skins: each is listed + applies (recoloured sheets), SURVIVES his
 // own anim-set swaps (win 2, idle flex) and a round reset, the FX sheets / water theme follow the skin, the Alien X
 // skin gets the engine's starfield overlay, default stays byte-identical. Screenshots each skin with a water zone +
 // a Seiken shockwave in flight. 0 page errors, 0 Arlong 404s.     node harness/arlong_skins_check.mjs
@@ -16,7 +16,7 @@ await page.addInitScript(() => { window.requestAnimationFrame = () => 0 })
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const st = () => page.evaluate(() => { const f = __harness.arlongTest.raw('p1'), a = f._skinAnim || f.animationData
   return { idle: a?.idle?.sheet, win: a?.win?.sheet, tag: f._recolorTag || null, skinId: f.skinId, stars: !!f._alienXFX } })
-const TAGS = ['hody', 'tiger', 'jinbe', 'reef', 'abyss', 'magma', 'frost', 'gilded', 'phantom', 'neon', 'ben10', 'albedo', 'alienx']
+const TAGS = ['hody', 'tiger', 'jinbe', 'reef', 'abyss', 'magma', 'frost', 'gilded', 'phantom', 'neon', 'cafe', 'ben10', 'albedo', 'alienx']
 const idOf = t => t === 'alienx' ? 'arlongAlienX' : `arlong_${t}`
 try {
   await page.goto(`${server.base}/index.html?harness=1&p1=arlong&p2=zoro`, { waitUntil: 'load' })
@@ -24,7 +24,7 @@ try {
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle() }); await step(2)
   await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { timeout: 30000 }); await step(30)
   const list = await page.evaluate(async () => (await import('./skins.js')).getSkins('arlong').map(s => s.id))
-  check('14 skins listed (default + 13)', list.length === 14 && list[0] === 'default' && TAGS.every(t => list.includes(idOf(t))), list.join(','))
+  check('15 skins listed (default + 14)', list.length === 15 && list[0] === 'default' && TAGS.every(t => list.includes(idOf(t))), list.join(','))
   for (const tag of TAGS) {
     const id = idOf(tag)
     console.log(`\n── ${id} ──`)

@@ -106,9 +106,23 @@ SKINS = {
     # GREEN, and the water turns into a NEBULA (violet → magenta) with white star foam.
     "alienx":  {"crush": True, "white": dict(sat=0.0, vmul=1.0), "ember": dict(hue=128, sat=0.9, vmul=1.35),
                 "water": dict(hue=285, sat=0.85, vmul=0.75, foam=dict(hue=200, sat=0.1, vmul=1.0))},
+    # MERMAID CAFÉ GLITTER (Fishman Island's pink café): pastel-pink shark skin, a hot-pink shirt with baked glitter,
+    # lilac-pearl trousers, pink glittering water.
+    "cafe":    {"skin": dict(hue=342, sat=0.3, vmul=1.15), "gold": dict(hue=326, sat=0.72, vmul=1.05),
+                "green": dict(hue=288, sat=0.25, vmul=1.3), "glitter": "gold",
+                "water": dict(hue=326, sat=0.6, vmul=1.0, foam=dict(hue=330, sat=0.15, vmul=1.0))},
 }
 
 FX_WATER = ("fx_jets", "fx_burst_a", "fx_burst_b")
+
+
+def glitter_mask(shape):
+    # Fixed integer hash of the sheet pixel (no RNG): ~7% sparkles, ~2% of them pure white.
+    yy, xx = np.mgrid[0:shape[0], 0:shape[1]].astype(np.uint64)
+    hh = (xx * np.uint64(374761393) + yy * np.uint64(668265263)) & np.uint64(0xFFFFFFFF)
+    hh = ((hh ^ (hh >> np.uint64(13))) * np.uint64(1274126177)) & np.uint64(0xFFFFFFFF)
+    hh = (hh ^ (hh >> np.uint64(16))) & np.uint64(0xFFFF)
+    return hh < np.uint64(int(0.07 * 65536)), hh < np.uint64(int(0.02 * 65536))
 
 
 def apply_op(h, s, v, a, op):
@@ -135,11 +149,15 @@ def recolor(img, rec, name):
             nrgb = hsv_to_rgb(h, np.clip(s * 0.25, 0, 1), np.clip(v * 0.16 + 0.02, 0, 1))
             out = np.where(sel[..., None], nrgb, out)
         for reg, op in rec.items():
-            if reg in ("water", "crush"): continue
+            if reg in ("water", "crush", "glitter"): continue
             if reg == "outline":   # spectral skins: soften the black outline too
                 sel = (al > 40) & (v <= 0.02); oa = np.where(sel, al * op["alpha"], oa); continue
             nrgb, na = apply_op(h, s, v, al, op); sel = R[reg]
             out = np.where(sel[..., None], nrgb, out); oa = np.where(sel, na, oa)
+        if rec.get("glitter"):   # sparkles baked into one region (the pose changes frame to frame, so they glint)
+            g, w = glitter_mask(h.shape); reg = R[rec["glitter"]]
+            out = np.where((reg & g & ~w)[..., None], np.array([1.0, 0.80, 0.93]), out)
+            out = np.where((reg & w)[..., None], np.array([1.0, 1.0, 1.0]), out)
     arr[..., :3] = np.clip(np.round(out * 255), 0, 255); arr[..., 3] = np.clip(np.round(oa), 0, 255)
     return Image.fromarray(arr.astype(np.uint8), "RGBA")
 

@@ -272,7 +272,7 @@ export function drawMunitions(ctx, frame = 0) {
     // telegraph reticle (20f before impact): brackets on the ground at the predicted x.
     if (m.profile.telegraph) _reticle(ctx, m.x, m.y, m.profile.homing ? "#5fe0ff" : "#ff9a3c")
     if (bimg && bimg.complete && bimg.naturalWidth) {
-      const fw = bimg.naturalWidth / 6, fh = bimg.naturalHeight, sc = (m.scale || 1) * 1.8
+      const fw = bimg.naturalWidth / 6, fh = bimg.naturalHeight, sc = (m.scale || 1) * 2.05
       ctx.save(); ctx.translate(m.x, m.y); if ((m.vx || 0) < 0) ctx.scale(-1, 1)
       if (m.profile.tint) { ctx.globalAlpha = 0.9 }
       ctx.drawImage(bimg, m.frame * fw, 0, fw, fh, -fw * sc / 2, -fh * sc / 2, fw * sc, fh * sc)

@@ -38,13 +38,12 @@ f._specialHeldDir = "B"; executeGreenArrowSpecial(f, CTX(opp, 60))   // aegis 20
 f._specialHeldDir = null; executeGreenArrowSpecial(f, CTX(opp, 120)) // overwatch → forces retire-oldest
 ok("capped at 2 live drones", activeDrones.filter(d => !d.dying && !d._retiring).length <= 2)
 
-console.log("\n── double-tap Special → recall")
+console.log("\n── 2nd Special press no longer recalls (accidental double-tap recall removed)")
 resetDrones()
 f = mkGA(); f.energy = 100
 f._specialHeldDir = "B"; executeGreenArrowSpecial(f, CTX(opp, 200))   // aegis
-const liveBefore = activeDrones.filter(d => !d._retiring).length
-f._specialHeldDir = "B"; executeGreenArrowSpecial(f, CTX(opp, 208))   // 2nd press within 14f → recall
-ok("double-tap recalls drones", activeDrones.every(d => d._retiring), `recalled ${activeDrones.filter(d=>d._retiring).length}/${activeDrones.length}`)
+f._specialHeldDir = "B"; executeGreenArrowSpecial(f, CTX(opp, 208))   // 2nd press within 14f → deploys another, does NOT recall
+ok("double-tap Special does NOT recall (no drone forced to retire)", activeDrones.length > 0 && activeDrones.every(d => !d._retiring), `active=${activeDrones.length} retiring=${activeDrones.filter(d=>d._retiring).length}`)
 
 console.log("\n── ARROWSTORM super: full state machine")
 resetDrones()

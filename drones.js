@@ -217,6 +217,8 @@ export function recallDrones(owner) {
 // ─────────────────────────────────────────────────────────────────────────────
 const _defaultIsEnemy = (o, f) => !!(o && f && f !== o && f.side !== o.side)
 const _tgtEnv = {}   // reused each frame (no per-frame allocation; never mutates the caller's env)
+let _droneKamikaze = null
+export function setDroneKamikazeHandler(fn) { _droneKamikaze = (typeof fn === "function") ? fn : null }   // owner layer registers the explode-on-contact dive
 export function updateDrones(owners, frame, env = {}) {
   // targeting env (defaults from the owners list for 1v1; game.js passes fighters/isEnemy for FFA).
   // Build a reused context — do NOT write onto the caller's env (it may be a shared/const object).
@@ -255,28 +257,23 @@ export function updateDrones(owners, frame, env = {}) {
       continue
     }
     if (d._retiring) {
-      // ASCEND and fade out (was: fly off behind Oliver → looked like it fled the fight)
-      d.tx = d.x
-      d.ty = d.y - 220
-      moveToward(d, d.profile)
-      d.x += d.vx; d.y += d.vy - 2.5           // extra upward lift
-      d._retireFade = (d._retireFade || 0) + 1
-      d._hitFlash = 2                            // reuse the alpha-flicker so it reads as fading out
-      if (d._retireFade > 42 || d.y < floorY(d.owner || d) - 680) {
-        activeDrones.splice(i, 1)
+      // KAMIKAZE OUT — a retiring/expiring drone flies INTO the enemy and EXPLODES (instead of leaving
+      // the fight). The owning character registers the explode-on-contact handler (setDroneKamikazeHandler);
+      // with no live enemy / no handler it just ascends and fades.
+      const outcome = _droneKamikaze ? _droneKamikaze(d, env) : "fade"
+      if (outcome === "done") { activeDrones.splice(i, 1); continue }
+      if (outcome === "diving") {
+        moveToward(d, { accel: 2.4, drag: d.profile.drag || 0.86, reverseBrake: 0.8, overspeedDrag: 0.9, maxH: 18, maxV: 16 })
+        d.x += d.vx; d.y += d.vy; advanceAnim(d); continue
       }
-      advanceAnim(d)
-      continue
+      d.tx = d.x; d.ty = d.y - 220                 // "fade" — ascend out
+      moveToward(d, d.profile); d.x += d.vx; d.y += d.vy - 2.5
+      d._retireFade = (d._retireFade || 0) + 1; d._hitFlash = 2
+      if (d._retireFade > 42 || d.y < floorY(d.owner || d) - 680) activeDrones.splice(i, 1)
+      advanceAnim(d); continue
     }
     // lifetime expiry — self-scuttle (death anim) or fly off (retire), per profile.expireMode
-    if (d.life !== Infinity && --d.life <= 0) {
-      if ((d.profile.expireMode || "death") === "retire") { d._retiring = "expire" }
-      else {
-        d.dying = true; d.anim = "death"; d.frame = 0; d.animTimer = 0
-        d.deathTimer = (d.profile.sprites?.death?.frames || 6) * 5 + 6
-      }
-      continue
-    }
+    if (d.life !== Infinity && --d.life <= 0) { d._retiring = "expire"; continue }   // lifetime up → KAMIKAZE into the enemy
     // behaviour sets d.tx/d.ty + actions
     pickDroneTarget(d, _tgtEnv)   // PASS3 P4: retarget each frame per the owner's order (hysteresis inside)
     const bfn = BEHAVIOURS[d.behaviour] || BEHAVIOURS.follow
@@ -578,7 +575,7 @@ export function drawDrones(ctx, frame = 0, camera = null) {
     if (img && img.complete && img.naturalWidth > 0) {
       const fw = img.naturalWidth / frames
       const fh = img.naturalHeight
-      const sc = (d.profile.scale || 1) * ((d.owner && d.owner._gaSuperActive) ? 1.3 : 1)   // ULTIMATE: drones render 30% bigger during the Super
+      const sc = (d.profile.scale || 1) * 1.12 * ((d.owner && d.owner._gaSuperActive) ? 1.3 : 1)   // a touch bigger overall; +30% during the Super
       const dw = fw * sc, dh = fh * sc
       const fi = Math.min(frames - 1, d.frame)
       const _native = droneNative(d.profile)

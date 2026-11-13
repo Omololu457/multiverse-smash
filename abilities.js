@@ -64,7 +64,7 @@ import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension"
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
-import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES, cycleDroneOrder } from "./drones.js"
+import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES, cycleDroneOrder, setDroneKamikazeHandler } from "./drones.js"
 import { flightAxisStep, flightSoftLimit, hashRandom } from "./flight.js"   // GREEN ARROW Grapple pull + Super scatter RNG (flight.js is a leaf → no cycle)
 import { spawnMunition } from "./munitions.js"   // GREEN ARROW Super/drone bombs (munitions.js is a leaf → no cycle)   // GREEN ARROW generic drone system (drones.js imports only flight.js → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
@@ -36276,27 +36276,27 @@ function _gaTagReticle(opp, frames) { if (opp) { opp._gaTagged = Math.max(opp._g
 registerDroneProfile("overwatch", {
   sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, scan: { sheet: "./ga_overwatch_scan_sheet.png", frames: 8 }, walk: { sheet: "./ga_overwatch_walk_sheet.png", frames: 4 }, walkscan: { sheet: "./ga_overwatch_walkscan_sheet.png", frames: 8 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
   hp: 70, accel: 1.6, maxH: 11, maxV: 9, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 200, bobAmp: 4, leash: 360, behaviour: "recon", cooldownOnDeath: 300,
+  hoverHeight: 200, bobAmp: 4, leash: 900, behaviour: "recon", cooldownOnDeath: 300, lifetime: 540, expireMode: "retire",
   techCost: 20, hurtbox: { w: 56, h: 31 }, scale: 2.08, frontFacing: true, nativeFacing: "front",   // SCALE FIX: ~40% of the 134px GA (h-based)
 })
 registerDroneProfile("bulwark", {
   sprites: { capsule: { sheet: "./ga_bulwark_capsule_sheet.png", frames: 6 }, drop: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 }, walk: { sheet: "./ga_bulwark_walk_sheet.png", frames: 4 }, walk2: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, idle: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, death: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 } },
   hp: 130, accel: 0.9, maxH: 3.2, maxV: 8, drag: 0.8, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 0, bobAmp: 0, leash: 520, behaviour: "planted", cooldownOnDeath: 360,
+  hoverHeight: 0, bobAmp: 0, leash: 900, behaviour: "planted", cooldownOnDeath: 360,
   techCost: 25, hurtbox: { w: 56, h: 37 }, scale: 2.45, frontFacing: false, nativeFacing: "left", faceMode: "target",   // SCALE FIX: ~40% of GA (h-based)
   lifetime: 720, expireMode: "death",
 })
 registerDroneProfile("aegis", {
   sprites: { idle: { sheet: "./ga_aegis_idle_sheet.png", frames: 4 }, walk: { sheet: "./ga_aegis_walk_sheet.png", frames: 5 }, death: { sheet: "./ga_aegis_death_sheet.png", frames: 6 } },
   hp: 150, accel: 1.4, maxH: 8, maxV: 8, drag: 0.85, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 105, bobAmp: 2, leash: 220, behaviour: "guard", cooldownOnDeath: 300,
+  hoverHeight: 105, bobAmp: 2, leash: 900, behaviour: "guard", cooldownOnDeath: 300,
   techCost: 20, hurtbox: { w: 58, h: 45 }, scale: 2.45, frontFacing: true, nativeFacing: "front",   // SCALE FIX: ~40% of GA (h-based)
   absorbsProjectiles: true, lifetime: 600, expireMode: "retire",
 })
 registerDroneProfile("kestrel", {
   sprites: { idle: { sheet: "./ga_kestrel_idle_sheet.png", frames: 4 }, forward: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 }, back: { sheet: "./ga_kestrel_back_sheet.png", frames: 4 }, fire1: { sheet: "./ga_kestrel_fire1_sheet.png", frames: 11 }, fire2: { sheet: "./ga_kestrel_fire2_sheet.png", frames: 11 }, death: { sheet: "./ga_kestrel_death_sheet.png", frames: 9 }, walk: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 } },
   hp: 90, accel: 1.8, maxH: 13, maxV: 10, drag: 0.88, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 245, bobAmp: 3, leash: 760, behaviour: "strafe", cooldownOnDeath: 330,
+  hoverHeight: 245, bobAmp: 3, leash: 1000, behaviour: "strafe", cooldownOnDeath: 330, lifetime: 540, expireMode: "retire",
   techCost: 30, hurtbox: { w: 59, h: 24 }, scale: 2.16, frontFacing: false, nativeFacing: "left", faceMode: "target",   // SCALE FIX: ~50% of GA (w-based; thin jet)
 })
 registerDroneProfile("skyhook", {
@@ -36361,8 +36361,8 @@ registerBehaviour("recon", (d, { frame }) => {
   // FLY-TOWARD FIX: was (o.x - facing*85) = BEHIND Oliver → the scout looked like it fled the enemy.
   // Park it on the FOE side (between Oliver and the target) so it reads as recon pushing the threat.
   const _reconToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
-  d.tx = (o.x || 0) + _reconToOpp * 85
-  d.ty = _gaFloor(o) - (d.profile.hoverHeight || 160)
+  if (opp && !opp.eliminated) { d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = _gaFloor(opp) - (d.profile.hoverHeight || 200) }   // FOLLOW THE ENEMY: hover above the foe
+  else { d.tx = (o.x || 0) + _reconToOpp * 85; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 160) }
   d.data.scanT = (d.data.scanT || 0) + 1
   const inCone = opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < 520 && Math.abs((opp.y || 0) - d.y) < 300
   if (d.data.scanT % 180 < 48) { d.anim = inCone ? "walkscan" : "scan"; if (inCone && d.data.scanT % 180 === 24) _gaTagReticle(opp, 360) }
@@ -36401,7 +36401,7 @@ registerBehaviour("planted", (d, { frame }) => {
   if (d.state === "enter") { d.anim = d.frameAge < 30 ? "capsule" : "drop"; d.tx = d.x; if (d.frameAge > 60) { d.state = "planted"; d.data.fireT = 0 }; return }
   // PROTECTOR "Bodyguard": plant BETWEEN Oliver and the opponent; fire point-blank within 20% of Oliver.
   if (opp && !opp.eliminated) {
-    d.tx = (o.x || 0) + Math.sign((opp.x || 0) - (o.x || 0)) * GA_SCR_W * 0.14   // just in front of Oliver (never on him)
+    d.tx = (opp.x || 0) + (opp.w || 60) / 2 + (Math.sign((o.x || 0) - (opp.x || 0)) || 1) * GA_SCR_W * 0.10   // GROUND TURRET: plant just in front of the ENEMY + lob bombs at it
     d.facing = ((opp.x || 0) < d.x) ? -1 : 1
     d.data.fireT = (d.data.fireT || 0) + 1
     if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.42 && d.data.fireT >= 60) {   // AGGRESSIVE: wider range + faster mortar
@@ -36434,8 +36434,8 @@ registerBehaviour("guard", (d) => {
   const opp = d.target
   // AGGRESSIVE: advance toward the foe (was a fixed 62px in front) + chip glint shots.
   const _aToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
-  d.tx = (o.x || 0) + _aToOpp * 120
-  d.ty = _gaFloor(o) - (d.profile.hoverHeight || 70)
+  if (opp && !opp.eliminated) { const _aSide = Math.sign((o.x || 0) - (opp.x || 0)) || 1; d.tx = (opp.x || 0) + (opp.w || 60) / 2 + _aSide * 75; d.ty = _gaFloor(opp) - (d.profile.hoverHeight || 90) }   // FOLLOW: shield in front of the foe
+  else { d.tx = (o.x || 0) + _aToOpp * 120; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 70) }
   d.anim = (Math.abs(d.x - d.tx) > 20) ? "walk" : "idle"
   if (opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < GA_SCR_W * 0.5 && ((d.data.glintT = (d.data.glintT || 0) + 1) % 80 === 0)) {
     _gaDroneShot(o, d._ctx, { type: "gaAegisGlint", damage: 8, vx: _aToOpp * 10, vy: 0, spawnX: d.x, spawnY: d.y, w: 14, h: 10, lifetime: 42, color: "#bfe8ff" })
@@ -36470,7 +36470,8 @@ registerBehaviour("strafe", (d, { frame }) => {
   // PROTECTOR "Escort": hover above Oliver; suppression burst when he is in trouble or the foe is near.
   // ENGAGE FIX: advance toward the foe and strafe (was d.tx=o.x = hovering on Oliver, never engaging).
   const _kToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
-  d.tx = (o.x || 0) + _kToOpp * GA_SCR_W * 0.12; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210); d.anim = "idle"
+  if (opp && !opp.eliminated) { d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = _gaFloor(opp) - (d.profile.hoverHeight || 230) } else { d.tx = (o.x || 0) + _kToOpp * GA_SCR_W * 0.12; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210) }   // FOLLOW THE ENEMY: hover above the foe
+  d.anim = "idle"
   if (d.data.burstCd > 0) d.data.burstCd--
   // AGGRESSIVE: strafe-fire at ANY foe in range (was only when Oliver was in trouble / point-blank).
   const engage = opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < GA_SCR_W * 0.55
@@ -36604,6 +36605,28 @@ registerDroneProfile("swarm", {
   hoverHeight: 120, bobAmp: 3, leash: 420, behaviour: "swarm", cooldownOnDeath: 360,
   techCost: 40, hurtbox: { w: 90, h: 70 }, scale: 1.0, frontFacing: true, nativeFacing: "front",
   swarm: true,
+})
+
+// KAMIKAZE-OUT: a retiring / lifetime-expired / cap-replaced drone dives INTO the foe and explodes
+// (registered with drones.js). Returns "done" (exploded → despawn), "diving" (keep homing), or "fade"
+// (no live enemy → ascend out). Deterministic; no Math.random.
+setDroneKamikazeHandler((d, env) => {
+  const o = d.owner, opp = d.target || d._opp
+  if (!o || !opp || opp.eliminated) return "fade"
+  d.anim = d.profile.sprites?.forward ? "forward" : "idle"
+  d.tx = (opp.x || 0) + (opp.w || 60) / 2
+  d.ty = (opp.y || 0) + (opp.h || 100) * 0.42
+  d.facing = ((opp.x || 0) < d.x) ? -1 : 1
+  d._kamiT = (d._kamiT || 0) + 1
+  const hit = _gaHitsOpp(d, opp, 14)
+  if (hit || d._kamiT > 150) {
+    if (hit) { applyScaledDamage(opp, 35, { source: "ability", attacker: o, move: "droneKamikaze" }); opp.hitstun = Math.max(opp.hitstun || 0, 22); opp.vx = ((opp.x || 0) < d.x ? -1 : 1) * 6 }
+    _gaExplosionFx(o, d.x, d.y, 0.85, d._ctx)
+    if (o) { o._gaDroneCd = o._gaDroneCd || {}; o._gaDroneCd[d.type] = d.profile.cooldownOnDeath || 300 }
+    if (typeof sound !== "undefined") sound.play?.("ga_drone_death")
+    return "done"
+  }
+  return "diving"
 })
 
 // ── SPECIAL dispatch: drones by held direction; double-tap Special = recall; doubleQcf = Super ──

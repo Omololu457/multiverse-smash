@@ -54,6 +54,10 @@ ok("bare Light (no motion) → fires a plain arrow", r === true && activeProject
 f = mkGA(); clearProj(); f.directionHistory = []; f.energy = 100
 r = updateGreenArrowCommandCombat(f, { heavy: true }, CTX(OPP))
 ok("bare Heavy (no motion) → fires a fire arrow (spent 15)", r === true && f.energy === 85 && activeProjectiles.length === 1)
+// Down+Light → ice arrow (spends 20; 7s cooldown; falls back to a plain shot when unavailable)
+f = mkGA(); clearProj(); f.directionHistory = []; f.energy = 100; f._gaIceCd = 0
+r = updateGreenArrowCommandCombat(f, { down: true, light: true }, CTX(OPP))
+ok("Down+Light → fires an ice arrow (spent 20)", r === true && f.energy === 80 && activeProjectiles.length === 1)
 
 console.log("\n── charged plain shot (qcf+Light hold → release)")
 f = mkGA(); clearProj(); qcf(f)

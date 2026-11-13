@@ -37002,6 +37002,7 @@ export function updateGreenArrowCommandCombat(fighter, inputState, context, getP
   if (forward && heavyEdge) { inputState.heavy = false; return fireGABowSlash(fighter, context) }
   // ARCHER BASICS (no motion needed): bare Light = plain arrow, bare Heavy = fire arrow (falls back to a
   // piercing plain shot if out of Tech). Motions above still fire the charged/ice/emp/explosive/anti-air arrows.
+  if (inputState.down && lightEdge) { inputState.light = false; return fireGAIce(fighter, context) || fireGAPlain(fighter, context, 0) }   // Down+Light = ICE arrow (falls back to a plain shot on cooldown / low Tech)
   if (lightEdge) { inputState.light = false; return fireGAPlain(fighter, context, 0) }
   if (heavyEdge) { inputState.heavy = false; return fireGAFire(fighter, context) || fireGAPlain(fighter, context, 1) }
   return false

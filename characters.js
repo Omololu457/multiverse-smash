@@ -4765,6 +4765,9 @@ const greenArrow = {
   ultimate: { name: "Arrowstorm Protocol", cost: 100, description: "↓↘→↓↘→+Special. Every live drone fires at once, a Payload bomber carpet-bombs the screen, and Oliver closes with a 3-arrow explosive volley. ~380 if everything connects (300 base), then a 3s Tech lockout and all drones recalled." },
   hasSprites: true,
   spriteScale: 1.8,
+  // INTRO: somersault in (flip) -> bow draw/aim -> settle to idle. Win auto-plays animationData.win
+  // (fist raise); on a KO loss the loser freezes on `lose` (knockdown) + all his drones play DEATH.
+  introSequence: ["flip", "draw", "idle"],
   animationData: {
     idle:      { frames: 3, width: 61, height: 84, speed: 10, anchorY: 0, sheet: "./green_arrow_idle_uniform.png" },
     walk:      { frames: 6, width: 62, height: 85, speed: 6, anchorY: 0, sheet: "./green_arrow_walk_uniform.png" },
@@ -4777,6 +4780,7 @@ const greenArrow = {
     hurt:      { frames: 2, width: 64, height: 90, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./green_arrow_hurt_uniform.png" },
     stagger:   { frames: 9, width: 82, height: 90, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./green_arrow_stagger_uniform.png" },
     knockdown: { frames: 7, width: 108, height: 72, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./green_arrow_knockdown_uniform.png" },
+    lose:      { frames: 7, width: 108, height: 72, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./green_arrow_knockdown_uniform.png" },
     block:     { frames: 1, width: 51, height: 92, speed: 6, anchorY: 0, loop: true, sheet: "./green_arrow_block_uniform.png" },
     guard:     { frames: 1, width: 51, height: 92, speed: 6, anchorY: 0, loop: true, sheet: "./green_arrow_guard_uniform.png" },
     light:     { frames: 2, width: 69, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./green_arrow_light_uniform.png" },

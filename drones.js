@@ -225,6 +225,12 @@ export function updateDrones(owners, frame, env = {}) {
   for (let i = activeDrones.length - 1; i >= 0; i--) {
     const d = activeDrones[i]
     if (d._hitFlash > 0) d._hitFlash--
+    // OWNER DOWN: when the owner is KO'd/eliminated, every active drone plays its DEATH anim and
+    // falls (the LOSE sequence; also covers "hit by a super → drones destroyed"). Generic.
+    if (!d.dying && d.owner && ((d.owner.health || 0) <= 0 || d.owner.eliminated)) {
+      d.dying = true; d.anim = "death"; d.frame = 0; d.animTimer = 0
+      d.deathTimer = (d.profile.sprites?.death?.frames || 6) * 5 + 6
+    }
     if (d.dying) {
       advanceAnim(d)
       if (--d.deathTimer <= 0) activeDrones.splice(i, 1)

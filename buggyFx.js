@@ -2,13 +2,17 @@
 // confetti, cape sweep, explosions). Reads simulation state (fighter._buggy, drones) and never writes it.
 // Image objects are presentation caches. Confetti / particle positions are pure functions of the frame counter.
 import { BUGGY_FX, BUGGY_PARTS } from './buggySprites.js'
-import { BUGGY_WIN2_ANIM } from './buggyData.js'
+import { BUGGY_WIN2_ANIM, buggySkinSet } from './buggyData.js'
 import { buggyWinVariant } from './buggyState.js'
 import { getActiveDrones } from './drones.js'
 
 const _img = {}
+// SKINS: the alt-colour tag of the Buggy currently being drawn (set at each exported draw entry). Buggy's own art
+// (assets/buggy/**) is retagged `__<tag>.png` so detached pieces / capes / portraits match the recoloured body.
+let _tag = null
 function img(src) {
   if (typeof Image === 'undefined' || !src) return null
+  if (_tag && src.includes('/assets/buggy/')) src = src.replace(/\.png$/i, `__${_tag}.png`)
   let i = _img[src]; if (!i) { i = _img[src] = new Image(); i.src = src }
   return i.complete && i.naturalWidth ? i : null
 }
@@ -33,6 +37,7 @@ export function buggyPipState(f) {
 // out while that part is detached or on cooldown (cooldown shows a draining arc).
 export function drawBuggyHud(ctx, fighter, { x, enY, pbw, flip }) {
   if (fighter?.rosterKey !== 'buggy') return
+  _tag = fighter._recolorTag || null
   const m = img(BUGGY_FX.smallHead.sheet)
   const s = 24, bx = flip ? x + pbw - 54 : x + 50, by = enY - 27
   ctx.save()
@@ -70,6 +75,7 @@ export function drawBuggyHud(ctx, fighter, { x, enY, pbw, flip }) {
 // World-space FX (drawn after the fighter sprite). Pure functions of sim state + the frame counter.
 export function drawBuggyFx(c, f, frame = 0) {
   if (!c || f?.rosterKey !== 'buggy') return
+  _tag = f._recolorTag || null
   drawPresentation(c, f, frame)
   if (!f._buggy) return
   const s = f._buggy
@@ -145,10 +151,10 @@ function drawPresentation(c, f, frame) {
     if (!f._bgEndT || f._bgEndFa !== fa) { f._bgEnd0 = frame - 1; f._bgEndFa = fa }
     const t = f._bgEndT = Math.max(1, frame - f._bgEnd0)
     if (fa === 'win') {
-      const v = buggyWinVariant(f), want = v === 2 ? BUGGY_WIN2_ANIM : null
+      const v = buggyWinVariant(f), want = buggySkinSet(v === 2 ? BUGGY_WIN2_ANIM : null, f._recolorTag)
       if ((f._skinAnim || null) !== want) f._skinAnim = want   // the sim may be paused on the result screen
       if (v === 2) drawWinCape(c, f, t); else drawWinPortrait(c, f, t)
-    } else { if (f._skinAnim) f._skinAnim = null; drawLose(c, f, t) }
+    } else { const base = buggySkinSet(null, f._recolorTag); if ((f._skinAnim || null) !== base) f._skinAnim = base; drawLose(c, f, t) }
   } else if (f._bgEndT) { f._bgEndT = 0; f._bgEndFa = null; f._bgWinVar = 0 }
 }
 // INTRO: his ten loose pieces fly in from all sides and snap together (over the intro strip), then confetti pops.

@@ -32,7 +32,8 @@ const sprites = (p, extra = {}) => ({ idle: { sheet: p.idle.sheet, frames: p.idl
 
 // Shared profile fields: parts come HOME on retire / recall / expiry (drones.js retireMode 'home').
 const BASE = { accel: 1.8, drag: 0.84, reverseBrake: 0.65, overspeedDrag: 0.9, bobAmp: 3, cooldownOnDeath: PART_TUNING.cooldown,
-  retireMode: 'home', expireMode: 'retire', refundRetire: 0.25, refundRecall: 0.30, scale: S, nativeFacing: 'right', buggyPart: true }
+  retireMode: 'home', expireMode: 'retire', refundRetire: 0.25, refundRecall: 0.30, scale: S, nativeFacing: 'right', buggyPart: true,
+  skinRetag: true }   // drones.js: draw the part from the owner's alt-colour skin sheets (`__<tag>.png`)
 registerDroneProfile('buggy_hand', { ...BASE, sprites: sprites(BUGGY_PARTS.hand), hp: 60, maxH: PART_TUNING.hand.flySpeed, maxV: 10, accel: 3,
   hoverHeight: 58, leash: 900, behaviour: 'buggyHand', techCost: 18, hurtbox: { w: 46, h: 36 }, aiPriority: 2 })
 registerDroneProfile('buggy_foot', { ...BASE, sprites: sprites(BUGGY_PARTS.legs, { walk: { sheet: BUGGY_PARTS.foot.idle.sheet, frames: BUGGY_PARTS.foot.idle.frames } }),

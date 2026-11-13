@@ -2,7 +2,7 @@
 // JSON (numbers / booleans / strings / small arrays — no callbacks, no object refs), so it is in the replay
 // checkpoint and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: timings are fixed frame
 // counts, positions derive from the fighters' positions, and any variation is hash(match seed, frame, player, slot).
-import { BUGGY_MOVES, BUGGY_MASK_ANIM, BUGGY_WIN2_ANIM, buggy as BUGGY_CHAR } from './buggyData.js'
+import { BUGGY_MOVES, BUGGY_MASK_ANIM, BUGGY_WIN2_ANIM, buggySkinSet, buggy as BUGGY_CHAR } from './buggyData.js'
 import { meleeDamageType, projectileDamageType, sourceDamageType, isHakiImbued } from './damageTypes.js'
 import { setPartWorld, tickParts, recallParts, ownParts, launchHand, stabHand, plantLegs, lookout, partHit } from './buggyParts.js'
 import { BUGGY_FX } from './buggySprites.js'
@@ -58,11 +58,11 @@ export function buggyRoundReset(f) {
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
   if (f._buggy) { delete f._buggy }
-  f._skinAnim = null
+  f._skinAnim = buggySkinSet(null, f._recolorTag)
   f._bgWinVar = 0; f._bgEndT = 0; f._bgEndFa = null
 }
 export function clearBuggy(f) {
-  if (f?._buggy || isBuggy(f)) { delete f._buggy; delete f._buggyCues; if (isBuggy(f)) f._skinAnim = null }
+  if (f?._buggy || isBuggy(f)) { delete f._buggy; delete f._buggyCues; if (isBuggy(f)) f._skinAnim = buggySkinSet(null, f._recolorTag) }
 }
 
 export const chopBlocked = f => !!(f?._buggy && (f._buggy.lockout > 0 || f._buggy.inSuper))
@@ -342,13 +342,13 @@ export function buggyCape(fighter, proj) {
 // Masked body rows: point the renderer at the row for the current detached-part mask (presentation only).
 function applyMask(f, s) {
   if (f._forceAction === 'win' || f._forceAction === 'lose') {   // round-end poses: whole body, chosen win strip
-    const want = f._forceAction === 'win' && buggyWinVariant(f) === 2 ? BUGGY_WIN2_ANIM : null
+    const want = buggySkinSet(f._forceAction === 'win' && buggyWinVariant(f) === 2 ? BUGGY_WIN2_ANIM : null, f._recolorTag)
     if ((f._skinAnim || null) !== want) f._skinAnim = want
     return
   }
   if (!s.maskLock) s.mask = (s.stagger > 0 ? 3 : 0) | (s.partMask | 0) | (s.lookT >= 0 ? 1 : 0)   // ≤ 2 parts ever detached → rows 0-6
   const m = s.mask | 0
-  const want = m ? BUGGY_MASK_ANIM[m] : null
+  const want = buggySkinSet(m ? BUGGY_MASK_ANIM[m] : null, f._recolorTag)
   if ((f._skinAnim || null) !== want) f._skinAnim = want
 }
 

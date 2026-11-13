@@ -128,7 +128,21 @@ function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet,
 
 export const SKINS = {
   luffy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.luffy.portrait, spriteScale: characters.luffy.spriteScale, animationData: null }],
-  buggy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.buggy.portrait, spriteScale: characters.buggy.spriteScale, animationData: null }],
+  // Buggy — 9 alt-colour skins (tools/buggy_build/gen_buggy_skins.py: region-keyed coat/hat · hair · accents recolor over
+  // every assets/buggy sheet incl. the 7 masked rows + detached-part art; buggyData.buggySkinSet keeps the skin through
+  // his part-detach / win-pose anim swaps, drones.js `skinRetag` recolors the flying parts). Alien X → generic starfield.
+  buggy: [
+    { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.buggy.portrait, spriteScale: characters.buggy.spriteScale, animationData: null },
+    { id: "buggy_crimson", name: "Crimson Flag", unlockLevel: 0, portrait: recolorPortrait("buggy", "crimson"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "crimson"), recolorTag: "crimson" },
+    { id: "buggy_crossguild", name: "Cross Guild", unlockLevel: 0, portrait: recolorPortrait("buggy", "crossguild"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "crossguild"), recolorTag: "crossguild" },
+    { id: "buggy_shanks", name: "Red-Haired (Shanks)", unlockLevel: 0, portrait: recolorPortrait("buggy", "shanks"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "shanks"), recolorTag: "shanks" },
+    { id: "buggy_mihawk", name: "Hawk-Eyes (Mihawk)", unlockLevel: 0, portrait: recolorPortrait("buggy", "mihawk"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "mihawk"), recolorTag: "mihawk" },
+    { id: "buggy_crocodile", name: "Sand King (Crocodile)", unlockLevel: 0, portrait: recolorPortrait("buggy", "crocodile"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "crocodile"), recolorTag: "crocodile" },
+    { id: "buggy_gold", name: "Emperor Gold", unlockLevel: 0, portrait: recolorPortrait("buggy", "gold"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "gold"), recolorTag: "gold" },
+    { id: "buggy_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("buggy", "ben10"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "ben10"), recolorTag: "ben10" },
+    { id: "buggy_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("buggy", "albedo"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "albedo"), recolorTag: "albedo" },
+    { id: "buggyAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("buggy", "alienx"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "alienx"), recolorTag: "alienx" },
+  ],
   zoro: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.zoro.portrait, spriteScale: characters.zoro.spriteScale, animationData: null }],
   // SCALE FIX: without this entry getSkins() returns the { spriteScale: 1 } fallback and applySkin()
   // clobbers Green Arrow's real 1.35 → he renders at native ~99px (half-ish). This restores his scale.

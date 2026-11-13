@@ -62,6 +62,17 @@ export const BUGGY_MASK_ANIM = Array.from({ length: 7 }, (_, m) => m === 0 ? ANI
 export const BUGGY_ANIMS = ANIM
 // Victory variant 2 (cape + knives fanned): the same set with `win` pointing at the win2 strip (unmasked).
 export const BUGGY_WIN2_ANIM = { ...ANIM, win: ANIM.win2 }
+// SKINS: Buggy's presentation swaps fighter._skinAnim between the sets above (masked rows / win2). With an alt-colour
+// skin (fighter._recolorTag, set by game.js applySkin) every swap must keep the recoloured sheets: retag each set's
+// sheet paths `<name>__<tag>.png` (tools/buggy_build/gen_buggy_skins.py keeps every layout, incl. the 7 mask rows).
+// `set` null = the base set. No tag → returns `set` unchanged (default skin byte-identical). Cached → stable identity.
+const _skinSets = new Map()
+export function buggySkinSet(set, tag) {
+  if (!tag) return set
+  const base = set || ANIM
+  let byTag = _skinSets.get(base); if (!byTag) _skinSets.set(base, byTag = {})
+  return byTag[tag] || (byTag[tag] = Object.fromEntries(Object.entries(base).map(([k, a]) => [k, a?.sheet ? { ...a, sheet: a.sheet.replace(/\.png$/i, `__${tag}.png`) } : a])))
+}
 
 export const buggy = {
   rosterKey: 'buggy', name: 'Buggy', displayName: 'Buggy the Clown', hudName: 'Buggy', universe: 'one_piece', color: '#e0582a',

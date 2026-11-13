@@ -564,7 +564,10 @@ export function drawDrones(ctx, frame = 0, camera = null) {
     // SWARM — render as `scouts` mini-Overwatch saucers orbiting (render-only positions).
     if (d.profile.swarm && !d.dying) { _drawSwarm(ctx, d, frame); if (d._debugHurt) drawDroneDebug(ctx, d); continue }
     const strip = d.profile.sprites?.[d.anim] || d.profile.sprites?.idle
-    const img = _dImg(strip?.sheet)
+    // SKINS (opt-in per profile): `skinRetag` parts (Buggy's detached pieces) follow the owner's alt-colour skin →
+    // `<sheet>__<tag>.png`. Every other drone (Green Arrow's) draws its sheet unchanged.
+    const _tag = d.profile.skinRetag ? d.owner?._recolorTag : null
+    const img = _dImg(_tag && strip?.sheet ? strip.sheet.replace(/\.png$/i, `__${_tag}.png`) : strip?.sheet)
     const frames = strip?.frames || 1
     // render-only hover bob (not applied to the sim hurtbox)
     const bob = (d.dying || d.behaviour === "planted") ? 0

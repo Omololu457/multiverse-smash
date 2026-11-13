@@ -127,7 +127,20 @@ function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", she
 function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
 
 export const SKINS = {
-  luffy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.luffy.portrait, spriteScale: characters.luffy.spriteScale, animationData: null }],
+  // Luffy — 9 alt-colour skins (tools/luffy_skins/gen_luffy_skins.py: vest · hat band (red ringed by straw) · straw hat ·
+  // vest buttons · shorts · skin regions over every assets/sprites/luffy strip). Alien X → generic starfield.
+  luffy: [
+    { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.luffy.portrait, spriteScale: characters.luffy.spriteScale, animationData: null },
+    { id: "luffy_gear5", name: "Gear 5 (Nika)", unlockLevel: 0, portrait: recolorPortrait("luffy", "gear5"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "gear5"), recolorTag: "gear5" },
+    { id: "luffy_gear2", name: "Gear Second", unlockLevel: 0, portrait: recolorPortrait("luffy", "gear2"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "gear2"), recolorTag: "gear2" },
+    { id: "luffy_boundman", name: "Gear 4: Boundman", unlockLevel: 0, portrait: recolorPortrait("luffy", "boundman"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "boundman"), recolorTag: "boundman" },
+    { id: "luffy_hancock", name: "Amazon Lily Glitter (Hancock's Love)", unlockLevel: 0, portrait: recolorPortrait("luffy", "hancock"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "hancock"), recolorTag: "hancock" },
+    { id: "luffy_ace", name: "Fire Fist (Ace tribute)", unlockLevel: 0, portrait: recolorPortrait("luffy", "ace"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "ace"), recolorTag: "ace" },
+    { id: "luffy_sabo", name: "Revolutionary (Sabo tribute)", unlockLevel: 0, portrait: recolorPortrait("luffy", "sabo"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "sabo"), recolorTag: "sabo" },
+    { id: "luffy_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("luffy", "ben10"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "ben10"), recolorTag: "ben10" },
+    { id: "luffy_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("luffy", "albedo"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "albedo"), recolorTag: "albedo" },
+    { id: "luffyAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("luffy", "alienx"), spriteScale: characters.luffy.spriteScale, animationData: recolorSkinAnim("luffy", "alienx"), recolorTag: "alienx" },
+  ],
   // Buggy — 9 alt-colour skins (tools/buggy_build/gen_buggy_skins.py: region-keyed coat/hat · hair · accents recolor over
   // every assets/buggy sheet incl. the 7 masked rows + detached-part art; buggyData.buggySkinSet keeps the skin through
   // his part-detach / win-pose anim swaps, drones.js `skinRetag` recolors the flying parts). Alien X → generic starfield.

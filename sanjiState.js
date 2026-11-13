@@ -4,6 +4,8 @@
 // count, every position derives from the two fighters' positions, and the one "random" choice (fire-crackle
 // variation, render/audio only) hashes (match seed, frame, player index).
 import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, COURSE } from './sanjiData.js'
+import { SANJI_FX } from './sanjiSprites.js'
+const SANJI_FX_PLATE = SANJI_FX.plate
 export const isSanji = f => f?.rosterKey === 'sanji'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickSanji; never read by the sim).
 export function scue(f, c) { (f._sanjiCues ||= []).push(c) }
@@ -19,6 +21,12 @@ export const DIABLE = { minHeat: 50, frames: 720, dmg: 1.25, overDmg: 1.40, over
 // drop ONE step (ambitious, not brittle); 180 f without a Sanji hit → reset to 0; all six → PARTY TABLE KICK COURSE
 // is free for 300 f (↓↘→+A).
 export const COURSE_RULES = { idleReset: 180, window: 300 }
+export const SANJI_TUNING = {
+  plate: { speed: 12, lifetime: 58, damage: 45, vy: -2.6, gravity: 0.09, pool: 3 },   // 12 × 58 ≈ 700px ≈ 55% of 1280
+  patch: { frames: 120, every: 20, dmg: 5, halfW: 60 },                               // Concasse burning patch (lit leg)
+  skyWalks: 2, superLockout: 180, superHold: 120,
+}
+const MOTION_BUTTONS = ['light', 'heavy', 'special', 'ultimate']
 const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
 
 export function sanjiState(f) {
@@ -43,6 +51,9 @@ export function sanjiState(f) {
     courseIdle: 0,     // frames since Sanji's last landed hit (180 → the Course resets)
     ptkcFree: 0,       // frames left in the free PARTY TABLE KICK COURSE window (after completing all six)
     courseFx: null,    // [step 1..6 | -1 dropped, clock, x, y] — render-only callout of the last Course change
+    skyWalks: 0,       // Sky Walk air jumps used this airborne sequence (max 2; reset on landing)
+    patch: null,       // Concasse burning patch [x, framesLeft, tick, floorY] (max one)
+    inSuper: false, superHit: false, superScale: 1, superCut: 0, superFx: null,   // PARTY TABLE KICK COURSE bookkeeping
   }
 }
 
@@ -75,7 +86,8 @@ export function sanjiRoundReset(f) {
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
   const s = f._sanji
-  if (s) { s.dj = 0; s.djOver = 0; s.djLock = false; s.burn = 0; s.lockout = 0; s.course = 0; s.courseIdle = 0; s.ptkcFree = 0; s.courseFx = null }
+  if (s) { s.dj = 0; s.djOver = 0; s.djLock = false; s.burn = 0; s.lockout = 0; s.course = 0; s.courseIdle = 0; s.ptkcFree = 0; s.courseFx = null
+    s.skyWalks = 0; s.patch = null; s.inSuper = false; s.superHit = false; s.superFx = null }
   f._skinAnim = sanjiAnimSet(f)
 }
 
@@ -87,7 +99,7 @@ const dirToken = (raw, facing) => {
   if (raw.up) return fwd ? 9 : back ? 7 : 8
   return fwd ? 6 : back ? 4 : 5
 }
-export const heatBlocked = f => !!(f?._sanji && f._sanji.lockout > 0)
+export const heatBlocked = f => !!(f?._sanji && (f._sanji.lockout > 0 || f._sanji.inSuper))
 export function gainHeat(f, n) { if (!heatBlocked(f)) f.energy = Math.min(f.maxEnergy || 100, (f.energy || 0) + n) }
 
 // Tear down the live attack and start a Sanji move (frame-exact). Copies the hitbox geometry + block stun.
@@ -123,7 +135,13 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   // Press edges keep the direction held AT the edge (a buffered ↓+B pressed in hitstop stays ↓+B).
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock; (s.edgeDir ||= {})[k] = tok } s.prev[k] = v }
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 20) s.dirs.shift() }
+  // Motion snapshot AT each button edge (a buffered special keeps the motion it was pressed with).
+  for (const k of MOTION_BUTTONS) if (s.edgeAt[k] === s.tick) (s.edgeMot ||= {})[k] = recentMotion(s, 26)
   if (f.health <= 0) return
+  // Multi-hit kicks keep a short impact freeze (the shared special / ultimate freeze is 16 / 28 frames PER HIT —
+  // eight Hachis kicks or seven super cuts would stall for seconds). Sanji-only, both fighters, deterministic.
+  const zc = sj(f), cap = zc?.kind === 'hachis' ? 3 : zc?.kind === 'ptkc' ? (zc.contact === 6 ? 18 : 7) : 0
+  if (cap && f.hitstop > cap) { f.hitstop = cap; if (opp && opp.hitstop > cap) opp.hitstop = cap }
   if (f.hitstop > 0) return
   s.clock++
   if (s.lockout > 0) s.lockout--
@@ -131,6 +149,12 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   // THE COURSE clock: 3 s with no landed hit → back to 0; the free-super window counts down.
   if (s.course > 0 && ++s.courseIdle >= COURSE_RULES.idleReset) { s.course = 0; s.courseIdle = 0; scue(f, 'courseLost') }
   if (s.ptkcFree > 0) s.ptkcFree--
+  if (f.onGround || f.grounded) s.skyWalks = 0
+  // Super bookkeeping: the Heat lockout + the end of Diable Jambe come when the super ends (any way it ends).
+  let zk = sj(f)?.kind
+  if (s.inSuper && zk !== 'ptkc' && zk !== 'ptkcMiss') endSuper(f, s, opp)
+  tickPatch(f, opp, s, W)
+  if (W) tickPlates(f, s, W)
   const neutral = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isBlocking && (f.onGround || f.grounded) &&
     !raw.left && !raw.right && !raw.up && !raw.down && !raw.jump && Math.abs(f.vx || 0) < 0.5
   s.idle = neutral ? s.idle + 1 : 0
@@ -171,11 +195,112 @@ function tickMove(f, opp, s, z, W) {
       f.vx = 0; f.isBlocking = false
       if (t === z.litAt && !z.lit) { z.lit = true; ignite(f, s) }
       break
+    case 'mouton': {   // the running jump kick: travels until it connects; whiff → extra recovery
+      const [st, en, step] = z.travel
+      if (t >= st && t < en && !a.hasHit) { f.facing = dir; f.x = clampX(f.x + dir * step); f.vx = 0 }
+      if (t === en && !a.hasHit && !z.whiffed) { z.whiffed = true; a.timer += z.whiffExtra; a.total += z.whiffExtra }
+      break
+    }
+    case 'antimanner': f.vx = 0; break
+    case 'concasse': {   // dive straight down heel-first; landing ends the active window (recovery from there)
+      if (t === a.activeStart) { f.vy = z.dive[0]; f.vx = dir * z.dive[1] }
+      if (t > a.activeStart && t < a.activeEnd) { f.vy = Math.max(f.vy || 0, z.dive[0]); f.vx = dir * z.dive[1] }
+      if (t > a.activeStart && (f.onGround || f.grounded) && !z.landed) {
+        z.landed = true; f.vx = 0
+        if (t < a.activeEnd) { const r = SANJI_MOVES.sConcasse.recovery; a.activeEnd = t; a.total = t + r; a.timer = r }   // landing → straight into recovery
+        scue(f, 'stomp')
+        if (s.dj > 0) s.patch = [Math.round(f.x + (f.w || 48) / 2), SANJI_TUNING.patch.frames, 0, Math.round(f.y + (f.h || 94))]   // one patch max (replaces)
+      }
+      break
+    }
+    case 'skywalk':
+      if (!z.kicked) { z.kicked = true; f.vy = -(f.stats?.jumpPower || 33) * z.lift; s.skyWalks++; scue(f, 'skywalk' + s.skyWalks) }
+      break
+    case 'plate':
+      if (t === z.spawnAt && W) spawnPlate(f, s, W)
+      break
+    case 'hachis': {   // 8 quick low kicks; each contact window re-arms the hit; the foe is held in place
+      const i = z.contacts.indexOf(t)
+      if (i >= 0) { a.hasHit = false; z.contact = i }
+      if (opp && z.anyHit && t < a.activeEnd) { opp.vx = 0; opp.hitstun = Math.max(opp.hitstun || 0, 10) }
+      if (t >= a.activeStart && t < a.activeEnd && (t - a.activeStart) % 5 === 0) scue(f, 'hachis')
+      break
+    }
+    case 'ptkc': tickPTKC(f, opp, s, z, a, t, clampX, W); break
     case 'handstand': {   // spins THROUGH on his hands (pass-through) → lands on the far side facing the other way
       const [st, en, step] = z.slide
       if (t >= st && t < en) { s.phase = 1; f.facing = dir; f.x = clampX(f.x + dir * step); f.vx = 0 }
       break
     }
+  }
+}
+
+// ── PARTY TABLE KICK COURSE ──
+export function startSuper(f, s, free) {
+  s.inSuper = true; s.superHit = false; s.superCut = 0; s.superFree = !!free
+  s.superScale = Math.max(0.5, Math.pow(0.85, Math.max(0, f.comboCounter || 0)))   // one scale for the whole super, floored
+  s.ptkcFree = 0; s.course = 0
+  f.energy = 0                                                                      // all Heat spent
+  scue(f, 'super')
+}
+function endSuper(f, s, opp) {
+  s.inSuper = false; s.superFx = null
+  if (opp) opp._sanjiFloor = null
+  s.lockout = SANJI_TUNING.superLockout                                             // 3 s Heat lockout
+  douseDiable(f, s.dj > 0, true)                                                    // Diable Jambe ends
+}
+function tickPTKC(f, opp, s, z, a, t, clampX, W) {
+  // "Must connect on cut 1": no contact by missAt → the whiff recovery.
+  if (t === z.missAt && !s.superHit) { sanjiStartMove(f, 'sPTKCMiss', W?.startMove); return }
+  const i = z.contacts.findIndex(([st, ac]) => t >= st && t < st + ac)
+  if (s.superHit && opp && t >= z.contacts[0][0]) {   // cinematic lock: the foe hangs in the air between cuts
+    const floor = (opp._sanjiFloor ??= opp.y)
+    const lift = Math.min(1, (t - z.contacts[0][0]) / 10) * 120
+    if (t < z.contacts[6][0] + 2) { opp.y = floor - lift; opp.vy = 0; opp.vx = 0 }
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    f.invulnTimer = Math.max(f.invulnTimer || 0, 2)
+    if (t < z.contacts[6][0]) { f.vy = 0; f.vx = 0 }   // he hangs with them between cuts
+  }
+  if (i < 0) { a.hasHit = true; return }
+  if (i > 0 && !s.superHit) { a.hasHit = true; return }
+  const [st, , dmg] = z.contacts[i]
+  if (t === st) {
+    a.hasHit = false; z.contact = i; s.superCut = i + 1
+    a.damage = i === 6 && s.dj > 0 ? z.litFinisher : dmg
+    if (opp && i > 0) {   // each cut: he re-plants on alternating sides of the held foe (kicks from every angle)
+      const oc = opp.x + (opp.w || 48) / 2, side = i % 2 === 0 ? -1 : 1
+      f.x = clampX(oc + side * 64 - (f.w || 48) / 2); f.facing = -side
+      f.y = i === 6 ? opp.y - (f.h || 94) * 0.8 : opp.y; f.vy = 0
+    }
+    if (i === 6) a.hitstun = 50
+    s.superFx = [i + 1, s.clock]
+    scue(f, i === 6 ? 'superFinish' : 'course' + (i + 1))
+  }
+}
+
+// ── Plate Kick (engine projectile tagged sanjiKind; low arc applied here, deterministic) ──
+const plates = (f, W) => W.projectiles.filter(p => p.owner === f && p.sanjiKind === 'plate')
+export const plateSlots = (f, W) => (W ? SANJI_TUNING.plate.pool - plates(f, W).length : SANJI_TUNING.plate.pool)
+function spawnPlate(f, s, W) {
+  const T = SANJI_TUNING.plate, fx = SANJI_FX_PLATE, dir = f.facing || 1, sc = 2
+  const sx = dir === 1 ? f.x + (f.w || 48) : f.x - fx.w * sc, sy = f.y + (f.h || 94) * 0.55
+  const p = W.spawn(f, 'sanjiPlate', { damage: Math.round(T.damage * djMult(f)), speed: T.speed, vx: dir * T.speed, lifetime: T.lifetime, vy: T.vy,
+    w: fx.w * sc, h: fx.h * sc, radius: 18, sheet: fx.sheet, spriteFrames: 1, spriteW: fx.w, spriteH: fx.h, spriteScale: sc,
+    hitstun: 20, knockbackX: 3, knockbackY: -2, isSpecial: true, color: '#e8c33a', spawnX: sx, spawnY: sy })
+  if (p) { p.sanjiKind = 'plate'; p.sanjiSerial = ++s.serial; p.damageType = 'projectile'; scue(f, 'plate') }
+}
+function tickPlates(f, s, W) {
+  for (const p of W.projectiles) if (p.owner === f && p.sanjiKind === 'plate') p.vy = (p.vy || 0) + SANJI_TUNING.plate.gravity
+}
+// Concasse burning patch: 5 dmg / 20 f to a grounded foe standing in it, 2 s, max one ("energy" — it is fire).
+function tickPatch(f, opp, s, W) {
+  const P = s.patch; if (!P) return
+  if (--P[1] <= 0) { s.patch = null; return }
+  if (++P[2] >= SANJI_TUNING.patch.every) {
+    P[2] = 0
+    const oc = opp ? opp.x + (opp.w || 48) / 2 : 0
+    if (opp && opp.health > 0 && Math.abs(oc - P[0]) <= SANJI_TUNING.patch.halfW && Math.abs((opp.y + (opp.h || 94)) - P[3]) < 12 && W?.damage)
+      W.damage(opp, SANJI_TUNING.patch.dmg, { attacker: f, damageType: 'energy', source: 'sanjiPatch', move: 'concassePatch', scale: 1 })
   }
 }
 
@@ -194,6 +319,8 @@ const isKick = atk => !!atk?.sj
 export function sanjiHit(attacker, defender, atk) {
   if (!isSanji(attacker) || attacker === defender || !isKick(atk)) return
   const s = sanjiState(attacker)
+  if (atk.sj.kind === 'ptkc') s.superHit = true
+  if (atk.sj.kind === 'hachis') atk.sj.anyHit = true
   gainHeat(attacker, SANJI_HEAT.perHit)
   const lit = s.dj > 0
   if (lit) { s.burn = DIABLE.burn.frames; s.burnTick = 0 }   // refresh, never stack
@@ -219,6 +346,18 @@ function advanceCourse(f, s, atk, defender) {
 }
 // What the HUD shows: the six pips (all lit while the free window is open).
 export const coursePips = f => { const s = f?._sanji; return !s ? 0 : s.ptkcFree > 0 ? COURSE.length : s.course }
+// Projectile hit bookkeeping (combat.resolveProjectileHitsMulti): the volleyed plate is a kick → +4 Heat, burns
+// when the leg is lit, keeps the Course alive (never advances it).
+export function sanjiProjectileHit(proj, target) {
+  if (!proj || target.isBlocking) return
+  const o = proj.owner
+  if (isSanji(o) && o !== target && proj.sanjiKind === 'plate') {
+    const s = sanjiState(o)
+    gainHeat(o, SANJI_HEAT.perHit); s.courseIdle = 0
+    if (s.dj > 0) { s.burn = DIABLE.burn.frames; s.burnTick = 0 }
+    scue(o, 'plateHit')
+  }
+}
 // Per-move block stun (combat block branch) + Heat on a blocked kick.
 export function sanjiBlockstun(attacker, defender, atk) {
   if (!isSanji(attacker) || !isKick(atk)) return
@@ -228,6 +367,15 @@ export function sanjiBlockstun(attacker, defender, atk) {
 // Knockback post-process on a connecting melee hit. Sanji as DEFENDER: weight 0.85 → knockback taken ÷0.85 (he
 // flies further and juggles easily — a designed weakness).
 export function sanjiKnockback(attacker, defender, atk) {
+  if (isSanji(attacker) && atk?.sj) {
+    const z = atk.sj, dir = z.dir || attacker.facing || 1
+    if (z.crumple) { defender.vx = 0; defender.vy = Math.max(defender.vy || 0, 0) }                       // Anti-Manner: crumples in place
+    else if (z.kind === 'concasse') { defender.vy = z.bounce; defender.vx = dir * 2 }                       // Concasse: ground bounce
+    else if (z.kind === 'hachis') { defender.vx = 0; defender.vy = 0 }                                       // Hachis: held in place
+    else if (z.kind === 'ptkc' && z.contact === 0) { defender.vy = -10; defender.vx = 0; defender._sanjiFloor = defender.y }   // cut 1 launches
+    else if (z.kind === 'ptkc' && z.contact > 0 && z.contact < 6) { defender.vx = 0; defender.vy = 0 }
+    else if (z.kind === 'ptkc' && z.contact === 6) { defender.vx = dir * 3; defender.vy = 18; defender._sanjiFloor = null }   // heel drop slams them down
+  }
   if (isSanji(defender) && defender.vx) defender.vx /= (defender.stats?.weight || 0.85)
 }
 // Pass-through (physics.resolvePlayerCollision): Sanji spinning through the other fighter.
@@ -237,7 +385,7 @@ export const sanjiPhasing = (a, b) => !!(a?._sanji?.phase || b?._sanji?.phase)
 export const sanjiNoJump = f => !!(f?._sanji && f.attacking && f.currentAttack?.sj && f.currentAttack.sj.kind !== 'normal' && f.currentAttack.sj.kind !== 'handstand')
 // Combo scaling (combat._comboScale): 85% per hit. At damage time comboCounter = hits already landed in this combo
 // (1st 1.0, 2nd 0.85, 3rd 0.7225 …). The counter and its 90-frame (1.5 s) idle reset are the shared engine ones.
-export const sanjiComboScale = f => Math.pow(0.85, Math.max(0, f.comboCounter || 0))
+export const sanjiComboScale = f => f?._sanji?.inSuper ? f._sanji.superScale : Math.pow(0.85, Math.max(0, f.comboCounter || 0))
 
 // Recent condensed motion string (numpad tokens) within `win` input ticks, current token last.
 export function recentMotion(s, win) {

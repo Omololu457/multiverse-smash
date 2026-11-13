@@ -149,6 +149,40 @@ export const KITS = {
       {name:'Blade punish',sequence:'Nullify a slash → Heavy carve → SUPER',desc:'Let the sword pass through, carve, cash in.'}
     ]
   },
+  sanji: {
+    type:'Rushdown / Kick Specialist', energy:'Heat', difficulty:'4',
+    summary:'Black Leg Sanji never uses his hands — every attack is a kick. Heat builds from kicks landed (+4) and blocked (+2), +0.5/s, and +8 per Course step. Ignite DIABLE JAMBE for burning kicks, and route the six butcher\'s cuts in order to open a free super.',
+    passive:{ name:'The Course', effect:'Six cuts: COLLIER → ÉPAULE → CÔTELETTE → SELLE → POITRINE → GIGOT. Landing them in order (inside a combo or across neutral) lights a pip each (+8 Heat). Out of order drops a step; 3s without landing resets. All six → 5s window where the super is FREE (↓↘→ + Special or Ultimate).' },
+    basics:[
+      {name:'1 · Collier (neck)',input:'Light',desc:'45 dmg, 6f, +1 on block.'},
+      {name:'2 · Épaule (shoulder)',input:'Forward + Light',desc:'60 dmg, 9f, −3 on block.'},
+      {name:'3 · Côtelette (ribs)',input:'Heavy',desc:'70 dmg, 10f, −4 on block.'},
+      {name:'4 · Selle (hip)',input:'Forward + Heavy',desc:'65 dmg, 9f, −2 on block.'},
+      {name:'5 · Poitrine (chest)',input:'Back + Heavy',desc:'80 dmg, 12f, −5 on block, launches.'},
+      {name:'6 · Gigot (leg)',input:'Down-Forward + Light',desc:'50 dmg, 7f, low.'},
+      {name:'Crouch kick',input:'Down + Light',desc:'40 dmg, 6f, low.'},
+      {name:'Anti-air knee',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 8f launcher.'},
+      {name:'Air kick',input:'Air Light / Heavy (air Down = drop kick)',desc:'65 dmg jump-in.'},
+      {name:'Handstand spin',input:'Down + Heavy',desc:'70 dmg, 10f; spins through a close foe (cross-up).'},
+      {name:'Wake-up crescent',input:'Special (neutral)',desc:'70 dmg, 6 invulnerable frames, −12 on block.'},
+      {name:'Diable Jambe',input:'Special + Heavy (≥50 Heat)',desc:'Ignite the leg: 12s of +25% kicks (+40% the first 3s), burn 3/20f, +10% run, drains 4 Heat/s.'}
+    ],
+    specials:[
+      {name:'Mouton Shot',input:'↓↘→ + Special',cost:15,desc:'Running jump kick, 110 dmg, hard knockdown. Whiffs are punishable.'},
+      {name:'Anti-Manner Kick Course',input:'→ · → + Special',cost:18,desc:'Upward overhead kick, 100 dmg, crumples the foe in place.'},
+      {name:'Premier Hachis',input:'↓↙← + Special',cost:22,desc:'Eight rapid low kicks (15 each), holds the foe.'},
+      {name:'Concasse',input:'Air ↓ · ↓ + Special',cost:20,desc:'Heel-first dive, 120 dmg ground bounce. Lit: leaves a 2s burning patch (5/20f).'},
+      {name:'Sky Walk',input:'Air ↓↘→ + Heavy',cost:12,desc:'Kicks off the air itself — up to 2 extra jumps per airborne sequence.'},
+      {name:'Plate Kick',input:'↓↙← + Heavy',cost:10,desc:'Volleys a plate of meat in a low arc, 45 dmg. Max 3 on screen.'}
+    ],
+    mobility:{name:'Black Leg footwork',input:'Move / double-tap dash',cost:0,desc:'Walk 5.9, run 8.6, light (0.85 weight): he flies further when hit. Sky Walk for air mobility.'},
+    ultimate:{name:'PARTY TABLE KICK COURSE',input:'↓↘→↓↘→ + Special (or Ultimate) at 100 Heat',cost:100,desc:'Spinning handstand: must connect the first cut, then six cuts from every angle (55 each) into a heel-drop finisher (90; 130 with Diable Jambe). All Heat spent, 3s Heat lockout, Diable Jambe ends.'},
+    combos:[
+      {name:'Full Course',sequence:'Collier → Épaule → Côtelette → Selle → Poitrine → Gigot',desc:'All six in order: six pips, +48 Heat, free super window.'},
+      {name:'Mouton route',sequence:'Anti-Manner Kick → Premier Hachis → Mouton Shot',desc:'Crumple, hold, launch away.'},
+      {name:'Sky route',sequence:'Anti-air knee → jump → Air kick → Sky Walk → Concasse',desc:'Up, step on the air, dive.'}
+    ]
+  },
   arlong: {
     type:'Water Bruiser / Zone Controller', energy:'Tide', difficulty:'3',
     summary:'The Saw-Tooth Shark. Slow and huge on dry land, deadly in water: every special leaves a shallow pool, and inside his own water he hits 15% harder, moves 25% faster and swims through attacks. Tide builds from karate hits (+5), blade hits (+3), +1/s and +2/s more in water.',

@@ -6,6 +6,7 @@ import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from '.
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
 import { sanjiHitbox, sanjiBlockstun, sanjiComboScale, sanjiHit, sanjiKnockback } from './sanjiState.js'   // Sanji hooks (sanji-gated no-ops for everyone else)
+import { sanjiProjectileHit } from './sanjiState.js'   // Sanji: Plate Kick hit bookkeeping (sanji-gated)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
@@ -4345,6 +4346,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       }
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
       buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)
+      sanjiProjectileHit(proj, fighter)  // Sanji: volleyed plate = a kick (+4 Heat, burn when lit) (sanji-gated)
 
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)

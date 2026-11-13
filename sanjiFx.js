@@ -86,10 +86,56 @@ export function drawSanjiFx(c, f) {
   if (f._introPlaying) drawMerryFlash(c, f)
   if (!f._sanji) return
   const s = f._sanji
-  if (s.dj > 0 || (f.attacking && f.currentAttack?.sj?.kind === 'ignite')) drawDiable(c, f, s)
+  const k = f.attacking ? f.currentAttack?.sj?.kind : null
+  if (s.patch) drawPatch(c, s)
+  if (k === 'mouton' || k === 'skywalk' || k === 'concasse' || k === 'ptkc') drawAfterimages(c, f, s, k)
+  if (s.dj > 0 || k === 'ignite') drawDiable(c, f, s)
   if (s.lastHit && (s.clock - s.lastHit[0]) < 22) drawImpactEmbers(c, s)
   if (s.courseFx && (s.clock - s.courseFx[1]) < 40) drawCourseCallout(c, s)
+  if (s.inSuper && s.superFx) drawSuperCallout(c, f, s)
   drawCigarette(c, f, s)
+}
+
+// Concasse burning patch on the floor (lit leg only): licking flame tongues along the ±60px strip.
+function drawPatch(c, s) {
+  const [x, left, , y] = s.patch, a = Math.min(1, left / 30)
+  c.save(); c.globalCompositeOperation = 'lighter'
+  for (let i = 0; i < 14; i++) {
+    const px = x - 60 + (i + 0.5) * (120 / 14), ph = (s.clock * 0.25 + i * 1.7)
+    const h = 10 + 14 * (0.5 + 0.5 * Math.sin(ph)) * (0.6 + 0.4 * hr(i, 7))
+    const g = c.createLinearGradient(px, y, px, y - h)
+    g.addColorStop(0, `rgba(255,120,30,${0.55 * a})`); g.addColorStop(1, 'rgba(255,220,120,0)')
+    c.fillStyle = g; c.beginPath(); c.moveTo(px - 5, y); c.quadraticCurveTo(px, y - h * 1.2, px + 5, y); c.fill()
+  }
+  c.restore()
+}
+// Motion afterimages (render-only): faint blue (orange when lit) body ghosts trailing the kick.
+function drawAfterimages(c, f, s, k) {
+  const w = f.w || 48, h = f.h || 94, dir = f.currentAttack?.sj?.dir || f.facing || 1
+  const col = s.dj > 0 ? '255,140,40' : '90,150,255'
+  c.save()
+  for (let i = 1; i <= 3; i++) {
+    const ox = k === 'concasse' ? -dir * i * 6 : k === 'skywalk' ? 0 : -dir * i * 14, oy = k === 'concasse' ? -i * 16 : k === 'skywalk' ? i * 14 : 0
+    c.fillStyle = `rgba(${col},${0.16 / i})`
+    c.beginPath(); c.ellipse(f.x + w / 2 + ox, f.y + h / 2 + oy, w * 0.55, h * 0.5, 0, 0, Math.PI * 2); c.fill()
+  }
+  if (k === 'skywalk') {   // the air "step": a flat ring under his sole
+    c.strokeStyle = `rgba(${col},0.6)`; c.lineWidth = 2
+    c.beginPath(); c.ellipse(f.x + w / 2, f.y + h + 2, 26, 6, 0, 0, Math.PI * 2); c.stroke()
+  }
+  c.restore()
+}
+// PARTY TABLE KICK COURSE: each cut's dish name over the held foe ("PARTY TABLE — COLLIER" … "— GIGOT!").
+const SUPER_CUTS = ['COLLIER', 'ÉPAULE', 'CÔTELETTE', 'SELLE', 'POITRINE', 'GIGOT', 'BON APPÉTIT!']
+function drawSuperCallout(c, f, s) {
+  const [n, at] = s.superFx, age = s.clock - at
+  if (age > 30 || n < 1) return
+  const txt = SUPER_CUTS[n - 1], x = f.x + (f.w || 48) / 2, y = f.y - 34 - age * 0.6
+  c.save(); c.globalAlpha = age < 4 ? age / 4 : Math.max(0, 1 - (age - 18) / 12)
+  c.font = `bold ${n === 7 ? 30 : 20}px Arial`; c.textAlign = 'center'; c.textBaseline = 'bottom'
+  c.lineWidth = 5; c.strokeStyle = '#1b1208'; c.strokeText(txt, x, y)
+  c.fillStyle = n === 7 ? '#ffd35a' : s.dj > 0 ? '#ffb070' : '#bfe0ff'; c.fillText(txt, x, y)
+  c.restore()
 }
 
 // Course callout: the cut's name pops above the opponent ("COLLIER!" … "GIGOT!"), red "−1" on a dropped step.

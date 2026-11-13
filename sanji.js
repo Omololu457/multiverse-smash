@@ -6,9 +6,13 @@
 // HE NEVER PUNCHES: every normal below is a kick, a knee or a shin.
 //   THE SIX COURSE KICKS   COLLIER L · EPAULE →+L · COTELETTE B · SELLE →+B · POITRINE ←+B · GIGOT ↘+L
 //   Crouch kick ↓/↙+L · Anti-air knee ↑+B / Up-Attack · Air kick air L/B · Handstand spin ↓+B
+// SPECIALS (A = Special)  MOUTON SHOT ↓↘→+A · ANTI-MANNER KICK →·→+A · PREMIER HACHIS ↓↙←+A · Reversal A
+//   air CONCASSE ↓·↓+A · air SKY WALK ↓↘→+B (×2) · PLATE KICK ↓↙←+B
+// SUPER  PARTY TABLE KICK COURSE ↓↘→↓↘→+A or Ultimate at 100 Heat — free (↓↘→+A / Ultimate) for 5 s after a
+//   completed Course.
 import { startMove } from './combat.js'
 import { SANJI_MOVES } from './sanjiData.js'
-import { isSanji, sanjiState, sanjiStartMove, recentMotion, scue, canIgnite } from './sanjiState.js'
+import { isSanji, sanjiState, sanjiStartMove, scue, canIgnite, startSuper, plateSlots, SANJI_TUNING } from './sanjiState.js'
 
 const BUFFER = 8            // a press edge stays "fresh" for 8 sim frames
 const LENIENCY = 3          // A+B: both press edges within 3 input ticks of each other
@@ -33,6 +37,55 @@ function ignitePressed(s) {
   if (a == null || b == null || !s.prev.special || !s.prev.heavy) return false
   return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && s.used.special !== a
 }
+
+// Motions (condensed numpad tokens, current last; the harness / players may release to 5 before the button).
+const MOT = {
+  qcfx2: m => /23?6[35]{0,2}23?65?$/.test(m),
+  qcf: m => /23?65?$/.test(m),
+  qcb: m => /21?45?$/.test(m),
+  ff: m => /6565?$/.test(m),
+  dd: m => /2[135]25?$/.test(m),
+}
+const cost = key => SANJI_MOVES[key]?.cost || 0
+const superReady = (f, s) => s.ptkcFree > 0 || (f.energy || 0) >= cost('sPTKC')
+function startSpecial(f, s, key, W) {
+  if (key === 'sPTKC') {
+    if (!superReady(f, s)) return false
+    const free = s.ptkcFree > 0
+    if (!W_START(f, key)) return false
+    startSuper(f, s, free); return true
+  }
+  if ((f.energy || 0) < cost(key)) return false
+  if (key === 'sSkyWalk' && s.skyWalks >= SANJI_TUNING.skyWalks) return false
+  if (key === 'sPlate' && plateSlots(f, W) <= 0) return false
+  if (!W_START(f, key)) return false
+  f.energy = Math.max(0, (f.energy || 0) - cost(key))
+  scue(f, 'whoosh3')
+  return true
+}
+// Which special does a fresh Special / Heavy / Ultimate edge ask for? (null = none). `only` limits the set.
+function specialWanted(f, s, grounded, only) {
+  const ok = k => !only || only.includes(k)
+  const mA = s.edgeMot?.special || '', mB = s.edgeMot?.heavy || ''
+  if (grounded && fresh(s, 'ultimate') && ok('sPTKC') && superReady(f, s)) return ['sPTKC', 'ultimate']
+  if (fresh(s, 'special')) {
+    if (grounded) {
+      if (ok('sPTKC') && superReady(f, s) && (MOT.qcfx2(mA) || (s.ptkcFree > 0 && MOT.qcf(mA)))) return ['sPTKC', 'special']
+      if (ok('sMouton') && MOT.qcf(mA)) return ['sMouton', 'special']
+      if (ok('sAntiManner') && MOT.ff(mA)) return ['sAntiManner', 'special']
+      if (ok('sHachis') && MOT.qcb(mA)) return ['sHachis', 'special']
+      if (!only) return ['sReversal', 'special']
+    } else if (ok('sConcasse') && MOT.dd(mA)) return ['sConcasse', 'special']
+  }
+  if (fresh(s, 'heavy') && !fresh(s, 'special')) {
+    if (!grounded && ok('sSkyWalk') && MOT.qcf(mB)) return ['sSkyWalk', 'heavy']
+    if (grounded && ok('sPlate') && MOT.qcb(mB)) return ['sPlate', 'heavy']
+  }
+  return null
+}
+const SPECIAL_SET = ['sMouton', 'sAntiManner', 'sHachis', 'sConcasse', 'sSkyWalk', 'sPlate', 'sPTKC']
+// Special → special cancels on contact (the Mouton route) + the Sky Walk air chain.
+const SPECIAL_CANCEL = { sAntiManner: ['sHachis', 'sPTKC'], sHachis: ['sMouton', 'sPTKC'], sMouton: ['sPTKC'] }
 
 // Which normal does this button mean? Direction = the numpad token held AT the press edge (tickSanji records it).
 const T = { fwd: d => d === 3 || d === 6 || d === 9, back: d => d === 1 || d === 4 || d === 7, down: d => d <= 3, up: d => d >= 7 }
@@ -65,7 +118,16 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
   // ── Cancels out of a live move ──
   if (a) {
     const t = a.total - a.timer, contact = a.hasHit && !a.sj?.noHit && t >= a.activeStart
-    if (contact && !SANJI_MOVES[a.name]?.isSpecial && !a.isUltimate) {
+    const isNormal = !SANJI_MOVES[a.name]?.isSpecial && !a.isUltimate && a.sj?.kind !== 'ignite'
+    let allow = null
+    if (contact && isNormal) allow = grounded ? SPECIAL_SET : ['sConcasse', 'sSkyWalk']   // normal → special / super
+    else if (contact && SPECIAL_CANCEL[a.name]) allow = SPECIAL_CANCEL[a.name]
+    else if (a.name === 'sSkyWalk' && t >= 4) allow = ['sSkyWalk', 'sConcasse']             // Sky Walk → step again / dive
+    if (allow) {
+      const w = specialWanted(f, s, grounded, allow)
+      if (w && startSpecial(f, s, w[0], W)) { use(s, w[1]); return 'consumed' }
+    }
+    if (contact && isNormal) {
       // Normal → normal gatling.
       for (const b of ['light', 'heavy', 'upAttack']) {
         if (!fresh(s, b) || !grounded) continue
@@ -79,6 +141,8 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
   if (f.attackCooldown > 0 || inputState.block) return 'grab'
 
   // ── Neutral starts ──
+  const w = specialWanted(f, s, grounded, null)
+  if (w) { use(s, w[1]); if (startSpecial(f, s, w[0], W)) return 'consumed' }
   if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, 'up')) { scue(f, 'whoosh2'); return 'consumed' } }
   for (const b of ['light', 'heavy']) {
     if (!fresh(s, b)) continue

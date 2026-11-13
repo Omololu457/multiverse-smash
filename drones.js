@@ -137,6 +137,7 @@ export function spawnDrone(owner, type, opts = {}) {
     hp: profile.hp, maxHp: profile.hp,
     facing: face,
     frame: 0, anim: "idle", animTimer: 0,
+    mode: opts.mode || "protector",            // PROTECTOR (default) | STRIKE — sim state
     behaviour: profile.behaviour || "follow",
     state: "enter", stateTimer: 0,
     bornFrame: opts.frame || 0,
@@ -445,7 +446,20 @@ function _dImg(src) {
 
 export function drawDrones(ctx, frame = 0, camera = null) {
   if (!ctx || !activeDrones.length) return
+  // render-only status rings/flashes (orange guard-ping on Oliver, shock-stun ring on the foe), drawn
+  // from the drones' owner/target refs so no fighter list is needed. De-duped by a per-frame set.
+  const _seen = new Set()
   for (const d of activeDrones) {
+    for (const f of [d.owner, d.target]) {
+      if (!f || _seen.has(f)) continue; _seen.add(f)
+      const cx = (f.x || 0) + (f.w || 60) / 2, cy = (f.y || 0) + (f.h || 100) / 2
+      if ((f._gaGuardPing || 0) > 0) _ring(ctx, cx, cy, 46 - (f._gaGuardPing % 8), "#ff9a3c", f._gaGuardPing / 16)
+      if ((f._gaStunRing || 0) > 0) _ring(ctx, cx, cy, 34 + (20 - (f._gaStunRing || 0)), "#ffb02e", f._gaStunRing / 20)
+    }
+  }
+  for (const d of activeDrones) {
+    // SWARM — render as `scouts` mini-Overwatch saucers orbiting (render-only positions).
+    if (d.profile.swarm && !d.dying) { _drawSwarm(ctx, d, frame); if (d._debugHurt) drawDroneDebug(ctx, d); continue }
     const strip = d.profile.sprites?.[d.anim] || d.profile.sprites?.idle
     const img = _dImg(strip?.sheet)
     const frames = strip?.frames || 1
@@ -468,6 +482,8 @@ export function drawDrones(ctx, frame = 0, camera = null) {
       ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
       // hit flash overlay
       if (d._hitFlash > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.25; ctx.fillStyle = "#fff"; ctx.fillRect(-dw / 2, -dh / 2, dw, dh) }
+      // Aegis shield-shatter / intercept flash
+      if (d._shieldFlash > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.4 * (d._shieldFlash / 14); ctx.fillStyle = "#bfe8ff"; ctx.fillRect(-dw / 2, -dh / 2, dw, dh); d._shieldFlash-- }
     } else {
       // fallback chip (art not yet decoded) — keeps the entity visible/debuggable
       const hb = d.profile.hurtbox || { w: 40, h: 30 }
@@ -478,6 +494,26 @@ export function drawDrones(ctx, frame = 0, camera = null) {
     ctx.restore()
     if (_droneDebugOn) drawDroneDebug(ctx, d)
   }
+}
+
+function _ring(ctx, x, y, r, col, a) {
+  ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, a)); ctx.strokeStyle = col; ctx.lineWidth = 2
+  ctx.beginPath(); ctx.arc(x, y, Math.max(6, r), 0, Math.PI * 2); ctx.stroke(); ctx.restore()
+}
+// SWARM — draw `scouts` mini saucers on a deterministic orbit (protector) / toward the target (strike).
+function _drawSwarm(ctx, d, frame) {
+  const img = _dImg(d.profile.sprites?.idle?.sheet); if (!img || !img.complete || !img.naturalWidth) return
+  const frames = d.profile.sprites?.idle?.frames || 4
+  const fw = img.naturalWidth / frames, fh = img.naturalHeight
+  const scouts = Math.max(0, Math.min(4, Math.round(d.hp / 20)))
+  const mini = 0.5
+  for (let i = 0; i < scouts; i++) {
+    const ph = (frame - d.bornFrame) * 0.06 + i * (Math.PI / 2)
+    const ox = Math.cos(ph) * 46, oy = Math.sin(ph) * 22
+    const dw = fw * mini, dh = fh * mini
+    ctx.drawImage(img, 0, 0, fw, fh, d.x + ox - dw / 2, d.y + oy - dh / 2, dw, dh)
+  }
+  if (d._hitFlash > 0 && (frame & 1)) { _ring(ctx, d.x, d.y, 50, "#9fe8ff", 0.5) }
 }
 
 // Training "drone debug" overlay — hurtbox + HP bar. Module-level so newly-spawned drones inherit it.

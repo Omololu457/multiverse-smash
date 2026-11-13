@@ -3886,6 +3886,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   // count the status down. Only Superman's Freeze Breath ever sets _supFrozen (no-op for everyone else).
   if ((fighter._supFrozen || 0) > 0) { fighter._supFrozen--; if (fighter.hitstun < fighter._supFrozen) fighter.hitstun = fighter._supFrozen; fighter.vx = 0 }
   if ((fighter._gaDisabled || 0) > 0) fighter._gaDisabled--   // GREEN ARROW EMP: summon/drone lockout countdown (only GA's EMP sets it)
+  if ((fighter._gaStunRing || 0) > 0) fighter._gaStunRing--   // GREEN ARROW stun-drone shock ring (render)
+  if ((fighter._gaGuardPing || 0) > 0) fighter._gaGuardPing--   // GREEN ARROW Sentinel auto-guard ping (render)
+  if ((fighter._gaAirRecover || 0) > 0) fighter._gaAirRecover--   // GREEN ARROW Skyhook Rescue free-air-recovery window
   if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
   if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window

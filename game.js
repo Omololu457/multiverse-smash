@@ -11322,6 +11322,7 @@ function _updatePlayerCombatBody(fighter) {
     // windowed source for direction-branched specials (Killua: Fwd=Lightning Palm, Down=Electric Ball,
     // neutral=Yo-Yo). Only read by chars that opt in; unused by everyone else.
     fighter._specialHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._gaStrikeMod = !!inputState.heavy   // GREEN ARROW: Heavy held at Special press -> STRIKE drone mode
     // Modifiers held the SAME frame Special is buffered — read by Ghostface's Backstage Pass to pick its
     // branch (Grab/Charge = swap, attack btn = fakeout). Only Ghostface reads it; harmless for everyone else.
     fighter._specialHeldMods = { grab: !!inputState.grab, charge: !!inputState.charge, attack: !!(inputState.light || inputState.heavy || inputState.upAttack) }

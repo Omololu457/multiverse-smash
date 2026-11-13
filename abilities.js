@@ -1,6 +1,7 @@
 import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
 import { luffyRegen } from './luffyState.js'
 import { zoroRegen } from './zoroState.js'
+import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive (+1.5/s) replaces the shared regen
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
@@ -36147,6 +36148,7 @@ export function applyOmoluPassiveSystems(fighter) {
 export function doEnergyCharge(fighter) {
   if (fighter?.rosterKey === 'luffy') return
   if (fighter?.rosterKey === 'zoro') return   // Spirit only comes from hits, the passive and NAP
+  if (fighter?.rosterKey === 'buggy') return  // Chop only comes from hits, nullified slashes and the passive
 
   if (!fighter?.maxEnergy) return
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
@@ -36160,6 +36162,7 @@ export function doEnergyCharge(fighter) {
 export function regenEnergy(fighter) {
   if (luffyRegen(fighter)) return
   if (zoroRegen(fighter)) return
+  if (buggyRegen(fighter)) return
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
   if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down
   // Killua (Godspeed) `zoldyck`: VOLTS do NOT self-regenerate — electricity is a spent resource that only

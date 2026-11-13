@@ -128,6 +128,7 @@ function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet,
 
 export const SKINS = {
   luffy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.luffy.portrait, spriteScale: characters.luffy.spriteScale, animationData: null }],
+  buggy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.buggy.portrait, spriteScale: characters.buggy.spriteScale, animationData: null }],
   zoro: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.zoro.portrait, spriteScale: characters.zoro.spriteScale, animationData: null }],
   // SCALE FIX: without this entry getSkins() returns the { spriteScale: 1 } fallback and applySkin()
   // clobbers Green Arrow's real 1.35 → he renders at native ~99px (half-ish). This restores his scale.

@@ -1,5 +1,6 @@
 // ui.js
-import { drawZoroHud } from './zoroFx.js'   // Roronoa Zoro — Going Merry Spirit badge (render-only)
+import { drawZoroHud } from './zoroFx.js'
+import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge + part pips (render-only)   // Roronoa Zoro — Going Merry Spirit badge (render-only)
 // Shared UI rendering and menu layout helpers.
 // HUD LAYOUT: Health bars → TOP of screen | Energy bars → BOTTOM of screen
 
@@ -4783,6 +4784,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     }
 
     drawZoroHud(ctx, fighter, { x, enY, pbw, flip })
+    drawBuggyHud(ctx, fighter, { x, enY, pbw, flip })
     if (!hasEnergy) return
 
     const maxEn  = Math.max(1, fighter.maxEnergy || 100)

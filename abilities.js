@@ -36452,7 +36452,9 @@ registerBehaviour("strafe", (d, { frame }) => {
   const o = d.owner, opp = d.target
   if (d.mode === "strike") return _gaKamikaze(d, o, opp)        // STRIKE "Kamikaze"
   // PROTECTOR "Escort": hover above Oliver; suppression burst when he is in trouble or the foe is near.
-  d.tx = (o.x || 0); d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210); d.anim = "idle"
+  // ENGAGE FIX: advance toward the foe and strafe (was d.tx=o.x = hovering on Oliver, never engaging).
+  const _kToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
+  d.tx = (o.x || 0) + _kToOpp * GA_SCR_W * 0.12; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210); d.anim = "idle"
   if (d.data.burstCd > 0) d.data.burstCd--
   const trouble = (o.hitstun || 0) > 0 || (o.blockstun || 0) > 0 || (opp && !opp.eliminated && Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20)
   if (trouble && (d.data.burstCd || 0) <= 0 && opp && !opp.eliminated) { d.data.burstCd = 90; d.data.firing = 5; d.data.ftick = 0 }

@@ -131,7 +131,7 @@ export function spawnDrone(owner, type, opts = {}) {
     type, profile, owner, ownerSide: owner.side,
     playerIndex: owner.playerNumber || (owner.side === "p2" ? 2 : 1),
     slot,
-    x: (owner.x || 0) - face * 240,            // enters from off-screen behind
+    x: (owner.x || 0) + face * 40,             // DEPLOY next to Oliver toward the foe (was -face*240 = 240px off to the left → looked like it flew away)
     y: floorY(owner) - (profile.hoverHeight || 120),
     vx: 0, vy: 0,
     hp: profile.hp, maxHp: profile.hp,

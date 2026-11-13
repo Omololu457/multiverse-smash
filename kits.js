@@ -204,12 +204,12 @@ export const KITS = {
       {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
     ],
     specials:[
-      {name:'Shark On Tooth',input:'↓↘→ + Special (or Special)',cost:15,desc:'Spinning lunge bite, 120 (slash), spends a tooth; a water zone opens under the foe on hit.'},
+      {name:'Shark On Tooth',input:'↓↘→ + Special (or Special, up close)',cost:15,desc:'Spinning lunge bite, 120 (slash), spends a tooth; a water zone opens under the foe on hit.'},
       {name:'Shark On Darts',input:'→→ + Special (or Forward + Special)',cost:20,desc:'Nose-first torpedo across 65% of the screen, 135 (blunt), passes THROUGH and ends behind the foe. Refills every tooth on hit; zone where he stops. Long recovery.'},
       {name:'Gosenmaigawara Seiken',input:'↓↙← + Special (or Back + Special)',cost:25,desc:'Compressed water shockwave over 40% of the screen, 115 (blunt); 15 chip even on block. Zone in front of him.'},
       {name:'Tidal Sweep',input:'↓↓ + Special (or Down + Special)',cost:20,desc:'Low Kiribachi sweep, 80 (slash), knockdown; the wave leaves a zone.'},
       {name:'Kiribachi Throw / Recall',input:'↓↘→ + Heavy',cost:18,desc:'The saw spins across the screen, 85 (slash), and plants where it stops. While it is planted his blade normals become faster FISHMAN KARATE (blunt, −15%). ↓↘→ + Heavy again recalls it along the ground (70); Heavy beside it picks it up.'},
-      {name:'Water Shot',input:'↓↙← + Heavy (or Up + Special)',cost:12,desc:'Fast water jet, 50, half-screen range (projectile).'}
+      {name:'Water Shot',input:'↓↙← + Heavy (or Up + Special, or Special at range)',cost:12,desc:'Fast water jet, 50, half-screen range (projectile).'}
     ],
     mobility:{name:'Fishman stride',input:'Move / double-tap dash',cost:0,desc:'4.4 walk and a heavy jump out of water; inside his own water everything is 25% faster and the dash becomes an invulnerable swim.'},
     ultimate:{name:'ARLONG PARK',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'The stage floods. Four torpedo strikes from different angles (60 each), then he surfaces with the Kiribachi overhead (120): 360 raw. Invulnerable; the flood recedes into one zone; 3s Tide lockout.'},

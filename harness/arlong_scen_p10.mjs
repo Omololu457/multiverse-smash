@@ -12,4 +12,5 @@ export async function run(X) {
   await settle(); await fresh(500, 100); await tap(['l']); await step(2); s = await as()
   check('neutral Special at range = Water Shot (no whiffing lunge)', s.move === 'aShot', s.move)
   await settle(60)
+  if (X.PHASE >= 11) { const m = await import('./arlong_scen_p11.mjs'); await m.run(X) }
 }

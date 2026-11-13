@@ -50,6 +50,7 @@ import {
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
 import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
 import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
@@ -1291,6 +1292,7 @@ function tryStartRickPrimeRewind(fighter) {
 function _rewindTeardown() {
   clearAbilityState()                                  // activeProjectiles (shared) + summons + pending clones
   resetDrones()                                        // GREEN ARROW drones cleared with summons/projectiles
+  resetMunitions()                                     // GREEN ARROW bombs/fire-patches cleared
   clearEffects()                                       // timed buffs / stuns / regen (reverts each first)
   clearDomains(); clearCubeTraps(); clearObitoDimensions()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
@@ -4857,6 +4859,7 @@ function resetRound() {
   countdown = ROUND_START_COUNTDOWN
   clearAbilityState()      // activeProjectiles (shared), activeSummons, pending Naruto clones
   resetDrones()            // GREEN ARROW drones cleared with summons/projectiles
+  resetMunitions()         // GREEN ARROW bombs/fire-patches cleared
   clearEffects()           // activeEffects — timed buffs/stuns/regen (reverts each effect first)
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
@@ -20578,6 +20581,13 @@ function updateBattle() {
     updateDrones([p1, p2], globalFrameCount, { leftWall: 0, rightWall: getStageWorldWidth(), ceilingY: -200 })
     updateDroneCollisions([p1, p2], activeProjectiles)
   }
+  // GREEN ARROW munitions (bombs/hazards) — generic pool; runs even with no drones out.
+  if (activeMunitions.length || (p1 && p1.rosterKey === "green_arrow") || (p2 && p2.rosterKey === "green_arrow")) {
+    const _gaMEnv = { groundY, leftWall: (typeof physics !== "undefined" && physics ? (physics.stageLeft || 0) : 0), rightWall: getStageWorldWidth(), fighters: [p1, p2].filter(Boolean), isEnemy: (o, f) => !!(o && f && f !== o && !ffaSameTeam(o, f)), platformTopAt: (x) => { let best = null; for (const pl of (getPlatforms ? getPlatforms() : [])) { if (x >= pl.x && x <= pl.x + (pl.w || pl.width || 0)) { const top = pl.y; if (best == null || top < best) best = top } } return best } }
+    updateMunitions(globalFrameCount, _gaMEnv)
+    updateMunitionShootDown([p1, p2].filter(Boolean), activeProjectiles, globalFrameCount, _gaMEnv)
+    tickMunitionChains(globalFrameCount, _gaMEnv)
+  }
 
   for (const fighter of [p1, p2].filter(Boolean)) {
     processPendingSpawns?.(fighter, {
@@ -22601,6 +22611,7 @@ function drawBattleScene() {
   drawActiveSummons(ctx)
   drawDrones(ctx, globalFrameCount, camera)   // GREEN ARROW drones — world space, over fighters
   drawGreenArrowFx(ctx, [p1, p2], globalFrameCount)   // GREEN ARROW status FX (net/flash/rings) — render-only
+  drawMunitions(ctx, globalFrameCount); drawMunitionDebug(ctx)   // GREEN ARROW bombs/hazards + telegraphs (render-only)
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)

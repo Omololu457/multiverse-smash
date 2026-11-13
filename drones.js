@@ -255,13 +255,14 @@ export function updateDrones(owners, frame, env = {}) {
       continue
     }
     if (d._retiring) {
-      // fly off-screen behind the owner, then despawn
-      const face = d.owner?.facing || 1
-      d.tx = (d.owner?.x || d.x) - face * 520
-      d.ty = d.y - 40
+      // ASCEND and fade out (was: fly off behind Oliver → looked like it fled the fight)
+      d.tx = d.x
+      d.ty = d.y - 220
       moveToward(d, d.profile)
-      d.x += d.vx; d.y += d.vy
-      if (Math.abs(d.x - (d.owner?.x || 0)) > 480 || (d._retireTimer = (d._retireTimer || 0) + 1) > 90) {
+      d.x += d.vx; d.y += d.vy - 2.5           // extra upward lift
+      d._retireFade = (d._retireFade || 0) + 1
+      d._hitFlash = 2                            // reuse the alpha-flicker so it reads as fading out
+      if (d._retireFade > 42 || d.y < floorY(d.owner || d) - 680) {
         activeDrones.splice(i, 1)
       }
       advanceAnim(d)
@@ -534,12 +535,29 @@ export function drawGreenArrowFx(ctx, fighters = [], frame = 0) {
 }
 // procedural pixel-style NET mesh over a netted fighter (render-only, not sprite art).
 function _drawNet(ctx, f) {
+  // GROUND-GRAB "net/mud" hold-down: stakes + claws rise from the ground and clamp the legs (Kakashi's-
+  // dogs feel), under a faint net mesh. Render-only; driven by the sim field f._gaNetted.
   const x = (f.x || 0), y = (f.y || 0), w = (f.w || 60), h = (f.h || 100)
-  ctx.save(); ctx.globalAlpha = 0.72; ctx.strokeStyle = "#dff0ff"; ctx.lineWidth = 1.5
-  const step = 9
+  const gy = (f.groundY != null ? f.groundY : y + h)
+  ctx.save()
+  ctx.globalAlpha = 0.45; ctx.strokeStyle = "#dff0ff"; ctx.lineWidth = 1
+  const step = 11
   for (let gx = 0; gx <= w; gx += step) { ctx.beginPath(); ctx.moveTo(x + gx, y); ctx.lineTo(x + gx, y + h); ctx.stroke() }
-  for (let gy = 0; gy <= h; gy += step) { ctx.beginPath(); ctx.moveTo(x, y + gy); ctx.lineTo(x + w, y + gy); ctx.stroke() }
-  ctx.strokeStyle = "#8fc8ff"; ctx.strokeRect(x, y, w, h)
+  for (let gyy = 0; gyy <= h; gyy += step) { ctx.beginPath(); ctx.moveTo(x, y + gyy); ctx.lineTo(x + w, y + gyy); ctx.stroke() }
+  ctx.globalAlpha = 0.55; ctx.fillStyle = "#4a3420"
+  ctx.beginPath(); ctx.ellipse(x + w / 2, gy, w * 0.6, 6, 0, 0, Math.PI * 2); ctx.fill()
+  ctx.globalAlpha = 0.95
+  const n = 5
+  for (let i = 0; i < n; i++) {
+    const sx = x + w * (i + 0.5) / n
+    const lean = (i - (n - 1) / 2) * 3
+    const topY = gy - h * (0.34 + 0.12 * (i % 2))
+    ctx.strokeStyle = "#6b4a2a"; ctx.lineWidth = 3; ctx.lineCap = "round"
+    ctx.beginPath(); ctx.moveTo(sx, gy); ctx.lineTo(sx + lean, topY); ctx.stroke()
+    ctx.strokeStyle = "#2f2112"; ctx.lineWidth = 2
+    ctx.beginPath(); ctx.moveTo(sx + lean, topY); ctx.lineTo(sx + lean - 5, topY - 7); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(sx + lean, topY); ctx.lineTo(sx + lean + 5, topY - 7); ctx.stroke()
+  }
   ctx.restore()
 }
 

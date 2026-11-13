@@ -4359,7 +4359,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // GREEN ARROW trick-arrow on-hit status (gated on proj._gaArrow kind; only GA arrows set it).
       if (!fighter.isBlocking && proj._gaArrow === "ice" && (fighter.health || 0) > 0) { fighter._supFrozen = 42; fighter._supFrozenMax = 42; fighter.hitstun = Math.max(fighter.hitstun || 0, 42); fighter.vx = 0; fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, 150); if (proj.owner) proj.owner._gaIceHookHit = fighter }   // LASTING ICE SLOW: 2.5s of half movement + sluggish attacks after the freeze
       if (!fighter.isBlocking && proj._gaArrow === "emp" && (fighter.health || 0) > 0) { fighter._gaDisabled = 180; if (proj.owner) proj.owner._gaEmpHit = fighter }
-      if (!fighter.isBlocking && proj._gaArrow === "net" && (fighter.health || 0) > 0) { fighter._gaNetted = 60; if (fighter._flightCtl || fighter._flightActive) { try { _gaForceGround(fighter, 72) } catch (_) {} } if (proj.owner) proj.owner._gaNetHit = fighter }
+      if (!fighter.isBlocking && proj._gaArrow === "net" && (fighter.health || 0) > 0) { fighter._gaNetted = 90; if (fighter._flightCtl || fighter._flightActive) { try { _gaForceGround(fighter, 72) } catch (_) {} } if (proj.owner) proj.owner._gaNetHit = fighter }
       if (!fighter.isBlocking && proj._gaArrow === "flash" && (fighter.health || 0) > 0) { fighter.hitstun = Math.max(fighter.hitstun || 0, 30); fighter._gaFlash = 18 }
 
       if (fighter.health <= 0) {

@@ -36619,12 +36619,10 @@ export function executeGreenArrowSpecial(fighter, context) {
   if ((fighter.energy || 0) >= 100 && endsWithPattern(dirs, ["D", "F", "D", "F"])) {
     return executeGreenArrowUltimate(fighter, context)
   }
-  // double-tap Special → recall all drones
+  // (Removed the quick double-tap-Special recall — it fired accidentally while deploying and sent the
+  //  drones flying off behind Oliver ("running away"). Drones now expire / die naturally; deploying a
+  //  3rd retires the oldest. A 2nd Special press just deploys another drone.)
   const now = (context?.frame != null) ? context.frame : 0
-  if (fighter._gaLastSpecialFrame != null && (now - fighter._gaLastSpecialFrame) <= 14 && countDrones(fighter) > 0) {
-    fighter._gaLastSpecialFrame = now
-    greenArrowRecallDrones(fighter); return true
-  }
   fighter._gaLastSpecialFrame = now
   const strike = !!fighter._gaStrikeMod                            // Heavy-held when Special pressed
   const _dbl = (tok) => { let c = 0; for (const x of dirs.slice(-3)) if (x === tok) c++; return c >= 2 }

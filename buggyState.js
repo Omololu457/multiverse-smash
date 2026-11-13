@@ -2,7 +2,7 @@
 // JSON (numbers / booleans / strings / small arrays — no callbacks, no object refs), so it is in the replay
 // checkpoint and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: timings are fixed frame
 // counts, positions derive from the fighters' positions, and any variation is hash(match seed, frame, player, slot).
-import { BUGGY_MOVES, BUGGY_MASK_ANIM, buggy as BUGGY_CHAR } from './buggyData.js'
+import { BUGGY_MOVES, BUGGY_MASK_ANIM, BUGGY_WIN2_ANIM, buggy as BUGGY_CHAR } from './buggyData.js'
 import { meleeDamageType, projectileDamageType, sourceDamageType, isHakiImbued } from './damageTypes.js'
 import { setPartWorld, tickParts, recallParts, ownParts, launchHand, stabHand, plantLegs, lookout, partHit } from './buggyParts.js'
 import { BUGGY_FX } from './buggySprites.js'
@@ -46,6 +46,7 @@ export function buggyState(f) {
     inSuper: false, superHit: 0, superScale: 1, stabFx: [],   // Super bookkeeping / hand-stab FX [{x,y,t}]
     dashPrev: 0,       // engine dashTimer last frame (Roll invulnerability on the rising edge)
     groundY: null,     // feet line when last grounded (balls explode on it)
+    idleT: 0, lookT: -1,   // frames standing idle with no input · head look-around phase (−1 = head on)
   }
 }
 
@@ -58,6 +59,7 @@ export function buggyRoundReset(f) {
   f.dashSpeed = st.dashSpeed
   if (f._buggy) { delete f._buggy }
   f._skinAnim = null
+  f._bgWinVar = 0; f._bgEndT = 0; f._bgEndFa = null
 }
 export function clearBuggy(f) {
   if (f?._buggy || isBuggy(f)) { delete f._buggy; delete f._buggyCues; if (isBuggy(f)) f._skinAnim = null }
@@ -118,7 +120,26 @@ export function tickBuggy(f, opp, raw = {}, W = null) {
   tickBalls(f, opp, s)
   for (let i = s.booms.length - 1; i >= 0; i--) if (--s.booms[i].t <= 0) s.booms.splice(i, 1)
   for (let i = s.stabFx.length - 1; i >= 0; i--) if (--s.stabFx[i].t <= 0) s.stabFx.splice(i, 1)
+  // IDLE > 10 s: his head lifts off and looks around (150 f), every 7 s while he stays idle. Any input, move,
+  // hit, detached part or Festival resets it — the head snaps straight back on.
+  const still = (f.onGround || f.grounded) && !f.attacking && !f.isBlocking && !(f.hitstun > 0) && Math.abs(f.vx || 0) < 0.3 &&
+    !BUTTONS.some(k => raw[k]) && !(s.festival > 0) && !(s.stagger > 0) && !(s.partMask > 0)
+  s.idleT = still ? s.idleT + 1 : 0
+  const I = BUGGY_IDLE, ph = s.idleT - I.after
+  s.lookT = ph >= 0 && ph % I.every < I.look ? ph % I.every : -1
   applyMask(f, s)
+}
+export const BUGGY_IDLE = { after: 600, every: 420, look: 150 }
+
+// Victory pose variant (1 = portrait + laughing head · 2 = cape + knives fanned). A pure hash of SIM values frozen
+// at the KO (health, Chop, sim tick) → both LAN peers agree; cached on the fighter for the rest of the round.
+export function buggyWinVariant(f) {
+  if (!f._bgWinVar) {
+    let h = Math.imul((f.health | 0) + 1, 73856093) ^ Math.imul((f.energy | 0) + 3, 19349663) ^ Math.imul((f._buggy?.tick | 0) + 7, 83492791)
+    h ^= h >>> 15; h = Math.imul(h, 2246822519); h ^= h >>> 13
+    f._bgWinVar = ((h >>> 0) & 1) ? 2 : 1
+  }
+  return f._bgWinVar
 }
 
 export const BUGGY_ROLL_INVULN = 8
@@ -320,7 +341,12 @@ export function buggyCape(fighter, proj) {
 
 // Masked body rows: point the renderer at the row for the current detached-part mask (presentation only).
 function applyMask(f, s) {
-  if (!s.maskLock) s.mask = (s.stagger > 0 ? 3 : 0) | (s.partMask | 0)   // ≤ 2 parts ever detached → rows 0-6
+  if (f._forceAction === 'win' || f._forceAction === 'lose') {   // round-end poses: whole body, chosen win strip
+    const want = f._forceAction === 'win' && buggyWinVariant(f) === 2 ? BUGGY_WIN2_ANIM : null
+    if ((f._skinAnim || null) !== want) f._skinAnim = want
+    return
+  }
+  if (!s.maskLock) s.mask = (s.stagger > 0 ? 3 : 0) | (s.partMask | 0) | (s.lookT >= 0 ? 1 : 0)   // ≤ 2 parts ever detached → rows 0-6
   const m = s.mask | 0
   const want = m ? BUGGY_MASK_ANIM[m] : null
   if ((f._skinAnim || null) !== want) f._skinAnim = want

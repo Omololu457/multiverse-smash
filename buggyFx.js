@@ -1,7 +1,9 @@
 // buggyFx.js — Buggy the Clown RENDER-ONLY presentation (HUD badge + part pips, split flashes, orbiting pieces,
 // confetti, cape sweep, explosions). Reads simulation state (fighter._buggy, drones) and never writes it.
 // Image objects are presentation caches. Confetti / particle positions are pure functions of the frame counter.
-import { BUGGY_FX } from './buggySprites.js'
+import { BUGGY_FX, BUGGY_PARTS } from './buggySprites.js'
+import { BUGGY_WIN2_ANIM } from './buggyData.js'
+import { buggyWinVariant } from './buggyState.js'
 import { getActiveDrones } from './drones.js'
 
 const _img = {}
@@ -67,8 +69,11 @@ export function drawBuggyHud(ctx, fighter, { x, enY, pbw, flip }) {
 
 // World-space FX (drawn after the fighter sprite). Pure functions of sim state + the frame counter.
 export function drawBuggyFx(c, f, frame = 0) {
-  if (!c || f?.rosterKey !== 'buggy' || !f._buggy) return
+  if (!c || f?.rosterKey !== 'buggy') return
+  drawPresentation(c, f, frame)
+  if (!f._buggy) return
   const s = f._buggy
+  if (s.lookT >= 0) drawLookAround(c, f, s)
   const a = f.attacking ? f.currentAttack : null, g = a?.bg, t = a ? a.total - a.timer : 0
   if (g?.kind === 'super' && t < 24) drawCartWheelIn(c, f, t)
   if (g?.kind === 'cape' && t >= g.window[0] && t < g.window[1]) drawCape(c, f, t - g.window[0])
@@ -118,6 +123,86 @@ function drawCartWheelIn(c, f, t) {   // the cannon cart rolls in behind him as 
 function drawCape(c, f, t) {
   const { k, fx, fy } = anchor(f), dir = f.facing || 1
   frameOf(c, BUGGY_FX.capes, Math.min(3, t >> 2), fx + dir * 22 * k / 2.3, fy - 42 * k, k, dir < 0, t < 8 ? 1 : 0.7)
+}
+
+// ── PHASE 7 PRESENTATION — intro / wins / lose / idle. Render-only: _bgIntroT / _bgEndT are presentation clocks
+// on the fighter (frames since the intro / round-end pose began, from the game frame counter), never read by the
+// simulation; every position is a pure function of them (hash-placed, no Math.random). ──
+const hh = (i, salt) => { let h = Math.imul(i + 1, 2654435761) ^ Math.imul(salt + 7, 40503); h ^= h >>> 15; h = Math.imul(h, 2246822519); h ^= h >>> 13; return (h >>> 0) / 4294967296 }
+const CONFETTI = ['#ff4a3a', '#ffd23a', '#3ab0ff', '#ffffff', '#ff7ad0', '#5ae07a']
+const HEAD = BUGGY_PARTS.head.idle
+function drawPresentation(c, f, frame) {
+  if (f._introPlaying && !f._bgIntroOn) { f._bgIntroOn = true; f._bgIntro0 = frame }   // rising edge: restart the intro clock
+  if (!f._introPlaying) f._bgIntroOn = false
+  if (f._bgIntro0 != null) { f._bgIntroT = Math.min(112, frame - f._bgIntro0); if (f._bgIntroT < 112) drawIntro(c, f, f._bgIntroT) }
+  const fa = f._forceAction
+  if (fa === 'win' || fa === 'lose') {
+    if (!f._bgEndT || f._bgEndFa !== fa) { f._bgEnd0 = frame - 1; f._bgEndFa = fa }
+    const t = f._bgEndT = Math.max(1, frame - f._bgEnd0)
+    if (fa === 'win') {
+      const v = buggyWinVariant(f), want = v === 2 ? BUGGY_WIN2_ANIM : null
+      if ((f._skinAnim || null) !== want) f._skinAnim = want   // the sim may be paused on the result screen
+      if (v === 2) drawWinCape(c, f, t); else drawWinPortrait(c, f, t)
+    } else { if (f._skinAnim) f._skinAnim = null; drawLose(c, f, t) }
+  } else if (f._bgEndT) { f._bgEndT = 0; f._bgEndFa = null; f._bgWinVar = 0 }
+}
+// INTRO: his ten loose pieces fly in from all sides and snap together (over the intro strip), then confetti pops.
+function drawIntro(c, f, t) {
+  const { k, fx, fy } = anchor(f), cy = fy - 48 * k
+  if (t < 34) {
+    const p = Math.min(1, t / 28), e = 1 - Math.pow(1 - p, 3), alpha = t < 28 ? 1 : 1 - (t - 28) / 6
+    for (let i = 0; i < 10; i++) {
+      const a = hh(i, 1) * Math.PI * 2, d = (55 + hh(i, 2) * 45) * k
+      frameOf(c, BUGGY_FX.intro, i, fx + Math.cos(a) * d * (1 - e), cy + Math.sin(a) * d * 0.7 * (1 - e) - Math.sin(p * Math.PI) * 10 * k, k * 0.85, hh(i, 9) < 0.5, alpha)
+    }
+  }
+  if (t >= 26) {   // confetti burst (code-drawn rectangles, flutter = |cos| width)
+    const tt = t - 26, fade = 1 - Math.max(0, (tt - 58) / 28)
+    c.save(); c.globalAlpha = Math.max(0, fade)
+    for (let i = 0; i < 40; i++) {
+      const vx = (hh(i, 3) - 0.5) * 2.2, vy = -(0.8 + hh(i, 4) * 1.0)
+      const x = fx + vx * tt * k, y = cy - 6 * k + (vy * tt + 0.5 * 0.07 * tt * tt) * k, rot = tt * 0.22 + i
+      c.save(); c.translate(x, y); c.rotate(rot); c.fillStyle = CONFETTI[i % CONFETTI.length]
+      const w = 3.2 * k * Math.max(0.2, Math.abs(Math.cos(rot * 1.7))); c.fillRect(-w / 2, -1 * k, w, 2 * k); c.restore()
+    }
+    c.restore()
+  }
+}
+// WIN 1 — portrait + head: his mugshot panel drops in beside him and his detached head bobs above it, laughing.
+function drawWinPortrait(c, f, t) {
+  const { k, fx, fy } = anchor(f), dir = f.facing || 1, im = img(BUGGY_FX.portrait.sheet)
+  const p = Math.min(1, t / 14), drop = (1 - p) * (1 - p) * 30 * k, px = fx - dir * 40 * k, py = fy - 50 * k - drop
+  if (im) {
+    const s = k * 0.42, w = im.width * s, h = im.height * s
+    c.save(); c.globalAlpha = p; c.imageSmoothingEnabled = false
+    c.fillStyle = '#1a0a04'; c.fillRect(px - w / 2 - 2 * k, py - h / 2 - 2 * k, w + 4 * k, h + 4 * k)
+    c.drawImage(im, px - w / 2, py - h / 2, w, h); c.restore()
+    if (t > 12) frameOf(c, HEAD, 1 + ((t >> 3) & 3), px, py - h / 2 - 12 * k + Math.sin(t * 0.18) * 2 * k, k * 0.85, dir < 0, Math.min(1, (t - 12) / 6))
+  }
+}
+// WIN 2 — cape + knives fanned: the win2 strip is his cape-spread pose; a fan of knives snaps open in each hand.
+function drawWinCape(c, f, t) {
+  const { k, fx, fy } = anchor(f), p = Math.min(1, t / 10)
+  for (const side of [-1, 1]) {
+    const hx = fx + side * 25 * k, hy = fy - 58 * k - (1 - p) * 10 * k
+    frameOf(c, BUGGY_FX.knivesFan, side < 0 ? 0 : 1, hx, hy + Math.sin(t * 0.12 + side) * 1.5 * k, k * 0.9 * p, false, p)
+  }
+}
+// LOSE: he lies flat; his loose boots / gloves / balls are scattered on the floor around him (they bounce out).
+function drawLose(c, f, t) {
+  const { k, fx, fy } = anchor(f)
+  for (let i = 0; i < 9; i++) {
+    const side = i % 2 ? 1 : -1, d = (22 + hh(i, 5) * 48) * k, p = Math.min(1, t / (14 + i * 2))
+    const x = fx + side * d * p, hop = Math.sin(p * Math.PI) * (10 + hh(i, 6) * 12) * k
+    frameOf(c, BUGGY_FX.lose, i, x, fy - BUGGY_FX.lose.h * k * 0.45 - hop, k * 0.9, side < 0, 1)
+  }
+}
+// IDLE LOOK-AROUND: the head lifts off the (headless-row) body, glances back, forward, back, then settles home.
+function drawLookAround(c, f, s) {
+  const { k, fx, fy } = anchor(f), p = s.lookT, dir = f.facing || 1
+  const lift = Math.min(1, p / 14, (150 - p) / 14) * 5 * k
+  const look = p < 30 ? dir : p < 62 ? -dir : p < 94 ? dir : p < 126 ? -dir : dir
+  frameOf(c, HEAD, p > 62 && p < 94 ? 5 : 0, fx + dir * 2 * k, fy - 52 * k - lift + Math.sin(p * 0.2) * 1.2 * k, k, look < 0, 1)
 }
 
 // Sprite-space anchor from the fighter's last real draw rect (cell 160×112, origin 80,100 → feet centre).

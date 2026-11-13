@@ -356,6 +356,46 @@ try {
     check('no Chop gain during the lockout', (await bs()).energy === e0s, `${e0s}→${(await bs()).energy}`)
   }
 
+  if (PHASE >= 7) {
+    // ── Phase 7: intro / wins / lose / idle ──
+    const raw = (w = 'p1') => page.evaluate(w => { const b = __harness.buggyTest.raw(w); return { introT: b._bgIntroT, endT: b._bgEndT || 0, winVar: b._bgWinVar || 0,
+      win: (b._skinAnim || b.animationData).win.sheet, skin: !!b._skinAnim } }, w)
+    // IDLE > 10 s → the head lifts off and looks around (real sim idle timer, no input at all)
+    await fresh(400); await step(640)
+    let q = await bs()
+    check('idle > 10 s: head lifts off + looks around (head-off body row 1)', q.b.lookT >= 0 && q.b.mask === 1 && q.idleSourceY > 0, `idleT=${q.b.idleT} lookT=${q.b.lookT} mask=${q.b.mask} srcY=${q.idleSourceY}`)
+    await step(50); await shot(`p${PHASE}-16-idle-lookaround`)
+    await tap(['d'], 2); q = await bs()
+    check('any input snaps the head straight back on', q.b.lookT === -1 && q.b.idleT <= 2 && q.b.mask === 0, `lookT=${q.b.lookT} idleT=${q.b.idleT}`)
+    // INTRO: the engine's _introPlaying flag on the intro strip → pieces assemble, then confetti
+    await fresh(300)
+    await page.evaluate(() => { const b = __harness.buggyTest.raw('p1'); b._introPlaying = true; b._introVariant = 'intro'; b._bgIntroOn = false; b._bgIntro0 = null; if (b.spriteHandler) { b.spriteHandler.frameIndex = 0; b.spriteHandler.frameTimer = 0 } })
+    await step(1); await step(11); await shot(`p${PHASE}-17-intro-assemble`)   // the first draw starts the intro clock
+    await step(34); await shot(`p${PHASE}-18-intro-confetti`)
+    const ri = await raw()
+    check('intro: pieces-assemble + confetti clock runs on the intro flag', ri.introT >= 40 && ri.introT <= 112, `introT=${ri.introT}`)
+    await page.evaluate(() => { __harness.buggyTest.raw('p1')._introPlaying = false }); await step(80)
+    check('intro FX ends on its own (112 frames)', (await raw()).introT === 112, (await raw()).introT)
+    // WINS: variant 1 = portrait + head (win strip) · variant 2 = cape + knives fanned (win2 strip)
+    for (const v of [1, 2]) {
+      await page.evaluate(v => { const b = __harness.buggyTest.raw('p1'); b._forceAction = 'win'; b._bgWinVar = v; b._bgEndT = 0; b._bgEndFa = null }, v)
+      await step(1); await step(25); const r = await raw()
+      check(`win ${v}: ${v === 1 ? 'portrait + laughing head' : 'cape + knives fanned'} on the ${v === 2 ? 'win2' : 'win'} strip`, r.endT > 20 && r.win.endsWith(v === 2 ? '/win2.png' : '/win.png'), `${r.win} endT=${r.endT}`)
+      await shot(`p${PHASE}-${19 + v}-win${v}`)
+    }
+    await page.evaluate(() => { const b = __harness.buggyTest.raw('p1'); b._forceAction = 'lose'; b._bgEndT = 0; b._bgEndFa = null }); await step(1); await step(39)
+    let r = await raw()
+    check('lose: lying + scattered pieces (whole-body lose strip)', r.endT > 30 && !r.skin, `endT=${r.endT}`)
+    await shot(`p${PHASE}-22-lose`)
+    await page.evaluate(() => { __harness.buggyTest.raw('p1')._forceAction = null }); await step(3); r = await raw()
+    check('round-end pose cleared → presentation clocks reset', r.endT === 0 && r.winVar === 0, JSON.stringify(r))
+    // the win variant is a pure hash of sim values (LAN-safe): stable for the same values, both poses reachable
+    const vh = await page.evaluate(async () => { const m = await import('./buggyState.js'); const seen = new Set(); let stable = true
+      for (let hp = 1; hp <= 40; hp++) { const a = { health: hp * 23, energy: hp % 100, _buggy: { tick: hp * 997 } }, b = { ...a }; const x = m.buggyWinVariant(a), y = m.buggyWinVariant(b); if (x !== y) stable = false; seen.add(x) }
+      return { stable, both: seen.size === 2 } })
+    check('win variant: deterministic hash, both poses reachable', vh.stable && vh.both, JSON.stringify(vh))
+  }
+
   const other404 = [...new Set(missing.filter(m => !/buggy/i.test(m)))]
   if (other404.length) console.log(`  ℹ non-Buggy 404s (not part of this build): ${other404.slice(0, 6).join(', ')}${other404.length > 6 ? ' …' : ''}`)
   check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))

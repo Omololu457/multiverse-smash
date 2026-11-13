@@ -60,6 +60,8 @@ ANIM.transform = ANIM.intro
 export const BUGGY_MASK_ANIM = Array.from({ length: 7 }, (_, m) => m === 0 ? ANIM :
   Object.fromEntries(Object.entries(ANIM).map(([k, a]) => [k, a.maskRows ? { ...a, sourceY: m * a.height } : a])))
 export const BUGGY_ANIMS = ANIM
+// Victory variant 2 (cape + knives fanned): the same set with `win` pointing at the win2 strip (unmasked).
+export const BUGGY_WIN2_ANIM = { ...ANIM, win: ANIM.win2 }
 
 export const buggy = {
   rosterKey: 'buggy', name: 'Buggy', displayName: 'Buggy the Clown', hudName: 'Buggy', universe: 'one_piece', color: '#e0582a',

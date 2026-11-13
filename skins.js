@@ -160,8 +160,22 @@ export const SKINS = {
     { id: "buggy_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("buggy", "ben10"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "ben10"), recolorTag: "ben10" },
     { id: "buggy_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("buggy", "albedo"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "albedo"), recolorTag: "albedo" },
     { id: "buggyAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("buggy", "alienx"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "alienx"), recolorTag: "alienx" },
+    { id: "buggy_bigtop", name: "Big Top Glitter", unlockLevel: 0, portrait: recolorPortrait("buggy", "bigtop"), spriteScale: characters.buggy.spriteScale, animationData: recolorSkinAnim("buggy", "bigtop"), recolorTag: "bigtop" },
   ],
-  zoro: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.zoro.portrait, spriteScale: characters.zoro.spriteScale, animationData: null }],
+  // Zoro — 8 alt-colour skins (tools/zoro_skins/gen_zoro_skins.py: trousers+bandana · shirt (outline-boxed, so the blades /
+  // slash streaks keep their colours) · hair vs haramaki sash (split by height in the frame) · slash-trail regions over every
+  // assets/zoro strip; zoroData.zoroSkinSet keeps the skin in the Santoryu stance). Alien X → generic starfield.
+  zoro: [
+    { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.zoro.portrait, spriteScale: characters.zoro.spriteScale, animationData: null },
+    { id: "zoro_newworld", name: "New World", unlockLevel: 0, portrait: recolorPortrait("zoro", "newworld"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "newworld"), recolorTag: "newworld" },
+    { id: "zoro_enma", name: "King of Hell (Enma)", unlockLevel: 0, portrait: recolorPortrait("zoro", "enma"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "enma"), recolorTag: "enma" },
+    { id: "zoro_ashura", name: "Kyutoryu Ashura", unlockLevel: 0, portrait: recolorPortrait("zoro", "ashura"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "ashura"), recolorTag: "ashura" },
+    { id: "zoro_kuina", name: "Shimotsuki Dojo (Kuina)", unlockLevel: 0, portrait: recolorPortrait("zoro", "kuina"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "kuina"), recolorTag: "kuina" },
+    { id: "zoro_perona", name: "Perona's Makeover", unlockLevel: 0, portrait: recolorPortrait("zoro", "perona"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "perona"), recolorTag: "perona" },
+    { id: "zoro_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("zoro", "ben10"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "ben10"), recolorTag: "ben10" },
+    { id: "zoro_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zoro", "albedo"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "albedo"), recolorTag: "albedo" },
+    { id: "zoroAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zoro", "alienx"), spriteScale: characters.zoro.spriteScale, animationData: recolorSkinAnim("zoro", "alienx"), recolorTag: "alienx" },
+  ],
   // SCALE FIX: without this entry getSkins() returns the { spriteScale: 1 } fallback and applySkin()
   // clobbers Green Arrow's real 1.35 → he renders at native ~99px (half-ish). This restores his scale.
   green_arrow: [

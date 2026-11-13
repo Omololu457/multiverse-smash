@@ -63,6 +63,16 @@ ANIM.zIntroDraw = { ...ANIM.zShishi, speed: 40, loop: false }   // INTRO step 2:
 export const ZORO_SANTO_ANIM = { ...ANIM, idle: ANIM.zsIdle, win: ANIM.win2,
   light: { ...ANIM.zsLight, frameTimeline: ZORO_TIMELINES.zsLight }, heavy: { ...ANIM.zsHeavy, frameTimeline: ZORO_TIMELINES.zsHeavy } }
 
+// Recolor skins (tools/zoro_skins/gen_zoro_skins.py → `<sheet>__<tag>.png` beside every strip): retag a set's sheet
+// paths so a skin survives the Santoryu stance swap. No tag → `set` unchanged (default skin byte-identical).
+// Cached per (set, tag) → stable identity.
+const _skinSets = new Map()
+export function zoroSkinSet(set, tag) {
+  if (!tag || !set) return set
+  let byTag = _skinSets.get(set); if (!byTag) _skinSets.set(set, byTag = {})
+  return byTag[tag] || (byTag[tag] = Object.fromEntries(Object.entries(set).map(([k, a]) => [k, a?.sheet ? { ...a, sheet: a.sheet.replace(/\.png$/i, `__${tag}.png`) } : a])))
+}
+
 export const zoro = {
   rosterKey: 'zoro', name: 'Zoro', displayName: 'Roronoa Zoro', hudName: 'Zoro', universe: 'one_piece', color: '#3fa34d',
   // METADATA (phase 8). Universe "One Piece" = the existing `one_piece` group (its display title), next to Luffy.

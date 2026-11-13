@@ -9,7 +9,8 @@ Regions (HSV on Buggy's palette, verified on idle.png):
   WHITE pants / gloves / lining    sat < 0.12, val >= 0.50
 Outlines (near-black) and skin are never touched. Every sheet keeps its exact layout (incl. the 7 masked rows),
 so skins.js just retags sheet paths `<name>__<tag>.png` (recolorSkinAnim). Alien X void-crushes the whole body
-(the game's generic starfield overlay keys off the skin id ending in "AlienX").
+(the game's generic starfield overlay keys off the skin id ending in "AlienX"). Big Top Glitter bakes
+sparkles into the coat: a fixed integer hash of each pixel's position picks ~7% (no RNG).
 
 Usage: python3 tools/buggy_build/gen_buggy_skins.py [tag ...]   (run from the repo root)
 """
@@ -75,7 +76,18 @@ SKINS = {
     "albedo":     {"coat": dict(hue=0, sat=0.06, vmul=1.35), "hair": dict(hue=0, sat=0.04, vmul=1.25),       # Albedo: pale-gray body + hair,
                    "red": dict(hue=0, smul=1.0, vmul=1.1)},                                                  #   red accents kept vivid
     "alienx":     {"crush": True},                                                                            # Alien X: void body + starfield
+    "bigtop":     {"coat": dict(hue=326, sat=0.72, vmul=1.12), "white": dict(hue=330, sat=0.14, vmul=1.0),    # Big Top Glitter: hot-pink
+                   "gold": dict(hue=220, sat=0.08, vmul=1.15), "glitter": True},                               #   circus coat + baked glitter
 }
+
+
+def glitter_mask(shape):
+    # Fixed integer hash of the sheet pixel (no RNG): ~7% sparkles, ~2% of them pure white.
+    yy, xx = np.mgrid[0:shape[0], 0:shape[1]].astype(np.uint64)
+    hh = (xx * np.uint64(374761393) + yy * np.uint64(668265263)) & np.uint64(0xFFFFFFFF)
+    hh = ((hh ^ (hh >> np.uint64(13))) * np.uint64(1274126177)) & np.uint64(0xFFFFFFFF)
+    hh = (hh ^ (hh >> np.uint64(16))) & np.uint64(0xFFFF)
+    return hh < np.uint64(int(0.07 * 65536)), hh < np.uint64(int(0.02 * 65536))
 
 
 def recolor(img, rec):
@@ -89,11 +101,16 @@ def recolor(img, rec):
         R = regions(h, s, v, al)
         out_rgb = rgb.copy()
         for name, op in rec.items():
+            if name == "glitter": continue
             sel = R[name]
             nh = np.full_like(h, op["hue"] / 360) if "hue" in op else h
             ns = np.full_like(s, op["sat"]) if "sat" in op else np.clip(s * op.get("smul", 1.0), 0, 1)
             nv = np.clip(v * op.get("vmul", 1.0) + op.get("vadd", 0.0), 0, 1)
             out_rgb = np.where(sel[..., None], hsv_to_rgb(nh, ns, nv), out_rgb)
+        if rec.get("glitter"):   # sparkles on the coat + hat (the pose changes frame to frame, so they glint)
+            g, w = glitter_mask(h.shape); coat = R["coat"]
+            out_rgb = np.where((coat & g & ~w)[..., None], np.array([1.0, 0.80, 0.93]), out_rgb)
+            out_rgb = np.where((coat & w)[..., None], np.array([1.0, 1.0, 1.0]), out_rgb)
         rgb = out_rgb
     arr[..., :3] = np.clip(np.round(rgb * 255), 0, 255)
     return Image.fromarray(arr.astype(np.uint8), "RGBA")

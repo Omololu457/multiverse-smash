@@ -2,7 +2,7 @@
 // plain JSON (numbers / booleans / strings / small arrays — no callbacks, no object refs), so it is in the
 // replay checkpoint and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every
 // timing is a fixed frame count and every position is derived from the two fighters' positions.
-import { ZORO_SANTO_ANIM, ZORO_MOVES, zoro as ZORO_CHAR } from './zoroData.js'
+import { ZORO_SANTO_ANIM, ZORO_MOVES, zoro as ZORO_CHAR, zoroSkinSet } from './zoroData.js'
 import { ZORO_FX } from './zoroSprites.js'
 export const isZoro = f => f?.rosterKey === 'zoro'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickZoro; never read by the sim).
@@ -370,7 +370,7 @@ export function enterSantoryu(f) {
   f.currentForm = 'santoryu'
   f.currentFormData = { damageMultiplier: SANTORYU.dmg, attackMultiplier: SANTORYU.dmg, knockbackMultiplier: SANTORYU.kb, santoryu: true }
   f.damageMultiplier = f.attackMultiplier = SANTORYU.dmg
-  f._skinAnim = ZORO_SANTO_ANIM
+  f._skinAnim = zoroSkinSet(ZORO_SANTO_ANIM, f._recolorTag)   // a recolor skin keeps its colours in the stance
   zcue(f, 'santoryu')
   return true
 }

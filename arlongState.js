@@ -153,6 +153,7 @@ export function strike(f, foe, dmg, o = {}) {
     foe.blockstun = Math.max(foe.blockstun || 0, o.blockstun || 14)
     foe.vx = dir * 3
     if (o.chip) _W?.damage?.(foe, o.chip, { source: 'ability', attacker: f, move: o.move, damageType: type, noWater: true })   // guaranteed chip (Seiken: 15)
+    f.comboCounter = 0; f.comboTimer = 0   // a blocked hit ends the combo (as the engine's melee / projectile paths do)
     acue(f, 'blocked'); return 'blocked'
   }
   const scaled = dmg * (o.fixedScale ?? Math.pow(0.85, f.comboCounter || 0))
@@ -373,7 +374,11 @@ const SUPER_PATHS = [   // [start dx, start dy, end dx, end dy] relative to the 
 function tickSuper(f, opp, s, a, g, t, W) {
   const dir = g.dir || f.facing || 1, fw = f.w || 48, fh = f.h || 94, floor = s.groundY ?? feetY(f), sw = W?.stageWidth?.() || 3200
   if (t === 1) { s.sup = { scale: Math.pow(0.85, f.comboCounter || 0), hits: 0 }; s.blade = { st: 'hand' }; s.shots = []; acue(f, 'superStart') }
-  if (t === g.flood) { s.flood = 200; acue(f, 'flood') }
+  if (t === g.flood) {
+    s.flood = 200; acue(f, 'flood')
+    // the flood CATCHES a foe who isn't guarding: held until the first torpedo arrives (a guarding foe blocks the strikes)
+    if (opp && !opp.isBlocking && !((opp.invulnTimer || 0) > 0)) { opp.hitstun = Math.max(opp.hitstun || 0, g.strikes[0] - g.flood + 8); opp.vx = 0 }
+  }
   if (!opp || !s.sup) return
   const ox = ctrX(opp), oy = (opp.y || 0) + (opp.h || 94) * 0.5
   f.vy = 0; f.vx = 0

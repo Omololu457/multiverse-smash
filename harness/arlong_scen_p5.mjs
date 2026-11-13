@@ -135,4 +135,5 @@ export async function run(X) {
   })
   check('Fishman durability: a >100 hit loses 20% of its first 60 (−12 nominal)', near(dur.abil150, 138, 0.01) && near(dur.melee150, 150 - 7.2, 0.01), JSON.stringify(dur))
   check('Fishman durability: ≤100 hits untouched', dur.abil90 === 90 && dur.melee50 === 50, JSON.stringify(dur))
+  if (PHASE >= 6) { const m = await import('./arlong_scen_p6.mjs'); await m.run(X) }
 }

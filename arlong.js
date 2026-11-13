@@ -19,15 +19,17 @@ import { isArlong, arlongState, arlongStartMove, acue, registerArlongStartMove, 
 const BUFFER = 8
 // Normal → normal gatlings on contact (hit OR block).
 const GATLING = {
-  light: ['aStraight', 'aSwing', 'aLow', 'up', 'heavy', 'aLunge'], aStraight: ['aSwing', 'heavy', 'up'],
+  light: ['aStraight', 'aSwing', 'aLow', 'up', 'heavy', 'aLunge', 'aBite'], aStraight: ['aSwing', 'heavy', 'up', 'aBite'],
   aLow: ['aStraight', 'aSwing', 'up'], aSwing: ['heavy'],
 }
 const W_START = (f, key) => arlongStartMove(f, key, startMove)
 registerArlongStartMove(startMove)
 
+// Buffered press: measured on the SIM clock, which pauses during hitstop, so a button pressed in the hit-freeze is
+// still live when the freeze ends (cancels feel the same however long the impact freeze is).
 function fresh(s, k, win = BUFFER) {
   const at = s.edgeAt[k]
-  return at != null && s.used[k] !== at && s.tick - at <= win
+  return at != null && s.used[k] !== at && s.clock - (s.edgeClk[k] ?? -1e9) <= win
 }
 const use = (s, ...ks) => { for (const k of ks) if (s.edgeAt[k] != null) s.used[k] = s.edgeAt[k] }
 

@@ -4049,6 +4049,39 @@ export const BRUTALITY_CONCEPTS = Object.freeze({
     ],
   },
 
+  // ═══ BUGGY THE CLOWN (One Piece) — BARA BARA FESTIVAL. Plays when the FINISH window times out (kills with
+  // Festival / Buggy Ball / Cannon / heavy route to the LIVE gore table in game.js instead). Buggy splits apart
+  // (his real Festival strip), his knife-hands carve the frozen foe from every angle (slashCross), then the
+  // body falls to pieces (shatter) → he reassembles and gloats (win pose).
+  buggy: {
+    banner: "BARA BARA FESTIVAL", bannerRgb: "255,200,58", base: "hurt", choreographed: true, total: 166,
+    beats: [
+      { fx: "letterbox", t0: 0, t1: 166, in: 14, h: 0.13 },
+      { fx: "darken", t0: 0, t1: 166, rgb: "40,10,14", max: 0.9, ramp: 8 },
+      { fx: "cam", t0: 0, t1: 40, zoom: 1.4, cx: 0.56, cy: 0.46, ease: 0.1 },
+      { fx: "actor", t0: 0, t1: 46, who: "vic", action: "idle", x: 0.46, y: 0.52, frame: "anim:10", facing: 1 },
+      { fx: "actor", t0: 0, t1: 46, who: "atk", action: "taunt", x: 0.68, y: 0.52, frame: "anim:7", facing: -1 },
+      { fx: "cam", t0: 40, t1: 70, zoom: 1.6, cx: 0.66, cy: 0.46, cut: true },
+      { fx: "actor", t0: 40, t1: 110, who: "atk", action: "bFestival", x: 0.68, y: 0.52, frame: "once:5", facing: -1 },
+      { fx: "actor", t0: 46, t1: 104, who: "vic", action: "hurt", x: 0.46, y: 0.52, frame: "hold:0", facing: 1 },
+      { fx: "cam", t0: 70, t1: 106, zoom: 1.85, cx: 0.46, cy: 0.44, cut: true },
+      { fx: "slashCross", t0: 72, t1: 106, count: 16, color: "#e8eef6" },
+      { fx: "whiteSpike", t0: 100, t1: 110 },
+      { fx: "shatter", t0: 104, t1: 150, cols: 3, rows: 4, spread: 0.9 },
+      { fx: "bloodGush", t0: 104, t1: 166, x: 0.46, y: 0.42, amount: 30 },
+      { fx: "cam", t0: 132, t1: 166, zoom: 1.35, cx: 0.56, cy: 0.5, ease: 0.1 },
+      { fx: "actor", t0: 132, t1: 166, who: "atk", action: "win", x: 0.7, y: 0.52, frame: "anim:9", facing: -1 },
+      { fx: "banner", t0: 142, t1: 166 },
+    ],
+    sound: [
+      { t: 1, id: "boom_anticipation_suck", gain: 0.4 },
+      { t: 42, id: "swish_fast_01", gain: 0.55 },
+      { t: 76, id: "swish_fast_01", gain: 0.6 },
+      { t: 104, id: "boom_huge_01", gain: 1.0, ultBoom: true, duckSec: 0.5 },
+      { t: 110, id: "rumble_tail_01", gain: 0.45 },
+    ],
+  },
+
 })
 
 export default BRUTALITY_CONCEPTS

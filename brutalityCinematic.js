@@ -209,7 +209,7 @@ function _drawActor(c, S, who, action, wx, wy, opts = {}) {
     c.save(); c.globalAlpha = alpha * 0.8; c.fillStyle = "#1a1c24"; c.fillRect(wx - 20, wy - 40, 40, 80); c.restore(); return null
   }
   const def = rec.def, frames = Math.max(1, def.frames || 1)
-  const fw = rec.img.naturalWidth / frames, fh = rec.img.naturalHeight
+  const fw = rec.img.naturalWidth / frames, fh = rec.img.naturalHeight / (def.maskRows || 1)   // maskRows (Buggy): row 0 = body, the rest are part masks
   const frame = _frameIdx(opts.frame ?? "anim:6", frames, S.t, opts.t0), sx = frame * fw
   const scale = (H * hFrac) / fh * (opts.scale || 1), dw = fw * scale, dh = fh * scale
   c.save(); c.globalAlpha = alpha; c.imageSmoothingEnabled = false
@@ -259,7 +259,7 @@ const PRIM = {
     const frames = Math.max(1, def.frames || 1)
     const ok = S.img && S.img.complete && S.img.naturalWidth > 0
     const sw = ok ? S.img.naturalWidth / frames : (def.width || 128)   // per-frame width from the real sheet
-    const sh = ok ? S.img.naturalHeight : (def.height || 128)
+    const sh = ok ? S.img.naturalHeight / (def.maskRows || 1) : (def.height || 128)
     const frame = beat.frame || 0, sx = frame * sw, sy = 0
     const grow = (beat.from ?? 0.8) + ((beat.to ?? 1.1) - (beat.from ?? 0.8)) * ease(p)
     const scale = (H * 0.55) / sh * grow
@@ -376,7 +376,7 @@ const PRIM = {
     const img = S.img, def = S.def || { width: 128, height: 128 }
     const okImg = img && img.complete && img.naturalWidth > 0
     const frames = Math.max(1, def.frames || 1)
-    const fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight : (def.height || 128)
+    const fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight / (def.maskRows || 1) : (def.height || 128)
     const cols = beat.cols || 5, rows = beat.rows || 7
     const sw = fw / cols, sh = fh / rows, dw = r.w / cols, dh = r.h / rows
     const e = ease(p), spread = (beat.spread || 1) * r.w * 0.6
@@ -467,7 +467,7 @@ const PRIM = {
   soulSplit(c, W, H, p, beat, S) {
     const r = S.rect; if (!r) return
     const img = S.img, def = S.def || {}, okImg = img && img.complete && img.naturalWidth > 0
-    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight : (def.height || 128)
+    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight / (def.maskRows || 1) : (def.height || 128)
     const e = ease(p), gap = r.w * 0.5 * e
     c.save(); c.imageSmoothingEnabled = false
     c.save(); c.globalAlpha = Math.max(0, 1 - e * 0.4); c.translate(-gap - e * e * 10, e * e * 30); c.rotate(-e * 0.15)
@@ -487,7 +487,7 @@ const PRIM = {
   frameFlicker(c, W, H, p, beat, S, f) {
     const r = S.rect; if (!r) return
     const img = S.img, def = S.def || {}, okImg = img && img.complete && img.naturalWidth > 0
-    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight : (def.height || 128)
+    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight / (def.maskRows || 1) : (def.height || 128)
     const e = ease(p)
     c.save(); c.imageSmoothingEnabled = false
     for (let i = 0; i < 5; i++) { const ph = f * 0.3 + i * 1.3, ox = Math.sin(ph) * r.w * 0.5 * e + (rnd(i, f >> 1) - 0.5) * 20, oy = (rnd(i + 3, f >> 1) - 0.5) * 14; c.globalAlpha = 0.18; if (okImg) { try { c.drawImage(img, 0, 0, fw, fh, r.x + ox, r.y + oy, r.w, r.h) } catch (_) {} } }
@@ -502,7 +502,7 @@ const PRIM = {
   boogie(c, W, H, p, beat, S, f) {
     const r = S.rect; if (!r) return
     const img = S.img, def = S.def || {}, okImg = img && img.complete && img.naturalWidth > 0
-    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight : (def.height || 128)
+    const frames = Math.max(1, def.frames || 1), fw = okImg ? img.naturalWidth / frames : (def.width || 128), fh = okImg ? img.naturalHeight / (def.maskRows || 1) : (def.height || 128)
     const e = ease(p)
     c.save(); c.imageSmoothingEnabled = false
     const slot = Math.floor(f / 8) % 3, offs = [[-r.w * 0.9, 10], [r.w * 0.9, -6], [0, 0]]

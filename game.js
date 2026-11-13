@@ -793,7 +793,7 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // Demon Slayer Hashira / slayers — canonical Breathing-Style finishers. Nezuko (child) added by EXPLICIT owner
   // request 2026-10-19 (overrides the hard child-exclusion, like the killua/naruto age-gate lifts).
   "rengoku", "zenitsu", "shinobu", "inosuke", "nezuko",
-  "naruto"])   // ★ rickprime LOWERCASE; naruto (TEEN) age-gate lifted by owner request 2026-10-19 (NOT naruto_hokage the Adult-KCM one)
+  "naruto", "buggy"])   // ★ rickprime LOWERCASE; naruto (TEEN) age-gate lifted by owner request 2026-10-19 (NOT naruto_hokage the Adult-KCM one)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -803,6 +803,7 @@ const GORE_PURPLE  = ["#a11026", "#6e0016", "#b060e0", "#3a000a"]   // Frieza / 
 const GORE_TOXIC   = ["#7a0016", "#3a7a1a", "#57e07a", "#20340f"]   // Mayuri — neurotoxin green
 const GORE_EMBER   = ["#a11026", "#6e0016", "#ff9a2a", "#3a000a"]   // Zaraki / Baki / Naoya — spark-ember
 const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka / Byakuya — pink (Bungee-Gum / Senbonzakura petals)
+const GORE_CLOWN   = ["#a11026", "#6e0016", "#ffc83a", "#3a000a"]   // Buggy — circus gold (Bara Bara knives / Buggy Ball blast)
 const GORE_LIGHTNING = ["#a11026", "#6e0016", "#6ad0ff", "#3a000a"] // Sasuke — Chidori electric-blue arc
 const GORE_WATER   = ["#a11026", "#6e0016", "#5ab4e6", "#06131f"]   // Tobirama — blood + water-blue (Suiton)
 const GORE_DARK    = ["#8a7a66", "#2e2430", "#9a86b0", "#0a0610"]   // Tobirama Edo Tensei — ashen husk + reanimation-violet (NO fresh blood: a reanimated drag-down)
@@ -914,6 +915,17 @@ const BRUTALITY_FINISHERS = {
     hisokaRekka2: { name: "TEXTURE SURPRISE", gore: "dice",      palette: GORE_MAGENTA, flash: "#b01070" },
     bungeeGum:    { name: "BUNGEE GUM",       gore: "bungeegum", palette: GORE_MAGENTA, flash: "#ff5ab0", live: true, winAction: "bungeeGum", loseAction: "hurt" },  // gum sticks → elastic YANK reels the foe in → point-blank burst
     hisoka_card:  { name: "CARD STORM",       gore: "cardstorm", palette: GORE_MAGENTA, flash: "#ff5ab0" },  // throws the whole deck → every card sticks in → the body topples over
+  },
+  // BUGGY THE CLOWN — Chop-Chop Fruit. BARA BARA FESTIVAL: his detached knife-hands swarm the foe, carve it along
+  // a grid and it falls apart into pieces. BUGGY BALL: his clown-faced cannonball lands point-blank → the foe is
+  // blown apart in a circus-gold fireball. Chop-Chop Cannon (flying hand, drone type "buggy_hand") + the heavy carve
+  // reuse the Bara Bara renderer with fewer hands / pieces. Keys = Buggy's real stamped move ids (buggyData BUGGY_MOVES / buggyParts d.type).
+  buggy: {
+    bFestival:  { name: "BARA BARA FESTIVAL", gore: "barabara",   palette: GORE_CLOWN, flash: "#ffc83a", live: true, winAction: "bFestival", loseAction: "hurt" },  // LIVE: knife-hands carve → falls to pieces
+    bBall:      { name: "BUGGY BALL",         gore: "buggyball",  palette: GORE_CLOWN, flash: "#ff7a1e", live: true, winAction: "bBall",     loseAction: "hurt" },  // LIVE: clown cannonball → point-blank blast
+    bSuper:     { name: "BUGGY BALL BARRAGE", gore: "buggyball",  palette: GORE_CLOWN, flash: "#ff7a1e", live: true, winAction: "bBall",     loseAction: "hurt" },  // LIVE: the Super's last ball finishes the job
+    buggy_hand: { name: "CHOP-CHOP CANNON",   gore: "barabara",   palette: GORE_CLOWN, flash: "#ffc83a", live: true, winAction: "bCannon",   loseAction: "hurt", hands: 1, cols: 2, rows: 3 },  // LIVE: the flying knife-hand carves them apart
+    heavy:      { name: "FLASHY CARVE",       gore: "barabara",   palette: GORE_CLOWN, flash: "#ffc83a", live: true, winAction: "heavy",     loseAction: "hurt", hands: 2, cols: 2, rows: 2 },  // LIVE: two knife-hands quarter them
   },
   // GHOSTFACE — the knife. (ghostfaceCombo3 rekka, Gutting Lunge special, The Final Act ult)
   ghostface: {
@@ -1198,7 +1210,7 @@ function _hasBlowOrTraitEntry(wKey, move, fighter) { return _resolveBrutalityFin
 // Brutality roll-out: ONLY these characters use the new "killing-move → gore finisher immediately" routing.
 // Everyone else keeps the existing FINISH-window → fatality / cinematic flow untouched. One character at a time.
 const GORE_ROUTING_CHARS = new Set(["tobirama", "gojo", "pain", "madara", "sukuna", "toji", "obito", "rick", "rickprime", "flash", "killua", "beerus",
-  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka", "jason", "rengoku", "zenitsu", "shinobu", "inosuke", "nezuko"])
+  "sasuke", "sasuke_adult", "sasuke_sensei", "goku_rose", "naruto_seventh", "naruto", "shisui_fallen", "omega_ranger", "hisoka", "jason", "rengoku", "zenitsu", "shinobu", "inosuke", "nezuko", "buggy"])
 // FLASH run-finisher family — grab → run → scrolling backdrop → shed, all share the live position/camera/blood
 // handling; only the destination backdrop + the finale (maps / eras / dimension / space-vacuum / sun) differ.
 const SPEEDRUN_GORES = new Set(["speedrun", "chronorun", "dimensionrun", "spacevacuum", "solarrun"])
@@ -6428,7 +6440,8 @@ function _tryStartBrutality(winner) {
   { const _pm = { meteor: ["./madara_tengai_meteor_uniform.png"], susanoograb: ["./madara2_susanoo_grab_air_uniform.png"], susanooslam: ["./madara2_susanoo_grab_air_uniform.png"],
       susanooblade: ["./madara_complete_atk1_uniform.png"], firearrow: ["./sukuna_firearrow_fire_sheet.png"], domainslash: ["./alt_sukuna_domain3.png"],
       gunshot: ["./toji_gun_uniform.png"], spearrun: ["./toji_chain_attack_5_uniform.png"], slashdance: ["./toji_rapid_sword_slashes_uniform.png"],
-      bludgeon: ["./toji_playful_cloud_dash_attack_uniform.png"], flyheads: ["./toji_fly_head_uniform.png"] }
+      bludgeon: ["./toji_playful_cloud_dash_attack_uniform.png"], flyheads: ["./toji_fly_head_uniform.png"],
+      barabara: ["./assets/buggy/part_hand_idle.png", "./assets/buggy/fx_knife.png"], buggyball: ["./assets/buggy/fx_ball_buggy.png"] }
     for (const _ps of (_pm[brutalityState.finisher?.gore] || [])) try { _susanoImg(_ps) } catch (_) {} }   // kick off the REAL finisher sprite load(s)
   // ── LIVE finisher: NO snapshot-puppet. BOTH fighters stay LIVE on the stage — the winner performs the real move
   // animation (winAction) and the loser holds its reaction pose (loseAction); only the gore FX layer on top. This
@@ -6814,7 +6827,7 @@ function updateBrutality() {
     const lf = b.loseRef, wf = b.winRef, t = Math.min(1, elapsed / b.maxTimer), g = b.finisher?.gore
     const lw = lf._lastDrawW || lf.w || 60, lh = lf._lastDrawH || lf.h || 100
     if (b._liveLoseY0 == null) { b._liveLoseY0 = lf.y; b._liveLoseX0 = lf.x; b._liveWinX0 = wf.x; b._liveWinY0 = wf.y }   // remember resting spots (restored on exit)
-    if (g === "flamecleave" || g === "thunderdash" || g === "flamerush") {   // choreographed SPLIT finishers: snapshot the foe (after idle renders) then hide it → the captured halves stand in so the body can actually cleave
+    if (g === "flamecleave" || g === "thunderdash" || g === "flamerush" || g === "barabara" || g === "buggyball") {   // choreographed SPLIT finishers: snapshot the foe (after idle renders) then hide it → the captured halves stand in so the body can actually cleave
       if (!b._capSprite && elapsed >= 2) b._capSprite = _captureLoserSprite(lf)
       if (b._capSprite) lf._brutHidden = true }
     if (b._narutoChoreo && isNarutoChoreoActive()) { updateNarutoChoreo(() => {})   // advance the REAL shadow-clone choreography (no-op fireHit — the foe is already KO'd); clones render via getNarutoChoreoBodies()
@@ -6875,7 +6888,7 @@ function updateBrutality() {
       else wf.x = farX
       wf.facing = (b.dir || 1); wf.y = b._liveWinY0 }
     else { const stepP = Math.min(1, t / 0.28), winW = wf._lastDrawW || wf.w || 60, loseCx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2
-      const gap = (g === "gunshot" || g === "gundecap" || g === "meteor" || g === "firearrow" || g === "flyheads") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
+      const gap = (g === "gunshot" || g === "gundecap" || g === "meteor" || g === "firearrow" || g === "flyheads" || g === "buggyball") ? (winW + lw) * 0.9 : (winW * 0.5 + lw * 0.42)
       const target = loseCx - (b.dir || 1) * gap
       wf.x = b._liveWinX0 + (target - b._liveWinX0) * stepP }
     const lcx = (lf._lastDrawX != null ? lf._lastDrawX : lf.x) + lw / 2, lcy = (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh / 2, lcell = Math.max(3, lw / 14)
@@ -6927,7 +6940,7 @@ function updateBrutality() {
         camera.focusBetween(wf, lf, z); camera.zoom = z; camera.targetZoom = z   // frame both; follows the loser UP for flyheads
       }
     }
-    const _noB = g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flamecleave" || g === "thunderdash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst" || g === "flamerush"
+    const _noB = g === "barabara" || g === "buggyball" || g === "firearrow" || g === "fireball" || g === "flyheads" || g === "drag" || g === "annihilate" || g === "kamuivacuum" || g === "portalvacuum" || g === "juubi" || g === "temporalstab" || SPEEDRUN_GORES.has(g) || g === "gedomazo" || g === "mokuton" || g === "electrocute" || g === "yoyobisect" || g === "godspeedflurry" || g === "hakai" || g === "destructionsphere" || g === "whisslam" || g === "ascension" || g === "bladecut" || g === "amaterasu" || g === "kirin" || g === "sasukesusanoo" || g === "uzumakibarrage" || g === "tbb" || g === "rasengan" || g === "rasenshuriken" || g === "bodyflicker" || g === "flickerslice" || g === "shisuisusanoo" || g === "kotoamatsukami" || g === "gundecap" || g === "swordsmoke" || g === "bungeegum" || g === "flamecleave" || g === "thunderdash" || g === "poisonmelt" || g === "beastmaul" || g === "bloodburst" || g === "flamerush"
     if (!_noB) { const kf = Math.round((g === "gunshot" ? 0.52 : 0.45) * b.maxTimer)
       const by = g === "gunshot" ? ((lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14) : (g === "decap" ? (lf._lastDrawY != null ? lf._lastDrawY : lf.y) + lh * 0.14 : lcy)
       if (elapsed === kf) _spawnBrutalityBlood(b, lcx, by, lcell, 1)
@@ -8240,6 +8253,163 @@ function _drawLiveBloodDemon(b) {
       for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 1120 + i, k), ph = (a * 2 + h(1)) % 1; ctx.globalAlpha = (1 - ph) * 0.7; ctx.fillStyle = h(2) < 0.5 ? "rgba(255,150,200,0.9)" : col(0.8); ctx.beginPath(); ctx.arc(cx + (h(3) * 2 - 1) * lw * 0.4, cy + lh * 0.2 - ph * lh * 1.0, cell * (0.5 - ph * 0.3), 0, 6.28); ctx.fill() }
       ctx.globalAlpha = Math.min(0.8, a); ctx.fillStyle = "rgba(28,16,22,0.85)"; ctx.beginPath(); ctx.ellipse(cx, gy, lw * 0.38 * a, lw * 0.12 * a, 0, 0, 6.28); ctx.fill(); ctx.restore() } }
 }
+// BUGGY finishers — shared helpers. The captured foe canvas is TRIMMED to its opaque pixels once, so the chunks,
+// cuts and FX size to the VISIBLE body (fighters whose animation cell is mostly empty margin — e.g. Buggy's own
+// 160×112 cells — would otherwise blow every effect up to the size of the cell).
+function _brutTrimCap(sp) {
+  if (!sp || !sp.canvas) return null
+  if (sp._trim) return sp._trim
+  const W = sp.canvas.width, H = sp.canvas.height, full = { sx: 0, sy: 0, sw: W, sh: H, x: sp.x, y: sp.y, w: sp.w, h: sp.h }
+  try {
+    const d = sp.canvas.getContext("2d").getImageData(0, 0, W, H).data
+    let x0 = W, y0 = H, x1 = -1, y1 = -1
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
+    if (x1 < 0) return (sp._trim = full)
+    const kx = sp.w / W, ky = sp.h / H
+    sp._trim = { sx: x0, sy: y0, sw: x1 - x0 + 1, sh: y1 - y0 + 1, x: sp.x + x0 * kx, y: sp.y + y0 * ky, w: (x1 - x0 + 1) * kx, h: (y1 - y0 + 1) * ky }
+  } catch (_) { sp._trim = full }
+  return sp._trim
+}
+// Body frame for a Buggy finisher: the trimmed capture when available, else the live draw rect.
+function _brutBuggyBody(c, sp) {
+  const T = _brutTrimCap(sp)
+  if (!T) return { T: null, bw: c.lw, bh: c.lh, bcx: c.cx, bcy: c.cy, cell: c.cell }
+  return { T, bw: T.w, bh: T.h, bcx: T.x + T.w / 2, bcy: T.y + T.h / 2, cell: Math.max(3, T.w / 14) }
+}
+// BUGGY — BARA BARA FESTIVAL (live). Buggy holds his Festival pose; his detached gloved hands — each gripping a
+// knife — circle the foe and DIVE through it in turn, every pass leaving a cut along a grid. At SPLIT the captured
+// foe falls apart into its grid pieces, which tumble to the floor over a growing pool. The same renderer drives
+// CHOP-CHOP CANNON (1 hand, 2×3) and FLASHY CARVE (2 hands, 2×2) via finisher.hands/cols/rows.
+// Deterministic (_brutHash, no RNG); self-draws all blood (in _noB).
+function _drawLiveBaraBara(b) {
+  const c = _brutLiveCtx(b); if (!c.lf) return
+  const { seed, gy, t, col } = c, sp = b._capSprite, fin = b.finisher || {}
+  const { T, bw, bh, bcx, bcy, cell } = _brutBuggyBody(c, sp)
+  const HAND = "./assets/buggy/part_hand_idle.png", KNIFE = "./assets/buggy/fx_knife.png"
+  const NH = fin.hands || 6, COLS = fin.cols || 3, ROWS = fin.rows || 4
+  const CARVE0 = 0.08, SPLIT = 0.52, elapsed = b.maxTimer - b.timer
+  if (t > SPLIT) { const pg = Math.min(1, (t - SPLIT) / 0.35), prx = bw * (0.3 + pg * 0.5)
+    ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = "#8c0e18"; ctx.beginPath(); ctx.ellipse(bcx, gy, prx, prx * 0.2, 0, 0, 6.28); ctx.fill()
+    ctx.fillStyle = "#c4141f"; ctx.beginPath(); ctx.ellipse(bcx - bw * 0.05, gy - 1, prx * 0.6, prx * 0.11, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  // ── the foe: intact (trembling, cuts accumulating) → falls apart into grid chunks ──
+  const carveP = Math.min(1, Math.max(0, (t - CARVE0) / (SPLIT - CARVE0)))
+  if (sp && T) {
+    const cw = T.sw / COLS, ch = T.sh / ROWS, dw = T.w / COLS, dh = T.h / ROWS
+    if (t < SPLIT) {
+      const jx = carveP > 0 ? Math.sin(elapsed * 2.1) * cell * 0.35 * carveP : 0
+      ctx.drawImage(sp.canvas, sp.x + jx, sp.y, sp.w, sp.h)
+      const cuts = []; for (let q = 1; q < COLS; q++) cuts.push([q, 0]); for (let r = 1; r < ROWS; r++) cuts.push([0, r])
+      const nCut = Math.min(cuts.length, Math.floor(carveP * (cuts.length + 0.999)))
+      ctx.save(); ctx.lineCap = "round"; ctx.strokeStyle = "rgba(150,10,22,0.95)"; ctx.lineWidth = Math.max(2, cell * 0.4)
+      for (let i = 0; i < nCut; i++) { const [vc, hr] = cuts[(i * 3) % cuts.length]; ctx.beginPath()
+        if (vc) { const x = T.x + jx + vc * dw; ctx.moveTo(x, T.y + T.h * 0.06); ctx.lineTo(x + (i % 2 ? 2 : -2), T.y + T.h * 0.96) }
+        else { const y = T.y + hr * dh; ctx.moveTo(T.x + jx + T.w * 0.08, y); ctx.lineTo(T.x + jx + T.w * 0.92, y + 2) }
+        ctx.stroke() }
+      ctx.restore()
+    } else {
+      const prog = Math.min(1, (t - SPLIT) / 0.4)
+      ctx.save(); ctx.imageSmoothingEnabled = false
+      for (let r = 0; r < ROWS; r++) for (let q = 0; q < COLS; q++) {
+        const i = r * COLS + q, h = (k) => _brutHash(seed, 940 + i, k)
+        const u = Math.min(1, prog * (1.15 + h(5) * 0.4)), arc = 4 * u * (1 - u)
+        const x0 = T.x + q * dw + dw / 2, y0 = T.y + r * dh + dh / 2
+        const vx = (((q + 0.5) / COLS - 0.5) * 2 * 0.9 + (h(1) - 0.5) * 0.5) * bw * (0.7 + r * 0.12)
+        const restY = gy - dh * (0.32 + h(3) * 0.12), up = bh * (0.12 + h(2) * 0.28) * (1 - r / ROWS)
+        const px = x0 + vx * u, py = y0 + (restY - y0) * (u * u) - up * arc
+        ctx.save(); ctx.translate(px, py); ctx.rotate((h(4) - 0.5) * 2.6 * u + (r === ROWS - 1 ? 0 : (q - (COLS - 1) / 2) * 0.5 * u))
+        try { ctx.drawImage(sp.canvas, T.sx + q * cw, T.sy + r * ch, cw, ch, -dw / 2, -dh / 2, dw, dh) } catch (_) {}
+        ctx.restore()
+        if (u < 0.9) { ctx.save(); ctx.globalAlpha = 0.75 * (1 - u); ctx.fillStyle = BLOOD_REDS[i % 2]; ctx.beginPath(); ctx.arc(px - vx * 0.06, py + cell * 0.4, cell * 0.3, 0, 6.28); ctx.fill(); ctx.restore() }
+      }
+      ctx.restore()
+    }
+  }
+  // ── the knife-hand swarm (orbit + dive-through passes) ──
+  if (t >= 0.03 && t < SPLIT + 0.16) {
+    const fadeIn = Math.min(1, (t - 0.03) / 0.06), fadeOut = t > SPLIT ? Math.max(0, 1 - (t - SPLIT) / 0.16) : 1, A = fadeIn * fadeOut
+    for (let i = 0; i < NH; i++) { const h = (k) => _brutHash(seed, 920 + i, k)
+      const spin = (h(2) > 0.5 ? 1 : -1), ang = h(1) * 6.28 + (t - 0.03) * 13 * spin
+      const ph = (carveP * 5 + i / NH) % 1, dive = (carveP > 0 && carveP < 1 && ph < 0.3) ? Math.sin(ph / 0.3 * Math.PI) : 0
+      const rr = bw * (0.95 + 0.12 * Math.sin(t * 9 + i)) * (1 - dive * 0.9) + (1 - fadeIn) * bw * 1.4
+      const hx = bcx + Math.cos(ang) * rr, hy = bcy - bh * 0.05 + Math.sin(ang) * rr * 0.75
+      const toC = Math.atan2(bcy - hy, bcx - hx)
+      if (dive > 0.25) { ctx.save(); ctx.globalAlpha = A * dive * 0.75; ctx.strokeStyle = "rgba(255,244,214,0.95)"; ctx.lineWidth = cell * 0.45; ctx.lineCap = "round"
+        ctx.beginPath(); ctx.moveTo(hx - Math.cos(toC) * bw * 0.5, hy - Math.sin(toC) * bw * 0.5); ctx.lineTo(hx + Math.cos(toC) * bw * 0.6, hy + Math.sin(toC) * bw * 0.6); ctx.stroke()
+        ctx.strokeStyle = col(0.8); ctx.lineWidth = cell * 0.2; ctx.stroke(); ctx.restore() }
+      const kimg = _susanoImg(KNIFE)
+      if (kimg && kimg.complete && kimg.naturalWidth) { const kh = bh * 0.09, kw = kh * (kimg.naturalWidth / kimg.naturalHeight)
+        ctx.save(); ctx.globalAlpha = A; ctx.translate(hx, hy); ctx.rotate(toC); ctx.imageSmoothingEnabled = false; ctx.drawImage(kimg, 0, -kh / 2, kw, kh); ctx.restore() }
+      else { ctx.save(); ctx.globalAlpha = A; ctx.strokeStyle = "#dfe6ee"; ctx.lineWidth = cell * 0.5; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(toC) * bh * 0.12, hy + Math.sin(toC) * bh * 0.12); ctx.stroke(); ctx.restore() }
+      if (!_brutSheetFrame(ctx, HAND, 2, (elapsed >> 3) % 2, hx, hy, bh * 0.15, Math.cos(toC) >= 0 ? 1 : -1, A, 0.5)) {
+        ctx.save(); ctx.globalAlpha = A; ctx.fillStyle = "#f4f0ea"; ctx.beginPath(); ctx.arc(hx, hy, cell * 1.3, 0, 6.28); ctx.fill(); ctx.restore() }
+    }
+  }
+  // ── SPLIT: white pop + blood spray ──
+  if (t >= SPLIT && t < SPLIT + 0.07) { const f = 1 - (t - SPLIT) / 0.07; ctx.save(); ctx.globalAlpha = f * 0.5; ctx.fillStyle = "#fff"; ctx.fillRect(bcx - bw * 5, bcy - bh * 5, bw * 10, bh * 10); ctx.restore() }
+  if (t >= SPLIT) { const wt = (t - SPLIT) / (1 - SPLIT)
+    if (wt < 0.2) _drawBloodSplat(ctx, bcx, bcy, Math.min(bw * 0.5, 40), (1 - wt / 0.2) * 0.6)
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - wt / 0.55) * 0.85
+    for (let i = 0; i < 14; i++) { const h = (k) => _brutHash(seed, 960 + i, k), ph = Math.min(1, wt * (1.6 + h(1))), a = h(2) * 6.28
+      ctx.fillStyle = h(5) < 0.3 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(bcx + Math.cos(a) * bw * 0.8 * ph, bcy + Math.sin(a) * bh * 0.35 * ph + ph * ph * bh * 0.3, cell * (0.3 + h(3) * 0.3), 0, 6.28); ctx.fill() }
+    ctx.restore() }
+}
+// BUGGY — BUGGY BALL (live). Buggy holds his cannon pose at range; a clown-faced Buggy Ball (real fx_ball_buggy.png)
+// arcs out of his hands with a fizzing fuse and smoke trail, lands on the foe → white flash, a circus-gold fireball
+// that rises off the GROUND (base on the floor, billowing up), a shock ring, then the captured foe blown into 9
+// charred chunks that rain back down, a scorch crater and drifting smoke. Deterministic; self-draws all blood.
+function _drawLiveBuggyBall(b) {
+  const c = _brutLiveCtx(b); if (!c.lf) return
+  const { seed, dir, gy, t, wx, wy } = c, sp = b._capSprite
+  const { T, bw, bh, bcx, bcy, cell } = _brutBuggyBody(c, sp)
+  const BALL = "./assets/buggy/fx_ball_buggy.png", FIRE0 = 0.08, HIT = 0.4
+  const elapsed = b.maxTimer - b.timer
+  if (t > HIT) { const pg = Math.min(1, (t - HIT) / 0.2), R = bw * (0.6 + pg * 0.5)
+    ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = "#1a0f0a"; ctx.beginPath(); ctx.ellipse(bcx, gy, R, R * 0.2, 0, 0, 6.28); ctx.fill()
+    ctx.globalAlpha = 0.7; ctx.fillStyle = "#7a0e14"; ctx.beginPath(); ctx.ellipse(bcx + bw * 0.1, gy - 1, R * 0.45, R * 0.09, 0, 0, 6.28); ctx.fill(); ctx.restore() }
+  if (sp && T) {
+    if (t < HIT) ctx.drawImage(sp.canvas, sp.x, sp.y, sp.w, sp.h)
+    else { const prog = Math.min(1, (t - HIT) / 0.5), COLS = 3, ROWS = 3, cw = T.sw / COLS, ch = T.sh / ROWS, dw = T.w / COLS, dh = T.h / ROWS
+      ctx.save(); ctx.imageSmoothingEnabled = false; try { ctx.filter = `brightness(${(1 - 0.65 * Math.min(1, prog * 3)).toFixed(2)}) sepia(0.6)` } catch (_) {}
+      for (let r = 0; r < ROWS; r++) for (let q = 0; q < COLS; q++) { const i = r * COLS + q, h = (k) => _brutHash(seed, 980 + i, k)
+        const u = Math.min(1, prog * (1.0 + h(5) * 0.35)), arc = 4 * u * (1 - u)
+        const x0 = T.x + q * dw + dw / 2, y0 = T.y + r * dh + dh / 2
+        const vx = (((q + 0.5) / COLS - 0.5) * 2 + (h(1) - 0.5) * 0.8 + dir * 0.35) * bw * 1.6
+        const restY = gy - dh * 0.3, up = bh * (0.6 + h(2) * 0.7)
+        const px = x0 + vx * u, py = y0 + (restY - y0) * (u * u) - up * arc
+        ctx.save(); ctx.translate(px, py); ctx.rotate((h(4) - 0.5) * 7 * u)
+        try { ctx.drawImage(sp.canvas, T.sx + q * cw, T.sy + r * ch, cw, ch, -dw / 2, -dh / 2, dw, dh) } catch (_) {}
+        ctx.restore() }
+      try { ctx.filter = "none" } catch (_) {}
+      ctx.restore() }
+  }
+  // the cannonball in flight (arc from Buggy's hands to the foe) with a smoke trail + fizzing fuse
+  if (t >= FIRE0 && t < HIT) { const u = (t - FIRE0) / (HIT - FIRE0)
+    const P = (v) => ({ x: wx + (bcx - wx) * v, y: wy + (bcy - wy) * v - bh * 0.9 * 4 * v * (1 - v) })
+    ctx.save(); for (let k = 1; k <= 7; k++) { const v = Math.max(0, u - k * 0.045), p = P(v); ctx.globalAlpha = 0.35 * (1 - k / 8); ctx.fillStyle = "#cfc8c0"; ctx.beginPath(); ctx.arc(p.x, p.y, cell * (0.8 + k * 0.35), 0, 6.28); ctx.fill() } ctx.restore()
+    const p = P(u), bh2 = bh * 0.36
+    if (!_brutSheetFrame(ctx, BALL, 1, 0, p.x, p.y, bh2, dir, 1, 0.5)) { ctx.save(); ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(p.x, p.y, bh2 * 0.4, 0, 6.28); ctx.fill(); ctx.restore() }
+    const fl = (elapsed % 4) < 2; ctx.save(); ctx.fillStyle = fl ? "#fff3a0" : "#ff9a2a"; ctx.beginPath(); ctx.arc(p.x + dir * bh2 * 0.1, p.y - bh2 * 0.5, cell * (fl ? 0.9 : 0.6), 0, 6.28); ctx.fill(); ctx.restore() }
+  // impact: flash + ground-anchored fireball column + shock ring + confetti + smoke
+  if (t >= HIT && t < HIT + 0.06) { const f = 1 - (t - HIT) / 0.06; ctx.save(); ctx.globalAlpha = f * 0.7; ctx.fillStyle = "#fff6dc"; ctx.fillRect(bcx - bw * 8, bcy - bh * 8, bw * 16, bh * 16); ctx.restore() }
+  if (t >= HIT) { const e = (t - HIT) / (1 - HIT), grow = 1 - Math.pow(1 - Math.min(1, e / 0.22), 3), fade = Math.max(0, 1 - Math.max(0, e - 0.28) / 0.45)
+    if (fade > 0) { ctx.save()
+      for (let i = 0; i < 9; i++) { const h = (k) => _brutHash(seed, 1000 + i, k), rise = grow * bh * (0.12 + i * 0.11) + e * bh * 0.3 * h(1)
+        const R = bw * (1.05 - i * 0.07) * grow * (0.85 + h(2) * 0.3), bx = bcx + (h(3) - 0.5) * bw * 0.5, by = gy - R * 0.45 - rise
+        const g2 = ctx.createRadialGradient(bx, by, 0, bx, by, R); g2.addColorStop(0, `rgba(255,248,210,${0.95 * fade})`); g2.addColorStop(0.35, `rgba(255,200,58,${0.9 * fade})`); g2.addColorStop(0.7, `rgba(255,96,24,${0.75 * fade})`); g2.addColorStop(1, "rgba(120,20,0,0)")
+        ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(bx, by, R, 0, 6.28); ctx.fill() }
+      ctx.restore() }
+    if (e < 0.4) { const rp = e / 0.4; ctx.save(); ctx.globalAlpha = (1 - rp) * 0.85; ctx.strokeStyle = "rgba(255,226,150,0.95)"; ctx.lineWidth = cell * (1.4 - rp); ctx.beginPath(); ctx.ellipse(bcx, gy - cell, bw * (0.5 + rp * 1.6), bw * (0.1 + rp * 0.28), 0, 0, 6.28); ctx.stroke(); ctx.restore() }
+    ctx.save(); for (let i = 0; i < 18; i++) { const h = (k) => _brutHash(seed, 1020 + i, k), ph = Math.min(1, e * (1.2 + h(1))), a = -Math.PI * (0.1 + h(2) * 0.8)
+      ctx.globalAlpha = Math.max(0, 1 - ph) * 0.9; ctx.fillStyle = ["#ffc83a", "#ff3b3b", "#3bb0ff", "#ff7a1e"][i % 4]
+      ctx.fillRect(bcx + Math.cos(a) * bw * 1.5 * ph, bcy + Math.sin(a) * bh * 1.1 * ph + ph * ph * bh * 0.9, cell * 0.7, cell * 0.45) } ctx.restore()
+    if (e > 0.2) { const se = (e - 0.2) / 0.8; ctx.save()
+      for (let i = 0; i < 7; i++) { const h = (k) => _brutHash(seed, 1040 + i, k), sy = gy - bh * (0.4 + se * (0.7 + h(1) * 0.5)) - i * bh * 0.1, sx = bcx + (h(2) - 0.5) * bw * 0.8 + se * bw * 0.2
+        ctx.globalAlpha = Math.min(0.4, se * 1.3) * (1 - se * 0.6); ctx.fillStyle = h(3) < 0.5 ? "#3a3532" : "#57504a"; ctx.beginPath(); ctx.arc(sx, sy, bw * (0.28 + se * 0.32 + h(4) * 0.15), 0, 6.28); ctx.fill() }
+      ctx.restore() }
+    if (e < 0.5) { ctx.save(); ctx.globalAlpha = (1 - e / 0.5) * 0.8; for (let i = 0; i < 10; i++) { const h = (k) => _brutHash(seed, 1060 + i, k), ph = e * 2 * (1 + h(1)), a = h(2) * 6.28
+      ctx.fillStyle = h(3) < 0.4 ? BLOOD_REDS[1] : BLOOD_REDS[0]; ctx.beginPath(); ctx.arc(bcx + Math.cos(a) * bw * 0.9 * ph, bcy + Math.sin(a) * bh * 0.4 * ph + ph * ph * bh * 0.4, cell * 0.4, 0, 6.28); ctx.fill() } ctx.restore() }
+  }
+}
 // GENERIC LIVE GORE — the fighters are the real animated sprites (winner performs winAction, loser holds loseAction/
 // is knocked into hurt). Here we ONLY layer the gore FX, anchored to the loser's DRAWN rect: ground pool + a
 // per-gore flavor overlay (slashes / flames / bruises / swarm / meteor) + a blood burst at the kill. The weapon
@@ -8250,6 +8420,8 @@ function _drawLiveGore(b) {
   if (g === "gundecap") { _drawLiveGunDecap(b); return }
   if (g === "swordsmoke") { _drawLiveSwordSmoke(b); return }
   if (g === "bungeegum") { _drawLiveBungeeGum(b); return }
+  if (g === "barabara") { _drawLiveBaraBara(b); return }
+  if (g === "buggyball") { _drawLiveBuggyBall(b); return }
   if (g === "flamecleave") { _drawLiveFlameCleave(b); return }
   if (g === "flamerush") { _drawLiveFlameRush(b); return }
   if (g === "thunderdash") { _drawLiveThunderDash(b); return }
@@ -23992,7 +24164,7 @@ function _academyLessons() {
         squish: "Slammed flat into a pancake", pull: "Yanked in → burst into a pool", meteor: "Crushed by a falling meteor", susanoograb: "Squeezed to pulp by a giant hand",
         susanooslam: "Lifted + slammed into mush", fireball: "Incinerated to ash", susanooblade: "Cleaved by the Perfect Susano'o sword",
         decap: "Head chopped off", slashstorm: "Cut to pieces → falls apart", domainslash: "Domain barrage → dismembered", firearrow: "Pierced by a flame arrow",
-        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flamecleave: "Leap-slam → cleaved in half by the flaming blade", flamerush: "Dashed through → bisected + ignited", thunderdash: "Dashed through → cleaved in half by the bolt", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
+        gunshot: "Shot → headshot", gundecap: "One shot → the head drops", swordsmoke: "Speed-blur saber barrage from the smoke", bungeegum: "Gum-yanked in → torn apart", barabara: "Knife-hands carve them into pieces", buggyball: "Clown cannonball → blown apart", cardstorm: "Carded by the whole deck → topples over", machetechop: "Split head-to-groin by the machete", flamecleave: "Leap-slam → cleaved in half by the flaming blade", flamerush: "Dashed through → bisected + ignited", thunderdash: "Dashed through → cleaved in half by the bolt", poisonmelt: "Dissolved by wisteria poison", beastmaul: "Mauled apart by dual nichirin", bloodburst: "Exploding-Blood detonation", spearrun: "Impaled on the Inverted Spear", slashdance: "Diced by a slash-dance", bludgeon: "Bludgeoned to a pulp", flashgrab: "Flash-step grab → burst", flyheads: "Swarmed → hurled to the sky", generic: "Gore burst" }
       groups.push({ section: "Brutalities", lessons: be.map((e, i) => ({
         id: `${academyCharKey}:brut:${e.key}`, section: "Brutalities", name: e.fin.name,
         input: "Watch", desc: GORE_DESC[e.fin.gore] || "Finisher", cat: "brutality", _brutIdx: i })) })

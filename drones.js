@@ -215,7 +215,13 @@ export function recallDrones(owner) {
 //   owners : array of fighters that may own drones (p1,p2[,…])
 //   frame  : global frame counter (deterministic hashing + bob phase)
 // ─────────────────────────────────────────────────────────────────────────────
+const _defaultIsEnemy = (o, f) => !!(o && f && f !== o && f.side !== o.side)
+const _tgtEnv = {}   // reused each frame (no per-frame allocation; never mutates the caller's env)
 export function updateDrones(owners, frame, env = {}) {
+  // targeting env (defaults from the owners list for 1v1; game.js passes fighters/isEnemy for FFA).
+  // Build a reused context — do NOT write onto the caller's env (it may be a shared/const object).
+  _tgtEnv.fighters = env.fighters || owners
+  _tgtEnv.isEnemy = env.isEnemy || _defaultIsEnemy
   // tick owner cooldowns + refresh HUD pips — only for fighters that have used drones
   // (_gaDroneCd is created lazily on first spawnDrone), so non-drone characters are untouched.
   for (const o of owners) {
@@ -260,8 +266,11 @@ export function updateDrones(owners, frame, env = {}) {
       continue
     }
     // behaviour sets d.tx/d.ty + actions
+    pickDroneTarget(d, _tgtEnv)   // PASS3 P4: retarget each frame per the owner's order (hysteresis inside)
     const bfn = BEHAVIOURS[d.behaviour] || BEHAVIOURS.follow
     bfn(d, { frame, env })
+    // GUARD order: hold near Oliver (override the behaviour's travel target) — don't chase/dive.
+    if (d._gaHold && d.owner && !d.dying && !d._retiring) { d.tx = (d.owner.x || 0) - (d.owner.facing || 1) * 70; d.ty = floorY(d.owner) - (d.profile.hoverHeight || 120) }
     moveToward(d, d.profile)
     d.x += d.vx; d.y += d.vy
     leashAndBound(d, env)
@@ -428,6 +437,54 @@ export function aiPickDroneTarget(aiFighter, frame, reach = 150) {
   }
   return best
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TARGETING + ORDERS (PASS3 P4). Shared, deterministic, with hysteresis so drones don't flicker
+// between targets. Orders (owner._gaOrder) persist for the round: "focus" (attack the current target),
+// "guard" (stay home, protector only), "sweep" (counter-summon first, then the fighter).
+// ─────────────────────────────────────────────────────────────────────────────
+export function pickDroneTarget(d, env) {
+  const owner = d.owner; if (!owner) return d.target
+  const order = owner._gaOrder || "focus"
+  const enemies = (env.fighters || []).filter(f => f && env.isEnemy?.(owner, f) && !f.eliminated)
+  if (!enemies.length) return d.target
+  if (order === "guard") { d._gaHold = true; return d.target }   // hold near Oliver; keep the current ref
+  d._gaHold = false
+  // priority: TAGGED fighter → nearest enemy fighter (counter-summon handles summons/projectiles).
+  const tagged = enemies.find(f => (f._gaTagged || 0) > 0)
+  let nearest = enemies[0]
+  for (const f of enemies) if (Math.abs((f.x || 0) - d.x) < Math.abs((nearest.x || 0) - d.x)) nearest = f
+  const want = tagged || nearest
+  if (d.target !== want) { d._gaRetargetT = (d._gaRetargetT || 0) + 1; if (d._gaRetargetT > 10 || !d.target || d.target.eliminated) { d.target = want; d._gaRetargetT = 0 } }
+  else d._gaRetargetT = 0
+  return d.target
+}
+
+// COUNTER-SUMMON: Bulwark/Aegis shoot down SMALL enemy projectiles (never beams/supers) within 25%
+// of Oliver, one per 45f (30f under SWEEP orders). env.screenW for the 25% band.
+export function updateDroneCounterSummon(projectiles, frame, env = {}) {
+  if (!activeMunitionsReady(projectiles)) return
+  const band = (env.screenW || 1280) * 0.25
+  for (const d of activeDrones) {
+    if (d.dying || (d.type !== "bulwark" && d.type !== "aegis")) continue
+    const o = d.owner; if (!o) continue
+    const cd = ((o._gaOrder || "focus") === "sweep") ? 30 : 45
+    if ((d.data._csCd || 0) > 0) { d.data._csCd--; continue }
+    for (const p of projectiles) {
+      if (!p.owner || !env.isEnemy?.(o, p.owner)) continue
+      if (p.isUltimate || p.visualOnly || /beam|laser|getsuga|bijuu|kamehameha/i.test(p.name || "")) continue   // never beams/supers
+      if ((p.w || p.width || 16) > 44) continue                                                                 // small only
+      if (Math.abs((p.x || 0) - (o.x || 0)) > band) continue
+      p.lifetime = Math.min(p.lifetime || 0, 1); d.data._csCd = cd; d._hitFlash = 6                             // shot it down
+      break
+    }
+  }
+}
+function activeMunitionsReady(projectiles) { return activeDrones.length && Array.isArray(projectiles) }
+
+const GA_ORDERS = ["focus", "guard", "sweep"]
+export function cycleDroneOrder(owner) { const i = GA_ORDERS.indexOf(owner._gaOrder || "focus"); owner._gaOrder = GA_ORDERS[(i + 1) % GA_ORDERS.length]; return owner._gaOrder }
+export function droneOrder(owner) { return owner?._gaOrder || "focus" }
 
 export function getActiveDrones() { return activeDrones }
 

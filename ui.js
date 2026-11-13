@@ -4329,6 +4329,8 @@ function _drawGreenArrowHud(ctx, fighter, barX, barW, barTopY, barH, flip) {
   ctx.fillStyle = _gqc[qi]; ctx.font = "bold 10px monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
   ctx.fillText(_gq[qi], qx + qs / 2, barTopY + qs / 2 + 0.5); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"
   ctx.restore()
+  // DRONE ORDER indicator (FOCUS / GUARD / SWEEP) above the pips (procedural, not sprite art).
+  { const _ord = (fighter._gaOrder || "focus").toUpperCase(), _oc = { FOCUS: "#ff6a2a", GUARD: "#5fe0ff", SWEEP: "#b79bff" }[_ord] || "#fff"; ctx.save(); ctx.font = "bold 8px monospace"; ctx.fillStyle = _oc; ctx.textAlign = flip ? "right" : "left"; ctx.fillText("\u25B8 " + _ord, flip ? (barX + barW) : barX, barTopY + barH + 2); ctx.textAlign = "left"; ctx.restore() }
   const pips = Array.isArray(fighter._gaDronePips) ? fighter._gaDronePips.slice(0, 3) : []
   const pw = 16, gap = 4, py = barTopY + barH + 3
   for (let i = 0; i < 3; i++) {

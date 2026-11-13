@@ -60,7 +60,7 @@ import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension"
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
-import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES } from "./drones.js"
+import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES, cycleDroneOrder } from "./drones.js"
 import { flightAxisStep, flightSoftLimit, hashRandom } from "./flight.js"   // GREEN ARROW Grapple pull + Super scatter RNG (flight.js is a leaf → no cycle)
 import { spawnMunition } from "./munitions.js"   // GREEN ARROW Super/drone bombs (munitions.js is a leaf → no cycle)   // GREEN ARROW generic drone system (drones.js imports only flight.js → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
@@ -36729,6 +36729,8 @@ export function tickGreenArrowTimers(fighter) {
   if ((fighter._gaEmpCd || 0) > 0) fighter._gaEmpCd--
   if ((fighter._gaExtractCd || 0) > 0) fighter._gaExtractCd--
   if ((fighter._gaSomerCd || 0) > 0) fighter._gaSomerCd--
+  // CPU Oliver rotates its drone ORDER on a hash schedule (deterministic; ~every 4s).
+  if (fighter._aiControlled) { fighter._gaOrderTick = (fighter._gaOrderTick || 0) + 1; if (fighter._gaOrderTick >= 240) { fighter._gaOrderTick = 0; fighter._gaOrder = ["focus", "guard", "sweep"][Math.floor(hashRandom((fighter._matchSeed | 0) || 1, (fighter._gaOrderSeq = (fighter._gaOrderSeq || 0) + 1), fighter.playerNumber || 1) * 3) % 3] } }
   // TECH hit-income, capped at +12/s (budget resets every 60 frames) — drones can't self-fund forever.
   fighter._gaSecTick = (fighter._gaSecTick || 0) + 1
   if (fighter._gaTechBudget == null || fighter._gaSecTick >= 60) { fighter._gaSecTick = 0; fighter._gaTechBudget = 12 }
@@ -36949,6 +36951,7 @@ export function updateGreenArrowCommandCombat(fighter, inputState, context, getP
   }
   // GROUND trick-arrow motions
   if (dd && upEdge)      { inputState.upAttack = false; greenArrowCycleQuiver(fighter); return true }   // ↓↓+Up = CYCLE quiver
+  if (dd && lightEdge)   { inputState.light = false; cycleDroneOrder(fighter); if (typeof sound !== "undefined") sound.play?.("ga_drone_deploy"); return true }   // ↓↓+Light = CYCLE drone ORDER (focus/guard/sweep)
   if (qcb && upEdge)     { inputState.upAttack = false; return fireGAQuiver(fighter, context) }          // ↓↙←+Up = FIRE selected quiver arrow
   if (qcf && lightEdge)  { inputState.light = false; fighter._gaCharging = true; fighter._gaChargeT = 0; return true }  // plain shot (charge)
   if (qcf && upEdge)     { inputState.upAttack = false; return fireGAAntiAir(fighter, context) }

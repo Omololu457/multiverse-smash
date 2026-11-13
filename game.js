@@ -49,7 +49,7 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
-import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, updateDroneCounterSummon, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
 import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, updateMunitionArrowInteract, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
 import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
@@ -20578,8 +20578,10 @@ function updateBattle() {
   updateActiveSummons()
   // GREEN ARROW drones — tick movement/behaviour + hittable collisions (no-op when none active).
   if (activeDrones.length || p1?._gaDroneCd || p2?._gaDroneCd) {
-    updateDrones([p1, p2], globalFrameCount, { leftWall: 0, rightWall: getStageWorldWidth(), ceilingY: -200 })
+    const _gaDIsEnemy = (o, f) => !!(o && f && f !== o && !ffaSameTeam(o, f)), _gaScrW = (canvas ? canvas.width : 1280)
+    updateDrones([p1, p2], globalFrameCount, { leftWall: 0, rightWall: getStageWorldWidth(), ceilingY: -200, fighters: [p1, p2].filter(Boolean), isEnemy: _gaDIsEnemy, screenW: _gaScrW })
     updateDroneCollisions([p1, p2], activeProjectiles)
+    updateDroneCounterSummon(activeProjectiles, globalFrameCount, { isEnemy: _gaDIsEnemy, screenW: _gaScrW })
   }
   // GREEN ARROW munitions (bombs/hazards) — generic pool; runs even with no drones out.
   if (activeMunitions.length || (p1 && p1.rosterKey === "green_arrow") || (p2 && p2.rosterKey === "green_arrow")) {

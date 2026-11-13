@@ -149,6 +149,42 @@ export const KITS = {
       {name:'Blade punish',sequence:'Nullify a slash → Heavy carve → SUPER',desc:'Let the sword pass through, carve, cash in.'}
     ]
   },
+  arlong: {
+    type:'Water Bruiser / Zone Controller', energy:'Tide', difficulty:'3',
+    summary:'The Saw-Tooth Shark. Slow and huge on dry land, deadly in water: every special leaves a shallow pool, and inside his own water he hits 15% harder, moves 25% faster and swims through attacks. Tide builds from karate hits (+5), blade hits (+3), +1/s and +2/s more in water.',
+    passive:{ name:'Fishman in his Element', effect:'Up to 3 water zones (18% of the screen, 8s; overlapping zones merge, max 30%). In his water: +15% damage, +25% speed, +2 Tide/s, the dash becomes an 8-frame invulnerable SWIM. Foes in his water slide 10% further backwards. FISHMAN DURABILITY: of any single hit over 100, the first 60 is cut by 20%. TOOTH REGROWTH: 3 teeth, bites spend one, one regrows every 4s, Shark On Darts refills them all; at 0 teeth bites become a 40 headbutt.' },
+    basics:[
+      {name:'Jab',input:'Light',desc:'45 dmg, 6f, +1 on block (blunt).'},
+      {name:'Fishman straight',input:'Light → Light (or Forward + Light)',desc:'70 dmg, 9f, −3 on block (blunt).'},
+      {name:'Kiribachi swing',input:'Heavy',desc:'90 dmg, 13f, −5 on block (slash).'},
+      {name:'Heavy saw arc',input:'Down + Heavy',desc:'110 dmg, 16f, −8 on block, launches (slash).'},
+      {name:'Low saw',input:'Down + Light',desc:'55 dmg, 8f, low (slash).'},
+      {name:'Rising claw',input:'Up + Heavy / Up-Attack',desc:'80 dmg, 10f anti-air (blunt).'},
+      {name:'Air saw',input:'Air Light / Heavy',desc:'70 dmg jump-in (slash).'},
+      {name:'Lunge punch',input:'Forward + Heavy (at range)',desc:'85 dmg, 11f, advances (blunt).'},
+      {name:'Wake-up reversal',input:'Back + Heavy',desc:'75 dmg, 6 invulnerable frames, −12 on block (slash).'},
+      {name:'BITE',input:'Forward + Heavy (close)',desc:'100 dmg, spends a tooth, bleeds 4 per 20f for 2s (slash). 0 teeth: 40 headbutt.'},
+      {name:'Swim-dash',input:'Double-tap dash (in water)',desc:'8 invulnerable frames.'},
+      {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
+    ],
+    specials:[
+      {name:'Shark On Tooth',input:'↓↘→ + Special (or Special)',cost:15,desc:'Spinning lunge bite, 120 (slash), spends a tooth; a water zone opens under the foe on hit.'},
+      {name:'Shark On Darts',input:'→→ + Special (or Forward + Special)',cost:20,desc:'Nose-first torpedo across 65% of the screen, 135 (blunt), passes THROUGH and ends behind the foe. Refills every tooth on hit; zone where he stops. Long recovery.'},
+      {name:'Gosenmaigawara Seiken',input:'↓↙← + Special (or Back + Special)',cost:25,desc:'Compressed water shockwave over 40% of the screen, 115 (blunt); 15 chip even on block. Zone in front of him.'},
+      {name:'Tidal Sweep',input:'↓↓ + Special (or Down + Special)',cost:20,desc:'Low Kiribachi sweep, 80 (slash), knockdown; the wave leaves a zone.'},
+      {name:'Kiribachi Throw / Recall',input:'↓↘→ + Heavy',cost:18,desc:'The saw spins across the screen, 85 (slash), and plants where it stops. While it is planted his blade normals become faster FISHMAN KARATE (blunt, −15%). ↓↘→ + Heavy again recalls it along the ground (70); Heavy beside it picks it up.'},
+      {name:'Water Shot',input:'↓↙← + Heavy (or Up + Special)',cost:12,desc:'Fast water jet, 50, half-screen range (projectile).'}
+    ],
+    mobility:{name:'Fishman stride',input:'Move / double-tap dash',cost:0,desc:'4.4 walk and a heavy jump out of water; inside his own water everything is 25% faster and the dash becomes an invulnerable swim.'},
+    ultimate:{name:'ARLONG PARK',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'The stage floods. Four torpedo strikes from different angles (60 each), then he surfaces with the Kiribachi overhead (120): 360 raw. Invulnerable; the flood recedes into one zone; 3s Tide lockout.'},
+    combos:[
+      {name:'Saw string',sequence:'Jab → Fishman straight → Kiribachi swing → Heavy saw arc',desc:'The L, L, H, ↓H string.'},
+      {name:'Low tide',sequence:'Low saw → Fishman straight → Tidal Sweep',desc:'Low into knockdown + a zone.'},
+      {name:'Torpedo refill',sequence:'Jab → Fishman straight → Shark On Darts',desc:'Ends behind the foe with all teeth back.'},
+      {name:'Bite route',sequence:'Jab → BITE (→H close) → Shark On Tooth',desc:'Two teeth, bleed, water under them.'},
+      {name:'Park',sequence:'Jab → Fishman straight → ARLONG PARK',desc:'Full-Tide cash-out.'}
+    ]
+  },
   luffy: {
     type:'Elastic Brawler', energy:'Stamina', difficulty:'Medium',
     summary:'Wind up. Let loose. A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. Close the distance and turn a clean opening into a flowing combo.',

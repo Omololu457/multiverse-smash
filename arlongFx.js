@@ -105,10 +105,54 @@ export function drawArlongUnder(c, f, frame = 0) {
   }
 }
 
+// Sprite helpers (nearest-neighbour; frames are laid out horizontally).
+function sprite(c, key, fr, x, y, { rot = 0, sx = 1, sy = 1, alpha = 1, anchor = 'c' } = {}) {
+  const F = ARLONG_FX[key], im = img(F?.sheet); if (!im) return
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha
+  c.translate(x, y); if (rot) c.rotate(rot); c.scale(sx, sy)
+  const fx = ((fr % (F.frames || 1)) + (F.frames || 1)) % (F.frames || 1)
+  c.drawImage(im, fx * F.w, 0, F.w, F.h, -F.w / 2, anchor === 'b' ? -F.h : -F.h / 2, F.w, F.h)
+  c.restore()
+}
+function drawBlade(c, s, frame) {
+  const b = s.blade, floor = s.groundY ?? 0
+  if (b.st === 'flying') sprite(c, 'bladeFlat', 0, b.x, b.y, { rot: frame * 0.55 * b.dir, sx: 1.6 * b.dir, sy: 1.6 })   // spinning saw
+  else if (b.st === 'planted') {   // stuck point-down in the ground, wobbling a little
+    sprite(c, 'bladeV', 0, b.x, floor + 22, { rot: Math.sin(frame / 9) * 0.03, sx: 1.6, sy: 1.6, anchor: 'b' })
+  } else if (b.st === 'recall') {   // dragged back along the ground, sparks behind
+    sprite(c, 'bladeAngled', 0, b.x, floor - 30, { sx: 1.6, sy: 1.6 })
+    c.save(); c.fillStyle = 'rgba(255,220,140,0.9)'
+    for (let k = 0; k < 4; k++) c.fillRect(b.x - 20 + hash(k, frame) * 40, floor - 4 - hash(k + 5, frame) * 10, 2, 2)
+    c.restore()
+  }
+}
 // World-space FX drawn after the fighter sprite.
 export function drawArlongFx(c, f, frame = 0) {
   if (!c || f?.rosterKey !== 'arlong' || !f._arlong) return
   const s = f._arlong, w = f.w ?? 48, h = f.h ?? 94, cx = f.x + w / 2
+  if (s.blade && s.blade.st !== 'hand') drawBlade(c, s, frame)
+  for (const p of s.shots || []) {   // WATER SHOT: a pressurised jet (R16 jet sprite laid sideways) + trailing droplets
+    sprite(c, 'jets', (frame >> 2) + p.n, p.x, p.y, { rot: p.dir * Math.PI / 2, sx: 0.8, sy: 0.9 })
+    c.save(); c.fillStyle = 'rgba(190,215,255,0.8)'
+    for (let k = 1; k < 5; k++) c.fillRect(p.x - p.dir * k * 12, p.y - 3 + hash(p.n + k, frame) * 6, 4 - k * 0.6, 3)
+    c.restore()
+  }
+  for (const wv of s.waves || []) {   // SEIKEN: a wall of compressed water (burst B stretched tall) + a pressure ring
+    sprite(c, 'burstB', (frame >> 2) + wv.n, wv.x, wv.y, { sx: 1.4 * wv.dir, sy: 2.2, alpha: 0.95 })
+    c.save(); c.strokeStyle = 'rgba(200,225,255,0.7)'; c.lineWidth = 3
+    c.beginPath(); c.ellipse(wv.x - wv.dir * 14, wv.y, 14, 52, 0, -Math.PI / 2, Math.PI / 2, wv.dir < 0); c.stroke(); c.restore()
+  }
+  const a = f.currentAttack
+  if (s.darts || (a?.al?.kind === 'super' && s.sup && s.flood > 0)) {   // TORPEDO: the R15 drill spun nose-first along his path
+    const d = f.facing || 1
+    sprite(c, 'drill', frame >> 1, cx + d * 30, f.y + h * 0.5, { rot: d * Math.PI / 2, sx: 1.3, sy: 1.3, alpha: 0.85 })
+  }
+  if (s.splash > 0) {   // ARLONG PARK finisher: a wash of spray across the whole view (world rect wide enough to cover it)
+    c.save(); c.fillStyle = `rgba(170,200,255,${Math.min(0.55, s.splash / 50)})`; c.fillRect(cx - 2400, f.y - 1600, 4800, 3200); c.restore()
+  }
+  for (const b of s.fx || []) {   // impact bursts (A = water / karate, B = blade)
+    sprite(c, b.k === 'b' ? 'burstB' : 'burstA', Math.min(2, Math.floor((14 - b.t) / 5)), b.x, b.y, { sx: 1.5, sy: 1.5, alpha: Math.min(1, b.t / 6) })
+  }
   if (s.wet) {   // IN HIS ELEMENT: water shimmer over the body + spray at his feet
     c.save()
     c.globalCompositeOperation = 'lighter'

@@ -106,3 +106,25 @@ On-screen size = `(sheetW / frames) × scale` by `sheetH × scale`. These drones
   dronebombs 7, munitions 13, newarrows 15, roster 15, super 6, sound 10, finals 11, det3 4 — all /0);
   render check 14/0 + p5 render 9/0; determinism 14/0, combo-standard 231/9, up-attack 77/2,
   roster-integrity green. Frame data ZERO-diff for every other character (all changes GA-gated).
+
+---
+
+## Scale fix v2 (follow-up) — Green Arrow bigger + Homelander
+
+The first pass set Green Arrow to the **drawn-cell** median. But the perceived size is the
+**visible silhouette** (non-transparent content), so I re-measured every character's actual pixel
+body. Green Arrow landed at 127 px (dead-on the 126 px median) but still read "small" next to the
+big heroes, and **Homelander was genuinely below median at 119 px**.
+
+| Character  | visible silhouette (before) | spriteScale | → visible (after) |
+|------------|------------------------------|-------------|-------------------|
+| green_arrow| 127 (median)                | 1.35 → **1.5**  | **≈142** (Superman-level) |
+| homelander | 119 (below median)          | 1.6 → **1.9**   | **≈141** (Superman-level) |
+
+Both now match Superman's visible height (~142) — the top of the normal band, not an outlier.
+`spriteScale` is cosmetic, so **Homelander's hurtbox and all frame data are unchanged** (frame-data
+zero-diff holds); only his on-screen size grew. Green Arrow's hurtbox likewise stays the standard
+48×94. Drones were left at their v1 sizes (GA grew ~11%, so they shift from ~40–80% to ~36–72% of
+his height — still readable and in-band). Verified in-game: GA drawH 149 (vis ≈142), Homelander
+drawH 173 (vis ≈141, his cell carries ~18% padding). Tests green: det 14/0, combo 231/9, up-attack
+77/2, roster-integrity green, GA suite + render 14/0.

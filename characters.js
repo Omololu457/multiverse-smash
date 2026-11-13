@@ -4765,7 +4765,7 @@ const greenArrow = {
   },
   ultimate: { name: "Arrowstorm Protocol", cost: 100, description: "↓↘→↓↘→+Special. Every live drone fires at once, a Payload bomber carpet-bombs the screen, and Oliver closes with a 3-arrow explosive volley. ~380 if everything connects (300 base), then a 3s Tech lockout and all drones recalled." },
   hasSprites: true,
-  spriteScale: 1.35,   // SCALE FIX: was 1.8 (would draw ~178px — taller than everyone). 1.35 → ~134px =
+  spriteScale: 1.5,   // SCALE FIX v2: 1.8→1.35→1.5. Visible silhouette 127px (median) read as "still small"; 1.5 → ~142px =
   // roster median, next to Spider-Man. REQUIRES the skins.js green_arrow entry below, else applySkin()
   // falls back to spriteScale:1 and he renders ~99px (the "renders small" bug).
   // INTRO: somersault in (flip) -> bow draw/aim -> settle to idle. Win auto-plays animationData.win
@@ -8757,7 +8757,7 @@ const homelander = {
   // the old 1.2 (too short). 1.6 → ~115px — a touch above median, fitting an imposing Supe powerhouse,
   // while staying well under tall outliers (Gojo ~132). REQUIRES the skins.js `homelander` default entry
   // (spriteScale gate) + the spritesheets.js SPRITE_MANIFEST idle gate.
-  spriteScale: 1.6,
+  spriteScale: 1.9,   // SCALE FIX: was 1.6 → visible ~119px (below roster median); 1.9 → ~141px (Superman-level, fits the flying-brick)
   animationData: {
     // Homelander hovers like Omni-Man → ground idle/walk/run/dash all reuse the hover pose.
     idle: { frames: 3, width: 84, height: 77, speed: 7, anchorY: 0, sheet: "./homelander_idle_uniform.png" },

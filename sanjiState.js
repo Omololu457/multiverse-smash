@@ -24,7 +24,8 @@ export const COURSE_RULES = { idleReset: 180, window: 300 }
 export const SANJI_TUNING = {
   plate: { speed: 12, lifetime: 58, damage: 45, vy: -2.6, gravity: 0.09, pool: 3 },   // 12 × 58 ≈ 700px ≈ 55% of 1280
   patch: { frames: 120, every: 20, dmg: 5, halfW: 60 },                               // Concasse burning patch (lit leg)
-  skyWalks: 2, superLockout: 180, superHold: 120,
+  skyWalks: 2, skyWalkVx: 5, superLockout: 180, superHold: 120,
+  follow: { sPoitrine: 13, up: 22 },   // launcher jump-cancel: a low follow-up jump that rises WITH the launched foe
 }
 const MOTION_BUTTONS = ['light', 'heavy', 'special', 'ultimate']
 const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
@@ -214,7 +215,7 @@ function tickMove(f, opp, s, z, W) {
       break
     }
     case 'skywalk':
-      if (!z.kicked) { z.kicked = true; f.vy = -(f.stats?.jumpPower || 33) * z.lift; s.skyWalks++; scue(f, 'skywalk' + s.skyWalks) }
+      if (!z.kicked) { z.kicked = true; f.vy = -(f.stats?.jumpPower || 33) * z.lift; f.vx = dir * SANJI_TUNING.skyWalkVx; s.skyWalks++; scue(f, 'skywalk' + s.skyWalks) }
       break
     case 'plate':
       if (t === z.spawnAt && W) spawnPlate(f, s, W)

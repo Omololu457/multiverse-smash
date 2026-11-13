@@ -127,6 +127,13 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
       const w = specialWanted(f, s, grounded, allow)
       if (w && startSpecial(f, s, w[0], W)) { use(s, w[1]); return 'consumed' }
     }
+    // Launcher jump-cancel (Poitrine / anti-air knee): ↑ on hit → a follow-up jump that rises with the foe.
+    const fv = SANJI_TUNING.follow[a.name]
+    if (contact && fv && grounded && a.launcher && fresh(s, 'up')) {
+      use(s, 'up'); f.attacking = false; f.currentAttack = null; f.currentMove = null
+      f.vy = -fv; f.onGround = false; f.grounded = false; f.jumpCount = (f.jumpCount || 0) + 1
+      scue(f, 'whoosh1'); return 'consumed'
+    }
     if (contact && isNormal) {
       // Normal → normal gatling.
       for (const b of ['light', 'heavy', 'upAttack']) {

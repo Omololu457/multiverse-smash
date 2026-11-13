@@ -178,9 +178,11 @@ export const KITS = {
     mobility:{name:'Black Leg footwork',input:'Move / double-tap dash',cost:0,desc:'Walk 5.9, run 8.6, light (0.85 weight): he flies further when hit. Sky Walk for air mobility.'},
     ultimate:{name:'PARTY TABLE KICK COURSE',input:'↓↘→↓↘→ + Special (or Ultimate) at 100 Heat',cost:100,desc:'Spinning handstand: must connect the first cut, then six cuts from every angle (55 each) into a heel-drop finisher (90; 130 with Diable Jambe). All Heat spent, 3s Heat lockout, Diable Jambe ends.'},
     combos:[
-      {name:'Full Course',sequence:'Collier → Épaule → Côtelette → Selle → Poitrine → Gigot',desc:'All six in order: six pips, +48 Heat, free super window.'},
-      {name:'Mouton route',sequence:'Anti-Manner Kick → Premier Hachis → Mouton Shot',desc:'Crumple, hold, launch away.'},
-      {name:'Sky route',sequence:'Anti-air knee → jump → Air kick → Sky Walk → Concasse',desc:'Up, step on the air, dive.'}
+      {name:'Safe route',sequence:'Collier → Épaule → Côtelette → Mouton Shot',desc:'3 Course steps, hard knockdown. 127 dmg.'},
+      {name:'Low launch',sequence:'Gigot → Selle → Poitrine → ↑ (jump-cancel) → Air kick → Concasse',desc:'Low opener, launch, ground bounce. 157 dmg.'},
+      {name:'THE FULL COURSE',sequence:'Collier → Épaule → Côtelette → Selle → Poitrine → Gigot → ↓↘→ + Special',desc:'All six pips, then the FREE Party Table Kick Course. 271 dmg from 0 Heat.'},
+      {name:'Diable route',sequence:'Special + Heavy → Anti-Manner Kick → Premier Hachis → Mouton Shot',desc:'Lit (×1.25) and burning. 138 dmg + burn.'},
+      {name:'Sky route',sequence:'Jump → Sky Walk → Sky Walk → Concasse',desc:'Air pressure from a quarter-screen away. 72 dmg.'}
     ]
   },
   arlong: {

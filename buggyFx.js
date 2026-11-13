@@ -65,7 +65,61 @@ export function drawBuggyHud(ctx, fighter, { x, enY, pbw, flip }) {
   })
 }
 
-// World-space FX (drawn after the fighter sprite). Filled in by later phases.
+// World-space FX (drawn after the fighter sprite). Pure functions of sim state + the frame counter.
 export function drawBuggyFx(c, f, frame = 0) {
-  if (!c || f?.rosterKey !== 'buggy') return
+  if (!c || f?.rosterKey !== 'buggy' || !f._buggy) return
+  const s = f._buggy
+  if (s.nullFlash > 0) drawNullify(c, f, s)
+  if (s.stagger > 0) drawReassembly(c, f, s)
+}
+
+// Sprite-space anchor from the fighter's last real draw rect (cell 160×112, origin 80,100 → feet centre).
+function anchor(f) {
+  const k = (f._lastDrawH || 0) > 0 ? f._lastDrawH / 112 : 2.3
+  const fx = (f._lastDrawW || 0) > 0 ? f._lastDrawX + f._lastDrawW / 2 : f.x + (f.w ?? 48) / 2
+  const fy = (f._lastDrawH || 0) > 0 ? f._lastDrawY + 100 * k : f.y + (f.h ?? 94)
+  return { k, fx, fy }
+}
+// Draw a sheet frame with its BOTTOM-centre at (fx, fy).
+function blitFeet(c, im, sx, sy, sw, sh, fx, fy, flip, k) {
+  c.save(); c.translate(fx, fy); if (flip) c.scale(-1, 1)
+  c.drawImage(im, sx, sy, sw, sh, -sw * k / 2, -sh * k, sw * k, sh * k); c.restore()
+}
+
+// BARA BARA NO MI: the blade passes through — a solid white silhouette flash over his body, two ghost halves that
+// slide apart along the cut and snap back, and a thin white cut line. 24 frames.
+function drawNullify(c, f, s) {
+  const { k, fx, fy } = anchor(f), flip = (f.facing || 1) < 0
+  const t = s.nullFlash / 24                                      // 1 → 0
+  const open = Math.sin(Math.min(1, (1 - t) * 1.4) * Math.PI) * 9 * k / 2.3
+  c.save(); c.imageSmoothingEnabled = false
+  const sp = img(BUGGY_FX.split.sheet)
+  if (sp && t < 0.85) {
+    const fw = BUGGY_FX.split.w, fh = BUGGY_FX.split.h
+    c.globalAlpha = 0.55 * t
+    blitFeet(c, sp, 0, 0, fw, fh, fx - open, fy - open * 0.5, flip, k)
+    blitFeet(c, sp, fw, 0, fw, fh, fx + open, fy + open * 0.2, flip, k)
+  }
+  const si = img(BUGGY_FX.silhouette.sheet)
+  if (si && t > 0.55) {   // first ~10 frames: solid white body flash
+    c.globalAlpha = Math.min(1, (t - 0.55) * 3.5)
+    blitFeet(c, si, 0, 0, BUGGY_FX.silhouette.w, BUGGY_FX.silhouette.h, fx, fy, flip, k)
+  }
+  const cy = fy - 34 * k, ang = ((s.nullSeq * 37) % 50 - 25) * Math.PI / 180, L = 30 * k
+  c.globalAlpha = Math.min(1, t * 1.6); c.strokeStyle = '#ffffff'; c.lineWidth = 2
+  c.beginPath(); c.moveTo(fx - Math.cos(ang) * L, cy - Math.sin(ang) * L); c.lineTo(fx + Math.cos(ang) * L, cy + Math.sin(ang) * L); c.stroke()
+  c.restore()
+}
+
+// CHOP STAGGER: the body shows the head+hand-detached row (mask 3) while the head and hand fly back in. 60 frames.
+const REASSEMBLE = [['head', -1.0, -0.55], ['hand', 1.1, -0.15]]
+function drawReassembly(c, f, s) {
+  const { k, fx, fy } = anchor(f), t = s.stagger / 60, wob = Math.sin(s.clock * 0.6) * 2
+  c.save(); c.imageSmoothingEnabled = false
+  for (const [slot, ox, oy] of REASSEMBLE) {
+    const im = img(PIP_ICON[slot]); if (!im) continue
+    const px = fx + ox * 30 * k * t + wob, py = fy - 52 * k + oy * 40 * k * t - Math.sin(t * Math.PI) * 6 * k
+    blitFeet(c, im, 0, 0, im.width, im.height, px, py + im.height * k / 2, (f.facing || 1) < 0, k)
+  }
+  c.restore()
 }

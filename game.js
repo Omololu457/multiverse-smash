@@ -5,7 +5,7 @@ import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (wi
 import { updateZoroCommandCombat } from './zoro.js'   // Roronoa Zoro command layer (zoro-gated)
 import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
 import { zoroWorld } from './zoro.js'
-import { tickBuggy, isBuggy, clearBuggy, buggyRoundReset } from './buggyState.js'   // Buggy the Clown (buggy-gated)
+import { tickBuggy, isBuggy, clearBuggy, buggyRoundReset, buggyLocked } from './buggyState.js'   // Buggy the Clown (buggy-gated)
 import { drawBuggyFx } from './buggyFx.js'   // Buggy the Clown render-only FX
 import { buggyHarnessApi } from './buggyHarness.js'   // Buggy the Clown test API (window.__harness.buggyTest)
 import { zoroIntroStart, updateZoroIntro, finalizeZoroIntroPos } from './zoro.js'   // Roronoa Zoro intro walk-in (zoro-gated)
@@ -10977,6 +10977,8 @@ function updateMovementInput(fighter) {
   // BACKSTAGE PASS: committed dash — no movement control (the BP driver owns vx + the emerge). Don't zero
   // vx here (that's the dash) — just deny input so the teleport can't be steered/cancelled.
   if (fighter._bpActive) { fighter.isBlocking = false; fighter.isCharging = false; return }
+  // BUGGY — Chop Stagger: reassembling after 3 nullified slashes — no movement, cannot block (buggy-gated).
+  if (buggyLocked(fighter)) { fighter.isBlocking = false; fighter.isCharging = false; if (fighter.onGround ?? fighter.grounded) fighter.vx = 0; return }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   // GOKU ladder: while the Charge button is held, LATCH the direction tapped (so handleChargeRelease can read

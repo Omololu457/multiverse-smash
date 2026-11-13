@@ -91,6 +91,64 @@ try {
     await page.evaluate(() => __harness.buggyTest.set('p1', { mask: 0, maskLock: false })); await step(2)
   }
 
+  if (PHASE >= 3) {
+    // BARA BARA NO MI vs Zoro: P2 (Zoro) swings his real moves at an idle Buggy.
+    const swing = (key, extra = null) => page.evaluate(async ([key, extra]) => {
+      const cb = await import('./combat.js'), zd = await import('./zoroData.js')
+      const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
+      z.x = b.x + 52; z.facing = -1; b.facing = 1; z.attacking = false; z.attackCooldown = 0; z.hitstun = 0; z.hitstop = 0
+      const md = extra ? { ...extra } : zd.ZORO_MOVES[key]
+      return cb.startMove(z, key, md)
+    }, [key, extra])
+    const settle = async () => { for (let i = 0; i < 40; i++) { await step(1); const z = await page.evaluate(() => __harness.buggyTest.raw('p2').attacking); if (!z) break } }
+    await fresh(260); await page.evaluate(() => __harness.buggyTest.chop('p1', 10))
+    let b0 = await bs()
+    check('Zoro light starts (real ZORO_MOVES.light)', await swing('light'))
+    let flashSeen = false
+    for (let i = 0; i < 30; i++) { await step(1); const q = await bs(); if (q.b.nullFlash > 0 && !flashSeen) { flashSeen = true; await step(3); await shot(`p${PHASE}-02-nullify-zoro`) } if (!q.attacking && flashSeen) break }
+    await settle()
+    let b1 = await bs()
+    check('slash NULLIFIED: zero damage from Zoro\'s sword', b1.health === b0.health && b1.b.nullTotal === 1, `hp ${b0.health}→${b1.health} nulls=${b1.b.nullTotal}`)
+    check('nullify grants +6 Chop', b1.energy - b0.energy >= 6 && b1.energy - b0.energy <= 8, `${b0.energy}→${b1.energy}`)
+    check('silhouette / split flash shown', flashSeen)
+    check('no hitstun from a nullified slash', b1.hitstun === 0, b1.hitstun)
+    // BLUNT still hurts (same Zoro frame data, tagged blunt explicitly)
+    b0 = b1; await swing('probeBlunt', { damage: 40, startup: 3, active: 4, recovery: 8, rangeX: 90, rangeY: 80, hitstun: 12, damageType: 'blunt' }); await settle()
+    b1 = await bs()
+    check('blunt is NOT nullified', b1.health < b0.health && b1.b.nullTotal === 1, `hp ${b0.health}→${b1.health}`)
+    // GRAB tag is never nullified either
+    b0 = b1; await step(30); await swing('probeGrab', { damage: 30, startup: 3, active: 4, recovery: 8, rangeX: 90, rangeY: 80, hitstun: 12, damageType: 'grab' }); await settle()
+    b1 = await bs(); check('grab-tagged is NOT nullified', b1.health < b0.health, `hp ${b0.health}→${b1.health}`)
+    // PROJECTILES: a kunai (slash) passes through; a ki blast (energy) hurts.
+    const shoot = type => page.evaluate(async type => {
+      const ab = await import('./abilities.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
+      z.x = b.x + 160; z.facing = -1
+      return !!ab.spawnProjectile(z, type, { damage: 30, speed: 10, spawnX: b.x + 110, spawnY: b.y + 40, vx: -10, vy: 0 })
+    }, type)
+    await step(30); b0 = await bs(); await shoot('kakashiKunai'); await step(25); b1 = await bs()
+    check('slash projectile (kunai) nullified', b1.health === b0.health && b1.b.nullTotal === 2, `hp ${b0.health}→${b1.health} nulls=${b1.b.nullTotal}`)
+    await step(30); b0 = await bs(); await shoot('kiBlast'); await step(25); b1 = await bs()
+    check('energy projectile (ki blast) is NOT nullified', b1.health < b0.health, `hp ${b0.health}→${b1.health}`)
+    // CHOP STAGGER: 3 nullified slashes inside 5 s → 60-frame reassembly, cannot block, vulnerable.
+    await fresh(260)
+    for (let n = 0; n < 3; n++) { await swing(n === 1 ? 'zSlash' : 'light'); await settle(); await step(6) }
+    let st = await bs()
+    check('3 nullified slashes in 5 s → CHOP STAGGER', st.b.stagger > 0 && st.b.mask === 3, `stagger=${st.b.stagger} mask=${st.b.mask} nulls=${st.b.nullTotal}`)
+    await page.keyboard.down('a'); await step(2)   // hold back = would block
+    st = await bs(); check('cannot block while reassembling', !st.blocking, st.blocking)
+    await shot(`p${PHASE}-03-chop-stagger`)
+    b0 = st; await swing('light'); await settle(); b1 = await bs()
+    await page.keyboard.up('a')
+    check('slash LANDS during the reassembly window', b1.health < b0.health, `hp ${b0.health}→${b1.health}`)
+    for (let i = 0; i < 70; i++) await step(1)
+    st = await bs(); check('reassembly ends after 1 s (mask back to 0)', st.b.stagger === 0 && st.b.mask === 0, `stagger=${st.b.stagger} mask=${st.b.mask}`)
+    // HAKI: once Zoro's Conqueror's Haki has fired his blades hit Buggy.
+    await fresh(260)
+    await page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); z._zoro && (z._zoro.hakiUsed = true) })
+    b0 = await bs(); await swing('light'); await settle(); b1 = await bs()
+    check('Haki-imbued Zoro slash bypasses the immunity', b1.health < b0.health && b1.b.nullTotal === 0, `hp ${b0.health}→${b1.health}`)
+  }
+
   const other404 = [...new Set(missing.filter(m => !/buggy/i.test(m)))]
   if (other404.length) console.log(`  ℹ non-Buggy 404s (not part of this build): ${other404.slice(0, 6).join(', ')}${other404.length > 6 ? ' …' : ''}`)
   check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))

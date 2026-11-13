@@ -2,6 +2,7 @@ import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, l
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
 import { zoroHitbox } from './zoroState.js'
+import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
@@ -178,6 +179,7 @@ export const GLOBAL_DAMAGE_SCALE = 0.60
 //   [DMG] <source> raw=<r> scale=<s> dealt=<d> <before>-><after>
 export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
+  if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
@@ -3087,6 +3089,8 @@ export function startMove(fighter, moveKey, moveData) {
   }
 
   if (isLuffy(fighter) && moveData.lf) fighter.currentAttack.lf = { ...moveData.lf }
+  if (moveData.damageType) fighter.currentAttack.damageType = moveData.damageType   // damageType tag (metadata only; present on Buggy's moves)
+  if (moveData.haki) fighter.currentAttack.haki = true
   fighter.wasInStartup = true
   return true
 }
@@ -3233,6 +3237,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
   }
+
+  // BUGGY — Bara Bara no Mi: a SLASH passes through his body (0 damage, split flash, +6 Chop; Haki ignores it).
+  if (buggyNullifyMelee(defender, attacker)) { attacker.currentAttack.hasHit = true; return }
 
   // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow
   // is dodged outright (meter cost + brief i-frames handled in shouldVegitoUIEvade). See VEGITO_UI.
@@ -4227,6 +4234,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
         break
       }
+
+      // BUGGY — Bara Bara no Mi: a SLASH projectile (kunai, knives, cards, cutting waves) passes through and is spent.
+      if (buggyNullifyProjectile(fighter, proj)) { projectiles.splice(i, 1); break }
 
       // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority

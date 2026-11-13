@@ -1,0 +1,747 @@
+{
+ "source": "assets/incoming/sanji/sanji_sheet.png",
+ "sha256": "0d8672a77764727c2d27691edcfd4596d88816106d29d7f68d84231d3e42a29a",
+ "cell": [
+  320,
+  256
+ ],
+ "origin": [
+  160,
+  150
+ ],
+ "frames": {
+  "R1F1": {
+   "rect": [
+    4,
+    0,
+    37,
+    53
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "run"
+   ]
+  },
+  "R1F2": {
+   "rect": [
+    49,
+    14,
+    77,
+    54
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sIntroLight",
+    "sIntroLight"
+   ]
+  },
+  "R1F3": {
+   "rect": [
+    87,
+    3,
+    112,
+    54
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "run"
+   ]
+  },
+  "R1F4": {
+   "rect": [
+    121,
+    2,
+    158,
+    54
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "hurt"
+   ]
+  },
+  "R1F5": {
+   "rect": [
+    167,
+    2,
+    209,
+    53
+   ],
+   "arcPixels": 106,
+   "uses": [
+    "sCollier",
+    "sPTKC",
+    "Diable Jambe *_dj strips (tint: blue arcs \u2192 orange-white)"
+   ]
+  },
+  "R1F6": {
+   "rect": [
+    224,
+    3,
+    274,
+    53
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sEpaule",
+    "sPTKC"
+   ]
+  },
+  "R2F1": {
+   "rect": [
+    2,
+    71,
+    35,
+    122
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "guard",
+    "guard_hit",
+    "grab",
+    "throw",
+    "sCollier",
+    "sPlate"
+   ]
+  },
+  "R2F2": {
+   "rect": [
+    50,
+    63,
+    97,
+    123
+   ],
+   "arcPixels": 257,
+   "uses": [
+    "sReversal",
+    "sMouton",
+    "Diable Jambe *_dj strips (tint: blue arcs \u2192 orange-white)"
+   ]
+  },
+  "R2F3": {
+   "rect": [
+    107,
+    75,
+    157,
+    123
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "throw",
+    "sGigot",
+    "sHachis",
+    "sPTKC"
+   ]
+  },
+  "R3F1": {
+   "rect": [
+    1,
+    145,
+    27,
+    188
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "fall",
+    "sMouton"
+   ]
+  },
+  "R3F2": {
+   "rect": [
+    42,
+    137,
+    105,
+    189
+   ],
+   "arcPixels": 221,
+   "uses": [
+    "sHandstand",
+    "sHandstand",
+    "sIgnite",
+    "Diable Jambe *_dj strips (tint: blue arcs \u2192 orange-white)"
+   ]
+  },
+  "R3F3": {
+   "rect": [
+    114,
+    152,
+    177,
+    189
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sHandstand",
+    "sIgnite"
+   ]
+  },
+  "R3F4": {
+   "rect": [
+    184,
+    150,
+    227,
+    188
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sCrouchKick",
+    "sHachis"
+   ]
+  },
+  "R3F5": {
+   "rect": [
+    243,
+    141,
+    301,
+    188
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sMouton",
+    "sPTKC"
+   ]
+  },
+  "R4F1": {
+   "rect": [
+    0,
+    222,
+    36,
+    257
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "hurt_air",
+    "knockdown",
+    "sConcasse",
+    "sSkyWalk"
+   ]
+  },
+  "R4F2": {
+   "rect": [
+    46,
+    211,
+    78,
+    257
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sCotelette",
+    "sGigot"
+   ]
+  },
+  "R4F3": {
+   "rect": [
+    86,
+    204,
+    133,
+    257
+   ],
+   "arcPixels": 112,
+   "uses": [
+    "sCotelette",
+    "sPTKC",
+    "Diable Jambe *_dj strips (tint: blue arcs \u2192 orange-white)"
+   ]
+  },
+  "R4F4": {
+   "rect": [
+    138,
+    205,
+    188,
+    257
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sEpaule"
+   ]
+  },
+  "R4F5": {
+   "rect": [
+    200,
+    204,
+    235,
+    257
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sSelle",
+    "up"
+   ]
+  },
+  "R4F6": {
+   "rect": [
+    246,
+    203,
+    274,
+    257
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sReversal",
+    "sIgnite",
+    "sIgnite"
+   ]
+  },
+  "R4F7": {
+   "rect": [
+    281,
+    205,
+    327,
+    256
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sSelle",
+    "sPTKC"
+   ]
+  },
+  "R4F8": {
+   "rect": [
+    336,
+    208,
+    365,
+    258
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "up"
+   ]
+  },
+  "R4F9": {
+   "rect": [
+    376,
+    211,
+    411,
+    258
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "air",
+    "down_air"
+   ]
+  },
+  "R4F10": {
+   "rect": [
+    416,
+    215,
+    467,
+    258
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "sAntiManner",
+    "sConcasse",
+    "sPTKC"
+   ]
+  },
+  "R4F11": {
+   "rect": [
+    471,
+    214,
+    513,
+    258
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "dash",
+    "sHachis",
+    "sHachis"
+   ]
+  },
+  "R5F1": {
+   "rect": [
+    1,
+    273,
+    34,
+    335
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F2": {
+   "rect": [
+    44,
+    280,
+    85,
+    335
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F3": {
+   "rect": [
+    89,
+    279,
+    133,
+    335
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F4": {
+   "rect": [
+    138,
+    278,
+    180,
+    336
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F5": {
+   "rect": [
+    186,
+    277,
+    221,
+    336
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt",
+    "sPlate"
+   ]
+  },
+  "R5F6": {
+   "rect": [
+    224,
+    277,
+    262,
+    336
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F7": {
+   "rect": [
+    275,
+    298,
+    306,
+    335
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "taunt"
+   ]
+  },
+  "R5F8": {
+   "rect": [
+    314,
+    296,
+    339,
+    334
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "crouch",
+    "getup"
+   ]
+  },
+  "R5F9": {
+   "rect": [
+    348,
+    300,
+    370,
+    334
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "getup",
+    "sCrouchKick"
+   ]
+  },
+  "R5F10": {
+   "rect": [
+    380,
+    275,
+    407,
+    332
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "jump",
+    "air",
+    "sSkyWalk"
+   ]
+  },
+  "R5F11": {
+   "rect": [
+    413,
+    318,
+    434,
+    335
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "fx_plate (Plate Kick projectile)"
+   ]
+  },
+  "R6F1": {
+   "rect": [
+    8,
+    347,
+    25,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idle",
+    "portrait (derived copy: crop of the bust)"
+   ]
+  },
+  "R6F2": {
+   "rect": [
+    32,
+    346,
+    49,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idle"
+   ]
+  },
+  "R6F3": {
+   "rect": [
+    50,
+    346,
+    71,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "walk",
+    "walk_back",
+    "intro",
+    "intro",
+    "intro",
+    "win2"
+   ]
+  },
+  "R6F4": {
+   "rect": [
+    76,
+    347,
+    98,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idleLong",
+    "walk",
+    "walk_back",
+    "intro",
+    "intro",
+    "intro"
+   ]
+  },
+  "R6F5": {
+   "rect": [
+    111,
+    346,
+    129,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "walk",
+    "walk_back",
+    "intro",
+    "intro",
+    "intro"
+   ]
+  },
+  "R6F6": {
+   "rect": [
+    135,
+    347,
+    152,
+    401
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "walk",
+    "walk_back",
+    "intro",
+    "intro",
+    "intro"
+   ]
+  },
+  "R7F1": {
+   "rect": [
+    7,
+    412,
+    30,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idleLong",
+    "sIntroLight",
+    "win"
+   ]
+  },
+  "R7F2": {
+   "rect": [
+    39,
+    412,
+    62,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idleLong",
+    "idleLong",
+    "sIntroLight",
+    "win"
+   ]
+  },
+  "R7F3": {
+   "rect": [
+    68,
+    412,
+    91,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "idleLong",
+    "win"
+   ]
+  },
+  "R7F4": {
+   "rect": [
+    99,
+    414,
+    124,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "hurt_heavy"
+   ]
+  },
+  "R7F5": {
+   "rect": [
+    137,
+    420,
+    172,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "lose"
+   ]
+  },
+  "R7F6": {
+   "rect": [
+    185,
+    446,
+    220,
+    465
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  "R8F1": {
+   "rect": [
+    7,
+    475,
+    34,
+    522
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "winGlass",
+    "fx_glass (derived copy: crop of the glass \u2192 Heat-bar badge)"
+   ]
+  },
+  "R8F2": {
+   "rect": [
+    44,
+    475,
+    71,
+    522
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "winGlass"
+   ]
+  },
+  "R9F1": {
+   "rect": [
+    7,
+    530,
+    45,
+    582
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "win2",
+    "sPoitrine"
+   ]
+  },
+  "R9F2": {
+   "rect": [
+    56,
+    530,
+    93,
+    582
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "win2",
+    "sPoitrine",
+    "sPTKC"
+   ]
+  },
+  "R9F3": {
+   "rect": [
+    102,
+    531,
+    134,
+    582
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "win2",
+    "sPoitrine",
+    "sAntiManner"
+   ]
+  },
+  "R9F4": {
+   "rect": [
+    143,
+    531,
+    175,
+    582
+   ],
+   "arcPixels": 0,
+   "uses": [
+    "win2",
+    "sAntiManner",
+    "sConcasse",
+    "sPTKC"
+   ]
+  }
+ },
+ "merry_and_credit_component": [
+  224,
+  529,
+  387,
+  582
+ ],
+ "excluded": {
+  "credit_text": "text panels \"Ripped by Paddy / No credit needed\" inside the merry_and_credit component"
+ }
+}

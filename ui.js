@@ -1,5 +1,6 @@
 // ui.js
 import { drawZoroHud } from './zoroFx.js'
+import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — glass badge, warming Heat bar, Course pips (render-only)
 import { drawArlongHud } from './arlongFx.js'   // Arlong — Tide badge + teeth counter + Kiribachi icon (render-only)
 import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge + part pips (render-only)   // Roronoa Zoro — Going Merry Spirit badge (render-only)
 // Shared UI rendering and menu layout helpers.
@@ -4786,6 +4787,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
     drawZoroHud(ctx, fighter, { x, enY, pbw, flip })
     drawBuggyHud(ctx, fighter, { x, enY, pbw, flip })
+    drawSanjiHud(ctx, fighter, { x, enY, pbw, flip })
     drawArlongHud(ctx, fighter, { x, enY, pbw, flip })
     if (!hasEnergy) return
 
@@ -4830,6 +4832,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
     ctx.shadowBlur = 0
+    drawSanjiHeatFill(ctx, fighter, { fillX, enY, fillW, enH, x, pbw, flip })   // Sanji: the Heat bar warms blue→orange→white (render-only; sanji only)
 
     // Device: notch at the minimum energy needed to (re)transform (mirrors
     // fighters.js TRANSFORM_ENERGY.MIN_TRANSFORM_ENERGY = 15 of 100), so the

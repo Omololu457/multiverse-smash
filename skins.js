@@ -131,6 +131,7 @@ export const SKINS = {
   // Buggy — 9 alt-colour skins (tools/buggy_build/gen_buggy_skins.py: region-keyed coat/hat · hair · accents recolor over
   // every assets/buggy sheet incl. the 7 masked rows + detached-part art; buggyData.buggySkinSet keeps the skin through
   // his part-detach / win-pose anim swaps, drones.js `skinRetag` recolors the flying parts). Alien X → generic starfield.
+  sanji: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.sanji.portrait, spriteScale: characters.sanji.spriteScale, animationData: null }],
   arlong: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.arlong.portrait, spriteScale: characters.arlong.spriteScale, animationData: null }],
   buggy: [
     { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.buggy.portrait, spriteScale: characters.buggy.spriteScale, animationData: null },

@@ -5,6 +5,7 @@ import { zoroHitbox } from './zoroState.js'
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
+import { sanjiHitbox, sanjiBlockstun, sanjiComboScale, sanjiHit, sanjiKnockback } from './sanjiState.js'   // Sanji hooks (sanji-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
@@ -422,6 +423,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
   if (fighter?.rosterKey === 'zoro' && curve === COMBO_DAMAGE_CURVE) return zoroComboScale(fighter)   // Roronoa Zoro: 85% per hit (zoro-gated)
   if (fighter?.rosterKey === 'buggy' && curve === COMBO_DAMAGE_CURVE) return buggyComboScale(fighter)   // Buggy the Clown: 85% per hit (buggy-gated)
+  if (fighter?.rosterKey === 'sanji' && curve === COMBO_DAMAGE_CURVE) return sanjiComboScale(fighter)   // Sanji: 85% per hit (sanji-gated)
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
@@ -675,6 +677,7 @@ export function getAttackHitbox(fighter) {
   if (!fighter || !a || a.lf?.noHit) return null
   if (a?.zr && fighter.rosterKey === 'zoro') return zoroHitbox(fighter)   // Roronoa Zoro: his own box descriptor (zoro-gated)
   if (a?.bg && fighter.rosterKey === 'buggy') return buggyHitbox(fighter)   // Buggy the Clown: his own box descriptor (buggy-gated)
+  if (a?.sj && fighter.rosterKey === 'sanji') return sanjiHitbox(fighter)   // Sanji: his own box descriptor (sanji-gated)
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
@@ -3382,6 +3385,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
+    if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
     if (!flawless) arlongBlockstun(attacker, defender, atk) // Arlong: per-move block stun; arlong-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
@@ -3427,6 +3431,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
     zoroHit(attacker, defender, atk)
     buggyHit(attacker, defender, atk)
+    sanjiHit(attacker, defender, atk)
     arlongHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
@@ -3492,6 +3497,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     zoroKnockback(attacker, defender, atk)
     buggyKnockback(attacker, defender, atk)
+    sanjiKnockback(attacker, defender, atk)
     arlongKnockback(attacker, defender, atk)
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal

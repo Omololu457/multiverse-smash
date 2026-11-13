@@ -32,10 +32,10 @@ function fresh(s, k, win = BUFFER) {
 }
 const use = (s, ...ks) => { for (const k of ks) if (s.edgeAt[k] != null) s.used[k] = s.edgeAt[k] }
 // A+B (Special + Heavy) pressed together → DIABLE JAMBE.
-function ignitePressed(s) {
+function ignitePressed(s, early) {   // early: the Special edge only started a ≤3-frame kick (e.g. the Reversal) that A+B may cancel
   const a = s.edgeAt.special, b = s.edgeAt.heavy
   if (a == null || b == null || !s.prev.special || !s.prev.heavy) return false
-  return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && s.used.special !== a
+  return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && (early || s.used.special !== a)
 }
 
 // Motions (condensed numpad tokens, current last; the harness / players may release to 5 before the button).
@@ -110,8 +110,8 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
   const a = f.attacking ? f.currentAttack : null
 
   // ── A+B → DIABLE JAMBE (a staggered press may cancel the first ≤3 frames of the kick it started) ──
-  if (grounded && ignitePressed(s) && canIgnite(f)) {
-    const early = a && !a.hasHit && a.total - a.timer <= LENIENCY && a.sj?.kind === 'normal'
+  const early = !!(a && !a.hasHit && a.total - a.timer <= LENIENCY && a.sj?.kind === 'normal')
+  if (grounded && ignitePressed(s, early) && canIgnite(f)) {
     if ((!a || early) && W_START(f, 'sIgnite')) { use(s, 'special', 'heavy'); scue(f, 'spin'); return 'consumed' }
   }
 
@@ -129,8 +129,8 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
     }
     // Launcher jump-cancel (Poitrine / anti-air knee): ↑ on hit → a follow-up jump that rises with the foe.
     const fv = SANJI_TUNING.follow[a.name]
-    if (contact && fv && grounded && a.launcher && fresh(s, 'up')) {
-      use(s, 'up'); f.attacking = false; f.currentAttack = null; f.currentMove = null
+    if (contact && fv && grounded && a.launcher && (fresh(s, 'up') || fresh(s, 'jump'))) {   // ↑ or a pad's jump button
+      use(s, 'up', 'jump'); f.attacking = false; f.currentAttack = null; f.currentMove = null
       f.vy = -fv; f.onGround = false; f.grounded = false; f.jumpCount = (f.jumpCount || 0) + 1
       scue(f, 'whoosh1'); return 'consumed'
     }

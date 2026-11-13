@@ -584,10 +584,11 @@ export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "ligh
 
 export function readRawControls(fighter) {
   if (!fighter || !fighter.controls) return null
-  // Luffy's recovery retaps need actual held buttons, not the buffered controller output.
+  // Luffy's recovery retaps need actual held buttons, not the buffered controller output. Sanji's command layer
+  // (press edges + motions) reads this same snapshot, so a pad must feed it too.
   // Reuse this raw snapshot for replay/LAN as well; no extra buffer polling or input parser.
   const pn = fighter.playerNumber || 1
-  if (fighter.rosterKey === 'luffy' && !fighter._aiControlled && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
+  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'sanji') && !fighter._aiControlled && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
     const gp = getPlayerGamepad(pn)
     if (gp) {
       const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []

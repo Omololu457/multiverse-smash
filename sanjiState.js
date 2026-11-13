@@ -28,7 +28,7 @@ export const SANJI_TUNING = {
   follow: { sPoitrine: 13, up: 22 },   // launcher jump-cancel: a low follow-up jump that rises WITH the launched foe
 }
 const MOTION_BUTTONS = ['light', 'heavy', 'special', 'ultimate']
-const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
+const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down', 'jump']
 
 export function sanjiState(f) {
   if (!isSanji(f)) return null

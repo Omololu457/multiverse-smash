@@ -36309,7 +36309,7 @@ registerDroneProfile("payload", {
   sprites: { drop: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, idle: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, death: { sheet: "./ga_payload_drop_sheet.png", frames: 6 } },
   hp: 999, accel: 2.0, maxH: 14, maxV: 6, drag: 0.95, reverseBrake: 0.7, overspeedDrag: 0.95,
   hoverHeight: 335, bobAmp: 0, leash: 2000, behaviour: "bomber", cooldownOnDeath: 0,
-  techCost: 0, hurtbox: { w: 95, h: 32 }, scale: 1.75, frontFacing: false, nativeFacing: "left", faceMode: "travel",   // SCALE FIX: ~80% of GA (w-based; thin bomber)
+  techCost: 0, hurtbox: { w: 110, h: 40 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "travel",   // ULTIMATE BOMBER — bigger, readable plane
   lifetime: 150, expireMode: "retire",
 })
 
@@ -36324,7 +36324,9 @@ function _gaDroneShot(owner, context, opts) {
     sheet: opts.sheet || null, spriteFrames: opts.spriteFrames || 1,
     isSpecial: true, blockable: true,
   }, context)
-  if (p) { p._gaDroneShot = true; p.hitFlag = "_gaDroneHit" }
+  if (p) { p._gaDroneShot = true; p.hitFlag = "_gaDroneHit"
+    const _o = opts.target || (context && typeof context.getOpponent === "function" ? context.getOpponent(owner) : null)   // drone shots home on the foe too
+    if (_o && !_o.eliminated) { p._gaHoming = true; p._gaTarget = _o } }
   return p
 }
 
@@ -36785,7 +36787,7 @@ export function tickGreenArrowTimers(fighter) {
     const tx = (p._gaTarget.x || 0) + (p._gaTarget.w || 60) / 2, ty = (p._gaTarget.y || 0) + (p._gaTarget.h || 100) * 0.4
     const ang = Math.atan2(p.vy || 0, p.vx || 0.0001), want = Math.atan2(ty - p.y, tx - p.x)
     let d = want - ang; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI
-    const max = 0.105; d = Math.max(-max, Math.min(max, d))
+    const max = (p._gaDroneShot ? 0.12 : 0.17); d = Math.max(-max, Math.min(max, d))   // AUTO-TRACK: stronger turn so arrows reliably curve into the foe
     const sp = Math.hypot(p.vx || 0, p.vy || 0) || 1; const na = ang + d
     p.vx = Math.cos(na) * sp; p.vy = Math.sin(na) * sp
   }
@@ -36831,7 +36833,7 @@ function _gaArrow(fighter, context, o) {
   if (p) {
     p.hitFlag = "_gaArrowHit"            // → owner._gaArrowHit on clean hit (Tech income)
     p._gaArrow = o.kind || "plain"
-    if (tagged) { p._gaHoming = true; p._gaTarget = opp }   // slight homing toward the tagged foe
+    if (opp && !opp.eliminated) { p._gaHoming = true; p._gaTarget = opp }   // AUTO-TRACK: every arrow homes on the foe (still blockable)
     if (o.onHit) p._gaOnHit = o.onHit
   }
   return p

@@ -560,7 +560,7 @@ export function drawDrones(ctx, frame = 0, camera = null) {
     if (img && img.complete && img.naturalWidth > 0) {
       const fw = img.naturalWidth / frames
       const fh = img.naturalHeight
-      const sc = d.profile.scale || 1
+      const sc = (d.profile.scale || 1) * ((d.owner && d.owner._gaSuperActive) ? 1.3 : 1)   // ULTIMATE: drones render 30% bigger during the Super
       const dw = fw * sc, dh = fh * sc
       const fi = Math.min(frames - 1, d.frame)
       const _native = droneNative(d.profile)

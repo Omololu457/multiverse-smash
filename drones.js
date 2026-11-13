@@ -227,7 +227,7 @@ export function updateDrones(owners, frame, env = {}) {
     if (d._hitFlash > 0) d._hitFlash--
     // OWNER DOWN: when the owner is KO'd/eliminated, every active drone plays its DEATH anim and
     // falls (the LOSE sequence; also covers "hit by a super → drones destroyed"). Generic.
-    if (!d.dying && d.owner && ((d.owner.health || 0) <= 0 || d.owner.eliminated)) {
+    if (!d.dying && d.owner && ((typeof d.owner.health === "number" && d.owner.health <= 0) || d.owner.eliminated)) {
       d.dying = true; d.anim = "death"; d.frame = 0; d.animTimer = 0
       d.deathTimer = (d.profile.sprites?.death?.frames || 6) * 5 + 6
     }
@@ -455,12 +455,15 @@ export function drawDrones(ctx, frame = 0, camera = null) {
       ctx.fillRect(rx - hb.w / 2, ry - hb.h / 2, hb.w, hb.h)
     }
     ctx.restore()
-    if (d._debugHurt) drawDroneDebug(ctx, d)
+    if (_droneDebugOn) drawDroneDebug(ctx, d)
   }
 }
 
-// Training "drone debug" overlay — hurtbox + HP bar. Enabled per-drone via d._debugHurt.
-export function setDroneDebug(on) { for (const d of activeDrones) d._debugHurt = on; drawDrones._debug = on }
+// Training "drone debug" overlay — hurtbox + HP bar. Module-level so newly-spawned drones inherit it.
+let _droneDebugOn = false
+export function setDroneDebug(on) { _droneDebugOn = !!on; return _droneDebugOn }
+export function toggleDroneDebug() { _droneDebugOn = !_droneDebugOn; return _droneDebugOn }
+export function isDroneDebug() { return _droneDebugOn }
 function drawDroneDebug(ctx, d) {
   const r = droneRect(d)
   ctx.save()

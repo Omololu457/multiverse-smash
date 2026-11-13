@@ -49,7 +49,7 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
-import { updateDrones, updateDroneCollisions, drawDrones, resetDrones, activeDrones } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw)
+import { updateDrones, updateDroneCollisions, drawDrones, resetDrones, activeDrones, toggleDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -19551,6 +19551,8 @@ function updateTrainingMode() {
   // F6 — CLONE NO-TELL escalation (default OFF): remove the decoy visual tell so clones are
   // indistinguishable from the real fighter until hit. The hit-reveal rule still applies in both modes.
   if (_trainingKeyPressed("f6")) { trainingState.cloneNoTell = !trainingState.cloneNoTell; setCloneTell(!trainingState.cloneNoTell) }
+  // F8 — GREEN ARROW drone debug (training): toggle drone hurtboxes + HP bars (no-op when no drones).
+  if (_trainingKeyPressed("f8")) toggleDroneDebug()
   // F7 — WOOD RELEASE climbable-terrain PROBE (Stage 1, isolated): spawn a test platform a short reach
   // in front of P1, rising from the fighter's own ground. NOT wired to any character's kit — a debug hook
   // to prove jump-onto-growing / stand-at-full / recede-sync before Hashirama's Wood Release consumes it.
@@ -28195,6 +28197,11 @@ gameLoop()
     // Madara Gunbai-reflect test). Mirrors p2ProjectileAtClone's enemy-projectile pattern.
     spawnEnemyBolt:    (opts = {}) => { if (!p1 || !p2) return null; const p = spawnProjectile(p2, "testBolt", { damage: opts.damage ?? 40, speed: 10, lifetime: 90, vx: -10, vy: 0, w: 28, h: 28, hitstun: 12, knockbackX: 5, spawnX: p1.x + (p1.w || 60) + 60, spawnY: p1.y + (p1.h || 100) * 0.4 }, {}); return p ? { name: p.name, vx: p.vx } : null },
     clearSummons:      () => { activeSummons.length = 0 },
+    // GREEN ARROW drone/super harness hooks (render-check + determinism driving).
+    gaSpawnDrone: (type = "overwatch") => { if (!p1) return -1; activeDrones.length = 0; if (p1._gaDroneCd) p1._gaDroneCd = {}; p1._gaLastSpecialFrame = null; p1.attacking = false; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; p1._gaArrowstormActive = null; p1._gaTechLock = 0; p1._gaSuperActive = false; p1.currentMove = null; p1._specialHeldDir = ({ skyhook: "U", kestrel: "F", aegis: "B", bulwark: "D" }[type]) || null; p1.energy = 100; const ok = triggerSpecial(p1, getAbilityContext()); return ok ? activeDrones.length : -1 },
+    gaDrones: () => activeDrones.map(d => ({ type: d.type, x: Math.round(d.x), y: Math.round(d.y), hp: Math.round(d.hp), dying: !!d.dying })),
+    gaSuper: () => { if (!p1) return false; p1.energy = 100; return triggerUltimate(p1, getAbilityContext()) !== false },
+    gaDroneDebug: (on = true) => toggleDroneDebug(),
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false }   // reset dummy between damage checks
       // Also clear BOTH fighters' combo state: a fresh single-hit damage measurement must not be decayed by
       // a combo lingering from the previous check (projectiles now build combo count too — combo-flow Stage 3).

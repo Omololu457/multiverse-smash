@@ -1,0 +1,7 @@
+Roronoa Zoro build — undo point (main before any Zoro commit):
+
+e67ba2a8f2662ab629f9b5fcb85bb85301a6dfd8
+
+To undo the whole build:  git revert --no-commit e67ba2a8..<last zoro commit>   (or reset to this hash on a clean tree)
+Built on main via a PRIVATE INDEX (GIT_INDEX_FILE) so the concurrent, uncommitted Green Arrow working-tree
+edits and the 854 unrelated working-tree deletions were never staged into any Zoro commit.

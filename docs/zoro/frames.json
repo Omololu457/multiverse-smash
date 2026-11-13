@@ -1,0 +1,525 @@
+{
+ "source": "assets/incoming/zoro/zoro_sheet.png",
+ "sha256": "a8abf20e4ff5efbe07df0d5fbf6a63a4b39d7fee7a3ef14db9e5e08670ad0073",
+ "cell": [
+  320,
+  256
+ ],
+ "origin": [
+  160,
+  150
+ ],
+ "frames": {
+  "R1F1": {
+   "rect": [
+    15,
+    1,
+    45,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R1F2": {
+   "rect": [
+    49,
+    2,
+    76,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R1F3": {
+   "rect": [
+    84,
+    1,
+    111,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R1F4": {
+   "rect": [
+    120,
+    0,
+    150,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R1F5": {
+   "rect": [
+    159,
+    1,
+    189,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R1F6": {
+   "rect": [
+    197,
+    2,
+    227,
+    54
+   ],
+   "mouthSword": false,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run",
+    "intro",
+    "intro"
+   ]
+  },
+  "R2F1": {
+   "rect": [
+    19,
+    62,
+    49,
+    117
+   ],
+   "mouthSword": false,
+   "uses": [
+    "idle",
+    "getup",
+    "win"
+   ]
+  },
+  "R2F2": {
+   "rect": [
+    59,
+    62,
+    89,
+    117
+   ],
+   "mouthSword": false,
+   "uses": [
+    "idle",
+    "win"
+   ]
+  },
+  "R3F1": {
+   "rect": [
+    0,
+    123,
+    49,
+    176
+   ],
+   "mouthSword": true,
+   "uses": [
+    "intro",
+    "zShishi",
+    "zSanto"
+   ]
+  },
+  "R3F2": {
+   "rect": [
+    58,
+    127,
+    92,
+    176
+   ],
+   "mouthSword": false,
+   "uses": [
+    "hurt"
+   ]
+  },
+  "R3F3": {
+   "rect": [
+    99,
+    127,
+    142,
+    176
+   ],
+   "mouthSword": false,
+   "uses": [
+    "hurt_heavy",
+    "hurt_air",
+    "knockdown"
+   ]
+  },
+  "R3F4": {
+   "rect": [
+    152,
+    133,
+    197,
+    176
+   ],
+   "mouthSword": false,
+   "uses": [
+    "crouch",
+    "getup"
+   ]
+  },
+  "R3F5": {
+   "rect": [
+    211,
+    162,
+    274,
+    176
+   ],
+   "mouthSword": false,
+   "uses": [
+    "knockdown"
+   ]
+  },
+  "R4F1": {
+   "rect": [
+    2,
+    193,
+    62,
+    237
+   ],
+   "mouthSword": false,
+   "uses": [
+    "light"
+   ]
+  },
+  "R4F2": {
+   "rect": [
+    71,
+    187,
+    107,
+    237
+   ],
+   "mouthSword": true,
+   "uses": [
+    "light",
+    "zTaka",
+    "zTatsu"
+   ]
+  },
+  "R4F3": {
+   "rect": [
+    115,
+    193,
+    151,
+    237
+   ],
+   "mouthSword": true,
+   "uses": [
+    "guard",
+    "guard_hit",
+    "zSlash"
+   ]
+  },
+  "R4F4": {
+   "rect": [
+    162,
+    187,
+    207,
+    237
+   ],
+   "mouthSword": true,
+   "uses": [
+    "zSlash",
+    "heavy",
+    "zOni",
+    "zTatsu"
+   ]
+  },
+  "R4F5": {
+   "rect": [
+    217,
+    190,
+    285,
+    237
+   ],
+   "mouthSword": false,
+   "uses": [
+    "heavy",
+    "zTaka",
+    "zAshura",
+    "fx_takanami (derived copy: arc pixels only)"
+   ]
+  },
+  "R5F1": {
+   "rect": [
+    3,
+    247,
+    95,
+    288
+   ],
+   "mouthSword": false,
+   "uses": [
+    "zWake",
+    "zOni",
+    "zAshura"
+   ]
+  },
+  "R5F2": {
+   "rect": [
+    109,
+    247,
+    169,
+    288
+   ],
+   "mouthSword": false,
+   "uses": [
+    "zWake",
+    "zOni",
+    "zShishiStrike",
+    "zAshura"
+   ]
+  },
+  "R5F3": {
+   "rect": [
+    181,
+    256,
+    228,
+    288
+   ],
+   "mouthSword": false,
+   "uses": [
+    "dash",
+    "grab",
+    "throw",
+    "zOni",
+    "zShishiStrike",
+    "zAshuraMiss"
+   ]
+  },
+  "R6F1": {
+   "rect": [
+    3,
+    301,
+    63,
+    345
+   ],
+   "mouthSword": false,
+   "uses": [
+    "zLow"
+   ]
+  },
+  "R6F2": {
+   "rect": [
+    75,
+    303,
+    121,
+    345
+   ],
+   "mouthSword": false,
+   "uses": [
+    "jump",
+    "up",
+    "zTora"
+   ]
+  },
+  "R6F3": {
+   "rect": [
+    128,
+    306,
+    176,
+    345
+   ],
+   "mouthSword": false,
+   "uses": [
+    "fall",
+    "zLow",
+    "up",
+    "down_air",
+    "zTora"
+   ]
+  },
+  "R6F4": {
+   "rect": [
+    184,
+    293,
+    249,
+    345
+   ],
+   "mouthSword": true,
+   "uses": [
+    "throw",
+    "up"
+   ]
+  },
+  "R7F1": {
+   "rect": [
+    11,
+    359,
+    62,
+    410
+   ],
+   "mouthSword": true,
+   "uses": [
+    "taunt",
+    "win2",
+    "zSanto",
+    "zAshura",
+    "zsIdle",
+    "zsLight",
+    "Ashura afterimage source (render-only derived copies)"
+   ]
+  },
+  "R7F2": {
+   "rect": [
+    66,
+    360,
+    132,
+    410
+   ],
+   "mouthSword": false,
+   "uses": [
+    "taunt",
+    "zAshura",
+    "zsLight"
+   ]
+  },
+  "R7F3": {
+   "rect": [
+    143,
+    360,
+    191,
+    410
+   ],
+   "mouthSword": true,
+   "uses": [
+    "air",
+    "zsHeavy"
+   ]
+  },
+  "R7F4": {
+   "rect": [
+    207,
+    360,
+    254,
+    410
+   ],
+   "mouthSword": true,
+   "uses": [
+    "air",
+    "zsHeavy"
+   ]
+  },
+  "R8F1": {
+   "rect": [
+    13,
+    426,
+    53,
+    479
+   ],
+   "mouthSword": false,
+   "uses": [
+    "fx_tornado"
+   ]
+  },
+  "R8F2": {
+   "rect": [
+    62,
+    426,
+    102,
+    480
+   ],
+   "mouthSword": false,
+   "uses": [
+    "fx_tornado"
+   ]
+  },
+  "R8F3": {
+   "rect": [
+    114,
+    427,
+    154,
+    479
+   ],
+   "mouthSword": false,
+   "uses": [
+    "fx_tornado"
+   ]
+  },
+  "R8F4": {
+   "rect": [
+    163,
+    426,
+    202,
+    479
+   ],
+   "mouthSword": false,
+   "uses": [
+    "fx_tornado"
+   ]
+  },
+  "R9F1": {
+   "rect": [
+    12,
+    489,
+    46,
+    548
+   ],
+   "mouthSword": false,
+   "uses": [
+    "lose"
+   ]
+  },
+  "R9F2": {
+   "rect": [
+    68,
+    501,
+    89,
+    547
+   ],
+   "mouthSword": false,
+   "uses": [
+    "nap",
+    "zNap"
+   ]
+  },
+  "R9F3": {
+   "rect": [
+    110,
+    495,
+    167,
+    548
+   ],
+   "mouthSword": false,
+   "uses": [
+    "merry emblem",
+    "portrait"
+   ]
+  }
+ },
+ "excluded": {
+  "credit_text": [
+   168,
+   495,
+   273,
+   548
+  ]
+ }
+}

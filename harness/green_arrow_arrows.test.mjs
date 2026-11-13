@@ -46,10 +46,14 @@ f = mkGA(); clearProj(); f.directionHistory = []
 r = updateGreenArrowCommandCombat(f, { heavy: true, right: true }, CTX(OPP))
 ok("→+Heavy → bow slash (melee, consumed)", r === true && f.attacking === true && activeProjectiles.length === 0)
 
-// bare Light (no motion) → falls through to the normal (returns false)
+// DESIGN: bare Light (no motion) now fires a PLAIN ARROW directly (archer basic — L is an arrow, not a melee)
 f = mkGA(); clearProj(); f.directionHistory = []
 r = updateGreenArrowCommandCombat(f, { light: true }, CTX(OPP))
-ok("bare Light (no motion) → normal fires (returns false)", r === false && activeProjectiles.length === 0)
+ok("bare Light (no motion) → fires a plain arrow", r === true && activeProjectiles.length === 1)
+// bare Heavy (no motion) → fire arrow (spends 15; falls back to a piercing plain shot when out of Tech)
+f = mkGA(); clearProj(); f.directionHistory = []; f.energy = 100
+r = updateGreenArrowCommandCombat(f, { heavy: true }, CTX(OPP))
+ok("bare Heavy (no motion) → fires a fire arrow (spent 15)", r === true && f.energy === 85 && activeProjectiles.length === 1)
 
 console.log("\n── charged plain shot (qcf+Light hold → release)")
 f = mkGA(); clearProj(); qcf(f)

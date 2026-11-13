@@ -36575,9 +36575,22 @@ registerBehaviour("swarm", (d, { frame }) => {
       _gaExplosionFx(o, d.x + ((d.data.scouts % 2) ? 20 : -20), d.y, 0.5, d._ctx)
       if (d.hp <= 0) _gaDie(d)
     }
-  } else {                                                     // PROTECTOR: orbit Oliver as a shield bubble, 5s
-    d.anim = "idle"; d.tx = (o.x || 0); d.ty = _gaFloor(o) - 120
+  } else {                                                     // PROTECTOR: RISE above Oliver, then SWARM + dive the foe
+    d.anim = "idle"
     d.data.life = (d.data.life == null ? 300 : d.data.life - 1)
+    const age = 300 - d.data.life
+    if (age < 26 || !opp || opp.eliminated) { d.tx = (o.x || 0); d.ty = _gaFloor(o) - 260 }   // climb above Oliver first
+    else {                                                                                     // then dive the enemy and ram
+      d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = (opp.y || 0) + (opp.h || 100) * 0.4
+      d.data.rushTick = (d.data.rushTick || 0) + 1
+      if (_gaHitsOpp(d, opp, 34) && d.data.scouts > 0 && d.data.rushTick % 12 === 0) {
+        d.hp = Math.max(0, d.hp - 20)                          // a scout peels off and rams
+        applyScaledDamage(opp, 14, { source: "ability", attacker: o, move: "swarmDive" })
+        opp.hitstun = Math.max(opp.hitstun || 0, 8)
+        _gaExplosionFx(o, d.x, d.y, 0.4, d._ctx)
+        if (d.hp <= 0) _gaDie(d)
+      }
+    }
     if (d.data.life <= 0 || d.data.scouts <= 0) d._retiring = "expire"
   }
 })
@@ -36985,8 +36998,12 @@ export function updateGreenArrowCommandCombat(fighter, inputState, context, getP
   if (qcb && lightEdge)  { inputState.light = false; return fireGAIce(fighter, context) }
   if (qcb && heavyEdge)  { inputState.heavy = false; return fireGAEmp(fighter, context) }
   if (dd && heavyEdge)   { inputState.heavy = false; return fireGAExplosive(fighter, context) }
-  // BOW SLASH — →+Heavy command normal (neutral heavy stays the straight).
+  // BOW SLASH — →+Heavy command normal.
   if (forward && heavyEdge) { inputState.heavy = false; return fireGABowSlash(fighter, context) }
+  // ARCHER BASICS (no motion needed): bare Light = plain arrow, bare Heavy = fire arrow (falls back to a
+  // piercing plain shot if out of Tech). Motions above still fire the charged/ice/emp/explosive/anti-air arrows.
+  if (lightEdge) { inputState.light = false; return fireGAPlain(fighter, context, 0) }
+  if (heavyEdge) { inputState.heavy = false; return fireGAFire(fighter, context) || fireGAPlain(fighter, context, 1) }
   return false
 }
 

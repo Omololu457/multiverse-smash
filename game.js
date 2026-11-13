@@ -11549,6 +11549,10 @@ function _updatePlayerCombatBody(fighter) {
     const bc = updateBuggyCommandCombat(fighter, inputState, getOpponent(fighter), { world: BUGGY_WORLD })
     if (bc) { updateCombat(fighter, getOpponent(fighter), bc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
+  if (isArlong(fighter)) {   // Arlong command layer: 'consumed' | 'grab' | false
+    const ac = updateArlongCommandCombat(fighter, inputState, getOpponent(fighter), { world: ARLONG_WORLD })
+    if (ac) { updateCombat(fighter, getOpponent(fighter), ac === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
+  }
   if (isLuffy(fighter)) {
     const consumed = updateLuffyCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     updateCombat(fighter, getOpponent(fighter), consumed ? {} : { grab: !!inputState.grab }, opts); return

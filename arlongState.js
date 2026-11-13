@@ -35,6 +35,10 @@ export function arlongState(f) {
     flood: 0,          // ARLONG PARK flood frames left (the whole floor is water)
     groundY: null,     // feet line when last grounded (zones / flood sit on it)
     zoneSeq: 0,        // zones created this round (render seed / tests)
+    teeth: 3,          // TOOTH REGROWTH: 0-3 serrated teeth; bite moves spend one
+    toothT: 0,         // frames toward the next regrown tooth (240 each)
+    bites: 0,          // bites spent this round (stat / tests)
+    bleed: 0, bleedT: 0,   // BLEED on the foe after a Bite: frames left · frames to the next tick
   }
 }
 
@@ -109,6 +113,14 @@ export function addZone(f, cx, width = ARLONG_ZONE.width, W = null) {
 export const zoneAt = (s, x) => !!s && s.zones.some(z => x >= z.x && x <= z.x + z.width)
 export const inWater = (f, s = f?._arlong) => !!s && (s.flood > 0 || (grounded(f) && zoneAt(s, ctrX(f))))
 
+// ── TOOTH REGROWTH (brief Phase 4) ──────────────────────────────────────────────────────────────────────────
+// Bite moves consume a tooth and hit much harder than normal moves. Teeth regrow one at a time (4 s each) or
+// refill to full instantly when Shark On Darts lands. At 0 teeth the bites become a weaker headbutt (same frames).
+export const ARLONG_TEETH = { max: 3, regrow: 240, bleedFrames: 120, bleedEvery: 20, bleedDmg: 4 }
+export const BITE_FALLBACK = { aBite: 'aHeadbutt', aTooth: 'aToothHead' }
+export const hasTeeth = f => (f?._arlong?.teeth ?? ARLONG_TEETH.max) > 0
+export function refillTeeth(f) { const s = arlongState(f); if (s && s.teeth < ARLONG_TEETH.max) { s.teeth = ARLONG_TEETH.max; s.toothT = 0; acue(f, 'regrow') } }
+
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer and updateCombat). ──
 // W = world accessors from game.js (stageWidth, frame, damage, …).
 export function tickArlong(f, opp, raw = {}, W = null) {
@@ -123,6 +135,13 @@ export function tickArlong(f, opp, raw = {}, W = null) {
   if (f.hitstop > 0) return
   s.clock++
   if (s.lockout > 0) s.lockout--
+  // teeth regrow one at a time
+  if (s.teeth < ARLONG_TEETH.max) { if (++s.toothT >= ARLONG_TEETH.regrow) { s.toothT = 0; s.teeth++; acue(f, 'regrow') } } else s.toothT = 0
+  // BLEED (after a Bite): 4 damage every 20 frames for 2 s on the foe
+  if (s.bleed > 0) {
+    s.bleed--
+    if (++s.bleedT >= ARLONG_TEETH.bleedEvery) { s.bleedT = 0; if (opp && opp.health > 0) W?.damage?.(opp, ARLONG_TEETH.bleedDmg, { source: 'ability', attacker: f, move: 'aBite', damageType: 'slash' }) }
+  }
   if (grounded(f)) s.groundY = feetY(f)
   // zones dry up after 8 s; the flood counts down
   for (let i = s.zones.length - 1; i >= 0; i--) if (s.clock - s.zones[i].bornFrame >= ARLONG_ZONE.life) s.zones.splice(i, 1)
@@ -184,6 +203,7 @@ export function arlongStartMove(f, key, startMove = _startMove) {
   if (md.invuln) f.invulnTimer = Math.max(f.invulnTimer || 0, md.invuln)
   if (md.isSpecial || md.isUltimate) { f.vx = 0; f.isBlocking = false }
   if (key === 'aSuper') { const s = arlongState(f); s.inSuper = true }
+  if (g.tooth) { const s = arlongState(f); s.teeth = Math.max(0, s.teeth - 1); s.bites++ }   // a bite spends a tooth on commit
   return true
 }
 
@@ -217,7 +237,9 @@ export function arlongHit(attacker, defender, atk) {
   if (!isArlong(attacker) || attacker === defender) return
   const type = meleeDamageType(attacker, atk)
   gainTide(attacker, type === 'slash' ? ARLONG_TIDE.perBladeHit : ARLONG_TIDE.perKarateHit)
-  acue(attacker, type === 'slash' ? 'bladeHit' : 'punch')
+  const g = atk?.al || {}
+  if (g.bleed) { const s = arlongState(attacker); s.bleed = ARLONG_TEETH.bleedFrames; s.bleedT = 0 }
+  acue(attacker, g.tooth ? 'biteHit' : type === 'slash' ? 'bladeHit' : 'punch')
 }
 // Knockback post-process on a connecting melee hit: weight 1.3 → knockback taken ÷ 1.3.
 export function arlongKnockback(attacker, defender) {

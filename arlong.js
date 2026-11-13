@@ -8,7 +8,7 @@
 //   →+H = BITE when close (else Lunge punch) · Air saw air L/H (air ↓ = nose dive)
 import { startMove } from './combat.js'
 import { ARLONG_MOVES } from './arlongData.js'
-import { isArlong, arlongState, arlongStartMove, acue, registerArlongStartMove, ctrX } from './arlongState.js'
+import { isArlong, arlongState, arlongStartMove, acue, registerArlongStartMove, ctrX, hasTeeth, BITE_FALLBACK } from './arlongState.js'
 
 const BUFFER = 8
 // Normal → normal gatlings on contact (hit OR block).
@@ -45,7 +45,10 @@ function normalFor(f, inp, button, grounded, opp) {
   return 'aSwing'
 }
 // Resolve a move key to what Arlong can actually do right now (blade / teeth state). Never returns a dead key.
-export function resolveKey(f, key) { return key }
+export function resolveKey(f, key) {
+  if (BITE_FALLBACK[key] && !hasTeeth(f)) return BITE_FALLBACK[key]   // 0 teeth → the weaker headbutt (same frames)
+  return key
+}
 
 const CUE = { light: 'swingLight', aStraight: 'swingLight', aLow: 'swing', aSwing: 'swing', heavy: 'swing', up: 'swingLight', air: 'swing',
   down_air: 'swingLight', aLunge: 'swingLight', aWake: 'swing', aBite: 'bite', aHeadbutt: 'swingLight' }

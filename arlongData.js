@@ -41,6 +41,8 @@ export const ARLONG_MOVES = {
   // from the travelling strike / projectile / wave the move launches, resolved in arlongState).
   aTooth:   n(120, 12, 6, 22, { cost: 15, category: 'special', isSpecial: true, blockstun: adv(-8, 6, 22), hitstun: 30, rangeX: 70, knockbackX: 6,
               damageType: 'slash', al: { kind: 'tooth', tooth: true, lunge: [6, 17, 9], zoneOnHit: true } }),
+  aToothHead: n(40, 12, 6, 22, { cost: 15, category: 'special', isSpecial: true, blockstun: adv(-8, 6, 22), hitstun: 20, rangeX: 70, knockbackX: 4,
+              al: { kind: 'tooth', lunge: [6, 17, 9] } }),   // Shark On Tooth at 0 teeth: a lunging headbutt, same frames, no zone
   aDarts:   n(0, 10, 26, 40, { cost: 20, category: 'special', isSpecial: true, damageType: 'blunt', al: { kind: 'darts', noHit: true, travel: [10, 36], dmg: 135 } }),
   aSeiken:  n(0, 18, 3, 26, { cost: 25, category: 'special', isSpecial: true, damageType: 'blunt', al: { kind: 'seiken', noHit: true, spawnAt: 18, dmg: 115, chip: 15 } }),
   aThrow:   n(0, 14, 2, 18, { cost: 18, category: 'special', isSpecial: true, damageType: 'slash', al: { kind: 'throw', noHit: true, spawnAt: 14, dmg: 85 } }),
@@ -64,7 +66,7 @@ export const ARLONG_TIMELINES = {
   aLow: [[0, 0], [8, 1]], up: [[0, 0], [10, 1]], air: [[0, 0]], down_air: [[0, 0]], aLunge: [[0, 0], [11, 1]],
   aWake: [[0, 0], [3, 1], [6, 2]], aBite: [[0, 0], [6, 1], [10, 2]], aHeadbutt: [[0, 0], [6, 1], [10, 2]],
   aKSwing: [[0, 0], [11, 1]], aKHeavy: [[0, 0], [14, 1]], aKLow: [[0, 0]], aKAir: [[0, 0]], aKWake: [[0, 0], [4, 1]],
-  aTooth: [[0, 0], [8, 1], [12, 2], [16, 3]], aDarts: [[0, 0], [10, 1], [14, 2], [18, 3], [22, 1], [26, 2], [30, 3], [36, 4]],
+  aTooth: [[0, 0], [8, 1], [12, 2], [16, 3]], aToothHead: [[0, 0], [8, 1], [12, 2], [16, 3]], aDarts: [[0, 0], [10, 1], [14, 2], [18, 3], [22, 1], [26, 2], [30, 3], [36, 4]],
   aSeiken: [[0, 0], [12, 1], [18, 2], [24, 3]], aThrow: [[0, 0], [5, 1], [10, 2], [14, 3]], aRecall: [[0, 0], [8, 1]],
   aPickup: [[0, 0], [5, 1]], aTidal: [[0, 0], [10, 1], [16, 2]], aKTidal: [[0, 0]], aShot: [[0, 0], [9, 1]],
   aSuper: [[0, 0], [10, 1], [14, 2], [18, 3], [136, 4], [146, 5], [150, 6], [154, 7], [160, 8]],
@@ -72,6 +74,7 @@ export const ARLONG_TIMELINES = {
 
 const ANIM = Object.fromEntries(Object.entries(ARLONG_ANIM).map(([k, a]) => [k, ARLONG_TIMELINES[k] ? { ...a, frameTimeline: ARLONG_TIMELINES[k] } : a]))
 ANIM.aHeadbutt = ANIM.aBite                       // 0-teeth headbutt: same frames
+ANIM.aToothHead = ANIM.aTooth                     // 0-teeth Shark On Tooth: same frames
 ANIM.aKTidal = { ...ANIM.aKLow, frameTimeline: [[0, 0]] }
 ANIM.transform = ANIM.intro
 export const ARLONG_ANIMS = ANIM

@@ -15,6 +15,7 @@ export function zoroHarnessApi(g) {
         x: f.x, y: f.y, facing: f.facing, dmgMul: f.damageMultiplier || 1, form: f.currentForm || null,
         santoryu: !!s?.santoryu, santoryuTimer: s?.santoryuTimer || 0, santoryuCd: s?.santoryuCd || 0,
         forceAction: f._forceAction || null, combo: f.comboCounter || 0,
+        idleSheet: (f._skinAnim || f.animationData)?.idle?.sheet || null,
         projectiles: g.projectiles().filter(p => p.owner === f).map(p => ({ kind: p.zoroKind || p.name, x: p.x, y: p.y, age: p.age })),
         z: s,
       }

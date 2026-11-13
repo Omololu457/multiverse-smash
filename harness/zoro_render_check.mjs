@@ -71,14 +71,18 @@ try {
   if (PHASE >= 3) {
     await page.evaluate(() => __harness.zoroTest.reset())
     await page.evaluate(() => __harness.zoroTest.spirit('p1', 100))
-    await page.evaluate(() => __harness.zoroTest.press('p1', ['special', 'heavy']))
+    await page.keyboard.down('l'); await page.keyboard.down('k'); await step(1); await page.keyboard.up('l'); await page.keyboard.up('k')   // A+B (Special+Heavy, same frame)
     await step(14)
     let z = await zs()
     check('Santoryu active (A+B)', z.santoryu === true && z.santoryuTimer > 500, JSON.stringify({ s: z.santoryu, t: z.santoryuTimer }))
     await step(20); await shot(`p${PHASE}-01-santoryu`)
-    z = await zs(); const st = await ls()
-    check('Santoryu renders the mouth-sword stance sheet', st.spriteAction === 'zsIdle' || st.spriteAction === 'idle', st.spriteAction)
+    z = await zs()
+    check('Santoryu renders the mouth-sword stance sheet (R7F1 zsIdle)', /zsIdle\.png$/.test(z.idleSheet || ''), z.idleSheet)
     check('Santoryu buffs: +12% dmg', Math.abs(z.dmgMul - 1.12) < 1e-9, z.dmgMul)
+    check('Santoryu cost 15 Spirit', z.energy <= 85 + 1 && z.energy >= 84, z.energy)
+    await page.evaluate(() => __harness.zoroTest.set('p1', { santoryuTimer: 2 })); await step(3)
+    z = await zs()
+    check('Santoryu expires → base stance + 4s cooldown', !z.santoryu && z.santoryuCd > 230 && /\/idle\.png$/.test(z.idleSheet || ''), JSON.stringify({ s: z.santoryu, cd: z.santoryuCd, sheet: z.idleSheet }))
   }
   if (PHASE >= 4) {
     await page.evaluate(() => __harness.zoroTest.reset())
@@ -110,6 +114,7 @@ try {
   check('no Zoro 404s', zMissing.length === 0, zMissing.join(', '))
 } catch (e) {
   check('render check ran to completion', false, e.message.split('\n')[0])
+  if (errors.length) console.log('  page errors:', errors.slice(0, 4).join(' | '))
 } finally {
   await browser.close(); server.close()
 }

@@ -1,6 +1,7 @@
 import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
 import { luffyRegen } from './luffyState.js'
 import { zoroRegen } from './zoroState.js'
+import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -35583,6 +35584,7 @@ export function updateTransformationState(fighter, context = {}) {
   updateJiraiyaHermit(fighter)   // Jiraiya Hermit/Sage Mode: ~20s duration countdown + auto-revert (timer-based, deterministic)
   updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
   updateNeteroGuanyin(fighter)   // Netero Guanyin Bodhisattva giant: tick its own timer + auto-revert
+  updateZoroSantoryu(fighter)    // Roronoa Zoro Santoryu: 600f timer + auto-revert + 240f cooldown
 
   // Sasuke two-strike lightning: drive the handseal → strike1 → strike2 state machine.
   // No-op unless a cast is in progress.

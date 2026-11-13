@@ -27,10 +27,14 @@ export const ZORO_TIMELINES = {
   light: [[0, 1], [5, 0], [8, 1]], zSlash: [[0, 0], [8, 1]], heavy: [[0, 0], [13, 1]],
   zLow: [[0, 0], [7, 1]], up: [[0, 0], [9, 1], [13, 2]], air: [[0, 0], [6, 1]], down_air: [[0, 0]],
   zWake: [[0, 0], [6, 1]],
+  zSanto: [[0, 0], [10, 1]], zsLight: [[0, 0], [5, 1]], zsHeavy: [[0, 0], [13, 1]],
 }
 
 const ANIM = Object.fromEntries(Object.entries(ZORO_ANIM).map(([k, a]) => [k, ZORO_TIMELINES[k] ? { ...a, frameTimeline: ZORO_TIMELINES[k] } : a]))
 ANIM.transform = ANIM.intro   // the engine plays `transform` during the match intro
+// SANTORYU stance set (fighter._skinAnim while the form is active): the mouth-sword frames from R7.
+export const ZORO_SANTO_ANIM = { ...ANIM, idle: ANIM.zsIdle,
+  light: { ...ANIM.zsLight, frameTimeline: ZORO_TIMELINES.zsLight }, heavy: { ...ANIM.zsHeavy, frameTimeline: ZORO_TIMELINES.zsHeavy } }
 
 export const zoro = {
   rosterKey: 'zoro', name: 'Zoro', displayName: 'Roronoa Zoro', hudName: 'Zoro', universe: 'one_piece', color: '#3fa34d',

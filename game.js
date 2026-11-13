@@ -2,6 +2,8 @@ import { updateLuffyCommandCombat } from './luffy.js'
 import { tickLuffy, luffyState, isLuffy, clearLuffy } from './luffyState.js'
 import { tickZoro, isZoro, clearZoro, zoroState } from './zoroState.js'   // Roronoa Zoro (zoro-gated)
 import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (window.__harness.zoroTest)
+import { updateZoroCommandCombat } from './zoro.js'   // Roronoa Zoro command layer (zoro-gated)
+import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -3986,6 +3988,10 @@ function updateFFACombat(fighter, others, opts) {
   if (isLuffy(fighter)) {
     const consumed = updateLuffyCommandCombat(fighter, inputState, nearest, {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     ctrlState = consumed ? {} : { grab: !!inputState.grab }
+  }
+  if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
+    const zc = updateZoroCommandCombat(fighter, inputState, nearest, {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    if (zc) ctrlState = zc === 'grab' ? { grab: !!inputState.grab } : {}
   }
   // Harness/dev hook: force a normal this frame (controller players can't be driven from
   // Playwright, so tests trigger P3/P4 attacks through this).
@@ -11294,6 +11300,10 @@ function _updatePlayerCombatBody(fighter) {
     fighter._absorbPrevGrab = !!inputState.grab
   }
 
+  if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
+    const zc = updateZoroCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    if (zc) { updateCombat(fighter, getOpponent(fighter), zc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
+  }
   if (isLuffy(fighter)) {
     const consumed = updateLuffyCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     updateCombat(fighter, getOpponent(fighter), consumed ? {} : { grab: !!inputState.grab }, opts); return
@@ -20796,6 +20806,7 @@ function renderHybridFighter(fighter) {
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
+    drawZoroFx(c, fighter)                  // Roronoa Zoro — Santoryu aura, afterimages, haki ring, slash FX (render-only; zoro only)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
     drawHomelanderHeatVision(c, fighter)    // Homelander — twin code-drawn Heat Vision beam (white core + red glow + impact burst) from the eye anchor; dim-eye overheat tell (homelander only)
     drawHomelanderFlexFx(c, fighter)        // Homelander — Flex Parry golden burst ring (homelander only)

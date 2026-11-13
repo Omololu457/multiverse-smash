@@ -312,6 +312,23 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
 }
 
 const SOUNDS = {
+  // ── GREEN ARROW (WebAudio placeholders; no audio pack). SFX bus (voice bus untouched). No
+  // Math.random added — click timings are fixed patterns so the texture is stable. ──
+  ga_bow_draw(ctx,out){ osc(ctx,out,'triangle',200,0.15,0.16,900); playNoise(ctx,out,0.15,700,0.10) },
+  ga_arrow_release(ctx,out){ playNoise(ctx,out,0.08,2000,0.26); osc(ctx,out,'triangle',760,0.06,0.10,340) },
+  ga_fire_arrow(ctx,out){ playNoise(ctx,out,0.12,1600,0.22); for(const t of [0.01,0.035,0.06,0.09]) oscAt(ctx,out,'square',1800,t,0.012,0.08,1200); osc(ctx,out,'sine',120,0.14,0.12,70) },
+  ga_ice_arrow(ctx,out){ osc(ctx,out,'sine',1800,0.22,0.16,1720); oscAt(ctx,out,'sine',1860,0.03,0.18,0.12,1780); oscAt(ctx,out,'sine',1760,0.06,0.16,0.10,1840) },
+  ga_emp(ctx,out){ osc(ctx,out,'square',120,0.25,0.22,40); playNoise(ctx,out,0.1,500,0.14) },
+  ga_overwatch_scan(ctx,out){ osc(ctx,out,'sine',1200,0.12,0.10,1180) },
+  ga_overwatch_tag(ctx,out){ osc(ctx,out,'sine',1200,0.08,0.11,1190); oscAt(ctx,out,'sine',1400,0.1,0.09,0.11,1380) },
+  ga_bulwark_fire(ctx,out){ osc(ctx,out,'sawtooth',640,0.05,0.16,220); osc(ctx,out,'sine',90,0.12,0.22,55) },
+  ga_kestrel(ctx,out){ osc(ctx,out,'sawtooth',220,0.3,0.12,210); osc(ctx,out,'sine',90,0.3,0.10,88) },
+  ga_skyhook(ctx,out){ const n=ctx.createBufferSource(),b=ctx.createBuffer(1,ctx.sampleRate*0.4,ctx.sampleRate),d=b.getChannelData(0); for(let i=0;i<d.length;i++){ const am=0.5+0.5*Math.sin(2*Math.PI*18*i/ctx.sampleRate); d[i]=(Math.random()*2-1)*am } n.buffer=b; const g=ctx.createGain(); g.gain.setValueAtTime(0.12,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.4); n.connect(g); g.connect(out); n.start(); n.stop(ctx.currentTime+0.4) },
+  ga_payload_bomb(ctx,out){ osc(ctx,out,'sine',1500,0.35,0.14,300); osc(ctx,out,'sine',55,0.3,0.26,45); playNoise(ctx,out,0.18,300,0.2) },
+  ga_drone_deploy(ctx,out){ osc(ctx,out,'triangle',300,0.14,0.16,760); osc(ctx,out,'sine',120,0.1,0.1,180) },
+  ga_drone_death(ctx,out){ playNoise(ctx,out,0.16,700,0.3); osc(ctx,out,'sine',80,0.18,0.24,40) },
+  ga_recall(ctx,out){ osc(ctx,out,'sine',520,0.1,0.12,780); oscAt(ctx,out,'sine',780,0.09,0.1,0.12,900) },
+  ga_super(ctx,out){ osc(ctx,out,'sawtooth',180,0.5,0.14,900); osc(ctx,out,'sine',60,0.5,0.24,40); playNoise(ctx,out,0.3,1200,0.2) },
   // Luffy: synthesized placeholders; supplied sprite art includes no voice pack.
   luffy_stretch(ctx,out) { osc(ctx,out,'triangle',160,0.16,0.22,780) },
   luffy_snap(ctx,out) { osc(ctx,out,'sine',900,0.10,0.25,160) },

@@ -139,6 +139,7 @@ export function spawnDrone(owner, type, opts = {}) {
     behaviour: profile.behaviour || "follow",
     state: "enter", stateTimer: 0,
     bornFrame: opts.frame || 0,
+    life: profile.lifetime || Infinity,        // frames before self-expiry (Infinity = until killed)
     dying: false, deathTimer: 0,
     _retiring: false, _retireRefunded: false,
     target: opts.target || null,
@@ -239,6 +240,15 @@ export function updateDrones(owners, frame, env = {}) {
         activeDrones.splice(i, 1)
       }
       advanceAnim(d)
+      continue
+    }
+    // lifetime expiry — self-scuttle (death anim) or fly off (retire), per profile.expireMode
+    if (d.life !== Infinity && --d.life <= 0) {
+      if ((d.profile.expireMode || "death") === "retire") { d._retiring = "expire" }
+      else {
+        d.dying = true; d.anim = "death"; d.frame = 0; d.animTimer = 0
+        d.deathTimer = (d.profile.sprites?.death?.frames || 6) * 5 + 6
+      }
       continue
     }
     // behaviour sets d.tx/d.ty + actions

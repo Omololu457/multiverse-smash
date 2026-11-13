@@ -94,6 +94,7 @@ import {
   applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
   applySupermanWoC,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
   applySupermanHeatVision,   // Superman HEAT VISION: sustained auto-aim hitscan beam while Special is HELD (tap = single shot)
+  applyGreenArrowArrowstorm, tickGreenArrowTimers,   // GREEN ARROW: ARROWSTORM super per-frame driver + Tech-lock/tag timers
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -19227,6 +19228,8 @@ function updateFighterState(fighter) {
   applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
   supermanFlightEscape(updated)   // Superman defensive: burst out of a combo into flight (Special + 25 energy while in hitstun, 10s cd, 12f invuln)
   applySupermanWoC(updated, getAbilityContext())   // Superman ULTIMATE "World of Cardboard": scripted multi-hit state machine
+  applyGreenArrowArrowstorm(updated, getAbilityContext())   // GREEN ARROW ARROWSTORM: scripted drones-fire → Payload bombing → closing volley (no-op unless active)
+  tickGreenArrowTimers(updated)   // GREEN ARROW: Tech-lockout + tag-reticle countdowns
   applySupermanHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Superman HEAT VISION: HOLD Special → sustained auto-aim beam + drain + hitscan ticks (gated on rosterKey)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)

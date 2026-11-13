@@ -17,6 +17,7 @@
 
 import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all AI rolls route through rand()
 import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js"   // Part 2: per-character behavior templates
+import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in per drone profile via aiPriority — Buggy's body parts)
 
 export const AI_DIFFICULTIES = {
   dummy: {
@@ -1295,7 +1296,24 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
 }
 
 export function getAIInput(controller, fighter, opponent, world = {}) {
-  return updateAIController(controller, fighter, opponent, world)
+  return aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world))
+}
+
+// DRONE HUNT: ~25% of 8-frame windows (hash-decided in drones.aiPickDroneTarget — no RNG) the CPU goes after an
+// enemy drone in reach instead, highest aiPriority first (Buggy's head > hand > legs). Only drones whose profile
+// opts in with `aiPriority` are hunted, so every other matchup's AI is unchanged.
+function aiHuntDrones(controller, fighter, input) {
+  if (!controller?.enabled || controller.difficulty === "dummy" || !fighter || isBusy(fighter)) return input
+  const d = aiPickDroneTarget(fighter, controller.frameCounter || 0, 170, { filter: p => p.aiPriority != null })
+  if (!d) return input
+  const fx = (fighter.x || 0) + (fighter.w || 48) / 2, dx = d.x - fx, face = fighter.facing || 1
+  if (dx * face < -12) return input                      // behind us — not worth turning for
+  const hunt = { ...input, left: false, right: false, block: false, lightAttack: false, heavyAttack: false, upAttack: false }
+  if (Math.abs(dx) > 70) { hunt[dx < 0 ? "left" : "right"] = true; return hunt }
+  if (d.y < (fighter.y || 0) - 10) hunt.upAttack = true   // a part hovering overhead (the head) → anti-air
+  else hunt.lightAttack = true
+  controller.lastInput = hunt
+  return hunt
 }
 
 export function getAIDifficultyLabel(difficulty) {

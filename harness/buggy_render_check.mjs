@@ -149,6 +149,98 @@ try {
     check('Haki-imbued Zoro slash bypasses the immunity', b1.health < b0.health && b1.b.nullTotal === 0, `hp ${b0.health}→${b1.health}`)
   }
 
+  if (PHASE >= 4) {
+    // BODY PARTS as drones.js profiles.
+    const T = () => page.evaluate(() => __harness.buggyTest)
+    const call = (fn, ...a) => page.evaluate(([fn, a]) => __harness.buggyTest[fn](...a), [fn, a])
+    const parts = async () => (await bs()).parts
+    const zs = () => page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); return { x: z.x, hp: z.health, en: z.energy, hitstop: z.hitstop || 0 } })
+    await fresh(260)
+    const z0 = await zs(), b0x = (await bs()).x
+    check('Cannon: hand part launches (drone profile buggy_hand)', await call('hand'))
+    let pk = await parts(); check('hand is a live drone with HP', pk.length === 1 && pk[0].type === 'buggy_hand' && pk[0].hp === 60, JSON.stringify(pk))
+    await step(4); let sm = await bs()
+    check('body masked while the hand is out (row 2)', sm.b.mask === 2 && sm.idleSourceY === 224, `mask=${sm.b.mask} sy=${sm.idleSourceY}`)
+    await shot(`p${PHASE}-04-hand-flying`)
+    for (let i = 0; i < 60; i++) { await step(1); const q = await parts(); if (q[0]?.state === 'hover') break }
+    pk = await parts(); const z1 = await zs()
+    check('hand hit the foe in flight (70, pierced through)', z1.hp < z0.hp, `zoro ${z0.hp}→${z1.hp}`)
+    check('hand parks BEHIND the foe, hovering', pk[0]?.state === 'hover' && pk[0].x > z1.x + 48, JSON.stringify({ hand: pk[0]?.x, zoro: z1.x, st: pk[0]?.state }))
+    check('hand flew ~60% of the screen (or to the wall)', Math.abs(pk[0].x - b0x) > 600, Math.round(Math.abs(pk[0].x - b0x)))
+    await shot(`p${PHASE}-05-hand-parked`)
+    check('Special again → stab from the hand', await call('stab'))
+    for (let i = 0; i < 50; i++) await step(1)
+    const z2 = await zs(); check('stab hits from behind (pincer)', z2.hp < z1.hp, `zoro ${z1.hp}→${z2.hp}`)
+    for (let i = 0; i < 80; i++) await step(1)
+    pk = await parts(); sm = await bs()
+    check('hand flies home and re-attaches (mask 0)', pk.length === 0 && sm.b.mask === 0, `${pk.length} mask=${sm.b.mask}`)
+    // LEGS planted + walking without them
+    await fresh(400)
+    check('Quick Escape legs plant', await call('legs'))
+    const legs0 = (await parts())[0]
+    await page.keyboard.down('a'); await step(30); await page.keyboard.up('a'); await step(1)
+    const legs1 = (await parts())[0]; sm = await bs()
+    check('legs stay planted while Buggy walks away', legs1 && Math.abs(legs1.x - legs0.x) < 3 && Math.abs(sm.x - legs0.x) > 60, JSON.stringify({ l0: legs0.x, l1: legs1?.x, b: sm.x }))
+    check('masked body row 4 on WALK/idle frames', sm.b.mask === 4, sm.b.mask)
+    await step(25); await page.keyboard.down('d'); await step(8)   // walk back toward the planted legs (no double-tap dash)
+    sm = await bs(); check('walking with the legs off uses the masked WALK row', /walk/.test(sm.action || '') && sm.b.mask === 4, `${sm.action} mask=${sm.b.mask}`)
+    await shot(`p${PHASE}-06-walk-no-legs`); await page.keyboard.up('d'); await step(2)
+    // HEAD + the 2-part cap (a 3rd part retires the oldest)
+    check('Lookout head detaches', await call('head')); await step(20)
+    sm = await bs(); check('two parts out → mask 5 (head+legs)', sm.b.mask === 5, sm.b.mask)
+    await shot(`p${PHASE}-07-head-and-legs`)
+    await call('hand'); await step(2)
+    pk = await parts(); const liveN = pk.filter(p => !p.retiring && !p.dying).length
+    check('3rd part retires the oldest (max 2 out)', liveN === 2 && pk.some(p => p.type === 'buggy_foot' && p.retiring), JSON.stringify(pk.map(p => [p.type, p.retiring])))
+    for (let i = 0; i < 80; i++) await step(1)
+    check('retired legs fly HOME (not off-screen)', !(await parts()).some(p => p.type === 'buggy_foot'))
+    // A broken part snaps back: 25 chip + 6 s cooldown, greyed pip
+    sm = await bs(); const hp0 = sm.health
+    await call('hitPart', 'buggy_head', 999); await step(2)
+    sm = await bs()
+    check('part at 0 HP → 25 chip damage to Buggy', hp0 - sm.health === 25, `${hp0}→${sm.health}`)
+    check('pip greys out on cooldown', sm.pips.head.st === 'cd', JSON.stringify(sm.pips.head))
+    await shot(`p${PHASE}-08-head-broken-pip`)
+    check('head cannot redeploy during the 6 s cooldown', !(await call('head')))
+    for (let i = 0; i < 365; i++) await step(1)
+    sm = await bs(); check('cooldown ends after 360 f (pip ready)', sm.pips.head.st === 'ready', JSON.stringify(sm.pips.head))
+    // RECALL: double-tap Special
+    await fresh(500); await page.evaluate(() => __harness.buggyTest.chop('p1', 20))
+    await call('hand'); await call('legs'); await step(70)
+    const e0 = (await bs()).energy
+    await tap(['l'], 2); await step(2); await tap(['l'], 2); await step(2)
+    sm = await bs(); pk = sm.parts
+    check('double-tap Special → RECALL all parts', sm.b.recalls === 1 && pk.every(p => p.retiring === 'recall'), JSON.stringify({ r: sm.b.recalls, p: pk.map(p => p.retiring) }))
+    check('recall refunds ~30% of the parts\' Chop (scaled by HP)', sm.energy - e0 >= 9 && sm.energy - e0 <= 12, `${e0}→${sm.energy}`)
+    // Opponent hitting a part: no meter, no hitstop, Buggy unhurt
+    await fresh(140); for (let i = 0; i < 40; i++) await step(1)
+    await call('head'); for (let i = 0; i < 25; i++) await step(1)
+    await page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); z.energy = 20 })
+    const hd = (await parts())[0]
+    await page.evaluate(async hx => { const cb = await import('./combat.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
+      b.x = z.x - 400; z.x = hx - 60; z.facing = 1; z.attacking = false; z.attackCooldown = 0
+      cb.startMove(z, 'probeUp', { damage: 30, startup: 2, active: 6, recovery: 6, rangeX: 120, rangeY: 200, hitstun: 10, damageType: 'blunt' }) }, hd.x)
+    let hit = null, maxStop = 0
+    for (let i = 0; i < 12; i++) { await step(1); const q = (await parts()).find(p => p.type === 'buggy_head'); const zz = await zs(); maxStop = Math.max(maxStop, zz.hitstop); if (q && q.hp < 50) { hit = q; } }
+    const zz = await zs(); sm = await bs()
+    check('opponent can hit a part (part loses HP)', !!hit, JSON.stringify(hit))
+    check('hitting a part: no meter, no hitstop, no combo, Buggy unhurt', zz.en === 20 && maxStop === 0 && sm.health === sm.maxHealth, JSON.stringify({ en: zz.en, stop: maxStop, bhp: sm.health }))
+    // AI hook: hash-decided ~25%, head prioritised
+    await fresh(140); await call('head'); await call('hand'); await step(10)
+    const ai = await page.evaluate(async () => {
+      const dr = await import('./drones.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
+      const hd = dr.getActiveDrones().find(d => d.type === 'buggy_head'), hn = dr.getActiveDrones().find(d => d.type === 'buggy_hand')
+      hd.x = z.x + 40; hn.x = z.x + 60   // both in reach
+      let picks = 0, head = 0; const seq = []
+      for (let f = 0; f < 8000; f += 8) { const d = dr.aiPickDroneTarget(z, f, 170, { filter: p => p.aiPriority != null }); if (d) { picks++; if (d.type === 'buggy_head') head++ } seq.push(d ? d.type[6] : '.') }
+      const again = []; for (let f = 0; f < 8000; f += 8) { const d = dr.aiPickDroneTarget(z, f, 170, { filter: p => p.aiPriority != null }); again.push(d ? d.type[6] : '.') }
+      return { rate: picks / 1000, headShare: picks ? head / picks : 0, same: seq.join('') === again.join('') }
+    })
+    check('AI attacks parts ~25% of windows (hash-decided)', ai.rate > 0.18 && ai.rate < 0.32, ai.rate)
+    check('AI prioritises the HEAD', ai.headShare === 1, ai.headShare)
+    check('AI part choice is deterministic (same seed+frame → same pick)', ai.same)
+  }
+
   const other404 = [...new Set(missing.filter(m => !/buggy/i.test(m)))]
   if (other404.length) console.log(`  ℹ non-Buggy 404s (not part of this build): ${other404.slice(0, 6).join(', ')}${other404.length > 6 ? ' …' : ''}`)
   check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))

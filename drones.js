@@ -243,6 +243,17 @@ export function updateDrones(owners, frame, env = {}) {
       if (--d.deathTimer <= 0) activeDrones.splice(i, 1)
       continue
     }
+    if (d._retiring && d.profile.retireMode === "home" && d.owner) {
+      // profile.retireMode "home" (opt-in, e.g. Buggy's body parts): fly back INTO the owner's body, then despawn.
+      const o = d.owner
+      d.tx = (o.x || 0) + (o.w || 48) / 2; d.ty = (o.y || 0) + (o.h || 100) * 0.45
+      moveToward(d, d.profile)
+      d.x += d.vx; d.y += d.vy
+      d._retireTimer = (d._retireTimer || 0) + 1
+      if ((Math.abs(d.tx - d.x) < 16 && Math.abs(d.ty - d.y) < 16) || d._retireTimer > 75) activeDrones.splice(i, 1)
+      advanceAnim(d)
+      continue
+    }
     if (d._retiring) {
       // fly off-screen behind the owner, then despawn
       const face = d.owner?.facing || 1
@@ -424,7 +435,8 @@ function rectHit(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y 
 // prioritising the most dangerous types. Returns the drone to attack, or null.
 // ─────────────────────────────────────────────────────────────────────────────
 const AI_PRIORITY = { bulwark: 3, kestrel: 3, skyhook: 2, aegis: 1, overwatch: 1, test: 1 }
-export function aiPickDroneTarget(aiFighter, frame, reach = 150) {
+// opts.filter(profile) → only consider matching drones; a profile's own `aiPriority` overrides the table.
+export function aiPickDroneTarget(aiFighter, frame, reach = 150, opts = null) {
   if (!aiFighter || !activeDrones.length) return null
   const seed = (aiFighter._matchSeed | 0) || 1
   if (hashRandom(seed, frame >> 3, (aiFighter.playerNumber || 1) * 31 + 7) >= 0.25) return null
@@ -432,7 +444,8 @@ export function aiPickDroneTarget(aiFighter, frame, reach = 150) {
   for (const d of activeDrones) {
     if (d.dying || d.owner?.side === aiFighter.side) continue
     if (Math.abs(d.x - (aiFighter.x || 0)) > reach) continue
-    const pr = AI_PRIORITY[baseType(d.type)] || 1
+    if (opts?.filter && !opts.filter(d.profile, d)) continue
+    const pr = d.profile.aiPriority ?? (AI_PRIORITY[baseType(d.type)] || 1)
     if (pr > bestPr) { bestPr = pr; best = d }
   }
   return best
@@ -499,6 +512,11 @@ function _dImg(src) {
   let im = _droneImgs[src]
   if (!im && typeof Image !== "undefined") { im = new Image(); im.src = src; _droneImgs[src] = im }
   return im
+}
+// Warm the render cache for a profile's strips (render-only) so a drone's first frame isn't the fallback chip.
+export function preloadDroneSprites(id) {
+  const p = DRONE_PROFILES[id]
+  for (const k in (p?.sprites || {})) _dImg(p.sprites[k]?.sheet)
 }
 
 // PASS2/P3 — render-only Green Arrow fighter-status FX (works with or without drones out). Called

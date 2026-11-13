@@ -1,10 +1,11 @@
 // buggyHarness.js — test-only window.__harness.buggyTest API (wired from game.js via one delegate line).
 // Reads/writes through the accessors game.js passes in; never imported by simulation code.
 import { buggyState, isBuggy } from './buggyState.js'
-import { getActiveDrones } from './drones.js'
+import { getActiveDrones, damageDrone } from './drones.js'
+import { launchHand, stabHand, plantLegs, lookout, recallParts } from './buggyParts.js'
 import { buggyPipState } from './buggyFx.js'
 
-const partView = d => ({ type: d.type, x: Math.round(d.x), y: Math.round(d.y), hp: d.hp, maxHp: d.maxHp, dying: !!d.dying,
+const partView = d => ({ type: d.type, st: d.data?.st || null, x: Math.round(d.x), y: Math.round(d.y), hp: d.hp, maxHp: d.maxHp, dying: !!d.dying,
   retiring: d._retiring || false, state: d.data?.st || null, side: d.owner?.side || null })
 
 export function buggyHarnessApi(g) {
@@ -33,5 +34,9 @@ export function buggyHarnessApi(g) {
     chop: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },
     set: (w = 'p1', patch = {}) => { const f = pick(w); if (f && isBuggy(f)) Object.assign(buggyState(f), patch) },
     parts: () => getActiveDrones().map(partView),
+    // Part actions (the Phase 5 command layer binds these to inputs).
+    hand: (w = 'p1') => !!launchHand(pick(w)), stab: (w = 'p1') => stabHand(pick(w)), legs: (w = 'p1') => !!plantLegs(pick(w)),
+    head: (w = 'p1') => !!lookout(pick(w)), recall: (w = 'p1') => recallParts(pick(w)),
+    hitPart: (type, n, w = 'p1') => { const d = getActiveDrones().find(x => x.owner === pick(w) && x.type === type && !x.dying); return d ? damageDrone(d, n, null) : false },
   }
 }

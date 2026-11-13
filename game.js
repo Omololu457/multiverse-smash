@@ -9,7 +9,7 @@ import { tickBuggy, isBuggy, clearBuggy, buggyRoundReset, buggyLocked } from './
 import { drawBuggyFx } from './buggyFx.js'   // Buggy the Clown render-only FX
 import { buggyHarnessApi } from './buggyHarness.js'   // Buggy the Clown test API (window.__harness.buggyTest)
 import { zoroIntroStart, updateZoroIntro, finalizeZoroIntroPos } from './zoro.js'   // Roronoa Zoro intro walk-in (zoro-gated)
-const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1 }   // Buggy the Clown world accessors
+const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o), screenW: () => (canvas ? canvas.width : 1280) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
 // game.js
 

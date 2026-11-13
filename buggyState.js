@@ -4,6 +4,7 @@
 // counts, positions derive from the fighters' positions, and any variation is hash(match seed, frame, player, slot).
 import { BUGGY_MOVES, BUGGY_MASK_ANIM, buggy as BUGGY_CHAR } from './buggyData.js'
 import { meleeDamageType, projectileDamageType, sourceDamageType, isHakiImbued } from './damageTypes.js'
+import { setPartWorld, tickParts, recallParts, ownParts } from './buggyParts.js'
 export const isBuggy = f => f?.rosterKey === 'buggy'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickBuggy; never read by the sim).
 export function bcue(f, c) { (f._buggyCues ||= []).push(c) }
@@ -31,6 +32,9 @@ export function buggyState(f) {
     nullTotal: 0,      // nullified slashes this round (stat / tests)
     stagger: 0,        // Chop Stagger reassembly frames left (locked, cannot block, NOT slash-immune)
     maskLock: false,   // tests only: hold `mask` as set
+    partMask: 0,       // detached-part bits from the live drones (buggyParts.tickParts)
+    tapSpecial: -99,   // tick of the last Special press (double-tap → RECALL)
+    recalls: 0,        // recalls this round (stat / tests)
   }
 }
 
@@ -67,6 +71,15 @@ export function tickBuggy(f, opp, raw = {}, W = null) {
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock } s.prev[k] = v }
   const tok = dirToken(raw, f.facing || 1), last = s.dirs[s.dirs.length - 1]
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 20) s.dirs.shift() }
+  if (W) setPartWorld(W)
+  // RECALL: double-tap Special (2nd press within 12 input ticks) while a part is out → every part flies home,
+  // 30% Chop refund × the part's remaining HP (drones.recallDrones). Both presses are consumed.
+  if (s.edgeAt.special === s.tick && f.health > 0) {
+    const out = ownParts(f).some(d => !d.dying && !d._retiring)
+    if (out && s.tick - s.tapSpecial <= 12) { recallParts(f); s.recalls++; s.used.special = s.tick; s.tapSpecial = -99; bcue(f, 'recall') }
+    else s.tapSpecial = s.tick
+  }
+  s.partMask = tickParts(f)
   if (f.health <= 0) return
   if (f.hitstop > 0) return
   s.clock++

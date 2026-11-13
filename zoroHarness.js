@@ -20,6 +20,7 @@ export function zoroHarnessApi(g) {
         z: s,
       }
     },
+    raw: (w = 'p1') => pick(w),   // the live fighter object (tests only)
     reset: () => g.reset(),
     spirit: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },
     set: (w = 'p1', patch = {}) => { const f = pick(w); if (f && isZoro(f)) Object.assign(zoroState(f), patch) },

@@ -13,6 +13,7 @@
 
 import { setupBen10, updateOmnitrix } from "./fighters.js"
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
+import { zoroPhasing, zoroNoJump } from './zoroState.js'   // Roronoa Zoro dash-through + Shishi Sonson ↗ (zoro-gated)
 import { stepFlight, isFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): richer data-driven flyer, gated on fighter._flightCtl (no-op for everyone else, incl. the separate _flightActive Omni-Man/Superman system)
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
@@ -267,7 +268,7 @@ export const physics = {
       const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
                             fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
       const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
-      const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps
+      const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter)   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
 
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         if (launcherJC) {
@@ -433,6 +434,7 @@ export const physics = {
 
   resolvePlayerCollision(p1, p2) {
     if (!p1 || !p2) return
+    if (zoroPhasing(p1, p2)) return   // Roronoa Zoro dashing THROUGH the opponent (Oni Giri / Shishi Sonson / Ashura)
 
     const dx = (p1.x + p1.w / 2) - (p2.x + p2.w / 2)
     const minX = p1.w / 2 + p2.w / 2

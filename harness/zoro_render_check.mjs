@@ -25,6 +25,11 @@ await page.addInitScript(() => { window.requestAnimationFrame = () => 0 })   // 
 const P1 = PHASE >= 2 ? 'zoro' : 'luffy', P2 = 'luffy'
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const shot = name => page.screenshot({ path: path.join(OUT, name + '.png') })
+// Real keyboard motion input for P1 (a=left d=right s=down w=up, l=Special). null = a neutral frame. Facing right.
+async function motion(seq, button) {
+  for (const k of seq) { if (k) await page.keyboard.down(k); await page.evaluate(() => __harness.luffyTest.step(2)); if (k) await page.keyboard.up(k) }
+  await page.keyboard.down(button); await page.evaluate(() => __harness.luffyTest.step(1)); await page.keyboard.up(button)
+}
 const zs = (w = 'p1') => page.evaluate(w => __harness.zoroTest ? __harness.zoroTest.state(w) : null, w)
 const ls = (w = 'p1') => page.evaluate(w => __harness.luffyTest.state(w), w)
 // Non-blank: the rendered canvas must contain many distinct colours in the play area and in the HUD strip.
@@ -87,7 +92,7 @@ try {
   if (PHASE >= 4) {
     await page.evaluate(() => __harness.zoroTest.reset())
     await page.evaluate(() => { __harness.zoroTest.spirit('p1', 100); __harness.luffyTest.set('p2', { x: __harness.p1().x + 380 }) })
-    await page.evaluate(() => __harness.zoroTest.motion('p1', ['down', 'down'], 'special'))
+    await motion(['s', null, 's'], 'l')                                                                                               // ↓ ↓ + A
     await step(26); await shot(`p${PHASE}-02-tatsumaki`)
     let z = await zs()
     check('Tatsu Maki tornado spawned', z.projectiles.some(p => p.kind === 'tatsu'), JSON.stringify(z.projectiles))
@@ -95,7 +100,9 @@ try {
     check('no crash during Tatsu Maki', errors.length === 0, errors[0] || '')
     await page.evaluate(() => __harness.zoroTest.reset())
     await page.evaluate(() => { __harness.zoroTest.spirit('p1', 100); __harness.luffyTest.set('p2', { x: __harness.p1().x + 90 }) })
-    await page.evaluate(() => __harness.zoroTest.motion('p1', ['down', 'right', 'down', 'right'], 'special'))
+    await page.keyboard.down('l'); await page.keyboard.down('k'); await step(1); await page.keyboard.up('l'); await page.keyboard.up('k')   // Santoryu (A+B) unlocks ASHURA
+    await step(24); await page.evaluate(() => __harness.zoroTest.spirit('p1', 100))
+    await motion(['s', 'd', 's', 'd'], 'l')                                                                                           // ↓→↓→ + A
     await step(18); await shot(`p${PHASE}-03-ashura-aura`)
     z = await zs()
     check('Ashura super started', z.move === 'zAshura' || z.move === 'zAshuraMiss', z.move)

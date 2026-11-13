@@ -1,5 +1,7 @@
 import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
+import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
+import { zoroHitbox } from './zoroState.js'   // Roronoa Zoro hitbox geometry (zoro-gated)
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -411,6 +413,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   // COUNTER-HIT reward (MK-feel Stage 2f): a combo opened/extended by a counter-hit SKIPS ONE TIER of
   // scaling — its damage + hitstun decay one hit slower — via `_counterScaleTier`. This shifts only the
   // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
+  if (fighter?.rosterKey === 'zoro' && curve === COMBO_DAMAGE_CURVE) return zoroComboScale(fighter)   // Roronoa Zoro: 85% per hit (zoro-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
@@ -661,6 +664,7 @@ export function tryComebackFinisher(fighter, inputState, opponent) {
 export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
   if (!fighter || !a || a.lf?.noHit) return null
+  if (a?.zr && fighter.rosterKey === 'zoro') return zoroHitbox(fighter)   // Roronoa Zoro: his own box descriptor (zoro-gated)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -3221,6 +3225,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // RORONOA ZORO — Shishi Sonson iai window: the strike is negated and Zoro draws through (zoro-gated).
+  if (zoroCounter(defender, attacker)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
   // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow
   // is dodged outright (meter cost + brief i-frames handled in shouldVegitoUIEvade). See VEGITO_UI.
   if (shouldVegitoUIEvade(defender)) {
@@ -3351,6 +3362,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
@@ -4287,6 +4299,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         if (fighter.isBlocking) proj.owner.comboCounter = 0
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
+      zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
 
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)

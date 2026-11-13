@@ -4,6 +4,8 @@ import { tickZoro, isZoro, clearZoro, zoroState } from './zoroState.js'   // Ror
 import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (window.__harness.zoroTest)
 import { updateZoroCommandCombat } from './zoro.js'   // Roronoa Zoro command layer (zoro-gated)
 import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
+import { zoroWorld } from './zoro.js'
+const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth() })   // Roronoa Zoro world accessors
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -3978,7 +3980,7 @@ function updateFFACombat(fighter, others, opts) {
   const nearest = ffaNearest(fighter, others)
   if (!nearest) return
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
-  tickZoro(fighter, nearest, readRawControls(fighter) || {})
+  tickZoro(fighter, nearest, readRawControls(fighter) || {}, ZORO_WORLD)
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
 
@@ -3990,7 +3992,7 @@ function updateFFACombat(fighter, others, opts) {
     ctrlState = consumed ? {} : { grab: !!inputState.grab }
   }
   if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
-    const zc = updateZoroCommandCombat(fighter, inputState, nearest, {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    const zc = updateZoroCommandCombat(fighter, inputState, nearest, {world:ZORO_WORLD,special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     if (zc) ctrlState = zc === 'grab' ? { grab: !!inputState.grab } : {}
   }
   // Harness/dev hook: force a normal this frame (controller players can't be driven from
@@ -11143,7 +11145,7 @@ function updatePlayerCombat(fighter) {
 function _updatePlayerCombatBody(fighter) {
   if (!fighter) return
   tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})
-  tickZoro(fighter, getOpponent(fighter), readRawControls(fighter) || {})
+  tickZoro(fighter, getOpponent(fighter), readRawControls(fighter) || {}, ZORO_WORLD)
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
 
@@ -11301,7 +11303,7 @@ function _updatePlayerCombatBody(fighter) {
   }
 
   if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
-    const zc = updateZoroCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    const zc = updateZoroCommandCombat(fighter, inputState, getOpponent(fighter), {world:ZORO_WORLD,special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     if (zc) { updateCombat(fighter, getOpponent(fighter), zc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
   if (isLuffy(fighter)) {

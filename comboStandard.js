@@ -50,6 +50,7 @@ export const COMBO_STANDARD = {
 // Drivers with 0 or multiple rekkaContinue calls (single-move / grab / dual-string / super-branch)
 // set it false — the harness skips the source check for them.
 export const REKKA = [
+  { key: 'zoro', source: 'zoro.js', driver: 'updateZoroCommandCombat', opener: 'light', retap: 'light→heavy', stages: 3, finisher: 'launcher', requireHit: false, srcRequireHit: false, status: 'exception', note: 'Jab → Slash → Heavy-slash launcher (the L,L,H grammar) driven by his OWN command layer on contact (hit or block); motion-input specials. Not the Fwd+Heavy rekka opener.' },
   { key: 'luffy', source: 'luffy.js', driver: 'updateLuffyCommandCombat', opener: 'fwd+heavy', retap: 'heavy', stages: 3, finisher: 'launcher', requireHit: true, srcRequireHit: true, status: 'conforms', note: 'Up+Heavy confirmed branch chooses launcher; default final Heavy knocks away. Separate fresh Light three-stage chain.' },
   // ── CONFORMS — Forward+Heavy · Heavy re-tap · launcher finisher · requireHit:true ──────────────
   { key: "vegeta",              driver: "updateVegetaCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 4, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "4-stage vgFkick1→…→vgUpFinish" },
@@ -169,7 +170,6 @@ export const STANDARD_STRING = {
 // specials, no chain by design) and all-special zoners (brainiac). Membership here just records
 // "currently has no combo string" — it is NOT a runtime change (they already behave this way).
 export const ZONER = [
-  "zoro",   // Roronoa Zoro, phase 2 (engine-default normals; his L→L→H command chain lands in phase 4)
   "jesus",   // additive JUS char: projectile-forward kit (lion/fire/lightning/bread/ultimate), no L,L,H auto-combo
   "jiraiya", // Sannin Toad Sage: summon/ninjutsu zoner (rasengan/fire/barrier/hair/Gamabunta + Sage Mode), no command-combat driver → single-poke (same bucket as jesus)
   "rickPrime", "evilMorty", "beerus", "piccolo", "frieza",   // original ranged zoners
@@ -297,10 +297,10 @@ export const EXPECTED_COUNTS = {
   conforms:        56,             // prior 55 + Luffy; legacy roster drift remains documented
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
-  exception:       16,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
+  exception:       17,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                35,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
+  zoner:                34,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
   rosterTotal:          120,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
 }

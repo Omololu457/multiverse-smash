@@ -81,6 +81,38 @@ export const CONTROL_REFERENCE = {
 }
 
 export const KITS = {
+  zoro: {
+    type:'Swordsman / Stance Fighter', energy:'Spirit', difficulty:'3',
+    summary:'Nothing happened. The Three-Sword Style swordsman: heavy blades, slow feet. Spirit builds from every sword hit (+5), every hit taken (+3) and +1/s; spend it on iai techniques, the Santoryu stance and ASHURA.',
+    passive:{ name:"Conqueror's Haki", effect:"Once per match, the moment HP drops under 25%: a 40-frame haki pulse pushes the foe back, cancels projectiles and summons in range and stuns on hit for 1s." },
+    basics:[
+      {name:'Jab',input:'Light',desc:'40 dmg, 5f, +1 on block.'},
+      {name:'Slash',input:'Light → Light (or Forward + Light)',desc:'65 dmg, 8f, −3 on block.'},
+      {name:'Heavy slash',input:'Heavy',desc:'90 dmg, 13f, −6 on block, launches.'},
+      {name:'Low thrust',input:'Down + Light',desc:'50 dmg, 7f, low.'},
+      {name:'Rising slash',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 9f anti-air launcher; jump-cancel on hit.'},
+      {name:'Air slash',input:'Air Light / Heavy',desc:'60 dmg jump-in (air Down = plunge).'},
+      {name:'Wake-up reversal',input:'Forward + Heavy',desc:'70 dmg, 6f, 6 invulnerable frames, −12 on block.'},
+      {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
+    ],
+    specials:[
+      {name:'Taka Nami "Falcon Wave"',input:'↓↘→ + Special',cost:10,desc:'Flying slash, 55 dmg, ~60% screen. One at a time.'},
+      {name:'Oni Giri "Demon Cut"',input:'→→ + Special (or Forward + Special)',cost:12,desc:'Crossed-swords dash THROUGH the foe, 90 dmg, ends behind them. Whiff = long recovery.'},
+      {name:'Tatsu Maki "Dragon Twister"',input:'↓↓ + Special (or Down + Special, also airborne)',cost:20,desc:'Travelling tornado, 10 dmg per tick every 8f, drags foes in. Max 2 out. Santoryu: twin tornado.'},
+      {name:'Tora Gari "Tiger Hunt"',input:'↓↙← + Special (or Back + Special)',cost:15,desc:'Leaping lunge, 85 dmg, low cut (+15% vs crouching).'},
+      {name:'Shishi Sonson "Lion\'s Song"',input:'↓↘→↗ + Special',cost:18,desc:'Iai counter: 30-frame window; a melee strike is negated and Zoro draws through for 110. Whiff = long recovery.'},
+      {name:'NAP',input:'Hold Down + Heavy (40f)',cost:0,desc:'Sleeps: +15 Spirit over 90f, fully vulnerable, any hit wakes him.'},
+      {name:'SANTORYU',input:'Special + Heavy together',cost:15,desc:'Three-sword stance for 10s (4s cooldown): +12% damage, +8% knockback, twin Tatsu Maki, ASHURA unlocked.'}
+    ],
+    mobility:{name:'Swordsman footwork',input:'Move / double-tap dash',cost:0,desc:'Slow walk, the slowest dash, a low heavy jump. His only evasion is Oni Giri and the reversal.'},
+    ultimate:{name:'ASHURA: Ichibugin / Rengoku Onigiri',input:'↓↘→↓↘→ + Special (or Ultimate) — Santoryu only',cost:100,desc:'Must connect on the first cut. Three dash cuts through the foe (70 each), then Rengoku Onigiri (150): 360 raw. Full Spirit, then a 4s Spirit lockout.'},
+    combos:[
+      {name:'Falcon string',sequence:'Jab → Slash → Heavy slash (launch) → Taka Nami',desc:'The L, L, H string into the flying slash.'},
+      {name:'Dragon route',sequence:'Low thrust → Rising slash → jump → Air slash → Tatsu Maki',desc:'Air route; the tornado catches the fall.'},
+      {name:'Demon turn',sequence:'Oni Giri → turn around Heavy slash → Tora Gari',desc:'Pass through, punish from behind.'},
+      {name:'Ashura (Santoryu)',sequence:'Heavy slash → twin Tatsu Maki → ASHURA',desc:'Full Spirit finisher.'}
+    ]
+  },
   luffy: {
     type:'Elastic Brawler', energy:'Stamina', difficulty:'Medium',
     summary:'Wind up. Let loose. A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. Close the distance and turn a clean opening into a flowing combo.',

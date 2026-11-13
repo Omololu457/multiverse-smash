@@ -4,7 +4,8 @@ import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from '.
 import { zoroHitbox } from './zoroState.js'
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
-import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
+import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'
+import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)   // Buggy the Clown moveset hooks (buggy-gated)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
  * COMBAT ENGINE — merged clean version
@@ -181,6 +182,7 @@ export const GLOBAL_DAMAGE_SCALE = 0.60
 export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
   if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
+  rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
@@ -420,6 +422,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
   if (fighter?.rosterKey === 'zoro' && curve === COMBO_DAMAGE_CURVE) return zoroComboScale(fighter)   // Roronoa Zoro: 85% per hit (zoro-gated)
   if (fighter?.rosterKey === 'buggy' && curve === COMBO_DAMAGE_CURVE) return buggyComboScale(fighter)   // Buggy the Clown: 85% per hit (buggy-gated)
+  if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
@@ -672,6 +675,7 @@ export function getAttackHitbox(fighter) {
   if (!fighter || !a || a.lf?.noHit) return null
   if (a?.zr && fighter.rosterKey === 'zoro') return zoroHitbox(fighter)   // Roronoa Zoro: his own box descriptor (zoro-gated)
   if (a?.bg && fighter.rosterKey === 'buggy') return buggyHitbox(fighter)   // Buggy the Clown: his own box descriptor (buggy-gated)
+  if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -748,6 +752,7 @@ export function getHurtbox(fighter) {
     const bottom = fighter.y + fighter.h
     return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
   }
+  if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)   // ARLONG — the big sawshark body: a larger hurtbox (designed weakness; arlong-gated)
   return {
     x: fighter.x + 6,
     y: fighter.y + 6,
@@ -3377,6 +3382,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
+    if (!flawless) arlongBlockstun(attacker, defender, atk) // Arlong: per-move block stun; arlong-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
@@ -3421,6 +3427,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
     zoroHit(attacker, defender, atk)
     buggyHit(attacker, defender, atk)
+    arlongHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3485,6 +3492,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     zoroKnockback(attacker, defender, atk)
     buggyKnockback(attacker, defender, atk)
+    arlongKnockback(attacker, defender, atk)
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —

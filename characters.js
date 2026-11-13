@@ -4,6 +4,7 @@
 
 import { luffy } from './luffyData.js'
 import { zoro } from './zoroData.js'
+import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
 import { buggy } from './buggyData.js'   // Buggy the Clown (One Piece) — buggyData.js   // Roronoa Zoro (One Piece) — zoroData.js
 
 const DEFAULT_ANIM = {
@@ -11478,6 +11479,7 @@ export const characters = {
   soldier_boy: soldierBoy,           // NEW additive standalone (Soldier Boy / The Boys, rosterKey `soldier_boy`, MARVEL group) — grounded Bruiser/Gunner: Armed Mode loadout swap + SMG/rifle/boomerang-shield + Nuclear Burst ult; metalsonictypeone sheet; all others untouched
   zoro,                              // Roronoa Zoro (One Piece) — Santoryu stance swordsman; zoroData.js / zoro*.js
   buggy,                             // Buggy the Clown (One Piece) — Chop-Chop part zoner; buggyData.js / buggy*.js
+  arlong,                            // Arlong (One Piece) — sawshark fishman, water-zone heavy bruiser; arlongData.js / arlong*.js
   luffy
 }
 

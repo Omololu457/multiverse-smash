@@ -59,3 +59,26 @@
 - **Swarm** (40 Tech) is a one-slot panic/shield tool: 4 scouts at 20 HP each, popped by any poke.
 - Net-into-Skyhook and Kamikaze-on-netted (+25%) reward landing the Net first — but Net's cooldown
   keeps that loop from repeating every exchange.
+
+---
+
+## PASS 3 balance notes (munitions, super rework, orders, sound)
+
+- **Bombs are a shared, counterable resource.** All of Oliver's explosives now run through the generic
+  `munitions.js` module: a hard cap of **16 live munitions** + **2 napalm fire-patches** on screen, so
+  neither he nor his drones can bury the field. Every bomb has **HP and can be shot down**, and the
+  **chain reaction is depth-capped at 3 at 70% damage** — big clusters are flashy but can't cascade into
+  an infinite AoE.
+- **Blast damage is halved on block** and the owner is never hurt by their own blast (blast-hop pushes
+  Oliver instead), so bombing is pressure, not a coin-flip trade.
+- **ARROWSTORM PROTOCOL super ≈ 386 damage** vs a stationary dummy (hard cap **≤ 420**). It is a
+  3-wave zoning finale — Carpet line (14 dumb bombs) → Hunters (4 guided) → Scatter (3 clusters) →
+  "LAST LIGHT" (one big bomb on the tagged foe) — so a mobile opponent who keeps moving eats far less
+  than the full value; the 386 is the *worst case*, not the average.
+- **Drone orders are a commitment, not a buff.** FOCUS/GUARD/SWEEP (↓↓+Light to cycle): GUARD holds the
+  drones home and gives up offence; SWEEP speeds up counter-summon intercepts but spends the drones'
+  attention. There's no order that is strictly best — each trades something.
+- **Counter-summon only stops SMALL projectiles** within 25% of Oliver and **never beams/supers**, on a
+  45f cooldown (30f under SWEEP). It shaves chip, it does not wall out a zoner.
+- **Bomb audio is deterministic** (seed from match state + position, no RNG) — whistle/boom/reticle/
+  napalm/plane — so replays and LAN stay in sync and the sound never drives the sim.

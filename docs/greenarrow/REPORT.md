@@ -73,3 +73,32 @@ the test hook — the product is deterministic (two-run bit-identical in both no
 - Regression baselines held: determinism **14/0**, combo-standard **229/9**, up-attack-roster **77/2**,
   roster-integrity green. Frame data for every other character is unchanged (all GA edits insert-only).
 - Phase 12 training "drone debug" toggle = **F8** (hurtboxes + HP bars).
+
+---
+
+## PASS 3 — Munitions, Super rework, drone targeting & orders, bomb sound (COMPLETE)
+
+New generic `munitions.js` module (leaf beside `combat.js`/`flight.js` — imports only
+`applyScaledDamage` + `hashRandom`, no `abilities.js` import → no cycle). `MUNITION_PROFILES`
+(dumb/guided/cluster/napalm/emp/net/big) + `activeMunitions` (≤16) + `activeFirePatches` (≤2), all in
+GAME_STATE. AoE with hit-once-per-explosion, −50% on block, chain reaction (depth ≤3, 70%, blast-hop),
+shoot-down, angle-rotated BOMBS sprite + telegraph reticles (render-only).
+
+- **P1** `munitions.js` generic module + game.js wiring.
+- **P2** ARROWSTORM PROTOCOL super reworked into 3 waves + LAST LIGHT finale (≈386 dmg, ≤420 cap).
+- **P3** drones drop bombs (Bulwark Mortar / Kestrel Bombing Run / Skyhook Airdrop / Swarm micro-bombs /
+  Payload Carpet Run) + fire-arrow→napalm / EMP-arrow→disable / guided bomb locks the Overwatch-tagged foe.
+- **P4** drone **targeting** (tagged > nearest enemy, hysteresis, never a teammate) + **orders**
+  FOCUS/GUARD/SWEEP (↓↓+Light; CPU rotates on a hash schedule) + **counter-summon** (Bulwark/Aegis shoot
+  down small enemy projectiles, never beams/supers) + an order HUD indicator.
+- **P5** hazard caps + round-end cleanup verified; F8 training overlay now shows blast radii, bomb HP,
+  chain depth, guided-bomb reticle lines, the napalm hazard box, and each drone's order + target line.
+- **P6** deterministic WebAudio bomb SFX (whistle 1500→300Hz, 55Hz boom + noise, 2kHz reticle beep,
+  napalm crackle, 90Hz plane drone) via a render-only `setMunitionSfx` hook — munitions stays a leaf.
+- **P7** finals: generic-profile reuse test, full-Super determinism under 22 spawned munitions
+  (byte-identical position trace ×2), no-RNG source scan; all GA harnesses green, det 14/0,
+  combo 231/9, up-attack 77/2, roster-integrity green, render check 14/0.
+
+ALL state lives in GAME_STATE; particles/reticles/screen-shake/sound are render-only; no Math.random /
+gameRng (randomness = `hashRandom(seed, frame, player*31 + index)`); frame data zero-diff for every
+other character (GA changes are rosterKey-gated).

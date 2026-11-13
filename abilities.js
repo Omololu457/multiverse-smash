@@ -36700,7 +36700,7 @@ export function applyGreenArrowArrowstorm(fighter, context) {
     s.lt++
     if (opp) opp._gaLastLightReticle = 10
     if (s.lt === 40 && opp) {
-      spawnMunition(fighter, "big", { x: (opp.x || 0) + (opp.w || 60) / 2, y: planeY - 60, vx: 0, vy: 3, damage: 220, target: opp })
+      spawnMunition(fighter, "big", { x: (opp.x || 0) + (opp.w || 60) / 2, y: planeY - 60, vx: 0, vy: 3, damage: 252, target: opp })
       if (typeof sound !== "undefined") sound.play?.("ga_super")
     }
     if (s.lt > 110) {
@@ -36716,7 +36716,7 @@ export function applyGreenArrowArrowstorm(fighter, context) {
 // Oliver's closing explosive-arrow (fired during waves 2 and 3).
 function _gaArrowstormVolley(fighter, context, opp) {
   const face = (opp && (opp.x || 0) < fighter.x) ? -1 : (fighter.facing || 1)
-  _gaDroneShot(fighter, context, { type: "gaArrowstormArrow", damage: 55, vx: face * 16,
+  _gaDroneShot(fighter, context, { type: "gaArrowstormArrow", damage: 62, vx: face * 16,
     spawnX: (fighter.x || 0) + face * 40, spawnY: (fighter.y || 0) + 30, w: 22, h: 10, radius: 16,
     lifetime: 90, color: "#ff8a3c", sheet: "./green_arrow_firearrow_uniform.png", spriteFrames: 5 })
   fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 6

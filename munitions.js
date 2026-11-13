@@ -73,6 +73,7 @@ export function spawnMunition(owner, type, opts = {}) {
 }
 
 export function resetMunitions() { activeMunitions.length = 0; activeFirePatches.length = 0; activeBlasts.length = 0 }
+export function __blastsForTest() { return activeBlasts.map(b => ({ x: Math.round(b.x), y: Math.round(b.y), grounded: !!b.grounded, t: b.t })) }   // harness probe (render-only state)
 
 // ── SFX hook (render-only): the audio layer registers a callback; munitions stay a leaf (no
 // sound.js import). Fired for discrete events only — spawn/boom/reticle/napalm — with the
@@ -181,7 +182,7 @@ function _detonate(m, frame, env, suppressAoe) {
   m.detonated = true
   const p = m.profile, owner = m.owner
   if (!suppressAoe) explodeAt(owner, m.x, m.y, { blastRadius: m.blastRadius, damage: m.damage, onImpact: p.onImpact, scale: m.scale, hardKnockdown: p.hardKnockdown }, env, 0, 1)
-  else _blast(m.x, m.y, m.scale * 0.6)
+  else _blast(m.x, m.y, m.scale * 0.6, env)
 }
 
 // Public AoE explosion used by _detonate + chain + callers (e.g. fire-arrow-detonates-a-bomb).
@@ -207,7 +208,7 @@ export function explodeAt(owner, x, y, spec, env = {}, chainDepth = 0, dmgScale 
   }
   const _sfxSeed = (((owner && owner._matchSeed) | 0) || 1) + chainDepth * 101 + (x | 0)
   if (spec.onImpact === "napalm") { _spawnFirePatch(owner, x, (env.groundY ?? y)); _emitSfx("napalm", x, (env.groundY ?? y), _sfxSeed) }
-  _blast(x, y, spec.scale || 1)
+  _blast(x, y, spec.scale || 1, env)
   _emitSfx("boom", x, y, _sfxSeed, { chainDepth })   // 55Hz thump; chain booms pitch-offset by depth
   // CHAIN REACTION — nearby armed munitions detonate after 6f, depth-capped at 3, 70% damage.
   if (chainDepth < 3) {
@@ -236,7 +237,16 @@ function _detonate2(m, frame, env, depth) {
   explodeAt(m.owner, m.x, m.y, { blastRadius: m.blastRadius, damage: m.damage, onImpact: m.profile.onImpact, scale: m.scale }, env, depth, 0.7)
 }
 
-function _blast(x, y, scale) { activeBlasts.push({ x, y, scale, t: 24, frame: 0 }) }
+// GROUNDED blasts (owner request): the explosion art is a mushroom cloud drawn UP from its bottom edge, so a blast
+// near the floor is planted ON the floor (gy) and rises from it instead of hanging off a mid-air detonation point
+// (a bomb that hits a fighter detonates at their chest). High air-bursts (> BLAST_GROUND_REACH up) stay put.
+// Render-only — the AoE still resolves at the true detonation point.
+const BLAST_GROUND_REACH = 360, BLAST_SIZE = 3.2   // sprite scale per blast scale (was 1.6 → 2x bigger)
+function _blast(x, y, scale, env) {
+  const gy = env ? (env.platformTopAt?.(x) ?? env.groundY) : null
+  const grounded = gy != null && gy >= y - 4 && gy - y <= BLAST_GROUND_REACH
+  activeBlasts.push({ x, y: grounded ? gy : y, grounded, scale, t: 24, frame: 0 })
+}
 function _spawnFirePatch(owner, x, groundY) {
   if (activeFirePatches.length >= MAX_FIRE_PATCHES) activeFirePatches.shift()
   activeFirePatches.push({ owner, x, y: groundY, t: 180 })   // 3s
@@ -285,8 +295,15 @@ export function drawMunitions(ctx, frame = 0) {
   for (const b of activeBlasts) {
     const prog = 1 - b.t / 24, fi = Math.min(3, Math.floor(prog * 4))
     if (eimg && eimg.complete && eimg.naturalWidth) {
-      const fw = eimg.naturalWidth / 4, fh = eimg.naturalHeight, sc = (b.scale || 1) * 1.6
-      ctx.save(); ctx.globalAlpha = Math.min(1, b.t / 10 + 0.2); ctx.drawImage(eimg, fi * fw, 0, fw, fh, b.x - fw * sc / 2, b.y - fh * sc, fw * sc, fh * sc); ctx.restore()
+      const fw = eimg.naturalWidth / 4, fh = eimg.naturalHeight, sc = (b.scale || 1) * BLAST_SIZE
+      // grounded: a hot impact flash + dust ring on the floor at the base, then the cloud rises from it
+      if (b.grounded && prog < 0.5) { const g = prog / 0.5; ctx.save(); ctx.globalAlpha = (1 - g) * 0.8
+        ctx.fillStyle = "rgba(255,214,120,0.9)"; ctx.beginPath(); ctx.ellipse(b.x, b.y, fw * sc * (0.35 + g * 0.45), fh * sc * (0.07 + g * 0.05), 0, 0, Math.PI * 2); ctx.fill()
+        ctx.strokeStyle = "rgba(190,150,110,0.85)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(b.x, b.y, fw * sc * (0.45 + g * 0.8), fh * sc * (0.09 + g * 0.1), 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore() }
+      ctx.save(); ctx.globalAlpha = Math.min(1, b.t / 10 + 0.2)
+      if (b.grounded) ctx.drawImage(eimg, fi * fw, 0, fw, fh, b.x - fw * sc / 2, b.y - fh * sc, fw * sc, fh * sc)   // bottom ON the floor → rises
+      else ctx.drawImage(eimg, fi * fw, 0, fw, fh, b.x - fw * sc / 2, b.y - fh * sc / 2, fw * sc, fh * sc)          // air-burst: centred on the point
+      ctx.restore()
     } else { ctx.save(); ctx.globalAlpha = b.t / 24; ctx.fillStyle = "#ff8a3c"; ctx.beginPath(); ctx.arc(b.x, b.y, 30 * (b.scale || 1) * (0.5 + prog), 0, Math.PI * 2); ctx.fill(); ctx.restore() }
   }
 }

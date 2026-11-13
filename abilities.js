@@ -36335,10 +36335,19 @@ function _gaDroneShot(owner, context, opts) {
 // Run; ↓↓ = Swarm. d.mode is sim state set at spawn. Strike drones are hittable BEFORE impact — a
 // drone killed in flight plays DEATH only (its contact-damage lives in the behaviour, which does not
 // run once dying). No Math.random. Explosions/rings are render-only (visualOnly projectile + flashes).
+// GROUNDED + BIGGER (owner request): the explosion art is a mushroom cloud that grows UP from its bottom edge, so it
+// must sit ON the floor — drawn centred at a hovering drone's y it read as a box floating in mid-air. Any blast
+// within GA_BLAST_GROUND_REACH of the floor is planted there (spriteBottomY) and rises; a true high air-burst
+// (drone shot down far above the stage) stays where it happened. Visual-only — damage/reach are unchanged.
+const GA_BLAST_SIZE = 2.1, GA_BLAST_GROUND_REACH = 360
 function _gaExplosionFx(owner, x, y, scale, context) {
-  return spawnProjectile(owner, "gaBlast", { damage: 0, visualOnly: true, w: 48 * scale, h: 48 * scale,
-    radius: 24 * scale, spawnX: x, spawnY: y, vx: 0, vy: 0, lifetime: 24,
-    sheet: "./green_arrow_explosion_uniform.png", spriteFrames: 4, spriteOnce: true, spriteScale: scale, color: "#ff8a3c" }, context)
+  const s = scale * GA_BLAST_SIZE
+  const floor = owner?.groundY != null ? owner.groundY : (context?.groundY ?? null)
+  const grounded = floor != null && floor - y <= GA_BLAST_GROUND_REACH
+  return spawnProjectile(owner, "gaBlast", { damage: 0, visualOnly: true, w: 48 * s, h: 48 * s,
+    radius: 24 * s, spawnX: x, spawnY: grounded ? floor - 24 * s : y, vx: 0, vy: 0, lifetime: 24,
+    sheet: "./green_arrow_explosion_uniform.png", spriteFrames: 4, spriteOnce: true, spriteScale: s, color: "#ff8a3c",
+    spriteBottomY: grounded ? floor : null }, context)
 }
 function _gaHitsOpp(d, opp, pad = 0) {
   if (!opp || opp.eliminated) return false

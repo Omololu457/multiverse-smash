@@ -132,7 +132,17 @@ export const SKINS = {
   zoro: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.zoro.portrait, spriteScale: characters.zoro.spriteScale, animationData: null }],
   // SCALE FIX: without this entry getSkins() returns the { spriteScale: 1 } fallback and applySkin()
   // clobbers Green Arrow's real 1.35 → he renders at native ~99px (half-ish). This restores his scale.
-  green_arrow: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.green_arrow?.portrait, spriteScale: characters.green_arrow?.spriteScale, animationData: null }],
+  green_arrow: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_arrow?.portrait, spriteScale: characters.green_arrow?.spriteScale, animationData: null },
+    { id: "ga_red", name: "Red Arrow", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "red"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "red"), recolorTag: "red" },
+    { id: "ga_deathstroke", name: "Deathstroke", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "deathstroke"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "deathstroke"), recolorTag: "deathstroke" },
+    { id: "ga_neonpink", name: "Neon Pink", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "neonpink"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "neonpink"), recolorTag: "neonpink" },
+    { id: "ga_modern", name: "Modern", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "modern"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "modern"), recolorTag: "modern" },
+    { id: "ga_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "ben10"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "ben10"), recolorTag: "ben10" },
+    { id: "ga_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "albedo"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "albedo"), recolorTag: "albedo" },
+    { id: "ga_valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "valkyrie"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "green_arrowAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("green_arrow", "alienx"), spriteScale: characters.green_arrow?.spriteScale, animationData: recolorSkinAnim("green_arrow", "alienx"), recolorTag: "alienx" },
+  ],
   // Gojo — base sprite transparency-repaired (2026-07-30), then rebuilt with 4 coordinated head-to-toe
   // colour skins (HAIR + main clothing/top + EYES all in one hue family; face/skin + white pants kept
   // natural) via tools/gen_gojo_creative.py, registered DIRECTLY here (like the Rengoku/Shinobu/Sukuna

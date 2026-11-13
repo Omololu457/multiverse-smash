@@ -65,6 +65,10 @@ export const ZORO_SANTO_ANIM = { ...ANIM, idle: ANIM.zsIdle, win: ANIM.win2,
 
 export const zoro = {
   rosterKey: 'zoro', name: 'Zoro', displayName: 'Roronoa Zoro', hudName: 'Zoro', universe: 'one_piece', color: '#3fa34d',
+  // METADATA (phase 8). Universe "One Piece" = the existing `one_piece` group (its display title), next to Luffy.
+  difficulty: 3, archetype: 'Swordsman / Stance Fighter',
+  tagline: 'Nothing happened.',
+  bio: "First mate of the Straw Hat Pirates. The Three-Sword Style Swordsman who swore to become the world's greatest. Terrible sense of direction, unbreakable resolve, and a habit of napping on the job.",
   portrait: './assets/zoro/portrait.png', hasSprites: true, spriteScale: 2.3 / 1.18,   // same GBA ripper/scale as Luffy
   spriteSheet: ZORO_ANIM.idle.sheet, fatalityVictimArt: false, grabCastPose: 'grab',
   primary: 'melee', secondary: [], archetypes: ['melee'],

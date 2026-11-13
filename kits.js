@@ -184,7 +184,7 @@ export const KITS = {
     ]
   },
   arlong: {
-    type:'Water Bruiser / Zone Controller', energy:'Tide', difficulty:'3',
+    type:'Heavy Bruiser / Zone Control', energy:'Tide', difficulty:'3',
     summary:'The Saw-Tooth Shark. Slow and huge on dry land, deadly in water: every special leaves a shallow pool, and inside his own water he hits 15% harder, moves 25% faster and swims through attacks. Tide builds from karate hits (+5), blade hits (+3), +1/s and +2/s more in water.',
     passive:{ name:'Fishman in his Element', effect:'Up to 3 water zones (18% of the screen, 8s; overlapping zones merge, max 30%). In his water: +15% damage, +25% speed, +2 Tide/s, the dash becomes an 8-frame invulnerable SWIM. Foes in his water slide 10% further backwards. FISHMAN DURABILITY: of any single hit over 100, the first 60 is cut by 20%. TOOTH REGROWTH: 3 teeth, bites spend one, one regrows every 4s, Shark On Darts refills them all; at 0 teeth bites become a 40 headbutt.' },
     basics:[

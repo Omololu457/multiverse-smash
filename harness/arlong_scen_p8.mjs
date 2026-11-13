@@ -59,4 +59,5 @@ export async function run(X) {
   const unknown = heard.s.filter(id => !(id in R.cues))
   check('every cue the sim queues has a recipe (no silent no-op ids)', unknown.length === 0, unknown.join(', '))
   check('voice bus untouched by Arlong', heard.v.length === 0, heard.v.join(', '))
+  if (X.PHASE >= 9) { const m = await import('./arlong_scen_p9.mjs'); await m.run(X) }
 }

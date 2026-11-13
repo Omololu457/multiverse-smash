@@ -4,7 +4,8 @@
 import { SPD_RED_FX } from './spdRedSprites.js'
 import { rangerHudState, rangerBodyAlpha, badgeRGBA, getRangerProfile } from './rangers.js'
 import { SPD_RED_WIN2_ANIM, SPD_RED_GLINT_ANIM } from './spdRedData.js'
-import { spdRedRetag, spdRedSkinSet, spdRedAccent } from './spdRedSkins.js'   // alt skins: tagged FX sheets + accent (also registers SKINS.spd_red)
+import { spdRedRetag, spdRedSkinSet, spdRedAccent } from './spdRedSkins.js'
+import './omegaSkins.js'   // Omega Ranger's extra alt skins (Ranger-family skin registration; keeps skins.js / game.js untouched)   // alt skins: tagged FX sheets + accent (also registers SKINS.spd_red)
 
 const _img = {}
 function img(src) {

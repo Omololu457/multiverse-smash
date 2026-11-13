@@ -87,14 +87,44 @@ export function drawSanjiFx(c, f) {
   if (!f._sanji) return
   const s = f._sanji
   const k = f.attacking ? f.currentAttack?.sj?.kind : null
-  if (s.patch) drawPatch(c, s)
-  if (k === 'mouton' || k === 'skywalk' || k === 'concasse' || k === 'ptkc') drawAfterimages(c, f, s, k)
-  if (s.dj > 0 || k === 'ignite') drawDiable(c, f, s)
-  if (s.lastHit && (s.clock - s.lastHit[0]) < 22) drawImpactEmbers(c, s)
+  // A recolor skin re-hues the drawn fire (matching its recoloured *_dj sprite flames); default = unfiltered.
+  const tint = FLAME_FILTER[f._recolorTag] || null
+  const fire = fn => { if (!tint) return fn(); c.save(); c.filter = tint; fn(); c.restore() }
+  if (s.patch) fire(() => drawPatch(c, s))
+  if (k === 'mouton' || k === 'skywalk' || k === 'concasse' || k === 'ptkc') (s.dj > 0 ? fire : fn => fn())(() => drawAfterimages(c, f, s, k))
+  if (s.dj > 0 || k === 'ignite') fire(() => drawDiable(c, f, s))
+  if (s.lastHit && (s.clock - s.lastHit[0]) < 22) (s.lastHit[3] ? fire : fn => fn())(() => drawImpactEmbers(c, s))
+  if (f._recolorTag === 'kamabakka') drawGlitter(c, f, s)
   if (s.courseFx && (s.clock - s.courseFx[1]) < 40) drawCourseCallout(c, s)
   if (s.inSuper && s.superFx) drawSuperCallout(c, f, s)
   drawCigarette(c, f, s)
   drawSmoke(c, f, s)
+}
+
+// Skin fire: canvas hue filters on the orange (~30°) fire → the skin's flame hue (render-only, never the sim).
+// Browsers without canvas filters simply keep the orange fire.
+const FLAME_FILTER = {
+  ifrit: 'hue-rotate(172deg) saturate(1.1)',      // Ifrit Jambe: blue fire
+  kamabakka: 'hue-rotate(292deg) saturate(1.15)', // hot-pink fire
+  reiju: 'hue-rotate(256deg)',                    // poison purple
+  albedo: 'hue-rotate(-28deg) saturate(1.3)',     // red
+  alienx: 'saturate(0.15) brightness(1.35)',      // starlight white
+}
+// KAMABAKKA GLITTER (render-only): a few four-point glints twinkle over his body. Deterministic: positions and
+// phases hash the glint index; time is his own sim clock (no RNG, nothing written back).
+function drawGlitter(c, f, s) {
+  const t = s.clock || 0, w = f.w || 48, h = f.h || 94
+  c.save(); c.globalCompositeOperation = 'lighter'
+  for (let i = 0; i < 7; i++) {
+    const per = 26 + Math.floor(hr(i, 11) * 22), ph = ((t + Math.floor(hr(i, 12) * per)) % per) / per
+    if (ph > 0.5) continue
+    const a = Math.sin(ph * 2 * Math.PI), seg = Math.floor((t + hr(i, 13) * per) / per)
+    const x = f.x + w * (0.1 + 0.8 * hr(i + seg * 7, 14)), y = f.y + h * (0.12 + 0.8 * hr(i + seg * 7, 15)), r = 2 + 4 * a
+    c.fillStyle = `rgba(255,${200 + Math.round(40 * hr(i, 16))},240,${0.85 * a})`
+    c.beginPath(); c.moveTo(x, y - r); c.lineTo(x + r * 0.22, y - r * 0.22); c.lineTo(x + r, y); c.lineTo(x + r * 0.22, y + r * 0.22)
+    c.lineTo(x, y + r); c.lineTo(x - r * 0.22, y + r * 0.22); c.lineTo(x - r, y); c.lineTo(x - r * 0.22, y - r * 0.22); c.closePath(); c.fill()
+  }
+  c.restore()
 }
 
 // INTRO step 2 (R1F2, lighting up): a lighter flame cupped at the mouth, then the first drag's puff. Timed on the

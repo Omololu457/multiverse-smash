@@ -87,6 +87,16 @@ export const SANJI_DJ_SET = { ...ANIM, ...withTimelines(SANJI_DJ_ANIM) }
 // Round-end victory variants (the engine always plays action 'win'; the variant swaps which strip that is):
 //   1 = R7 smoking, hands in pockets (base `win`) · 2 = R9 kick flourish → R6 pocket pose · 3 = R8 serving the cocktail
 export const SANJI_WIN_SETS = { 2: { ...ANIM, win: ANIM.win2 }, 3: { ...ANIM, win: ANIM.winGlass } }
+// Recolor skins (tools/sanji_build/gen_sanji_skins.py → `<sheet>__<tag>.png` beside every strip, *_dj included):
+// retag any set's sheet paths so a skin survives the Diable Jambe / win-variant swaps. `set` null = the base set;
+// no tag → `set` unchanged (default skin byte-identical). Cached per (set, tag) → stable identity for syncAnim.
+const _skinSets = new Map()
+export function sanjiSkinSet(set, tag) {
+  if (!tag) return set
+  const base = set || ANIM
+  let byTag = _skinSets.get(base); if (!byTag) _skinSets.set(base, byTag = {})
+  return byTag[tag] || (byTag[tag] = Object.fromEntries(Object.entries(base).map(([k, a]) => [k, a?.sheet ? { ...a, sheet: a.sheet.replace(/\.png$/i, `__${tag}.png`) } : a])))
+}
 
 export const sanji = {
   rosterKey: 'sanji', name: 'Sanji', displayName: 'Sanji', hudName: 'Sanji', universe: 'one_piece', color: '#e8c33a',

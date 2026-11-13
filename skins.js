@@ -131,7 +131,22 @@ export const SKINS = {
   // Buggy — 9 alt-colour skins (tools/buggy_build/gen_buggy_skins.py: region-keyed coat/hat · hair · accents recolor over
   // every assets/buggy sheet incl. the 7 masked rows + detached-part art; buggyData.buggySkinSet keeps the skin through
   // his part-detach / win-pose anim swaps, drones.js `skinRetag` recolors the flying parts). Alien X → generic starfield.
-  sanji: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.sanji.portrait, spriteScale: characters.sanji.spriteScale, animationData: null }],
+  // Sanji — 10 alt-colour skins (tools/sanji_build/gen_sanji_skins.py: suit · hair · buttons · Diable Jambe flame regions over
+  // every assets/sanji strip incl. the *_dj set; sanjiData.sanjiSkinSet keeps the skin through the lit-leg / win swaps,
+  // sanjiFx re-hues the drawn fire per skin + Kamabakka's glitter twinkle). Alien X → generic starfield.
+  sanji: [
+    { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.sanji.portrait, spriteScale: characters.sanji.spriteScale, animationData: null },
+    { id: "sanji_stealth", name: "Raid Suit: Stealth Black", unlockLevel: 0, portrait: recolorPortrait("sanji", "stealth"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "stealth"), recolorTag: "stealth" },
+    { id: "sanji_ifrit", name: "Ifrit Jambe", unlockLevel: 0, portrait: recolorPortrait("sanji", "ifrit"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "ifrit"), recolorTag: "ifrit" },
+    { id: "sanji_wedding", name: "Whole Cake Wedding", unlockLevel: 0, portrait: recolorPortrait("sanji", "wedding"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "wedding"), recolorTag: "wedding" },
+    { id: "sanji_sangoro", name: "Sangoro (Wano)", unlockLevel: 0, portrait: recolorPortrait("sanji", "sangoro"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "sangoro"), recolorTag: "sangoro" },
+    { id: "sanji_kamabakka", name: "Kamabakka Glitter", unlockLevel: 0, portrait: recolorPortrait("sanji", "kamabakka"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "kamabakka"), recolorTag: "kamabakka" },
+    { id: "sanji_ichiji", name: "Sparking Red (Ichiji)", unlockLevel: 0, portrait: recolorPortrait("sanji", "ichiji"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "ichiji"), recolorTag: "ichiji" },
+    { id: "sanji_reiju", name: "Poison Pink (Reiju)", unlockLevel: 0, portrait: recolorPortrait("sanji", "reiju"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "reiju"), recolorTag: "reiju" },
+    { id: "sanji_ben10", name: "Ben 10", unlockLevel: 0, portrait: recolorPortrait("sanji", "ben10"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "ben10"), recolorTag: "ben10" },
+    { id: "sanji_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("sanji", "albedo"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "albedo"), recolorTag: "albedo" },
+    { id: "sanjiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sanji", "alienx"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "alienx"), recolorTag: "alienx" },
+  ],
   arlong: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.arlong.portrait, spriteScale: characters.arlong.spriteScale, animationData: null }],
   buggy: [
     { id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.buggy.portrait, spriteScale: characters.buggy.spriteScale, animationData: null },

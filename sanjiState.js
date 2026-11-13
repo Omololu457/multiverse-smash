@@ -3,7 +3,7 @@
 // and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every timing is a fixed frame
 // count, every position derives from the two fighters' positions, and the one "random" choice (fire-crackle
 // variation, render/audio only) hashes (match seed, frame, player index).
-import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, SANJI_WIN_SETS, COURSE } from './sanjiData.js'
+import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, SANJI_WIN_SETS, COURSE, sanjiSkinSet } from './sanjiData.js'
 import { SANJI_FX } from './sanjiSprites.js'
 const SANJI_FX_PLATE = SANJI_FX.plate
 export const isSanji = f => f?.rosterKey === 'sanji'
@@ -59,11 +59,13 @@ export function sanjiState(f) {
 }
 
 export function clearSanji(f) {
-  if (f?._sanji || isSanji(f)) { delete f._sanji; delete f._sanjiCues; if (isSanji(f)) { f._skinAnim = null; restoreSpeed(f) } }
+  if (f?._sanji || isSanji(f)) { delete f._sanji; delete f._sanjiCues; if (isSanji(f)) { f._skinAnim = sanjiSkinSet(null, f._recolorTag); restoreSpeed(f) } }
 }
 function restoreSpeed(f) { const st = SANJI_CHAR.stats; f.dashSpeed = st.dashSpeed }
 // The live animation set: Diable Jambe swaps in the tinted-arc strips. (Win variant joins in Phase 7.)
-export function sanjiAnimSet(f) {
+// A recolor skin (applySkin's `_recolorTag`) retags whichever set is live.
+export function sanjiAnimSet(f) { return sanjiSkinSet(sanjiAnimSetBase(f), f?._recolorTag) }
+function sanjiAnimSetBase(f) {
   if (f?._forceAction === 'win') { const v = sanjiWinVariant(f); return v === 1 ? null : SANJI_WIN_SETS[v] }
   if (f?._forceAction === 'lose') return null
   return f?._sanji?.dj > 0 ? SANJI_DJ_SET : null

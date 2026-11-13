@@ -62,7 +62,7 @@ ok("Super spent all Tech", f.energy === 0, `energy=${f.energy}`)
 ok("super sets _gaSuperActive (drone cap 3)", f._gaSuperActive === true)
 // run the super to completion
 let payloadSeen = false, volleyArrows = 0
-for (let fr = 401; fr <= 650; fr++) {
+for (let fr = 401; fr <= 820; fr++) {   // PASS3: the reworked 3-wave Super runs ~320 frames (was ~250)
   applyGreenArrowArrowstorm(f, CTX(opp2, fr))
   tickGreenArrowTimers(f)
   updateDrones([f, opp2], fr, ENV)

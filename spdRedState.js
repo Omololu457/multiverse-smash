@@ -213,7 +213,7 @@ function fireBolt(f, rapid, i) {
     spawnX: f.x + (dir === 1 ? (f.w || 48) + 18 : -18), spawnY: f.y + (f.h || 94) * 0.36 + (rapid ? Math.round((h - 0.5) * 12) : 0),
     w: rapid ? 44 : 30, h: rapid ? 10 : 22, radius: rapid ? 9 : 13, lifetime: Math.ceil(RANGER_SCREEN / speed) + 4,
     hitstun: rapid ? 10 : 18, knockbackX: rapid ? 1 : 3, knockbackY: 0, color: '#36d6e6', isSpecial: true, category: 'special',
-    hitFlag: '_srBoltHit', noHitstop: rapid, sheet: spr.sheet, spriteFrames: 1, spriteW: spr.w, spriteH: spr.h, spriteScale: sc * (rapid ? 0.8 : 1) }
+    hitFlag: '_srBoltHit', noHitstop: rapid, sheet: f._recolorTag ? spr.sheet.replace(/\.png$/i, `__${f._recolorTag}.png`) : spr.sheet, spriteFrames: 1, spriteW: spr.w, spriteH: spr.h, spriteScale: sc * (rapid ? 0.8 : 1) }
   const p = _proj.spawn(f, rapid ? 'srTracer' : 'srBolt', md)
   if (p) { p.damageType = 'projectile'; rcue(f, rapid ? 'rapid' + i : 'blaster') }   // rapid0…4: per-bolt detune (spdRedSound)
   return p

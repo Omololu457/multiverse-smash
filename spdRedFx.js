@@ -4,6 +4,7 @@
 import { SPD_RED_FX } from './spdRedSprites.js'
 import { rangerHudState, rangerBodyAlpha, badgeRGBA, getRangerProfile } from './rangers.js'
 import { SPD_RED_WIN2_ANIM, SPD_RED_GLINT_ANIM } from './spdRedData.js'
+import { spdRedRetag, spdRedSkinSet, spdRedAccent } from './spdRedSkins.js'   // alt skins: tagged FX sheets + accent (also registers SKINS.spd_red)
 
 const _img = {}
 function img(src) {
@@ -14,9 +15,10 @@ function img(src) {
 export const hash = (a, b = 0) => { let h = Math.imul((a | 0) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul((b | 0) + 0x632be5ab, 0xc2b2ae35); h ^= h >>> 13; h = Math.imul(h, 0x27d4eb2f); return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
 const isRed = f => f?.rosterKey === 'spd_red'
 const SCALE = f => (f?.spriteScale || 2.4 / 1.18) * 1.18   // the engine draws sprites at spriteScale × 1.18
+let _tag = null   // the drawn fighter's alt-skin recolour tag (set at each draw entry; render-only)
 
 function sprite(c, key, x, y, { rot = 0, sx = 1, sy = 1, alpha = 1, anchor = 'c' } = {}) {
-  const F = SPD_RED_FX[key], im = img(F?.sheet); if (!im) return
+  const F = SPD_RED_FX[key], im = img(F && !/gem|poster/.test(F.sheet || '') ? spdRedRetag(F.sheet, _tag) : F?.sheet); if (!im) return   // alt skin: recoloured streak / bolt / beam
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha
   c.translate(x, y); if (rot) c.rotate(rot); c.scale(sx, sy)
   c.drawImage(im, -im.width / 2, anchor === 'b' ? -im.height : -im.height / 2)
@@ -117,6 +119,7 @@ function drawJudgmentPoster(ctx, f) {
 // Behind the body: the blink streak afterimages + dissolve particles (render-only, from f._ranger.blink).
 export function drawSpdRedUnder(c, f, frame = 0) {
   if (!c || !isRed(f)) return
+  _tag = f._recolorTag || null
   const b = f._ranger?.blink; if (!b) return
   const B = getRangerProfile(f).blink, k = SCALE(f), w = f.w ?? 48, h = f.h ?? 94
   const fy = (f.y || 0) + h, d = b.dir || f.facing || 1
@@ -133,7 +136,7 @@ export function drawSpdRedUnder(c, f, frame = 0) {
     const x = (f.x || 0) + w / 2
     sprite(c, 'streakD', x, fy, { sx: k * d, sy: k, alpha: 0.95, anchor: 'b' })
     c.save()
-    c.strokeStyle = flash ? 'rgba(255,255,255,0.95)' : badgeRGBA(f, 0.75)
+    c.strokeStyle = flash ? 'rgba(255,255,255,0.95)' : (_tag ? spdRedAccent(f, 0.75) : badgeRGBA(f, 0.75))
     c.lineWidth = flash ? 5 : 3
     for (let j = 0; j < 4; j++) {   // speed lines from the start point to him
       const yy = fy - h * (0.25 + 0.17 * j) + (hash(b.n, j) - 0.5) * 8
@@ -147,7 +150,7 @@ export function drawSpdRedUnder(c, f, frame = 0) {
   }
 }
 function dissolve(c, x, y, t, seed, white) {
-  c.save(); c.fillStyle = white ? 'rgba(255,255,255,0.9)' : 'rgba(255,60,40,0.85)'
+  c.save(); c.fillStyle = white ? 'rgba(255,255,255,0.9)' : (_tag ? spdRedAccent({ _recolorTag: _tag }, 0.85) : 'rgba(255,60,40,0.85)')
   for (let i = 0; i < 14; i++) {
     const a = hash(seed, i) * Math.PI * 2, r = 10 + t * 9 * hash(seed + 3, i)
     c.fillRect(x + Math.cos(a) * r, y + Math.sin(a) * r * 1.4, 3, 3)
@@ -158,6 +161,7 @@ function dissolve(c, x, y, t, seed, white) {
 // In front of the body: impact sparks (sim-recorded fx list; the sprite pick + jitter are render-only).
 export function drawSpdRedFx(c, f, frame = 0) {
   if (!c || !isRed(f)) return
+  _tag = f._recolorTag || null
   drawJudgmentWorld(c, f, frame)
   drawBeams(c, f, frame)
   drawPresentation(c, f, frame)
@@ -205,7 +209,7 @@ function drawBeams(c, f, frame) {
   if (g.kind === 'beam') { const st = a.activeStart ?? 24; on = t - st; life = (a.activeEnd ?? st + 6) - st + 8 }
   else if (g.kind === 'super') { on = t - 78; life = 20 }
   if (on < 0 || on > life) return
-  const im = img(SPD_RED_FX.beam.sheet); if (!im) return
+  const im = img(spdRedRetag(SPD_RED_FX.beam.sheet, _tag)); if (!im) return
   const dir = f.facing || 1, sc = SCALE(f), fw = f.w ?? 48
   const x0 = dir === 1 ? (f.x || 0) + fw : (f.x || 0), y = (f.y || 0) + 15   // hand height of R16F2 (the sim beam box: y + 0 … y + 34)
   const fade = on > life - 6 ? (life - on) / 6 : 1, grow = Math.min(1, (on + 1) / 3)
@@ -244,14 +248,14 @@ function drawPresentation(c, f, frame) {
   if (fa === 'win' || fa === 'lose') {
     if (!f._srEndT || f._srEndFa !== fa) { f._srEnd0 = frame - 1; f._srEndFa = fa }
     const t = f._srEndT = Math.max(1, frame - f._srEnd0)
-    if (fa === 'win') { const v = spdRedWinVariant(f); swapSet(f, v === 2 ? SPD_RED_WIN2_ANIM : base); if (v === 2) drawWin2(c, f, t, frame); else drawWin1(c, f, t) }
+    if (fa === 'win') { const v = spdRedWinVariant(f); swapSet(f, v === 2 ? spdRedSkinSet(SPD_RED_WIN2_ANIM, f._recolorTag) : base); if (v === 2) drawWin2(c, f, t, frame); else drawWin1(c, f, t) }
     else { swapSet(f, base); drawLose(c, f, t) }
     return
   }
   if (f._srEndT) { f._srEndT = 0; f._srEndFa = null }
   // IDLE > 10 s: R1 on the glint strip + a blue gem glint
   const idle = (f._spdRed?.idleT || 0) >= SPD_RED_IDLE.after
-  swapSet(f, idle && !base ? SPD_RED_GLINT_ANIM : base)
+  swapSet(f, idle && (!base || f._recolorTag) ? spdRedSkinSet(SPD_RED_GLINT_ANIM, f._recolorTag) : base)   // alt skin: its own recoloured glint strip
   if (idle) drawGlint(c, f, frame)
 }
 function drawIntro(c, f, t) {
@@ -259,7 +263,7 @@ function drawIntro(c, f, t) {
   if (t < 14) {   // blink-in: the R17 streak shooting in from off his back, fading as the body resolves
     const a = 1 - t / 14
     sprite(c, 'streakH', fx - d * (90 - t * 6), fy - 30 * sc / 2.4, { sx: d * sc, sy: sc, alpha: a, anchor: 'b' })
-    c.save(); c.globalAlpha = a * 0.6; c.fillStyle = 'rgba(255,40,40,0.9)'
+    c.save(); c.globalAlpha = a * 0.6; c.fillStyle = _tag ? spdRedAccent(f, 0.9) : 'rgba(255,40,40,0.9)'
     for (let k = 0; k < 6; k++) c.fillRect(fx - d * (40 + hash(k, 3) * 120) - d * t * 4, fy - 20 - hash(k, 9) * 70, 30 + hash(k, 1) * 40, 2)
     c.restore()
   }

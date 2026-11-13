@@ -65,7 +65,9 @@ const OVERRIDES = {
   killua: { ultimate: 'energy' }, zoldyck: { ultimate: 'energy' },
   yuji: { ultimate: 'blunt' }, aoi_todo: { ultimate: 'blunt' },                               // Black Flash = a punch
   green_arrow: {},                                                                             // arrows PIERCE — tagged projectile (not a cut)
-  superman: { kryptonianGrab: 'grab' }, homelander: { takeARide: 'grab' },
+  superman: { kryptonianGrab: 'grab', ultimate: 'blunt' }, homelander: { takeARide: 'grab' },   // World of Cardboard = a punch barrage ("Card" is not a card)
+  light: { ultimate: 'energy' },                                                               // the Death Note — supernatural, not a blade
+  mayuri: { ultimate: 'blunt' },                                                               // Konjiki Ashisogi Jizō CRUSHES the foe (the "blade" is only its origin)
 }
 const NORMAL_MAP = { light: 'light', heavy: 'heavy', upAttack: 'up', airAttack: 'air', downAir: 'down_air', crouchLight: 'crouchLight', lowAttack: 'lowAttack', airHeavy: 'air_heavy', air_heavy: 'air_heavy' }
 

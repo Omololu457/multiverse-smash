@@ -13,7 +13,7 @@ Conqueror's Haki passive has fired** (`_zoro.hakiUsed`).
 **Resolution order:** explicit `damageType` on the attack/projectile/call → this table → keyword rules on the move
 name → default.
 
-Totals: 129 characters · 1193 moves tagged (blunt 717, grab 61, energy 149, slash 266) ·
+Totals: 129 characters · 1193 moves tagged (blunt 721, grab 61, energy 150, slash 261) ·
 297 projectile types (energy 136, projectile 128, slash 29, blunt 4).
 
 ## Blade users (normals = slash)
@@ -614,7 +614,7 @@ Every other character's shared normals (light / heavy / up / air / down-air / cr
 | superman | groundPound | blunt | default |  |
 | superman | kryptonianGrab | grab | override |  |
 | superman | solarFlare | blunt | default |  |
-| superman | ultimate | slash | keyword | World of Cardboard |
+| superman | ultimate | blunt | override | World of Cardboard |
 | superman_dcuc | light (normal) | blunt | default |  |
 | superman_dcuc | heavy (normal) | blunt | default |  |
 | superman_dcuc | upAttack (normal) | blunt | default |  |
@@ -785,7 +785,7 @@ Every other character's shared normals (light / heavy / up / air / down-air / cr
 | mayuri | upAttack (normal) | slash | blade user | Ashisogi Jizō |
 | mayuri | downAir (normal) | slash | blade user | Ashisogi Jizō |
 | mayuri | airAttack (normal) | slash | blade user | Ashisogi Jizō |
-| mayuri | ultimate | slash | keyword | Bankai: Konjiki Ashisogi Jizō |
+| mayuri | ultimate | blunt | override | Bankai: Konjiki Ashisogi Jizō |
 | kiba | light (normal) | blunt | default |  |
 | kiba | heavy (normal) | blunt | default |  |
 | kiba | upAttack (normal) | blunt | default |  |
@@ -843,7 +843,7 @@ Every other character's shared normals (light / heavy / up / air / down-air / cr
 | gaara | sandTsunami | blunt | default |  |
 | gaara | sandDome | blunt | default |  |
 | gaara | sandShunshin | blunt | default |  |
-| gaara | ultimate | slash | keyword | Sabaku Taisou |
+| gaara | ultimate | blunt | default | Sabaku Taisou |
 | meruem | light (normal) | blunt | default |  |
 | meruem | heavy (normal) | blunt | default |  |
 | meruem | upAttack (normal) | blunt | default |  |
@@ -863,7 +863,7 @@ Every other character's shared normals (light / heavy / up / air / down-air / cr
 | boruto | ultimate | energy | keyword | Kote Barrage |
 | light | light (normal) | blunt | default |  |
 | light | heavy (normal) | blunt | default |  |
-| light | ultimate | slash | keyword | As Planned |
+| light | ultimate | energy | override | As Planned |
 | l_ryuuzaki | light (normal) | blunt | default |  |
 | l_ryuuzaki | heavy (normal) | blunt | default |  |
 | l_ryuuzaki | upAttack (normal) | blunt | default |  |
@@ -1179,7 +1179,7 @@ Every other character's shared normals (light / heavy / up / air / down-air / cr
 | shizuku | airAttack (normal) | blunt | default |  |
 | shizuku | downAir (normal) | blunt | default |  |
 | shizuku | grab | grab | explicit | throw |
-| shizuku | ultimate | slash | keyword | Bloodletting / Spring Cleaning |
+| shizuku | ultimate | blunt | default | Bloodletting / Spring Cleaning |
 | zoldyck | light (normal) | slash | blade user | Rhythm Echo claws |
 | zoldyck | heavy (normal) | slash | blade user | Rhythm Echo claws |
 | zoldyck | upAttack (normal) | slash | blade user | Rhythm Echo claws |

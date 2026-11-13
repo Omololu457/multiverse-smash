@@ -20,7 +20,7 @@ const NORMAL_KEYS = new Set(['light', 'heavy', 'up', 'air', 'down_air', 'air_hea
 // Keyword rules. ENERGY is checked first: a ki / electric / light "slash" is an energy wave, not a blade.
 const KI_RX = /(^ki|Ki)([A-Z_\s]|$)/   // case-sensitive: kiBlast · superKiSlash · "Ki Ball" (never "kick" / "skill")
 const ENERGY_RX = /beam|blast|kame|galick|finalFlash|laser|rasen|orb\b|orb[A-Z]|bomb|fire|flame|katon|lightning|thunder(?!clap)|chidori|raikiri|kirin|electric|volt|bolt|getsuga|wave|burst|purple|^blue$|^red$|hakai|spirit|mana|aura|energy|repulsor|proton|nova|vision|heat|breath|plasma|nuclear|explos|meteor|bijuu|tbb|shinra|push|pull|incinerat|cannon(?!ball)|missile|rocket|holy|divine|portal|cosmic/i
-const SLASH_RX = /slash|sword|blade|katana|saber|sabre|(?<!e)cut(?!e)|cleave|dismantle|kunai|shuriken|knife|knives|dagger|machete|scythe|sickle|claw|talon|card|needle|spear|lance|naginata|iaido|zangetsu|senbonzakura|petal|stab|gutting|lowGut|lunge|thrust|carve|slice|guillotine|decap/i
+const SLASH_RX = /slash|sword|blade|katana|saber|sabre|(?<!e)cut(?!e|-?in\b)|cleave|dismantle|kunai|shuriken|knife|knives|dagger|machete|scythe|sickle|claw|talon|card|needle|spear|lance|naginata|iaido|zangetsu|senbonzakura|petal|stab|gutting|lowGut|lunge|thrust|carve|slice|guillotine|decap/i
 const GRAB_RX = /^grab$|Grab$|^throw$|takeARide|commandGrab/
 
 // Keyword type of a move / projectile name, or null when nothing matches.

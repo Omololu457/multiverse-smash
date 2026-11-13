@@ -36827,8 +36827,10 @@ function _gaArrow(fighter, context, o) {
     sheet: o.sheet || "./green_arrow_plainarrow.png", spriteFrames: o.spriteFrames || 1, spriteScale: o.spriteScale || 1,
     isSpecial: true, impact: o.impact || null, dot: o.dot || null,
   }
-  // TAGGED: arrows aim at the tagged target (approximates the homing lock-on).
-  if (tagged && opp) md.aimAt = { x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) * 0.4 }
+  // AUTO-AIM: every straight arrow fires from the bow STRAIGHT AT the foe's body — so a shoulder-height
+  // shot doesn't sail over them, and an airborne shot angles DOWN at a grounded foe. Arcing shots that set
+  // their own vy (anti-air, explosive lob) keep their trajectory; homing (tickGreenArrowTimers) then tracks.
+  if (opp && !opp.eliminated && o.vy == null) md.aimAt = { x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) * 0.45 }
   const p = spawnProjectile(fighter, o.type || "gaArrow", md, context)
   if (p) {
     p.hitFlag = "_gaArrowHit"            // → owner._gaArrowHit on clean hit (Tech income)
@@ -36864,7 +36866,7 @@ function fireGAPlain(fighter, context, charge = 0) {
   const pierce = charge >= 1
   _gaArrow(fighter, context, { kind: "plain", type: "gaPlainArrow", damage: pierce ? 70 : 45,
     speed: 20, piercing: pierce, w: 18 + charge * 2, h: 8, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.6 })
-  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 16
+  fighter._spriteCastMove = (fighter.onGround ?? fighter.grounded ?? true) ? "draw" : "airdraw"; fighter._spriteCastTimer = 16   // shoot the AIR-draw pose while jumping
   fighter.attackCooldown = getAttackDuration(10, fighter)
   if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
   return true

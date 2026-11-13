@@ -29,7 +29,10 @@ export function drawZoroHud(ctx, fighter, { x, enY, pbw, flip }) {
 // World-space FX, drawn after the fighter sprite (game.js render list). Pulses derive from the sim clock
 // (deterministic visuals); nothing here touches simulation state.
 export function drawZoroFx(c, f) {
-  if (!c || f?.rosterKey !== 'zoro' || !f._zoro) return
+  if (!c || f?.rosterKey !== 'zoro') return
+  // INTRO: the Going Merry figurehead emblem flashes above him as he walks in.
+  if (f._introPlaying) drawMerryFlash(c, f)
+  if (!f._zoro) return
   const s = f._zoro, w = f.w ?? 48, h = f.h ?? 100, cx = f.x + w / 2, cy = f.y + h * 0.55
   // SANTORYU: faint green-white aura (no palette shift).
   if (s.santoryu) {
@@ -48,4 +51,16 @@ export function drawZoroFx(c, f) {
     }
     c.restore()
   }
+}
+
+function drawMerryFlash(c, f) {
+  const t = f._introRevealFrame || 0, m = img(ZORO_FX.merry.sheet)
+  if (!m || t > 60) return
+  const a = t < 8 ? t / 8 : t < 40 ? 1 : (60 - t) / 20
+  const flash = t < 14 && (t >> 1) % 2 === 0   // two white strobes on arrival
+  const k = 2.4, w = m.width * k, h = m.height * k, cx = f.x + (f.w || 48) / 2, y = f.y - h - 18
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = Math.max(0, a)
+  c.drawImage(m, cx - w / 2, y, w, h)
+  if (flash) { c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.55 * a; c.drawImage(m, cx - w / 2, y, w, h) }
+  c.restore()
 }

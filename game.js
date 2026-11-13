@@ -5,6 +5,7 @@ import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (wi
 import { updateZoroCommandCombat } from './zoro.js'   // Roronoa Zoro command layer (zoro-gated)
 import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
 import { zoroWorld } from './zoro.js'
+import { zoroIntroStart, updateZoroIntro, finalizeZoroIntroPos } from './zoro.js'   // Roronoa Zoro intro walk-in (zoro-gated)
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth() })   // Roronoa Zoro world accessors
 // game.js
 
@@ -4986,6 +4987,7 @@ function initIntroVariant(fighter) {
     // DELIBERATE tracked-movement entrance (per design) — distinct from Rengoku's stationary intro.
     fighter._introHomeX = fighter.x
     fighter.x = fighter.x - (fighter.facing || 1) * SHINOBU_GLIDEIN_DIST
+  } else if (zoroIntroStart(fighter)) {   // RORONOA ZORO walk-in: stash home, start 220px behind (false → no-op for everyone else)
   } else {
     fighter._introHomeX = null
   }
@@ -25466,15 +25468,15 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1); updateZoroIntro(p1) }
         if (--introStageTimer <= 0) {
-          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1) }
+          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1); finalizeZoroIntroPos(p1) }
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2) }
-        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2) } introStage = "done" }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2); updateZoroIntro(p2) }
+        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2); finalizeZoroIntroPos(p2) } introStage = "done" }
       }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
@@ -26234,6 +26236,7 @@ gameLoop()
     if (p1) p1._introPlaying = false
     if (p2) p2._introPlaying = false
     finalizeKilluaIntroPos(p1); finalizeKilluaIntroPos(p2)   // undo the roll-in offset if we skip mid-roll
+    finalizeZoroIntroPos(p1); finalizeZoroIntroPos(p2)   // undo Zoro's walk-in offset if skipped mid-walk
     finalizeSupermanIntroPos(p1); finalizeSupermanIntroPos(p2)   // undo Superman's off-screen offset if skipped mid-run
     finalizeShinobuIntroPos(p1); finalizeShinobuIntroPos(p2)   // undo Shinobu's glide-in offset if skipped mid-glide
     gameState = GAME_STATES.BATTLE

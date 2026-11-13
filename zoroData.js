@@ -55,9 +55,12 @@ export const ZORO_TIMELINES = {
 }
 
 const ANIM = Object.fromEntries(Object.entries(ZORO_ANIM).map(([k, a]) => [k, ZORO_TIMELINES[k] ? { ...a, frameTimeline: ZORO_TIMELINES[k] } : a]))
-ANIM.transform = ANIM.intro   // the engine plays `transform` during the match intro
+ANIM.transform = ANIM.intro   // fallback intro action
+ANIM.zIntroDraw = { ...ANIM.zShishi, speed: 40, loop: false }   // INTRO step 2: the one-sword draw (R3F1), held
 // SANTORYU stance set (fighter._skinAnim while the form is active): the mouth-sword frames from R7.
-export const ZORO_SANTO_ANIM = { ...ANIM, idle: ANIM.zsIdle,
+// WIN: every engine win path forces the `win` action, resolved through _skinAnim first — so a win IN the stance
+// (incl. any ASHURA finish, which is Santoryu-only) shows WIN 2 (R7F1 three-sword pose); otherwise WIN 1 (R2).
+export const ZORO_SANTO_ANIM = { ...ANIM, idle: ANIM.zsIdle, win: ANIM.win2,
   light: { ...ANIM.zsLight, frameTimeline: ZORO_TIMELINES.zsLight }, heavy: { ...ANIM.zsHeavy, frameTimeline: ZORO_TIMELINES.zsHeavy } }
 
 export const zoro = {
@@ -73,6 +76,8 @@ export const zoro = {
   stats: { maxHealth: 1000, maxEnergy: 100, attack: 88, defense: 88, speed: 80, jumpPower: 28, maxJumps: 1, weight: 1.1,
     dashSpeed: 14, dashDuration: 9, dashCooldownMax: 30 },
   movement: { crouchIdle: true },
+  // INTRO: Going Merry emblem flash → walk in (R1, eased 220px by zoro.updateZoroIntro) → draw one sword (R3F1).
+  introSequence: ['intro', 'zIntroDraw'],
   basic_attacks: { light: ZORO_MOVES.light, heavy: ZORO_MOVES.heavy, crouchLight: ZORO_MOVES.zLow, upAttack: ZORO_MOVES.up,
     airAttack: ZORO_MOVES.air, downAir: ZORO_MOVES.down_air,
     grab: { damage: 30, startup: 7, active: 3, recovery: 20, hitstun: 20, throwForceX: 7, throwForceY: -4 } },

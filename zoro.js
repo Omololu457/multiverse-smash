@@ -154,3 +154,20 @@ export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
   }
   return 'grab'
 }
+
+// ── INTRO (combat is frozen during INTRO, so the walk-in may set x directly — the Superman/Shinobu pattern) ──
+export const ZORO_WALKIN = { dist: 220, frames: 72 }   // the 12 walk frames of the intro strip (speed 6)
+export function zoroIntroStart(f) {
+  if (!isZoro(f)) return false
+  f._introHomeX = f.x
+  f.x = f.x - (f.facing || 1) * ZORO_WALKIN.dist
+  return true
+}
+export function updateZoroIntro(f) {
+  if (!isZoro(f) || !f._introPlaying || f._introHomeX == null) return
+  const t = Math.min(1, (f._introRevealFrame || 0) / ZORO_WALKIN.frames)
+  f.x = f._introHomeX - (f.facing || 1) * ZORO_WALKIN.dist * (1 - t)   // constant walking pace, arrives as he draws
+}
+export function finalizeZoroIntroPos(f) {
+  if (isZoro(f) && f._introHomeX != null) { f.x = f._introHomeX; f._introHomeX = null }
+}

@@ -101,10 +101,14 @@ export function tickZoro(f, opp, raw = {}, W = null) {
   const neutral = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isBlocking && (f.onGround || f.grounded) &&
     !raw.left && !raw.right && !raw.up && !raw.down && !raw.jump && Math.abs(f.vx || 0) < 0.5
   s.idle = neutral ? s.idle + 1 : 0
+  // Idle > 10 s (600 frames): he dozes off — the NAP pose (render-only; any input or movement wakes him).
+  const dozing = s.idle > 600 && opp && opp.health > 0   // never during a KO / FINISH window (win poses own that)
+  if (dozing && !f._forceAction) { f._forceAction = 'nap'; s.napPose = true }
+  else if (s.napPose && !dozing) { if (f._forceAction === 'nap') f._forceAction = null; s.napPose = false }
 
   // Super bookkeeping: the Spirit lockout starts when Ashura ends (any way it ends).
   let z = zr(f)
-  if (s.inSuper && !(z && (z.kind === 'ashura' || z.kind === 'ashuraMiss'))) { s.inSuper = false; s.lockout = ZORO_TUNING.superLockout }
+  if (s.inSuper && !(z && (z.kind === 'ashura' || z.kind === 'ashuraMiss'))) { s.inSuper = false; s.lockout = ZORO_TUNING.superLockout; s.lastAshura = s.superHit ? s.clock : 0 }
   s.phase = 0
   if (z) tickMove(f, opp, s, z, W)
   if (W) tickProjectiles(f, opp, s, W)

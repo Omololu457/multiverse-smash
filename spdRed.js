@@ -86,7 +86,7 @@ function trySpecial(f, s, inp, grounded) {
     const key = specialFor(f, s, b, pressDir(s, b, inp, f.facing), grounded)
     use(s, b)
     if (!key) return true
-    if (canDo(f, key) && R_START(f, key)) { rcue(f, key === 'sSuper' ? 'superStart' : 'special'); return true }
+    if (canDo(f, key) && R_START(f, key)) { rcue(f, key === 'sSuper' ? 'superStart' : key === 'sDeltamax' ? 'deltamaxCharge' : 'special'); return true }
     return true   // a failed Special / Ultimate press is still eaten (no engine fallback special for him)
   }
   return false

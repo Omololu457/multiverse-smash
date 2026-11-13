@@ -571,6 +571,11 @@ export const SPD_RED_FX = {
   "w": 30,
   "h": 29
  },
+ "gemCut": {
+  "sheet": "./assets/spd_red/gem_cut.png",
+  "w": 30,
+  "h": 29
+ },
  "portrait": {
   "sheet": "./assets/spd_red/portrait.png",
   "w": 102,

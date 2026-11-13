@@ -234,6 +234,14 @@ ys, xs = np.nonzero(cl == big)
 GEM = (int(xs.min()) - 2, int(ys.min()) - 2, int(xs.max()) + 2, int(ys.max()) + 2)
 gem = sheet.crop((GEM[0], GEM[1], GEM[2] + 1, GEM[3] + 1)); gem.save(os.path.join(OUT, 'gem.png'))
 FX['gem'] = {'sheet': './assets/spd_red/gem.png', 'w': gem.width, 'h': gem.height}
+# gem_cut: the same gem with the poster's dark backing (every pixel with max channel <= 42, flood-filled in from the
+# crop's border) made transparent — for in-world FX (intro landing, WIN 1 spin, LOSE flicker). Untouched pixels only.
+ga = np.array(gem.convert('RGBA')); dark = ga[:, :, :3].max(2) <= 42
+seed = np.zeros_like(dark); seed[0, :] = dark[0, :]; seed[-1, :] = dark[-1, :]; seed[:, 0] = dark[:, 0]; seed[:, -1] = dark[:, -1]
+lab, _ = nd.label(dark, structure=np.ones((3, 3), int)); edge_labels = set(np.unique(lab[seed])) - {0}
+bg = np.isin(lab, list(edge_labels)); ga[bg, 3] = 0
+gem_cut = Image.fromarray(ga); gem_cut.save(os.path.join(OUT, 'gem_cut.png'))
+FX['gemCut'] = {'sheet': './assets/spd_red/gem_cut.png', 'w': gem_cut.width, 'h': gem_cut.height}
 # portrait: the poster art (character-select background) with the R9F2 pose standing in front — composed at draw
 # time by the select screen? No: the select screen shows ONE image, so it is composed here from untouched pixels.
 pb = Image.open(os.path.join(OUT, 'portrait_body.png'))
@@ -338,7 +346,8 @@ for fid, c in FR.items():
 L += ['', '## Non-frame cuts', '', '| Cut | Sheet box | Use | Status |', '|---|---|---|---|',
       f'| WANTED poster (header + mugshot window) | {POSTER[0]},{POSTER[1]},{POSTER[2]},{CREDIT_Y - 1} | Judgment UI frame (slides onto the HUD) · character-select portrait background | derived copy (crop) |',
       f'| Poster credit band "ripped by the FRANKETE for TSR" | {POSTER[0]},{CREDIT_Y},{POSTER[2]},{POSTER[3]} | none | **excluded, credit** (the scroll ornaments are interleaved with the lettering) |',
-      f'| Blue GEM (cyan diamond on the dark badge) | {GEM[0]},{GEM[1]},{GEM[2]},{GEM[3]} | containment card icon · HUD Delta badge · WIN-1 spinning gem · idle glint | derived copy (crop) |',
+      f'| Blue GEM (cyan diamond on the dark badge) | {GEM[0]},{GEM[1]},{GEM[2]},{GEM[3]} | containment card icon · HUD Delta badge | derived copy (crop) |',
+      f'| Blue GEM, cut out (`gem_cut.png`) | {GEM[0]},{GEM[1]},{GEM[2]},{GEM[3]} | in-world FX: intro landing flash · WIN-1 spinning gem · LOSE flicker | derived copy: the badge\'s dark backing (max channel ≤ 42, flood-filled from the crop border) made transparent; no pixel recoloured |',
       '| portrait.png | poster + R9F2 | character select / HUD nameplate | derived composite of untouched pixels |', '',
       '## Chroma-key verification (idle + run)', '', '| Frame | Suit px in source | Suit px kept | % | Key colour left | Shadow px removed |', '|---|---|---|---|---|---|']
 for fid, v in ck.items():

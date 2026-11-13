@@ -3,6 +3,7 @@
 // and never writes it. Image objects are presentation caches. Any jitter is a pure hash of (frame, slot).
 import { SPD_RED_FX } from './spdRedSprites.js'
 import { rangerHudState, rangerBodyAlpha, badgeRGBA, getRangerProfile } from './rangers.js'
+import { SPD_RED_WIN2_ANIM, SPD_RED_GLINT_ANIM } from './spdRedData.js'
 
 const _img = {}
 function img(src) {
@@ -159,6 +160,7 @@ export function drawSpdRedFx(c, f, frame = 0) {
   if (!c || !isRed(f)) return
   drawJudgmentWorld(c, f, frame)
   drawBeams(c, f, frame)
+  drawPresentation(c, f, frame)
   const s = f._spdRed; if (!s) return
   for (const b of s.fx || []) {
     const life = Math.min(1, b.t / 6)
@@ -214,5 +216,98 @@ function drawBeams(c, f, frame) {
   c.fillStyle = 'rgba(255,255,255,0.92)'; c.fillRect(0, -th * 0.22, BEAM_LEN * grow, th * 0.44)   // the white body between the red trim
   c.globalCompositeOperation = 'lighter'; c.globalAlpha *= 0.5
   c.fillStyle = 'rgba(120,230,255,0.9)'; c.fillRect(0, -th * 0.1, BEAM_LEN * grow, th * 0.2)
+  c.restore()
+}
+
+// ── PHASE 8 PRESENTATION: intro / WIN 1 / WIN 2 / LOSE / idle > 10 s. Render-only. _srIntroT / _srEndT are
+// presentation clocks (frames since the pose began, from the game frame counter); the sim never reads them. Every
+// position is a pure function of them (hash-placed, no Math.random). The win variant is a hash of SIM values frozen at
+// the KO (spdRedWinVariant) so both LAN peers agree. ──
+export const SPD_RED_IDLE = { after: 600 }   // 10 s at 60 fps
+export function spdRedWinVariant(f) {
+  if (!f._srWinVar) {
+    let h = Math.imul((f.health | 0) + 1, 73856093) ^ Math.imul((f.energy | 0) + 3, 19349663) ^ Math.imul((f._spdRed?.clock | 0) + 7, 83492791)
+    h ^= h >>> 15; h = Math.imul(h, 2246822519); h ^= h >>> 13
+    f._srWinVar = ((h >>> 0) & 1) ? 2 : 1
+  }
+  return f._srWinVar
+}
+const feet = f => ({ fx: (f.x || 0) + (f.w ?? 48) / 2, fy: (f.y || 0) + (f.h ?? 94), d: f.facing || 1, top: f.y || 0 })
+function swapSet(f, want) { if ((f._skinAnim || null) !== want) f._skinAnim = want }
+function drawPresentation(c, f, frame) {
+  const base = f._baseSkinAnim || null
+  // INTRO (R17 → R3 → R1 strip): he blinks IN — a red speed streak resolving into him, then a crouch-landing dust ring
+  if (f._introPlaying && !f._srIntroOn) { f._srIntroOn = true; f._srIntro0 = frame }
+  if (!f._introPlaying) f._srIntroOn = false
+  if (f._srIntro0 != null) { f._srIntroT = Math.min(60, frame - f._srIntro0); if (f._srIntroT < 60) drawIntro(c, f, f._srIntroT) }
+  const fa = f._forceAction
+  if (fa === 'win' || fa === 'lose') {
+    if (!f._srEndT || f._srEndFa !== fa) { f._srEnd0 = frame - 1; f._srEndFa = fa }
+    const t = f._srEndT = Math.max(1, frame - f._srEnd0)
+    if (fa === 'win') { const v = spdRedWinVariant(f); swapSet(f, v === 2 ? SPD_RED_WIN2_ANIM : base); if (v === 2) drawWin2(c, f, t, frame); else drawWin1(c, f, t) }
+    else { swapSet(f, base); drawLose(c, f, t) }
+    return
+  }
+  if (f._srEndT) { f._srEndT = 0; f._srEndFa = null }
+  // IDLE > 10 s: R1 on the glint strip + a blue gem glint
+  const idle = (f._spdRed?.idleT || 0) >= SPD_RED_IDLE.after
+  swapSet(f, idle && !base ? SPD_RED_GLINT_ANIM : base)
+  if (idle) drawGlint(c, f, frame)
+}
+function drawIntro(c, f, t) {
+  const { fx, fy, d } = feet(f), sc = SCALE(f)
+  if (t < 14) {   // blink-in: the R17 streak shooting in from off his back, fading as the body resolves
+    const a = 1 - t / 14
+    sprite(c, 'streakH', fx - d * (90 - t * 6), fy - 30 * sc / 2.4, { sx: d * sc, sy: sc, alpha: a, anchor: 'b' })
+    c.save(); c.globalAlpha = a * 0.6; c.fillStyle = 'rgba(255,40,40,0.9)'
+    for (let k = 0; k < 6; k++) c.fillRect(fx - d * (40 + hash(k, 3) * 120) - d * t * 4, fy - 20 - hash(k, 9) * 70, 30 + hash(k, 1) * 40, 2)
+    c.restore()
+  }
+  if (t >= 10 && t < 34) {   // the crouch landing (R3): dust ring + a cyan gem flash
+    const p = (t - 10) / 24
+    c.save(); c.strokeStyle = `rgba(230,220,200,${0.7 * (1 - p)})`; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx, fy - 1, 16 + p * 60, 3 + p * 8, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+    sprite(c, 'gemCut', fx, fy - (f.h ?? 94) * 0.62, { sx: 1.2 * (1 - p) + 0.2, sy: 1.2 * (1 - p) + 0.2, alpha: 1 - p })
+  }
+}
+// WIN 1 — R9 pose (fist raised): the S.P.D. gem spins above the raised fist (scaleX = cos → a coin-spin), sparkling.
+function drawWin1(c, f, t) {
+  const { fx, top, d } = feet(f)
+  const gx = fx + d * 14, gy = top - 26 - Math.min(20, t * 0.8) + Math.sin(t / 10) * 3
+  const spin = Math.cos(t / 7)
+  sprite(c, 'gemCut', gx, gy, { sx: 1.4 * (Math.abs(spin) < 0.08 ? 0.08 : spin), sy: 1.4, alpha: Math.min(1, t / 12) })
+  c.save(); c.globalCompositeOperation = 'lighter'
+  for (let k = 0; k < 5; k++) { const ph = ((t + k * 9) % 40) / 40; c.fillStyle = `rgba(80,220,255,${(1 - ph) * 0.8})`; c.fillRect(gx + Math.cos(k * 1.3 + t / 9) * (14 + ph * 16), gy + Math.sin(k * 1.3 + t / 9) * (14 + ph * 16), 2, 2) }
+  c.restore()
+}
+// WIN 2 — R16 braced pose: the Deltamax charge glows at the muzzle and the ground cracks with cyan light.
+function drawWin2(c, f, t, frame) {
+  const { fx, fy, d, top } = feet(f), mx = fx + d * 44, my = top + 20, pulse = 0.6 + 0.4 * Math.sin(frame / 5)
+  c.save(); c.globalCompositeOperation = 'lighter'
+  const g = c.createRadialGradient ? c.createRadialGradient(mx, my, 1, mx, my, 26) : null
+  if (g) { g.addColorStop(0, `rgba(255,255,255,${0.9 * pulse})`); g.addColorStop(0.4, `rgba(80,220,255,${0.6 * pulse})`); g.addColorStop(1, 'rgba(80,220,255,0)'); c.fillStyle = g; c.beginPath(); c.arc(mx, my, 26, 0, Math.PI * 2); c.fill() }
+  c.strokeStyle = `rgba(80,220,255,${0.5 * Math.min(1, t / 20)})`; c.lineWidth = 2
+  for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(fx, fy - 1); c.lineTo(fx + (hash(k, 2) - 0.5) * 120, fy - 1 + hash(k, 6) * 3); c.stroke() }
+  c.restore()
+}
+// LOSE — R6 settling into the lying frame: one dust puff when he hits the floor, then the badge gem flickers out.
+function drawLose(c, f, t) {
+  const { fx, fy } = feet(f)
+  if (t >= 18 && t < 42) {
+    const p = (t - 18) / 24
+    c.save(); c.fillStyle = `rgba(200,190,170,${0.55 * (1 - p)})`
+    for (let k = 0; k < 7; k++) c.fillRect(fx + (hash(k, 4) - 0.5) * (40 + p * 70), fy - 3 - hash(k, 8) * p * 18, 4, 3)
+    c.restore()
+  }
+  if (t < 70) sprite(c, 'gemCut', fx, fy - 18, { sx: 0.7, sy: 0.7, alpha: (t % 8 < 4 ? 0.8 : 0.3) * (1 - t / 70) })
+}
+// IDLE > 10 s — a blue glint sweeps across the gem on his chest every 1.5 s.
+function drawGlint(c, f, frame) {
+  const { fx, top } = feet(f), ph = (frame % 90) / 90
+  if (ph > 0.35) return
+  const p = ph / 0.35, gx = fx + 2, gy = top + (f.h ?? 94) * 0.36, r = 3 + Math.sin(p * Math.PI) * 9
+  c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = `rgba(90,200,255,${Math.sin(p * Math.PI)})`; c.lineWidth = 2
+  c.beginPath(); c.moveTo(gx - r, gy); c.lineTo(gx + r, gy); c.moveTo(gx, gy - r); c.lineTo(gx, gy + r); c.stroke()
+  c.fillStyle = `rgba(200,240,255,${Math.sin(p * Math.PI)})`; c.fillRect(gx - 1.5, gy - 1.5, 3, 3)
   c.restore()
 }

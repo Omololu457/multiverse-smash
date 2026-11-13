@@ -87,6 +87,10 @@ export const SPD_RED_TIMELINES = {
 }
 const ANIM = Object.fromEntries(Object.entries(SPD_RED_ANIM).map(([k, a]) => [k, SPD_RED_TIMELINES[k] ? { ...a, frameTimeline: SPD_RED_TIMELINES[k] } : a]))
 export const SPD_RED_ANIMS = ANIM
+// Presentation swaps (render picks the set; the art is the same ledgered frames): WIN 2 = the R16 braced pose in the
+// win slot; IDLE > 10 s = R1 on the glint strip (the blue gem glint itself is drawn by spdRedFx).
+export const SPD_RED_WIN2_ANIM = { ...ANIM, win: ANIM.win2 }
+export const SPD_RED_GLINT_ANIM = { ...ANIM, idle: ANIM.idleGlint }
 
 export const spdRed = {
   rosterKey: 'spd_red', name: 'SPDRed', displayName: 'S.P.D. Red Ranger', hudName: 'S.P.D. Red', universe: 'power_rangers', color: '#e0201c',

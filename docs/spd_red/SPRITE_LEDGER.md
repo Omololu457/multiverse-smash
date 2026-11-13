@@ -100,7 +100,8 @@ Source: `assets/incoming/spd_red/spd_red_sheet.png` (727×1160, SHA-256 `a7c60bd
 |---|---|---|---|
 | WANTED poster (header + mugshot window) | 620,18,721,96 | Judgment UI frame (slides onto the HUD) · character-select portrait background | derived copy (crop) |
 | Poster credit band "ripped by the FRANKETE for TSR" | 620,97,721,135 | none | **excluded, credit** (the scroll ornaments are interleaved with the lettering) |
-| Blue GEM (cyan diamond on the dark badge) | 656,45,685,73 | containment card icon · HUD Delta badge · WIN-1 spinning gem · idle glint | derived copy (crop) |
+| Blue GEM (cyan diamond on the dark badge) | 656,45,685,73 | containment card icon · HUD Delta badge | derived copy (crop) |
+| Blue GEM, cut out (`gem_cut.png`) | 656,45,685,73 | in-world FX: intro landing flash · WIN-1 spinning gem · LOSE flicker | derived copy: the badge's dark backing (max channel ≤ 42, flood-filled from the crop border) made transparent; no pixel recoloured |
 | portrait.png | poster + R9F2 | character select / HUD nameplate | derived composite of untouched pixels |
 
 ## Chroma-key verification (idle + run)

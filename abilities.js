@@ -36169,6 +36169,9 @@ export function regenEnergy(fighter) {
   // 0.06 base so the meter economy leans on IN-COMBAT gains (+6 landed / +4 taken, combat.applyScaledDamage):
   // "every special is a choice against the nuke." Overrides the base rate (set, not add).
   if (key === "soldier_boy") regen = 0.05
+  // Green Arrow — Tech regen 3/s (0.05/f); in-combat hit income (+4 arrow / +2 drone, capped
+  // +12/s) is applied in combat.applyScaledDamage so drones cannot self-fund forever.
+  if (key === "green_arrow") regen = 0.05
   if (fighter.domainBuff)      regen += 0.04
   if (fighter.energyRegenBoost) regen += 0.06
 

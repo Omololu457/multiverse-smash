@@ -604,6 +604,12 @@ export const SPRITE_MANIFEST = {
   // Superman (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips Superman
   // from procedural box to sprite. Per-action rendering reads characters.js → superman.animationData
   // (each action carries its own .sheet). idle is the RE-SLICED floating-hover strip.
+  // Green Arrow (universe: dc) — gates spritesReady() by decoding the idle strip → flips from
+  // procedural box to sprite. Per-action rendering reads characters.js → greenArrow.animationData.
+  green_arrow: {
+    actions: { idle: "./green_arrow_idle_uniform.png" }
+  },
+
   superman: {
     actions: { idle: "./superman_idle_uniform.png" }
   },

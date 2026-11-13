@@ -1,0 +1,238 @@
+{
+ "green_arrow_idle_uniform.png": [
+  "green_arrow_idle_uniform.png",
+  61,
+  84,
+  3
+ ],
+ "green_arrow_walk_uniform.png": [
+  "green_arrow_walk_uniform.png",
+  62,
+  85,
+  6
+ ],
+ "green_arrow_jump_uniform.png": [
+  "green_arrow_jump_uniform.png",
+  77,
+  95,
+  3
+ ],
+ "green_arrow_fall_uniform.png": [
+  "green_arrow_fall_uniform.png",
+  77,
+  95,
+  1
+ ],
+ "green_arrow_crouch_uniform.png": [
+  "green_arrow_crouch_uniform.png",
+  58,
+  73,
+  1
+ ],
+ "green_arrow_flip_uniform.png": [
+  "green_arrow_flip_uniform.png",
+  61,
+  65,
+  4
+ ],
+ "green_arrow_light_uniform.png": [
+  "green_arrow_light_uniform.png",
+  69,
+  92,
+  2
+ ],
+ "green_arrow_heavy_uniform.png": [
+  "green_arrow_heavy_uniform.png",
+  79,
+  87,
+  3
+ ],
+ "green_arrow_up_uniform.png": [
+  "green_arrow_up_uniform.png",
+  82,
+  83,
+  3
+ ],
+ "green_arrow_highkick_uniform.png": [
+  "green_arrow_highkick_uniform.png",
+  77,
+  86,
+  3
+ ],
+ "green_arrow_crouchatk_uniform.png": [
+  "green_arrow_crouchatk_uniform.png",
+  74,
+  71,
+  2
+ ],
+ "green_arrow_lowarrow_uniform.png": [
+  "green_arrow_lowarrow_uniform.png",
+  82,
+  65,
+  4
+ ],
+ "green_arrow_slide_uniform.png": [
+  "green_arrow_slide_uniform.png",
+  107,
+  57,
+  2
+ ],
+ "green_arrow_rising_uniform.png": [
+  "green_arrow_rising_uniform.png",
+  95,
+  56,
+  2
+ ],
+ "green_arrow_air_uniform.png": [
+  "green_arrow_air_uniform.png",
+  77,
+  89,
+  2
+ ],
+ "green_arrow_dash_uniform.png": [
+  "green_arrow_dash_uniform.png",
+  80,
+  85,
+  3
+ ],
+ "green_arrow_guard_uniform.png": [
+  "green_arrow_guard_uniform.png",
+  51,
+  92,
+  1
+ ],
+ "green_arrow_block_uniform.png": [
+  "green_arrow_block_uniform.png",
+  51,
+  92,
+  1
+ ],
+ "green_arrow_bowslash_uniform.png": [
+  "green_arrow_bowslash_uniform.png",
+  124,
+  74,
+  3
+ ],
+ "green_arrow_draw_uniform.png": [
+  "green_arrow_draw_uniform.png",
+  107,
+  112,
+  7
+ ],
+ "green_arrow_aim_uniform.png": [
+  "green_arrow_aim_uniform.png",
+  107,
+  92,
+  2
+ ],
+ "green_arrow_antiair_uniform.png": [
+  "green_arrow_antiair_uniform.png",
+  105,
+  109,
+  4
+ ],
+ "green_arrow_firecast_uniform.png": [
+  "green_arrow_firecast_uniform.png",
+  107,
+  112,
+  3
+ ],
+ "green_arrow_icecast_uniform.png": [
+  "green_arrow_icecast_uniform.png",
+  107,
+  112,
+  3
+ ],
+ "green_arrow_airdraw_uniform.png": [
+  "green_arrow_airdraw_uniform.png",
+  77,
+  91,
+  4
+ ],
+ "green_arrow_dive_uniform.png": [
+  "green_arrow_dive_uniform.png",
+  48,
+  48,
+  4
+ ],
+ "green_arrow_hurt_uniform.png": [
+  "green_arrow_hurt_uniform.png",
+  64,
+  90,
+  2
+ ],
+ "green_arrow_stagger_uniform.png": [
+  "green_arrow_stagger_uniform.png",
+  82,
+  90,
+  9
+ ],
+ "green_arrow_knockdown_uniform.png": [
+  "green_arrow_knockdown_uniform.png",
+  108,
+  72,
+  7
+ ],
+ "green_arrow_win_uniform.png": [
+  "green_arrow_win_uniform.png",
+  59,
+  108,
+  2
+ ],
+ "green_arrow_skyward_uniform.png": [
+  "green_arrow_skyward_uniform.png",
+  68,
+  108,
+  1
+ ],
+ "portrait": [
+  "green_arrow_portrait.png",
+  108,
+  108,
+  1
+ ],
+ "logo": [
+  "green_arrow_logo.png",
+  39,
+  32,
+  1
+ ],
+ "wordmark": [
+  "green_arrow_wordmark.png",
+  175,
+  16,
+  1
+ ],
+ "firearrow": [
+  "green_arrow_firearrow_uniform.png",
+  41,
+  35,
+  5
+ ],
+ "icearrow": [
+  "green_arrow_icearrow_uniform.png",
+  41,
+  35,
+  5
+ ],
+ "plainarrow": [
+  "green_arrow_plainarrow.png",
+  15,
+  17,
+  1,
+  "derived crop"
+ ],
+ "emparrow": [
+  "green_arrow_emparrow_uniform.png",
+  41,
+  35,
+  5,
+  "tint"
+ ],
+ "green_arrow_explosion_uniform.png": [
+  "green_arrow_explosion_uniform.png",
+  59,
+  55,
+  4
+ ]
+}

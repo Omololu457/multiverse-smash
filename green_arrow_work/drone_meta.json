@@ -1,0 +1,146 @@
+{
+ "overwatch_death": [
+  "ga_overwatch_death_sheet.png",
+  35,
+  27,
+  6
+ ],
+ "overwatch_idle": [
+  "ga_overwatch_idle_sheet.png",
+  36,
+  26,
+  4
+ ],
+ "overwatch_scan": [
+  "ga_overwatch_scan_sheet.png",
+  35,
+  26,
+  8
+ ],
+ "overwatch_walk": [
+  "ga_overwatch_walk_sheet.png",
+  36,
+  27,
+  4
+ ],
+ "overwatch_walkscan": [
+  "ga_overwatch_walkscan_sheet.png",
+  36,
+  26,
+  8
+ ],
+ "bulwark_capsule": [
+  "ga_bulwark_capsule_sheet.png",
+  19,
+  27,
+  6
+ ],
+ "bulwark_drop": [
+  "ga_bulwark_drop_sheet.png",
+  28,
+  30,
+  6
+ ],
+ "bulwark_walk": [
+  "ga_bulwark_walk_sheet.png",
+  27,
+  26,
+  4
+ ],
+ "bulwark_walk2": [
+  "ga_bulwark_walk2_sheet.png",
+  27,
+  22,
+  4
+ ],
+ "aegis_death": [
+  "ga_aegis_death_sheet.png",
+  28,
+  17,
+  6
+ ],
+ "aegis_idle": [
+  "ga_aegis_idle_sheet.png",
+  28,
+  22,
+  4
+ ],
+ "aegis_walk": [
+  "ga_aegis_walk_sheet.png",
+  30,
+  23,
+  5
+ ],
+ "kestrel_back": [
+  "ga_kestrel_back_sheet.png",
+  31,
+  17,
+  4
+ ],
+ "kestrel_death": [
+  "ga_kestrel_death_sheet.png",
+  35,
+  17,
+  9
+ ],
+ "kestrel_fire1": [
+  "ga_kestrel_fire1_sheet.png",
+  31,
+  17,
+  11
+ ],
+ "kestrel_fire2": [
+  "ga_kestrel_fire2_sheet.png",
+  32,
+  18,
+  11
+ ],
+ "kestrel_forward": [
+  "ga_kestrel_forward_sheet.png",
+  32,
+  18,
+  4
+ ],
+ "kestrel_idle": [
+  "ga_kestrel_idle_sheet.png",
+  31,
+  16,
+  4
+ ],
+ "skyhook_death": [
+  "ga_skyhook_death_sheet.png",
+  65,
+  50,
+  6
+ ],
+ "skyhook_idle": [
+  "ga_skyhook_idle_sheet.png",
+  62,
+  46,
+  4
+ ],
+ "skyhook_landing": [
+  "ga_skyhook_landing_sheet.png",
+  62,
+  47,
+  8
+ ],
+ "skyhook_walk": [
+  "ga_skyhook_walk_sheet.png",
+  62,
+  47,
+  4
+ ],
+ "payload_drop": [
+  "ga_payload_drop_sheet.png",
+  61,
+  19,
+  6
+ ],
+ "payload_bombs": [
+  "ga_payload_bombs_sheet.png",
+  7,
+  13,
+  6
+ ]
+}

@@ -386,3 +386,30 @@ export function flightRenderHints(fighter, frame, playerIndex) {
     jitterSeed: hashRandom((fighter._matchSeed | 0) || 1, frame, playerIndex),
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reusable smoothing primitives — drones.js imports these so drone movement uses the
+// SAME accel/drag/reverse-brake/overspeed model as flight (no copy, no behaviour change
+// to flight itself). Pure functions of (velocity, input|max, profile{accel,drag,
+// reverseBrake,overspeedDrag}).
+// ─────────────────────────────────────────────────────────────────────────────
+export function flightAxisStep(v, h, p) { return axisStep(v, h, p) }
+export function flightSoftLimit(v, max, p) { return softLimit(v, max, p) }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// forceGround — generic: drop a FLYING entity and lock it grounded for `frames`. No-op unless the
+// entity is actually a flyer (flight.js-module via _flightCtl, or the legacy simple-flight via
+// _flightActive) — so it never changes any grounded character's frame data. Used by Green Arrow's
+// Net Arrow to counter Superman / Homelander. Returns true if something was grounded.
+// ─────────────────────────────────────────────────────────────────────────────
+export function forceGround(entity, frames = 72) {
+  if (!entity) return false
+  let did = false
+  const c = entity._flightCtl
+  if (c) { c.phase = FLIGHT_PHASE.GROUNDED; c.groundedLock = Math.max(c.groundedLock || 0, frames); c.dashTimer = 0; c.airDashCount = 0; did = true }
+  if (entity._flightActive) { entity._flightActive = false; did = true }
+  if (!did) return false
+  entity._forceGroundTimer = Math.max(entity._forceGroundTimer || 0, frames)   // generic ground-lock (combat ticks it)
+  if (entity.groundY != null) { entity.y = entity.groundY - (entity.h || 0); entity.onGround = true; entity.grounded = true; entity.vy = Math.max(entity.vy || 0, 2) }
+  return true
+}

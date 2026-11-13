@@ -314,6 +314,23 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
 import { ZORO_SOUNDS } from './zoroSound.js'   // Roronoa Zoro synth SFX (SFX bus; voice bus untouched)
 const SOUNDS = {
   ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
+  // ── GREEN ARROW (WebAudio placeholders; no audio pack). SFX bus (voice bus untouched). No
+  // Math.random added — click timings are fixed patterns so the texture is stable. ──
+  ga_bow_draw(ctx,out){ osc(ctx,out,'triangle',200,0.15,0.16,900); playNoise(ctx,out,0.15,700,0.10) },
+  ga_arrow_release(ctx,out){ playNoise(ctx,out,0.08,2000,0.26); osc(ctx,out,'triangle',760,0.06,0.10,340) },
+  ga_fire_arrow(ctx,out){ playNoise(ctx,out,0.12,1600,0.22); for(const t of [0.01,0.035,0.06,0.09]) oscAt(ctx,out,'square',1800,t,0.012,0.08,1200); osc(ctx,out,'sine',120,0.14,0.12,70) },
+  ga_ice_arrow(ctx,out){ osc(ctx,out,'sine',1800,0.22,0.16,1720); oscAt(ctx,out,'sine',1860,0.03,0.18,0.12,1780); oscAt(ctx,out,'sine',1760,0.06,0.16,0.10,1840) },
+  ga_emp(ctx,out){ osc(ctx,out,'square',120,0.25,0.22,40); playNoise(ctx,out,0.1,500,0.14) },
+  ga_overwatch_scan(ctx,out){ osc(ctx,out,'sine',1200,0.12,0.10,1180) },
+  ga_overwatch_tag(ctx,out){ osc(ctx,out,'sine',1200,0.08,0.11,1190); oscAt(ctx,out,'sine',1400,0.1,0.09,0.11,1380) },
+  ga_bulwark_fire(ctx,out){ osc(ctx,out,'sawtooth',640,0.05,0.16,220); osc(ctx,out,'sine',90,0.12,0.22,55) },
+  ga_kestrel(ctx,out){ osc(ctx,out,'sawtooth',220,0.3,0.12,210); osc(ctx,out,'sine',90,0.3,0.10,88) },
+  ga_skyhook(ctx,out){ const n=ctx.createBufferSource(),b=ctx.createBuffer(1,ctx.sampleRate*0.4,ctx.sampleRate),d=b.getChannelData(0); for(let i=0;i<d.length;i++){ const am=0.5+0.5*Math.sin(2*Math.PI*18*i/ctx.sampleRate); d[i]=(Math.random()*2-1)*am } n.buffer=b; const g=ctx.createGain(); g.gain.setValueAtTime(0.12,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.4); n.connect(g); g.connect(out); n.start(); n.stop(ctx.currentTime+0.4) },
+  ga_payload_bomb(ctx,out){ osc(ctx,out,'sine',1500,0.35,0.14,300); osc(ctx,out,'sine',55,0.3,0.26,45); playNoise(ctx,out,0.18,300,0.2) },
+  ga_drone_deploy(ctx,out){ osc(ctx,out,'triangle',300,0.14,0.16,760); osc(ctx,out,'sine',120,0.1,0.1,180) },
+  ga_drone_death(ctx,out){ playNoise(ctx,out,0.16,700,0.3); osc(ctx,out,'sine',80,0.18,0.24,40) },
+  ga_recall(ctx,out){ osc(ctx,out,'sine',520,0.1,0.12,780); oscAt(ctx,out,'sine',780,0.09,0.1,0.12,900) },
+  ga_super(ctx,out){ osc(ctx,out,'sawtooth',180,0.5,0.14,900); osc(ctx,out,'sine',60,0.5,0.24,40); playNoise(ctx,out,0.3,1200,0.2) },
   // Luffy: synthesized placeholders; supplied sprite art includes no voice pack.
   luffy_stretch(ctx,out) { osc(ctx,out,'triangle',160,0.16,0.22,780) },
   luffy_snap(ctx,out) { osc(ctx,out,'sine',900,0.10,0.25,160) },
@@ -909,6 +926,44 @@ class SoundManager {
     saw.connect(filt); sq.connect(filt); filt.connect(g); g.connect(out)
     saw.start(t0); sq.start(t0); saw.stop(t0 + total); sq.stop(t0 + total)
     sbSeededNoise(ctx, out, total, 0.12, 1200 * p, seed)
+  }
+
+  // ── GREEN ARROW MUNITION SFX (PASS3 P6, WebAudio synth) ─────
+  // Bomb whistle / boom / reticle beep / napalm crackle / plane drone. `id` + a deterministic
+  // pitch (hash-derived upstream, +/-) + a noise seed come from the munitions sfx hook — no
+  // Math.random. Render-only: guarded off when muted / no AudioContext (headless + node tests).
+  playGreenArrow(id, pitch = 1, seed = 1) {
+    if (this._sfxMuted || !this._ctx || !this._ready) return
+    if (this._ctx.state === "suspended") { this._ctx.resume().then(() => this._gaSynth(id, pitch, seed)); return }
+    this._gaSynth(id, pitch, seed)
+  }
+  _gaSynth(id, pitch, seed) {
+    const ctx = this._ctx, out = this._master, p = pitch || 1
+    try {
+      switch (id) {
+        case "ga_whistle": osc(ctx, out, "sine", 1500 * p, 0.5, 0.1, 300 * p); break                                              // falling whistle 1500->300
+        case "ga_boom":    osc(ctx, out, "sine", 55 * p, 0.45, 0.32, 38 * p); sbSeededNoise(ctx, out, 0.38, 0.22, 900 * p, seed); break   // 55Hz thump + noise body
+        case "ga_reticle": osc(ctx, out, "square", 2000 * p, 0.1, 0.07); break                                                    // 2kHz beep ~6 frames
+        case "ga_napalm":  this._gaCrackle(seed, p); break                                                                          // filtered-noise crackle
+        case "ga_plane":   this._gaPlane(p); break                                                                                  // plane drone + 90Hz hum
+      }
+    } catch (_) {}
+  }
+  _gaCrackle(seed, p) {
+    const ctx = this._ctx, out = this._master
+    for (let i = 0; i < 5; i++) sbSeededNoise(ctx, out, 0.06, 0.05, (1200 + ((seed + i * 97) % 900)) * p, seed + i)   // staggered crackle bursts
+  }
+  _gaPlane(p) {
+    const ctx = this._ctx, out = this._master
+    const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain()
+    o.type = "sawtooth"; o.frequency.value = 90 * p                           // 90Hz engine hum
+    lfo.type = "sine"; lfo.frequency.value = 7; lg.gain.value = 18 * p        // 7Hz prop throb
+    lfo.connect(lg); lg.connect(o.frequency)
+    g.gain.setValueAtTime(0.0001, ctx.currentTime)
+    g.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.1)
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.3)
+    o.connect(g); g.connect(out)
+    o.start(); lfo.start(); o.stop(ctx.currentTime + 1.3); lfo.stop(ctx.currentTime + 1.3)
   }
 
 

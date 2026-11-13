@@ -56,6 +56,9 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
+import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, updateDroneCounterSummon, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, updateMunitionArrowInteract, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, setMunitionSfx, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
+import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -82,6 +85,7 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet, SS_EYE_LABEL,
   triggerShisuiSignal, triggerShisuiVariantSwap, shisuiIntroBanter, shisuiWinBanter,   // Shisui (Trinity) — the Trinity System (Mangekyou Signal / Variant Swap / banter)
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
+  executeGreenArrowExtraction, greenArrowSomersault,   // GREEN ARROW: Emergency Extraction reversal + somersault evasion
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
   tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
   isIdentitySwapped,
@@ -100,6 +104,7 @@ import {
   applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
   applySupermanWoC,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
   applySupermanHeatVision,   // Superman HEAT VISION: sustained auto-aim hitscan beam while Special is HELD (tap = single shot)
+  applyGreenArrowArrowstorm, tickGreenArrowTimers,   // GREEN ARROW: ARROWSTORM super per-frame driver + Tech-lock/tag timers
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -122,6 +127,7 @@ import {
   updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
   updatePiccoloCommandCombat, // Piccolo rush chain (Fwd+Heavy 3-stage rekka: elbow/chop opener → axe smash → roundhouse launcher, cancel-on-hit)
   updateGokuCommandCombat,    // Goku "Meteor Combination" rush chain (Fwd+Heavy 3-stage rekka: lunge-punch → flurry hook → roundhouse crescent launcher, cancel-on-hit)
+  updateGreenArrowCommandCombat,   // GREEN ARROW: trick-arrow motions (qcf/qcb/dd + L/H/Up) on the attack buttons + →+Heavy bow slash
   updateVegetaDarkCommandCombat,   // Dark Vegeta "Villain's Rush" chain (Fwd+Heavy 3-stage rekka: lunge-thrust → flurry → uppercut launcher, cancel-on-hit)
   updateGohanCommandCombat,   // Teen Gohan "Rush Combo" chain (Fwd+Heavy 3-stage rekka: advancing punch → crescent sweep kick → spin-roundhouse launcher, cancel-on-hit)
   updateKakashiCommandCombat, // Kakashi "Y-Combo" chain (Fwd+Heavy 3-stage rekka: kunai draw-slash → punch flurry → orange kick launcher, cancel-on-hit)
@@ -573,6 +579,18 @@ import {
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant, juiceHash } from "./sound.js"
+
+// GREEN ARROW: bomb/hazard SFX. munitions.js is a leaf (no sound import) and just emits abstract
+// events; the audio layer lives here, so wire its render-only sfx hook to the WebAudio synth.
+// Pitch is derived from the event's deterministic seed (no Math.random); chain booms drop in pitch.
+setMunitionSfx((ev, x, y, seed, extra) => {
+  const s = (seed | 0) || 1, pitch = 0.92 + ((s % 17) / 100)
+  if (ev === "spawn")        sound.playGreenArrow?.("ga_whistle", pitch, s)
+  else if (ev === "boom")    sound.playGreenArrow?.("ga_boom", pitch - Math.min(0.2, ((extra && extra.chainDepth) || 0) * 0.05), s)
+  else if (ev === "reticle") sound.playGreenArrow?.("ga_reticle", pitch, s)
+  else if (ev === "napalm")  sound.playGreenArrow?.("ga_napalm", pitch, s)
+  else if (ev === "plane")   sound.playGreenArrow?.("ga_plane", pitch, s)
+})
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
@@ -1292,6 +1310,8 @@ function tryStartRickPrimeRewind(fighter) {
 // ★keep in sync with resetRound if new cinematics are added). Every fn here is already imported (resetRound uses them).
 function _rewindTeardown() {
   clearAbilityState()                                  // activeProjectiles (shared) + summons + pending clones
+  resetDrones()                                        // GREEN ARROW drones cleared with summons/projectiles
+  resetMunitions()                                     // GREEN ARROW bombs/fire-patches cleared
   clearEffects()                                       // timed buffs / stuns / regen (reverts each first)
   clearDomains(); clearCubeTraps(); clearObitoDimensions()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
@@ -4863,6 +4883,8 @@ function resetRound() {
 
   countdown = ROUND_START_COUNTDOWN
   clearAbilityState()      // activeProjectiles (shared), activeSummons, pending Naruto clones
+  resetDrones()            // GREEN ARROW drones cleared with summons/projectiles
+  resetMunitions()         // GREEN ARROW bombs/fire-patches cleared
   clearEffects()           // activeEffects — timed buffs/stuns/regen (reverts each effect first)
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
@@ -11178,6 +11200,16 @@ function _updatePlayerCombatBody(fighter) {
     updateCombat(fighter, getOpponent(fighter), {}, opts); return
   }
 
+  // GREEN ARROW — Emergency Extraction reversal: ↑+Special while knocked down (>=25 Tech, 12s cd)
+  // → Skyhook yanks Oliver out with 20 invuln. Read AHEAD of the stun early-return (like Tobirama).
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" &&
+      ((fighter.hitstun || 0) > 0 || fighter.knockdownState || (fighter.knockdownTimer || 0) > 0) &&
+      getFighterInput(fighter).special &&
+      (getFighterInput(fighter).up || betaHeldDirFromInput(getFighterInput(fighter), fighter.facing) === "U") &&
+      executeGreenArrowExtraction(fighter, getAbilityContext())) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
+  }
+
   // COMBO BREAKER (MK-feel Stage 2d; universal break-stock resource): while in HITSTUN and being combo'd
   // (attacker comboCounter >= 3), BLOCK + SPECIAL breaks out (spends one per-round BREAK STOCK, i-frames,
   // blasts the attacker away). Read AHEAD of the stun early-return below (like Tobirama's reversal) so it's a
@@ -11328,6 +11360,7 @@ function _updatePlayerCombatBody(fighter) {
     // windowed source for direction-branched specials (Killua: Fwd=Lightning Palm, Down=Electric Ball,
     // neutral=Yo-Yo). Only read by chars that opt in; unused by everyone else.
     fighter._specialHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
+    fighter._gaStrikeMod = !!inputState.heavy   // GREEN ARROW: Heavy held at Special press -> STRIKE drone mode
     // Modifiers held the SAME frame Special is buffered — read by Ghostface's Backstage Pass to pick its
     // branch (Grab/Charge = swap, attack btn = fakeout). Only Ghostface reads it; harmless for everyone else.
     fighter._specialHeldMods = { grab: !!inputState.grab, charge: !!inputState.charge, attack: !!(inputState.light || inputState.heavy || inputState.upAttack) }
@@ -11678,6 +11711,14 @@ function _updatePlayerCombatBody(fighter) {
   // Red-Chakra +dmg/+hitbox. Consumes the input only when it fires; neutral heavy stays the normal Strong.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh" && !charging &&
       updateNarutoSeventhCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GREEN ARROW: trick-arrow MOTIONS on the attack buttons (qcf/qcb/dd + L/H/Up) fire arrows; a bare
+  // L/H/Up stays the normal (jab/straight/kick). →+Heavy = bow slash. Consumes only when an arrow fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" && !charging &&
+      updateGreenArrowCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+  // GREEN ARROW — somersault evasion: double-tap Back → 10-invuln back-flip (consumes the double-tap).
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" && !charging &&
+      greenArrowSomersault(fighter, getAbilityContext())) return
 
   // DARK VEGETA "Villain's Rush": Fwd+Heavy opens vegetaDarkRush1 (lunge-thrust), re-tap Heavy during recovery
   // to cancel into vegetaDarkRush2 (flurry) → vegetaDarkRush3 (rising uppercut launcher) — cancel-on-hit;
@@ -19246,6 +19287,8 @@ function updateFighterState(fighter) {
   applySupermanAirMoves(updated, getAbilityContext())   // Superman: Ground Pound (air Down+Special) + Kryptonian Grab (Fwd+Grab) scripted rise/dive/slam state machines
   supermanFlightEscape(updated)   // Superman defensive: burst out of a combo into flight (Special + 25 energy while in hitstun, 10s cd, 12f invuln)
   applySupermanWoC(updated, getAbilityContext())   // Superman ULTIMATE "World of Cardboard": scripted multi-hit state machine
+  applyGreenArrowArrowstorm(updated, getAbilityContext())   // GREEN ARROW ARROWSTORM: scripted drones-fire → Payload bombing → closing volley (no-op unless active)
+  tickGreenArrowTimers(updated)   // GREEN ARROW: Tech-lockout + tag-reticle countdowns
   applySupermanHeatVision(updated, readRawControls(updated) || {}, getAbilityContext())   // Superman HEAT VISION: HOLD Special → sustained auto-aim beam + drain + hitscan ticks (gated on rosterKey)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
@@ -19548,6 +19591,8 @@ function updateTrainingMode() {
   // F6 — CLONE NO-TELL escalation (default OFF): remove the decoy visual tell so clones are
   // indistinguishable from the real fighter until hit. The hit-reveal rule still applies in both modes.
   if (_trainingKeyPressed("f6")) { trainingState.cloneNoTell = !trainingState.cloneNoTell; setCloneTell(!trainingState.cloneNoTell) }
+  // F8 — GREEN ARROW drone debug (training): toggle drone hurtboxes + HP bars (no-op when no drones).
+  if (_trainingKeyPressed("f8")) { const _gaDbg = toggleDroneDebug(); setMunitionDebug(_gaDbg) }   // GREEN ARROW: F8 = drone + munition training overlays
   // F7 — WOOD RELEASE climbable-terrain PROBE (Stage 1, isolated): spawn a test platform a short reach
   // in front of P1, rising from the fighter's own ground. NOT wired to any character's kit — a debug hook
   // to prove jump-onto-growing / stand-at-full / recede-sync before Hashirama's Wood Release consumes it.
@@ -20566,6 +20611,21 @@ function updateBattle() {
 
   updateTojiFlyHeadsSwarm(canvas)   // Toji Fly Heads — tick the dense vision-denial swarm overlay (0 damage, no combat freeze)
   updateActiveSummons()
+  // GREEN ARROW drones — tick movement/behaviour + hittable collisions (no-op when none active).
+  if (activeDrones.length || p1?._gaDroneCd || p2?._gaDroneCd) {
+    const _gaDIsEnemy = (o, f) => !!(o && f && f !== o && !ffaSameTeam(o, f)), _gaScrW = (canvas ? canvas.width : 1280)
+    updateDrones([p1, p2], globalFrameCount, { leftWall: 0, rightWall: getStageWorldWidth(), ceilingY: -200, fighters: [p1, p2].filter(Boolean), isEnemy: _gaDIsEnemy, screenW: _gaScrW })
+    updateDroneCollisions([p1, p2], activeProjectiles)
+    updateDroneCounterSummon(activeProjectiles, globalFrameCount, { isEnemy: _gaDIsEnemy, screenW: _gaScrW })
+  }
+  // GREEN ARROW munitions (bombs/hazards) — generic pool; runs even with no drones out.
+  if (activeMunitions.length || (p1 && p1.rosterKey === "green_arrow") || (p2 && p2.rosterKey === "green_arrow")) {
+    const _gaMEnv = { groundY, leftWall: (typeof physics !== "undefined" && physics ? (physics.stageLeft || 0) : 0), rightWall: getStageWorldWidth(), fighters: [p1, p2].filter(Boolean), isEnemy: (o, f) => !!(o && f && f !== o && !ffaSameTeam(o, f)), platformTopAt: (x) => { let best = null; for (const pl of (getPlatforms ? getPlatforms() : [])) { if (x >= pl.x && x <= pl.x + (pl.w || pl.width || 0)) { const top = pl.y; if (best == null || top < best) best = top } } return best } }
+    updateMunitions(globalFrameCount, _gaMEnv)
+    updateMunitionShootDown([p1, p2].filter(Boolean), activeProjectiles, globalFrameCount, _gaMEnv)
+    tickMunitionChains(globalFrameCount, _gaMEnv)
+    updateMunitionArrowInteract(activeProjectiles, _gaMEnv)
+  }
 
   for (const fighter of [p1, p2].filter(Boolean)) {
     processPendingSpawns?.(fighter, {
@@ -22588,6 +22648,9 @@ function drawBattleScene() {
   // Dog / Nue / Toad etc. are never hidden behind a fighter sprite — they were
   // previously drawn underneath and could be occluded near the action.
   drawActiveSummons(ctx)
+  drawDrones(ctx, globalFrameCount, camera)   // GREEN ARROW drones — world space, over fighters
+  drawGreenArrowFx(ctx, [p1, p2], globalFrameCount)   // GREEN ARROW status FX (net/flash/rings) — render-only
+  drawMunitions(ctx, globalFrameCount); drawMunitionDebug(ctx)   // GREEN ARROW bombs/hazards + telegraphs (render-only)
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)
@@ -28189,6 +28252,15 @@ gameLoop()
     // Madara Gunbai-reflect test). Mirrors p2ProjectileAtClone's enemy-projectile pattern.
     spawnEnemyBolt:    (opts = {}) => { if (!p1 || !p2) return null; const p = spawnProjectile(p2, "testBolt", { damage: opts.damage ?? 40, speed: 10, lifetime: 90, vx: -10, vy: 0, w: 28, h: 28, hitstun: 12, knockbackX: 5, spawnX: p1.x + (p1.w || 60) + 60, spawnY: p1.y + (p1.h || 100) * 0.4 }, {}); return p ? { name: p.name, vx: p.vx } : null },
     clearSummons:      () => { activeSummons.length = 0 },
+    gaSpawn2: (type = "overwatch", strike = false) => { if (!p1) return -1; const n = performance.now(); p1._gaStrikeMod = !!strike; p1._gaLastSpecialFrame = null; p1._gaSuperActive = true; p1.energy = 100; p1.attacking = false; p1.attackCooldown = 0; p1.hitstun = 0; if (type === "swarm") { p1.directionHistory = [{ dir: "D", time: n - 30 }, { dir: "D", time: n - 10 }]; p1._specialHeldDir = "D" } else if (type === "payload") { p1.directionHistory = [{ dir: "U", time: n - 30 }, { dir: "U", time: n - 10 }]; p1._specialHeldDir = "U" } else { p1.directionHistory = []; p1._specialHeldDir = ({ skyhook: "U", kestrel: "F", aegis: "B", bulwark: "D" }[type]) || null } const ok = triggerSpecial(p1, getAbilityContext()); const d = activeDrones[activeDrones.length - 1]; if (d) { d._ctx = getAbilityContext(); d.target = p2; d._opp = p2 } return ok ? activeDrones.length : -1 },   // non-clearing drone spawn (mode/swarm/payload) for render checks
+    gaDrones2: () => activeDrones.map(d => ({ type: d.type, mode: d.mode, facing: d.facing, x: Math.round(d.x), y: Math.round(d.y), hp: Math.round(d.hp), dying: !!d.dying })),
+    gaDebug: (on = true) => setDroneDebug(on),
+    gaTestNet: (who = "p2") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._gaNetted = 60; let g = false; try { g = _gaForceGround2(f, 72) } catch (_) {} return { netted: f._gaNetted, grounded: g, forceTimer: f._forceGroundTimer || 0 } },
+    // GREEN ARROW drone/super harness hooks (render-check + determinism driving).
+    gaSpawnDrone: (type = "overwatch") => { if (!p1) return -1; activeDrones.length = 0; if (p1._gaDroneCd) p1._gaDroneCd = {}; p1._gaLastSpecialFrame = null; p1.attacking = false; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; p1._gaArrowstormActive = null; p1._gaTechLock = 0; p1._gaSuperActive = false; p1.currentMove = null; p1._specialHeldDir = ({ skyhook: "U", kestrel: "F", aegis: "B", bulwark: "D" }[type]) || null; p1.energy = 100; const ok = triggerSpecial(p1, getAbilityContext()); return ok ? activeDrones.length : -1 },
+    gaDrones: () => activeDrones.map(d => ({ type: d.type, x: Math.round(d.x), y: Math.round(d.y), hp: Math.round(d.hp), dying: !!d.dying })),
+    gaSuper: () => { if (!p1) return false; p1.energy = 100; return triggerUltimate(p1, getAbilityContext()) !== false },
+    gaDroneDebug: (on = true) => toggleDroneDebug(),
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false }   // reset dummy between damage checks
       // Also clear BOTH fighters' combo state: a fresh single-hit damage measurement must not be decayed by
       // a combo lingering from the previous check (projectiles now build combo count too — combo-flow Stage 3).

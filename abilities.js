@@ -62,6 +62,9 @@ import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension"
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
+import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES, cycleDroneOrder } from "./drones.js"
+import { flightAxisStep, flightSoftLimit, hashRandom } from "./flight.js"   // GREEN ARROW Grapple pull + Super scatter RNG (flight.js is a leaf → no cycle)
+import { spawnMunition } from "./munitions.js"   // GREEN ARROW Super/drone bombs (munitions.js is a leaf → no cycle)   // GREEN ARROW generic drone system (drones.js imports only flight.js → no cycle)
 import { isChoreoSupported, isLightChoreo, lightDirectSeq, isFormationActiveFor, SUMMON_MOTION, SUMMON_COST, SUMMON_CD } from "./cloneChoreography.js"   // GENERIC clone-choreography (Naruto-universe EXCEPT Naruto): summon-then-choose access path, intercepted before the per-char special/ultimate switch (additive — no execute*Special touched)
 import { cloneScaling } from "./cloneFormScaling.js"   // STAGE 6: modest in-form summon-cost scaling (deterministic)
 import { initSasukeDojutsu, SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, addRinneganStrain, rinneganLocked, hasActiveKagutsuchi, extinguishKagutsuchi, steerKagutsuchi, tickSasukeDojutsu } from "./sasukeDojutsu.js"   // SHARED Mangekyou/Rinnegan space-time logic for every Sasuke (deps injected below; dispatch hooks only)
@@ -34848,6 +34851,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
     case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
     case "superman": return executeSupermanSpecial(fighter, context)   // Heat Vision (neutral/down eye-beam projectile) / Super Flying Punch (fwd charged dash-strike)
+    case "green_arrow": return executeGreenArrowSpecial(fighter, context)   // DRONES by held dir (↑Skyhook/→Kestrel/←Aegis/↓Bulwark/neutral Overwatch); dbl-tap=recall; ↓↘→↓↘→=Super
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
     case "zenitsu": return executeZenitsuSpecial(fighter, context)   // Thunder Breathing 1st Form dash-strike (neutral); Double Attack (Fwd/Down) = Stage 4
     case "rengoku": return executeRengokuSpecial(fighter, context)   // COUNTER — reactive parry stance (Charged Flame Strike is on the CHARGE button, not here)
@@ -35187,6 +35191,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "homelander": cast = executeHomelanderUltimate(fighter, context); break   // FLIGHT 37: dark-silhouette supersonic grab → carry to the sky → Heat Vision slam (scripted state machine)
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic
+      case "green_arrow": cast = executeGreenArrowUltimate(fighter, context); break   // ARROWSTORM PROTOCOL: drones fire + Payload carpet-bomb + closing explosive volley
       case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm
       case "albedo":  cast = executeBen10Ultimate(fighter, context);   break   // Albedo shares the alien ultimates (Ultimatrix)
       case "ichigo":  cast = executeIchigoUltimate(fighter, context);  break   // Getsuga Tenshō: dash-slash → rising crescent uppercut freeze-cinematic (part_1→part_2 continuous)
@@ -36174,6 +36179,9 @@ export function regenEnergy(fighter) {
   // 0.06 base so the meter economy leans on IN-COMBAT gains (+6 landed / +4 taken, combat.applyScaledDamage):
   // "every special is a choice against the nuke." Overrides the base rate (set, not add).
   if (key === "soldier_boy") regen = 0.05
+  // Green Arrow — Tech regen 3/s (0.05/f); in-combat hit income (+4 arrow / +2 drone, capped
+  // +12/s) is applied in combat.applyScaledDamage so drones cannot self-fund forever.
+  if (key === "green_arrow") regen = 0.05
   if (fighter.domainBuff)      regen += 0.04
   if (fighter.energyRegenBoost) regen += 0.06
 
@@ -36243,3 +36251,872 @@ export function activateUltimate(fighter) {
 // module-scope (spendEnergy/spawnProjectile/schedulePendingSpawn/activeProjectiles) or combat.js imports
 // (applyScaledDamage). Without this call API stays null and every dōjutsu move throws → it MUST run on load.
 initSasukeDojutsu({ spendEnergy, spawnProjectile, schedulePendingSpawn, activeProjectiles, applyScaledDamage })
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GREEN ARROW — DRONE ROSTER + "ARROWSTORM PROTOCOL" SUPER (feat/green-arrow, Phase 4).
+// Drone profiles + behaviours registered into the generic drones.js. Behaviours live here
+// (not in drones.js) so drones.js stays character-agnostic; they close over spawnProjectile.
+// All drone STATE lives in activeDrones (GAME_STATE). No Math.random/gameRng — the generic
+// module hashes (seed,frame,slot). Gated on rosterKey "green_arrow"; zero effect on others.
+// ═══════════════════════════════════════════════════════════════════════════════
+const GA_SCR_W = 1280   // nominal screen width for "% of screen" ranges
+
+function _gaOpp(fighter, context) {
+  try { return (context?.getOpponent?.(fighter)) || getTargetResolver(context)(fighter) || null } catch (_) { return null }
+}
+function _gaFloor(f) { return (f && (f.groundY != null ? f.groundY : (f.y || 0) + (f.h || 100))) }
+function _gaTagReticle(opp, frames) { if (opp) { opp._gaTagged = Math.max(opp._gaTagged || 0, frames); opp._gaTagReticle = Math.max(opp._gaTagReticle || 0, frames) } }
+
+// ── DRONE PROFILES ────────────────────────────────────────────────────────────
+registerDroneProfile("overwatch", {
+  sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, scan: { sheet: "./ga_overwatch_scan_sheet.png", frames: 8 }, walk: { sheet: "./ga_overwatch_walk_sheet.png", frames: 4 }, walkscan: { sheet: "./ga_overwatch_walkscan_sheet.png", frames: 8 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
+  hp: 70, accel: 1.6, maxH: 11, maxV: 9, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 165, bobAmp: 4, leash: 360, behaviour: "recon", cooldownOnDeath: 300,
+  techCost: 20, hurtbox: { w: 54, h: 30 }, scale: 2.0, frontFacing: true, nativeFacing: "front",
+})
+registerDroneProfile("bulwark", {
+  sprites: { capsule: { sheet: "./ga_bulwark_capsule_sheet.png", frames: 6 }, drop: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 }, walk: { sheet: "./ga_bulwark_walk_sheet.png", frames: 4 }, walk2: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, idle: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, death: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 } },
+  hp: 130, accel: 0.9, maxH: 3.2, maxV: 8, drag: 0.8, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 0, bobAmp: 0, leash: 520, behaviour: "planted", cooldownOnDeath: 360,
+  techCost: 25, hurtbox: { w: 46, h: 30 }, scale: 2.0, frontFacing: false, nativeFacing: "left", faceMode: "target",
+  lifetime: 720, expireMode: "death",
+})
+registerDroneProfile("aegis", {
+  sprites: { idle: { sheet: "./ga_aegis_idle_sheet.png", frames: 4 }, walk: { sheet: "./ga_aegis_walk_sheet.png", frames: 5 }, death: { sheet: "./ga_aegis_death_sheet.png", frames: 6 } },
+  hp: 150, accel: 1.4, maxH: 8, maxV: 8, drag: 0.85, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 70, bobAmp: 2, leash: 220, behaviour: "guard", cooldownOnDeath: 300,
+  techCost: 20, hurtbox: { w: 52, h: 40 }, scale: 2.2, frontFacing: true, nativeFacing: "front",
+  absorbsProjectiles: true, lifetime: 600, expireMode: "retire",
+})
+registerDroneProfile("kestrel", {
+  sprites: { idle: { sheet: "./ga_kestrel_idle_sheet.png", frames: 4 }, forward: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 }, back: { sheet: "./ga_kestrel_back_sheet.png", frames: 4 }, fire1: { sheet: "./ga_kestrel_fire1_sheet.png", frames: 11 }, fire2: { sheet: "./ga_kestrel_fire2_sheet.png", frames: 11 }, death: { sheet: "./ga_kestrel_death_sheet.png", frames: 9 }, walk: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 } },
+  hp: 90, accel: 1.8, maxH: 13, maxV: 10, drag: 0.88, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 210, bobAmp: 3, leash: 760, behaviour: "strafe", cooldownOnDeath: 330,
+  techCost: 30, hurtbox: { w: 60, h: 24 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "target",
+})
+registerDroneProfile("skyhook", {
+  sprites: { idle: { sheet: "./ga_skyhook_idle_sheet.png", frames: 4 }, landing: { sheet: "./ga_skyhook_landing_sheet.png", frames: 8 }, walk: { sheet: "./ga_skyhook_walk_sheet.png", frames: 4 }, death: { sheet: "./ga_skyhook_death_sheet.png", frames: 6 } },
+  hp: 110, accel: 1.5, maxH: 9, maxV: 10, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 190, bobAmp: 3, leash: 420, behaviour: "hook", cooldownOnDeath: 330,
+  techCost: 25, hurtbox: { w: 70, h: 46 }, scale: 1.9, frontFacing: true, nativeFacing: "front",
+})
+registerDroneProfile("payload", {
+  sprites: { drop: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, idle: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, death: { sheet: "./ga_payload_drop_sheet.png", frames: 6 } },
+  hp: 999, accel: 2.0, maxH: 14, maxV: 6, drag: 0.95, reverseBrake: 0.7, overspeedDrag: 0.95,
+  hoverHeight: 300, bobAmp: 0, leash: 2000, behaviour: "bomber", cooldownOnDeath: 0,
+  techCost: 0, hurtbox: { w: 120, h: 40 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "travel",
+  lifetime: 150, expireMode: "retire",
+})
+
+// ── a drone-fired projectile (credited to Oliver's side; tagged so Tech hit-income can see it) ──
+function _gaDroneShot(owner, context, opts) {
+  const p = spawnProjectile(owner, opts.type || "gaDroneShot", {
+    damage: opts.damage, w: opts.w || 16, h: opts.h || 10, radius: opts.radius || 9,
+    vx: opts.vx, vy: opts.vy || 0, speed: Math.abs(opts.vx) || 8,
+    lifetime: opts.lifetime || 70, color: opts.color || "#ffb347",
+    knockbackX: opts.knockbackX || 3, knockbackY: opts.knockbackY || -1,
+    hitstun: opts.hitstun || 12, spawnX: opts.spawnX, spawnY: opts.spawnY,
+    sheet: opts.sheet || null, spriteFrames: opts.spriteFrames || 1,
+    isSpecial: true, blockable: true,
+  }, context)
+  if (p) { p._gaDroneShot = true; p.hitFlag = "_gaDroneHit" }
+  return p
+}
+
+// ── BEHAVIOURS (PASS2 P2: PROTECTOR default + STRIKE mode) ───────────────────
+// Input: Special+dir = PROTECTOR; Heavy-held+Special+dir = STRIKE (+5 Tech); ↑↑ = Payload Carpet
+// Run; ↓↓ = Swarm. d.mode is sim state set at spawn. Strike drones are hittable BEFORE impact — a
+// drone killed in flight plays DEATH only (its contact-damage lives in the behaviour, which does not
+// run once dying). No Math.random. Explosions/rings are render-only (visualOnly projectile + flashes).
+function _gaExplosionFx(owner, x, y, scale, context) {
+  return spawnProjectile(owner, "gaBlast", { damage: 0, visualOnly: true, w: 48 * scale, h: 48 * scale,
+    radius: 24 * scale, spawnX: x, spawnY: y, vx: 0, vy: 0, lifetime: 24,
+    sheet: "./green_arrow_explosion_uniform.png", spriteFrames: 4, spriteOnce: true, spriteScale: scale, color: "#ff8a3c" }, context)
+}
+function _gaHitsOpp(d, opp, pad = 0) {
+  if (!opp || opp.eliminated) return false
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
+  return Math.abs(ocx - d.x) < ((opp.w || 60) / 2 + (d.profile.hurtbox?.w || 40) / 2 + pad)
+      && Math.abs(ocy - d.y) < ((opp.h || 100) / 2 + 36)
+}
+function _gaDie(d) {
+  d.dying = true; d.anim = "death"; d.frame = 0; d.animTimer = 0
+  d.deathTimer = (d.profile.sprites?.death?.frames || 6) * 5 + 6
+  if (typeof sound !== "undefined") sound.play?.("ga_drone_death")
+}
+
+// OVERWATCH ───────────────────────────────────────────────────────────────────
+registerBehaviour("recon", (d, { frame }) => {
+  const o = d.owner; if (!o) return
+  const opp = d._opp || (d._opp = d.target)
+  if (d.mode === "strike") return _gaStunDrone(d, o, opp)       // STRIKE "Stun Drone"
+  // PROTECTOR "Sentinel": tag + EARLY WARNING auto-guard
+  d.tx = (o.x || 0) + (-(o.facing || 1)) * 85
+  d.ty = _gaFloor(o) - (d.profile.hoverHeight || 160)
+  d.data.scanT = (d.data.scanT || 0) + 1
+  const inCone = opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < 520 && Math.abs((opp.y || 0) - d.y) < 300
+  if (d.data.scanT % 180 < 48) { d.anim = inCone ? "walkscan" : "scan"; if (inCone && d.data.scanT % 180 === 24) _gaTagReticle(opp, 360) }
+  else d.anim = inCone ? "walk" : "idle"
+  if (d.data.warnCd > 0) d.data.warnCd--
+  const oppAtk = opp && opp.attacking && !d.data.oppWasAtk
+  d.data.oppWasAtk = !!(opp && opp.attacking)
+  if (oppAtk && (d.data.warnCd || 0) <= 0 && opp && Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.30) {
+    d.data.warnCd = 360                 // 6s cooldown, once-per-summon-style
+    o.invulnTimer = Math.max(o.invulnTimer || 0, 18)   // free AUTO-GUARD (brief i-frames)
+    o._gaGuardPing = 16; d._pingFx = 16
+    if (typeof sound !== "undefined") sound.play?.("ga_overwatch_tag")
+  }
+})
+function _gaStunDrone(d, o, opp) {
+  d.anim = "walk"
+  if (!opp || opp.eliminated) { d.tx = o.x; d.ty = _gaFloor(o) - 120; return }
+  d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = (opp.y || 0) + (opp.h || 100) * 0.4
+  if (_gaHitsOpp(d, opp, 10)) {
+    applyScaledDamage(opp, 30, { source: "ability", attacker: o, move: "stunDrone" })
+    opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = 0; opp._gaStunRing = 20   // 0.5s shock stun
+    _gaExplosionFx(o, d.x, d.y, 0.7, d._ctx); _gaDie(d)
+  }
+}
+
+// BULWARK ──────────────────────────────────────────────────────────────────────
+registerBehaviour("planted", (d, { frame }) => {
+  const o = d.owner, opp = d.target
+  if (d.mode === "strike") return _gaMine(d, o, opp)           // STRIKE "Mine"
+  d.ty = _gaFloor(o)
+  if (d.state === "enter") { d.anim = d.frameAge < 30 ? "capsule" : "drop"; d.tx = d.x; if (d.frameAge > 60) { d.state = "planted"; d.data.fireT = 0 }; return }
+  // PROTECTOR "Bodyguard": plant BETWEEN Oliver and the opponent; fire point-blank within 20% of Oliver.
+  if (opp && !opp.eliminated) {
+    d.tx = (o.x || 0) + Math.sign((opp.x || 0) - (o.x || 0)) * GA_SCR_W * 0.14   // just in front of Oliver (never on him)
+    d.facing = ((opp.x || 0) < d.x) ? -1 : 1
+    d.data.fireT = (d.data.fireT || 0) + 1
+    if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20 && d.data.fireT >= 80) {
+      d.data.fireT = 0; const dir = ((opp.x || 0) < d.x) ? -1 : 1
+      spawnMunition(o, "dumb", { x: d.x, y: d.y - 10, vx: dir * 7, vy: -9, damage: 35, blastRadius: 72, target: opp })   // MORTAR: lobbed high arc, clears walls / an Aegis in the way
+      if (typeof sound !== "undefined") sound.play?.("ga_bulwark_fire")
+    }
+  } else d.tx = d.x
+  d.anim = "walk2"
+})
+function _gaMine(d, o, opp) {
+  d.ty = _gaFloor(o)
+  if (d.state === "enter") {
+    d.tx = (o.x || 0) + Math.sign(((opp && opp.x) || (o.x || 0) + 1) - (o.x || 0)) * GA_SCR_W * 0.11   // lob in front of Oliver
+    d.anim = d.frameAge < 36 ? "capsule" : "drop"; if (d.frameAge > 48) d.state = "armed"; return
+  }
+  d.tx = d.x; d.anim = "walk2"
+  if (opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < GA_SCR_W * 0.12 && Math.abs((opp.y || 0) - d.y) < 130) {
+    applyScaledDamage(opp, 70, { source: "ability", attacker: o, move: "bulwarkMine" })
+    opp.vy = -16; opp.isLaunched = true; opp.hitstun = Math.max(opp.hitstun || 0, 28)
+    _gaExplosionFx(o, d.x, d.y, 1.1, d._ctx); _gaDie(d)
+  }
+}
+
+// AEGIS ─────────────────────────────────────────────────────────────────────────
+registerBehaviour("guard", (d) => {
+  const o = d.owner; if (!o) return
+  if (d.mode === "strike") return _gaShieldBash(d, o, d.target)  // STRIKE "Shield Bash"
+  // PROTECTOR "Guardian": absorb projectiles (collision) + intercept ONE melee hit for Oliver.
+  d.tx = (o.x || 0) + (o.facing || 1) * 62
+  d.ty = _gaFloor(o) - (d.profile.hoverHeight || 70)
+  d.anim = (Math.abs(d.x - d.tx) > 20) ? "walk" : "idle"
+  const opp = d.target
+  if (!d.data.usedIntercept && opp && opp.attacking && opp.currentAttack && !opp.currentAttack._gaIntercepted
+      && Math.abs((opp.x || 0) - (o.x || 0)) < 115 && (o.invulnTimer || 0) <= 0) {
+    d.data.usedIntercept = true; opp.currentAttack._gaIntercepted = true
+    o.invulnTimer = Math.max(o.invulnTimer || 0, 16)            // the melee hit is negated
+    o.vx = -(o.facing || 1) * 6                                  // Oliver pushed back
+    d.hp -= 40; d._hitFlash = 8; d._shieldFlash = 14            // drone loses HP + shield flash
+    if (d.hp <= 0) _gaDie(d)
+    if (typeof sound !== "undefined") sound.play?.("ga_drone_deploy")
+  }
+})
+function _gaShieldBash(d, o, opp) {
+  d.anim = "walk"
+  if (!opp || opp.eliminated) { d.tx = o.x; d.ty = _gaFloor(o) - 70; return }
+  d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = (opp.y || 0) + (opp.h || 100) * 0.4
+  if (_gaHitsOpp(d, opp, 10) && !d.data.bashed) {
+    d.data.bashed = true
+    applyScaledDamage(opp, 40, { source: "ability", attacker: o, move: "shieldBash" })
+    opp.vx = ((opp.x || 0) < d.x ? -1 : 1) * 10; opp.hitstun = Math.max(opp.hitstun || 0, 18)
+    d.hp = Math.max(1, Math.round(d.hp * 0.5)); d._shieldFlash = 14; d.mode = "protector"   // survives → reverts to Guardian
+    if (typeof sound !== "undefined") sound.play?.("ga_drone_deploy")
+  }
+}
+
+// KESTREL ────────────────────────────────────────────────────────────────────────
+registerBehaviour("strafe", (d, { frame }) => {
+  const o = d.owner, opp = d.target
+  if (d.mode === "strike") return _gaKamikaze(d, o, opp)        // STRIKE "Kamikaze"
+  // PROTECTOR "Escort": hover above Oliver; suppression burst when he is in trouble or the foe is near.
+  d.tx = (o.x || 0); d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210); d.anim = "idle"
+  if (d.data.burstCd > 0) d.data.burstCd--
+  const trouble = (o.hitstun || 0) > 0 || (o.blockstun || 0) > 0 || (opp && !opp.eliminated && Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20)
+  if (trouble && (d.data.burstCd || 0) <= 0 && opp && !opp.eliminated) { d.data.burstCd = 90; d.data.firing = 5; d.data.ftick = 0 }
+  if ((d.data.firing || 0) > 0) {
+    d.anim = "fire1"; d.data.ftick = (d.data.ftick || 0) + 1
+    if (d.data.ftick % 4 === 0) {
+      d.data.firing--; const dir = opp ? ((opp.x || 0) < d.x ? -1 : 1) : (o.facing || 1)
+      d.facing = dir
+      _gaDroneShot(o, d._ctx, { type: "gaKestrelShot", damage: 8, vx: dir * 13, vy: 4, spawnX: d.x, spawnY: d.y, w: 14, h: 8, lifetime: 40, color: "#ffd166" })
+      if (opp && Math.abs((opp.x || 0) - d.x) < 90) spawnMunition(o, "dumb", { x: d.x, y: d.y + 10, vx: 0, vy: 5, damage: 10, blastRadius: 54, target: opp })   // BOMBING RUN: drop a bomb in its flight path
+      if (typeof sound !== "undefined" && d.data.ftick % 8 === 0) sound.play?.("ga_kestrel")
+    }
+  }
+})
+function _gaKamikaze(d, o, opp) {
+  d.anim = "forward"
+  if (!opp || opp.eliminated) { d.ty = _gaFloor(o); d.tx = d.x + (d.facing || 1) * 60; if (d.y >= _gaFloor(o) - 8) _gaKamiBlast(d, o); return }
+  d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = (opp.y || 0) + (opp.h || 100) * 0.4
+  d.facing = ((opp.x || 0) < d.x) ? -1 : 1
+  if (_gaHitsOpp(d, opp, 10)) {
+    applyScaledDamage(opp, 90 * ((opp._gaNetted || 0) > 0 ? 1.25 : 1), { source: "ability", attacker: o, move: "kamikaze" })
+    opp.hitstun = Math.max(opp.hitstun || 0, 26); opp.vx = ((opp.x || 0) < d.x ? -1 : 1) * 8
+    _gaKamiBlast(d, o)
+  } else if (d.y >= _gaFloor(o) - 8) _gaKamiBlast(d, o)          // ground impact on a miss (no fighter damage)
+}
+function _gaKamiBlast(d, o) {
+  _gaExplosionFx(o, d.x, d.y, 1.2, d._ctx)
+  if (o) { o._gaDroneCd = o._gaDroneCd || {}; o._gaDroneCd["kestrel"] = d.profile.cooldownOnDeath || 330 }
+  _gaDie(d)
+}
+
+// SKYHOOK ────────────────────────────────────────────────────────────────────────
+registerBehaviour("hook", (d, { frame }) => {
+  const o = d.owner, opp = d.target
+  if (d.mode === "protector") return _gaRescue(d, o)           // PROTECTOR "Rescue"
+  // STRIKE "Tow": the original hook grab on the opponent (unchanged).
+  if (d.state === "enter") {
+    d.anim = "landing"; d.tx = (o.x || 0); d.ty = _gaFloor(o) - (d.profile.hoverHeight || 190)
+    if (d.frameAge > 36) { d.state = "seek"; d.data.seekT = 0 }
+    return
+  }
+  if (d.state === "seek") {
+    d.anim = "walk"; d.data.seekT++
+    if (opp && !opp.eliminated) { d.tx = (opp.x || 0); if (Math.abs((opp.x || 0) - d.x) < 70) { d.state = "hookEnemy"; d.data.hookT = 0; opp.hitstun = Math.max(opp.hitstun || 0, 60); opp._gaHooked = true } }
+    if (d.data.seekT > 60) { d.state = "hookSelf"; d.data.hookT = 0; if (o) { o.invulnTimer = Math.max(o.invulnTimer || 0, 20); o.vy = -14 } }
+    return
+  }
+  if (d.state === "hookEnemy") {
+    d.anim = "walk"; d.data.hookT++
+    if (opp) {
+      opp._gaHooked = true
+      if (d.data.hookT <= 40) { opp.y = (d.y) + 20; opp.vy = 0; opp.vx = 0; opp.hitstun = Math.max(opp.hitstun || 0, 6) }
+      else if (d.data.hookT <= 70) { const corner = (o.x || 0) - (o.facing || 1) * 400; opp.x += Math.sign(corner - opp.x) * 6; opp.y = d.y + 20; opp.hitstun = Math.max(opp.hitstun || 0, 6) }
+      else { opp._gaHooked = false; opp.vy = 10; applyScaledDamage(opp, 90, { source: "ability", attacker: o, move: "skyhookDrop" }); opp.isLaunched = true; opp.hitstun = Math.max(opp.hitstun || 0, 24); spawnMunition(o, "dumb", { x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) - 120, vy: 5, damage: 60, blastRadius: 70, target: opp }); d._retiring = "expire" }   // AIRDROP a bomb on the dropped foe
+    } else d._retiring = "expire"
+    d.tx = d.x; d.ty = d.y
+    return
+  }
+  if (d.state === "hookSelf") {
+    d.anim = "walk"; d.data.hookT++
+    if (o) { d.tx = o.x; d.ty = _gaFloor(o) - 230 }
+    if (d.data.hookT > 20) d._retiring = "expire"
+  }
+})
+function _gaRescue(d, o) {
+  d.anim = "idle"; d.tx = (o.x || 0); d.ty = _gaFloor(o) - (d.profile.hoverHeight || 190)
+  if (!d.data.rescued && o && (o.isLaunched || (o.hitstun || 0) > 12 || o.knockdownState)) {
+    d.data.rescued = true
+    o.isLaunched = false; o.hitstun = 0; o.knockdownState = false; o.knockdownTimer = 0
+    o.vy = -6; o.vx = 0; o.invulnTimer = Math.max(o.invulnTimer || 0, 20); o._gaAirRecover = 14
+    d._retiring = "expire"                   // consumed after the catch
+    if (typeof sound !== "undefined") sound.play?.("ga_recall")
+  }
+}
+
+// PAYLOAD ────────────────────────────────────────────────────────────────────────
+registerBehaviour("bomber", (d, { frame }) => {
+  const o = d.owner
+  d.anim = "drop"; d.ty = (_gaFloor(o) - 360); d.tx = d.x + d.facing * 600
+  const maxB = d.maxBombs || 6, spacing = d.bombSpacing || 22
+  d.data.dropT = (d.data.dropT || 0) + 1
+  if (d.data.dropT % spacing === 0 && (d.data.bombs || 0) < maxB) {
+    d.data.bombs = (d.data.bombs || 0) + 1
+    spawnMunition(o, "dumb", { x: d.x, y: d.y + 20, vx: d.facing * 2, vy: 7, damage: d.bombDmg || 35, blastRadius: 72, target: d.target })   // Carpet Run drops real bombs
+  }
+})
+
+// SWARM (4 mini-Overwatch scouts, one slot) ───────────────────────────────────────
+registerBehaviour("swarm", (d, { frame }) => {
+  const o = d.owner, opp = d.target
+  if (d.data.scouts == null) d.data.scouts = Math.max(1, Math.round(d.hp / 20))
+  d.data.scouts = Math.max(0, Math.round(d.hp / 20))           // HP (80) → 4 scouts; absorbing a hit loses one
+  if (d.mode === "strike") {                                   // STRIKE: 4 rammers
+    d.anim = "idle"
+    if (!opp || opp.eliminated) { d.tx = o.x; d.ty = _gaFloor(o) - 150; return }
+    d.tx = (opp.x || 0) + (opp.w || 60) / 2; d.ty = (opp.y || 0) + (opp.h || 100) * 0.4
+    d.data.rushTick = (d.data.rushTick || 0) + 1
+    if (_gaHitsOpp(d, opp, 30) && d.data.scouts > 0 && d.data.rushTick % 9 === 0) {
+      d.hp = Math.max(0, d.hp - 20)                            // a scout rams + explodes
+      applyScaledDamage(opp, 20, { source: "ability", attacker: o, move: "swarmRam" })
+      spawnMunition(o, "dumb", { x: d.x, y: d.y, vy: 4, damage: 12, blastRadius: 40, scale: 0.4, target: opp })   // SWARM: each scout carries a micro-bomb
+      opp.hitstun = Math.max(opp.hitstun || 0, 10)
+      _gaExplosionFx(o, d.x + ((d.data.scouts % 2) ? 20 : -20), d.y, 0.5, d._ctx)
+      if (d.hp <= 0) _gaDie(d)
+    }
+  } else {                                                     // PROTECTOR: orbit Oliver as a shield bubble, 5s
+    d.anim = "idle"; d.tx = (o.x || 0); d.ty = _gaFloor(o) - 120
+    d.data.life = (d.data.life == null ? 300 : d.data.life - 1)
+    if (d.data.life <= 0 || d.data.scouts <= 0) d._retiring = "expire"
+  }
+})
+
+registerDroneProfile("swarm", {
+  sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, scan: { sheet: "./ga_overwatch_scan_sheet.png", frames: 8 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
+  hp: 80, accel: 1.8, maxH: 12, maxV: 10, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
+  hoverHeight: 120, bobAmp: 3, leash: 420, behaviour: "swarm", cooldownOnDeath: 360,
+  techCost: 40, hurtbox: { w: 90, h: 70 }, scale: 1.0, frontFacing: true, nativeFacing: "front",
+  swarm: true,
+})
+
+// ── SPECIAL dispatch: drones by held direction; double-tap Special = recall; doubleQcf = Super ──
+const GA_DRONE_BY_DIR = { U: "skyhook", F: "kestrel", B: "aegis", D: "bulwark", null: "overwatch" }
+
+export function greenArrowRecallDrones(fighter) { recallDrones(fighter); if (typeof sound !== "undefined") sound.play?.("ga_recall") }
+
+export function executeGreenArrowSpecial(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return false
+  if (fighter._gaArrowstormActive || (fighter._gaTechLock || 0) > 0) return false
+  // Super on ↓↘→↓↘→+Special (full meter)
+  const dirs = getRelativeDirections(fighter)
+  if ((fighter.energy || 0) >= 100 && endsWithPattern(dirs, ["D", "F", "D", "F"])) {
+    return executeGreenArrowUltimate(fighter, context)
+  }
+  // double-tap Special → recall all drones
+  const now = (context?.frame != null) ? context.frame : 0
+  if (fighter._gaLastSpecialFrame != null && (now - fighter._gaLastSpecialFrame) <= 14 && countDrones(fighter) > 0) {
+    fighter._gaLastSpecialFrame = now
+    greenArrowRecallDrones(fighter); return true
+  }
+  fighter._gaLastSpecialFrame = now
+  const strike = !!fighter._gaStrikeMod                            // Heavy-held when Special pressed
+  const _dbl = (tok) => { let c = 0; for (const x of dirs.slice(-3)) if (x === tok) c++; return c >= 2 }
+  const opp = _gaOpp(fighter, context)
+  let type, mode = strike ? "strike" : "protector", techCost
+  if (_dbl("U")) { type = "payload"; mode = "protector"; techCost = 30 }        // ↑↑ Payload Carpet Run
+  else if (_dbl("D")) { type = "swarm"; techCost = 40 }                         // ↓↓ Swarm
+  else {
+    const dir = fighter._specialHeldDir || null
+    type = GA_DRONE_BY_DIR[dir] || "overwatch"
+    techCost = (DRONE_PROFILES[type]?.techCost || 0) + (strike ? 5 : 0)         // STRIKE variants cost +5 Tech
+  }
+  const d = spawnDrone(fighter, type, { frame: now, target: opp, mode, techCost,
+    spendTech: (o, c) => spendEnergy(o, c) })
+  if (d) {
+    d._ctx = context; d._opp = opp
+    if (type === "payload") { d.maxBombs = 3; d.bombDmg = 35; d.x = (fighter.x || 0) - (fighter.facing || 1) * 640; d.facing = fighter.facing || 1 }
+    if (type === "kestrel" && d.mode === "protector" && fighter.isCharging) d.data.sustain = true
+    if (typeof sound !== "undefined") sound.play?.(type === "payload" ? "ga_payload_bomb" : "ga_drone_deploy")
+    fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 14
+    return true
+  }
+  return false
+}
+
+// ── SUPER: ARROWSTORM PROTOCOL ──────────────────────────────────────────────
+const GA_ULT = { cost: 100, bombDmg: 35, volleyDmg: 45 }
+export function executeGreenArrowUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return false
+  if (fighter._gaArrowstormActive || (fighter._gaTechLock || 0) > 0) return false
+  if (!spendEnergy(fighter, GA_ULT.cost)) return false
+  fighter.vx = 0
+  fighter._gaSuperActive = true
+  fighter._gaArrowstormActive = { phase: "startup", t: 20, volley: 0, volleyT: 0 }
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 24)
+  fighter._spriteCastMove = "skyward"; fighter._spriteCastTimer = 20
+  fighter._gaBadgeFlash = 40
+  if (typeof sound !== "undefined") sound.play?.("ga_super")
+  return true
+}
+
+export function applyGreenArrowArrowstorm(fighter, context) {
+  const s = fighter && fighter._gaArrowstormActive
+  if (!s) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return
+  const opp = _gaOpp(fighter, context)
+  const frame = context?.frame || 0
+  const seed = (fighter._matchSeed | 0) || 1
+  const worldW = context?.stageWidth || context?.worldWidth || 2000
+  const left = (context?.stageLeft || 0) + 120, right = (context?.stageLeft || 0) + worldW - 120, span = Math.max(200, right - left)
+  const groundY = (context?.groundY != null) ? context.groundY : ((fighter.groundY != null) ? fighter.groundY : 500)
+  const planeY = groundY - 360
+  fighter.vx = 0; fighter._gaBadgeFlash = Math.max(fighter._gaBadgeFlash || 0, 6)
+
+  // 1. OPENING — R16 bow-skyward pose, badge flash, 20-frame freeze, then the drone volley fires.
+  if (s.phase === "startup") {
+    fighter._spriteCastMove = "skyward"; fighter._spriteCastTimer = 4
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 2)
+    if (--s.t <= 0) {
+      for (const d of getActiveDrones()) {
+        if (d.owner !== fighter || d.dying) continue
+        d._ctx = context; d.target = opp
+        if (d.type === "aegis" && opp) applyScaledDamage(opp, 40, { source: "ability", attacker: fighter, move: "aegisRam" })
+        if (d.type === "kestrel") d.data.sustain = true
+        if (d.type === "overwatch") _gaTagReticle(opp, 400)
+        if (d.type === "bulwark") d.data.fireT = 75
+      }
+      const face = fighter.facing || 1
+      const bomber = spawnDrone(fighter, "payload", { frame, target: opp, spendTech: () => true })
+      if (bomber) { bomber._ctx = context; bomber.x = left - 200; bomber.facing = 1; bomber.maxBombs = 0 }   // visual only; the super spawns the carpet
+      s._bomber = bomber || null
+      sound.playGreenArrow?.("ga_plane", 1, ((fighter._matchSeed | 0) || 1))   // Payload engine drone over the carpet run
+      s.phase = "carpet"; s.t = 76; s.dropped = 0
+    }
+    return
+  }
+  // WAVE 1 — CARPET LINE: a ROW of 14 bombs at fixed spacing (~10% stage) along the floor.
+  if (s.phase === "carpet") {
+    if (s._bomber) { s._bomber.x = left - 200 + (76 - s.t) / 76 * (span + 400); s._bomber.y = planeY }
+    if (s.t % 5 === 0 && s.dropped < 14) {
+      const bx = left + s.dropped * (span / 13)
+      spawnMunition(fighter, "dumb", { x: bx, y: planeY, vx: 0, vy: 2, damage: 18, target: opp })
+      s.dropped++
+    }
+    if (--s.t <= 0) { s.phase = "hunters"; s.ht = 0; s.hunters = 0; s.volley = 0 }
+    return
+  }
+  // WAVE 2 — HUNTERS: 4 GUIDED bombs that target the opponent, staggered; Oliver's arrow volley starts.
+  if (s.phase === "hunters") {
+    if (s._bomber) { s._bomber.facing = -1; s._bomber.x = right + 150 - (s.ht / 60) * (span); s._bomber.y = planeY }
+    s.ht++
+    if (s.ht % 12 === 1 && s.hunters < 4 && opp) {
+      spawnMunition(fighter, "guided", { x: (opp.x || 0) + (opp.w || 60) / 2, y: planeY, vx: ((opp.x || 0) < fighter.x ? -4 : 4), vy: 2, damage: 45, target: opp })
+      s.hunters++
+    }
+    if (s.ht % 22 === 0 && s.volley < 2) { _gaArrowstormVolley(fighter, context, opp); s.volley++ }
+    if (s.hunters >= 4 && s.ht > 64) { s.phase = "scatter"; s.st = 0; s.clusters = 0 }
+    return
+  }
+  // WAVE 3 — SCATTER: 3 CLUSTER bombs across the stage, hash-offset; arrow volley continues.
+  if (s.phase === "scatter") {
+    s.st++
+    if (s.st % 14 === 1 && s.clusters < 3) {
+      const h = hashRandom(seed, frame, fighter.playerNumber * 31 + s.clusters)
+      spawnMunition(fighter, "cluster", { x: left + h * span, y: planeY, vx: 0, vy: 2, damage: 30, target: opp })
+      s.clusters++
+    }
+    if (s.st % 26 === 0 && s.volley < 3) { _gaArrowstormVolley(fighter, context, opp); s.volley++ }
+    if (s.clusters >= 3 && s.st > 48) { s.phase = "lastlight"; s.lt = 0 }
+    return
+  }
+  // FINALE — "LAST LIGHT": 40 frames of silence + a cyan reticle on the tagged foe, then ONE big bomb.
+  if (s.phase === "lastlight") {
+    s.lt++
+    if (opp) opp._gaLastLightReticle = 10
+    if (s.lt === 40 && opp) {
+      spawnMunition(fighter, "big", { x: (opp.x || 0) + (opp.w || 60) / 2, y: planeY - 60, vx: 0, vy: 3, damage: 252, target: opp })
+      if (typeof sound !== "undefined") sound.play?.("ga_super")
+    }
+    if (s.lt > 110) {
+      fighter._gaArrowstormActive = null
+      fighter._gaSuperActive = false
+      fighter._gaTechLock = 180          // 3s Tech lockout
+      recallDrones(fighter)              // all drones recalled
+      fighter.attackCooldown = getAttackDuration(16, fighter)
+    }
+    return
+  }
+}
+// Oliver's closing explosive-arrow (fired during waves 2 and 3).
+function _gaArrowstormVolley(fighter, context, opp) {
+  const face = (opp && (opp.x || 0) < fighter.x) ? -1 : (fighter.facing || 1)
+  _gaDroneShot(fighter, context, { type: "gaArrowstormArrow", damage: 62, vx: face * 16,
+    spawnX: (fighter.x || 0) + face * 40, spawnY: (fighter.y || 0) + 30, w: 22, h: 10, radius: 16,
+    lifetime: 90, color: "#ff8a3c", sheet: "./green_arrow_firearrow_uniform.png", spriteFrames: 5 })
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 6
+}
+// tick the Tech lockout (called from regen path indirectly via per-frame apply)
+export function tickGreenArrowTimers(fighter) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return
+  if ((fighter._gaTechLock || 0) > 0) fighter._gaTechLock--
+  if ((fighter._gaTagReticle || 0) > 0) fighter._gaTagReticle--
+  if ((fighter._gaIceCd || 0) > 0) fighter._gaIceCd--
+  if ((fighter._gaEmpCd || 0) > 0) fighter._gaEmpCd--
+  if ((fighter._gaExtractCd || 0) > 0) fighter._gaExtractCd--
+  if ((fighter._gaSomerCd || 0) > 0) fighter._gaSomerCd--
+  // CPU Oliver rotates its drone ORDER on a hash schedule (deterministic; ~every 4s).
+  if (fighter._aiControlled) { fighter._gaOrderTick = (fighter._gaOrderTick || 0) + 1; if (fighter._gaOrderTick >= 240) { fighter._gaOrderTick = 0; fighter._gaOrder = ["focus", "guard", "sweep"][Math.floor(hashRandom((fighter._matchSeed | 0) || 1, (fighter._gaOrderSeq = (fighter._gaOrderSeq || 0) + 1), fighter.playerNumber || 1) * 3) % 3] } }
+  // TECH hit-income, capped at +12/s (budget resets every 60 frames) — drones can't self-fund forever.
+  fighter._gaSecTick = (fighter._gaSecTick || 0) + 1
+  if (fighter._gaTechBudget == null || fighter._gaSecTick >= 60) { fighter._gaSecTick = 0; fighter._gaTechBudget = 12 }
+  if (fighter._gaArrowHit) { const g = Math.min(4, fighter._gaTechBudget); fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + g); fighter._gaTechBudget -= g; fighter._gaArrowHit = false }
+  if (fighter._gaDroneHit) { const g = Math.min(2, fighter._gaTechBudget); fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + g); fighter._gaTechBudget -= g; fighter._gaDroneHit = false }
+  // ICE-HOOK + EMP synergies (combat.js stamps the victim on the owner on a clean hit)
+  if (fighter._gaIceHookHit) { const opp = fighter._gaIceHookHit; fighter._gaIceHookHit = null; const sky = _gaHasSkyhook(fighter); if (sky && opp && !opp.eliminated) { sky.state = "hookEnemy"; sky.data.hookT = 0; sky.target = opp; opp._gaHooked = true } }
+  if (fighter._gaEmpHit) { const opp = fighter._gaEmpHit; fighter._gaEmpHit = null; if (opp) { try { recallDrones(opp) } catch (_) {} const k = (opp.rosterKey || "").toLowerCase(); if (/ben10|vilgax|albedo|iron_man|cyborg/.test(k) || opp.traits?.energyType === "tech") opp.energy = Math.max(0, (opp.energy || 0) - 20) } }
+  // slight HOMING on tagged arrows (<= ~6 deg/frame toward the Overwatch-tagged target)
+  for (const p of activeProjectiles) {
+    if (!p._gaHoming || !p._gaTarget || p._gaTarget.eliminated) continue
+    const tx = (p._gaTarget.x || 0) + (p._gaTarget.w || 60) / 2, ty = (p._gaTarget.y || 0) + (p._gaTarget.h || 100) * 0.4
+    const ang = Math.atan2(p.vy || 0, p.vx || 0.0001), want = Math.atan2(ty - p.y, tx - p.x)
+    let d = want - ang; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI
+    const max = 0.105; d = Math.max(-max, Math.min(max, d))
+    const sp = Math.hypot(p.vx || 0, p.vy || 0) || 1; const na = ang + d
+    p.vx = Math.cos(na) * sp; p.vy = Math.sin(na) * sp
+  }
+  _gaTickNewArrows(fighter)   // PASS2 P3: Net/Grapple cd, Beacon drop, Grapple pull, Net-hook synergy
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GREEN ARROW — OLIVER'S MOVESET: trick arrows + bow-slash command normal + synergies
+// (feat/green-arrow, Phase 5). Arrows fire on MOTION + attack button (qcf/qcb/dd + L/H/Up)
+// via updateGreenArrowCommandCombat (the command-normal interception); a bare button stays the
+// normal. Status: ice reuses Superman's _supFrozen (shorter), fire uses the projectile `dot`,
+// EMP sets _gaDisabled (gates summons/drones). Tech hit-income (+4 arrow / +2 drone, capped
+// +12/s) is granted in tickGreenArrowTimers off the projectile hitFlag. No Math.random/gameRng.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── arrow spawn helper (tags hitFlag for Tech income; homing + tagged bonuses) ──
+function _gaArrow(fighter, context, o) {
+  const opp = _gaOpp(fighter, context)
+  const tagged = opp && (opp._gaTagged || 0) > 0
+  let dmg = o.damage
+  // AEGIS synergy: an arrow that passes through a friendly Aegis becomes "charged" (+15%).
+  if (_gaArrowCrossesAegis(fighter, o.spawnX ?? fighter.x, o.spawnY ?? fighter.y, o.vx)) { dmg = Math.round(dmg * 1.15); o.color = "#9fe8ff"; o.charged = true }
+  // TAGGED: +10% damage from Oliver's arrows.
+  if (tagged) dmg = Math.round(dmg * 1.10)
+  const face = fighter.facing || 1
+  const md = {
+    damage: dmg, w: o.w || 18, h: o.h || 8, radius: o.radius || 9,
+    vx: o.vx != null ? o.vx : face * (o.speed || 18), vy: o.vy || 0, speed: o.speed || 18,
+    lifetime: o.lifetime || 150, color: o.color || "#c7a24a",
+    knockbackX: (o.knockbackX != null ? o.knockbackX : face * 4), knockbackY: o.knockbackY ?? -1,
+    hitstun: o.hitstun || 16, piercing: !!o.piercing, piercesMulti: !!o.piercing,
+    spawnX: o.spawnX ?? (fighter.x + face * 42), spawnY: o.spawnY ?? (fighter.y + (fighter.h || 100) * 0.42),
+    sheet: o.sheet || "./green_arrow_plainarrow.png", spriteFrames: o.spriteFrames || 1, spriteScale: o.spriteScale || 1,
+    isSpecial: true, impact: o.impact || null, dot: o.dot || null,
+  }
+  // TAGGED: arrows aim at the tagged target (approximates the homing lock-on).
+  if (tagged && opp) md.aimAt = { x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) * 0.4 }
+  const p = spawnProjectile(fighter, o.type || "gaArrow", md, context)
+  if (p) {
+    p.hitFlag = "_gaArrowHit"            // → owner._gaArrowHit on clean hit (Tech income)
+    p._gaArrow = o.kind || "plain"
+    if (tagged) { p._gaHoming = true; p._gaTarget = opp }   // slight homing toward the tagged foe
+    if (o.onHit) p._gaOnHit = o.onHit
+  }
+  return p
+}
+
+// Aegis pass-through test: is a friendly Aegis roughly in front of the shot's path?
+function _gaArrowCrossesAegis(fighter, sx, sy, vx) {
+  for (const d of getActiveDrones()) {
+    if (d.owner !== fighter || d.type !== "aegis" || d.dying) continue
+    if (Math.sign((d.x - sx)) === Math.sign(vx || fighter.facing) && Math.abs(d.y - sy) < 90) return true
+  }
+  return false
+}
+function _gaOppUnderKestrelFire2(fighter, opp) {
+  if (!opp) return false
+  for (const d of getActiveDrones()) {
+    if (d.owner !== fighter || d.type !== "kestrel" || d.dying) continue
+    if (d.data?.sustain && Math.abs((opp.x || 0) - d.x) < 360) return true
+  }
+  return false
+}
+function _gaHasBulwark(fighter) { for (const d of getActiveDrones()) if (d.owner === fighter && d.type === "bulwark" && !d.dying) return d; return null }
+function _gaHasSkyhook(fighter) { for (const d of getActiveDrones()) if (d.owner === fighter && d.type === "skyhook" && !d.dying) return d; return null }
+
+// ── arrow fire functions ──────────────────────────────────────────────────────
+function fireGAPlain(fighter, context, charge = 0) {
+  const face = fighter.facing || 1
+  const pierce = charge >= 1
+  _gaArrow(fighter, context, { kind: "plain", type: "gaPlainArrow", damage: pierce ? 70 : 45,
+    speed: 20, piercing: pierce, w: 18 + charge * 2, h: 8, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.6 })
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(10, fighter)
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+function fireGAAntiAir(fighter, context) {
+  const face = fighter.facing || 1
+  _gaArrow(fighter, context, { kind: "antiair", type: "gaAntiAirArrow", damage: 45, speed: 17,
+    vx: face * 12, vy: -16, w: 18, h: 8, lifetime: 90, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.6 })
+  fighter._spriteCastMove = "antiair"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(12, fighter)
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+function fireGAFire(fighter, context) {
+  if (!spendEnergy(fighter, 15)) return false
+  const opp = _gaOpp(fighter, context)
+  // IGNITION synergy: fire arrow on a foe under Kestrel FIRE2 → +30 burst.
+  const ignition = _gaOppUnderKestrelFire2(fighter, opp)
+  _gaArrow(fighter, context, { kind: "fire", type: "gaFireArrow", damage: 60 + (ignition ? 30 : 0), speed: 17,
+    w: 22, h: 12, color: "#ff7a2a", sheet: "./green_arrow_firearrow_uniform.png", spriteFrames: 5,
+    impact: "explosion", dot: { ticks: 6, interval: 20, dmg: 3 } })   // burn 3/20f for 2s
+  fighter._spriteCastMove = "firecast"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  if (typeof sound !== "undefined") sound.play?.("ga_fire_arrow")
+  return true
+}
+function fireGAIce(fighter, context) {
+  if ((fighter._gaIceCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const p = _gaArrow(fighter, context, { kind: "ice", type: "gaIceArrow", damage: 40, speed: 16,
+    w: 20, h: 10, color: "#6fd0ff", sheet: "./green_arrow_icearrow_uniform.png", spriteFrames: 5,
+    onHit: "freeze" })
+  fighter._gaIceCd = 420            // 7s cooldown — can't loop
+  fighter._spriteCastMove = "icecast"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  if (typeof sound !== "undefined") sound.play?.("ga_ice_arrow")
+  return true
+}
+function fireGAExplosive(fighter, context) {
+  if (!spendEnergy(fighter, 25)) return false
+  const face = fighter.facing || 1
+  _gaArrow(fighter, context, { kind: "explosive", type: "gaExplosiveArrow", damage: 80, speed: 13,
+    vx: face * 11, vy: -7, w: 20, h: 16, radius: 20, color: "#ff8a3c",
+    sheet: "./green_arrow_dive_uniform.png", spriteFrames: 4, impact: "explosion", onHit: "otg" })
+  // BULWARK synergy: an explosive near a friendly Bulwark → the turret fires a 3-missile salvo.
+  const bulwark = _gaHasBulwark(fighter)
+  if (bulwark) bulwark.data.salvo = 3
+  fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  if (typeof sound !== "undefined") sound.play?.("ga_fire_arrow")
+  return true
+}
+function fireGAEmp(fighter, context) {
+  if ((fighter._gaEmpCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 20)) return false
+  _gaArrow(fighter, context, { kind: "emp", type: "gaEmpArrow", damage: 25, speed: 16,
+    w: 20, h: 10, color: "#f4f0a0", sheet: "./green_arrow_emparrow_uniform.png", spriteFrames: 5,
+    onHit: "emp" })
+  fighter._gaEmpCd = 600            // 10s cooldown
+  fighter._spriteCastMove = "icecast"; fighter._spriteCastTimer = 18
+  if (typeof sound !== "undefined") sound.play?.("ga_emp")
+  return true
+}
+function fireGATrick(fighter, context) {
+  if (!spendEnergy(fighter, 20)) return false
+  const face = fighter.facing || 1
+  for (const vy of [-5, 0, 5]) {    // 3-arrow fan
+    _gaArrow(fighter, context, { kind: "trick", type: "gaTrickArrow", damage: 30, speed: 17,
+      vx: face * 15, vy, w: 18, h: 8, lifetime: 80, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.3 })
+  }
+  fighter._spriteCastMove = "airdraw"; fighter._spriteCastTimer = 14
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+function fireGABowSlash(fighter, context) {
+  const face = fighter.facing || 1
+  const attack = createAttackFromMove(fighter, "gaBowSlash", {
+    damage: 75, startup: 9, active: 4, recovery: 16, hitstun: 20, knockbackX: face * 8, knockbackY: -2,
+    rangeX: 120, rangeY: 70,
+  })
+  setAttackState(fighter, attack, 29)
+  fighter.vx = face * 3
+  fighter._spriteCastMove = "bowslash"; fighter._spriteCastTimer = 29
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+
+// (ice-FREEZE + emp-DISABLE are stamped on the victim in combat.js resolveProjectileHitsMulti,
+// gated on proj._gaArrow; the Ice-Hook / EMP-recall / tech-drain SYNERGIES are resolved from the
+// per-frame tick — tickGreenArrowTimers — where getActiveDrones/recallDrones are in scope.)
+
+// ── COMMAND-COMBAT interception: motion + attack button → arrow; bare button → normal ─────
+export function updateGreenArrowCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "green_arrow" || !inputState) return false
+  if ((fighter._gaTechLock || 0) > 0 && false) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  const lightEdge = !!inputState.light && !fighter._gaPrevLight
+  const heavyEdge = !!inputState.heavy && !fighter._gaPrevHeavy
+  const upEdge = !!inputState.upAttack && !fighter._gaPrevUp
+  const prevLight = fighter._gaPrevLight
+  fighter._gaPrevLight = !!inputState.light; fighter._gaPrevHeavy = !!inputState.heavy; fighter._gaPrevUp = !!inputState.upAttack
+
+  // CHARGED PLAIN SHOT — qcf+Light starts a charge; hold Light to charge, release to fire (tap = fast 45).
+  if (fighter._gaCharging) {
+    fighter._spriteCastMove = "aim"; fighter._spriteCastTimer = 4
+    fighter._gaChargeT = (fighter._gaChargeT || 0) + 1
+    if (!inputState.light) {   // release → fire, charge level by hold frames (>=40f = piercing 70)
+      const lvl = fighter._gaChargeT >= 40 ? 1 : 0
+      fighter._gaCharging = false; fighter._gaChargeT = 0
+      return fireGAPlain(fighter, context, lvl)
+    }
+    return true   // keep consuming Light while charging
+  }
+
+  const dirs = getRelativeDirections(fighter)
+  const qcf = endsWithPattern(dirs, ["D", "F"])
+  const qcb = endsWithPattern(dirs, ["D", "B"])
+  const dd = endsWithPattern(dirs, ["D", "D"])
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+
+  if (!canStart) return false
+
+  // AIR: qcf+Heavy = TRICK SHOT (3-arrow fan); plain air normal stays normal.
+  if (!grounded) {
+    if (qcf && heavyEdge) { inputState.heavy = false; return fireGATrick(fighter, context) }
+    return false
+  }
+  // GROUND trick-arrow motions
+  if (dd && upEdge)      { inputState.upAttack = false; greenArrowCycleQuiver(fighter); return true }   // ↓↓+Up = CYCLE quiver
+  if (dd && lightEdge)   { inputState.light = false; cycleDroneOrder(fighter); if (typeof sound !== "undefined") sound.play?.("ga_drone_deploy"); return true }   // ↓↓+Light = CYCLE drone ORDER (focus/guard/sweep)
+  if (qcb && upEdge)     { inputState.upAttack = false; return fireGAQuiver(fighter, context) }          // ↓↙←+Up = FIRE selected quiver arrow
+  if (qcf && lightEdge)  { inputState.light = false; fighter._gaCharging = true; fighter._gaChargeT = 0; return true }  // plain shot (charge)
+  if (qcf && upEdge)     { inputState.upAttack = false; return fireGAAntiAir(fighter, context) }
+  if (qcf && heavyEdge)  { inputState.heavy = false; return fireGAFire(fighter, context) }
+  if (qcb && lightEdge)  { inputState.light = false; return fireGAIce(fighter, context) }
+  if (qcb && heavyEdge)  { inputState.heavy = false; return fireGAEmp(fighter, context) }
+  if (dd && heavyEdge)   { inputState.heavy = false; return fireGAExplosive(fighter, context) }
+  // BOW SLASH — →+Heavy command normal (neutral heavy stays the straight).
+  if (forward && heavyEdge) { inputState.heavy = false; return fireGABowSlash(fighter, context) }
+  return false
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GREEN ARROW — DEFENSIVE TOOLS (feat/green-arrow, Phase 6).
+// Emergency Extraction: ↑+Special while knocked down (≥25 Tech, 12s cd) → Skyhook yanks Oliver
+// out with 20 invuln (reversal, read ahead of the stun early-return in game.js, like Tobirama).
+// Somersault evasion: double-tap Back → back-flip with 10 invuln (double-tap read like the dash).
+// (Aegis projectile-absorb is the third defensive tool, already in P4. Below 15 Tech he simply
+// can't afford a drone — the fragile-when-rushed weakness is inherent, not coded.)
+// ═══════════════════════════════════════════════════════════════════════════════
+export function executeGreenArrowExtraction(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return false
+  if ((fighter._gaExtractCd || 0) > 0) return false
+  if ((fighter.energy || 0) < 25) return false
+  spendEnergy(fighter, 25)
+  fighter._gaExtractCd = 720        // 12s cooldown
+  fighter.hitstun = 0; fighter.knockdownTimer = 0; fighter.knockdownState = false
+  fighter.isLaunched = false
+  fighter.vy = -16; fighter.vx = -(fighter.facing || 1) * 4
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 20)
+  try {
+    const d = spawnDrone(fighter, "skyhook", { frame: context?.frame || 0, spendTech: () => true })
+    if (d) { d._ctx = context; d.state = "hookSelf"; d.data.hookT = 0; d.x = fighter.x; d.y = (fighter.groundY || fighter.y) - 230 }
+  } catch (_) {}
+  fighter._spriteCastMove = "flip"; fighter._spriteCastTimer = 20
+  if (typeof sound !== "undefined") sound.play?.("ga_recall")
+  return true
+}
+
+// Somersault evasion — double-tap Back. Returns true if performed (10 invuln back-flip).
+export function greenArrowSomersault(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "green_arrow") return false
+  if (fighter.attacking || (fighter.hitstun || 0) > 0 || (fighter._gaSomerCd || 0) > 0) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  const dirs = fighter.directionHistory || []
+  const rel = (d) => (fighter.facing === 1 ? (d.dir === "L" ? "B" : d.dir === "R" ? "F" : d.dir)
+                                           : (d.dir === "R" ? "B" : d.dir === "L" ? "F" : d.dir))
+  const backs = dirs.filter(d => rel(d) === "B").slice(-2)
+  if (backs.length < 2) return false
+  if ((backs[1].time - backs[0].time) > 240) return false   // same 240ms window as the dash double-tap
+  fighter.vx = -(fighter.facing || 1) * 9; fighter.vy = -7
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 10)
+  fighter._gaSomerCd = 36
+  fighter._spriteCastMove = "flip"; fighter._spriteCastTimer = 24
+  fighter.directionHistory = []     // consume so it fires once per double-tap
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GREEN ARROW — PASS2 P3: QUIVER + new control arrows (Net / Flash / Beacon / Grapple).
+// The four new arrows share ONE input (the quiver) so they don't crowd the motion inputs; the
+// existing fire/ice/explosive/EMP/trick arrows keep their direct motions (combos unchanged).
+// Inputs (in updateGreenArrowCommandCombat): ↓↓+Up = CYCLE quiver · ↓↙←+Up = FIRE selected arrow.
+// Statuses are applied in combat.js (gated on proj._gaArrow); beacon drop / grapple pull / net-hook
+// synergy resolve from tickGreenArrowTimers. No Math.random/gameRng. All state in GAME_STATE.
+// ═══════════════════════════════════════════════════════════════════════════════
+const GA_QUIVER = ["net", "flash", "beacon", "grapple"]
+export function greenArrowQuiverSel(fighter) { return GA_QUIVER[(fighter?._gaQuiver || 0) % GA_QUIVER.length] }
+export function greenArrowCycleQuiver(fighter) { fighter._gaQuiver = ((fighter._gaQuiver || 0) + 1) % GA_QUIVER.length; return greenArrowQuiverSel(fighter) }
+export function fireGAQuiver(fighter, context) {
+  const sel = greenArrowQuiverSel(fighter)
+  if (sel === "net") return fireGANet(fighter, context)
+  if (sel === "flash") return fireGAFlash(fighter, context)
+  if (sel === "beacon") return fireGABeacon(fighter, context)
+  return fireGAGrapple(fighter, context)
+}
+
+// NET ARROW — 20 Tech, 6s cd. On hit: NETTED 1.0s; a FLYING foe is force-grounded 1.2s (counters
+// Superman/Homelander). A netted foe can be Skyhook-hooked from anywhere, and a Kamikaze on a netted
+// foe gets +25% (resolved in the behaviours / tick). The net render is procedural (drawGreenArrowFx).
+function fireGANet(fighter, context) {
+  if ((fighter._gaNetCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 20)) return false
+  _gaArrow(fighter, context, { kind: "net", type: "gaNetArrow", damage: 0, speed: 17, w: 24, h: 16, color: "#cfe8ff", sheet: "./green_arrow_plainarrow.png", spriteScale: 2.4 })
+  fighter._gaNetCd = 360
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 16
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+// FLASH ARROW — 12 Tech, 20 dmg. 0.5s dazzle stun on hit + a render-only white burst.
+function fireGAFlash(fighter, context) {
+  if (!spendEnergy(fighter, 12)) return false
+  _gaArrow(fighter, context, { kind: "flash", type: "gaFlashArrow", damage: 20, speed: 18, w: 20, h: 10, color: "#fff7cf", sheet: "./green_arrow_plainarrow.png", spriteScale: 2.2 })
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 14
+  if (typeof sound !== "undefined") sound.play?.("ga_emp")
+  return true
+}
+// BEACON ARROW — 15 Tech. Sticks where it lands; 20 frames later the equipped drone (default Bulwark)
+// drops there directly (no fly-in) and counts against the cap. Resolved in tickGreenArrowTimers.
+function fireGABeacon(fighter, context) {
+  if (!spendEnergy(fighter, 15)) return false
+  const face = fighter.facing || 1
+  fighter._gaBeacons = fighter._gaBeacons || []
+  fighter._gaBeacons.push({ x: (fighter.x || 0) + face * 250, y: (fighter.groundY != null ? fighter.groundY : (fighter.y || 0) + (fighter.h || 100)), t: 0, type: fighter._gaBeaconDrone || "bulwark", ctx: context })
+  _gaArrow(fighter, context, { kind: "beacon", type: "gaBeaconArrow", damage: 0, speed: 16, vx: face * 16, vy: -4, w: 18, h: 10, color: "#39d353", sheet: "./green_arrow_plainarrow.png", spriteScale: 2.0, lifetime: 40 })
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 14
+  if (typeof sound !== "undefined") sound.play?.("ga_drone_deploy")
+  return true
+}
+// GRAPPLE ARROW — 10 Tech, 4s cd. Pulls Oliver to an anchor (toward the foe, or a forward spot) using
+// the flight.js accel/drag helpers — mobility + escape. Resolved in tickGreenArrowTimers.
+function fireGAGrapple(fighter, context) {
+  if ((fighter._gaGrappleCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 10)) return false
+  const opp = _gaOpp(fighter, context), face = fighter.facing || 1
+  const ax = (opp && !opp.eliminated) ? ((opp.x || 0) - face * 70) : ((fighter.x || 0) + face * 360)
+  fighter._gaGrapple = { tx: ax, ty: (fighter.y || 0) - 10, t: 26, vx: 0, vy: 0 }
+  fighter._gaGrappleCd = 240
+  _gaArrow(fighter, context, { kind: "grapple", type: "gaGrappleArrow", damage: 0, speed: 22, w: 16, h: 8, color: "#b79bff", sheet: "./green_arrow_plainarrow.png", spriteScale: 1.8, lifetime: 30 })
+  fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 12
+  if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
+  return true
+}
+
+// Per-frame resolution for the new arrows (called from tickGreenArrowTimers).
+function _gaTickNewArrows(fighter) {
+  if ((fighter._gaNetCd || 0) > 0) fighter._gaNetCd--
+  if ((fighter._gaGrappleCd || 0) > 0) fighter._gaGrappleCd--
+  // BEACON — after 20 frames, drop the equipped drone directly at the beacon (no fly-in).
+  if (fighter._gaBeacons && fighter._gaBeacons.length) {
+    for (let i = fighter._gaBeacons.length - 1; i >= 0; i--) {
+      const bk = fighter._gaBeacons[i]
+      if (++bk.t >= 20) {
+        const d = spawnDrone(fighter, bk.type, { frame: bk.t, target: _gaOpp(fighter, bk.ctx), mode: "protector", spendTech: () => true })
+        if (d) { d._ctx = bk.ctx; d.x = bk.x; d.tx = bk.x; d.state = "planted"; d.data.fireT = 0; d.frameAge = 99 }
+        fighter._gaBeacons.splice(i, 1)
+      }
+    }
+  }
+  // GRAPPLE — glide Oliver to the anchor with flight.js accel/drag (overrides physics while active).
+  if (fighter._gaGrapple) {
+    const g = fighter._gaGrapple
+    const prof = { accel: 4, drag: 0.82, reverseBrake: 0.7, overspeedDrag: 0.9 }
+    const dx = g.tx - (fighter.x || 0), dy = g.ty - (fighter.y || 0)
+    g.vx = flightSoftLimit(flightAxisStep(g.vx || 0, Math.abs(dx) < 8 ? 0 : Math.sign(dx), prof), 30, prof)
+    g.vy = flightSoftLimit(flightAxisStep(g.vy || 0, Math.abs(dy) < 8 ? 0 : Math.sign(dy), prof), 22, prof)
+    fighter.x += g.vx; fighter.y += g.vy; fighter.vx = 0; fighter.vy = 0
+    if (--g.t <= 0 || (Math.abs(dx) < 24 && Math.abs(dy) < 24)) fighter._gaGrapple = null
+  }
+  // NET → SKYHOOK synergy: a netted foe can be hooked from anywhere (combat.js stamps _gaNetHit).
+  if (fighter._gaNetHit) {
+    const opp = fighter._gaNetHit; fighter._gaNetHit = null
+    const sky = _gaHasSkyhook(fighter)
+    if (sky && opp && !opp.eliminated) { sky.state = "hookEnemy"; sky.data.hookT = 0; sky.target = opp; opp._gaHooked = true }
+  }
+}
+

@@ -49,7 +49,7 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
-import { updateDrones, updateDroneCollisions, drawDrones, resetDrones, activeDrones, toggleDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -22599,6 +22599,7 @@ function drawBattleScene() {
   // previously drawn underneath and could be occluded near the action.
   drawActiveSummons(ctx)
   drawDrones(ctx, globalFrameCount, camera)   // GREEN ARROW drones — world space, over fighters
+  drawGreenArrowFx(ctx, [p1, p2], globalFrameCount)   // GREEN ARROW status FX (net/flash/rings) — render-only
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)

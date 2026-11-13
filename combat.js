@@ -1,4 +1,5 @@
 import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
+import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -3889,6 +3890,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if ((fighter._gaStunRing || 0) > 0) fighter._gaStunRing--   // GREEN ARROW stun-drone shock ring (render)
   if ((fighter._gaGuardPing || 0) > 0) fighter._gaGuardPing--   // GREEN ARROW Sentinel auto-guard ping (render)
   if ((fighter._gaAirRecover || 0) > 0) fighter._gaAirRecover--   // GREEN ARROW Skyhook Rescue free-air-recovery window
+  if ((fighter._gaNetted || 0) > 0) { fighter._gaNetted--; if (fighter.hitstun < fighter._gaNetted) fighter.hitstun = fighter._gaNetted; fighter.vx = 0 }   // GREEN ARROW Net lock (only the Net Arrow sets it)
+  if ((fighter._gaFlash || 0) > 0) fighter._gaFlash--   // GREEN ARROW Flash dazzle (render)
+  if ((fighter._forceGroundTimer || 0) > 0) fighter._forceGroundTimer--   // GREEN ARROW Net force-ground lock (flight.js forceGround sets it)
   if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
   if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
@@ -4315,6 +4319,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // GREEN ARROW trick-arrow on-hit status (gated on proj._gaArrow kind; only GA arrows set it).
       if (!fighter.isBlocking && proj._gaArrow === "ice" && (fighter.health || 0) > 0) { fighter._supFrozen = 42; fighter._supFrozenMax = 42; fighter.hitstun = Math.max(fighter.hitstun || 0, 42); fighter.vx = 0; if (proj.owner) proj.owner._gaIceHookHit = fighter }
       if (!fighter.isBlocking && proj._gaArrow === "emp" && (fighter.health || 0) > 0) { fighter._gaDisabled = 180; if (proj.owner) proj.owner._gaEmpHit = fighter }
+      if (!fighter.isBlocking && proj._gaArrow === "net" && (fighter.health || 0) > 0) { fighter._gaNetted = 60; if (fighter._flightCtl || fighter._flightActive) { try { _gaForceGround(fighter, 72) } catch (_) {} } if (proj.owner) proj.owner._gaNetHit = fighter }
+      if (!fighter.isBlocking && proj._gaArrow === "flash" && (fighter.health || 0) > 0) { fighter.hitstun = Math.max(fighter.hitstun || 0, 30); fighter._gaFlash = 18 }
 
       if (fighter.health <= 0) {
         try { sound?.play?.(SFX?.KO) } catch (_) {}

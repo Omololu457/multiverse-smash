@@ -444,19 +444,32 @@ function _dImg(src) {
   return im
 }
 
+// PASS2/P3 — render-only Green Arrow fighter-status FX (works with or without drones out). Called
+// from game.js with [p1, p2]: orange guard-ping, shock-stun ring, Flash white burst, Net pixel mesh.
+export function drawGreenArrowFx(ctx, fighters = [], frame = 0) {
+  if (!ctx) return
+  for (const f of fighters) {
+    if (!f) continue
+    const cx = (f.x || 0) + (f.w || 60) / 2, cy = (f.y || 0) + (f.h || 100) / 2
+    if ((f._gaGuardPing || 0) > 0) _ring(ctx, cx, cy, 46 - (f._gaGuardPing % 8), "#ff9a3c", f._gaGuardPing / 16)
+    if ((f._gaStunRing || 0) > 0) _ring(ctx, cx, cy, 34 + (20 - (f._gaStunRing || 0)), "#ffb02e", f._gaStunRing / 20)
+    if ((f._gaFlash || 0) > 0) { ctx.save(); ctx.globalAlpha = Math.min(1, f._gaFlash / 10); ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(cx, cy, 90 * (1 + (18 - f._gaFlash) * 0.08), 0, Math.PI * 2); ctx.fill(); ctx.restore() }
+    if ((f._gaNetted || 0) > 0) _drawNet(ctx, f)
+  }
+}
+// procedural pixel-style NET mesh over a netted fighter (render-only, not sprite art).
+function _drawNet(ctx, f) {
+  const x = (f.x || 0), y = (f.y || 0), w = (f.w || 60), h = (f.h || 100)
+  ctx.save(); ctx.globalAlpha = 0.72; ctx.strokeStyle = "#dff0ff"; ctx.lineWidth = 1.5
+  const step = 9
+  for (let gx = 0; gx <= w; gx += step) { ctx.beginPath(); ctx.moveTo(x + gx, y); ctx.lineTo(x + gx, y + h); ctx.stroke() }
+  for (let gy = 0; gy <= h; gy += step) { ctx.beginPath(); ctx.moveTo(x, y + gy); ctx.lineTo(x + w, y + gy); ctx.stroke() }
+  ctx.strokeStyle = "#8fc8ff"; ctx.strokeRect(x, y, w, h)
+  ctx.restore()
+}
+
 export function drawDrones(ctx, frame = 0, camera = null) {
   if (!ctx || !activeDrones.length) return
-  // render-only status rings/flashes (orange guard-ping on Oliver, shock-stun ring on the foe), drawn
-  // from the drones' owner/target refs so no fighter list is needed. De-duped by a per-frame set.
-  const _seen = new Set()
-  for (const d of activeDrones) {
-    for (const f of [d.owner, d.target]) {
-      if (!f || _seen.has(f)) continue; _seen.add(f)
-      const cx = (f.x || 0) + (f.w || 60) / 2, cy = (f.y || 0) + (f.h || 100) / 2
-      if ((f._gaGuardPing || 0) > 0) _ring(ctx, cx, cy, 46 - (f._gaGuardPing % 8), "#ff9a3c", f._gaGuardPing / 16)
-      if ((f._gaStunRing || 0) > 0) _ring(ctx, cx, cy, 34 + (20 - (f._gaStunRing || 0)), "#ffb02e", f._gaStunRing / 20)
-    }
-  }
   for (const d of activeDrones) {
     // SWARM — render as `scouts` mini-Overwatch saucers orbiting (render-only positions).
     if (d.profile.swarm && !d.dying) { _drawSwarm(ctx, d, frame); if (d._debugHurt) drawDroneDebug(ctx, d); continue }

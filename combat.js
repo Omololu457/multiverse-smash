@@ -4,8 +4,8 @@ import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from '.
 import { zoroHitbox } from './zoroState.js'
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
-import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'
-import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)   // Buggy the Clown moveset hooks (buggy-gated)
+import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
+import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
  * COMBAT ENGINE — merged clean version

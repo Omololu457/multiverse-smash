@@ -1,6 +1,6 @@
 // arlongHarness.js — test-only window.__harness.arlongTest API (wired from game.js via one delegate line).
 // Reads/writes through the accessors game.js passes in; never imported by simulation code.
-import { arlongState, isArlong, arlongStartMove } from './arlongState.js'
+import { arlongState, isArlong, arlongStartMove, addZone } from './arlongState.js'
 import { arlongHudState } from './arlongFx.js'
 import { getHurtbox } from './combat.js'
 
@@ -29,6 +29,8 @@ export function arlongHarnessApi(g) {
     reset: () => { g.reset(); for (const f of [g.p1(), g.p2()]) if (f && isArlong(f)) delete f._arlong },
     tide: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },
     set: (w = 'p1', patch = {}) => { const f = pick(w); if (f && isArlong(f)) Object.assign(arlongState(f), patch) },
+    zone: (cx, width, w = 'p1') => { const f = pick(w); const z = f && addZone(f, cx, width ?? undefined, { stageWidth: () => 99999 }); return z ? { ...z } : null },
+    slick: (w = 'p2') => pick(w)?._alSlick || 0,
     move: (key, w = 'p1') => { const f = pick(w); return !!(f && arlongStartMove(f, key)) },
   }
 }

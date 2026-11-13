@@ -59,8 +59,71 @@ export function drawArlongHud(ctx, fighter, { x, enY, pbw, flip }) {
   ctx.restore()
 }
 
+// One shallow pool: the purple jet sprites (R16) tiled along the surface, flattened + tinted, a translucent water
+// body, and ripple rings. `x0..x1` world px, `y` = floor line. Pure function of (zone, frame).
+function drawPool(c, x0, x1, y, frame, seed, alpha = 1) {
+  const jets = img(ARLONG_FX.jets.sheet), J = ARLONG_FX.jets, w = x1 - x0, depth = 22
+  c.save(); c.globalAlpha = alpha
+  const g = c.createLinearGradient(0, y - depth, 0, y + 10)
+  g.addColorStop(0, 'rgba(130,160,255,0.75)'); g.addColorStop(1, 'rgba(40,60,190,0.55)')
+  c.fillStyle = g
+  c.beginPath(); c.ellipse((x0 + x1) / 2, y, w / 2, depth, 0, 0, Math.PI * 2); c.fill()
+  if (jets) {   // the R16 jets flattened (×0.45 tall) and tiled along the surface, cycling frames
+    c.imageSmoothingEnabled = false
+    const tile = J.w * 0.9, n = Math.max(1, Math.round(w / tile))
+    for (let i = 0; i < n; i++) {
+      const fr = Math.floor(hash(seed, i) * 5 + frame / 9 + i) % 5
+      const tx = x0 + (i + 0.5) * (w / n), sx = fr * J.w, flip = (i + seed) & 1
+      const edge = Math.min(1, Math.min(tx - x0, x1 - tx) / 30)   // taper toward the zone edges
+      c.save(); c.globalAlpha = alpha * (0.6 + 0.4 * edge); c.translate(tx, y - 2); c.scale(flip ? -1 : 1, 0.45 * (0.6 + 0.4 * edge))
+      c.drawImage(jets, sx, 0, J.w, J.h, -J.w / 2, -J.h, J.w, J.h)
+      c.restore()
+    }
+  }
+  c.strokeStyle = 'rgba(210,225,255,0.55)'; c.lineWidth = 1.5   // ripple rings (render-only particles)
+  for (let k = 0; k < 3; k++) {
+    const ph = ((frame + k * 23 + seed * 7) % 69) / 69, rx = x0 + w * (0.2 + 0.6 * hash(seed + k, Math.floor((frame + k * 23 + seed * 7) / 69)))
+    c.globalAlpha = alpha * (1 - ph) * 0.8
+    c.beginPath(); c.ellipse(rx, y - 2, 6 + ph * 34, 2 + ph * 6, 0, 0, Math.PI * 2); c.stroke()
+  }
+  c.restore()
+}
+
 // World-space FX drawn UNDER the fighters (water zones / flood). Pure functions of sim state + frame counter.
-export function drawArlongUnder(c, f, frame = 0) {}
+export function drawArlongUnder(c, f, frame = 0) {
+  if (!c || f?.rosterKey !== 'arlong' || !f._arlong) return
+  const s = f._arlong, y = s.groundY ?? ((f.y || 0) + (f.h || 94))
+  if (s.flood > 0) {   // ARLONG PARK: the whole lower stage floods (tiled jets + a deep tinted band)
+    const span = 4000, cx = (f.x || 0) + 24
+    c.save(); c.fillStyle = 'rgba(40,70,190,0.28)'; c.fillRect(cx - span / 2, y - 70, span, 140); c.restore()
+    drawPool(c, cx - span / 2, cx + span / 2, y, frame, 99, 1)
+  }
+  for (let i = 0; i < s.zones.length; i++) {
+    const z = s.zones[i], age = (s.clock - z.bornFrame), life = 480
+    const a = Math.min(1, age / 8) * Math.min(1, (life - age) / 40)   // splash in, dry up
+    drawPool(c, z.x, z.x + z.width, y, frame, (z.bornFrame + i * 13) & 1023, Math.max(0, a))
+  }
+}
 
 // World-space FX drawn after the fighter sprite.
-export function drawArlongFx(c, f, frame = 0) {}
+export function drawArlongFx(c, f, frame = 0) {
+  if (!c || f?.rosterKey !== 'arlong' || !f._arlong) return
+  const s = f._arlong, w = f.w ?? 48, h = f.h ?? 94, cx = f.x + w / 2
+  if (s.wet) {   // IN HIS ELEMENT: water shimmer over the body + spray at his feet
+    c.save()
+    c.globalCompositeOperation = 'lighter'
+    for (let k = 0; k < 5; k++) {
+      const yy = f.y - 30 + ((frame * 1.7 + k * 31) % (h + 40)), xx = cx - 34 + hash(k, Math.floor(frame / 6)) * 68
+      c.strokeStyle = `rgba(140,180,255,${0.25 + 0.2 * hash(k + 9, frame)})`; c.lineWidth = 2
+      c.beginPath(); c.moveTo(xx - 10, yy); c.quadraticCurveTo(xx, yy - 4, xx + 10, yy); c.stroke()
+    }
+    c.globalCompositeOperation = 'source-over'
+    const fy = f.y + h
+    for (let k = 0; k < 7; k++) {   // spray droplets arc up from the feet
+      const ph = ((frame + k * 9) % 24) / 24, dir = k & 1 ? 1 : -1
+      const dx = dir * (6 + 22 * ph) * (0.6 + hash(k, Math.floor((frame + k * 9) / 24))), dy = -26 * ph * (1 - ph) * 4
+      c.fillStyle = `rgba(200,220,255,${1 - ph})`; c.fillRect(cx + dx, fy + dy - 4, 3, 3)
+    }
+    c.restore()
+  }
+}

@@ -22825,6 +22825,7 @@ function drawBattleScene() {
   if (hasTransform) camera.applyTransform(ctx, canvas)
   drawDomains(ctx)
   drawStageHazards(ctx)   // STAGE INTERACTABLES pilot — draw hazards behind the fighters (world space)
+  drawArlongUnder(ctx, p1, globalFrameCount); drawArlongUnder(ctx, p2, globalFrameCount)   // Arlong — WATER ZONES / Arlong Park flood under the fighters (render-only; arlong only)
   drawPlatforms(ctx)      // Wood Release climbable terrain — draw platforms behind the fighters (world space; Stage 1 procedural rect = collision box)
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)

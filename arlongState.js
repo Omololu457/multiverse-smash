@@ -30,6 +30,11 @@ export function arlongState(f) {
     inSuper: false,
     dashPrev: 0,       // engine dashTimer last frame (swim-dash invulnerability on the rising edge)
     idleT: 0,          // frames standing idle with no input (blade-on-shoulder flex after 600)
+    zones: [],         // WATER ZONES [{x (left edge, world px), width, bornFrame (sim clock), owner}] — max 3, never overlapping
+    wet: false,        // standing in his own water this frame (grounded, feet inside a zone) — read by the hooks
+    flood: 0,          // ARLONG PARK flood frames left (the whole floor is water)
+    groundY: null,     // feet line when last grounded (zones / flood sit on it)
+    zoneSeq: 0,        // zones created this round (render seed / tests)
   }
 }
 
@@ -42,6 +47,7 @@ export function arlongRoundReset(f) {
   f.dashSpeed = st.dashSpeed
   if (f._arlong) delete f._arlong
   f._skinAnim = null
+  f._alSlick = 0
   f._alWinVar = 0
 }
 export function clearArlong(f) {
@@ -72,6 +78,37 @@ export const ctrY = f => (f.y || 0) + (f.h || 94) * 0.45
 export const feetY = f => (f.y || 0) + (f.h || 94)
 const grounded = f => !!(f.onGround || f.grounded)
 
+// ── FISHMAN IN HIS ELEMENT — water zones (brief Phase 3) ────────────────────────────────────────────────────
+// Each zone ≈ 18% of the 1280 px reference screen, lives 8 s, max 3 on screen. Overlapping zones MERGE into one
+// wider zone (capped at 30%) instead of stacking. Positional state only — the render reads it, never writes it.
+export const ARLONG_ZONE = { width: Math.round(SCREEN * 0.18), maxWidth: Math.round(SCREEN * 0.30), life: 480, max: 3,
+  dmgMul: 1.15, speedMul: 1.25, swimInvuln: 8, foeSlide: 1.10 }
+export function addZone(f, cx, width = ARLONG_ZONE.width, W = null) {
+  const s = arlongState(f); if (!s) return null
+  const sw = W?.stageWidth?.() || 3200, Z = ARLONG_ZONE
+  let x0 = cx - width / 2, x1 = cx + width / 2
+  // merge every zone the new one overlaps (repeat: a merged zone can reach a third)
+  for (let again = true; again;) {
+    again = false
+    for (let i = s.zones.length - 1; i >= 0; i--) {
+      const z = s.zones[i]
+      if (z.x < x1 && z.x + z.width > x0) { x0 = Math.min(x0, z.x); x1 = Math.max(x1, z.x + z.width); s.zones.splice(i, 1); again = true }
+    }
+    if (x1 - x0 > Z.maxWidth) { const c = (x0 + x1) / 2; x0 = c - Z.maxWidth / 2; x1 = c + Z.maxWidth / 2 }
+  }
+  x0 = Math.max(0, Math.min(sw - (x1 - x0), x0))
+  const z = { x: Math.round(x0), width: Math.round(Math.min(Z.maxWidth, x1 - x0)), bornFrame: s.clock, owner: f.side ?? f.playerNumber ?? 1 }
+  s.zones.push(z); s.zoneSeq++
+  while (s.zones.length > Z.max) {   // the oldest dries up first
+    let k = 0; for (let i = 1; i < s.zones.length; i++) if (s.zones[i].bornFrame < s.zones[k].bornFrame) k = i
+    s.zones.splice(k, 1)
+  }
+  acue(f, 'splash')
+  return z
+}
+export const zoneAt = (s, x) => !!s && s.zones.some(z => x >= z.x && x <= z.x + z.width)
+export const inWater = (f, s = f?._arlong) => !!s && (s.flood > 0 || (grounded(f) && zoneAt(s, ctrX(f))))
+
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer and updateCombat). ──
 // W = world accessors from game.js (stageWidth, frame, damage, …).
 export function tickArlong(f, opp, raw = {}, W = null) {
@@ -86,6 +123,19 @@ export function tickArlong(f, opp, raw = {}, W = null) {
   if (f.hitstop > 0) return
   s.clock++
   if (s.lockout > 0) s.lockout--
+  if (grounded(f)) s.groundY = feetY(f)
+  // zones dry up after 8 s; the flood counts down
+  for (let i = s.zones.length - 1; i >= 0; i--) if (s.clock - s.zones[i].bornFrame >= ARLONG_ZONE.life) s.zones.splice(i, 1)
+  if (s.flood > 0) s.flood--
+  const wasWet = s.wet
+  s.wet = inWater(f, s)
+  if (s.wet && !wasWet) acue(f, 'waterIn')
+  // +2 Tide/s extra while standing in his water
+  if (s.wet) { if (++s.waterTide >= ARLONG_TIDE.waterEvery) { s.waterTide = 0; gainTide(f, 1) } } else s.waterTide = 0
+  // SWIM-DASH: a dash started inside his water has 8 invulnerable frames (and ×1.25 speed, arlongDashMul).
+  if ((f.dashTimer || 0) > s.dashPrev && s.wet) { f.invulnTimer = Math.max(f.invulnTimer || 0, ARLONG_ZONE.swimInvuln); acue(f, 'swim') }
+  // THE OPPONENT IN HIS WATER: no buff, but slick footing — walking / dashing AWAY from Arlong goes 10% further.
+  if (opp && !isArlong(opp)) opp._alSlick = (grounded(opp) && !(opp.health <= 0) && (s.flood > 0 || zoneAt(s, ctrX(opp)))) ? (Math.sign(ctrX(opp) - ctrX(f)) || 1) : 0
   // Super bookkeeping: the Tide lockout starts when the Super ends (any way it ends).
   const a = f.attacking ? f.currentAttack : null
   if (s.inSuper && !(a && a.al?.kind === 'super')) { s.inSuper = false; s.lockout = ARLONG_SUPER_LOCKOUT }
@@ -179,14 +229,16 @@ export function arlongHurtbox(f) {
   if (!isArlong(f)) return null
   return { x: f.x - 4, y: f.y - 10, w: Math.max(1, f.w + 8), h: Math.max(1, f.h + 10) }
 }
-// Walk speed multiplier (physics.js): the engine's 4.5 px/f floor × 4.4/4.5 = his brief's 4.4 px/f.
-export function arlongWalkMul(f) {
-  if (!isArlong(f)) return 1
-  return 4.4 / 4.5
+// Walk speed multiplier (physics.js): the engine's 4.5 px/f floor × 4.4/4.5 = his brief's 4.4 px/f; ×1.25 in his
+// water. A foe standing in his water walking AWAY from him (dir = held direction) slides 10% further.
+export function arlongWalkMul(f, dir = 0) {
+  if (!isArlong(f)) return (f?._alSlick && dir === f._alSlick) ? ARLONG_ZONE.foeSlide : 1
+  return (4.4 / 4.5) * (f._arlong?.wet ? ARLONG_ZONE.speedMul : 1)
 }
-// Ground-dash speed multiplier (physics.js).
+// Ground-dash speed multiplier (physics.js): Arlong's swim-dash ×1.25; a foe dashing away inside his water ×1.10.
 export function arlongDashMul(f) {
-  return 1
+  if (!isArlong(f)) return (f?._alSlick && (f.facing || 1) === f._alSlick) ? ARLONG_ZONE.foeSlide : 1
+  return f._arlong?.wet ? ARLONG_ZONE.speedMul : 1
 }
 // Passive Tide regen: +1 per second while alive. Replaces the shared passive regen.
 export function arlongRegen(f) {
@@ -198,6 +250,9 @@ export function arlongRegen(f) {
   return true
 }
 // applyScaledDamage hook (combat.js, the one damage choke-point). Returns rawDamage untouched for everyone else.
+// IN HIS ELEMENT: every damage Arlong deals while standing in his water is +15% (melee, projectiles, specials).
 export function arlongDamageMods(target, rawDamage, opts = {}) {
+  const a = opts.attacker
+  if (a && a !== target && isArlong(a) && a._arlong?.wet && opts.source !== 'block-chip') rawDamage = (rawDamage || 0) * ARLONG_ZONE.dmgMul
   return rawDamage
 }

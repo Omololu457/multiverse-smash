@@ -30,7 +30,7 @@ export function spdRedState(f) {
   }
 }
 export function spdRedRoundReset(f) {
-  if (!isSpdRed(f)) return
+  if (!isSpdRed(f)) { if (f?._ranger) clearRanger(f); return }   // a profile-only Ranger: fresh charges each round
   const st = SPD_RED_CHAR.stats
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
@@ -41,6 +41,7 @@ export function spdRedRoundReset(f) {
   f._srWinVar = 0
 }
 export function clearSpdRed(f) {
+  if (!isSpdRed(f) && f?._ranger) clearRanger(f)   // a profile-only Ranger (any other registered rangers.js profile)
   if (f?._spdRed || isSpdRed(f)) { delete f._spdRed; delete f._spdRedCues; clearRanger(f); if (isSpdRed(f)) { f._rooted = false; f._skinAnim = f._baseSkinAnim || null } }
 }
 
@@ -72,7 +73,14 @@ const rangerWorld = W => W && { stageWidth: W.stageWidth, frame: W.frame, seed: 
 
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer and updateCombat). ──
 export function tickSpdRed(f, opp, raw = {}, W = null) {
-  if (!isSpdRed(f)) { if (f?._spdRed) clearSpdRed(f); return }
+  if (!isSpdRed(f)) {
+    if (f?._spdRed) clearSpdRed(f)
+    // PROFILE-ONLY RANGER: game.js runs this tick for every fighter, so any other fighter with a registered rangers.js
+    // profile gets the whole framework (double-tap blink, charges, invulnerable travel, crossup, face lock, air blink,
+    // run, morph, judgment state) with no code of its own. No profile is registered for anyone but spd_red today.
+    if (f && f.health > 0 && getRangerProfile(f) && !getRangerProfile(f).ownTick) tickRanger(f, opp, raw, rangerWorld(W))
+    return
+  }
   const s = spdRedState(f)
   if (W) _W = W
   s.tick++

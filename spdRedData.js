@@ -8,6 +8,7 @@ import { registerRangerProfile } from './rangers.js'
 
 // ── RANGER PROFILE (rangers.js framework — docs/rangers/RANGER_FRAMEWORK.md) ──
 export const SPD_RED_PROFILE = registerRangerProfile('spd_red', {
+  ownTick: true,   // spdRedState.tickSpdRed calls tickRanger itself
   team: 'S.P.D. B-Squad',
   badge: { color: '#e0201c', accent: '#36d6e6', emblem: 'gem' },   // S.P.D. red + the WANTED-poster gem cyan
   morph: { alwaysMorphed: true },                                   // the sheet has no unmorphed Jack → born morphed

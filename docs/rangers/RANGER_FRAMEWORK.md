@@ -29,6 +29,7 @@ When a prompt says **"follow the ranger framework"**, build the new Ranger this 
 ```js
 registerRangerProfile('spd_red', {
   team: 'S.P.D. B-Squad',
+  ownTick: true,                 // Red's own spdRedState tick calls tickRanger (default false = profile-only, ticked generically)
   badge: { color: '#e0201c', accent: '#36d6e6', emblem: 'gem' },   // HUD tint + FX recolour + emblem key
   morph: { alwaysMorphed: true },                                   // no unmorphed art → born morphed
   blink: {                       // all of BLINK_DEFAULTS, overridable
@@ -58,19 +59,36 @@ registerRangerProfile('spd_red', {
 })
 ```
 
-## 3. Engine wiring (one line per site; everything is gated on `getRangerProfile` / `isRanger`)
+## 3. Engine wiring (these are the real call sites; every one is gated on `isSpdRed` / `getRangerProfile` / `f._ranger`)
 
 | Site | Call |
 |---|---|
-| game.js, 1v1 and FFA combat steps (before the command layer) | `const ev = tickRanger(f, opp, readRawControls(f) \|\| {}, RANGER_WORLD)`. The character module reads `ev` (blink/dodge/guilty/innocent/release) |
+| game.js, 1v1 and FFA combat steps (before the command layer), **for every fighter** | `tickSpdRed(fighter, opp, readRawControls(fighter) \|\| {}, SPD_RED_WORLD)`. For `spd_red` it runs Red's tick, which calls `tickRanger(f, opp, raw, world)` and reacts to its events (blink/dodge/guilty/innocent/release). For **any other fighter with a registered profile** (a *profile-only* Ranger, `ownTick: false`) it calls `tickRanger` directly, so the whole framework runs with no new code. For everyone else it is a no-op |
 | game.js, after both `updateFacing()` calls | `rangerFacingFix(p1, p2); rangerFacingFix(p2, p1)` |
-| game.js, replay checkpoint snapshot | `snap.push(JSON.stringify(f._ranger \|\| null))` |
-| game.js, round/match reset | `clearRanger(f)` |
-| game.js, `renderHybridFighter` body alpha | `* rangerBodyAlpha(fighter)` |
-| physics.js walk multiplier | `* rangerWalkMul(fighter, dir)` |
-| combat.js `applyScaledDamage` | `× rangerSealAbsorb(target, attacker)` (the card soaks 50%) plus the dodge buff `dmgMul` while `f._ranger.dodgeBuff > 0` |
+| game.js `_replaySnap` (replay checkpoint) | `if (isSpdRed(f) \|\| f._ranger) snap.push(JSON.stringify(f._spdRed \|\| null), JSON.stringify(f._ranger \|\| null), JSON.stringify(f.currentAttack \|\| null))` |
+| game.js, round reset / match reset | `spdRedRoundReset(f)` / `clearSpdRed(f)`. Both call `clearRanger(f)` for Red **and** for a profile-only Ranger, so charges refill each round |
+| game.js `renderHybridFighter` body alpha | `* spdRedBodyAlpha(fighter)`, which returns `rangerBodyAlpha(f)` for Red and for any profile-only Ranger, and 1 for everyone else |
+| physics.js walk multiplier | `* rangerWalkMul(fighter, dir)` (run after a ground blink) |
+| combat.js `applyScaledDamage` | `rawDamage = spdRedDamageMods(target, rawDamage, opts)`: `× rangerSealAbsorb(target, attacker)` while the target is sealed by **any** Judgment Ranger (the card soaks 50%), plus Red's own dodge buff `dmgMul` |
 
-`RANGER_WORLD = { stageWidth, frame, seed, attackBox: getAttackHitbox, projectiles }`. The framework never imports the engine.
+The world object is `{ stageWidth, frame, seed, attackBox, projectiles }` (built from `SPD_RED_WORLD`). The framework never imports the engine.
+
+**A Ranger with its own module.** Set `ownTick: true` in its profile, then call `tickRanger` from its own `<key>State.js` tick, which game.js calls next to `tickSpdRed`. `ownTick: true` makes the generic profile-only hook skip that Ranger, so it is never ticked twice.
+
+**A profile-only Ranger** (no module, `ownTick` left false) gets the following from the hook above:
+- Blink: double-tap, charges, invulnerable travel, crossup or stop-in-front, face lock, air blink, edge clamp.
+- Run after a blink.
+- The dissolve and vanish alpha.
+- Morph state.
+- Judgment state.
+
+It does **not** get, because these belong to a character module:
+- Moves that start Judgment.
+- Energy payouts.
+- HUD pips.
+- Streak art.
+
+`harness/spd_red_final.test.mjs` proves this in the live game: it registers a profile at runtime for MMPR Red and double-taps.
 
 ## 4. Sprites a Ranger needs
 
@@ -93,4 +111,7 @@ If a Ranger has no blink art, the streak falls back to a team-colour (`badgeRGBA
 2. Roster entry with `universe: 'power_rangers'`, added inside the Rangers block of `characters.js`. The block reserves space for the S.P.D. squad and more.
 3. Call `tickRanger` and the hooks from section 3. If the Ranger already has a module, add one line per site; don't fork the framework.
 4. FX layer: streak/dissolve from `f._ranger.blink`, HUD pips from `rangerHudState(f)`, tinted with `badgeRGBA(f)`.
-5. Tests: `harness/rangers_framework.test.mjs` already proves a profile-only Ranger blinks. Add the new key to the in-game dummy check in `harness/spd_red_final.test.mjs` if needed.
+5. Tests:
+   - `harness/rangers_framework.test.mjs` proves a profile-only Ranger blinks in the pure module.
+   - `harness/spd_red_final.test.mjs` proves it in the live game, using a runtime profile on MMPR Red.
+   - Copy that block for the new key.

@@ -30,7 +30,7 @@ export function spdRedHudState(f) {
 }
 
 // Body opacity for game.js's renderHybridFighter (blink dissolve / vanish). 1 for everyone else.
-export function spdRedBodyAlpha(f) { return isRed(f) ? rangerBodyAlpha(f) : 1 }
+export function spdRedBodyAlpha(f) { return (isRed(f) || getRangerProfile(f)) ? rangerBodyAlpha(f) : 1 }   // + any profile-only Ranger
 
 // HUD: the WANTED-poster GEM as the Delta bar's badge, two diamond TELEPORT pips (refilling ones fill up) and a
 // 20-segment JUDGMENT meter under them.

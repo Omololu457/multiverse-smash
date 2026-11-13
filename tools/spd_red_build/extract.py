@@ -348,7 +348,8 @@ L += ['', '## Non-frame cuts', '', '| Cut | Sheet box | Use | Status |', '|---|-
       f'| Poster credit band "ripped by the FRANKETE for TSR" | {POSTER[0]},{CREDIT_Y},{POSTER[2]},{POSTER[3]} | none | **excluded, credit** (the scroll ornaments are interleaved with the lettering) |',
       f'| Blue GEM (cyan diamond on the dark badge) | {GEM[0]},{GEM[1]},{GEM[2]},{GEM[3]} | containment card icon · HUD Delta badge | derived copy (crop) |',
       f'| Blue GEM, cut out (`gem_cut.png`) | {GEM[0]},{GEM[1]},{GEM[2]},{GEM[3]} | in-world FX: intro landing flash · WIN-1 spinning gem · LOSE flicker | derived copy: the badge\'s dark backing (max channel ≤ 42, flood-filled from the crop border) made transparent; no pixel recoloured |',
-      '| portrait.png | poster + R9F2 | character select / HUD nameplate | derived composite of untouched pixels |', '',
+      '| portrait.png | poster + R9F2 | character select / HUD nameplate | derived composite of untouched pixels |',
+      '| portrait_body.png | R9F2 | body layer composited into portrait.png (also kept as its own file) | derived copy (frame cut) |', '',
       '## Chroma-key verification (idle + run)', '', '| Frame | Suit px in source | Suit px kept | % | Key colour left | Shadow px removed |', '|---|---|---|---|---|---|']
 for fid, v in ck.items():
     L.append(f"| {fid} | {v['suit_src']} | {v['suit_kept']} | {v['pct']} | {v['key_left']} | {v['shadow_removed']} |")

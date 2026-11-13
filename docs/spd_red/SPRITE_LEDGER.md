@@ -103,6 +103,7 @@ Source: `assets/incoming/spd_red/spd_red_sheet.png` (727×1160, SHA-256 `a7c60bd
 | Blue GEM (cyan diamond on the dark badge) | 656,45,685,73 | containment card icon · HUD Delta badge | derived copy (crop) |
 | Blue GEM, cut out (`gem_cut.png`) | 656,45,685,73 | in-world FX: intro landing flash · WIN-1 spinning gem · LOSE flicker | derived copy: the badge's dark backing (max channel ≤ 42, flood-filled from the crop border) made transparent; no pixel recoloured |
 | portrait.png | poster + R9F2 | character select / HUD nameplate | derived composite of untouched pixels |
+| portrait_body.png | R9F2 | body layer composited into portrait.png (also kept as its own file) | derived copy (frame cut) |
 
 ## Chroma-key verification (idle + run)
 

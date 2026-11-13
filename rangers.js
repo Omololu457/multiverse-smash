@@ -72,6 +72,7 @@ export function registerRangerProfile(id, p = {}) {
   RANGER_PROFILES[id] = {
     id,
     team: p.team || 'Power Rangers',
+    ownTick: !!p.ownTick,   // true = the Ranger's own <key>State.js tick calls tickRanger (S.P.D. Red); false = profile-only, ticked by the generic hook
     badge: { color: '#ff3b6b', accent: '#ffffff', emblem: null, ...(p.badge || {}) },
     blink: { ...BLINK_DEFAULTS, ...(p.blink || {}) },
     morph: { ...MORPH_DEFAULTS, ...(p.morph || {}) },

@@ -3,6 +3,7 @@
 import { spdRedState, isSpdRed } from './spdRedState.js'
 import { spdRedHudState } from './spdRedFx.js'
 import { getHurtbox, getAttackPhase } from './combat.js'
+import { activeProjectiles } from './abilities.js'
 import { ensureRangerState, startBlink, judgmentBegin, RANGER_PROFILES } from './rangers.js'
 
 export function spdRedHarnessApi(g) {
@@ -26,7 +27,12 @@ export function spdRedHarnessApi(g) {
       }
     },
     raw: (w = 'p1') => pick(w),
-    reset: () => { g.reset(); for (const f of [g.p1(), g.p2()]) if (f) { delete f._spdRed; delete f._ranger; f._rooted = false } },
+    reset: () => {
+      g.reset()
+      const fs = [g.p1(), g.p2()]
+      for (let i = activeProjectiles.length - 1; i >= 0; i--) if (fs.includes(activeProjectiles[i]?.owner)) activeProjectiles.splice(i, 1)   // no leftover bolts between scenarios
+      for (const f of fs) if (f) { delete f._spdRed; delete f._ranger; f._rooted = false; f.knockdownState = false; f.attacking = false; f.currentAttack = null; f.currentMove = null }
+    },
     delta: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },
     set: (w = 'p1', patch = {}) => { const f = pick(w); if (f && isSpdRed(f)) Object.assign(spdRedState(f), patch) },
     ranger: (w = 'p1', patch = {}) => { const f = pick(w); const r = f && ensureRangerState(f); if (r) Object.assign(r, patch); return r ? JSON.parse(JSON.stringify(r)) : null },

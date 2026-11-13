@@ -158,6 +158,7 @@ function dissolve(c, x, y, t, seed, white) {
 export function drawSpdRedFx(c, f, frame = 0) {
   if (!c || !isRed(f)) return
   drawJudgmentWorld(c, f, frame)
+  drawBeams(c, f, frame)
   const s = f._spdRed; if (!s) return
   for (const b of s.fx || []) {
     const life = Math.min(1, b.t / 6)
@@ -190,4 +191,28 @@ function drawJudgmentWorld(c, f, frame) {
     c.save(); c.font = 'bold 13px Arial'; c.textAlign = 'center'; c.fillStyle = '#ff3a2a'
     c.fillText('GUILTY', x + w / 2, y + h + 14); c.restore()
   }
+}
+
+// DELTAMAX / SUPER beam: the R18 F2 beam sprite (white with red trim) tiled from his hands out to the beam's real
+// reach (70% of the 1280 px reference screen — the same length the sim's hitbox uses), with a pulsing core glow.
+const BEAM_LEN = 1280 * 0.70
+function drawBeams(c, f, frame) {
+  const a = f.attacking ? f.currentAttack : null, g = a?.sr; if (!g) return
+  const t = a.total - a.timer
+  let on = -1, life = 0
+  if (g.kind === 'beam') { const st = a.activeStart ?? 24; on = t - st; life = (a.activeEnd ?? st + 6) - st + 8 }
+  else if (g.kind === 'super') { on = t - 78; life = 20 }
+  if (on < 0 || on > life) return
+  const im = img(SPD_RED_FX.beam.sheet); if (!im) return
+  const dir = f.facing || 1, sc = SCALE(f), fw = f.w ?? 48
+  const x0 = dir === 1 ? (f.x || 0) + fw : (f.x || 0), y = (f.y || 0) + 15   // hand height of R16F2 (the sim beam box: y + 0 … y + 34)
+  const fade = on > life - 6 ? (life - on) / 6 : 1, grow = Math.min(1, (on + 1) / 3)
+  const th = im.height * sc * (2.2 + 0.4 * Math.sin(frame / 2)) * grow, tile = im.width * sc
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= fade
+  c.translate(x0, y); c.scale(dir, 1)
+  for (let x = 0; x < BEAM_LEN * grow; x += tile) c.drawImage(im, 0, 0, im.width, im.height, x, -th / 2, Math.min(tile, BEAM_LEN - x), th)
+  c.fillStyle = 'rgba(255,255,255,0.92)'; c.fillRect(0, -th * 0.22, BEAM_LEN * grow, th * 0.44)   // the white body between the red trim
+  c.globalCompositeOperation = 'lighter'; c.globalAlpha *= 0.5
+  c.fillStyle = 'rgba(120,230,255,0.9)'; c.fillRect(0, -th * 0.1, BEAM_LEN * grow, th * 0.2)
+  c.restore()
 }

@@ -14,8 +14,8 @@ When a prompt says **"follow the ranger framework"**, build the new Ranger this 
 
 | Shared: `rangers.js`, never re-implement | Per character: `<key>Data.js`, `<key>State.js`, `<key>.js`, `<key>Fx.js`, `<key>Sound.js` |
 |---|---|
-| Double-tap detection on **sim ticks**; the engine's wall-clock dash is turned off with `noDash` | The profile values passed to `registerRangerProfile` |
-| BLINK: charges, refill timers, startup/travel/recovery split, invulnerable travel, edge clamp, crossup rule, air blink with momentum, run-after-blink, dodge detection, PHASE STEP face lock, wind-up refund | What a dodge pays (energy name, buff use), e.g. S.P.D. Red's +5 Delta and +15% next hit |
+| Double-tap detection on **sim ticks**; the engine's wall-clock dash is turned off with `noDash`. A diagonal press never counts as a tap, so motions like ↓↘→↓↘→ cannot blink. Every double-tap stamps `r.pending` / `r.pendingAt`, even when no blink could start | The profile values passed to `registerRangerProfile` |
+| BLINK: charges, refill timers, startup/travel/recovery split, invulnerable travel, edge clamp, crossup rule, air blink with momentum, run-after-blink, dodge detection, PHASE STEP face lock, wind-up refund | What a dodge pays (energy name, buff use), e.g. S.P.D. Red's +5 Delta and +15% next hit. Which moves may blink-cancel: call `startBlink(f, r.pending.dir, 0, { cancel: true })` when `r.pendingAt === r.tick`. Which `→→`+button commands exist: `refundBlink(f)` returns the charge while the blink is still in its wind-up |
 | MORPH state machine (`unmorphed`, `morphing`, `morphed`; `alwaysMorphed`) | Morph art and sequence, if the Ranger has unmorphed art |
 | JUDGMENT: meter, `judgmentReady` / `judgmentBegin`, time freeze, verdict rules (`VERDICT_RULES`), GUILTY containment (pin, no actions, absorb, far-side release), INNOCENT refund and re-attempt window, once per round, **Ranger opponent is always innocent** (`isRanger`) | Which hits feed the meter, the input that starts it, the poster/card art, what GUILTY unlocks (e.g. Red's 220 Super beam) |
 | TEAM BADGE: `rangerBadge(f)`, `badgeRGBA(f, a)` for HUD tint and FX recolour | Emblem art |

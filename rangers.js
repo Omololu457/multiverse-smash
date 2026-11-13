@@ -342,12 +342,25 @@ export function tickRanger(f, opp, raw = {}, W = null) {
   for (const d of DIRS) {
     const v = !!raw[d]
     if (v && !r.prev[d]) {
-      if (r.tapAt[d] != null && r.tick - r.tapAt[d] <= p.blink.tapWindow) { want = d; r.tapAt[d] = null }
+      // a DIAGONAL press is a motion input (↓↘→, ↓↘→↓↘→ …), never half of a blink double-tap
+      const clean = d === 'left' || d === 'right' ? !raw.up && !raw.down : !raw.left && !raw.right
+      if (!clean) r.tapAt[d] = null
+      else if (r.tapAt[d] != null && r.tick - r.tapAt[d] <= p.blink.tapWindow) { want = d; r.tapAt[d] = null }
       else r.tapAt[d] = r.tick
     }
     r.prev[d] = v
   }
   for (const d of DIRS) if (d !== want && want && r.tapAt[d] != null && r.tick - r.tapAt[d] > p.blink.tapWindow) r.tapAt[d] = null
+  // stamp the double-tap BEFORE the hitstop early-out: a tap made in the hit-freeze must still reach the character's
+  // blink-cancel / →→+button reader (the blink itself only starts outside hitstop, below)
+  if (want) {
+    const vertical = want === 'up' || want === 'down'
+    if (!vertical || p.blink.vertical) {
+      r.pending = { dir: vertical ? 0 : want === 'left' ? -1 : 1, vdir: vertical ? (want === 'up' ? -1 : 1) : 0 }
+      r.pendingAt = r.tick   // the double-tap tick, even when no blink could start (mid-move / no charges): the character
+                             // module reads it for →→+button commands and blink-cancels (startBlink(f, dir, 0, { cancel: true }))
+    } else want = null
+  }
   if (f.hitstop > 0) return r.events
   // charge refills (each spent charge on its own timer)
   for (let i = r.refill.length - 1; i >= 0; i--) if (--r.refill[i] <= 0) { r.refill.splice(i, 1); r.charges = Math.min(p.blink.charges, r.charges + 1); ev(r, 'charge', {}) }
@@ -356,13 +369,7 @@ export function tickRanger(f, opp, raw = {}, W = null) {
   if (r.morph === 'morphing' && --r.morphT <= 0) { r.morph = 'morphed'; ev(r, 'morphed') }
   r.sealed = !!(opp && opp._ranger?.judg?.contain > 0)
   // a requested blink (the character module may veto with r.noBlink, or turn it into a move with r.blinkVeto)
-  if (want && !r.blink) {
-    const vertical = want === 'up' || want === 'down'
-    if (!vertical || p.blink.vertical) {
-      r.pending = { dir: vertical ? 0 : want === 'left' ? -1 : 1, vdir: vertical ? (want === 'up' ? -1 : 1) : 0 }
-      if (!r.blinkVeto) startBlink(f, r.pending.dir, r.pending.vdir)
-    }
-  }
+  if (want && !r.blink && !r.blinkVeto) startBlink(f, r.pending.dir, r.pending.vdir)
   if (r.blink) stepBlink(f, opp, r, p, W)
   else if (f._rooted && r._rootedByMe) f._rooted = false
   r._rootedByMe = !!r.blink

@@ -1,0 +1,1026 @@
+{
+ "source": "assets/incoming/arlong/arlong_sheet.png",
+ "sha256": "bf1c89820b25e12110d23d50cdf583e55af33bd7df3e88114e385947dfe976ec",
+ "cell": [
+  256,
+  176
+ ],
+ "origin": [
+  128,
+  164
+ ],
+ "rowCounts": [
+  4,
+  4,
+  2,
+  4,
+  4,
+  3,
+  5,
+  3,
+  3,
+  3,
+  3,
+  1,
+  4,
+  3,
+  5,
+  5,
+  3,
+  2,
+  3,
+  3,
+  3
+ ],
+ "frames": {
+  "R1F1": {
+   "rect": [
+    3,
+    17,
+    53,
+    95
+   ],
+   "components": 1,
+   "desc": "idle A (sawshark fishman, yellow jacket, green shorts)",
+   "uses": [
+    "anim `idle` \u2192 neutral standing"
+   ]
+  },
+  "R1F2": {
+   "rect": [
+    67,
+    18,
+    117,
+    95
+   ],
+   "components": 1,
+   "desc": "idle B",
+   "uses": [
+    "anim `idle` \u2192 neutral standing"
+   ]
+  },
+  "R1F3": {
+   "rect": [
+    132,
+    0,
+    150,
+    95
+   ],
+   "components": 1,
+   "desc": "KIRIBACHI standalone, vertical",
+   "uses": [
+    "fx_blade_v \u2192 planted Kiribachi (stage), WIN 1 planted blade, HUD Kiribachi icon (greys out while thrown)"
+   ]
+  },
+  "R1F4": {
+   "rect": [
+    187,
+    25,
+    274,
+    80
+   ],
+   "components": 1,
+   "desc": "PORTRAIT (grinning shark face close-up)",
+   "uses": [
+    "portrait.png + portrait_frame.png \u2192 character select + WIN 1 panel"
+   ]
+  },
+  "R2F1": {
+   "rect": [
+    6,
+    108,
+    83,
+    164
+   ],
+   "components": 1,
+   "desc": "knocked back / falling (airborne)",
+   "uses": [
+    "anim `hurt_air` \u2192 juggled",
+    "anim `knockdown` \u2192 knocked down"
+   ]
+  },
+  "R2F2": {
+   "rect": [
+    95,
+    143,
+    166,
+    167
+   ],
+   "components": 1,
+   "desc": "lying face-down",
+   "uses": [
+    "anim `knockdown` \u2192 knocked down",
+    "anim `lose` \u2192 LOSE (lying, blade laid flat)"
+   ]
+  },
+  "R2F3": {
+   "rect": [
+    182,
+    128,
+    255,
+    166
+   ],
+   "components": 1,
+   "desc": "lying, pushing up",
+   "uses": [
+    "anim `getup` \u2192 wake-up"
+   ]
+  },
+  "R2F4": {
+   "rect": [
+    270,
+    139,
+    343,
+    170
+   ],
+   "components": 1,
+   "desc": "lying on back",
+   "uses": [
+    "anim `knockdown` \u2192 knocked down"
+   ]
+  },
+  "R3F1": {
+   "rect": [
+    2,
+    174,
+    84,
+    216
+   ],
+   "components": 1,
+   "desc": "KIRIBACHI standalone, angled",
+   "uses": [
+    "fx_blade_angled \u2192 thrown Kiribachi in flight (rotated at draw time = render-only)"
+   ]
+  },
+  "R3F2": {
+   "rect": [
+    91,
+    197,
+    181,
+    215
+   ],
+   "components": 1,
+   "desc": "KIRIBACHI standalone, flat",
+   "uses": [
+    "fx_blade_flat \u2192 recalled blade sliding home; LOSE blade laid flat"
+   ]
+  },
+  "R4F1": {
+   "rect": [
+    7,
+    232,
+    53,
+    311
+   ],
+   "components": 1,
+   "desc": "standing / walk 1",
+   "uses": [
+    "anim `walk` \u2192 walking forward",
+    "anim `walk_back` \u2192 walking back",
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)"
+   ]
+  },
+  "R4F2": {
+   "rect": [
+    65,
+    231,
+    111,
+    311
+   ],
+   "components": 1,
+   "desc": "walk 2",
+   "uses": [
+    "anim `walk` \u2192 walking forward",
+    "anim `walk_back` \u2192 walking back",
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)"
+   ]
+  },
+  "R4F3": {
+   "rect": [
+    129,
+    228,
+    189,
+    311
+   ],
+   "components": 1,
+   "desc": "walk 3 (arms out)",
+   "uses": [
+    "anim `walk` \u2192 walking forward",
+    "anim `walk_back` \u2192 walking back",
+    "anim `run` \u2192 running",
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)"
+   ]
+  },
+  "R4F4": {
+   "rect": [
+    202,
+    229,
+    262,
+    311
+   ],
+   "components": 1,
+   "desc": "walk 4 (arms out)",
+   "uses": [
+    "anim `walk` \u2192 walking forward",
+    "anim `walk_back` \u2192 walking back",
+    "anim `run` \u2192 running",
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)"
+   ]
+  },
+  "R5F1": {
+   "rect": [
+    2,
+    326,
+    59,
+    391
+   ],
+   "components": 1,
+   "desc": "hunched stance (jaw closed)",
+   "uses": [
+    "anim `grab` \u2192 grab attempt",
+    "anim `throw` \u2192 throw",
+    "anim `light` \u2192 Jab (L)",
+    "anim `up` \u2192 Rising claw (\u2191+H / Up-Attack)",
+    "anim `aRecall` \u2192 KIRIBACHI RECALL (236+B while planted)"
+   ]
+  },
+  "R5F2": {
+   "rect": [
+    64,
+    332,
+    140,
+    391
+   ],
+   "components": 1,
+   "desc": "jaw-open lunge 1",
+   "uses": [
+    "anim `aBite` \u2192 BITE (\u2192+H close) / 0-teeth HEADBUTT",
+    "anim `aTooth` \u2192 SHARK ON TOOTH (236+A)"
+   ]
+  },
+  "R5F3": {
+   "rect": [
+    144,
+    337,
+    220,
+    391
+   ],
+   "components": 1,
+   "desc": "jaw-open lunge 2",
+   "uses": [
+    "anim `aBite` \u2192 BITE (\u2192+H close) / 0-teeth HEADBUTT",
+    "anim `aTooth` \u2192 SHARK ON TOOTH (236+A)"
+   ]
+  },
+  "R5F4": {
+   "rect": [
+    224,
+    339,
+    300,
+    391
+   ],
+   "components": 1,
+   "desc": "jaw-open lunge 3",
+   "uses": [
+    "anim `aBite` \u2192 BITE (\u2192+H close) / 0-teeth HEADBUTT",
+    "anim `aTooth` \u2192 SHARK ON TOOTH (236+A)"
+   ]
+  },
+  "R6F1": {
+   "rect": [
+    10,
+    418,
+    34,
+    449
+   ],
+   "components": 4,
+   "desc": "white star-burst S",
+   "uses": [
+    "fx_burst_a \u2192 Fishman Karate impact bursts (Seiken / karate hits)"
+   ]
+  },
+  "R6F2": {
+   "rect": [
+    52,
+    407,
+    112,
+    468
+   ],
+   "components": 8,
+   "desc": "white star-burst L (teeth)",
+   "uses": [
+    "fx_burst_a \u2192 Fishman Karate impact bursts (Seiken / karate hits)"
+   ]
+  },
+  "R6F3": {
+   "rect": [
+    125,
+    401,
+    190,
+    473
+   ],
+   "components": 15,
+   "desc": "white star-burst M (radial)",
+   "uses": [
+    "fx_burst_a \u2192 Fishman Karate impact bursts (Seiken / karate hits)"
+   ]
+  },
+  "R7F1": {
+   "rect": [
+    7,
+    480,
+    53,
+    559
+   ],
+   "components": 1,
+   "desc": "standing pose",
+   "uses": [
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)"
+   ]
+  },
+  "R7F2": {
+   "rect": [
+    64,
+    490,
+    105,
+    559
+   ],
+   "components": 1,
+   "desc": "side flex 1",
+   "uses": [
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)"
+   ]
+  },
+  "R7F3": {
+   "rect": [
+    115,
+    490,
+    155,
+    559
+   ],
+   "components": 1,
+   "desc": "side flex 2",
+   "uses": [
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)"
+   ]
+  },
+  "R7F4": {
+   "rect": [
+    172,
+    497,
+    217,
+    559
+   ],
+   "components": 1,
+   "desc": "karate wind-up (jacket swing)",
+   "uses": [
+    "anim `aStraight` \u2192 Fishman straight (L,L / \u2192+L)",
+    "anim `aKSwing` \u2192 weaponless Kiribachi-swing replacement (karate)",
+    "anim `aSeiken` \u2192 GOSENMAIGAWARA SEIKEN (214+A)"
+   ]
+  },
+  "R7F5": {
+   "rect": [
+    227,
+    485,
+    300,
+    559
+   ],
+   "components": 1,
+   "desc": "WIDE STANCE with power burst",
+   "uses": [
+    "anim `win2` \u2192 WIN 2 (wide stance \u2192 blade overhead)",
+    "anim `aKHeavy` \u2192 weaponless heavy replacement",
+    "anim `aKWake` \u2192 weaponless wake-up replacement",
+    "anim `aTooth` \u2192 SHARK ON TOOTH (236+A)"
+   ]
+  },
+  "R8F1": {
+   "rect": [
+    4,
+    577,
+    52,
+    639
+   ],
+   "components": 1,
+   "desc": "blade held level, hilt forward",
+   "uses": [
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)",
+    "anim `aWake` \u2192 Wake-up reversal",
+    "anim `aThrow` \u2192 KIRIBACHI THROW (236+B)"
+   ]
+  },
+  "R8F2": {
+   "rect": [
+    69,
+    577,
+    125,
+    639
+   ],
+   "components": 1,
+   "desc": "blade level, braced",
+   "uses": [
+    "anim `aThrow` \u2192 KIRIBACHI THROW (236+B)"
+   ]
+  },
+  "R8F3": {
+   "rect": [
+    141,
+    570,
+    201,
+    639
+   ],
+   "components": 1,
+   "desc": "blade lifted to shoulder / overhead",
+   "uses": [
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)",
+    "anim `aWake` \u2192 Wake-up reversal",
+    "anim `aThrow` \u2192 KIRIBACHI THROW (236+B)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R9F1": {
+   "rect": [
+    0,
+    648,
+    70,
+    751
+   ],
+   "components": 1,
+   "desc": "Kiribachi swing 1 (blade up)",
+   "uses": [
+    "anim `aSwing` \u2192 Kiribachi swing (H)"
+   ]
+  },
+  "R9F2": {
+   "rect": [
+    80,
+    652,
+    150,
+    751
+   ],
+   "components": 1,
+   "desc": "Kiribachi swing 2",
+   "uses": [
+    "anim `aSwing` \u2192 Kiribachi swing (H)"
+   ]
+  },
+  "R9F3": {
+   "rect": [
+    164,
+    660,
+    254,
+    748
+   ],
+   "components": 1,
+   "desc": "Kiribachi swing 3 (follow-through)",
+   "uses": [
+    "anim `aSwing` \u2192 Kiribachi swing (H)",
+    "anim `aWake` \u2192 Wake-up reversal",
+    "anim `aThrow` \u2192 KIRIBACHI THROW (236+B)"
+   ]
+  },
+  "R10F1": {
+   "rect": [
+    2,
+    760,
+    110,
+    879
+   ],
+   "components": 1,
+   "desc": "big sweeping arc 1 (silver trail)",
+   "uses": [
+    "anim `heavy` \u2192 Heavy saw arc (L\u2192H chain / \u2193\u2198+H\u2026 see moveset)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R10F2": {
+   "rect": [
+    120,
+    784,
+    244,
+    878
+   ],
+   "components": 6,
+   "desc": "big sweeping arc 2",
+   "uses": [
+    "anim `heavy` \u2192 Heavy saw arc (L\u2192H chain / \u2193\u2198+H\u2026 see moveset)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R10F3": {
+   "rect": [
+    245,
+    783,
+    352,
+    879
+   ],
+   "components": 5,
+   "desc": "big sweeping arc 3",
+   "uses": [
+    "anim `heavy` \u2192 Heavy saw arc (L\u2192H chain / \u2193\u2198+H\u2026 see moveset)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R11F1": {
+   "rect": [
+    4,
+    902,
+    84,
+    999
+   ],
+   "components": 1,
+   "desc": "downward slash with arc",
+   "uses": [
+    "anim `aLow` \u2192 Low saw (\u2193+L)",
+    "anim `aTidal` \u2192 TIDAL SWEEP (22+A)"
+   ]
+  },
+  "R11F2": {
+   "rect": [
+    101,
+    905,
+    207,
+    1006
+   ],
+   "components": 1,
+   "desc": "spinning low slash + ground spray",
+   "uses": [
+    "anim `aLow` \u2192 Low saw (\u2193+L)",
+    "anim `aTidal` \u2192 TIDAL SWEEP (22+A)"
+   ]
+  },
+  "R11F3": {
+   "rect": [
+    226,
+    898,
+    331,
+    1009
+   ],
+   "components": 11,
+   "desc": "rising arc slash",
+   "uses": [
+    "anim `aTidal` \u2192 TIDAL SWEEP (22+A)"
+   ]
+  },
+  "R12F1": {
+   "rect": [
+    3,
+    1015,
+    73,
+    1117
+   ],
+   "components": 1,
+   "desc": "jumping with the blade",
+   "uses": [
+    "anim `air` \u2192 Air saw (air L/H)"
+   ]
+  },
+  "R13F1": {
+   "rect": [
+    7,
+    1161,
+    59,
+    1199
+   ],
+   "components": 1,
+   "desc": "sitting, dazed",
+   "uses": [
+    "anim `getup` \u2192 wake-up"
+   ]
+  },
+  "R13F2": {
+   "rect": [
+    69,
+    1150,
+    123,
+    1199
+   ],
+   "components": 1,
+   "desc": "sitting up",
+   "uses": [
+    "anim `hurt_heavy` \u2192 heavy hitstun"
+   ]
+  },
+  "R13F3": {
+   "rect": [
+    132,
+    1134,
+    181,
+    1199
+   ],
+   "components": 1,
+   "desc": "hunched hurt",
+   "uses": [
+    "anim `hurt` \u2192 hitstun"
+   ]
+  },
+  "R13F4": {
+   "rect": [
+    191,
+    1118,
+    238,
+    1199
+   ],
+   "components": 1,
+   "desc": "standing up (recovered)",
+   "uses": [
+    "anim `getup` \u2192 wake-up"
+   ]
+  },
+  "R14F1": {
+   "rect": [
+    3,
+    1241,
+    93,
+    1279
+   ],
+   "components": 1,
+   "desc": "crouched, blade resting on the ground",
+   "uses": [
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)"
+   ]
+  },
+  "R14F2": {
+   "rect": [
+    107,
+    1230,
+    197,
+    1279
+   ],
+   "components": 1,
+   "desc": "kneeling, blade on the ground",
+   "uses": [
+    "anim `intro` \u2192 INTRO walk-in (drags the blade, shoulders it)",
+    "anim `aPickup` \u2192 pick up the planted blade (B beside it)"
+   ]
+  },
+  "R14F3": {
+   "rect": [
+    211,
+    1202,
+    295,
+    1279
+   ],
+   "components": 1,
+   "desc": "standing, blade overhead",
+   "uses": [
+    "anim `win2` \u2192 WIN 2 (wide stance \u2192 blade overhead)",
+    "anim `aPickup` \u2192 pick up the planted blade (B beside it)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R15F1": {
+   "rect": [
+    5,
+    1301,
+    74,
+    1376
+   ],
+   "components": 1,
+   "desc": "leap (Shark On Darts take-off)",
+   "uses": [
+    "anim `jump` \u2192 jump rise",
+    "anim `fall` \u2192 falling",
+    "anim `aKAir` \u2192 weaponless air replacement",
+    "anim `aDarts` \u2192 SHARK ON DARTS (66+A)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)"
+   ]
+  },
+  "R15F2": {
+   "rect": [
+    87,
+    1288,
+    110,
+    1383
+   ],
+   "components": 1,
+   "desc": "DRILL / torpedo 1 (nose-first)",
+   "uses": [
+    "anim `down_air` \u2192 air \u2193+attack nose dive",
+    "anim `aDarts` \u2192 SHARK ON DARTS (66+A)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)",
+    "fx_drill \u2192 Shark On Darts torpedo body + Super torpedo strikes"
+   ]
+  },
+  "R15F3": {
+   "rect": [
+    120,
+    1288,
+    143,
+    1383
+   ],
+   "components": 1,
+   "desc": "DRILL / torpedo 2",
+   "uses": [
+    "anim `aDarts` \u2192 SHARK ON DARTS (66+A)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)",
+    "fx_drill \u2192 Shark On Darts torpedo body + Super torpedo strikes"
+   ]
+  },
+  "R15F4": {
+   "rect": [
+    158,
+    1288,
+    188,
+    1383
+   ],
+   "components": 2,
+   "desc": "DRILL / torpedo 3",
+   "uses": [
+    "anim `aDarts` \u2192 SHARK ON DARTS (66+A)",
+    "anim `aSuper` \u2192 ARLONG PARK super (236236+A)",
+    "fx_drill \u2192 Shark On Darts torpedo body + Super torpedo strikes"
+   ]
+  },
+  "R15F5": {
+   "rect": [
+    190,
+    1328,
+    260,
+    1383
+   ],
+   "components": 2,
+   "desc": "tumble out of the dive (nose-first landing)",
+   "uses": [
+    "anim `aDarts` \u2192 SHARK ON DARTS (66+A)"
+   ]
+  },
+  "R16F1": {
+   "rect": [
+    1,
+    1416,
+    25,
+    1427
+   ],
+   "components": 1,
+   "desc": "PURPLE water jet XS",
+   "uses": [
+    "fx_jets \u2192 Water Shot projectile (small\u2192large), Seiken shockwave, WATER ZONE surface (flattened + tinted at draw), geyser, Super flood tiles"
+   ]
+  },
+  "R16F2": {
+   "rect": [
+    40,
+    1406,
+    84,
+    1430
+   ],
+   "components": 1,
+   "desc": "PURPLE water jet S",
+   "uses": [
+    "fx_jets \u2192 Water Shot projectile (small\u2192large), Seiken shockwave, WATER ZONE surface (flattened + tinted at draw), geyser, Super flood tiles"
+   ]
+  },
+  "R16F3": {
+   "rect": [
+    99,
+    1393,
+    155,
+    1430
+   ],
+   "components": 1,
+   "desc": "PURPLE water jet M",
+   "uses": [
+    "fx_jets \u2192 Water Shot projectile (small\u2192large), Seiken shockwave, WATER ZONE surface (flattened + tinted at draw), geyser, Super flood tiles"
+   ]
+  },
+  "R16F4": {
+   "rect": [
+    165,
+    1390,
+    222,
+    1431
+   ],
+   "components": 4,
+   "desc": "PURPLE water jet L",
+   "uses": [
+    "fx_jets \u2192 Water Shot projectile (small\u2192large), Seiken shockwave, WATER ZONE surface (flattened + tinted at draw), geyser, Super flood tiles"
+   ]
+  },
+  "R16F5": {
+   "rect": [
+    235,
+    1391,
+    292,
+    1431
+   ],
+   "components": 4,
+   "desc": "PURPLE water jet XL",
+   "uses": [
+    "fx_jets \u2192 Water Shot projectile (small\u2192large), Seiken shockwave, WATER ZONE surface (flattened + tinted at draw), geyser, Super flood tiles"
+   ]
+  },
+  "R17F1": {
+   "rect": [
+    3,
+    1447,
+    46,
+    1527
+   ],
+   "components": 1,
+   "desc": "standing pose (flex 1)",
+   "uses": [
+    "anim `taunt` \u2192 taunt",
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)",
+    "anim `win` \u2192 WIN 1 (portrait grin, blade planted)"
+   ]
+  },
+  "R17F2": {
+   "rect": [
+    63,
+    1448,
+    109,
+    1527
+   ],
+   "components": 1,
+   "desc": "standing pose (flex 2)",
+   "uses": [
+    "anim `taunt` \u2192 taunt",
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)"
+   ]
+  },
+  "R17F3": {
+   "rect": [
+    120,
+    1447,
+    166,
+    1527
+   ],
+   "components": 1,
+   "desc": "standing pose (flex 3)",
+   "uses": [
+    "anim `taunt` \u2192 taunt",
+    "anim `idleFlex` \u2192 IDLE > 10 s (blade on shoulder + flex)"
+   ]
+  },
+  "R18F1": {
+   "rect": [
+    0,
+    1540,
+    73,
+    1612
+   ],
+   "components": 1,
+   "desc": "dash lean",
+   "uses": [
+    "anim `run` \u2192 running",
+    "anim `run` \u2192 running",
+    "anim `dash` \u2192 ground dash / SWIM-DASH (in water)",
+    "anim `aLunge` \u2192 Lunge punch (\u2192\u2192+L \u2026 see moveset)"
+   ]
+  },
+  "R18F2": {
+   "rect": [
+    87,
+    1540,
+    161,
+    1605
+   ],
+   "components": 1,
+   "desc": "lunge (wide low step)",
+   "uses": [
+    "anim `aLunge` \u2192 Lunge punch (\u2192\u2192+L \u2026 see moveset)",
+    "anim `aKLow` \u2192 weaponless low replacement"
+   ]
+  },
+  "R19F1": {
+   "rect": [
+    2,
+    1624,
+    87,
+    1687
+   ],
+   "components": 1,
+   "desc": "punch + white impact 1",
+   "uses": [
+    "anim `throw` \u2192 throw",
+    "anim `light` \u2192 Jab (L)",
+    "anim `aKSwing` \u2192 weaponless Kiribachi-swing replacement (karate)",
+    "anim `aSeiken` \u2192 GOSENMAIGAWARA SEIKEN (214+A)",
+    "anim `aRecall` \u2192 KIRIBACHI RECALL (236+B while planted)",
+    "anim `aShot` \u2192 WATER SHOT (214+B)"
+   ]
+  },
+  "R19F2": {
+   "rect": [
+    106,
+    1624,
+    191,
+    1687
+   ],
+   "components": 1,
+   "desc": "punch + white impact 2",
+   "uses": [
+    "anim `up` \u2192 Rising claw (\u2191+H / Up-Attack)",
+    "anim `aKHeavy` \u2192 weaponless heavy replacement",
+    "anim `aSeiken` \u2192 GOSENMAIGAWARA SEIKEN (214+A)",
+    "anim `aShot` \u2192 WATER SHOT (214+B)"
+   ]
+  },
+  "R19F3": {
+   "rect": [
+    210,
+    1624,
+    295,
+    1687
+   ],
+   "components": 1,
+   "desc": "punch + white impact 3",
+   "uses": [
+    "anim `aStraight` \u2192 Fishman straight (L,L / \u2192+L)",
+    "anim `aKWake` \u2192 weaponless wake-up replacement",
+    "anim `aSeiken` \u2192 GOSENMAIGAWARA SEIKEN (214+A)"
+   ]
+  },
+  "R20F1": {
+   "rect": [
+    4,
+    1699,
+    56,
+    1745
+   ],
+   "components": 1,
+   "desc": "white burst L (+ spark)",
+   "uses": [
+    "fx_burst_b \u2192 karate hit sparks / Super finisher splash burst"
+   ]
+  },
+  "R20F2": {
+   "rect": [
+    66,
+    1703,
+    93,
+    1739
+   ],
+   "components": 1,
+   "desc": "white burst M",
+   "uses": [
+    "fx_burst_b \u2192 karate hit sparks / Super finisher splash burst"
+   ]
+  },
+  "R20F3": {
+   "rect": [
+    104,
+    1710,
+    122,
+    1734
+   ],
+   "components": 1,
+   "desc": "white burst S",
+   "uses": [
+    "fx_burst_b \u2192 karate hit sparks / Super finisher splash burst"
+   ]
+  },
+  "R21F1": {
+   "rect": [
+    5,
+    1761,
+    48,
+    1823
+   ],
+   "components": 1,
+   "desc": "hunched guard 1",
+   "uses": [
+    "anim `crouch` \u2192 holding \u2193"
+   ]
+  },
+  "R21F2": {
+   "rect": [
+    66,
+    1764,
+    104,
+    1823
+   ],
+   "components": 1,
+   "desc": "hunched guard 2",
+   "uses": [
+    "anim `guard` \u2192 blocking",
+    "anim `guard_hit` \u2192 blockstun"
+   ]
+  },
+  "R21F3": {
+   "rect": [
+    152,
+    1761,
+    315,
+    1814
+   ],
+   "components": 1,
+   "desc": "GOING MERRY sheep figurehead + ripper credit text",
+   "uses": [
+    "GOING MERRY (x152-209) \u2192 reuses assets/zoro/merry.png (same figurehead art) as the One Piece emblem / HUD Tide badge backing; credit text (x210+) EXCLUDED"
+   ]
+  }
+ },
+ "excluded": {
+  "credit_text": [
+   210,
+   1761,
+   315,
+   1814
+  ]
+ },
+ "merryIdentical": false,
+ "unused": []
+}

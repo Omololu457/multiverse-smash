@@ -3982,6 +3982,7 @@ function updateFFACombat(fighter, others, opts) {
   if (!nearest) return
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
   tickZoro(fighter, nearest, readRawControls(fighter) || {}, ZORO_WORLD)
+  if (fighter._zoroCues) { for (const c of fighter._zoroCues) sound.play('zoro_' + c); fighter._zoroCues = null }   // Roronoa Zoro SFX cues (FFA step)
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
 
@@ -11148,6 +11149,7 @@ function _updatePlayerCombatBody(fighter) {
   if (!fighter) return
   tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})
   tickZoro(fighter, getOpponent(fighter), readRawControls(fighter) || {}, ZORO_WORLD)
+  if (fighter._zoroCues) { for (const c of fighter._zoroCues) sound.play('zoro_' + c); fighter._zoroCues = null }   // Roronoa Zoro SFX cues (1v1 step)
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
 

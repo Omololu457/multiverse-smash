@@ -311,7 +311,9 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
   src.start(ctx.currentTime); src.stop(ctx.currentTime + duration)
 }
 
+import { ZORO_SOUNDS } from './zoroSound.js'   // Roronoa Zoro synth SFX (SFX bus; voice bus untouched)
 const SOUNDS = {
+  ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
   // Luffy: synthesized placeholders; supplied sprite art includes no voice pack.
   luffy_stretch(ctx,out) { osc(ctx,out,'triangle',160,0.16,0.22,780) },
   luffy_snap(ctx,out) { osc(ctx,out,'sine',900,0.10,0.25,160) },

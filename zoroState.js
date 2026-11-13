@@ -5,6 +5,8 @@
 import { ZORO_SANTO_ANIM, ZORO_MOVES } from './zoroData.js'
 import { ZORO_FX } from './zoroSprites.js'
 export const isZoro = f => f?.rosterKey === 'zoro'
+// Audio cue queue (presentation only — played + cleared by game.js right after tickZoro; never read by the sim).
+export function zcue(f, c) { (f._zoroCues ||= []).push(c) }
 
 export const ZORO_SPIRIT = { perHitDealt: 5, perHitTaken: 3, passivePerSec: 1, perTornadoTick: 5 }   // a tornado tick is a sword-technique hit (+5)
 // SANTORYU (three-sword stance) — a timed form on the shared currentForm/currentFormData pattern
@@ -41,7 +43,7 @@ export function zoroState(f) {
 
 export function clearZoro(f) {
   if (f?._zoro?.santoryu) revertSantoryu(f, false)
-  if (f?._zoro || isZoro(f)) { delete f._zoro; delete f._zoroCue }
+  if (f?._zoro || isZoro(f)) { delete f._zoro; delete f._zoroCue; delete f._zoroCues }
 }
 
 const elapsed = a => (a ? a.total - a.timer : -1)
@@ -151,6 +153,7 @@ function tickMove(f, opp, s, z, W) {
     }
     case 'nap':
       if (t > 0 && t % z.every === 0 && t / z.every <= z.regen) gainSpirit(f, 1)
+      if (t % 60 === 30) zcue(f, 'snore')   // soft snore every 60 frames while asleep
       f.isBlocking = false
       break
     case 'ashura': tickAshura(f, opp, s, z, a, t, clampX, W); break
@@ -228,7 +231,7 @@ function tickProjectiles(f, opp, s, W) {
 // ── CONQUEROR'S HAKI (passive, once per match) ──
 function fireHaki(f, opp, s, W) {
   const H = ZORO_TUNING.haki
-  s.hakiUsed = true; s.haki = H.frames; f._zoroCue = 'haki'
+  s.hakiUsed = true; s.haki = H.frames; zcue(f, 'haki')
   f.invulnTimer = Math.max(f.invulnTimer || 0, 20)
   const cx = f.x + (f.w || 48) / 2, cy = f.y + (f.h || 100) / 2
   if (W) {   // cancel enemy projectiles + summons in range
@@ -266,6 +269,7 @@ export function zoroHit(attacker, defender, atk) {
   if (isZoro(attacker) && attacker !== defender) {
     if (atk?.zr?.kind === 'ashura' && attacker._zoro) attacker._zoro.superHit = true
     gainSpirit(attacker, ZORO_SPIRIT.perHitDealt)
+    zcue(attacker, 'hit')   // metallic ping
   }
   if (isZoro(defender) && attacker !== defender) gainSpirit(defender, ZORO_SPIRIT.perHitTaken)
 }
@@ -275,7 +279,7 @@ export function zoroProjectileHit(proj, target) {
   const o = proj.owner
   // A tornado is ONE hit for combo scaling: its re-armed ticks after the first don't deepen the 85% decay.
   if (isZoro(o) && proj.zoroKind === 'tatsu') { if (proj._zoroCounted) o.comboCounter = Math.max(1, (o.comboCounter || 1) - 1); proj._zoroCounted = true }
-  if (isZoro(o) && o !== target) gainSpirit(o, proj.zoroKind === 'tatsu' ? ZORO_SPIRIT.perTornadoTick : ZORO_SPIRIT.perHitDealt)
+  if (isZoro(o) && o !== target) { gainSpirit(o, proj.zoroKind === 'tatsu' ? ZORO_SPIRIT.perTornadoTick : ZORO_SPIRIT.perHitDealt); if (proj.zoroKind === 'taka') zcue(o, 'hit') }
   if (isZoro(target) && o !== target) gainSpirit(target, ZORO_SPIRIT.perHitTaken)
 }
 // Per-move block stun (combat block branch): the engine default is a flat 10 (+4 special); Zoro's moves
@@ -291,7 +295,7 @@ export function zoroCounter(defender, attacker) {
   const t = elapsed(a), inc = attacker?.currentAttack
   if (t < z.window[0] || t >= z.window[1] || !inc || inc.category === 'grab') return false
   z.countered = true; zoroState(defender).counter = attacker.side ?? 1
-  defender.colorFlash = 8; defender._zoroCue = 'counter'
+  defender.colorFlash = 8; zcue(defender, 'counter')
   return true
 }
 // Pass-through (physics.resolvePlayerCollision): either fighter dashing through the other.
@@ -325,7 +329,7 @@ export function enterSantoryu(f) {
   f.currentFormData = { damageMultiplier: SANTORYU.dmg, attackMultiplier: SANTORYU.dmg, knockbackMultiplier: SANTORYU.kb, santoryu: true }
   f.damageMultiplier = f.attackMultiplier = SANTORYU.dmg
   f._skinAnim = ZORO_SANTO_ANIM
-  f._zoroCue = 'santoryu'
+  zcue(f, 'santoryu')
   return true
 }
 export function revertSantoryu(f, withCooldown = true) {
@@ -334,7 +338,7 @@ export function revertSantoryu(f, withCooldown = true) {
   f.currentForm = 'base'; f.currentFormData = null
   f.damageMultiplier = f.attackMultiplier = 1
   f._skinAnim = f._baseSkinAnim || null
-  f._zoroCue = 'sheathe'
+  zcue(f, 'sheathe')
 }
 // Per-frame form ticker (called from abilities.updateTransformationState, like updateJiraiyaHermit).
 export function updateZoroSantoryu(f) {

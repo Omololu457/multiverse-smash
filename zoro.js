@@ -9,7 +9,7 @@
 //   Directional fallbacks (no motion): A = Taka Nami, →+A = Oni Giri, ↓+A = Tatsu Maki, ←+A = Tora Gari.
 import { startMove } from './combat.js'
 import { ZORO_MOVES } from './zoroData.js'
-import { isZoro, zoroState, enterSantoryu, SANTORYU, zoroStartMove, recentMotion, takaReady, tatsuSlots } from './zoroState.js'
+import { isZoro, zoroState, enterSantoryu, SANTORYU, zoroStartMove, recentMotion, takaReady, tatsuSlots, zcue } from './zoroState.js'
 
 const LENIENCY = 3          // A+B: both press edges within 3 frames of each other
 const BUFFER = 8            // a press edge stays "fresh" for 8 input ticks
@@ -70,10 +70,10 @@ function fire(f, s, key, W) {
   if (key === 'zAshura' && !(f.onGround || f.grounded)) return false
   if (!W_START(f, key)) return false
   f.energy = Math.max(0, (f.energy || 0) - cost(key))
-  if (key === 'zAshura') { f._zoroCue = 'ashura'; s.inSuper = true; s.superHit = false }   // Spirit gain off until the lockout ends
-  else if (key === 'zOni') f._zoroCue = 'oni'
-  else if (key === 'zTatsu') f._zoroCue = 'tatsu'
-  else if (ZORO_MOVES[key].isSpecial) f._zoroCue = 'swing'
+  if (key === 'zAshura') { zcue(f, 'ashura'); s.inSuper = true; s.superHit = false }   // Spirit gain off until the lockout ends
+  else if (key === 'zOni') zcue(f, 'oni')
+  else if (key === 'zTatsu') zcue(f, 'tatsu')
+  else if (ZORO_MOVES[key].isSpecial) zcue(f, 'swing')
   return true
 }
 
@@ -121,7 +121,7 @@ export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
         if (!fresh(s, b) || !grounded) continue
         let next = normalFor(f, inputState, b, grounded)
         if (a.name === 'light' && next === 'light') next = 'zSlash'
-        if (next && (GATLING[a.name] || []).includes(next) && W_START(f, next)) { use(s, b); f._zoroCue = 'swing'; return 'consumed' }
+        if (next && (GATLING[a.name] || []).includes(next) && W_START(f, next)) { use(s, b); zcue(f, 'swing'); return 'consumed' }
       }
     }
     return 'consumed'
@@ -131,7 +131,7 @@ export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
 
   // ── NAP: hold ↓ + B for 40 frames (grounded, free) ──
   if (grounded && s.prev.down && s.prev.heavy && !s.prev.left && !s.prev.right) {
-    if (++s.napHold >= NAP_HOLD) { s.napHold = 0; use(s, 'heavy'); if (W_START(f, 'zNap')) { f._zoroCue = 'nap'; return 'consumed' } }
+    if (++s.napHold >= NAP_HOLD) { s.napHold = 0; use(s, 'heavy'); if (W_START(f, 'zNap')) { zcue(f, 'nap'); return 'consumed' } }
     return 'consumed'
   }
   s.napHold = 0
@@ -144,13 +144,13 @@ export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
     if (key && fire(f, s, key, W)) return 'consumed'
     return 'consumed'
   }
-  if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, 'up')) { f._zoroCue = 'swing'; return 'consumed' } }
+  if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, 'up')) { zcue(f, 'swing'); return 'consumed' } }
   for (const b of ['light', 'heavy']) {
     if (!fresh(s, b)) continue
     const key = normalFor(f, inputState, b, grounded)
     if (!key) continue
     use(s, b)
-    if (W_START(f, key)) { f._zoroCue = b === 'light' ? 'swingLight' : 'swing'; return 'consumed' }
+    if (W_START(f, key)) { zcue(f, b === 'light' ? 'swingLight' : 'swing'); return 'consumed' }
   }
   return 'grab'
 }

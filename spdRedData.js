@@ -94,6 +94,10 @@ export const SPD_RED_GLINT_ANIM = { ...ANIM, idle: ANIM.idleGlint }
 
 export const spdRed = {
   rosterKey: 'spd_red', name: 'SPDRed', displayName: 'S.P.D. Red Ranger', hudName: 'S.P.D. Red', universe: 'power_rangers', color: '#e0201c',
+  // METADATA (phase 10). Universe "Power Rangers" = the existing `power_rangers` group (Omega / Samurai / MMPR rangers).
+  difficulty: 4, archetype: 'Teleport Rushdown / Judge',
+  tagline: 'S.P.D. Emergency!',
+  bio: 'Jack Landors, Red Ranger of S.P.D. B-Squad. A former street thief who could walk through walls long before he had a morpher. Now he blinks across a battlefield and passes judgment at the end of it.',
   portrait: './assets/spd_red/portrait.png', hasSprites: true, spriteScale: 2.4 / 1.18,   // the engine draws ×1.18 → 2.4× = his 55 px idle body ≈ 132 px (roster median; Zoro 56 px @ 2.3×)
   spriteSheet: SPD_RED_ANIM.idle.sheet, fatalityVictimArt: false, grabCastPose: 'grab',
   primary: 'rushdown', secondary: ['zoner'], archetypes: ['rushdown', 'zoner'],

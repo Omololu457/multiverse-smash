@@ -588,7 +588,7 @@ export function readRawControls(fighter) {
   // Buggy's command layers (press edges + motions) read this same snapshot, so a pad must feed it too.
   // Reuse this raw snapshot for replay/LAN as well; no extra buffer polling or input parser.
   const pn = fighter.playerNumber || 1
-  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy') && !fighter._aiControlled && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
+  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red') && !fighter._aiControlled && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
     const gp = getPlayerGamepad(pn)
     if (gp) {
       const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []

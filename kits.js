@@ -221,6 +221,41 @@ export const KITS = {
       {name:'Park',sequence:'Jab → Fishman straight → ARLONG PARK',desc:'Full-Tide cash-out.'}
     ]
   },
+  spd_red: {
+    type:'Teleport Rushdown / Judge', energy:'Delta', difficulty:'4',
+    summary:'S.P.D. Emergency! Jack Landors blinks across the stage on two teleport charges, punishes from behind with crossups, and fills a JUDGMENT meter that can seal a weakened foe in a containment card. Delta builds from hits (+4), blocked hits (+2), +1.5/s, and +5 for every teleport dodge. 950 HP, no armour, no reflect.',
+    passive:{ name:'Phase Blink + Judgment', effect:'BLINK: double-tap ←/→ (11f: 3 startup, 5 invulnerable, 3 recovery) travels 22% of the screen, passes through the foe (PHASE STEP: they face the wrong way for 8f), works in the air, costs no Delta. 2 charges, each refills in 1.5s. DODGE: blinking through a live hitbox or projectile pays +5 Delta and +15% on the next attack within 20f. JUDGMENT: 1 point per hit, 20 to fill; A+B+Special freezes time for 0.5s and scans. GUILTY (foe at or under 30% HP): sealed in the gem card for 3s, the card soaks 50% of every hit, released at the far side. INNOCENT: +40 Delta and one re-attempt. Once per round; a Ranger foe is always innocent.' },
+    basics:[
+      {name:'Jab',input:'Light',desc:'40 dmg, 5f, +1 on block (blunt).'},
+      {name:'Straight',input:'Light → Light (or Forward + Light)',desc:'60 dmg, 8f, −3 on block (blunt).'},
+      {name:'Kick',input:'Heavy (or Light, Light, Light)',desc:'65 dmg, 9f, −3 on block (blunt).'},
+      {name:'Heavy kick',input:'Forward + Heavy',desc:'85 dmg, 12f, −5 on block, launches; hold Up on hit to jump after them (blunt).'},
+      {name:'Low kick',input:'Down + Light',desc:'45 dmg, 7f, low (blunt).'},
+      {name:'Rising kick',input:'Up + Heavy / Up-Attack',desc:'80 dmg, 9f anti-air (blunt).'},
+      {name:'Air kick',input:'Air Light / Heavy',desc:'65 dmg (blunt). Air Down: flip kick.'},
+      {name:'Acrobatic flip',input:'Back + Heavy',desc:'Back-handspring roll, 8 invulnerable frames.'},
+      {name:'Wake-up reversal',input:'Down + Heavy (or any attack while standing up)',desc:'70 dmg, 6 invulnerable frames, −12 on block (blunt).'},
+      {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
+    ],
+    specials:[
+      {name:'Delta Blaster',input:'Down + Special (neutral / air too)',cost:10,desc:'Full-screen bolt, 50 (projectile). Up to 4 of his bolts on screen.'},
+      {name:'Rapid Fire',input:'Hold Down + Special',cost:20,desc:'5 tracer bolts × 25 at 10/s with a deterministic spread (projectile).'},
+      {name:'Delta Charge',input:'→→ + Special',cost:15,desc:'Handstand dash kick across 40% of the screen, 95, knockdown (blunt). Blink-cancel on hit or block (1 charge).'},
+      {name:'Phase Strike',input:'↓↘→ + Special',cost:18,desc:'Phases through the foe and kicks from behind, 100 (blunt). Always crosses up; invulnerable frames 0-9.'},
+      {name:'Sky Uppercut',input:'Up + Special',cost:20,desc:'Rising split kick, 110, launches (blunt). Blink out of the airborne recovery.'},
+      {name:'Deltamax Strike',input:'↓↙← + Special',cost:25,desc:'Beam across 70% of the screen, 120 (energy). Erases enemy projectiles; 18f startup.'},
+      {name:'JUDGMENT',input:'Light + Heavy + Special (meter full)',cost:0,desc:'Time stops, the morpher scans: GUILTY seals them, INNOCENT pays 40 Delta.'}
+    ],
+    mobility:{name:'Blink',input:'Double-tap ← / →',cost:0,desc:'2 charges, 1.5s refill each. Hold the direction after a ground blink to run (8.4 px/f).'},
+    ultimate:{name:'S.P.D. EMERGENCY: DELTA SQUAD FULL POWER',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'Three blink strikes from three angles (55 each), then the Deltamax beam (180; 220 after a GUILTY verdict this round). Spends all Delta; 3s Delta lockout; both teleport charges refill.'},
+    combos:[
+      {name:'Charge out',sequence:'Jab → Straight → Kick → Delta Charge → →→ blink',desc:'Knockdown, then blink to safety. 117 dmg.'},
+      {name:'Sky route',sequence:'Low kick → Heavy kick → (hold ↑) Air kick → Sky Uppercut',desc:'Low launch into the air. 138 dmg.'},
+      {name:'Phase beam',sequence:'Phase Strike → Jab → Straight → Deltamax Strike',desc:'Crossup into the beam. 150 dmg.'},
+      {name:'Dodge punish',sequence:'Delta Blaster → blink through their attack → Heavy kick (+15%) → Sky Uppercut',desc:'126 dmg.'},
+      {name:'Sentence',sequence:'Under 30% → JUDGMENT (GUILTY) → Jab → Straight → Deltamax → Super',desc:'The 220 beam.'}
+    ]
+  },
   luffy: {
     type:'Elastic Brawler', energy:'Stamina', difficulty:'Medium',
     summary:'Wind up. Let loose. A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. Close the distance and turn a clean opening into a flowing combo.',

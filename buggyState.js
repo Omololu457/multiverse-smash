@@ -21,7 +21,7 @@ export function buggyState(f) {
     tick: 0,           // input ticks (advances EVERY call, even in hitstop) — press-edge timestamps
     passive: 0,        // frames toward the next passive +1 Chop
     idle: 0,           // consecutive neutral-idle frames (head look-around after 600)
-    prev: {}, edgeAt: {}, edgeClk: {}, used: {},   // raw buttons last tick / press-edge tick / press-edge SIM clock / edge consumed
+    prev: {}, edgeAt: {}, edgeClk: {}, edgeDir: {}, used: {},   // raw buttons last tick / press-edge tick / press-edge SIM clock / edge consumed
     dirs: [],          // condensed facing-relative direction history [[numpad, tick], …] (motion inputs)
     lockout: 0,        // Chop lockout after the Super (frames)
     mask: 0,           // detached-part bitmask for the masked body rows (1 head · 2 hand · 4 foot)
@@ -43,7 +43,7 @@ export function buggyState(f) {
     booms: [],         // explosion FX timers [{x,y,t,big}] (render reads)
     esc: null,         // Quick Escape travel {x0,x1}
     capeUsed: false,   // Cape Flourish: one projectile per cape
-    inSuper: false, superHit: 0, stabFx: [],   // Super bookkeeping / hand-stab FX [{x,y,t}]
+    inSuper: false, superHit: 0, superScale: 1, stabFx: [],   // Super bookkeeping / hand-stab FX [{x,y,t}]
     dashPrev: 0,       // engine dashTimer last frame (Roll invulnerability on the rising edge)
     groundY: null,     // feet line when last grounded (balls explode on it)
   }
@@ -79,8 +79,9 @@ export function tickBuggy(f, opp, raw = {}, W = null) {
   if (!isBuggy(f)) { if (f?._buggy) clearBuggy(f); return }
   const s = buggyState(f)
   s.tick++
-  for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock } s.prev[k] = v }
   const tok = dirToken(raw, f.facing || 1), last = s.dirs[s.dirs.length - 1]
+  // edgeDir = the direction held when the button went down (a buffered ↓+H pressed in hitstop stays a Clown kick)
+  for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock; (s.edgeDir ||= {})[k] = tok } s.prev[k] = v }
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 20) s.dirs.shift() }
   if (W) setPartWorld(W)
   // RECALL: double-tap Special (2nd press within 12 input ticks) while a part is out → every part flies home,
@@ -243,7 +244,7 @@ function tickBalls(f, opp, s) {
     s.booms.push({ x: b.x, y: Math.min(b.y, floor - 6), t: 20, big: !b.sup })
     bcue(f, 'explosion')
     if (opp && Math.abs(ctrX(opp) - b.x) < b.r && Math.abs(((opp.y || 0) + (opp.h || 94) * 0.6) - b.y) < b.r + 40) {
-      const r = partHit(pseudo(f, b.x, b.sup ? 'bSuper' : 'bBall'), opp, b.dmg, { damageType: 'blunt', otg: true, hitstun: b.sup ? 34 : 30, kb: 6, launch: b.sup ? -6 : -9, chop: 0, blockstun: 16, cue: 'boom' })
+      const r = partHit(pseudo(f, b.x, b.sup ? 'bSuper' : 'bBall'), opp, b.dmg, { damageType: 'blunt', otg: true, hitstun: b.sup ? 34 : 30, kb: 6, launch: b.sup ? -6 : -9, chop: 0, blockstun: 16, cue: 'boom', fixedScale: b.sup ? s.superScale : undefined })
       if (r === true && b.sup) s.superHit++
     }
   }
@@ -253,7 +254,8 @@ function tickBalls(f, opp, s) {
 // with hand stabs between shots, then the spinning knife-ball rush. 370 raw. 3 s Chop lockout afterwards.
 function tickSuper(f, opp, s, a, g, t, W) {
   const dir = g.dir || f.facing || 1
-  if (t === 1) { recallParts(f); bcue(f, 'cannonRoll') }
+  // The Super's damage scaling is LOCKED at the moment it starts (0.85^combo then) — its own 8 hits don't decay it.
+  if (t === 1) { recallParts(f); bcue(f, 'cannonRoll'); s.superScale = Math.pow(0.85, f.comboCounter || 0) }
   if (g.balls.includes(t) && opp) {
     const k = g.balls.indexOf(t), spread = [-36, -12, 12, 36][k] || 0, flight = 22, G = BUGGY_SPECIAL.ball.g
     const x0 = ctrX(f) + dir * 46, y0 = (f.y || 0) + 40
@@ -263,14 +265,14 @@ function tickSuper(f, opp, s, a, g, t, W) {
   }
   if (g.stabs.includes(t) && opp && Math.abs(ctrX(opp) - ctrX(f)) < 420) {
     s.stabFx.push({ x: ctrX(opp), y: ctrY(opp), t: 12, dir })
-    if (partHit(pseudo(f, ctrX(opp) - dir * 20, 'bSuper'), opp, g.stabDmg, { hitstun: 30, kb: 1, chop: 0, otg: true, cue: 'stab' }) === true) s.superHit++
+    if (partHit(pseudo(f, ctrX(opp) - dir * 20, 'bSuper'), opp, g.stabDmg, { hitstun: 30, kb: 1, chop: 0, otg: true, cue: 'stab', fixedScale: s.superScale }) === true) s.superHit++
   }
   if (t === g.rushAt && opp) {
     // the knife-ball rush: Buggy spins into a ball of knives and rolls straight through the foe.
     const sw = W?.stageWidth?.() || 3200, ox = ctrX(opp), reach = 460
     if (Math.abs(ox - ctrX(f)) < reach) {
       f.x = Math.max(0, Math.min(sw - (f.w || 48), ox + dir * 40 - (f.w || 48) / 2))
-      if (partHit(pseudo(f, ox - dir * 20, 'bSuper'), opp, g.rushDmg, { hitstun: 40, kb: 10, launch: -12, chop: 0, otg: true, cue: 'boom' }) === true) s.superHit++
+      if (partHit(pseudo(f, ox - dir * 20, 'bSuper'), opp, g.rushDmg, { hitstun: 40, kb: 10, launch: -12, chop: 0, otg: true, cue: 'boom', fixedScale: s.superScale }) === true) s.superHit++
     }
     bcue(f, 'knifeHit')
   }

@@ -4,6 +4,7 @@ import { buggyState, isBuggy } from './buggyState.js'
 import { getActiveDrones, damageDrone, activeDrones } from './drones.js'
 import { launchHand, stabHand, plantLegs, lookout, recallParts } from './buggyParts.js'
 import { buggyPipState } from './buggyFx.js'
+import { activeProjectiles } from './abilities.js'
 
 const partView = d => ({ type: d.type, st: d.data?.st || null, x: Math.round(d.x), y: Math.round(d.y), hp: d.hp, maxHp: d.maxHp, dying: !!d.dying,
   retiring: d._retiring || false, state: d.data?.st || null, side: d.owner?.side || null })
@@ -33,6 +34,10 @@ export function buggyHarnessApi(g) {
     reset: () => {   // training reset + drop Buggy's parts / part cooldowns (tests start from a whole body)
       g.reset()
       for (let i = activeDrones.length - 1; i >= 0; i--) if (activeDrones[i].profile?.buggyPart) activeDrones.splice(i, 1)
+      // …and Buggy's knives / balls still in flight (a leftover Knife Fan must not hit the next test's fresh foe)
+      const bs = [g.p1(), g.p2()].filter(f => f && isBuggy(f))
+      for (let i = activeProjectiles.length - 1; i >= 0; i--) if (bs.includes(activeProjectiles[i].owner)) activeProjectiles.splice(i, 1)
+      for (const f of bs) { const s = buggyState(f); s.balls = []; s.booms = []; s.festival = 0 }
       for (const f of [g.p1(), g.p2()]) if (f?._gaDroneCd) for (const k of Object.keys(f._gaDroneCd)) if (k.startsWith('buggy_')) f._gaDroneCd[k] = 0
     },
     chop: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },

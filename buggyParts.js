@@ -62,7 +62,7 @@ export function partHit(d, foe, dmg, opts = {}) {
     ;(o._buggyCues ||= []).push('partBlock')
     return 'blocked'
   }
-  const scaled = dmg * Math.pow(0.85, o.comboCounter || 0)
+  const scaled = dmg * (opts.fixedScale ?? Math.pow(0.85, o.comboCounter || 0))   // fixedScale: the Super's locked scaling
   _W?.damage?.(foe, scaled, { source: 'ability', attacker: o, move: d.type, damageType: opts.damageType || 'slash' })
   foe.hitstun = Math.max(foe.hitstun || 0, opts.hitstun || 18)
   foe.vx = dir * (opts.kb ?? 5)

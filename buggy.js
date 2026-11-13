@@ -19,7 +19,7 @@ const RECALL_WAIT = 12      // a neutral A with a part out waits this long for t
 const MOTIONS_A = [         // Special button — longest first
   ['bSuper', /23?6[53]?23?6[5]?$/, 45],
   ['bCannon', /23?6[5]?$/, 20],
-  ['bBall', /21?4[5]?$/, 20],
+  ['bBall', /21?4[5]?[46]?$/, 20],   // a trailing ←/→ is the held arc steer (→ long / ← short), still the Ball
   ['bFestival', /2[135]2[5]?$/, 20],
   ['bFan', /656[5]?$/, 20],
 ]
@@ -78,6 +78,13 @@ function fire(f, s, key) {
   return true
 }
 
+// A buffered press reads the direction held at its press edge, not the (possibly released) current one.
+function pressDir(s, b, inp, facing) {
+  const t = s.edgeDir?.[b]
+  if (t == null || s.edgeAt[b] === s.tick) return inp
+  const fk = facing === -1 ? 'left' : 'right', bk = facing === -1 ? 'right' : 'left'
+  return { ...inp, down: t <= 3, up: t >= 7, [fk]: t % 3 === 0, [bk]: t % 3 === 1 }
+}
 function normalFor(f, inp, button, grounded) {
   const fwd = f.facing === -1 ? inp.left : inp.right
   if (!grounded) return inp.down ? 'down_air' : 'air'
@@ -104,7 +111,7 @@ export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {
     }
     if (contact && !BUGGY_MOVES[a.name]?.isSpecial && !a.isUltimate) {
       if (fresh(s, 'special')) {   // special cancel out of a connected normal
-        const key = pickA(f, s, inp, grounded)
+        const key = pickA(f, s, pressDir(s, 'special', inp, f.facing), grounded)
         if (key && key !== 'bSuper' && fire(f, s, key)) { use(s, 'special'); return 'consumed' }
       }
       if (fresh(s, 'heavy') && grounded) {
@@ -113,7 +120,7 @@ export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {
       }
       for (const b of ['light', 'heavy', 'upAttack']) {
         if (!fresh(s, b) || !grounded) continue
-        let next = normalFor(f, inp, b, grounded)
+        let next = normalFor(f, pressDir(s, b, inp, f.facing), b, grounded)
         if (a.name === 'light' && next === 'light') next = 'bSlash'
         if (next && (GATLING[a.name] || []).includes(next) && W_START(f, next)) { use(s, b); bcue(f, 'swing'); return 'consumed' }
       }
@@ -135,7 +142,7 @@ export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {
 
   if (fresh(s, 'ultimate') && grounded && canAfford(f, s, 'bSuper')) { use(s, 'ultimate'); if (fire(f, s, 'bSuper')) return 'consumed' }
   if (fresh(s, 'special')) {
-    const key = pickA(f, s, inp, grounded)
+    const key = pickA(f, s, pressDir(s, 'special', inp, f.facing), grounded)
     const neutral = key === 'bFan' && !/656[5]?$/.test(recentMotion(s, 20))
     if (neutral && ownParts(f).some(d => !d.dying && !d._retiring)) { s.pendingA = s.tick; s.pendingKey = key; return 'consumed' }
     use(s, 'special')
@@ -149,7 +156,7 @@ export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {
   if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, 'up')) { bcue(f, 'swing'); return 'consumed' } }
   for (const b of ['light', 'heavy']) {
     if (!fresh(s, b)) continue
-    const key = normalFor(f, inp, b, grounded)
+    const key = normalFor(f, pressDir(s, b, inp, f.facing), b, grounded)
     if (!key) continue
     use(s, b)
     if (W_START(f, key)) { bcue(f, b === 'light' ? 'swingLight' : 'swing'); return 'consumed' }

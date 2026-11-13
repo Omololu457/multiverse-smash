@@ -36655,6 +36655,7 @@ export function applyGreenArrowArrowstorm(fighter, context) {
       const bomber = spawnDrone(fighter, "payload", { frame, target: opp, spendTech: () => true })
       if (bomber) { bomber._ctx = context; bomber.x = left - 200; bomber.facing = 1; bomber.maxBombs = 0 }   // visual only; the super spawns the carpet
       s._bomber = bomber || null
+      sound.playGreenArrow?.("ga_plane", 1, ((fighter._matchSeed | 0) || 1))   // Payload engine drone over the carpet run
       s.phase = "carpet"; s.t = 76; s.dropped = 0
     }
     return

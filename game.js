@@ -50,7 +50,7 @@ import {
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
 import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, updateDroneCounterSummon, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
-import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, updateMunitionArrowInteract, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
+import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, updateMunitionArrowInteract, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, setMunitionSfx, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
 import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
@@ -572,6 +572,18 @@ import {
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName, juicePitch, juicePickVariant, juiceHash } from "./sound.js"
+
+// GREEN ARROW: bomb/hazard SFX. munitions.js is a leaf (no sound import) and just emits abstract
+// events; the audio layer lives here, so wire its render-only sfx hook to the WebAudio synth.
+// Pitch is derived from the event's deterministic seed (no Math.random); chain booms drop in pitch.
+setMunitionSfx((ev, x, y, seed, extra) => {
+  const s = (seed | 0) || 1, pitch = 0.92 + ((s % 17) / 100)
+  if (ev === "spawn")        sound.playGreenArrow?.("ga_whistle", pitch, s)
+  else if (ev === "boom")    sound.playGreenArrow?.("ga_boom", pitch - Math.min(0.2, ((extra && extra.chainDepth) || 0) * 0.05), s)
+  else if (ev === "reticle") sound.playGreenArrow?.("ga_reticle", pitch, s)
+  else if (ev === "napalm")  sound.playGreenArrow?.("ga_napalm", pitch, s)
+  else if (ev === "plane")   sound.playGreenArrow?.("ga_plane", pitch, s)
+})
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)

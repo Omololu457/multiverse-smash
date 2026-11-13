@@ -68,10 +68,18 @@ export function spawnMunition(owner, type, opts = {}) {
     seed: (owner._matchSeed | 0) || 1,
   }
   activeMunitions.push(m)
+  _emitSfx("spawn", m.x, m.y, m.seed + (m.x | 0) * 3 + (m.y | 0))   // falling-bomb whistle (seed from sim state, not the global id → replay-consistent)
   return m
 }
 
 export function resetMunitions() { activeMunitions.length = 0; activeFirePatches.length = 0; activeBlasts.length = 0 }
+
+// ── SFX hook (render-only): the audio layer registers a callback; munitions stay a leaf (no
+// sound.js import). Fired for discrete events only — spawn/boom/reticle/napalm — with the
+// munition's deterministic seed + chain depth so the synth can pitch/offset without Math.random. ──
+let _munSfx = null
+export function setMunitionSfx(fn) { _munSfx = (typeof fn === "function") ? fn : null }
+function _emitSfx(ev, x, y, seed, extra) { if (_munSfx) try { _munSfx(ev, x, y, seed | 0, extra) } catch (_) {} }
 
 // ── per-frame update. env = { groundY, leftWall, rightWall, fighters, isEnemy(owner,f), platformTopAt(x) } ──
 export function updateMunitions(frame, env = {}) {
@@ -100,7 +108,7 @@ export function updateMunitions(frame, env = {}) {
     const p = m.profile
     // OVERWATCH TAG: a guided bomb with no (or a dead) target locks onto the owner's TAGGED foe.
     if (p.homing && (!m.target || m.target.eliminated)) {
-      for (const f of (env.fighters || [])) { if (env.isEnemy?.(m.owner, f) && (f._gaTagged || 0) > 0) { m.target = f; break } }
+      for (const f of (env.fighters || [])) { if (env.isEnemy?.(m.owner, f) && (f._gaTagged || 0) > 0) { m.target = f; _emitSfx("reticle", m.x, m.y, m.seed + (m.x | 0) * 3 + (m.y | 0)); break } }
     }
     // GUIDED homing — cap the turn at turnRate deg/frame toward the target.
     if (p.homing && m.target && !m.target.eliminated && m.armT > p.armTime) {
@@ -197,8 +205,10 @@ export function explodeAt(owner, x, y, spec, env = {}, chainDepth = 0, dmgScale 
     else if (spec.onImpact === "net") { f._gaNetted = Math.max(f._gaNetted || 0, 48); f.vx = 0 }
     else if (spec.onImpact === "flash") { f._gaFlash = 18; f.hitstun = Math.max(f.hitstun || 0, 24) }
   }
-  if (spec.onImpact === "napalm") _spawnFirePatch(owner, x, (env.groundY ?? y))
+  const _sfxSeed = (((owner && owner._matchSeed) | 0) || 1) + chainDepth * 101 + (x | 0)
+  if (spec.onImpact === "napalm") { _spawnFirePatch(owner, x, (env.groundY ?? y)); _emitSfx("napalm", x, (env.groundY ?? y), _sfxSeed) }
   _blast(x, y, spec.scale || 1)
+  _emitSfx("boom", x, y, _sfxSeed, { chainDepth })   // 55Hz thump; chain booms pitch-offset by depth
   // CHAIN REACTION — nearby armed munitions detonate after 6f, depth-capped at 3, 70% damage.
   if (chainDepth < 3) {
     for (const o of activeMunitions) {

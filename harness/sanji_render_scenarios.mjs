@@ -48,12 +48,12 @@ export async function run(X) {
     ['sPoitrine', ['a', 'k']], ['sGigot', ['s', 'd', 'j']], ['sCrouchKick', ['s', 'j']], ['sHandstand', ['s', 'k']], ['up', ['i']]]
   for (const [mv, keys] of NORMALS) {
     await fresh(mv === 'sHandstand' ? 70 : 96, 10)
-    const z0 = await zs(), h0 = (await as()).energy
+    const z0 = await zs(), b0 = await as(), h0 = b0.energy, c0 = b0.s?.course || 0
     await tap(keys)
     let started = null, landed = false
     for (let i = 0; i < 40; i++) { await step(1); const t = await as(); if (t.move && !started) started = t.move; const z = await zs(); if (z.hp < z0.hp) { landed = true; break } }
-    const h1 = (await as()).energy
-    check(`${mv} (${keys.join('+')}) starts + connects + Heat +4`, started === mv && landed && Math.abs(h1 - h0 - 4) < 0.6, JSON.stringify({ started, landed, dHeat: +(h1 - h0).toFixed(2) }))
+    const b1 = await as(), h1 = b1.energy, stepped = (b1.s?.course || 0) > c0 ? 8 : 0   // (Phase 4+) a Course step adds +8
+    check(`${mv} (${keys.join('+')}) starts + connects + Heat +4`, started === mv && landed && Math.abs(h1 - h0 - 4 - stepped) < 0.6, JSON.stringify({ started, landed, dHeat: +(h1 - h0).toFixed(2), courseStep: stepped }))
     if (mv === 'sCotelette') await shot('p2-02-cotelette')
     await settle()
   }

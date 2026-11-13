@@ -3,7 +3,7 @@
 // and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every timing is a fixed frame
 // count, every position derives from the two fighters' positions, and the one "random" choice (fire-crackle
 // variation, render/audio only) hashes (match seed, frame, player index).
-import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET } from './sanjiData.js'
+import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, COURSE } from './sanjiData.js'
 export const isSanji = f => f?.rosterKey === 'sanji'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickSanji; never read by the sim).
 export function scue(f, c) { (f._sanjiCues ||= []).push(c) }
@@ -15,6 +15,10 @@ export const SANJI_HEAT = { perHit: 4, perBlock: 2, passiveEvery: 120, perCourse
 // trails tinted orange-white; +10% run speed; Heat drains 4/s while lit; no re-ignite until Heat hits 0 and refills.
 export const DIABLE = { minHeat: 50, frames: 720, dmg: 1.25, overDmg: 1.40, overFrames: 180, drainEvery: 15, run: 1.10,
   burn: { frames: 120, every: 20, dmg: 3 } }
+// THE COURSE (brief Phase 4): the six butcher's cuts in order. In-order hit → +1 step (+8 Heat); out-of-order hit →
+// drop ONE step (ambitious, not brittle); 180 f without a Sanji hit → reset to 0; all six → PARTY TABLE KICK COURSE
+// is free for 300 f (↓↘→+A).
+export const COURSE_RULES = { idleReset: 180, window: 300 }
 const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
 
 export function sanjiState(f) {
@@ -35,6 +39,10 @@ export function sanjiState(f) {
     djDrain: 0,        // frames toward the next −1 Heat drain (4/s)
     burn: 0, burnTick: 0,   // burn on the opponent: frames left / frames toward the next 3-dmg tick
     lastHit: null,     // [clock, x, y, burning] of the last kick that landed (render: embers on impact)
+    course: 0,         // THE COURSE: steps completed in order (0..5; reaching 6 opens the window and resets to 0)
+    courseIdle: 0,     // frames since Sanji's last landed hit (180 → the Course resets)
+    ptkcFree: 0,       // frames left in the free PARTY TABLE KICK COURSE window (after completing all six)
+    courseFx: null,    // [step 1..6 | -1 dropped, clock, x, y] — render-only callout of the last Course change
   }
 }
 
@@ -67,7 +75,7 @@ export function sanjiRoundReset(f) {
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
   const s = f._sanji
-  if (s) { s.dj = 0; s.djOver = 0; s.djLock = false; s.burn = 0; s.lockout = 0 }
+  if (s) { s.dj = 0; s.djOver = 0; s.djLock = false; s.burn = 0; s.lockout = 0; s.course = 0; s.courseIdle = 0; s.ptkcFree = 0; s.courseFx = null }
   f._skinAnim = sanjiAnimSet(f)
 }
 
@@ -120,6 +128,9 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   s.clock++
   if (s.lockout > 0) s.lockout--
   tickDiable(f, opp, s, W)
+  // THE COURSE clock: 3 s with no landed hit → back to 0; the free-super window counts down.
+  if (s.course > 0 && ++s.courseIdle >= COURSE_RULES.idleReset) { s.course = 0; s.courseIdle = 0; scue(f, 'courseLost') }
+  if (s.ptkcFree > 0) s.ptkcFree--
   const neutral = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isBlocking && (f.onGround || f.grounded) &&
     !raw.left && !raw.right && !raw.up && !raw.down && !raw.jump && Math.abs(f.vx || 0) < 0.5
   s.idle = neutral ? s.idle + 1 : 0
@@ -188,7 +199,26 @@ export function sanjiHit(attacker, defender, atk) {
   if (lit) { s.burn = DIABLE.burn.frames; s.burnTick = 0 }   // refresh, never stack
   s.lastHit = [s.clock, Math.round(defender.x + (defender.w || 48) / 2), Math.round(defender.y + (defender.h || 94) * 0.45), lit ? 1 : 0]
   scue(attacker, lit ? 'burnImpact' : 'impact')
+  advanceCourse(attacker, s, atk, defender)
 }
+// THE COURSE bookkeeping for one landed Sanji hit. Only the six bound normals move the track; any other landed hit
+// (Premier Hachis, specials, the anti-air…) just keeps it alive. The super itself never touches it.
+function advanceCourse(f, s, atk, defender) {
+  s.courseIdle = 0
+  const k = atk?.sj?.course
+  if (!k || atk.isUltimate) return
+  const fx = (n) => { s.courseFx = [n, s.clock, Math.round(defender.x + (defender.w || 48) / 2), Math.round(defender.y)] }
+  if (k === s.course + 1) {
+    s.course = k
+    gainHeat(f, SANJI_HEAT.perCourseStep)
+    scue(f, 'course' + k); fx(k)
+    if (k === COURSE.length) { s.course = 0; s.ptkcFree = COURSE_RULES.window; scue(f, 'courseDone') }   // all six → the window
+  } else if (s.course > 0) {
+    s.course -= 1; fx(-1); scue(f, 'courseDrop')
+  }
+}
+// What the HUD shows: the six pips (all lit while the free window is open).
+export const coursePips = f => { const s = f?._sanji; return !s ? 0 : s.ptkcFree > 0 ? COURSE.length : s.course }
 // Per-move block stun (combat block branch) + Heat on a blocked kick.
 export function sanjiBlockstun(attacker, defender, atk) {
   if (!isSanji(attacker) || !isKick(atk)) return

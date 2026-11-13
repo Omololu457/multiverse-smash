@@ -2,6 +2,7 @@
 // embers, heat shimmer, kick afterimages, the cigarette glow, the Going Merry intro flash, Course callouts).
 // Reads simulation state (fighter._sanji, timers) and never writes it. Image objects are presentation caches.
 import { SANJI_FX } from './sanjiSprites.js'
+import { COURSE } from './sanjiData.js'
 
 const _img = {}
 function img(src) {
@@ -33,12 +34,33 @@ export function drawSanjiHud(ctx, fighter, { x, enY, pbw, flip }) {
     ctx.drawImage(g, bx + (s - w) / 2, by + (s - h) / 2, w, h)
   }
   const st = fighter._sanji
+  if (st) drawCoursePips(ctx, fighter, st, { x, enY, pbw, flip })
   if (st && (st.dj > 0 || st.djLock)) {   // Diable Jambe status next to the badge
     ctx.font = 'bold 8px Arial'; ctx.textAlign = flip ? 'right' : 'left'; ctx.textBaseline = 'alphabetic'
     const tx = flip ? bx - 6 : bx + s + 6
     if (st.dj > 0) { ctx.fillStyle = st.djOver > 0 ? '#fff4d8' : '#ffb04a'; ctx.fillText((st.djOver > 0 ? 'HELL MEMORIES ' : 'DIABLE JAMBE ') + Math.ceil(st.dj / 60) + 's', tx, by + 9) }
     else { ctx.fillStyle = 'rgba(200,210,230,0.7)'; ctx.fillText('JAMBE SPENT — empty to relight', tx, by + 9) }
   }
+  ctx.restore()
+}
+
+// THE COURSE track: six pips (one per cut) on the far end of the Heat label line. Lit in order; all six glow gold
+// (and the prompt shows) while the free PARTY TABLE KICK COURSE window is open.
+function drawCoursePips(ctx, fighter, st, { x, enY, pbw, flip }) {
+  const n = st.ptkcFree > 0 ? COURSE.length : st.course, open = st.ptkcFree > 0
+  const gap = 13, r = 4.5, px0 = flip ? x + 30 : x + pbw - 30 - gap * 5, py = enY - 7
+  const t = st.clock || 0
+  ctx.save()
+  for (let i = 0; i < COURSE.length; i++) {
+    const cx = px0 + i * gap, on = i < n
+    ctx.beginPath(); ctx.arc(cx, py, r, 0, Math.PI * 2)
+    ctx.fillStyle = open ? `rgba(255,${200 + Math.round(40 * Math.sin(t * 0.3 + i))},90,1)` : on ? '#ffb347' : '#252f40'
+    ctx.fill(); ctx.strokeStyle = on ? '#fff1c8' : '#7b8aa8'; ctx.lineWidth = 1; ctx.stroke()
+  }
+  ctx.font = 'bold 7px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = open ? '#fff1b8' : '#c9d3e8'
+  const label = open ? `PARTY TABLE! ↓↘→+A  ${Math.ceil(st.ptkcFree / 60)}s` : n > 0 ? `COURSE ${n}/6 · next ${COURSE[n]}` : 'COURSE · COLLIER first'
+  ctx.fillText(label, px0 + gap * 2.5, py - 7)
   ctx.restore()
 }
 
@@ -66,7 +88,18 @@ export function drawSanjiFx(c, f) {
   const s = f._sanji
   if (s.dj > 0 || (f.attacking && f.currentAttack?.sj?.kind === 'ignite')) drawDiable(c, f, s)
   if (s.lastHit && (s.clock - s.lastHit[0]) < 22) drawImpactEmbers(c, s)
+  if (s.courseFx && (s.clock - s.courseFx[1]) < 40) drawCourseCallout(c, s)
   drawCigarette(c, f, s)
+}
+
+// Course callout: the cut's name pops above the opponent ("COLLIER!" … "GIGOT!"), red "−1" on a dropped step.
+function drawCourseCallout(c, s) {
+  const [k, at, x, y] = s.courseFx, age = s.clock - at, a = age < 6 ? age / 6 : Math.max(0, 1 - (age - 24) / 16)
+  const txt = k > 0 ? `${k}. ${COURSE[k - 1]}!` : 'COURSE −1', rise = age * 0.8
+  c.save(); c.globalAlpha = a; c.font = `bold ${k === 6 ? 22 : 17}px Arial`; c.textAlign = 'center'; c.textBaseline = 'bottom'
+  c.lineWidth = 4; c.strokeStyle = '#1b1208'; c.strokeText(txt, x, y - 14 - rise)
+  c.fillStyle = k > 0 ? (k === 6 ? '#ffe27a' : '#ffffff') : '#ff6a5a'; c.fillText(txt, x, y - 14 - rise)
+  c.restore()
 }
 
 // Deterministic per-particle pseudo-random (render-only; integer hash of particle index + seed).

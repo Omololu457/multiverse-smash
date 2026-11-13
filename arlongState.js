@@ -224,6 +224,7 @@ export function tickArlong(f, opp, raw = {}, W = null) {
   s.dashPrev = f.dashTimer || 0
   // IDLE > 10 s: he rests the blade on his shoulder and flexes (presentation swap only).
   const still = grounded(f) && !f.attacking && !f.isBlocking && !(f.hitstun > 0) && Math.abs(f.vx || 0) < 0.3 && !BUTTONS.some(k => raw[k])
+  if (s.wet && s.clock % 48 === 0) acue(f, 'lap')   // standing in water: the quiet lap / ripple loop (audio cue only)
   s.idleT = still ? s.idleT + 1 : 0
   applyAnimSet(f, s)
 }

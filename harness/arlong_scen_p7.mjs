@@ -41,4 +41,5 @@ export async function run(X) {
   await shot(`p${PHASE}-67-idle-flex`)
   await page.keyboard.down('d'); await step(3); await page.keyboard.up('d'); s = await as()
   check('any input ends the flex', /\/idle\.png$/.test(s.idleSheet || ''), s.idleSheet)
+  if (PHASE >= 8) { const m = await import('./arlong_scen_p8.mjs'); await m.run(X) }
 }

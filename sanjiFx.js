@@ -83,7 +83,7 @@ export function drawSanjiHeatFill(ctx, fighter, { fillX, enY, fillW, enH, x, pbw
 // (deterministic visuals); nothing here touches simulation state.
 export function drawSanjiFx(c, f) {
   if (!c || f?.rosterKey !== 'sanji') return
-  if (f._introPlaying) drawMerryFlash(c, f)
+  if (f._introPlaying) { drawMerryFlash(c, f); drawIntroLight(c, f) }
   if (!f._sanji) return
   const s = f._sanji
   const k = f.attacking ? f.currentAttack?.sj?.kind : null
@@ -94,6 +94,40 @@ export function drawSanjiFx(c, f) {
   if (s.courseFx && (s.clock - s.courseFx[1]) < 40) drawCourseCallout(c, s)
   if (s.inSuper && s.superFx) drawSuperCallout(c, f, s)
   drawCigarette(c, f, s)
+  drawSmoke(c, f, s)
+}
+
+// INTRO step 2 (R1F2, lighting up): a lighter flame cupped at the mouth, then the first drag's puff. Timed on the
+// intro strip's own frame index (render-only).
+function drawIntroLight(c, f) {
+  if (f._introVariant !== 'sIntroLight' || f.spriteHandler?.currentAction !== 'sIntroLight') return
+  const i = f.spriteHandler.frameIndex | 0, [x, y, k] = mouthPoint(f), face = f.facing || 1
+  c.save(); c.globalCompositeOperation = 'lighter'
+  if (i <= 1) {   // lighter flame (flickers by the integer render hash, no Math.random)
+    const fl = 0.8 + 0.2 * hr((f.spriteHandler.frameTimer | 0) + i * 31, 3), fx = x + face * 3 * k, fy = y + 2 * k
+    const g = c.createRadialGradient(fx, fy - 4 * k, 0, fx, fy - 4 * k, 9 * k * fl)
+    g.addColorStop(0, 'rgba(255,250,210,0.95)'); g.addColorStop(0.45, 'rgba(255,170,60,0.7)'); g.addColorStop(1, 'rgba(255,90,0,0)')
+    c.fillStyle = g; c.beginPath(); c.ellipse(fx, fy - 4 * k, 4 * k * fl, 8 * k * fl, 0, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+  if (i >= 2) puffs(c, x, y, k, (f.spriteHandler.frameTimer | 0) + (i - 2) * 14, 0.5)
+}
+// Exhaled smoke: the idle > 10 s lounge and WIN 1 (smoking). Soft grey wisps rising and drifting back.
+function drawSmoke(c, f, s) {
+  const act = f.spriteHandler?.currentAction
+  if (act !== 'idleLong' && !(act === 'win' && (f._sjWinVar || 1) === 1)) return
+  const [x, y, k] = mouthPoint(f)
+  puffs(c, x, y, k, s.clock | 0, 0.42, f.facing || 1)
+}
+function puffs(c, x, y, k, t, alpha, face = 1) {
+  c.save()
+  for (let i = 0; i < 5; i++) {
+    const age = (t + i * 17) % 85, p = age / 85
+    const px = x - face * p * 14 * k + Math.sin(age * 0.11 + i) * 3 * k, py = y - p * 46 * k, r = (2 + p * 7) * k
+    c.fillStyle = `rgba(215,215,225,${alpha * (1 - p) * (p < 0.1 ? p * 10 : 1)})`
+    c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
 }
 
 // Concasse burning patch on the floor (lit leg only): licking flame tongues along the ±60px strip.
@@ -204,11 +238,15 @@ function drawImpactEmbers(c, s) {
 // pivot in sheet pixels (read off assets/sanji/idle.png). Scaled by the live draw scale.
 const CIG = { dx: 6, dy: 42 }
 const POCKET_ACTIONS = new Set(['idle', 'idleLong', 'walk', 'walk_back', 'intro', 'sIntroLight', 'win'])
+function mouthPoint(f) {
+  const k = (f._lastDrawW || 320 * 1.95) / 320, face = f.facing || 1
+  return [f.x + (f.w || 48) / 2 + face * CIG.dx * k, f.y + (f.h || 94) - CIG.dy * k, k]
+}
 function drawCigarette(c, f, s) {
   const act = f.spriteHandler?.currentAction || 'idle'
   if (!POCKET_ACTIONS.has(act)) return
-  const k = (f._lastDrawW || 320 * 1.95) / 320, face = f.facing || 1
-  const x = f.x + (f.w || 48) / 2 + face * CIG.dx * k, y = f.y + (f.h || 94) - CIG.dy * k
+  if (act === 'win' && (f._sjWinVar || 1) !== 1) return   // only WIN 1 is the smoking pose
+  const [x, y] = mouthPoint(f)
   const r = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 100)))
   const t = s.clock || 0, flick = 0.75 + 0.25 * Math.sin(t * 0.21) * Math.sin(t * 0.07)
   const rad = (2 + r * 5) * flick

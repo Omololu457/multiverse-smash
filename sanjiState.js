@@ -3,7 +3,7 @@
 // and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every timing is a fixed frame
 // count, every position derives from the two fighters' positions, and the one "random" choice (fire-crackle
 // variation, render/audio only) hashes (match seed, frame, player index).
-import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, COURSE } from './sanjiData.js'
+import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET, SANJI_WIN_SETS, COURSE } from './sanjiData.js'
 import { SANJI_FX } from './sanjiSprites.js'
 const SANJI_FX_PLATE = SANJI_FX.plate
 export const isSanji = f => f?.rosterKey === 'sanji'
@@ -63,7 +63,22 @@ export function clearSanji(f) {
 }
 function restoreSpeed(f) { const st = SANJI_CHAR.stats; f.dashSpeed = st.dashSpeed }
 // The live animation set: Diable Jambe swaps in the tinted-arc strips. (Win variant joins in Phase 7.)
-export function sanjiAnimSet(f) { return f?._sanji?.dj > 0 ? SANJI_DJ_SET : null }
+export function sanjiAnimSet(f) {
+  if (f?._forceAction === 'win') { const v = sanjiWinVariant(f); return v === 1 ? null : SANJI_WIN_SETS[v] }
+  if (f?._forceAction === 'lose') return null
+  return f?._sanji?.dj > 0 ? SANJI_DJ_SET : null
+}
+// Victory pose variant: 1 smoking (2/5) · 2 kick flourish (2/5) · 3 serving the cocktail (1/5). A pure integer hash
+// of SIM values frozen at the KO (health, Heat, input tick) → both LAN peers agree; cached for the round.
+export function sanjiWinVariant(f) {
+  if (!f._sjWinVar) {
+    let h = Math.imul((f.health | 0) + 1, 73856093) ^ Math.imul((f.energy | 0) + 5, 19349663) ^ Math.imul((f._sanji?.tick | 0) + 11, 83492791)
+    h ^= h >>> 15; h = Math.imul(h, 2246822519); h ^= h >>> 13
+    const r = (h >>> 0) % 5
+    f._sjWinVar = r < 2 ? 1 : r < 4 ? 2 : 3
+  }
+  return f._sjWinVar
+}
 function syncAnim(f) { const want = sanjiAnimSet(f); if ((f._skinAnim || null) !== want) f._skinAnim = want }
 // Damage multiplier for a kick started now (Diable Jambe lit: ×1.25, ×1.40 in the Hell Memories window).
 export const djMult = f => { const s = f?._sanji; return !s || !(s.dj > 0) ? 1 : s.djOver > 0 ? DIABLE.overDmg : DIABLE.dmg }
@@ -136,6 +151,8 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   // Press edges keep the direction held AT the edge (a buffered ↓+B pressed in hitstop stays ↓+B).
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock; (s.edgeDir ||= {})[k] = tok } s.prev[k] = v }
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 20) s.dirs.shift() }
+  if (f._forceAction !== 'win' && f._sjWinVar) f._sjWinVar = 0   // a new round picks again
+  syncAnim(f)
   // Motion snapshot AT each button edge (a buffered special keeps the motion it was pressed with).
   for (const k of MOTION_BUTTONS) if (s.edgeAt[k] === s.tick) (s.edgeMot ||= {})[k] = recentMotion(s, 26)
   if (f.health <= 0) return

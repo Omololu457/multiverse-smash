@@ -84,6 +84,9 @@ export const SANJI_BASE_ANIM = ANIM
 // DIABLE JAMBE set (fighter._skinAnim while the leg is lit): every animation whose frames carry a blue kick arc
 // swaps to its *_dj strip (arc pixels tinted orange-white — ledgered "tint"); everything else is unchanged.
 export const SANJI_DJ_SET = { ...ANIM, ...withTimelines(SANJI_DJ_ANIM) }
+// Round-end victory variants (the engine always plays action 'win'; the variant swaps which strip that is):
+//   1 = R7 smoking, hands in pockets (base `win`) · 2 = R9 kick flourish → R6 pocket pose · 3 = R8 serving the cocktail
+export const SANJI_WIN_SETS = { 2: { ...ANIM, win: ANIM.win2 }, 3: { ...ANIM, win: ANIM.winGlass } }
 
 export const sanji = {
   rosterKey: 'sanji', name: 'Sanji', displayName: 'Sanji', hudName: 'Sanji', universe: 'one_piece', color: '#e8c33a',

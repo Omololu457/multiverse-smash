@@ -248,6 +248,9 @@ function fireHaki(f, opp, s, W) {
   if (opp && opp.health > 0 && Math.abs((opp.x + (opp.w || 48) / 2) - cx) < H.range) {
     const away = Math.sign(opp.x + (opp.w || 48) / 2 - cx) || -(f.facing || 1)
     opp.attacking = false; opp.currentAttack = null; opp.currentMove = null
+    // Cancel sustained BEAMS: hitstun already ends most (e.g. Homelander's laser), but Superman's held Heat
+    // Vision ignores hitstun — drop its hold so it needs a fresh press. (Zoro's effect; no change to his data.)
+    if (opp._supHvHold || opp._supHvBeam) { opp._supHvHold = null; opp._supHvBeam = null; opp._supHvTick = 0 }
     opp.vx = away * H.push; opp.vy = Math.min(opp.vy || 0, -4)
     opp.hitstun = Math.max(opp.hitstun || 0, H.stun)   // 1 s stun on hit
     opp.colorFlash = 10

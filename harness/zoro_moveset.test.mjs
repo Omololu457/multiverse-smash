@@ -92,7 +92,7 @@ try {
   check('Slash → Heavy slash on contact', await until(async () => (await ls()).attack?.name === 'heavy', 20) >= 0, (await ls()).attack?.name)
 
   console.log('\n── specials ──')
-  await reset({ gap: 300 })
+  await reset({ gap: 400 })   // 400 (was 300): at Toji speed he walks further during ↓↘→, keep the slash in flight for the checks below
   let e0 = (await zs()).energy
   await motion(QCF, 'l')
   let z = await zs()

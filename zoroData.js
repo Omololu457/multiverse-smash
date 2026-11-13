@@ -79,7 +79,7 @@ export const zoro = {
   // Zoro's own `dash` pose, R5F3). jumpForce 10.5 → jumpPower 28. weight 1.1 → knockback taken ÷1.1 (zoroState).
   stats: { maxHealth: 1000, maxEnergy: 100, attack: 88, defense: 88, speed: 98, jumpPower: 28, maxJumps: 1, weight: 1.1,
     dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
-  movement: { crouchIdle: true },
+  movement: { crouchIdle: true, dashTeleport: true },   // double-tap TOWARD = Toji's blink-behind teleport-dash (own `dash` pose)
   // INTRO: Going Merry emblem flash → walk in (R1, eased 220px by zoro.updateZoroIntro) → draw one sword (R3F1).
   introSequence: ['intro', 'zIntroDraw'],
   basic_attacks: { light: ZORO_MOVES.light, heavy: ZORO_MOVES.heavy, crouchLight: ZORO_MOVES.zLow, upAttack: ZORO_MOVES.up,

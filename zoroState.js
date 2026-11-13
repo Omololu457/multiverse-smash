@@ -2,7 +2,7 @@
 // plain JSON (numbers / booleans / strings / small arrays — no callbacks, no object refs), so it is in the
 // replay checkpoint and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every
 // timing is a fixed frame count and every position is derived from the two fighters' positions.
-import { ZORO_SANTO_ANIM, ZORO_MOVES } from './zoroData.js'
+import { ZORO_SANTO_ANIM, ZORO_MOVES, zoro as ZORO_CHAR } from './zoroData.js'
 import { ZORO_FX } from './zoroSprites.js'
 export const isZoro = f => f?.rosterKey === 'zoro'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickZoro; never read by the sim).
@@ -39,6 +39,44 @@ export function zoroState(f) {
     hakiUsed: false, haki: 0,
     serial: 0,         // projectile serial (render bookkeeping)
   }
+}
+
+// TOJI-STYLE TELEPORT-DASH, deferred. game.js detectDoubleTapDashTeleport hands Zoro's double-tap TOWARD here
+// instead of blinking at keydown: the blink resolves in tickZoro after TP_DEFER sim ticks, and is CANCELLED if
+// the →→ was really part of a command — A pressed (Oni Giri 66+A) or a ↓-family motion (Ashura 236236, Taka
+// Nami 236, Shishi 2369…) — then it falls back to the ordinary ground dash, exactly what Zoro's →→ did before.
+// Lives in fighter._zoro (GAME_STATE), resolved on the sim clock.
+const TP_DEFER = 5
+export function zoroQueueTeleport(f) {
+  if (!isZoro(f)) return false
+  const s = zoroState(f)
+  s.tpPend = TP_DEFER; s.tpAt = s.tick
+  return true
+}
+function resolveZoroTeleport(f, s, W) {
+  if (!(s.tpPend > 0)) return
+  const motion = s.dirs.some(([d, t]) => d <= 3 && t >= s.tpAt - 14)              // ↙ ↓ ↘ in the motion window
+  const pressedA = s.edgeAt.special != null && s.edgeAt.special >= s.tpAt - 2      // Oni Giri / any special
+  const busy = f.attacking || f.hitstun > 0 || f.blockstun > 0 || !(f.onGround || f.grounded) || f.health <= 0
+  // Part of a command → no blink. Inside a ↓-motion the →→ stays the plain ground dash it always was for Zoro (the
+  // Combo 4 route relies on it); with A (Oni Giri — itself the dash) or while busy there is no extra movement.
+  if (motion || pressedA || busy) { s.tpPend = 0; if (motion && !pressedA && !busy) f._dashTap = true; return }
+  if (--s.tpPend > 0) return
+  if (!W?.teleport) return
+  W.teleport(f)                                                  // shared speed-tier blink (teleportBehindTarget)
+  f._spriteCastMove = 'dash'; f._spriteCastTimer = 14            // his own dash pose on the blink (R5F3)
+  f.dashTeleportCooldown = 48
+}
+
+// Round/match reset (game.js runs this right AFTER the shared revertGoku(_f), which stamps Goku's speed 84 / dash 16
+// on EVERY fighter). Zoro moves like Toji's DESIGN: re-apply his own speed 98 / dashSpeed 22 so he is speed-tier
+// (isSpeedTierTeleport) and keeps the double-tap blink-behind dash. Zoro-gated; no other fighter is touched.
+export function zoroRoundReset(f) {
+  if (!isZoro(f)) return
+  const st = ZORO_CHAR.stats
+  f.baseSpeed = f.speed = st.speed
+  f.dashSpeed = st.dashSpeed
+  f.dashTeleport = true
 }
 
 export function clearZoro(f) {
@@ -88,6 +126,7 @@ export function tickZoro(f, opp, raw = {}, W = null) {
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock } s.prev[k] = v }
   const tok = dirToken(raw, f.facing || 1), last = s.dirs[s.dirs.length - 1]
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 20) s.dirs.shift() }
+  resolveZoroTeleport(f, s, W)   // deferred Toji-style teleport-dash (cancelled by Oni Giri / ↓-motions)
   // ↗ right after a quarter-circle completes Shishi Sonson instead of jumping (Up is also Jump here).
   if (s.noJump > 0) s.noJump--
   if (/23?6$/.test(recentMotion(s, 12))) s.noJump = 3

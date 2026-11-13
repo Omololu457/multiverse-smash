@@ -9,10 +9,11 @@ after the build), paid for by a Spirit economy that gates everything good. Mecha
 |---|---|---|
 | HP | 1000 | roster standard |
 | Walk / speed | speed 98 | **= Toji** (top speed tier) |
-| Dash | dashSpeed 22 · duration 10 · cooldown 26 | **= Toji**; the double-tap dash behaves frame-for-frame like Toji's (tested) |
+| Dash | dashSpeed 22 · duration 10 · cooldown 26 | **= Toji** (12.1 px/f ground dash) |
+| Teleport-dash | double-tap **toward** = speed-tier blink to the foe's side (48f cooldown) | Toji's designed blink; resolves after a 5-tick window so →→+A stays **Oni Giri** and ↓-motions (Ashura/Taka/Shishi) never blink |
 | Jump | jumpPower 28 | lower than the roster median (32) |
 | Weight | 1.1 | horizontal knockback taken ÷1.1 |
-| Evasion | Toji's double-tap dash, Oni Giri dash-through, Wake-up reversal (6 invuln) | no roll, no air-dash tricks |
+| Evasion | Teleport-dash, ground dash, Oni Giri dash-through, Wake-up reversal (6 invuln) | no roll, no air-dash tricks |
 | Meter | Spirit 100: +5 per sword hit, +3 per hit taken, +1/s | no Charge-button refill |
 
 ## Matchups
@@ -66,7 +67,8 @@ after the build), paid for by a Spirit economy that gates everything good. Mecha
   longer). It's needed so the counter isn't eaten by a jump, but a QCF → instant jump is a few frames late.
 
 ## Engine note: shared speed reset (not Zoro-specific)
-`resetRound` (game.js) calls Goku's `revertGoku` on **every** fighter, which sets `speed` 84 / `dashSpeed` 16 for the
-whole roster at each round start. So in live matches Zoro and Toji both run on those values, and the speed-98
-"blink behind" double-tap (`isSpeedTierTeleport`) never triggers for either of them. Zoro still matches Toji exactly;
-fixing the reset (guard it to Goku) would restore the designed speeds for everyone at once.
+`resetRound` (and the other reset paths in game.js) call Goku's `revertGoku` on **every** fighter, which stamps
+`speed` 84 / `dashSpeed` 16 on the whole roster each round. Zoro is protected: `zoroRoundReset` runs right after it
+and re-applies his own 98 / 22 (Zoro-only), so he really plays at Toji's designed speed with the blink.
+**Toji himself is still flattened to 84 / 16 in live matches and never blinks**, as is every other fighter's designed
+speed. Fixing that means guarding `revertGoku` to Goku: a roster-wide movement change, left for the owner to decide.

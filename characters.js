@@ -4765,7 +4765,9 @@ const greenArrow = {
   },
   ultimate: { name: "Arrowstorm Protocol", cost: 100, description: "↓↘→↓↘→+Special. Every live drone fires at once, a Payload bomber carpet-bombs the screen, and Oliver closes with a 3-arrow explosive volley. ~380 if everything connects (300 base), then a 3s Tech lockout and all drones recalled." },
   hasSprites: true,
-  spriteScale: 1.8,
+  spriteScale: 1.35,   // SCALE FIX: was 1.8 (would draw ~178px — taller than everyone). 1.35 → ~134px =
+  // roster median, next to Spider-Man. REQUIRES the skins.js green_arrow entry below, else applySkin()
+  // falls back to spriteScale:1 and he renders ~99px (the "renders small" bug).
   // INTRO: somersault in (flip) -> bow draw/aim -> settle to idle. Win auto-plays animationData.win
   // (fist raise); on a KO loss the loser freezes on `lose` (knockdown) + all his drones play DEATH.
   introSequence: ["flip", "draw", "idle"],

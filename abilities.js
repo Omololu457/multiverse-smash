@@ -36272,40 +36272,40 @@ function _gaTagReticle(opp, frames) { if (opp) { opp._gaTagged = Math.max(opp._g
 registerDroneProfile("overwatch", {
   sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, scan: { sheet: "./ga_overwatch_scan_sheet.png", frames: 8 }, walk: { sheet: "./ga_overwatch_walk_sheet.png", frames: 4 }, walkscan: { sheet: "./ga_overwatch_walkscan_sheet.png", frames: 8 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
   hp: 70, accel: 1.6, maxH: 11, maxV: 9, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 165, bobAmp: 4, leash: 360, behaviour: "recon", cooldownOnDeath: 300,
-  techCost: 20, hurtbox: { w: 54, h: 30 }, scale: 2.0, frontFacing: true, nativeFacing: "front",
+  hoverHeight: 200, bobAmp: 4, leash: 360, behaviour: "recon", cooldownOnDeath: 300,
+  techCost: 20, hurtbox: { w: 56, h: 31 }, scale: 2.08, frontFacing: true, nativeFacing: "front",   // SCALE FIX: ~40% of the 134px GA (h-based)
 })
 registerDroneProfile("bulwark", {
   sprites: { capsule: { sheet: "./ga_bulwark_capsule_sheet.png", frames: 6 }, drop: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 }, walk: { sheet: "./ga_bulwark_walk_sheet.png", frames: 4 }, walk2: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, idle: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, death: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 } },
   hp: 130, accel: 0.9, maxH: 3.2, maxV: 8, drag: 0.8, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 0, bobAmp: 0, leash: 520, behaviour: "planted", cooldownOnDeath: 360,
-  techCost: 25, hurtbox: { w: 46, h: 30 }, scale: 2.0, frontFacing: false, nativeFacing: "left", faceMode: "target",
+  techCost: 25, hurtbox: { w: 56, h: 37 }, scale: 2.45, frontFacing: false, nativeFacing: "left", faceMode: "target",   // SCALE FIX: ~40% of GA (h-based)
   lifetime: 720, expireMode: "death",
 })
 registerDroneProfile("aegis", {
   sprites: { idle: { sheet: "./ga_aegis_idle_sheet.png", frames: 4 }, walk: { sheet: "./ga_aegis_walk_sheet.png", frames: 5 }, death: { sheet: "./ga_aegis_death_sheet.png", frames: 6 } },
   hp: 150, accel: 1.4, maxH: 8, maxV: 8, drag: 0.85, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 70, bobAmp: 2, leash: 220, behaviour: "guard", cooldownOnDeath: 300,
-  techCost: 20, hurtbox: { w: 52, h: 40 }, scale: 2.2, frontFacing: true, nativeFacing: "front",
+  hoverHeight: 105, bobAmp: 2, leash: 220, behaviour: "guard", cooldownOnDeath: 300,
+  techCost: 20, hurtbox: { w: 58, h: 45 }, scale: 2.45, frontFacing: true, nativeFacing: "front",   // SCALE FIX: ~40% of GA (h-based)
   absorbsProjectiles: true, lifetime: 600, expireMode: "retire",
 })
 registerDroneProfile("kestrel", {
   sprites: { idle: { sheet: "./ga_kestrel_idle_sheet.png", frames: 4 }, forward: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 }, back: { sheet: "./ga_kestrel_back_sheet.png", frames: 4 }, fire1: { sheet: "./ga_kestrel_fire1_sheet.png", frames: 11 }, fire2: { sheet: "./ga_kestrel_fire2_sheet.png", frames: 11 }, death: { sheet: "./ga_kestrel_death_sheet.png", frames: 9 }, walk: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 } },
   hp: 90, accel: 1.8, maxH: 13, maxV: 10, drag: 0.88, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 210, bobAmp: 3, leash: 760, behaviour: "strafe", cooldownOnDeath: 330,
-  techCost: 30, hurtbox: { w: 60, h: 24 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "target",
+  hoverHeight: 245, bobAmp: 3, leash: 760, behaviour: "strafe", cooldownOnDeath: 330,
+  techCost: 30, hurtbox: { w: 59, h: 24 }, scale: 2.16, frontFacing: false, nativeFacing: "left", faceMode: "target",   // SCALE FIX: ~50% of GA (w-based; thin jet)
 })
 registerDroneProfile("skyhook", {
   sprites: { idle: { sheet: "./ga_skyhook_idle_sheet.png", frames: 4 }, landing: { sheet: "./ga_skyhook_landing_sheet.png", frames: 8 }, walk: { sheet: "./ga_skyhook_walk_sheet.png", frames: 4 }, death: { sheet: "./ga_skyhook_death_sheet.png", frames: 6 } },
   hp: 110, accel: 1.5, maxH: 9, maxV: 10, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
-  hoverHeight: 190, bobAmp: 3, leash: 420, behaviour: "hook", cooldownOnDeath: 330,
-  techCost: 25, hurtbox: { w: 70, h: 46 }, scale: 1.9, frontFacing: true, nativeFacing: "front",
+  hoverHeight: 225, bobAmp: 3, leash: 420, behaviour: "hook", cooldownOnDeath: 330,
+  techCost: 25, hurtbox: { w: 80, h: 53 }, scale: 2.17, frontFacing: true, nativeFacing: "front",   // SCALE FIX: ~75% of GA (h-based)
 })
 registerDroneProfile("payload", {
   sprites: { drop: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, idle: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, death: { sheet: "./ga_payload_drop_sheet.png", frames: 6 } },
   hp: 999, accel: 2.0, maxH: 14, maxV: 6, drag: 0.95, reverseBrake: 0.7, overspeedDrag: 0.95,
-  hoverHeight: 300, bobAmp: 0, leash: 2000, behaviour: "bomber", cooldownOnDeath: 0,
-  techCost: 0, hurtbox: { w: 120, h: 40 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "travel",
+  hoverHeight: 335, bobAmp: 0, leash: 2000, behaviour: "bomber", cooldownOnDeath: 0,
+  techCost: 0, hurtbox: { w: 95, h: 32 }, scale: 1.75, frontFacing: false, nativeFacing: "left", faceMode: "travel",   // SCALE FIX: ~80% of GA (w-based; thin bomber)
   lifetime: 150, expireMode: "retire",
 })
 
@@ -36352,7 +36352,10 @@ registerBehaviour("recon", (d, { frame }) => {
   const opp = d._opp || (d._opp = d.target)
   if (d.mode === "strike") return _gaStunDrone(d, o, opp)       // STRIKE "Stun Drone"
   // PROTECTOR "Sentinel": tag + EARLY WARNING auto-guard
-  d.tx = (o.x || 0) + (-(o.facing || 1)) * 85
+  // FLY-TOWARD FIX: was (o.x - facing*85) = BEHIND Oliver → the scout looked like it fled the enemy.
+  // Park it on the FOE side (between Oliver and the target) so it reads as recon pushing the threat.
+  const _reconToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
+  d.tx = (o.x || 0) + _reconToOpp * 85
   d.ty = _gaFloor(o) - (d.profile.hoverHeight || 160)
   d.data.scanT = (d.data.scanT || 0) + 1
   const inCone = opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < 520 && Math.abs((opp.y || 0) - d.y) < 300

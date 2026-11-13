@@ -1,0 +1,7 @@
+Green Arrow + drone scale fix — starting point.
+
+main BEFORE this work (merge of feat/green-arrow into main): 35f6981f61059b955725f016bbddfbff5eb79431
+  (its first parent = main before Green Arrow was merged: 148d600bb94065261a996a761b9426db150e689d)
+
+Undo the scale fix: reset the scale commit(s) back to 35f6981f61059b955725f016bbddfbff5eb79431 (keeps the GA merge).
+Undo everything incl. the merge: return main to 148d600bb94065261a996a761b9426db150e689d.

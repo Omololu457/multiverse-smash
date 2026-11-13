@@ -544,12 +544,12 @@ export const SANJI_ANIM = {
 }
 // Diable Jambe: the same animations with the blue kick arcs tinted orange-white (swapped in while the leg is lit).
 export const SANJI_DJ_ANIM = {
- "sCollier": {
-  "sheet": "./assets/sanji/sCollier_dj.png",
-  "frames": 2,
+ "guard_hit": {
+  "sheet": "./assets/sanji/guard_hit_dj.png",
+  "frames": 1,
   "width": 320,
   "height": 256,
-  "speed": 4,
+  "speed": 6,
   "anchorY": 0,
   "originX": 160,
   "originY": 150,

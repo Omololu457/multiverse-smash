@@ -36,7 +36,7 @@ sheet = F.load(SRC)
 sha = hashlib.sha256(open(SRC, 'rb').read()).hexdigest()
 FRAMES = F.FRAMES
 
-ARC_FRAMES = ('R1F5', 'R2F2', 'R3F2', 'R4F3')     # frames carrying the blue kick arcs
+ARC_FRAMES = ('R1F5', 'R2F2', 'R3F2', 'R4F3')     # frames carrying the blue motion arcs (R1F5's is a deflect swipe)
 LYING = {'R7F6', 'R3F3'}                            # pivot = body centre (lying / horizontal handstand split)
 # Blue → Diable Jambe ramp (by brightness of the source blue): dark → deep orange, light → orange-white.
 DJ_RAMP = {(32, 56, 88): (200, 64, 16), (40, 80, 144): (240, 120, 24), (80, 112, 200): (255, 200, 80), (80, 128, 216): (255, 240, 200)}
@@ -85,7 +85,8 @@ ANIMS = {
  'fall': (['R3F1'], 6, False),
  'crouch': (['R5F8'], 6, True),
  'guard': (['R2F1'], 6, True),                              # leg check (raised knee), hands down
- 'guard_hit': (['R2F1'], 6, False),
+ 'guard_hit': (['R1F5'], 6, False),                         # forearm DEFLECT on a blocked hit — R1F5 is a PUNCH frame (fist + arc),
+                                                             # so per the HANDS RULE it is only ever this defensive pose, never a strike
  'hurt': (['R1F4'], 6, False),                              # reeling (pose, open hands — never a strike)
  'hurt_heavy': (['R7F4'], 6, False),
  'hurt_air': (['R4F1'], 6, False),
@@ -101,8 +102,8 @@ ANIMS = {
  'winGlass': (['R8F1', 'R8F2'], 18, True),                  # WIN 3: the cocktail-glass prop (love mode)
  'lose': (['R7F5', 'R7F6'], 30, False),                     # kneels → lies down
  # ── normals (the six Course kicks) ──
- 'sCollier': (['R2F1', 'R1F5'], 4, False),                  # 1 COLLIER   high kick
- 'sEpaule': (['R4F4', 'R1F6'], 5, False),                   # 2 EPAULE    descending kick
+ 'sCollier': (['R2F1', 'R4F4'], 4, False),                  # 1 COLLIER   high kick
+ 'sEpaule': (['R9F4', 'R1F6'], 5, False),                   # 2 EPAULE    descending kick (heel high → comes down)
  'sCotelette': (['R4F2', 'R4F3'], 5, False),                # 3 COTELETTE side kick
  'sSelle': (['R4F5', 'R4F7'], 5, False),                    # 4 SELLE     mid kick
  'sPoitrine': (['R9F1', 'R9F2', 'R9F3'], 5, False),         # 5 POITRINE  straight kick (launch)
@@ -122,7 +123,7 @@ ANIMS = {
  'sSkyWalk': (['R4F1', 'R5F10'], 5, False),                 # Sky Walk (Geppo)
  'sPlate': (['R5F5', 'R2F1'], 6, False),                    # Plate Kick (flick the dish → volley)
  'sHachis': (['R3F4', 'R4F11', 'R2F3', 'R4F11'], 3, True),  # Premier Hachis low flurry
- 'sPTKC': (['R3F5', 'R1F5', 'R1F6', 'R4F3', 'R4F7', 'R9F2', 'R2F3', 'R9F4', 'R4F10'], 8, False),   # super
+ 'sPTKC': (['R3F5', 'R4F4', 'R1F6', 'R4F3', 'R4F7', 'R9F2', 'R2F3', 'R9F4', 'R4F10'], 8, False),   # super
 }
 
 anim_js, dj_js = {}, {}

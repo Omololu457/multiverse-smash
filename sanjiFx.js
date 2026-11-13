@@ -32,6 +32,13 @@ export function drawSanjiHud(ctx, fighter, { x, enY, pbw, flip }) {
     const k = (s - 4) / Math.max(g.width, g.height), w = g.width * k, h = g.height * k
     ctx.drawImage(g, bx + (s - w) / 2, by + (s - h) / 2, w, h)
   }
+  const st = fighter._sanji
+  if (st && (st.dj > 0 || st.djLock)) {   // Diable Jambe status next to the badge
+    ctx.font = 'bold 8px Arial'; ctx.textAlign = flip ? 'right' : 'left'; ctx.textBaseline = 'alphabetic'
+    const tx = flip ? bx - 6 : bx + s + 6
+    if (st.dj > 0) { ctx.fillStyle = st.djOver > 0 ? '#fff4d8' : '#ffb04a'; ctx.fillText((st.djOver > 0 ? 'HELL MEMORIES ' : 'DIABLE JAMBE ') + Math.ceil(st.dj / 60) + 's', tx, by + 9) }
+    else { ctx.fillStyle = 'rgba(200,210,230,0.7)'; ctx.fillText('JAMBE SPENT — empty to relight', tx, by + 9) }
+  }
   ctx.restore()
 }
 
@@ -56,7 +63,62 @@ export function drawSanjiFx(c, f) {
   if (!c || f?.rosterKey !== 'sanji') return
   if (f._introPlaying) drawMerryFlash(c, f)
   if (!f._sanji) return
-  drawCigarette(c, f, f._sanji)
+  const s = f._sanji
+  if (s.dj > 0 || (f.attacking && f.currentAttack?.sj?.kind === 'ignite')) drawDiable(c, f, s)
+  if (s.lastHit && (s.clock - s.lastHit[0]) < 22) drawImpactEmbers(c, s)
+  drawCigarette(c, f, s)
+}
+
+// Deterministic per-particle pseudo-random (render-only; integer hash of particle index + seed).
+const hr = (i, k) => { let h = (i * 374761393 + k * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
+// The burning leg's anchor: the kicking foot while a kick is live (front of the hitbox reach), else the front shin.
+function legPoint(f) {
+  const a = f.attacking ? f.currentAttack : null, z = a?.sj, w = f.w || 48, h = f.h || 94, face = f.facing || 1, cx = f.x + w / 2
+  if (z && !z.noHit && a.rangeX) {
+    const by = z.centered ? f.y + (z.boxY ?? 20) + (a.rangeY || 40) / 2 : f.y + (z.boxY ?? 20) + Math.min(a.rangeY || 40, 60) / 2
+    return { x: cx + face * (w / 2 + a.rangeX * 0.55), y: by, len: 26 }
+  }
+  return { x: cx + face * 7, y: f.y + h * 0.78, len: h * 0.4 }
+}
+// DIABLE JAMBE: flames licking up the leg, a heat shimmer around it, sparks; during the spin-up the fire builds.
+function drawDiable(c, f, s) {
+  const t = s.clock || 0, p = legPoint(f)
+  const spin = f.attacking && f.currentAttack?.sj?.kind === 'ignite'
+  const build = spin ? Math.max(0, Math.min(1, (f.currentAttack.total - f.currentAttack.timer) / 34)) : 1
+  const fade = spin ? 1 : Math.min(1, s.dj / 45)
+  const over = s.djOver > 0
+  const N = Math.round((over ? 16 : 11) * build)
+  c.save(); c.globalCompositeOperation = 'lighter'
+  // heat shimmer (soft orange haze)
+  const g = c.createRadialGradient(p.x, p.y, 2, p.x, p.y, 34 + p.len * 0.6)
+  g.addColorStop(0, `rgba(255,170,60,${0.32 * build * fade})`); g.addColorStop(1, 'rgba(255,90,0,0)')
+  c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, 34 + p.len * 0.6, 0, Math.PI * 2); c.fill()
+  for (let i = 0; i < N; i++) {
+    const life = 18 + Math.floor(hr(i, 3) * 14), ph = ((t + Math.floor(hr(i, 1) * life)) % life) / life
+    const ox = (hr(i, 2) - 0.5) * 14 + Math.sin((t + i * 7) * 0.31) * 3, oy = (hr(i, 4) - 0.5) * p.len
+    const x = p.x + ox, y = p.y + oy - ph * 26, r = (1 - ph) * (over ? 7 : 5.5) + 1
+    c.fillStyle = ph < 0.3 ? `rgba(255,250,225,${0.85 * fade})` : ph < 0.65 ? `rgba(255,170,50,${0.7 * fade})` : `rgba(230,70,10,${0.45 * fade * (1 - ph)})`
+    c.beginPath(); c.ellipse(x, y, r * 0.7, r * 1.3, 0, 0, Math.PI * 2); c.fill()
+  }
+  if (spin) {   // the friction spin: a fast orange ring around the planted leg
+    const ang = t * 0.9
+    c.strokeStyle = `rgba(255,150,40,${0.25 + 0.5 * build})`; c.lineWidth = 3
+    c.beginPath(); c.ellipse(f.x + (f.w || 48) / 2, f.y + (f.h || 94) * 0.9, 30, 8, 0, ang, ang + Math.PI * 1.3); c.stroke()
+  }
+  c.restore()
+}
+// Embers on impact (render-only): a burst at the last landed kick; orange-white when the leg was burning.
+function drawImpactEmbers(c, s) {
+  const [at, x, y, lit] = s.lastHit, k = (s.clock - at) / 22
+  c.save(); c.globalCompositeOperation = 'lighter'
+  const n = lit ? 14 : 6
+  for (let i = 0; i < n; i++) {
+    const ang = hr(i + at, 7) * Math.PI * 2, sp = 20 + hr(i + at, 8) * 40
+    const px = x + Math.cos(ang) * sp * k, py = y + Math.sin(ang) * sp * k + 18 * k * k, r = (1 - k) * (lit ? 3.2 : 2)
+    c.fillStyle = lit ? `rgba(255,${Math.round(150 + 100 * (1 - k))},60,${1 - k})` : `rgba(200,225,255,${0.8 * (1 - k)})`
+    c.beginPath(); c.arc(px, py, r + 0.5, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
 }
 
 // Mouth point of the pocket-pose frames (R6/R7): the cigarette tip sits 6px in front of / 42px above the feet

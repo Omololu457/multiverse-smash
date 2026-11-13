@@ -8,7 +8,7 @@ Cut: alpha chroma key (background already alpha-0) → 8-connected component mas
 
 | Row | Brief said | Real | Content |
 |---|---|---|---|
-| R1 | 6 | **6** | stance/idle set (F1–F4) + two high kicks; F5 carries a BLUE motion arc |
+| R1 | 6 | **6** | stance/idle set (F1–F4), F5 a PUNCH inside a BLUE arc (deflect pose only), F6 a high kick |
 | R2 | 3 | **3** | knee/front kick, BIG blue crescent kick, long low front kick |
 | R3 | 5 | **5** | tuck, HANDSTAND kick (blue arc), handstand split, one-hand low sweep, handstand rising kick — *the handstand frames are here, not R4* |
 | R4 | ~10 | **11** | somersault, crouch-turn, high kick (blue arc), raised axe kick, knee chamber, spin kick (swirl), front kick, knee, rising knee, bent high back-kick, low lunge |
@@ -31,14 +31,14 @@ Cut: alpha chroma key (background already alpha-0) → 8-connected component mas
 |---|---|
 | Going Merry figurehead (R9) | **reused existing One Piece emblem** `assets/zoro/merry.png` (added by Zoro). Not duplicated. |
 | Credit text "Ripped by Paddy / No credit needed" (R9) | **excluded, credit** → `docs/sanji/CREDITS.md` |
-| Blue motion arcs R1F5, R2F2, R3F2, R4F3 | base kick trails; **tint** copies (`*_dj.png`: arc pixels blue→orange-white, `tools/sanji_build/arcs.py`) for Diable Jambe |
+| Blue motion arcs R2F2, R3F2, R4F3 (+R1F5 deflect) | base kick trails; **tint** copies (`*_dj.png`: arc pixels blue→orange-white, `tools/sanji_build/arcs.py`) for Diable Jambe |
 | Every body frame | **derived copy (mirror)**: the sheet faces left; stored right-facing, the engine flips at runtime |
 | R6F1 bust | **derived copy (crop)** → `portrait.png` |
 | Afterimages (Mouton / Sky Walk / PTKC) | render-only re-draws of the live frame at an offset, translucent (**derived copy**, no new pixels) |
 
 ## HANDS RULE audit
 
-Every striking animation uses a kick, knee or shin frame. Frames with hands forward (R1F2 lighting the cigarette, R1F4 reeling, R5 serving, R8 serving) are only ever used as poses (intro, hurt, taunt, win). Intro, idle, WIN 1/2 and the walk all use hands-in-pockets frames (R6/R7) or the kick flourish (R9). No fist is raised in any intro, idle or win pose.
+Audited at 4x zoom, extremity by extremity (shoe = dark-blue boot with brown sole; hand = skin colour). Every striking animation uses a kick, knee or shin frame. **R1F5 is a PUNCH** (forearm + fist forward inside the blue arc) — the brief listed it among the kicks — so it is used ONLY as the `guard_hit` forearm-deflect pose, never a strike; COLLIER uses the R4F4 high kick instead. Frames with hands forward (R1F2 lighting the cigarette, R1F4 reeling, R5 serving, R8 serving) are only ever poses (intro, hurt, taunt, win). Fists held at the chest during a kick (R4F3, R4F8) are a guard, not a strike. Intro, idle, WIN 1/2 and the walk use hands-in-pockets frames (R6/R7) or the kick flourish (R9): no fist is raised in any intro, idle or win pose.
 
 ## Frame → animation → trigger
 
@@ -48,9 +48,9 @@ Every striking animation uses a kick, knee or shin frame. Frames with hands forw
 | 2 | R1F2 | (49, 14, 77, 54) | `sIntroLight` → INTRO step 2: lights the cigarette, first drag<br>`sIntroLight` → INTRO step 2: lights the cigarette, first drag |
 | 3 | R1F3 | (87, 3, 112, 54) | `run` → run |
 | 4 | R1F4 | (121, 2, 158, 54) | `hurt` → hitstun |
-| 5 | R1F5 | (167, 2, 209, 53) | `sCollier` → COLLIER (L) — Course 1<br>`sPTKC` → PARTY TABLE KICK COURSE (super)<br>Diable Jambe *_dj strips (tint: blue arcs → orange-white) |
+| 5 | R1F5 | (167, 2, 209, 53) | `guard_hit` → blockstun (forearm deflect pose)<br>Diable Jambe *_dj strips (tint: blue arcs → orange-white) |
 | 6 | R1F6 | (224, 3, 274, 53) | `sEpaule` → EPAULE (→+L) — Course 2<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
-| 7 | R2F1 | (2, 71, 35, 122) | `guard` → block (leg check)<br>`guard_hit` → blockstun<br>`grab` → grab (knee clinch)<br>`throw` → throw (kick-throw)<br>`sCollier` → COLLIER (L) — Course 1<br>`sPlate` → PLATE KICK (↓↙←+B) |
+| 7 | R2F1 | (2, 71, 35, 122) | `guard` → block (leg check)<br>`grab` → grab (knee clinch)<br>`throw` → throw (kick-throw)<br>`sCollier` → COLLIER (L) — Course 1<br>`sPlate` → PLATE KICK (↓↙←+B) |
 | 8 | R2F2 | (50, 63, 97, 123) | `sReversal` → wake-up reversal (neutral A)<br>`sMouton` → MOUTON SHOT (↓↘→+A)<br>Diable Jambe *_dj strips (tint: blue arcs → orange-white) |
 | 9 | R2F3 | (107, 75, 157, 123) | `throw` → throw (kick-throw)<br>`sGigot` → GIGOT (↘+L) — Course 6, low<br>`sHachis` → PREMIER HACHIS (↓↙←+A)<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
 | 10 | R3F1 | (1, 145, 27, 188) | `fall` → falling<br>`sMouton` → MOUTON SHOT (↓↘→+A) |
@@ -61,7 +61,7 @@ Every striking animation uses a kick, knee or shin frame. Frames with hands forw
 | 15 | R4F1 | (0, 222, 36, 257) | `hurt_air` → air hitstun<br>`knockdown` → knocked down<br>`sConcasse` → CONCASSE (air ↓↓+A)<br>`sSkyWalk` → SKY WALK (air ↓↘→+B) |
 | 16 | R4F2 | (46, 211, 78, 257) | `sCotelette` → COTELETTE (H) — Course 3<br>`sGigot` → GIGOT (↘+L) — Course 6, low |
 | 17 | R4F3 | (86, 204, 133, 257) | `sCotelette` → COTELETTE (H) — Course 3<br>`sPTKC` → PARTY TABLE KICK COURSE (super)<br>Diable Jambe *_dj strips (tint: blue arcs → orange-white) |
-| 18 | R4F4 | (138, 205, 188, 257) | `sEpaule` → EPAULE (→+L) — Course 2 |
+| 18 | R4F4 | (138, 205, 188, 257) | `sCollier` → COLLIER (L) — Course 1<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
 | 19 | R4F5 | (200, 204, 235, 257) | `sSelle` → SELLE (→+H) — Course 4<br>`up` → anti-air knee (↑+H / Up-Attack) |
 | 20 | R4F6 | (246, 203, 274, 257) | `sReversal` → wake-up reversal (neutral A)<br>`sIgnite` → DIABLE JAMBE ignite (A+B, ≥50 Heat)<br>`sIgnite` → DIABLE JAMBE ignite (A+B, ≥50 Heat) |
 | 21 | R4F7 | (281, 205, 327, 256) | `sSelle` → SELLE (→+H) — Course 4<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
@@ -97,7 +97,7 @@ Every striking animation uses a kick, knee or shin frame. Frames with hands forw
 | 51 | R9F1 | (7, 530, 45, 582) | `win2` → WIN 2: kick flourish → pocket pose<br>`sPoitrine` → POITRINE (←+H) — Course 5, launches |
 | 52 | R9F2 | (56, 530, 93, 582) | `win2` → WIN 2: kick flourish → pocket pose<br>`sPoitrine` → POITRINE (←+H) — Course 5, launches<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
 | 53 | R9F3 | (102, 531, 134, 582) | `win2` → WIN 2: kick flourish → pocket pose<br>`sPoitrine` → POITRINE (←+H) — Course 5, launches<br>`sAntiManner` → ANTI-MANNER KICK COURSE (→→+A) |
-| 54 | R9F4 | (143, 531, 175, 582) | `win2` → WIN 2: kick flourish → pocket pose<br>`sAntiManner` → ANTI-MANNER KICK COURSE (→→+A)<br>`sConcasse` → CONCASSE (air ↓↓+A)<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
+| 54 | R9F4 | (143, 531, 175, 582) | `win2` → WIN 2: kick flourish → pocket pose<br>`sEpaule` → EPAULE (→+L) — Course 2<br>`sAntiManner` → ANTI-MANNER KICK COURSE (→→+A)<br>`sConcasse` → CONCASSE (air ↓↓+A)<br>`sPTKC` → PARTY TABLE KICK COURSE (super) |
 
 ## Animation → frames
 

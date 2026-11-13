@@ -68,8 +68,7 @@
    ],
    "arcPixels": 106,
    "uses": [
-    "sCollier",
-    "sPTKC",
+    "guard_hit",
     "Diable Jambe *_dj strips (tint: blue arcs \u2192 orange-white)"
    ]
   },
@@ -96,7 +95,6 @@
    "arcPixels": 0,
    "uses": [
     "guard",
-    "guard_hit",
     "grab",
     "throw",
     "sCollier",
@@ -250,7 +248,8 @@
    ],
    "arcPixels": 0,
    "uses": [
-    "sEpaule"
+    "sCollier",
+    "sPTKC"
    ]
   },
   "R4F5": {
@@ -729,6 +728,7 @@
    "arcPixels": 0,
    "uses": [
     "win2",
+    "sEpaule",
     "sAntiManner",
     "sConcasse",
     "sPTKC"

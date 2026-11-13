@@ -31,6 +31,9 @@ export const SANJI_MOVES = {
   down_air:   n(55, 8, 4, 16,  { blockstun: 12, hitstun: 20, rangeX: 80, rangeY: 120, knockbackY: 8, sj: { boxY: 40, centered: true } }),
   sHandstand: n(70, 10, 6, 18, { blockstun: adv(-6, 6, 18), hitstun: 24, rangeX: 110, rangeY: 40, hitLevel: 'low', knockbackX: 4,     // handstand spin: ends facing the other way
                sj: { kind: 'handstand', boxY: 58, centered: true, slide: [4, 16, 9] } }),   // 108px slide: through a close foe
+  // DIABLE JAMBE spin-up (A+B at ≥50 Heat): he spins on one leg until friction lights it (R4/R3 spinning frames).
+  // Vulnerable for the whole spin; the leg ignites at frame 34.
+  sIgnite:    n(0, 0, 1, 39,   { category: 'special', sj: { kind: 'ignite', noHit: true, litAt: 34 } }),
   sReversal:  n(70, 6, 4, 24,  { blockstun: adv(-12, 4, 24), hitstun: 26, rangeX: 96, rangeY: 90, knockbackX: 7, invuln: 6, sj: { boxY: -20 } }),   // wake-up crescent −12
 }
 
@@ -39,13 +42,16 @@ export const SANJI_TIMELINES = {
   sCollier: [[0, 0], [6, 1]], sEpaule: [[0, 0], [9, 1]], sCotelette: [[0, 0], [10, 1]], sSelle: [[0, 0], [9, 1]],
   sPoitrine: [[0, 0], [12, 1], [16, 2]], sGigot: [[0, 0], [7, 1]], sCrouchKick: [[0, 0], [6, 1]],
   up: [[0, 0], [8, 1]], air: [[0, 0], [6, 1]], down_air: [[0, 0]], sHandstand: [[0, 0], [10, 1], [16, 2]],
-  sReversal: [[0, 0], [6, 1]],
+  sReversal: [[0, 0], [6, 1]], sIgnite: [[0, 0], [8, 1], [16, 2], [24, 1], [30, 2], [34, 3]],
 }
 
 const withTimelines = src => Object.fromEntries(Object.entries(src).map(([k, a]) => [k, SANJI_TIMELINES[k] ? { ...a, frameTimeline: SANJI_TIMELINES[k] } : a]))
 const ANIM = withTimelines(SANJI_ANIM)
 ANIM.transform = ANIM.intro   // fallback intro action
 export const SANJI_BASE_ANIM = ANIM
+// DIABLE JAMBE set (fighter._skinAnim while the leg is lit): every animation whose frames carry a blue kick arc
+// swaps to its *_dj strip (arc pixels tinted orange-white — ledgered "tint"); everything else is unchanged.
+export const SANJI_DJ_SET = { ...ANIM, ...withTimelines(SANJI_DJ_ANIM) }
 
 export const sanji = {
   rosterKey: 'sanji', name: 'Sanji', displayName: 'Sanji', hudName: 'Sanji', universe: 'one_piece', color: '#e8c33a',
@@ -71,4 +77,3 @@ export const sanji = {
   ultimate: { name: 'Party Table Kick Course', cost: 100 },
   animationData: ANIM,
 }
-export { SANJI_DJ_ANIM }

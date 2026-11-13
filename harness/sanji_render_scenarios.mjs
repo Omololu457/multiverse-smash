@@ -69,4 +69,5 @@ export async function run(X) {
     check('handstand spin crosses up (ends on the far side, facing back)', (a0.x < z.x) && (a1.x > z.x) && a1.facing === -1, JSON.stringify({ x0: a0.x, x1: a1.x, zx: z.x, f: a1.facing })) }
 
   if (PHASE >= 3) { const m = await import('./sanji_render_scenarios_p3.mjs'); await m.run(X) }
+  if (PHASE >= 4) { const m = await import('./sanji_render_scenarios_p4.mjs'); await m.run(X) }
 }

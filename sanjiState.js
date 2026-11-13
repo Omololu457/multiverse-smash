@@ -3,13 +3,18 @@
 // and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: every timing is a fixed frame
 // count, every position derives from the two fighters' positions, and the one "random" choice (fire-crackle
 // variation, render/audio only) hashes (match seed, frame, player index).
-import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM } from './sanjiData.js'
+import { SANJI_MOVES, sanji as SANJI_CHAR, SANJI_BASE_ANIM, SANJI_DJ_SET } from './sanjiData.js'
 export const isSanji = f => f?.rosterKey === 'sanji'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickSanji; never read by the sim).
 export function scue(f, c) { (f._sanjiCues ||= []).push(c) }
 
 // HEAT economy (brief): +4 per kick landed, +2 per kick blocked, +0.5/s passive, +8 per completed Course step.
 export const SANJI_HEAT = { perHit: 4, perBlock: 2, passiveEvery: 120, perCourseStep: 8 }
+// DIABLE JAMBE (brief Phase 3): ignite at ≥50 Heat (A+B) → 720 f lit; +25% kick damage (+40% "Hell Memories" for the
+// first 180 f when ignited at 100 Heat); every kick hit BURNS (3 dmg / 20 f for 2 s, refreshes, never stacks); kick
+// trails tinted orange-white; +10% run speed; Heat drains 4/s while lit; no re-ignite until Heat hits 0 and refills.
+export const DIABLE = { minHeat: 50, frames: 720, dmg: 1.25, overDmg: 1.40, overFrames: 180, drainEvery: 15, run: 1.10,
+  burn: { frames: 120, every: 20, dmg: 3 } }
 const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
 
 export function sanjiState(f) {
@@ -24,6 +29,12 @@ export function sanjiState(f) {
     lockout: 0,        // Heat gain lockout (after the super)
     serial: 0,         // projectile serial (render bookkeeping)
     phase: 0,          // 1 while spinning / dashing THROUGH the opponent (physics pass-through)
+    dj: 0,             // DIABLE JAMBE frames left (0 = leg not lit)
+    djOver: 0,         // "Hell Memories" overheat frames left (ignited at 100 Heat)
+    djLock: false,     // ignited this cycle → no re-ignite until Heat reaches 0 (then refills to ≥50)
+    djDrain: 0,        // frames toward the next −1 Heat drain (4/s)
+    burn: 0, burnTick: 0,   // burn on the opponent: frames left / frames toward the next 3-dmg tick
+    lastHit: null,     // [clock, x, y, burning] of the last kick that landed (render: embers on impact)
   }
 }
 
@@ -31,6 +42,23 @@ export function clearSanji(f) {
   if (f?._sanji || isSanji(f)) { delete f._sanji; delete f._sanjiCues; if (isSanji(f)) { f._skinAnim = null; restoreSpeed(f) } }
 }
 function restoreSpeed(f) { const st = SANJI_CHAR.stats; f.dashSpeed = st.dashSpeed }
+// The live animation set: Diable Jambe swaps in the tinted-arc strips. (Win variant joins in Phase 7.)
+export function sanjiAnimSet(f) { return f?._sanji?.dj > 0 ? SANJI_DJ_SET : null }
+function syncAnim(f) { const want = sanjiAnimSet(f); if ((f._skinAnim || null) !== want) f._skinAnim = want }
+// Damage multiplier for a kick started now (Diable Jambe lit: ×1.25, ×1.40 in the Hell Memories window).
+export const djMult = f => { const s = f?._sanji; return !s || !(s.dj > 0) ? 1 : s.djOver > 0 ? DIABLE.overDmg : DIABLE.dmg }
+export const canIgnite = f => { const s = f?._sanji; return !!s && !(s.dj > 0) && !s.djLock && (f.energy || 0) >= DIABLE.minHeat }
+function ignite(f, s) {
+  s.djOver = (f.energy || 0) >= (f.maxEnergy || 100) ? DIABLE.overFrames : 0
+  s.dj = DIABLE.frames; s.djLock = true; s.djDrain = 0
+  f.dashSpeed = SANJI_CHAR.stats.dashSpeed * DIABLE.run
+  syncAnim(f); scue(f, 'ignite')
+}
+export function douseDiable(f, cue = true, force = false) {
+  const s = f?._sanji; if (!s || (!(s.dj > 0) && !force)) return
+  s.dj = 0; s.djOver = 0
+  restoreSpeed(f); syncAnim(f); if (cue) scue(f, 'douse')
+}
 // Round/match reset (game.js runs this right AFTER the shared revertGoku(_f), which stamps Goku's speed 84 / dash
 // 16 on EVERY fighter): re-apply Sanji's own walk / run numbers.
 export function sanjiRoundReset(f) {
@@ -38,6 +66,9 @@ export function sanjiRoundReset(f) {
   const st = SANJI_CHAR.stats
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
+  const s = f._sanji
+  if (s) { s.dj = 0; s.djOver = 0; s.djLock = false; s.burn = 0; s.lockout = 0 }
+  f._skinAnim = sanjiAnimSet(f)
 }
 
 const elapsed = a => (a ? a.total - a.timer : -1)
@@ -64,6 +95,9 @@ export function sanjiStartMove(f, key, startMove) {
   a.sj = { kind: g.kind || 'normal', ...g, blockstun: md.blockstun, dir: f.facing || 1 }   // dir: locked at start
   if (g.contacts) a.sj.contact = -1
   if (g.noHit) a.hasHit = true
+  const m = djMult(f)
+  if (m !== 1 && !g.noHit) { a.damage = Math.round(a.damage * m); a.sj.dj = true }   // DIABLE JAMBE: +25% (+40% overheat)
+  else if (f._sanji?.dj > 0) a.sj.dj = true
   const inv = md.invuln || g.invuln || 0
   if (inv) f.invulnTimer = Math.max(f.invulnTimer || 0, inv)
   if (md.isSpecial || md.isUltimate) { f.vx = 0; f.isBlocking = false }
@@ -85,6 +119,7 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   if (f.hitstop > 0) return
   s.clock++
   if (s.lockout > 0) s.lockout--
+  tickDiable(f, opp, s, W)
   const neutral = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isBlocking && (f.onGround || f.grounded) &&
     !raw.left && !raw.right && !raw.up && !raw.down && !raw.jump && Math.abs(f.vx || 0) < 0.5
   s.idle = neutral ? s.idle + 1 : 0
@@ -97,11 +132,34 @@ export function tickSanji(f, opp, raw = {}, W = null) {
   if (z) tickMove(f, opp, s, z, W)
 }
 
+function tickDiable(f, opp, s, W) {
+  if (s.djLock && (f.energy || 0) <= 0) s.djLock = false              // empty → may ignite again once refilled to 50
+  if (s.dj > 0) {
+    if (s.djOver > 0) s.djOver--
+    if (++s.djDrain >= DIABLE.drainEvery) { s.djDrain = 0; f.energy = Math.max(0, (f.energy || 0) - 1) }   // 4 Heat / s
+    if ((f.energy || 0) <= 0) s.djLock = false
+    if (--s.dj <= 0) douseDiable(f, true, true)   // timer out: the flame dies
+  }
+  // BURN on the opponent: 3 dmg every 20 f for 2 s (refreshes on each burning kick, never stacks). "energy" tag
+  // (the fire), never the kick impact itself.
+  if (s.burn > 0) {
+    s.burn--
+    if (++s.burnTick >= DIABLE.burn.every) {
+      s.burnTick = 0
+      if (opp && opp.health > 0 && W?.damage) W.damage(opp, DIABLE.burn.dmg, { attacker: f, damageType: 'energy', source: 'sanjiBurn', move: 'diableBurn', scale: 1 })
+    }
+  }
+}
+
 function tickMove(f, opp, s, z, W) {
   const a = f.currentAttack, t = elapsed(a), dir = z.dir || f.facing || 1
   const sw = W?.stageWidth?.() || 3200
   const clampX = x => Math.max(0, Math.min(sw - (f.w || 48), x))
   switch (z.kind) {
+    case 'ignite':   // spinning up on one leg — the leg catches fire at litAt
+      f.vx = 0; f.isBlocking = false
+      if (t === z.litAt && !z.lit) { z.lit = true; ignite(f, s) }
+      break
     case 'handstand': {   // spins THROUGH on his hands (pass-through) → lands on the far side facing the other way
       const [st, en, step] = z.slide
       if (t >= st && t < en) { s.phase = 1; f.facing = dir; f.x = clampX(f.x + dir * step); f.vx = 0 }
@@ -114,7 +172,7 @@ function tickMove(f, opp, s, z, W) {
 export function sanjiRegen(f) {
   if (!isSanji(f)) return false
   const s = sanjiState(f)
-  if (f.health > 0 && !(f.hitstop > 0)) {
+  if (f.health > 0 && !(f.hitstop > 0) && !(s.dj > 0)) {   // no passive trickle while the leg burns (it drains 4/s)
     if (++s.passive >= SANJI_HEAT.passiveEvery) { s.passive = 0; gainHeat(f, 1) }
   }
   return true
@@ -124,8 +182,12 @@ const isKick = atk => !!atk?.sj
 // Melee hit bookkeeping (combat.resolveAttackHit, clean connects only).
 export function sanjiHit(attacker, defender, atk) {
   if (!isSanji(attacker) || attacker === defender || !isKick(atk)) return
+  const s = sanjiState(attacker)
   gainHeat(attacker, SANJI_HEAT.perHit)
-  scue(attacker, 'impact')
+  const lit = s.dj > 0
+  if (lit) { s.burn = DIABLE.burn.frames; s.burnTick = 0 }   // refresh, never stack
+  s.lastHit = [s.clock, Math.round(defender.x + (defender.w || 48) / 2), Math.round(defender.y + (defender.h || 94) * 0.45), lit ? 1 : 0]
+  scue(attacker, lit ? 'burnImpact' : 'impact')
 }
 // Per-move block stun (combat block branch) + Heat on a blocked kick.
 export function sanjiBlockstun(attacker, defender, atk) {

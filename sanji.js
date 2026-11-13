@@ -8,9 +8,10 @@
 //   Crouch kick ↓/↙+L · Anti-air knee ↑+B / Up-Attack · Air kick air L/B · Handstand spin ↓+B
 import { startMove } from './combat.js'
 import { SANJI_MOVES } from './sanjiData.js'
-import { isSanji, sanjiState, sanjiStartMove, recentMotion, scue } from './sanjiState.js'
+import { isSanji, sanjiState, sanjiStartMove, recentMotion, scue, canIgnite } from './sanjiState.js'
 
 const BUFFER = 8            // a press edge stays "fresh" for 8 sim frames
+const LENIENCY = 3          // A+B: both press edges within 3 input ticks of each other
 // Normal → normal gatlings on contact (hit OR block). Any Course kick cancels into any OTHER Course kick, so the
 // six cuts can be routed in order mid-combo; the crouch kick opens into the Course; the handstand / reversal /
 // anti-air are enders.
@@ -26,6 +27,12 @@ function fresh(s, k, win = BUFFER) {
   return at != null && s.used[k] !== at && s.clock - (s.edgeClk[k] ?? -99) <= win
 }
 const use = (s, ...ks) => { for (const k of ks) if (s.edgeAt[k] != null) s.used[k] = s.edgeAt[k] }
+// A+B (Special + Heavy) pressed together → DIABLE JAMBE.
+function ignitePressed(s) {
+  const a = s.edgeAt.special, b = s.edgeAt.heavy
+  if (a == null || b == null || !s.prev.special || !s.prev.heavy) return false
+  return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && s.used.special !== a
+}
 
 // Which normal does this button mean? Direction = the numpad token held AT the press edge (tickSanji records it).
 const T = { fwd: d => d === 3 || d === 6 || d === 9, back: d => d === 1 || d === 4 || d === 7, down: d => d <= 3, up: d => d >= 7 }
@@ -48,6 +55,12 @@ export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0)) return 'consumed'
   const grounded = !!(f.onGround || f.grounded)
   const a = f.attacking ? f.currentAttack : null
+
+  // ── A+B → DIABLE JAMBE (a staggered press may cancel the first ≤3 frames of the kick it started) ──
+  if (grounded && ignitePressed(s) && canIgnite(f)) {
+    const early = a && !a.hasHit && a.total - a.timer <= LENIENCY && a.sj?.kind === 'normal'
+    if ((!a || early) && W_START(f, 'sIgnite')) { use(s, 'special', 'heavy'); scue(f, 'spin'); return 'consumed' }
+  }
 
   // ── Cancels out of a live move ──
   if (a) {

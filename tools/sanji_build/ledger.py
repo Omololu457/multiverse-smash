@@ -6,7 +6,7 @@ fj = json.load(open(os.path.join(ROOT, 'docs/sanji/frames.json')))
 TRIG = {
  'idle': 'neutral standing (hands in pockets, cigarette)', 'idleLong': 'idle > 10 s: exhales smoke, settles his tie',
  'walk': 'walk forward', 'walk_back': 'walk back', 'run': 'run', 'dash': 'ground dash', 'jump': 'jump (rising)',
- 'fall': 'falling', 'crouch': 'hold ↓', 'guard': 'block (leg check)', 'guard_hit': 'blockstun', 'hurt': 'hitstun',
+ 'fall': 'falling', 'crouch': 'hold ↓', 'guard': 'block (leg check)', 'guard_hit': 'blockstun (forearm deflect pose)', 'hurt': 'hitstun',
  'hurt_heavy': 'heavy hitstun', 'hurt_air': 'air hitstun', 'knockdown': 'knocked down', 'getup': 'wake-up',
  'grab': 'grab (knee clinch)', 'throw': 'throw (kick-throw)', 'taunt': 'taunt: serves the dish',
  'intro': 'INTRO step 1: walks in, hands in pockets', 'sIntroLight': 'INTRO step 2: lights the cigarette, first drag',
@@ -31,7 +31,7 @@ L = ['# Sanji — Sprite Ledger', '',
      'same ripper and scale). Regenerate: `python3 -I tools/sanji_build/extract.py .` then `python3 -I tools/sanji_build/ledger.py .`', '',
      '## Real frame counts per row', '',
      '| Row | Brief said | Real | Content |', '|---|---|---|---|',
-     '| R1 | 6 | **6** | stance/idle set (F1–F4) + two high kicks; F5 carries a BLUE motion arc |',
+     '| R1 | 6 | **6** | stance/idle set (F1–F4), F5 a PUNCH inside a BLUE arc (deflect pose only), F6 a high kick |',
      '| R2 | 3 | **3** | knee/front kick, BIG blue crescent kick, long low front kick |',
      '| R3 | 5 | **5** | tuck, HANDSTAND kick (blue arc), handstand split, one-hand low sweep, handstand rising kick — *the handstand frames are here, not R4* |',
      '| R4 | ~10 | **11** | somersault, crouch-turn, high kick (blue arc), raised axe kick, knee chamber, spin kick (swirl), front kick, knee, rising knee, bent high back-kick, low lunge |',
@@ -49,14 +49,18 @@ L = ['# Sanji — Sprite Ledger', '',
      '| Entry | Treatment |', '|---|---|',
      '| Going Merry figurehead (R9) | **reused existing One Piece emblem** `assets/zoro/merry.png` (added by Zoro). Not duplicated. |',
      '| Credit text "Ripped by Paddy / No credit needed" (R9) | **excluded, credit** → `docs/sanji/CREDITS.md` |',
-     '| Blue motion arcs R1F5, R2F2, R3F2, R4F3 | base kick trails; **tint** copies (`*_dj.png`: arc pixels blue→orange-white, `tools/sanji_build/arcs.py`) for Diable Jambe |',
+     '| Blue motion arcs R2F2, R3F2, R4F3 (+R1F5 deflect) | base kick trails; **tint** copies (`*_dj.png`: arc pixels blue→orange-white, `tools/sanji_build/arcs.py`) for Diable Jambe |',
      '| Every body frame | **derived copy (mirror)**: the sheet faces left; stored right-facing, the engine flips at runtime |',
      '| R6F1 bust | **derived copy (crop)** → `portrait.png` |',
      '| Afterimages (Mouton / Sky Walk / PTKC) | render-only re-draws of the live frame at an offset, translucent (**derived copy**, no new pixels) |',
      '', '## HANDS RULE audit', '',
-     'Every striking animation uses a kick, knee or shin frame. Frames with hands forward (R1F2 lighting the cigarette, R1F4 reeling, '
-     'R5 serving, R8 serving) are only ever used as poses (intro, hurt, taunt, win). Intro, idle, WIN 1/2 and the walk all use '
-     'hands-in-pockets frames (R6/R7) or the kick flourish (R9). No fist is raised in any intro, idle or win pose.', '',
+     'Audited at 4x zoom, extremity by extremity (shoe = dark-blue boot with brown sole; hand = skin colour). Every striking '
+     'animation uses a kick, knee or shin frame. **R1F5 is a PUNCH** (forearm + fist forward inside the blue arc) — the brief '
+     'listed it among the kicks — so it is used ONLY as the `guard_hit` forearm-deflect pose, never a strike; COLLIER uses the '
+     'R4F4 high kick instead. Frames with hands forward (R1F2 lighting the cigarette, R1F4 reeling, R5 serving, R8 serving) are '
+     'only ever poses (intro, hurt, taunt, win). Fists held at the chest during a kick (R4F3, R4F8) are a guard, not a strike. '
+     'Intro, idle, WIN 1/2 and the walk use hands-in-pockets frames (R6/R7) or the kick flourish (R9): no fist is raised in any '
+     'intro, idle or win pose.', '',
      '## Frame → animation → trigger', '',
      '| # | Frame | Rect (sheet, incl.) | Animations → trigger |', '|---|---|---|---|']
 for n, (fid, d) in enumerate(fj['frames'].items(), 1):

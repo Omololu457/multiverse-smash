@@ -36370,6 +36370,11 @@ registerBehaviour("recon", (d, { frame }) => {
     o._gaGuardPing = 16; d._pingFx = 16
     if (typeof sound !== "undefined") sound.play?.("ga_overwatch_tag")
   }
+  // AGGRESSIVE: recon marking laser — a light tracking shot at a foe in cone (~every 72f).
+  if (inCone && opp && ((d.data.markT = (d.data.markT || 0) + 1) % 72 === 0)) {
+    const _tx = (opp.x || 0) + (opp.w || 60) / 2, _ty = (opp.y || 0) + (opp.h || 100) * 0.42, _a = Math.atan2(_ty - d.y, _tx - d.x)
+    _gaDroneShot(o, d._ctx, { type: "gaOverwatchMark", damage: 7, vx: Math.cos(_a) * 12, vy: Math.sin(_a) * 12, spawnX: d.x, spawnY: d.y, w: 12, h: 6, lifetime: 48, color: "#7fe0ff" })
+  }
 })
 function _gaStunDrone(d, o, opp) {
   d.anim = "walk"
@@ -36393,7 +36398,7 @@ registerBehaviour("planted", (d, { frame }) => {
     d.tx = (o.x || 0) + Math.sign((opp.x || 0) - (o.x || 0)) * GA_SCR_W * 0.14   // just in front of Oliver (never on him)
     d.facing = ((opp.x || 0) < d.x) ? -1 : 1
     d.data.fireT = (d.data.fireT || 0) + 1
-    if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20 && d.data.fireT >= 80) {
+    if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.42 && d.data.fireT >= 60) {   // AGGRESSIVE: wider range + faster mortar
       d.data.fireT = 0; const dir = ((opp.x || 0) < d.x) ? -1 : 1
       spawnMunition(o, "dumb", { x: d.x, y: d.y - 10, vx: dir * 7, vy: -9, damage: 35, blastRadius: 72, target: opp })   // MORTAR: lobbed high arc, clears walls / an Aegis in the way
       if (typeof sound !== "undefined") sound.play?.("ga_bulwark_fire")
@@ -36420,10 +36425,15 @@ registerBehaviour("guard", (d) => {
   const o = d.owner; if (!o) return
   if (d.mode === "strike") return _gaShieldBash(d, o, d.target)  // STRIKE "Shield Bash"
   // PROTECTOR "Guardian": absorb projectiles (collision) + intercept ONE melee hit for Oliver.
-  d.tx = (o.x || 0) + (o.facing || 1) * 62
+  const opp = d.target
+  // AGGRESSIVE: advance toward the foe (was a fixed 62px in front) + chip glint shots.
+  const _aToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
+  d.tx = (o.x || 0) + _aToOpp * 120
   d.ty = _gaFloor(o) - (d.profile.hoverHeight || 70)
   d.anim = (Math.abs(d.x - d.tx) > 20) ? "walk" : "idle"
-  const opp = d.target
+  if (opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < GA_SCR_W * 0.5 && ((d.data.glintT = (d.data.glintT || 0) + 1) % 80 === 0)) {
+    _gaDroneShot(o, d._ctx, { type: "gaAegisGlint", damage: 8, vx: _aToOpp * 10, vy: 0, spawnX: d.x, spawnY: d.y, w: 14, h: 10, lifetime: 42, color: "#bfe8ff" })
+  }
   if (!d.data.usedIntercept && opp && opp.attacking && opp.currentAttack && !opp.currentAttack._gaIntercepted
       && Math.abs((opp.x || 0) - (o.x || 0)) < 115 && (o.invulnTimer || 0) <= 0) {
     d.data.usedIntercept = true; opp.currentAttack._gaIntercepted = true
@@ -36456,14 +36466,16 @@ registerBehaviour("strafe", (d, { frame }) => {
   const _kToOpp = (opp && !opp.eliminated) ? (Math.sign((opp.x || 0) - (o.x || 0)) || (o.facing || 1)) : (o.facing || 1)
   d.tx = (o.x || 0) + _kToOpp * GA_SCR_W * 0.12; d.ty = _gaFloor(o) - (d.profile.hoverHeight || 210); d.anim = "idle"
   if (d.data.burstCd > 0) d.data.burstCd--
-  const trouble = (o.hitstun || 0) > 0 || (o.blockstun || 0) > 0 || (opp && !opp.eliminated && Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20)
-  if (trouble && (d.data.burstCd || 0) <= 0 && opp && !opp.eliminated) { d.data.burstCd = 90; d.data.firing = 5; d.data.ftick = 0 }
+  // AGGRESSIVE: strafe-fire at ANY foe in range (was only when Oliver was in trouble / point-blank).
+  const engage = opp && !opp.eliminated && Math.abs((opp.x || 0) - d.x) < GA_SCR_W * 0.55
+  if (engage && (d.data.burstCd || 0) <= 0) { d.data.burstCd = 60; d.data.firing = 5; d.data.ftick = 0 }
   if ((d.data.firing || 0) > 0) {
     d.anim = "fire1"; d.data.ftick = (d.data.ftick || 0) + 1
     if (d.data.ftick % 4 === 0) {
       d.data.firing--; const dir = opp ? ((opp.x || 0) < d.x ? -1 : 1) : (o.facing || 1)
       d.facing = dir
-      _gaDroneShot(o, d._ctx, { type: "gaKestrelShot", damage: 8, vx: dir * 13, vy: 4, spawnX: d.x, spawnY: d.y, w: 14, h: 8, lifetime: 40, color: "#ffd166" })
+      const _ka = opp ? Math.atan2(((opp.y || 0) + (opp.h || 100) * 0.42) - d.y, ((opp.x || 0) + (opp.w || 60) / 2) - d.x) : 0
+      _gaDroneShot(o, d._ctx, { type: "gaKestrelShot", damage: 8, vx: opp ? Math.cos(_ka) * 14 : dir * 13, vy: opp ? Math.sin(_ka) * 14 : 4, spawnX: d.x, spawnY: d.y, w: 14, h: 8, lifetime: 40, color: "#ffd166" })
       if (opp && Math.abs((opp.x || 0) - d.x) < 90) spawnMunition(o, "dumb", { x: d.x, y: d.y + 10, vx: 0, vy: 5, damage: 10, blastRadius: 54, target: opp })   // BOMBING RUN: drop a bomb in its flight path
       if (typeof sound !== "undefined" && d.data.ftick % 8 === 0) sound.play?.("ga_kestrel")
     }

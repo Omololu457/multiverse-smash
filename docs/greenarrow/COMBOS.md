@@ -40,3 +40,18 @@ suppression) stacking at once.
 a foe under **Kestrel FIRE2** → **Ignition** +30; **Ice-frozen** foe + **Skyhook** → instant hook;
 **Explosive arrow** near a **Bulwark** → 3-missile salvo; an **Overwatch-tagged** foe can't tech
 the Skyhook drop and eats +10% from every arrow (which also home slightly).
+
+---
+
+## PASS 2 combos (Net + Kamikaze)
+
+### 6. Net lockdown → Kamikaze — `Kestrel (Strike, →+Heavy+Special) → Net arrow (quiver) → Kamikaze connects`
+Deploy a **Strike Kestrel** (Kamikaze). Fire a **Net arrow** (quiver: ↓↙←+Up) — the foe is netted
+1.0s (and grounded 1.2s if they were flying). The Kamikaze dives into the pinned target and gets the
+**+25% netted bonus**: `90 × 1.25` ≈ **112** on top of the net lockdown. The read that deletes a flyer.
+
+### 7. Net → Ice-Hook-style carry — `Net arrow → Skyhook (Strike, ↑+Heavy+Special) hooks from anywhere → charged plain shot`
+With a Skyhook out, landing a **Net arrow** triggers the **net-hook synergy** — the Skyhook hooks the
+netted foe **from anywhere on screen** (like Ice-Hook), carries them to the corner and drops for 90.
+Follow the hard knockdown with a **charged plain shot** (hold Light, ≥40f → 70 + pierce) ≈ **160+** and
+a corner reset. Net's 6s cooldown gates the loop.

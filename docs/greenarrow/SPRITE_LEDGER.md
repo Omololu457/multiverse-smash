@@ -80,3 +80,22 @@ Nearest-neighbour only; no art invented. Contact sheets:
 **Off-by-one notes (reported, not errors):** aegis WALK detected 5 (spec 4 — one extra inter-frame), kestrel DEATH 9 (spec 8 — extra debris blob), skyhook LANDING 8 (spec 7 — extra inter-frame). GA R9 lunge detected 8 (spec 7). All are valid frames; the spec warned counts could be ±1.
 
 **Judgment calls:** (1) GA background was white alpha-0 (already keyed) → alpha-threshold, not chroma-key. (2) Fire/Ice projectiles are stacked vertically in R11's right side → separated by colour (orange/blue). (3) Skyhook DEATH + Payload BOMBS scatter/merge under connected-component → split into equal frames. (4) Faithful white hover/thruster lines beneath several drones are kept (present in source).
+
+---
+
+## PASS 2 — new tints / derived copies / procedural effects
+
+**Derived copies (scaled / reused existing frames — no new art):**
+- **Swarm mini-scouts** → `ga_overwatch_idle_sheet.png` drawn at **0.5× scale** in up-to-4 deterministic orbit positions. *derived copy (scaled 0.5).*
+- **Strike / kamikaze / mine explosions** → `green_arrow_explosion_uniform.png` (the R13 explosion frames) drawn via a `visualOnly` projectile at **0.5×–1.2×** scale (stun-drone 0.7, mine 1.1, kamikaze 1.2, swarm-ram 0.5). *derived copy (scaled).*
+- **Net / Flash / Beacon / Grapple arrow projectiles** → `green_arrow_plainarrow.png` drawn at **1.8×–2.4×** scale (the control arrows reuse the plain-arrow shaft; their type reads from colour + the HUD chip, no unique art). *derived copy (scaled).*
+- **Plain / anti-air / trick arrows** bumped to **2.3×–2.6×** scale so the 15×17 plain-arrow reads clearly. *derived copy (scaled).*
+- **EMP arrow** (`green_arrow_emparrow_uniform.png`) — already a **tint** of the ice arrow (pass 1).
+
+**Procedural effects (render-only, NOT sprite art):**
+- **Net mesh** — a pixel-style grid of lines drawn over a netted fighter (`_drawNet`). *procedural effect, not sprite art.*
+- **Flash burst** — expanding white circle on a flashed fighter. *procedural effect, not sprite art.*
+- **Shock-stun ring / Sentinel guard-ping ring** — orange rings around the stunned/guarded fighter. *procedural effect, not sprite art.*
+- **Aegis shield-flash** — additive white overlay on the drone during an intercept/bash. *procedural effect, not sprite art.*
+- **Quiver HUD chip** — N/F/B/G letter + colour chip beside the Tech bar. *procedural effect, not sprite art.*
+- **Drone facing-debug arrow** — cyan arrow + `[nativeFacing]` text in training mode. *procedural effect, not sprite art.*

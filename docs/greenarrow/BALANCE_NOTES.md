@@ -40,3 +40,22 @@
   as it is summoned (the brief's "hold Special" mapped to the hold modifier the engine exposes).
 - **Drone render scales** ≈ uniform 1.9–2.2 (matching GA's pixel density); Skyhook/Payload larger
   per their 60–70%-of-GA-height target.
+
+---
+
+## PASS 2 balance notes (modes + new arrows)
+
+- **Kamikazes are consumable and counterable.** A Kamikaze costs a drone slot + 35 Tech, goes on a
+  5.5s cooldown after it blows, and is **hittable in flight** — shoot it down before impact and it
+  deals **zero** damage (plays DEATH only). The 2-drone cap still holds, so you can't spam them.
+- **Net arrow hard-counters flight, but it's committal.** Net (20 Tech) force-grounds Superman /
+  Homelander for 1.2s, but it has a **6s cooldown** and a slow arrow with a long startup — a flyer who
+  respects it can bait it and punish the recovery. It is a read, not a free anti-air.
+- **Guardian blocks only ONE melee hit per summon.** After the single intercept (Oliver negated +
+  pushed, drone −40 HP) the Aegis is spent as a melee shield — the next hit lands. Rushdown that
+  commits two hits beats it.
+- **Strike variants cost +5 Tech**, so the aggressive drone options tax the meter that also funds
+  Oliver's arrows — he can't both bomb and zone freely.
+- **Swarm** (40 Tech) is a one-slot panic/shield tool: 4 scouts at 20 HP each, popped by any poke.
+- Net-into-Skyhook and Kamikaze-on-netted (+25%) reward landing the Net first — but Net's cooldown
+  keeps that loop from repeating every exchange.

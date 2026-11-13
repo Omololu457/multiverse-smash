@@ -23,7 +23,7 @@ console.log("\n── motion + attack button → arrows")
 let f = mkGA(); clearProj(); qcf(f)
 let r = updateGreenArrowCommandCombat(f, { heavy: true }, CTX(OPP))
 ok("qcf+Heavy → fire arrow (consumed, spent 15 Tech, spawned)", r === true && f.energy === 85 && activeProjectiles.length === 1, `e=${f.energy} proj=${activeProjectiles.length}`)
-ok("fire arrow carries a burn dot", activeProjectiles[0]?.dot && activeProjectiles[0].dot.dmg === 3)
+ok("fire arrow carries a LASTING burn dot (4 dmg x9)", activeProjectiles[0]?.dot && activeProjectiles[0].dot.dmg === 4 && activeProjectiles[0].dot.ticks === 9)
 
 // ice arrow: qcb + Light
 f = mkGA(); clearProj(); qcb(f)

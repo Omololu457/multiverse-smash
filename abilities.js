@@ -14,6 +14,7 @@ import { sound, SFX, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
 import { getHomelanderEyeWorld } from "./homelanderEyeAnchors.js"   // per-frame eye anchor → world-space Heat Vision origin (fires from the eyes, not a fixed body fraction)
 import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
+import { getGreenArrowBowWorld } from "./greenArrowBowAnchors.js"   // GREEN ARROW: per-frame BOW anchor → arrows fire from the bow (scales with the sprite)
 import { activateShisuiFallenFatality, isShisuiFallenFatalityActive } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ult FATALITY (near-death victim) — self-contained cutaway
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
@@ -36805,6 +36806,8 @@ export function tickGreenArrowTimers(fighter) {
 // ── arrow spawn helper (tags hitFlag for Tech income; homing + tagged bonuses) ──
 function _gaArrow(fighter, context, o) {
   const opp = _gaOpp(fighter, context)
+  // BOW ANCHOR: default the arrow's origin to Green Arrow's actual bow (per-frame, scales with the sprite).
+  if (o.spawnX == null || o.spawnY == null) { const _bow = getGreenArrowBowWorld(fighter); if (o.spawnX == null) o.spawnX = _bow.x; if (o.spawnY == null) o.spawnY = _bow.y }
   const tagged = opp && (opp._gaTagged || 0) > 0
   let dmg = o.damage
   // AEGIS synergy: an arrow that passes through a friendly Aegis becomes "charged" (+15%).
@@ -36880,7 +36883,7 @@ function fireGAFire(fighter, context) {
   const ignition = _gaOppUnderKestrelFire2(fighter, opp)
   _gaArrow(fighter, context, { kind: "fire", type: "gaFireArrow", damage: 60 + (ignition ? 30 : 0), speed: 17,
     w: 22, h: 12, color: "#ff7a2a", sheet: "./green_arrow_firearrow_uniform.png", spriteFrames: 5,
-    impact: "explosion", dot: { ticks: 6, interval: 20, dmg: 3 } })   // burn 3/20f for 2s
+    impact: "explosion", dot: { ticks: 9, interval: 18, dmg: 4 } })   // LASTING BURN: 4 dmg every 18f x9 (~2.7s)
   fighter._spriteCastMove = "firecast"; fighter._spriteCastTimer = 18
   fighter.attackCooldown = getAttackDuration(14, fighter)
   if (typeof sound !== "undefined") sound.play?.("ga_fire_arrow")
@@ -36986,6 +36989,10 @@ export function updateGreenArrowCommandCombat(fighter, inputState, context, getP
   // AIR: qcf+Heavy = TRICK SHOT (3-arrow fan); plain air normal stays normal.
   if (!grounded) {
     if (qcf && heavyEdge) { inputState.heavy = false; return fireGATrick(fighter, context) }
+    // AIR ARCHERY — shoot while jumping too: Down+L = ice, bare L = plain, bare H = fire.
+    if (inputState.down && lightEdge) { inputState.light = false; return fireGAIce(fighter, context) || fireGAPlain(fighter, context, 0) }
+    if (lightEdge) { inputState.light = false; return fireGAPlain(fighter, context, 0) }
+    if (heavyEdge) { inputState.heavy = false; return fireGAFire(fighter, context) || fireGAPlain(fighter, context, 1) }
     return false
   }
   // GROUND trick-arrow motions

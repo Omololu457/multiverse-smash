@@ -312,8 +312,10 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
 }
 
 import { ZORO_SOUNDS } from './zoroSound.js'   // Roronoa Zoro synth SFX (SFX bus; voice bus untouched)
+import { BUGGY_SOUNDS } from './buggySound.js'   // Buggy the Clown synth SFX (SFX bus; voice bus untouched)
 const SOUNDS = {
   ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
+  ...BUGGY_SOUNDS,  // buggy_knifeThrow / _knifeHit / _pop / _reversePop / _nullify (slide whistle) / _cannon / _explosion / _festival / _cape …
   // ── GREEN ARROW (WebAudio placeholders; no audio pack). SFX bus (voice bus untouched). No
   // Math.random added — click timings are fixed patterns so the texture is stable. ──
   ga_bow_draw(ctx,out){ osc(ctx,out,'triangle',200,0.15,0.16,900); playNoise(ctx,out,0.15,700,0.10) },

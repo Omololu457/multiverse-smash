@@ -49,6 +49,7 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
+import { updateDrones, updateDroneCollisions, drawDrones, resetDrones, activeDrones } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -1285,6 +1286,7 @@ function tryStartRickPrimeRewind(fighter) {
 // ★keep in sync with resetRound if new cinematics are added). Every fn here is already imported (resetRound uses them).
 function _rewindTeardown() {
   clearAbilityState()                                  // activeProjectiles (shared) + summons + pending clones
+  resetDrones()                                        // GREEN ARROW drones cleared with summons/projectiles
   clearEffects()                                       // timed buffs / stuns / regen (reverts each first)
   clearDomains(); clearCubeTraps(); clearObitoDimensions()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
@@ -4850,6 +4852,7 @@ function resetRound() {
 
   countdown = ROUND_START_COUNTDOWN
   clearAbilityState()      // activeProjectiles (shared), activeSummons, pending Naruto clones
+  resetDrones()            // GREEN ARROW drones cleared with summons/projectiles
   clearEffects()           // activeEffects — timed buffs/stuns/regen (reverts each effect first)
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
@@ -20543,6 +20546,11 @@ function updateBattle() {
 
   updateTojiFlyHeadsSwarm(canvas)   // Toji Fly Heads — tick the dense vision-denial swarm overlay (0 damage, no combat freeze)
   updateActiveSummons()
+  // GREEN ARROW drones — tick movement/behaviour + hittable collisions (no-op when none active).
+  if (activeDrones.length || p1?._gaDroneCd || p2?._gaDroneCd) {
+    updateDrones([p1, p2], globalFrameCount, { leftWall: 0, rightWall: getStageWorldWidth(), ceilingY: -200 })
+    updateDroneCollisions([p1, p2], activeProjectiles)
+  }
 
   for (const fighter of [p1, p2].filter(Boolean)) {
     processPendingSpawns?.(fighter, {
@@ -22564,6 +22572,7 @@ function drawBattleScene() {
   // Dog / Nue / Toad etc. are never hidden behind a fighter sprite — they were
   // previously drawn underneath and could be occluded near the action.
   drawActiveSummons(ctx)
+  drawDrones(ctx, globalFrameCount, camera)   // GREEN ARROW drones — world space, over fighters
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)

@@ -386,3 +386,12 @@ export function flightRenderHints(fighter, frame, playerIndex) {
     jitterSeed: hashRandom((fighter._matchSeed | 0) || 1, frame, playerIndex),
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reusable smoothing primitives — drones.js imports these so drone movement uses the
+// SAME accel/drag/reverse-brake/overspeed model as flight (no copy, no behaviour change
+// to flight itself). Pure functions of (velocity, input|max, profile{accel,drag,
+// reverseBrake,overspeedDrag}).
+// ─────────────────────────────────────────────────────────────────────────────
+export function flightAxisStep(v, h, p) { return axisStep(v, h, p) }
+export function flightSoftLimit(v, max, p) { return softLimit(v, max, p) }

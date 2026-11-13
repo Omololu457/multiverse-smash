@@ -266,6 +266,7 @@ export function tickSpdRedMove(f, opp, s, a, W) {
       }
       break
     case 'upper':
+      if (t < md.startup && !(f.onGround || f.grounded)) { f.vy = 0; f.vx = 0 }   // the air version hangs through its wind-up
       if (due(a, '_rose', md.startup)) { f.vy = g.rise; f.vx = g.dir * 2; f.onGround = false; f.grounded = false; f.y -= 2 }
       break
     case 'beam':

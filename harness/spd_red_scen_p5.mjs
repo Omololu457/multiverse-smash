@@ -38,7 +38,7 @@ export async function run(X) {
   await settle(80)
   // DODGE REWARD: blink through Zoro's live heavy → +5 Delta, white streak, next attack +15%
   const jab = async buffed => {
-    await fresh(buffed ? 130 : 110, 20, { ax: 900 })
+    await fresh(buffed ? 112 : 110, 20, { ax: 900 })   // inside Zoro's heavy reach, so the blink truly dodges a live hitbox
     if (buffed) {
       // P2 is the training dummy (no keyboard) → start Zoro's real heavy through the engine's own startMove
       await page.evaluate(async () => { const c = await import('./combat.js'); const z = __harness.spdRedTest.raw('p2'); c.startMove(z, 'heavy', z.basic_attacks.heavy) })

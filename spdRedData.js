@@ -36,12 +36,12 @@ const sp = (damage, startup, active, recovery, cost, extra = {}) => n(damage, st
 export const SPD_RED_MOVES = {
   // ── NORMALS (all blunt) ──
   light:     n(40, 5, 2, 8,   { blockstun: adv(+1, 2, 8), hitstun: 16, rangeX: 62, knockbackX: 2 }),                    // Jab +1 (R4F1)
-  sStraight: n(60, 8, 2, 12,  { blockstun: adv(-3, 2, 12), hitstun: 18, rangeX: 72 }),                                  // Straight −3 (R4F1→F2)
+  sStraight: n(60, 8, 2, 12,  { blockstun: adv(-3, 2, 12), hitstun: 22, rangeX: 72 }),                                  // Straight −3 (R4F1→F2)
   sKick:     n(65, 9, 3, 15,  { blockstun: adv(-3, 3, 15), hitstun: 22, rangeX: 84 }),                                  // Kick −3 (R8F1→R13F6)
-  heavy:     n(85, 12, 3, 20, { blockstun: adv(-5, 3, 20), hitstun: 30, rangeX: 84, launcher: true, launchVy: -20, knockbackX: 2 }),   // Heavy kick −5, launches (R10)
+  heavy:     n(85, 12, 3, 20, { blockstun: adv(-5, 3, 20), hitstun: 44, rangeX: 84, launcher: true, launchVy: -16, knockbackX: 2 }),   // launcher: 44 f airborne hitstun → jump + air kick   // Heavy kick −5, launches (R10)
   sLow:      n(45, 7, 3, 14,  { blockstun: adv(-4, 3, 14), hitstun: 18, rangeX: 88, rangeY: 30, hitLevel: 'low', sr: { boxY: 62 } }),     // Low kick (R3→R8F2→R8F3)
   up:        n(80, 9, 4, 18,  { blockstun: adv(-8, 4, 18), hitstun: 24, rangeX: 72, rangeY: 130, launcher: true, launchVy: -22, selfVy: 0, sr: { boxY: -40 } }),   // Rising kick, anti-air (R13F1-3)
-  air:       n(65, 6, 5, 10,  { blockstun: 12, hitstun: 20, rangeX: 80, rangeY: 64, knockbackX: 3, knockbackY: -2 }),   // Air kick (R7)
+  air:       n(65, 4, 5, 12,  { blockstun: 12, hitstun: 20, rangeX: 80, rangeY: 90, knockbackX: 3, knockbackY: -2, sr: { boxY: 4 } }),   // Air kick (R7): fast + body-tall so it meets a launched foe on the way up
   down_air:  n(60, 8, 6, 14,  { blockstun: 12, hitstun: 20, rangeX: 64, rangeY: 120, knockbackY: 8 }),                  // air ↓ flip kick (R7F3)
   // Acrobatic flip (←+Heavy): a back-handspring roll, 112 px back, invulnerable for its first 8 frames. No hitbox.
   sFlip:     n(0, 1, 1, 20,   { invuln: 8, sr: { kind: 'flip', noHit: true, back: 7, moveFrom: 1, moveTo: 16 } }),
@@ -64,8 +64,8 @@ export const SPD_RED_MOVES = {
   // airborne recovery.
   sUpper:      sp(110, 6, 6, 22, 20, { blockstun: 14, hitstun: 34, rangeX: 70, rangeY: 140, launcher: true, launchVy: -24, sr: { kind: 'upper', rise: -19, boxY: -30, blinkCancel: 'air' } }),
   // DELTAMAX STRIKE ↓↙←+Special (25): R16 braced → R18 beam, 120 energy, 70% of the screen (896 px), erases enemy
-  // projectiles it touches, long 24 f startup.
-  sDeltamax:   sp(120, 24, 6, 26, 25, { damageType: 'energy', blockstun: 20, hitstun: 36, knockbackX: 9, sr: { kind: 'beam', beam: 0.70, boxY: 0, boxH: 34, pierce: true } }),
+  // projectiles it touches, long 18 f startup (his slowest special; it still links off the Straight's 22 f hitstun).
+  sDeltamax:   sp(120, 18, 6, 26, 25, { damageType: 'energy', blockstun: 20, hitstun: 36, knockbackX: 9, sr: { kind: 'beam', beam: 0.70, boxY: 0, boxH: 34, pierce: true } }),
   // SUPER "S.P.D. EMERGENCY: DELTA SQUAD FULL POWER" ↓↘→↓↘→+Special or Ultimate (100 = all Delta): poster flash →
   // 3 blink strikes from three angles (front R11, behind R12, below R13) × 55 → R16 beam 180 (220 after a GUILTY
   // verdict this round) = 345. Then 3 s Delta lockout and both teleport charges refill. Scripted (tickSpdRedMove).
@@ -81,7 +81,7 @@ export const SPD_RED_TIMELINES = {
   sStraight: [[0, 0], [8, 1]], sKick: [[0, 0], [9, 1]], heavy: [[0, 0], [12, 1], [15, 2]], sLow: [[0, 0], [7, 1], [10, 2]],
   up: [[0, 0], [9, 1], [13, 2]], sFlip: [[0, 0], [4, 1], [10, 2], [16, 3]], sWake: [[0, 0], [3, 1], [5, 2]],
   sBlaster: [[0, 0], [5, 1], [10, 2]], sCharge: [[0, 0], [8, 1]], sPhase: [[0, 0], [12, 1]], sUpper: [[0, 0], [6, 1], [16, 2]],
-  sDeltamax: [[0, 0], [24, 1], [27, 2]],
+  sDeltamax: [[0, 0], [18, 1], [21, 2]],
   // R9F2 pose → R17 blink → R11F2 front → R17 → R12F1 behind → R17 → R13F2 below → R17 back out → R16F3 brace → R16F1 → R16F2 beam
   sSuper: [[0, 0], [20, 1], [24, 2], [34, 3], [38, 4], [48, 5], [52, 6], [62, 5], [66, 7], [74, 8], [78, 9]],
 }

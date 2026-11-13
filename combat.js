@@ -429,6 +429,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   if (fighter?.rosterKey === 'buggy' && curve === COMBO_DAMAGE_CURVE) return buggyComboScale(fighter)   // Buggy the Clown: 85% per hit (buggy-gated)
   if (fighter?.rosterKey === 'sanji' && curve === COMBO_DAMAGE_CURVE) return sanjiComboScale(fighter)   // Sanji: 85% per hit (sanji-gated)
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
+  if (fighter?.rosterKey === 'spd_red' && curve === COMBO_DAMAGE_CURVE) return spdRedComboScale(fighter)   // S.P.D. Red: 85% per hit (spd_red-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.

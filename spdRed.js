@@ -3,7 +3,7 @@
 // continued something, 'grab' to let only the shared grab/throw run, or false (hit/block-stun: the engine's path).
 //
 // Buttons: A = Light, B = Heavy (the sheet's A / B), Special, Ultimate. Motions are facing-relative numpad strings.
-//   Jab A · Straight A,A (or →+A) · Kick B (or A,A,A) · Heavy kick →+B (launches) · Low kick ↓+A · Rising kick ↑+B / Up-Attack
+//   Jab A · Straight A,A (or →+A) · Kick B (or A,A,A) · Heavy kick →+B (launches; hold ↑ on hit = jump-cancel) · Low kick ↓+A · Rising kick ↑+B / Up-Attack
 //   Acrobatic flip ←+B · Wake-up reversal ↓+B (or any attack on the wake-up frames) · Air kick air A/B (air ↓ = flip kick)
 //   DELTA BLASTER ↓+Special (air too; neutral Special too) · RAPID FIRE keep it held · DELTA CHARGE →→+Special
 //   PHASE STRIKE ↓↘→+Special · SKY UPPERCUT ↑+Special · DELTAMAX STRIKE ↓↙←+Special
@@ -119,6 +119,13 @@ export function updateSpdRedCommandCombat(f, inp, opp, ctx = {}) {
     }
     if (contact && !md.isSpecial && !a.isUltimate) {
       if (trySpecial(f, s, inp, grounded)) return 'consumed'   // special / Super cancel out of a connected normal
+      // LAUNCHER JUMP-CANCEL: hold ↑ once the Heavy kick connects → its recovery is dropped and he jumps after the foe
+      // (the engine's own jump numbers: vy = jumpForce, one jump spent)
+      if (a.name === 'heavy' && grounded && (s.prev.up || fresh(s, 'up')) && (f.jumpCount || 0) < (f.maxJumps || 1)) {
+        use(s, 'up'); f.attacking = false; f.currentAttack = null; f.currentMove = null; f.attackCooldown = 0
+        f.vy = f.jumpForce || -31; f.jumpCount = (f.jumpCount || 0) + 1; f.onGround = false; f.grounded = false; f.jumpHeld = true
+        rcue(f, 'jumpCancel'); return 'consumed'
+      }
       for (const b of ['light', 'heavy', 'upAttack']) {
         if (!fresh(s, b) || !grounded) continue
         let next = normalFor(f, pressDir(s, b, inp, f.facing), b, grounded)

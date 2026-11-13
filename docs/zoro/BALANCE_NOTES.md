@@ -1,18 +1,18 @@
 # Roronoa Zoro — balance notes
 
-Zoro is a **strong, tanky, slow** swordsman: big damage per hit and a scary stance, paid for with poor mobility and
-a Spirit economy that gates everything good. Mechanical claims below are checked by
+Zoro is a **strong, fast** swordsman: big damage per hit and a scary stance, with **Toji's movement** (owner request,
+after the build), paid for by a Spirit economy that gates everything good. Mechanical claims below are checked by
 `harness/zoro_matchups.test.mjs` (12/0) unless marked *design read*.
 
 ## Profile
 | | Zoro | Notes |
 |---|---|---|
 | HP | 1000 | roster standard |
-| Walk | 5.0 px/f (speed 80) | bottom quarter of the roster (p25 = 88) |
-| Run / dash | 8 px/f | the engine's **slowest** dash (floor); the brief's 7.6 is below it |
+| Walk / speed | speed 98 | **= Toji** (top speed tier) |
+| Dash | dashSpeed 22 · duration 10 · cooldown 26 | **= Toji**; the double-tap dash behaves frame-for-frame like Toji's (tested) |
 | Jump | jumpPower 28 | lower than the roster median (32) |
 | Weight | 1.1 | horizontal knockback taken ÷1.1 |
-| Evasion | Oni Giri dash-through, Wake-up reversal (6 invuln) | no roll, no air-dash tricks |
+| Evasion | Toji's double-tap dash, Oni Giri dash-through, Wake-up reversal (6 invuln) | no roll, no air-dash tricks |
 | Meter | Spirit 100: +5 per sword hit, +3 per hit taken, +1/s | no Charge-button refill |
 
 ## Matchups
@@ -45,7 +45,7 @@ a Spirit economy that gates everything good. Mechanical claims below are checked
   as summons. Re-check when Green Arrow lands.
 
 ## Why he is not broken
-* **Slow:** bottom-quarter walk, the slowest dash in the game, a low heavy jump. He has to earn his range.
+* **Grounded:** Toji's ground speed, but a single low, heavy jump (jumpPower 28, 1 jump; Toji has 33 and a double jump).
 * **Short mobility:** his only evasion is Oni Giri (12 Spirit, +14 whiff recovery, punishable) and the wake-up
   reversal (−12 on block).
 * **Spirit-gated:** every special costs Spirit (10–20), Santoryu costs 15, ASHURA costs the full 100 and then
@@ -64,3 +64,9 @@ a Spirit economy that gates everything good. Mechanical claims below are checked
   refund more than its 20 cost. It's fine on hit only (blocked ticks give nothing), but watch for tornado farming.
 * **The ↗ of Shishi Sonson** briefly suppresses jumping right after any quarter-circle (≈3 frames, held ↗
   longer). It's needed so the counter isn't eaten by a jump, but a QCF → instant jump is a few frames late.
+
+## Engine note: shared speed reset (not Zoro-specific)
+`resetRound` (game.js) calls Goku's `revertGoku` on **every** fighter, which sets `speed` 84 / `dashSpeed` 16 for the
+whole roster at each round start. So in live matches Zoro and Toji both run on those values, and the speed-98
+"blink behind" double-tap (`isSpeedTierTeleport`) never triggers for either of them. Zoro still matches Toji exactly;
+fixing the reset (guard it to Goku) would restore the designed speeds for everyone at once.

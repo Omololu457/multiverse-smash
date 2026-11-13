@@ -72,13 +72,13 @@ export const zoro = {
   portrait: './assets/zoro/portrait.png', hasSprites: true, spriteScale: 2.3 / 1.18,   // same GBA ripper/scale as Luffy
   spriteSheet: ZORO_ANIM.idle.sheet, fatalityVictimArt: false, grabCastPose: 'grab',
   primary: 'melee', secondary: [], archetypes: ['melee'],
-  traits: { hasEnergy: true, energyType: 'spirit', energyName: 'Spirit', mobility: 'low', scaling: 'combo', animeMovement: false },
+  traits: { hasEnergy: true, energyType: 'spirit', energyName: 'Spirit', mobility: 'very_high', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Spirit', color: '#3fa34d' },
-  // walkSpeed 5.0 → speed 80 (physics: walk = 4.5 + (speed−78)/4). Run = the double-tap dash at the engine's
-  // 8 px/f floor (dashSpeed 14×0.55 clamps to 8; 7.6 is below the floor). jumpForce 10.5 → jumpPower 28
-  // (roster median 32, Luffy 31: a heavier, lower jump). weight 1.1 → knockback taken ÷1.1 (zoroState).
-  stats: { maxHealth: 1000, maxEnergy: 100, attack: 88, defense: 88, speed: 80, jumpPower: 28, maxJumps: 1, weight: 1.1,
-    dashSpeed: 14, dashDuration: 9, dashCooldownMax: 30 },
+  // Speed stats = TOJI's (owner request): speed 98, dashSpeed 22, dashDuration 10, dashCooldownMax 26. speed 98
+  // meets SPEED_TIER_THRESHOLD (game.js) → double-tap TOWARD the foe = Toji's blink-behind teleport-dash (plays
+  // Zoro's own `dash` pose, R5F3). jumpForce 10.5 → jumpPower 28. weight 1.1 → knockback taken ÷1.1 (zoroState).
+  stats: { maxHealth: 1000, maxEnergy: 100, attack: 88, defense: 88, speed: 98, jumpPower: 28, maxJumps: 1, weight: 1.1,
+    dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
   movement: { crouchIdle: true },
   // INTRO: Going Merry emblem flash → walk in (R1, eased 220px by zoro.updateZoroIntro) → draw one sword (R3F1).
   introSequence: ['intro', 'zIntroDraw'],

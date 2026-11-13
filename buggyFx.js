@@ -69,8 +69,55 @@ export function drawBuggyHud(ctx, fighter, { x, enY, pbw, flip }) {
 export function drawBuggyFx(c, f, frame = 0) {
   if (!c || f?.rosterKey !== 'buggy' || !f._buggy) return
   const s = f._buggy
+  const a = f.attacking ? f.currentAttack : null, g = a?.bg, t = a ? a.total - a.timer : 0
+  if (g?.kind === 'super' && t < 24) drawCartWheelIn(c, f, t)
+  if (g?.kind === 'cape' && t >= g.window[0] && t < g.window[1]) drawCape(c, f, t - g.window[0])
+  if (s.festival > 0) drawFestival(c, f, s, frame)
   if (s.nullFlash > 0) drawNullify(c, f, s)
   if (s.stagger > 0) drawReassembly(c, f, s)
+  for (const b of s.balls || []) drawBall(c, f, b)
+  for (const b of s.booms || []) drawBoom(c, b)
+  for (const x of s.stabFx || []) drawStab(c, f, x)
+}
+
+function frameOf(c, fx, i, cx, cy, k, flip = false, alpha = 1) {
+  const im = img(fx.sheet); if (!im) return
+  c.save(); c.globalAlpha = alpha; c.imageSmoothingEnabled = false; c.translate(cx, cy); if (flip) c.scale(-1, 1)
+  c.drawImage(im, (i % (fx.frames || 1)) * fx.w, 0, fx.w, fx.h, -fx.w * k / 2, -fx.h * k / 2, fx.w * k, fx.h * k); c.restore()
+}
+// FESTIVAL: the sheet's spinning-piece strip, four copies orbiting the body (positions = f(frame)).
+function drawFestival(c, f, s, frame) {
+  const { k, fx, fy } = anchor(f), cy = fy - 40 * k, R = 40 * k, fade = Math.min(1, s.festival / 30)
+  for (let j = 0; j < 4; j++) {
+    const ang = frame * 0.12 + j * Math.PI / 2
+    frameOf(c, BUGGY_FX.orbit, (frame >> 2) + j * 7, fx + Math.cos(ang) * R, cy + Math.sin(ang) * R * 0.55, k * 1.05, false, fade)
+  }
+}
+function drawBall(c, f, b) {
+  const { k } = anchor(f), fxd = b.sup ? BUGGY_FX.ballBuggy : BUGGY_FX.ballPlain
+  frameOf(c, fxd, 0, b.x, b.y, k * (b.sup ? 1.3 : 1.15))
+}
+function drawBoom(c, b) {   // code-drawn explosion (render-only)
+  const p = 1 - b.t / 20, r = (b.big ? 70 : 56) * (0.35 + p * 0.75)
+  c.save(); c.globalCompositeOperation = 'lighter'
+  const gr = c.createRadialGradient(b.x, b.y, 0, b.x, b.y, r)
+  gr.addColorStop(0, `rgba(255,250,200,${0.9 * (1 - p)})`); gr.addColorStop(0.45, `rgba(255,160,40,${0.75 * (1 - p)})`); gr.addColorStop(1, 'rgba(200,40,0,0)')
+  c.fillStyle = gr; c.beginPath(); c.arc(b.x, b.y, r, 0, Math.PI * 2); c.fill()
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 0.5 * (1 - p); c.fillStyle = '#3a2a22'
+  for (let i = 0; i < 6; i++) { const an = i * 1.047 + b.x * 0.01, d = r * 0.9; c.beginPath(); c.arc(b.x + Math.cos(an) * d, b.y + Math.sin(an) * d * 0.7, 5 + 6 * p, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+function drawStab(c, f, x) {
+  const { k } = anchor(f)
+  frameOf(c, BUGGY_FX.cannonHand, 0, x.x - x.dir * 28, x.y - 8, k, x.dir < 0, Math.min(1, x.t / 6))
+}
+function drawCartWheelIn(c, f, t) {   // the cannon cart rolls in behind him as he splits apart
+  const { k, fx, fy } = anchor(f), dir = f.facing || 1, p = Math.min(1, t / 14)
+  frameOf(c, BUGGY_FX.cartGhost, 0, fx - dir * (120 - 70 * p) * k / 2.3, fy - BUGGY_FX.cartGhost.h * k / 2, k, dir < 0, 0.55 * (1 - Math.max(0, (t - 14) / 10)))
+}
+function drawCape(c, f, t) {
+  const { k, fx, fy } = anchor(f), dir = f.facing || 1
+  frameOf(c, BUGGY_FX.capes, Math.min(3, t >> 2), fx + dir * 22 * k / 2.3, fy - 42 * k, k, dir < 0, t < 8 ? 1 : 0.7)
 }
 
 // Sprite-space anchor from the fighter's last real draw rect (cell 160×112, origin 80,100 → feet centre).

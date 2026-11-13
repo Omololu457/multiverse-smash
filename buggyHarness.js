@@ -1,7 +1,7 @@
 // buggyHarness.js — test-only window.__harness.buggyTest API (wired from game.js via one delegate line).
 // Reads/writes through the accessors game.js passes in; never imported by simulation code.
 import { buggyState, isBuggy } from './buggyState.js'
-import { getActiveDrones, damageDrone } from './drones.js'
+import { getActiveDrones, damageDrone, activeDrones } from './drones.js'
 import { launchHand, stabHand, plantLegs, lookout, recallParts } from './buggyParts.js'
 import { buggyPipState } from './buggyFx.js'
 
@@ -30,7 +30,11 @@ export function buggyHarnessApi(g) {
       }
     },
     raw: (w = 'p1') => pick(w),   // the live fighter object (tests only)
-    reset: () => g.reset(),
+    reset: () => {   // training reset + drop Buggy's parts / part cooldowns (tests start from a whole body)
+      g.reset()
+      for (let i = activeDrones.length - 1; i >= 0; i--) if (activeDrones[i].profile?.buggyPart) activeDrones.splice(i, 1)
+      for (const f of [g.p1(), g.p2()]) if (f?._gaDroneCd) for (const k of Object.keys(f._gaDroneCd)) if (k.startsWith('buggy_')) f._gaDroneCd[k] = 0
+    },
     chop: (w = 'p1', v = 100) => { const f = pick(w); if (f) f.energy = Math.max(0, Math.min(f.maxEnergy || 100, v)) },
     set: (w = 'p1', patch = {}) => { const f = pick(w); if (f && isBuggy(f)) Object.assign(buggyState(f), patch) },
     parts: () => getActiveDrones().map(partView),

@@ -3,13 +3,14 @@ import { tickLuffy, luffyState, isLuffy, clearLuffy } from './luffyState.js'
 import { tickZoro, isZoro, clearZoro, zoroState, zoroRoundReset, zoroQueueTeleport } from './zoroState.js'   // Roronoa Zoro (zoro-gated)
 import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (window.__harness.zoroTest)
 import { updateZoroCommandCombat } from './zoro.js'   // Roronoa Zoro command layer (zoro-gated)
+import { updateBuggyCommandCombat } from './buggy.js'   // Buggy the Clown command layer (buggy-gated)
 import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
 import { zoroWorld } from './zoro.js'
 import { tickBuggy, isBuggy, clearBuggy, buggyRoundReset, buggyLocked } from './buggyState.js'   // Buggy the Clown (buggy-gated)
 import { drawBuggyFx } from './buggyFx.js'   // Buggy the Clown render-only FX
 import { buggyHarnessApi } from './buggyHarness.js'   // Buggy the Clown test API (window.__harness.buggyTest)
 import { zoroIntroStart, updateZoroIntro, finalizeZoroIntroPos } from './zoro.js'   // Roronoa Zoro intro walk-in (zoro-gated)
-const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o), screenW: () => (canvas ? canvas.width : 1280) }   // Buggy the Clown world accessors
+const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
 // game.js
 
@@ -4022,6 +4023,10 @@ function updateFFACombat(fighter, others, opts) {
   if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
     const zc = updateZoroCommandCombat(fighter, inputState, nearest, {world:ZORO_WORLD,special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     if (zc) ctrlState = zc === 'grab' ? { grab: !!inputState.grab } : {}
+  }
+  if (isBuggy(fighter)) {   // Buggy the Clown command layer: 'consumed' | 'grab' | false
+    const bc = updateBuggyCommandCombat(fighter, inputState, nearest, { world: BUGGY_WORLD })
+    if (bc) ctrlState = bc === 'grab' ? { grab: !!inputState.grab } : {}
   }
   // Harness/dev hook: force a normal this frame (controller players can't be driven from
   // Playwright, so tests trigger P3/P4 attacks through this).
@@ -11353,6 +11358,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isZoro(fighter)) {   // Roronoa Zoro command layer: 'consumed' | 'grab' | false (fall through to the engine)
     const zc = updateZoroCommandCombat(fighter, inputState, getOpponent(fighter), {world:ZORO_WORLD,special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     if (zc) { updateCombat(fighter, getOpponent(fighter), zc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
+  }
+  if (isBuggy(fighter)) {   // Buggy the Clown command layer: 'consumed' | 'grab' | false
+    const bc = updateBuggyCommandCombat(fighter, inputState, getOpponent(fighter), { world: BUGGY_WORLD })
+    if (bc) { updateCombat(fighter, getOpponent(fighter), bc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
   if (isLuffy(fighter)) {
     const consumed = updateLuffyCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})

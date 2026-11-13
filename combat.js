@@ -4,6 +4,7 @@ import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from '.
 import { zoroHitbox } from './zoroState.js'
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
+import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
  * COMBAT ENGINE — merged clean version
@@ -418,6 +419,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   // scaling — its damage + hitstun decay one hit slower — via `_counterScaleTier`. This shifts only the
   // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
   if (fighter?.rosterKey === 'zoro' && curve === COMBO_DAMAGE_CURVE) return zoroComboScale(fighter)   // Roronoa Zoro: 85% per hit (zoro-gated)
+  if (fighter?.rosterKey === 'buggy' && curve === COMBO_DAMAGE_CURVE) return buggyComboScale(fighter)   // Buggy the Clown: 85% per hit (buggy-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
@@ -669,6 +671,7 @@ export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
   if (!fighter || !a || a.lf?.noHit) return null
   if (a?.zr && fighter.rosterKey === 'zoro') return zoroHitbox(fighter)   // Roronoa Zoro: his own box descriptor (zoro-gated)
+  if (a?.bg && fighter.rosterKey === 'buggy') return buggyHitbox(fighter)   // Buggy the Clown: his own box descriptor (buggy-gated)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -2905,6 +2908,7 @@ export function checkClash(p1, p2, hitSparks, camera) {
 
 export function resolveGrab(attacker, defender, context = {}, range = 75) {
   if (!attacker || !defender) return false
+  if (buggyNoGrab(defender)) return false   // BUGGY — Festival: the orbiting pieces can't be grabbed (buggy-gated)
   if (!attacker.onGround || !defender.onGround) return false
   if (attacker.comboCounter > 0) return false
 
@@ -3372,6 +3376,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
+    if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
@@ -4235,6 +4240,10 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         break
       }
 
+      // BUGGY — Cape Flourish: one projectile stopped in the cape window, reflected (40) inside its first 8 frames.
+      const _bgCape = buggyCape(fighter, proj)
+      if (_bgCape === 'reflect') break
+      if (_bgCape === 'block') { projectiles.splice(i, 1); break }
       // BUGGY — Bara Bara no Mi: a SLASH projectile (kunai, knives, cards, cutting waves) passes through and is spent.
       if (buggyNullifyProjectile(fighter, proj)) { projectiles.splice(i, 1); break }
 
@@ -4321,6 +4330,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
+      buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)
 
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)

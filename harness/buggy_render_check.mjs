@@ -29,15 +29,25 @@ const bs = (w = 'p1') => page.evaluate(w => __harness.buggyTest.state(w), w)
 const ls = (w = 'p1') => page.evaluate(w => __harness.luffyTest.state(w), w)
 const tap = async (keys, frames = 1) => { for (const k of keys) await page.keyboard.down(k); await step(frames); for (const k of keys) await page.keyboard.up(k) }
 // Real keyboard motion input for P1 (a=left d=right s=down w=up, l=Special k=Heavy j=Light). null = neutral frame.
-async function motion(seq, button) {
-  for (const k of seq) { if (k) await page.keyboard.down(k); await step(2); if (k) await page.keyboard.up(k) }
+async function motion(seq, button) {   // seq items: a key, keys held together (diagonal), or null. ROLLED like a stick:
+  let held = []                          // only the keys that change are pressed / released (no accidental double-tap dash)
+  for (const k of seq) {
+    const want = k == null ? [] : [].concat(k)
+    for (const x of held) if (!want.includes(x)) await page.keyboard.up(x)
+    for (const x of want) if (!held.includes(x)) await page.keyboard.down(x)
+    held = want; await step(2)
+  }
+  for (const x of held) await page.keyboard.up(x)
   await tap([button])
 }
+const QCF = ['s', ['s', 'd'], 'd'], QCB = ['s', ['s', 'a'], 'a'], DD = ['s', null, 's'], FF = ['d', null, 'd']
 const canvasStats = () => page.evaluate(() => {
   const c = document.querySelector('canvas'); const x = c.getContext('2d')
   const uniq = (sx, sy, w, h) => { const d = x.getImageData(sx, sy, w, h).data, s = new Set(); for (let i = 0; i < d.length; i += 16) s.add(d[i] << 16 | d[i + 1] << 8 | d[i + 2]); return s.size }
   return { play: uniq(0, c.height * 0.3, c.width, c.height * 0.6), hud: uniq(0, 0, c.width, Math.round(c.height * 0.16)) }
 })
+const parts = async () => (await bs()).parts
+const call = (fn, ...a) => page.evaluate(([fn, a]) => __harness.buggyTest[fn](...a), [fn, a])
 const fresh = async (p2dx = 260) => {
   await page.evaluate(() => __harness.buggyTest.reset())
   await page.evaluate(dx => { __harness.buggyTest.chop('p1', 100); __harness.luffyTest.set('p2', { x: __harness.p1().x + dx }) }, p2dx)
@@ -152,8 +162,6 @@ try {
   if (PHASE >= 4) {
     // BODY PARTS as drones.js profiles.
     const T = () => page.evaluate(() => __harness.buggyTest)
-    const call = (fn, ...a) => page.evaluate(([fn, a]) => __harness.buggyTest[fn](...a), [fn, a])
-    const parts = async () => (await bs()).parts
     const zs = () => page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); return { x: z.x, hp: z.health, en: z.energy, hitstop: z.hitstop || 0 } })
     await fresh(260)
     const z0 = await zs(), b0x = (await bs()).x
@@ -239,6 +247,113 @@ try {
     check('AI attacks parts ~25% of windows (hash-decided)', ai.rate > 0.18 && ai.rate < 0.32, ai.rate)
     check('AI prioritises the HEAD', ai.headShare === 1, ai.headShare)
     check('AI part choice is deterministic (same seed+frame → same pick)', ai.same)
+  }
+
+  if (PHASE >= 5) {
+    // MOVESET — frame data table (brief) + real keyboard inputs.
+    const fd = await page.evaluate(async () => {
+      const { BUGGY_MOVES: M } = await import('./buggyData.js')
+      const adv = k => M[k].blockstun - (M[k].active - 1 + M[k].recovery) - 2
+      return { jab: [M.light.damage, M.light.startup, adv('light'), M.light.damageType], slash: [M.bSlash.damage, M.bSlash.startup, adv('bSlash')],
+        carve: [M.heavy.damage, M.heavy.startup, adv('heavy'), M.heavy.launcher], low: [M.bLow.damage, M.bLow.startup, M.bLow.hitLevel],
+        kick: [M.bKick.damage, M.bKick.startup, M.bKick.damageType], acro: [M.up.damage, M.up.startup, M.up.damageType], air: [M.air.damage, M.air.damageType],
+        wake: [M.bWake.damage, M.bWake.invuln, adv('bWake')], costs: [M.bCannon.cost, M.bFestival.cost, M.bBall.cost, M.bEscape.cost, M.bFan.cost, M.bCape.cost, M.bSuper.cost],
+        ball: [M.bBall.startup, M.bBall.damageType], esc: M.bEscape.invuln,
+        superRaw: M.bSuper.bg.balls.length * M.bSuper.bg.ballDmg + M.bSuper.bg.stabs.length * M.bSuper.bg.stabDmg + M.bSuper.bg.rushDmg }
+    })
+    check('frame data matches the brief (jab 38/5f/+1 · slash 60/8f/−3 · carve 85/12f/−6 launch · low 45/7f · kick 55/8f · acro 75/10f · air 55 · wake 70/6inv/−12)',
+      JSON.stringify([fd.jab, fd.slash, fd.carve, fd.low, fd.kick, fd.acro, fd.air, fd.wake]) === JSON.stringify([[38, 5, 1, 'slash'], [60, 8, -3], [85, 12, -6, true], [45, 7, 'low'], [55, 8, 'blunt'], [75, 10, 'blunt'], [55, 'slash'], [70, 6, -12]]), JSON.stringify(fd))
+    check('costs: Cannon 18 · Festival 25 · Ball 22 · Escape 15 · Fan 12 · Cape 10 · Super 100', JSON.stringify(fd.costs) === '[18,25,22,15,12,10,100]', fd.costs)
+    check('Buggy Ball 16f startup, blunt · Escape 20 invuln · Super 370 raw', fd.ball[0] === 16 && fd.ball[1] === 'blunt' && fd.esc === 20 && fd.superRaw === 370, JSON.stringify([fd.ball, fd.esc, fd.superRaw]))
+    const mv = async () => (await bs()).move
+    const zhp = () => page.evaluate(() => __harness.buggyTest.raw('p2').health)
+    const seen = async (frames, pred) => { const out = new Set(); for (let i = 0; i < frames; i++) { await step(1); const q = await bs(); if (q.move) out.add(q.move); if (pred && pred(q)) break } return out }
+    // Gatling L, L, H
+    await fresh(70)
+    await tap(['j']); await step(6); await tap(['j']); await step(9); await tap(['k'])
+    let ms = await seen(40)
+    check('gatling Jab → Knife slash → Heavy carve (L, L, H)', ms.has('bSlash') && ms.has('heavy'), [...ms].join(','))
+    // Normals by input
+    for (const [keys, want, nm] of [[['s', 'j'], 'bLow', 'Low knife ↓+L'], [['s', 'k'], 'bKick', 'Clown kick ↓+H'], [['i'], 'up', 'Acrobatic kick (Up-Attack)'], [['d', 'k'], 'bWake', 'Wake-up reversal →+H']]) {
+      await fresh(300); for (const k of keys) await page.keyboard.down(k); await step(2); for (const k of keys) await page.keyboard.up(k)
+      ms = await seen(6); check(`${nm} starts`, ms.has(want), [...ms].join(','))
+    }
+    // CANNON 236+A
+    await fresh(260); await motion(QCF, 'l'); ms = await seen(14)
+    let st = await bs()
+    check('Chop-Chop Cannon (↓↘→+A): move + hand part, −18 Chop', ms.has('bCannon') && st.parts.some(p => p.type === 'buggy_hand') && st.energy <= 100 - 18 + 4, `${[...ms]} e=${st.energy}`)
+    for (let i = 0; i < 60; i++) { await step(1); if ((await parts())[0]?.state === 'hover') break }
+    await shot(`p${PHASE}-09-cannon-parked`)
+    const hpS = await zhp(); await tap(['l']); await seen(45)
+    check('A again while the hand hovers → STAB from the hand', (await zhp()) < hpS, `${hpS}→${await zhp()}`)
+    // FESTIVAL 22+A
+    await fresh(60); await motion(DD, 'l'); await seen(12); st = await bs()
+    check('Festival (↓↓+A): 4 s orbit starts, −25 Chop', st.b.festival > 200 && st.energy <= 76, `fest=${st.b.festival} e=${st.energy}`)
+    const fz0 = await zhp(); for (let i = 0; i < 60; i++) await step(1)
+    check('Festival ticks 12 (slash) on the foe inside the ring', (await zhp()) < fz0, `${fz0}→${await zhp()}`)
+    await shot(`p${PHASE}-10-festival`)
+    const grabbed = await page.evaluate(async () => { const cb = await import('./combat.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1'); return cb.resolveGrab(z, b, {}, 400) })
+    check('Festival: Buggy cannot be grabbed', grabbed === false)
+    const x0 = (await bs()).x; await page.keyboard.down('a'); await step(20); await page.keyboard.up('a'); const x1 = (await bs()).x
+    check('Festival: walks at 60% (5.0 → 3.0 px/f)', Math.abs((x0 - x1) / 20 - 3.0) < 0.35, ((x0 - x1) / 20).toFixed(2))
+    // BUGGY BALL 214+A — arcs, explodes, hits OTG
+    await fresh(260); await motion(QCB, 'l')
+    let ballSeen = false; for (let i = 0; i < 30; i++) { await step(1); if ((await bs()).b.balls.length) { ballSeen = true; break } }
+    check('Buggy Ball (↓↙←+A): an arcing ball after 16f', ballSeen)
+    await step(6); await shot(`p${PHASE}-11-ball-flight`)
+    const bz0 = await zhp(); let boomShot = false, boomAt = null
+    for (let i = 0; i < 60; i++) { await step(1); const q = await bs(); if (q.b.booms.length && !boomShot) { boomShot = true; boomAt = { boom: q.b.booms[0], b: q.x, z: await page.evaluate(() => __harness.buggyTest.raw('p2').x) }; await shot(`p${PHASE}-12-ball-explosion`) } if (!q.b.balls.length && boomShot) break }
+    check('Buggy Ball explodes on the foe (blunt, 95)', (await zhp()) < bz0, `${bz0}→${await zhp()} ${JSON.stringify(boomAt)}`)
+    await fresh(260); await page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); z.knockdownState = true })
+    await motion(QCB, 'l'); const oz0 = await zhp(); for (let i = 0; i < 70; i++) await step(1)
+    const oz1 = await zhp(); await page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); z.knockdownState = false })
+    check('Buggy Ball hits OTG (a knocked-down foe)', oz1 < oz0, `${oz0}→${oz1}`)
+    // QUICK ESCAPE 236+B
+    await fresh(200); const ex0 = (await bs()).x
+    await motion(QCF, 'k'); let inv = 0; for (let i = 0; i < 4; i++) { await step(1); inv = Math.max(inv, (await bs()).invuln) }
+    await seen(26); st = await bs()
+    check('Quick Escape (↓↘→+B): legs stay planted, he reassembles ~25% screen away', (() => { const l = st.parts.find(p => p.type === 'buggy_foot'); return l && Math.abs(st.x + 24 - l.x) > 300 })(), `legs@${st.parts.find(p => p.type === 'buggy_foot')?.x} body@${st.x + 24} (start ${ex0})`)
+    check('Quick Escape: invulnerable', inv >= 15, inv)
+    await shot(`p${PHASE}-13-escape-legs`)
+    // KNIFE FAN 66+A (pool cap 6)
+    await fresh(500); await motion(FF, 'l'); await seen(12)
+    let kn = (await bs()).projectiles.filter(p => p.kind === 'knife')
+    check('Knife Fan (→→+A): 3 knives', kn.length === 3, kn.length)
+    await shot(`p${PHASE}-14-knife-fan`)
+    for (let r = 0; r < 3; r++) { await page.evaluate(() => { const b = __harness.buggyTest.raw('p1'); b.attackCooldown = 0 }); await step(12); await tap(['l']); await step(12) }
+    kn = (await bs()).projectiles.filter(p => p.kind === 'knife')
+    check('Knife Fan pool capped at 6', kn.length <= 6, kn.length)
+    await fresh(140); const kz0 = await zhp(); await motion(FF, 'l'); await seen(30)
+    check('Knife Fan hits (3 × 30, slash)', (await zhp()) < kz0, `${kz0}→${await zhp()}`)
+    // CAPE FLOURISH 214+B vs a projectile (reflect inside the first 8 frames)
+    await fresh(300); await motion(QCB, 'k'); await step(3)
+    const cz0 = await zhp()
+    await page.evaluate(async () => { const ab = await import('./abilities.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
+      ab.spawnProjectile(z, 'kiBlast', { damage: 50, speed: 14, spawnX: b.x + 70, spawnY: b.y + 40, vx: -14, vy: 0 }) })
+    for (let i = 0; i < 40; i++) await step(1)
+    st = await bs()
+    check('Cape Flourish (↓↙←+B) reflects a projectile for 40', st.health === st.maxHealth && (await zhp()) < cz0, `buggy ${st.health} zoro ${cz0}→${await zhp()}`)
+    // ROLL (dash) = 8 invulnerable frames
+    await fresh(300); await tap(['a']); await step(3); await tap(['a']); let rinv = 0
+    for (let i = 0; i < 3; i++) { await step(1); rinv = Math.max(rinv, (await bs()).invuln) }
+    check('Roll (dash): invulnerable frames', rinv >= 5 && rinv <= 8, rinv)
+    // 85% combo scaling
+    const sc = await page.evaluate(async () => { const cb = await import('./combat.js'); const b = __harness.buggyTest.raw('p1'); const c0 = b.comboCounter; b.comboCounter = 2; const v = cb.getComboScale(b); b.comboCounter = c0; return v })
+    check('combo scaling 85% per hit (2 hits in → ×0.7225)', Math.abs(sc - 0.7225) < 1e-6, sc)
+    // SUPER 236236+A
+    await fresh(120); await call('head'); await step(4)
+    const sz0 = await zhp(); await page.evaluate(() => __harness.buggyTest.chop('p1', 100))
+    await motion([...QCF, ...QCF], 'l')
+    ms = await seen(4); st = await bs()
+    check('SUPER (↓↘→↓↘→+A): starts at 100 Chop, parts recalled', (ms.has('bSuper') || st.move === 'bSuper') && st.energy < 5, `${[...ms]} e=${st.energy}`)
+    let sh = 0
+    for (let i = 0; i < 140; i++) { await step(1); const q = await bs(); if ([24, 40, 60, 96].includes(i)) await shot(`p${PHASE}-15-super-${String(i).padStart(3, '0')}`); if (!q.move && i > 20) break }
+    await step(2); st = await bs()
+    const dealt = sz0 - (await zhp())
+    check('Super lands: balls + stabs + knife-ball rush', st.b.superHit >= 6 && dealt > 120, `hits=${st.b.superHit} dmg=${dealt}`)
+    check('Super: 3 s Chop lockout afterwards', st.b.lockout > 150 && st.parts.every(p => p.retiring || p.dying), `lockout=${st.b.lockout}`)
+    const e0s = st.energy; for (let i = 0; i < 60; i++) await step(1)
+    check('no Chop gain during the lockout', (await bs()).energy === e0s, `${e0s}→${(await bs()).energy}`)
   }
 
   const other404 = [...new Set(missing.filter(m => !/buggy/i.test(m)))]

@@ -113,6 +113,42 @@ export const KITS = {
       {name:'Ashura (Santoryu)',sequence:'Heavy slash → twin Tatsu Maki → ASHURA',desc:'Full Spirit finisher.'}
     ]
   },
+  buggy: {
+    type:'Trickster / Part Zoner', energy:'Chop', difficulty:'4',
+    summary:'Bara Bara no Mi! Blades pass straight through him and his body comes apart on command. Chop builds from knife hits (+4), part hits (+3), nullified slashes (+6) and +1.5/s; spend it on detached parts, cannonballs and the Buggy Ball Barrage.',
+    passive:{ name:'Bara Bara no Mi (Chop-Chop Fruit)', effect:'SLASH attacks deal ZERO damage: he splits along the cut and gains 6 Chop. Blunt, projectile, energy, grab and Haki-imbued attacks hit normally. 3 nullified slashes inside 5s force a 1s reassembly — no block, no immunity.' },
+    basics:[
+      {name:'Jab',input:'Light',desc:'38 dmg knife, 5f, +1 on block.'},
+      {name:'Knife slash',input:'Light → Light (or Forward + Light)',desc:'60 dmg, 8f, −3 on block.'},
+      {name:'Heavy carve',input:'Heavy',desc:'85 dmg, 12f, −6 on block, launches.'},
+      {name:'Low knife',input:'Down + Light',desc:'45 dmg, 7f, low.'},
+      {name:'Clown kick',input:'Down + Heavy',desc:'55 dmg, 8f (blunt).'},
+      {name:'Acrobatic kick',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 10f anti-air launcher (blunt).'},
+      {name:'Air knife',input:'Air Light / Heavy',desc:'55 dmg jump-in (air Down = dive).'},
+      {name:'Wake-up reversal',input:'Forward + Heavy',desc:'70 dmg, 6 invulnerable frames, −12 on block.'},
+      {name:'Roll',input:'Double-tap dash',desc:'8 invulnerable frames.'},
+      {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
+    ],
+    specials:[
+      {name:'Chop-Chop Cannon',input:'↓↘→ + Special (or Forward + Special)',cost:18,desc:'His hand flies 60% of the screen (70, passes through), hovers 2s. Special again: a 45 stab from wherever it hovers — park it behind the foe for a pincer.'},
+      {name:'Chop-Chop Festival',input:'↓↓ + Special (or Down + Special)',cost:25,desc:'Pieces orbit him for 4s: 12 dmg slash ticks; walks at 60%; cannot be grabbed.'},
+      {name:'Buggy Ball',input:'↓↙← + Special (or Back + Special)',cost:22,desc:'16f arcing cannonball, 95 dmg blunt explosion, hits OTG. Hold Forward / Back to lengthen / shorten the arc.'},
+      {name:'Quick Escape',input:'↓↘→ + Heavy',cost:15,desc:'Legs stay planted (they kick), he reassembles 25% of the screen away (Forward held: toward the foe). 20 invulnerable frames.'},
+      {name:'Knife Fan',input:'→→ + Special (or neutral Special)',cost:12,desc:'Three thrown knives, 30 each (slash). Max 6 on screen.'},
+      {name:'Cape Flourish',input:'↓↙← + Heavy',cost:10,desc:'Stops one projectile; inside its first 8 frames the projectile is reflected for 40.'},
+      {name:'Lookout',input:'Up + Special',cost:8,desc:'His head floats off and chomps (35) anything close for 5s.'},
+      {name:'Recall',input:'Special, Special (double-tap) with a part out',cost:0,desc:'Every part flies home; 30% of its Chop back, scaled by its remaining HP.'}
+    ],
+    mobility:{name:'Detachable body',input:'Move / double-tap dash',cost:0,desc:'Average walk, a short roll. Max 2 parts off the body; a 3rd retires the oldest. A part broken to 0 HP snaps back for 25 chip and a 6s cooldown.'},
+    ultimate:{name:'Chop-Chop Special: Buggy Ball Barrage',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'He splits apart and the cannon cart wheels in: 4 Buggy Balls in a spread (55) with hand stabs between shots (20), then the spinning knife-ball rush (90). 370 raw. Parts recalled; 3s Chop lockout.'},
+    combos:[
+      {name:'Knife string',sequence:'Jab → Knife slash → Heavy carve → Knife Fan',desc:'The L, L, H string into thrown knives.'},
+      {name:'Low cannon',sequence:'Low knife → Clown kick → Cannon → Stab',desc:'Low into the hand, then the follow-up stab.'},
+      {name:'Pincer',sequence:'Cannon (parked behind) → Knife Fan → Stab from behind',desc:'Knives from the front, the hand from behind.'},
+      {name:'Festival route',sequence:'Buggy Ball → dash → Acrobatic kick → Festival',desc:'Ball, chase, launch, orbit.'},
+      {name:'Blade punish',sequence:'Nullify a slash → Heavy carve → SUPER',desc:'Let the sword pass through, carve, cash in.'}
+    ]
+  },
   luffy: {
     type:'Elastic Brawler', energy:'Stamina', difficulty:'Medium',
     summary:'Wind up. Let loose. A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. Close the distance and turn a clean opening into a flowing combo.',

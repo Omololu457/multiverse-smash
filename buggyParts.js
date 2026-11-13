@@ -26,6 +26,7 @@ export const PART_TUNING = {
   head: { life: 300, bite: 35, biteEvery: 75, reach: 58 },
   partHitChop: 3,
 }
+export const REF_SCREEN_W = 1280   // the 1280-px reference screen (fixed — never the device canvas → LAN/replay-safe)
 const S = 2.6   // part art → world scale (matches Buggy's on-screen body scale)
 const sprites = (p, extra = {}) => ({ idle: { sheet: p.idle.sheet, frames: p.idle.frames }, death: { sheet: p.death.sheet, frames: p.death.frames }, ...extra })
 
@@ -53,7 +54,7 @@ const touches = (d, foe, reach) => { if (!foe) return false; const c = ctr(foe);
 // A part's strike on the foe: blockable, 85% combo scaling, combo credit for Buggy, +3 Chop.
 export function partHit(d, foe, dmg, opts = {}) {
   const o = d.owner
-  if (!o || !foe || (foe.invulnTimer || 0) > 0 || foe.health <= 0 || foe.knockdownState) return false
+  if (!o || !foe || (foe.invulnTimer || 0) > 0 || foe.health <= 0 || (foe.knockdownState && !opts.otg)) return false
   const dir = Math.sign(ctr(foe).x - d.x) || o.facing || 1
   if (foe.isBlocking && !opts.unblockable) {
     foe.blockstun = Math.max(foe.blockstun || 0, opts.blockstun || 12)
@@ -68,7 +69,8 @@ export function partHit(d, foe, dmg, opts = {}) {
   if (opts.launch) foe.vy = opts.launch
   foe.hitFlash = Math.max(foe.hitFlash || 0, 6)
   o.comboCounter = (o.comboCounter || 0) + 1; o.comboTimer = 90
-  if (!(o._buggy?.lockout > 0)) o.energy = Math.min(o.maxEnergy || 100, (o.energy || 0) + PART_TUNING.partHitChop)
+  const gain = opts.chop ?? PART_TUNING.partHitChop
+  if (gain && !(o._buggy?.lockout > 0 || o._buggy?.inSuper)) o.energy = Math.min(o.maxEnergy || 100, (o.energy || 0) + gain)
   ;(o._buggyCues ||= []).push(opts.cue || 'partHit')
   return true
 }
@@ -127,7 +129,7 @@ function place(d, x, y) { d.x = x; d.y = y; d.vx = 0; d.vy = 0; d.tx = x; d.ty =
 export function launchHand(f, frame = 0) {
   if (!partReady(f, 'buggy_hand')) return null
   const d = spawnDrone(f, 'buggy_hand', { spendTech: noSpend, frame }); if (!d) return null
-  const c = ctr(f), dir = f.facing || 1, sw = _W?.screenW?.() || 1280
+  const c = ctr(f), dir = f.facing || 1, sw = REF_SCREEN_W
   place(d, c.x + dir * 30, c.y - 6)
   Object.assign(d.data, { st: 'fly', dir, x0: d.x, y0: d.y, travel: sw * PART_TUNING.hand.flyFrac, hit: false })
   d.vx = dir * PART_TUNING.hand.flySpeed; d.facing = dir

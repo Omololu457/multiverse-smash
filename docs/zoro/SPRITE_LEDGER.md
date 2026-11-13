@@ -35,10 +35,15 @@ R7F2 holds two hand swords with no blade in the mouth.
 ## Frame → animation → trigger
 | # | Frame | Rect (x0,y0,x1,y1) | Animation(s) | Move / state that plays it |
 |---|---|---|---|---|
-| 1–6 | R1F1–F6 | see frames.json | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running (double-tap dash run uses `dash`), INTRO walk-in |
+| 1 | R1F1 | 15,1,45,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 1 of 6) |
+| 2 | R1F2 | 49,2,76,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 2 of 6) |
+| 3 | R1F3 | 84,1,111,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 3 of 6) |
+| 4 | R1F4 | 120,0,150,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 4 of 6) |
+| 5 | R1F5 | 159,1,189,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 5 of 6) |
+| 6 | R1F6 | 197,2,227,54 | `walk`, `walk_back` (reversed order), `run`, `intro` | Walking / running, INTRO walk-in (walk cycle frame 6 of 6) |
 | 7 | R2F1 | 19,62,49,117 | `idle`, `win`, `getup` (last) | Neutral idle, WIN 1 (sheathed stand), getting up |
 | 8 | R2F2 | 59,62,89,117 | `idle`, `win` | Idle cycle partner, WIN 1 |
-| 9 | R3F1 ★ | 0,123,49,176 | `zShishi`, `intro` (last), `zSanto` | Shishi Sonson ready stance (counter window), INTRO sword draw, Santoryu activation |
+| 9 | R3F1 ★ | 0,123,49,176 | `zShishi`, `intro` (last), `zIntroDraw`, `zSanto` | Shishi Sonson ready stance (counter window), INTRO sword draw (held), Santoryu activation |
 | 10 | R3F2 | 58,127,92,176 | `hurt` | Hitstun (stagger) |
 | 11 | R3F3 (+speck) | 99,127,142,176 | `hurt_heavy`, `hurt_air`, `knockdown` (F1) | Heavy / airborne hitstun, knockdown start |
 | 12 | R3F4 | 152,133,197,176 | `crouch`, `getup` (F1) | Crouch (hold Down), wake-up; NAP charge-up crouch |
@@ -55,23 +60,28 @@ R7F2 holds two hand swords with no blade in the mouth.
 | 23 | R6F2 | 75,303,121,345 | `up` (active), `jump`, `zTora` (leap) | **Rising slash**, jump rise, Tora Gari leap |
 | 24 | R6F3 | 128,306,176,345 | `zLow` (active), `up` (start), `fall`, `down_air`, `zTora` (cut) | Low thrust active, Rising slash crouch, falling, air plunge, Tora Gari low cut |
 | 25 | R6F4 ★ | 184,293,249,345 | `up` (follow-through), `throw` (F2) | Rising slash follow-through, throw |
-| 26 | R7F1 ★ | 11,359,62,410 | `zsIdle`, `zsLight`, `zSanto`, `zAshura` (aura), `win2`, `taunt` | **Santoryu stance idle**, Santoryu Jab, activation, Ashura aura, WIN 2 |
+| 26 | R7F1 ★ | 11,359,62,410 | `zsIdle`, `zsLight`, `zSanto`, `zAshura` (aura), `win2`, `taunt` | **Santoryu stance idle**, Santoryu Jab, activation, Ashura aura, WIN 2 (the `win` action resolves to `win2` through the Santoryu stance set when he wins in the stance) |
 | 27 | R7F2 | 66,360,132,410 | `zsLight` (active), `taunt`, `zAshura` (cut 3) | Santoryu Jab active, taunt, Ashura cut 3 |
 | 28 | R7F3 ★ | 143,360,191,410 | `air`, `zsHeavy` | **Air slash**, Santoryu heavy slash |
 | 29 | R7F4 ★ | 207,360,254,410 | `air`, `zsHeavy` | Air slash follow-through, Santoryu heavy slash |
-| 30–33 | R8F1–F4 | see frames.json | `fx_tornado` (4-frame loop, unmirrored) | **Tatsu Maki** tornado projectile |
+| 30 | R8F1 | 13,426,53,479 | `fx_tornado` frame 1 (4-frame loop, unmirrored) | **Tatsu Maki** tornado projectile |
+| 31 | R8F2 | 62,426,102,480 | `fx_tornado` frame 2 (4-frame loop, unmirrored) | **Tatsu Maki** tornado projectile |
+| 32 | R8F3 | 114,427,154,479 | `fx_tornado` frame 3 (4-frame loop, unmirrored) | **Tatsu Maki** tornado projectile |
+| 33 | R8F4 | 163,426,202,479 | `fx_tornado` frame 4 (4-frame loop, unmirrored) | **Tatsu Maki** tornado projectile |
 | 34 | R9F1 | 12,489,46,548 | `lose` | **LOSE** pose (tied to the Shells Town post); brutality / defeat victim pose |
 | 35 | R9F2 | 68,501,89,547 | `nap`, `zNap` | **NAP** idle (idle > 600 frames) and the NAP Spirit-regen special |
-| 36 | R9F3 | 110,495,167,548 | `merry.png`, `portrait.png` | **Going Merry** emblem: roster/select icon, HUD Spirit badge, stage-intro emblem |
+| 36 | R9F3 | 110,495,167,548 | `merry.png`, `portrait.png` | **Going Merry** emblem: roster/select portrait, HUD Spirit-bar badge (zoroFx.drawZoroHud), INTRO emblem flash (zoroFx.drawMerryFlash) |
 
 ★ = mouth-sword frame.
 
 ## Derived copies (render-only or FX; every pixel is a source pixel)
-| Asset | Derived from | How | Used for |
-|---|---|---|---|
-| `assets/zoro/fx_takanami.png` | R4F5 | The arc-coloured pixels only (white/yellow/gold, 8-connected components with <25% contact with a black outline); mirrored | Taka Nami flying-slash projectile |
-| `assets/zoro/zsIdle.png` drawn ×3 at offsets | R7F1 | Same frame drawn as three translucent offset copies at render time | Ashura three-copy aura afterimages (render-only) |
-| Oni Giri / Ashura afterimage trail | current body frame | Translucent offset copies at render time | Dash afterimages (render-only) |
+Each of these is a **derived copy** (the brief's term): flipped / offset / cut-out copies of existing frames, never new art.
+
+| Asset | Status | Derived from | How | Used for |
+|---|---|---|---|---|
+| `assets/zoro/fx_takanami.png` | derived copy | R4F5 | The arc-coloured pixels only (white/yellow/gold, 8-connected components with <25% contact with a black outline); mirrored | Taka Nami flying-slash projectile |
+| `assets/zoro/zsIdle.png` drawn ×3 at offsets | derived copy (render-only) | R7F1 | Same frame drawn as three translucent offset copies at render time | Ashura three-copy aura afterimages (render-only) |
+| Oni Giri / Ashura afterimage trail | derived copy (render-only) | current body frame | Translucent offset copies at render time | Dash afterimages (render-only) |
 
 ## Excluded
 | Item | Rect | Reason |

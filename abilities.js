@@ -36618,10 +36618,10 @@ setDroneKamikazeHandler((d, env) => {
   d.ty = (opp.y || 0) + (opp.h || 100) * 0.42
   d.facing = ((opp.x || 0) < d.x) ? -1 : 1
   d._kamiT = (d._kamiT || 0) + 1
-  const hit = _gaHitsOpp(d, opp, 14)
+  const hit = _gaHitsOpp(d, opp, 34)
   if (hit || d._kamiT > 150) {
-    if (hit) { applyScaledDamage(opp, 35, { source: "ability", attacker: o, move: "droneKamikaze" }); opp.hitstun = Math.max(opp.hitstun || 0, 22); opp.vx = ((opp.x || 0) < d.x ? -1 : 1) * 6 }
-    _gaExplosionFx(o, d.x, d.y, 0.85, d._ctx)
+    if (_gaHitsOpp(d, opp, 72)) { applyScaledDamage(opp, 45, { source: "ability", attacker: o, move: "droneKamikaze" }); opp.hitstun = Math.max(opp.hitstun || 0, 26); opp.vx = ((opp.x || 0) < d.x ? -1 : 1) * 9; opp.vy = Math.min(opp.vy || 0, -6) }   // BIGGER blast: wider radius + more knockback + pop-up
+    _gaExplosionFx(o, d.x, d.y, 1.8, d._ctx)   // BIGGER explosion (was 0.85)
     if (o) { o._gaDroneCd = o._gaDroneCd || {}; o._gaDroneCd[d.type] = d.profile.cooldownOnDeath || 300 }
     if (typeof sound !== "undefined") sound.play?.("ga_drone_death")
     return "done"

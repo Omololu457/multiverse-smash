@@ -1,0 +1,16 @@
+{
+  "name": "luffy-webkit",
+  "url": "http://127.0.0.1:8000/",
+  "status": 200,
+  "title": "Multiverse Smash Ultimate",
+  "errors": [],
+  "failed": [],
+  "bad": [
+    {
+      "path": "/api/health",
+      "status": 404,
+      "type": "fetch"
+    }
+  ],
+  "harness": "undefined"
+}

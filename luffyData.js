@@ -1,0 +1,66 @@
+import { LUFFY_ANIM } from './luffyAssets.js'
+const n = (damage, startup, active, recovery, extra={}) => ({ damage, startup, active, recovery,
+  hitstun:22, blockstun:10, knockbackX:1, knockbackY:0, rangeX:64, rangeY:48,
+  frameExact:true, lf:{normal:true}, ...extra })
+export const LUFFY_MOVES = {
+ light:n(18,5,3,12,{lf:{normal:true,next:'lfJ2',button:'light'}}),
+ lfJ2:n(20,6,3,14,{lf:{normal:true,next:'lfJ3',button:'light'},rangeX:54}),
+ lfJ3:n(28,9,3,22,{rangeX:80,knockbackX:8,blockstun:10}),
+ heavy:n(58,14,3,26,{rangeX:134,hitstun:36,knockbackX:3,blockstun:12}),
+ lfLow:n(27,8,3,18,{hitLevel:'low',rangeX:62,rangeY:30,blockstun:10,lf:{normal:true,boxY:65}}),
+ up:n(44,12,4,28,{launcher:true,launchVy:-30,selfVy:0,rangeX:92,rangeY:156,hitstun:28,blockstun:12,lf:{normal:true,boxY:-85}}),
+ air:n(30,8,4,16,{rangeX:72,rangeY:52,hitstun:22,knockbackX:2}),
+ down_air:n(30,8,4,20,{rangeX:90,rangeY:210,knockbackY:9,lf:{normal:true,centered:true,boxY:50}}),
+ lfCmd1:n(24,8,3,17,{rangeX:78,hitstun:24,lf:{normal:true,next:'lfCmd2',button:'heavy',advance:3}}),
+ lfCmd2:n(30,10,3,19,{rangeX:114,hitstun:26,lf:{normal:true,next:'lfCmd3',button:'heavy'}}),
+ lfCmd3:n(42,12,3,26,{rangeX:150,knockbackX:12,hitstun:24,blockstun:12}),
+ lfPiston:n(44,13,3,25,{cost:12,rangeX:230,hitstun:32,knockbackX:2,isSpecial:true,
+   lf:{kind:'piston',snapLate:28}}),
+ lfReel:n(24,18,3,30,{cost:18,rangeX:270,hitstun:42,knockbackX:1,isSpecial:true,
+   lf:{kind:'reel',snapLate:40}}),
+ lfPinwheel:n(12,11,20,24,{cost:20,rangeX:106,rangeY:78,isSpecial:true,hitstun:16,
+   lf:{kind:'pinwheel',contacts:[[11,2,12],[20,2,12],[29,2,22]]}}),
+ lfBrace:n(0,10,24,22,{cost:18,isSpecial:true,lf:{kind:'brace',noHit:true}}),
+ lfAnchor:n(46,12,32,18,{cost:15,rangeX:90,rangeY:220,hitstun:26,knockbackX:5,knockbackY:10,isSpecial:true,
+   lf:{kind:'anchor',boxY:50,centered:true}}),
+ lfFinale:n(30,28,31,45,{cost:100,rangeX:260,hitstun:22,knockbackX:1,isUltimate:true,
+   lf:{kind:'finale',contacts:[[28,3,30,160],[36,2,30,160],[44,2,40,180],[56,3,120,230]]}}),
+ lfSnap:n(0,0,1,5,{lf:{kind:'snap',noHit:true}})
+}
+// Source frame indices at exact simulation elapsed frames. Presentation never drives collision.
+const timelines={
+ light:[[0,0],[3,1],[5,2],[8,3]], lfJ2:[[0,0],[4,1],[6,2],[9,3],[16,4]],
+ lfJ3:[[0,0],[6,1],[9,2],[12,3],[26,4]],
+ heavy:[[0,0],[5,1],[10,2],[14,3],[17,4],[25,5],[36,6]],
+ lfLow:[[0,0],[8,1],[10,2],[14,3],[25,4]],
+ up:[[0,0],[4,1],[8,2],[10,3],[12,4],[16,5],[35,6]],
+ air:[[0,0],[3,1],[5,2],[8,3],[10,4],[12,5],[18,6]],
+ down_air:[[0,0],[4,1],[8,3],[12,4]],
+ lfCmd1:[[0,0],[4,1],[8,2],[12,3]],lfCmd2:[[0,0],[6,1],[10,2],[14,3]],
+ lfCmd3:[[0,0],[8,1],[12,2],[15,3],[30,4]],
+ lfPiston:[[0,0],[4,1],[9,2],[13,3],[16,4],[22,5],[34,6]],
+ lfReel:[[0,0],[5,1],[9,2],[13,3],[16,4],[18,5],[22,6],[32,7],[43,8]],
+ lfPinwheel:[[0,0],[4,1],[8,2],[11,3],[14,4],[17,5],[20,6],[23,7],[26,8],[29,9],[33,10],[40,11],[49,12]],
+ lfBrace:[[0,0],[3,1],[5,2],[7,3],[10,4],[14,5],[24,6],[30,7],[34,8],[39,9],[47,10]],
+ lfAnchor:[[0,0],[3,1],[6,2],[8,3],[10,4],[12,5],[14,6],[16,7]],
+ lfFinale:[[0,0],[18,1],[28,4],[32,3],[36,5],[40,6],[44,7],[48,8],[52,9],[54,9],[56,10],[59,11],[72,12],[92,13]],
+ lfSnap:[[0,0],[2,1],[4,2],[5,3]]
+}
+export const luffy = {
+ // No derived gore artwork was supplied; shared finishers retain their FX-only fallback.
+ fatalityVictimArt:false,grabCastPose:'grab',rosterKey:'luffy',name:'Monkey D. Luffy',hudName:'Luffy',universe:'one_piece',
+ tagline:'Wind up. Let loose.', archetype:'Elastic Brawler',difficulty:'Medium',
+ bio:'A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. He thrives on closing the distance, building momentum, and turning a clean opening into a flowing combo.',
+ portrait:'./assets/sprites/luffy/portrait.png',hasSprites:true,spriteScale:2.3/1.18,
+ spriteSheet:LUFFY_ANIM.idle.sheet,primary:'melee',secondary:[],archetypes:['melee'],
+ traits:{hasEnergy:true,energyType:'stamina',energyName:'Stamina',mobility:'high',scaling:'combo',animeMovement:false},
+ energyConfig:{label:'Stamina',color:'#f1b83b'},
+ stats:{maxHealth:1000,maxEnergy:100,attack:85,defense:85,speed:85,jumpPower:31,maxJumps:1,weight:1,dashSpeed:18,dashDuration:8},
+ movement:{crouchIdle:true,runWhenAdvancing:true},
+ basic_attacks:{light:LUFFY_MOVES.light,heavy:LUFFY_MOVES.heavy,crouchLight:LUFFY_MOVES.lfLow,
+   upAttack:LUFFY_MOVES.up,airAttack:LUFFY_MOVES.air,downAir:LUFFY_MOVES.down_air,
+   grab:{damage:30,startup:6,active:3,recovery:18,hitstun:20,throwForceX:6,throwForceY:-4}},
+ specials:{stretch_piston:{name:'Stretch Piston',cost:12},reel_in:{name:'Reel-In',cost:18},rubber_pinwheel:{name:'Rubber Pinwheel',cost:20},balloon_brace:{name:'Balloon Brace',cost:18},anchor_heel:{name:'Anchor Heel',cost:15}},
+ ultimate:{name:'Full-Stretch Finale',cost:100},
+ animationData:{lfFinaleMiss:{...LUFFY_ANIM.lfSnap,frameTimeline:[[0,0],[20,1],[35,2],[50,3]]},...Object.fromEntries(Object.entries(LUFFY_ANIM).map(([k,a])=>[k,{...a,frameTimeline:timelines[k]}]))}
+}

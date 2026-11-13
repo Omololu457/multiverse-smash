@@ -1,0 +1,588 @@
+[
+  {
+    "name": "Beginner",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 5,
+        "damage": 10,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "light",
+        "remaining": 15,
+        "resource": 100
+      },
+      {
+        "frame": 17,
+        "damage": 12,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "lfJ2",
+        "remaining": 17,
+        "resource": 100
+      },
+      {
+        "frame": 32,
+        "damage": 15,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "lfJ3",
+        "remaining": 25,
+        "resource": 100
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "j",
+        "move": "light"
+      },
+      {
+        "frame": 12,
+        "key": "j",
+        "move": "lfJ2"
+      },
+      {
+        "frame": 24,
+        "key": "j",
+        "move": "lfJ3"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 37,
+    "grossStamina": 0,
+    "snapSpends": 0,
+    "lastHitEnergy": 100,
+    "staminaNet": 0,
+    "pips": 2,
+    "finalGap": 100.36445285138825,
+    "classification": "true combo in tested spacing"
+  },
+  {
+    "name": "Basic conversion",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 5,
+        "damage": 10,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "light",
+        "remaining": 15,
+        "resource": 100
+      },
+      {
+        "frame": 25,
+        "damage": 34,
+        "hitstun": 41,
+        "gap": 80,
+        "move": "heavy",
+        "remaining": 29,
+        "resource": 100
+      },
+      {
+        "frame": 49,
+        "damage": 24,
+        "hitstun": 37,
+        "gap": 80,
+        "move": "lfPiston",
+        "remaining": 28,
+        "resource": 88
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "j",
+        "move": "light"
+      },
+      {
+        "frame": 12,
+        "key": "k",
+        "move": "heavy"
+      },
+      {
+        "frame": 37,
+        "key": "l",
+        "move": "lfPiston"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 68,
+    "grossStamina": 12,
+    "snapSpends": 0,
+    "lastHitEnergy": 88,
+    "staminaNet": 7,
+    "pips": 1,
+    "finalGap": 84.87543526838431,
+    "classification": "true combo in tested spacing"
+  },
+  {
+    "name": "Air route",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 12,
+        "damage": 26,
+        "hitstun": 32,
+        "gap": 80,
+        "move": "up",
+        "remaining": 32,
+        "resource": 100
+      },
+      {
+        "frame": 36,
+        "damage": 15,
+        "hitstun": 25,
+        "gap": 60,
+        "move": "air",
+        "remaining": 20,
+        "resource": 100
+      },
+      {
+        "frame": 71,
+        "damage": 20,
+        "hitstun": 30,
+        "gap": 60,
+        "move": "lfAnchor",
+        "remaining": 34,
+        "resource": 85
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "i",
+        "move": "up"
+      },
+      {
+        "frame": 25,
+        "key": "w"
+      },
+      {
+        "frame": 29,
+        "key": "j",
+        "move": "air"
+      },
+      {
+        "frame": 44,
+        "key": "l",
+        "dir": "s",
+        "move": "lfAnchor"
+      }
+    ],
+    "escapeFrames": 8,
+    "escapeRange": [
+      63,
+      70
+    ],
+    "damage": 61,
+    "grossStamina": 15,
+    "snapSpends": 0,
+    "lastHitEnergy": 85,
+    "staminaNet": 10,
+    "pips": 0,
+    "finalGap": 72.60760615763479,
+    "classification": "pressure / reset / missed link"
+  },
+  {
+    "name": "Resource route (close)",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 14,
+        "damage": 34,
+        "hitstun": 41,
+        "gap": 80,
+        "move": "heavy",
+        "remaining": 29,
+        "resource": 100
+      },
+      {
+        "frame": 38,
+        "damage": 24,
+        "hitstun": 37,
+        "gap": 80,
+        "move": "lfPiston",
+        "remaining": 28,
+        "resource": 88
+      },
+      {
+        "frame": 77,
+        "damage": 12,
+        "hitstun": 28,
+        "gap": 60,
+        "move": "lfCmd1",
+        "remaining": 20,
+        "resource": 91
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "k",
+        "move": "heavy"
+      },
+      {
+        "frame": 26,
+        "key": "l",
+        "move": "lfPiston"
+      },
+      {
+        "frame": 39,
+        "key": "l",
+        "move": "lfPiston"
+      },
+      {
+        "frame": 70,
+        "key": "k",
+        "dir": "d",
+        "move": "lfCmd1"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 70,
+    "grossStamina": 12,
+    "snapSpends": 1,
+    "lastHitEnergy": 91,
+    "staminaNet": 3,
+    "pips": 0,
+    "finalGap": 60,
+    "classification": "true combo in tested spacing"
+  },
+  {
+    "name": "Resource route (far)",
+    "initialGap": 180,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 14,
+        "damage": 34,
+        "hitstun": 41,
+        "gap": 180,
+        "move": "heavy",
+        "remaining": 29,
+        "resource": 100
+      },
+      {
+        "frame": 38,
+        "damage": 24,
+        "hitstun": 37,
+        "gap": 180,
+        "move": "lfPiston",
+        "remaining": 28,
+        "resource": 88
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "k",
+        "move": "heavy"
+      },
+      {
+        "frame": 26,
+        "key": "l",
+        "move": "lfPiston"
+      },
+      {
+        "frame": 39,
+        "key": "l",
+        "move": "lfPiston"
+      },
+      {
+        "frame": 70,
+        "key": "k",
+        "dir": "d",
+        "move": "lfCmd1"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 58,
+    "grossStamina": 12,
+    "snapSpends": 1,
+    "lastHitEnergy": 88,
+    "staminaNet": 6,
+    "pips": 0,
+    "finalGap": 138.01249798521985,
+    "classification": "pressure / reset / missed link"
+  },
+  {
+    "name": "Pull route (close)",
+    "initialGap": 180,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 18,
+        "damage": 14,
+        "hitstun": 48,
+        "gap": 174,
+        "move": "lfReel",
+        "remaining": 33,
+        "resource": 82
+      },
+      {
+        "frame": 66,
+        "damage": 10,
+        "hitstun": 25,
+        "gap": 70,
+        "move": "light",
+        "remaining": 15,
+        "resource": 85
+      },
+      {
+        "frame": 78,
+        "damage": 11,
+        "hitstun": 25,
+        "gap": 70,
+        "move": "lfJ2",
+        "remaining": 17,
+        "resource": 88
+      },
+      {
+        "frame": 93,
+        "damage": 14,
+        "hitstun": 24,
+        "gap": 70,
+        "move": "lfJ3",
+        "remaining": 25,
+        "resource": 91
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "l",
+        "dir": "d",
+        "move": "lfReel"
+      },
+      {
+        "frame": 62,
+        "key": "j",
+        "move": "light"
+      },
+      {
+        "frame": 73,
+        "key": "j",
+        "move": "lfJ2"
+      },
+      {
+        "frame": 85,
+        "key": "j",
+        "move": "lfJ3"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 49,
+    "grossStamina": 18,
+    "snapSpends": 0,
+    "lastHitEnergy": 91,
+    "staminaNet": 3,
+    "pips": 2,
+    "finalGap": 90.36445285138825,
+    "classification": "true combo in tested spacing"
+  },
+  {
+    "name": "Pull route (far)",
+    "initialGap": 300,
+    "resolved": false,
+    "hits": [
+      {
+        "frame": 18,
+        "damage": 14,
+        "hitstun": 48,
+        "gap": 294,
+        "move": "lfReel",
+        "remaining": 33,
+        "resource": 82
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "l",
+        "dir": "d",
+        "move": "lfReel"
+      },
+      {
+        "frame": 62,
+        "key": "j",
+        "move": "light"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 14,
+    "grossStamina": 18,
+    "snapSpends": 0,
+    "lastHitEnergy": 82,
+    "staminaNet": 5,
+    "pips": 0,
+    "finalGap": 184,
+    "classification": "pressure / reset / missed link"
+  },
+  {
+    "name": "Command launcher branch",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 8,
+        "damage": 14,
+        "hitstun": 28,
+        "gap": 60,
+        "move": "lfCmd1",
+        "remaining": 20,
+        "resource": 100
+      },
+      {
+        "frame": 24,
+        "damage": 18,
+        "hitstun": 30,
+        "gap": 60,
+        "move": "lfCmd2",
+        "remaining": 22,
+        "resource": 100
+      },
+      {
+        "frame": 42,
+        "damage": 24,
+        "hitstun": 32,
+        "gap": 60,
+        "move": "up",
+        "remaining": 32,
+        "resource": 100
+      },
+      {
+        "frame": 66,
+        "damage": 15,
+        "hitstun": 24,
+        "gap": 60,
+        "move": "air",
+        "remaining": 20,
+        "resource": 100
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "k",
+        "dir": "d",
+        "move": "lfCmd1"
+      },
+      {
+        "frame": 15,
+        "key": "k",
+        "move": "lfCmd2"
+      },
+      {
+        "frame": 31,
+        "key": "k",
+        "dir": "w",
+        "move": "up"
+      },
+      {
+        "frame": 55,
+        "key": "w"
+      },
+      {
+        "frame": 59,
+        "key": "j",
+        "move": "air"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 71,
+    "grossStamina": 0,
+    "snapSpends": 0,
+    "lastHitEnergy": 100,
+    "staminaNet": 0,
+    "pips": 2,
+    "finalGap": 69.36841257344645,
+    "classification": "true combo in tested spacing"
+  },
+  {
+    "name": "Ultimate conversion",
+    "initialGap": 80,
+    "resolved": true,
+    "hits": [
+      {
+        "frame": 14,
+        "damage": 34,
+        "hitstun": 41,
+        "gap": 80,
+        "move": "heavy",
+        "remaining": 29,
+        "resource": 100
+      },
+      {
+        "frame": 53,
+        "damage": 16,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "lfFinale",
+        "remaining": 76,
+        "resource": 0
+      },
+      {
+        "frame": 75,
+        "damage": 15,
+        "hitstun": 25,
+        "gap": 80,
+        "move": "lfFinale",
+        "remaining": 68,
+        "resource": 0
+      },
+      {
+        "frame": 93,
+        "damage": 18,
+        "hitstun": 23,
+        "gap": 80,
+        "move": "lfFinale",
+        "remaining": 60,
+        "resource": 0
+      },
+      {
+        "frame": 105,
+        "damage": 50,
+        "hitstun": 24,
+        "gap": 80,
+        "move": "lfFinale",
+        "remaining": 48,
+        "resource": 0
+      }
+    ],
+    "casts": [
+      {
+        "frame": 1,
+        "key": "k",
+        "move": "heavy"
+      },
+      {
+        "frame": 26,
+        "key": "u",
+        "move": "lfFinale"
+      }
+    ],
+    "escapeFrames": 0,
+    "escapeRange": null,
+    "damage": 133,
+    "grossStamina": 100,
+    "snapSpends": 0,
+    "lastHitEnergy": 0,
+    "staminaNet": 97,
+    "pips": 0,
+    "finalGap": 118.29201134937398,
+    "classification": "true combo in tested spacing"
+  }
+]

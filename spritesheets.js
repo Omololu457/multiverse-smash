@@ -51,6 +51,7 @@
 // (gojo_win.png is a single still, not an animation strip.)
 // ═══════════════════════════════════════════════════════════════════
 export const SPRITE_MANIFEST = {
+  luffy: { actions: { idle: './assets/sprites/luffy/idle.png' } },
   // Gojo's existing ./gojo_<action>_sheet.png strips. Replacement art must keep
   // these exact filenames + the per-action layout documented in GOJO SPRITE SPEC
   // above. Sheets that haven't been replaced yet still load fine.

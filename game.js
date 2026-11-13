@@ -1,3 +1,5 @@
+import { updateLuffyCommandCombat } from './luffy.js'
+import { tickLuffy, luffyState, isLuffy, clearLuffy } from './luffyState.js'
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -3971,11 +3973,17 @@ function updateFFAAIInputs(live) {
 function updateFFACombat(fighter, others, opts) {
   const nearest = ffaNearest(fighter, others)
   if (!nearest) return
+  tickLuffy(fighter, nearest, readRawControls(fighter) || {})
+  if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
 
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
-  const ctrlState  = buildNormalControlState(fighter, vKeys)
+  let ctrlState  = buildNormalControlState(fighter, vKeys)
+  if (isLuffy(fighter)) {
+    const consumed = updateLuffyCommandCombat(fighter, inputState, nearest, {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    ctrlState = consumed ? {} : { grab: !!inputState.grab }
+  }
   // Harness/dev hook: force a normal this frame (controller players can't be driven from
   // Playwright, so tests trigger P3/P4 attacks through this).
   if (fighter._forceAttack) { ctrlState[fighter._forceAttack] = true; fighter._forceAttack = null }
@@ -5568,7 +5576,12 @@ function beginReplayPlayback(rep) {
 
 // Round [x,y,energy] to 4dp for float-noise-safe state checkpoints (health is an integer). Shared by
 // the recorder and playback so their snapshots are directly comparable.
-function _replaySnap(f) { const r = v => Math.round((v || 0) * 1e4) / 1e4; return f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0] }
+function _replaySnap(f) {
+  const r = v => Math.round((v || 0) * 1e4) / 1e4
+  const snap = f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0]
+  if (isLuffy(f)) snap.push(JSON.stringify(f._luffy || null), JSON.stringify(f.currentAttack || null))
+  return snap
+}
 
 // Stage 11D: download the most recent finished match's replay as a JSON file (victory-screen button).
 function replayFilename(rep) { return `replay-${rep?.p1Char || "p1"}-vs-${rep?.p2Char || "p2"}-${rep?.seed || 0}.json` }
@@ -5578,6 +5591,8 @@ function saveLastReplay() {
 }
 
 function startMatch() {
+  NET_LOCAL_INPUT_REF._dashTap = false
+  NET_LOCAL_INPUT_REF.leftTapTime = NET_LOCAL_INPUT_REF.rightTapTime = 0
   sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
   // Stage 11A: seed the gameplay RNG for THIS match before anything rolls (AI setup runs in resetRound
   // below). A forced seed reproduces an exact match (replay/tests); otherwise a fresh per-match seed.
@@ -9592,6 +9607,7 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
+  clearLuffy(p1); clearLuffy(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
   // in whatever form the match ended in). Re-arm the device so they start the
@@ -10511,10 +10527,10 @@ function detectDoubleTapDashTeleport(fighter, key) {
   }
 
   if (key === c.left) {
-    if (now - (fighter.leftTapTime || 0) < DOUBLE_TAP_TIME) { onDoubleTap(c.left === towardKey); fighter.leftTapTime = 0 }
+    if (fighter.leftTapTime > 0 && now - fighter.leftTapTime < DOUBLE_TAP_TIME) { onDoubleTap(c.left === towardKey); fighter.leftTapTime = 0 }
     else fighter.leftTapTime = now
   } else if (key === c.right) {
-    if (now - (fighter.rightTapTime || 0) < DOUBLE_TAP_TIME) { onDoubleTap(c.right === towardKey); fighter.rightTapTime = 0 }
+    if (fighter.rightTapTime > 0 && now - fighter.rightTapTime < DOUBLE_TAP_TIME) { onDoubleTap(c.right === towardKey); fighter.rightTapTime = 0 }
     else fighter.rightTapTime = now
   }
 }
@@ -11001,6 +11017,7 @@ function updateMovementInput(fighter) {
   // Omnitrix "up" slot combo (CHARGE+↑ for a deep loadout) consumes the jump so it morphs instead of
   // hopping. No-op for the current cardinal loadout (jump combo = slot 4, unfilled) — future-proof.
   if (fighter._omxConsume?.jump) vKeys[fighter.controls.jump] = false
+  if (isLuffy(fighter) && fighter.attacking) fighter.isBlocking = false
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
@@ -11115,6 +11132,8 @@ function updatePlayerCombat(fighter) {
 }
 function _updatePlayerCombatBody(fighter) {
   if (!fighter) return
+  tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})
+  if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
 
   if (fighter._waterFlickerCd > 0) fighter._waterFlickerCd--   // Tobirama escape cooldown ticks every frame
@@ -11268,6 +11287,11 @@ function _updatePlayerCombatBody(fighter) {
     if (grabEdge && canStart && !charging) { borutoAbsorbAttempt(fighter, getAbilityContext()); return }
   } else if (fighter.rosterKey === "boruto") {
     fighter._absorbPrevGrab = !!inputState.grab
+  }
+
+  if (isLuffy(fighter)) {
+    const consumed = updateLuffyCommandCombat(fighter, inputState, getOpponent(fighter), {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
+    updateCombat(fighter, getOpponent(fighter), consumed ? {} : { grab: !!inputState.grab }, opts); return
   }
 
   // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
@@ -19478,6 +19502,7 @@ function resetTraining() {
     f.energy = f.maxEnergy || 0
     f.hitstun = 0; f.blockstun = 0; f.stun = 0; f.hitstop = 0
     f.knockdownState = false; f.knockdownTimer = 0
+    clearLuffy(f)
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
     revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
@@ -19991,6 +20016,7 @@ function updateBattle() {
     // identical. This branch is unreachable unless a LAN match was explicitly begun (isActive()), so the
     // standalone playback/record paths below are untouched.
     netMatch.sample(_replayFrame, readRawControls(NET_LOCAL_INPUT_REF))
+    NET_LOCAL_INPUT_REF._dashTap = false
     const lm = netMatch.localMaskAt(_replayFrame), rm = netMatch.remoteMaskAt(_replayFrame)
     if (lm != null) writeRawControls(netMatch.localFighter(p1, p2),  replay.decodeInput(lm))
     if (rm != null) writeRawControls(netMatch.remoteFighter(p1, p2), replay.decodeInput(rm))
@@ -20698,8 +20724,8 @@ function renderHybridFighter(fighter) {
     // JUICE (Phase 3) dash squash/stretch + wind-up lean + HIT FEEL (Phase A) visual knockback nudge —
     // wrap ONLY the body draw (not the trail/auras), scaled about the feet. Render-only transforms; the
     // knockback offset moves the SPRITE a few px past its sim position (hitboxes are never touched).
-    const _jsq = fighter._juiceDashSquash
-    const _hsq = fighter._hitSquash ? _hitSquashAt(fighter._hitSquash.t) : null   // DISNEY (Phase B) target hit-squash
+    const _jsq = isLuffy(fighter) ? null : fighter._juiceDashSquash
+    const _hsq = !isLuffy(fighter) && fighter._hitSquash ? _hitSquashAt(fighter._hitSquash.t) : null   // DISNEY (Phase B) target hit-squash
     const _kbx = Math.round(fighter._hitKbOffset || 0)
     const _bodyWrap = !!_jsq || !!_hsq || _kbx !== 0
     if (_bodyWrap) {
@@ -24441,7 +24467,7 @@ function getUniverseList() {
   // beta-only filter (playableUniverseSet routes through rosterKeyAllowed, which already applies the
   // beta sprite gate) AND hides normal-play universes emptied by isPlayable:false. Dev sees them all.
   if (!isDevUnlocked()) { const pu = playableUniverseSet(); keys = keys.filter(k => pu.has(k)) }
-  return keys.map(k => ({ name: formatUniverseName(k), id: k, accent: universeAccent(k) }))
+  return keys.map(k => ({ name: formatUniverseName(k), id: k, accent: universeAccent(k), count: filterAllowedRosterKeys(universeMap[k] || []).length })).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 // Flat list of every Omnitrix alien for the Ben 10 loadout screen.
@@ -25958,6 +25984,7 @@ window.addEventListener("keydown", e => {
   // spuriously trigger a binding vow. Movement itself reads the held key state
   // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
   if (!e.repeat) {
+    if (netMatch.isActive()) detectDoubleTapDashTeleport(NET_LOCAL_INPUT_REF, key)
     if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key); handleGenosSpecialDown(p1, key); handleIronMan2SpecialDown(p1, key); handleIronMan3SpecialDown(p1, key); handleVilgaxSpecialDown(p1, key) }
     if (p2) {
       recordDirectionInput(p2, key)
@@ -26332,6 +26359,7 @@ gameLoop()
     kuramaHide:       !!f._kuramaHide,          // real body suppressed from renderHybridFighter (Minato Kurama + Edo Tensei two-vessel fix)
     name:             f.name || null,           // display name (identity proof during Ghostface Companion Swap)
     infiniteEnergy:   !!f.infiniteEnergy,        // Ghostface Swap grants this for the window (unlimited resource)
+    luffy: f._luffy ? JSON.parse(JSON.stringify(f._luffy)) : null,
     gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
     gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
     gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
@@ -26363,6 +26391,38 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     // ── FLOATING DAMAGE-NUMBER harness (render-only read window) ──
     dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
+    luffyTest: {
+      state: (who = 'p1') => {
+        const f = who === 'p2' ? p2 : p1
+        return f ? { key: f.rosterKey, x:f.x, y:f.y, w:f.w, h:f.h, vx:f.vx, vy:f.vy,
+          facing:f.facing, health:f.health, energy:f.energy, onGround:f.onGround,
+          hitstun:f.hitstun, hitstop:f.hitstop, blockstun:f.blockstun,
+          attack:f.currentAttack ? JSON.parse(JSON.stringify(f.currentAttack)) : null,
+          state:f._luffy ? JSON.parse(JSON.stringify(f._luffy)) : null,
+          phase:getAttackPhase(f), body:getHurtbox(f), hitbox:getAttackHitbox(f),
+          spriteAction:f.spriteHandler?.currentAction, spriteFrame:f.spriteHandler?.frameIndex,
+          spriteScale:f.spriteScale, skin:f.skinId, ready:spritesReady(f.rosterKey),
+          draw:{x:f._lastDrawX,y:f._lastDrawY,w:f._lastDrawW,h:f._lastDrawH} } : null
+      },
+      set: (who = 'p1', values = {}) => {
+        const f = who === 'p2' ? p2 : p1; if (!f) return
+        const allowed = ['x','y','facing','health','energy','onGround','grounded','vx','vy','hitstun','hitstop','blockstun','isBlocking','isCharging','invulnTimer','attackCooldown','ignoreCameraBounds']
+        for (const key of allowed) if (Object.hasOwn(values,key)) f[key] = values[key]
+      },
+      step: (n = 1) => { for (let i = 0; i < n; i++) { globalFrameCount++; updateCurrentState() }; renderCurrentState() },
+      reset: () => { resetTraining(); clearInputBuffers([p1,p2]) },
+      resources: (who = 'p1', pips = 0) => { const f = who === 'p2' ? p2 : p1; if(isLuffy(f))luffyState(f).pips = Math.max(0,Math.min(3,pips|0)) },
+      pose: (who = 'p1', action = 'idle') => { const f=who==='p2'?p2:p1; if(f?.animationData?.[action])f._forceAction=action;renderCurrentState() },
+      clearPose: () => { if(p1)p1._forceAction=null;if(p2)p2._forceAction=null },
+      edge: (who='p1', side='left') => {
+        const f=who==='p2'?p2:p1, o=who==='p2'?p1:p2, ww=getStageWorldWidth()
+        const left=side==='left', x=left?30:ww-(f.w||60)-30
+        f.x=x;f.vx=0;o.x=x+(left?110:-110);o.vx=0
+        camera.zoom=1;camera.targetZoom=1;camera.x=left?canvas.width/2:ww-canvas.width/2;camera.targetX=camera.x
+        return {x,width:ww}
+      },
+      universes: () => getUniverseList()
+    },
     start:       startHarnessMatch,
     skipToBattle,
     // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).

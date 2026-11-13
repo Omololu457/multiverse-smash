@@ -55,6 +55,12 @@ export const physics = {
       updateOmnitrix(fighter)
     }
 
+    if (fighter.rosterKey === 'luffy' && fighter.attacking &&
+        fighter.currentAttack?.lf?.kind && fighter.currentAttack.lf.kind !== 'anchor') {
+      fighter.vx = 0
+      return // grounded paid cast / Snapback / landing recovery; gravity remains shared
+    }
+
     // ── INIT ─────────────────────────────────────────
     const rawSpeed = fighter.baseSpeed || fighter.speed || 9
     // MK-feel Stage 4a: real SPEED-TIER spread. The old `rawSpeed*0.09` gave only ~7.0–8.8 across the
@@ -405,6 +411,8 @@ export const physics = {
     // faster, so juggles self-terminate instead of floating forever. Reset to 0 on ground contact below.
     fighter.vy += this.gravity * (1 + (fighter.juggleCount || 0) * 0.12)
     if (fighter.vy > this.maxFallSpeed) fighter.vy = this.maxFallSpeed
+    // Anchor Heel caps actual displacement as well as the saved velocity.
+    if (fighter.rosterKey === 'luffy' && fighter.currentAttack?.lf?.kind === 'anchor') fighter.vy = Math.min(fighter.vy, 18)
     fighter.y += fighter.vy
 
     if (fighter.y + fighter.h >= floor) {

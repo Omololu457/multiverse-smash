@@ -1,3 +1,4 @@
+import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -195,6 +196,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const dealt = Math.floor(raw * scale)
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
+  if (target.health <= 0) clearLuffy(target)
   // KILLING-BLOW-MOVE STAMP (Brutality engine): when THIS application is the one that crosses the
   // defender to <=0, record on the ATTACKER which move landed the fatal blow so _tryStartBrutality can
   // key a per-MOVE finisher instead of only "who won". Purely post-KO bookkeeping — never read by the
@@ -657,7 +659,7 @@ export function tryComebackFinisher(fighter, inputState, opponent) {
 
 export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
-  if (!fighter || !a) return null
+  if (!fighter || !a || a.lf?.noHit) return null
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -666,7 +668,9 @@ export function getAttackHitbox(fighter) {
   let w = (a.rangeX || 50) * reachMult
   let h = a.rangeY || 40
   let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
-  let y = fighter.y + 20
+  let y = fighter.y + (a.lf?.boxY ?? 20)
+
+  if (a.lf?.centered) return { x: fighter.x + fighter.w / 2 - w / 2, y, w, h }
 
   // AOE moves (e.g. Sasuke's Chidori Koiten lightning discharge): a STATIONARY box
   // CENTERED on the caster instead of the normal in-front reach, so the burst catches
@@ -681,7 +685,7 @@ export function getAttackHitbox(fighter) {
   }
 
   if (a.name === "up") {
-    y = fighter.y - 30
+    y = fighter.y + (a.lf?.boxY ?? -30)
   } else if (a.name === "down_air") {
     y = fighter.y + 30
   } else if (a.name === "air") {
@@ -3029,10 +3033,14 @@ export function startMove(fighter, moveKey, moveData) {
   if (!fighter || !moveData) return false
   if (fighter.attacking || fighter.hitstun > 0 || fighter.attackCooldown > 0) return false
 
-  const st = moveData.startup || 5
-  const ac = moveData.active || 4
-  const rc = moveData.recovery || 10
-  const total = _dur(st + ac + rc, fighter)
+  // LUFFY frame-exact moves opt out of the global duration scaling so their startup/active/recovery
+  // are honoured to the frame (enables tight command chaining). Non-frameExact moves (every other
+  // character) keep the original scaled path EXACTLY — byte-identical behaviour.
+  const timingScale = moveData.frameExact ? 1 / ((fighter.attackSpeedMultiplier || 1) * (fighter._timeSlowTimer > 0 ? TIME_SLOW_FACTOR : 1)) : 1
+  const st = moveData.frameExact ? Math.floor((moveData.startup ?? 5) * timingScale) : (moveData.startup || 5)
+  const ac = moveData.frameExact ? Math.max(1, Math.floor((moveData.active ?? 4) * timingScale)) : (moveData.active || 4)
+  const rc = moveData.frameExact ? Math.floor((moveData.recovery ?? 10) * timingScale) : (moveData.recovery || 10)
+  const total = moveData.frameExact ? st + ac + rc : _dur(st + ac + rc, fighter)
 
   // Launchers (up attacks) get a more generous hitbox so they're not
   // pixel-precise: wider reach and a taller box that also catches an enemy who
@@ -3050,7 +3058,7 @@ export function startMove(fighter, moveKey, moveData) {
     total,
     timer: total,
     activeStart: st,
-    activeEnd: st + ac,
+    activeEnd: st + ac - (moveData.frameExact ? 1 : 0),
     rangeX: moveData.rangeX || (isLauncher ? 95 : 60),
     rangeY: moveData.rangeY || (isLauncher ? 80 : 40),
     hitstun: moveData.hitstun || 15,
@@ -3067,9 +3075,11 @@ export function startMove(fighter, moveKey, moveData) {
     superArmor: !!moveData.superArmor,
     isSpecial: !!moveData.isSpecial,
     isUltimate: !!moveData.isUltimate,
+    frameExact: !!moveData.frameExact,
     hasHit: false
   }
 
+  if (isLuffy(fighter) && moveData.lf) fighter.currentAttack.lf = { ...moveData.lf }
   fighter.wasInStartup = true
   return true
 }
@@ -3144,7 +3154,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
-  if (!rectsOverlap(hitbox, hurtbox)) return
+  if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) return
 
   // NEZUKO — Counter Stance (Down+Special) takes priority over EVERYTHING (block/crouch/invuln): a hit that
   // overlaps her during the window is negated + riposted. Checked here at the top so the down-hold that arms
@@ -3197,6 +3207,14 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
   if (shouldGojoAutoDodge(defender) || shouldSasukeAbsoluteDefenseNegate(defender)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
+  // LUFFY — Gum-Gum guard absorb: when his defensive window holds, the incoming strike is absorbed
+  // outright. luffy-gated → a strict no-op for every other fighter.
+  if (absorbLuffyStrike(defender, attacker)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
@@ -3373,6 +3391,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
       !atk.launcher && !atk.spike && cat !== "ultimate"
 
+    luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3385,6 +3404,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       // faster). Read BEFORE this hit's own launcher/spike physics runs below, so a GROUNDED launcher opener
       // never self-counts. juggleCount resets to 0 on ground contact (applyGravity).
       if (!defender.onGround && !defender.grounded) defender.juggleCount = (defender.juggleCount || 0) + 1
+      luffyInterrupted(defender)
       defender.attacking    = false
       defender.currentAttack = null
       defender.currentMove   = null
@@ -3978,6 +3998,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (fighter.attacking && fighter.currentAttack) {
     fighter.currentAttack.timer--
 
+    prepareLuffyAttack(fighter, opponent)
     if (getAttackPhase(fighter) === "active") {
       // JASON attack-effort grunt — once per attack, on its first active frame (audio-only; no-op otherwise).
       if (!fighter.currentAttack._jEffortDone) {
@@ -4031,10 +4052,12 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     // jump block reads `currentAttack.launcher && hasHit`, so the attack state must persist through
     // recovery here). If they don't jump-cancel, the launcher simply recovers into neutral.
     if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
+      const exactFrameRecovery = fighter.currentAttack.frameExact   // LUFFY frame-exact moves recover with 0 cooldown for tight chaining; others keep 10 (byte-identical)
+      if (isLuffy(fighter)) luffyInterrupted(fighter)
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null
-      fighter.attackCooldown = 10 // ★INVARIANT: INPUT_BUFFER_FRAMES (input.js) must be >= this, else a
+      fighter.attackCooldown = exactFrameRecovery ? 0 : 10 // ★INVARIANT: INPUT_BUFFER_FRAMES (input.js) must be >= this, else a
       // correctly-timed re-press tapped in the first recovery frames buffers, decays, and expires
       // before this lock reopens the startMove() gate → silent combo drop. See input_buffer_recovery test.
     }
@@ -4132,7 +4155,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
       const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
-      if (!rectsOverlap(pb, hurtbox)) continue
+      if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) continue
 
       // VEGITO — Ultra Instinct evasion: phase past the shot while the UI meter holds (and NOT charging).
       // Grants brief i-frames (in shouldVegitoUIEvade) so a lingering bolt isn't re-dodged every frame; the

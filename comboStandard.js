@@ -50,6 +50,7 @@ export const COMBO_STANDARD = {
 // Drivers with 0 or multiple rekkaContinue calls (single-move / grab / dual-string / super-branch)
 // set it false — the harness skips the source check for them.
 export const REKKA = [
+  { key: 'luffy', source: 'luffy.js', driver: 'updateLuffyCommandCombat', opener: 'fwd+heavy', retap: 'heavy', stages: 3, finisher: 'launcher', requireHit: true, srcRequireHit: true, status: 'conforms', note: 'Up+Heavy confirmed branch chooses launcher; default final Heavy knocks away. Separate fresh Light three-stage chain.' },
   // ── CONFORMS — Forward+Heavy · Heavy re-tap · launcher finisher · requireHit:true ──────────────
   { key: "vegeta",              driver: "updateVegetaCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 4, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "4-stage vgFkick1→…→vgUpFinish" },
   { key: "ben10",               driver: "updateBen10CommandCombat",        opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",   note: "form-gated opener (benJab/xlCombo/dhSwing)" },
@@ -292,7 +293,7 @@ export function classify(key) {
 // Expected classification counts — the baseline the harness asserts.
 export const EXPECTED_COUNTS = {
   rekkaTotal:      REKKA.length,   // 71 (34 original + 36 Stage-G roster-drift + omololu ported from Obito)
-  conforms:        55,             // 26 original + 28 Stage-G + omololu (ported Obito Fwd+Heavy rekka, requireHit)
+  conforms:        56,             // prior 55 + Luffy; legacy roster drift remains documented
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
   exception:       16,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
@@ -300,5 +301,5 @@ export const EXPECTED_COUNTS = {
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
   zoner:                34,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          118,       // 71 rekka + 13 standard-string + 34 single-poke = 118 (shizuku added; NOTE: concurrent goku_rose/gogeta/madara_war etc. must add their OWN classification — not done here)
+  rosterTotal:          119,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
 }

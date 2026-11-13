@@ -81,6 +81,39 @@ export const CONTROL_REFERENCE = {
 }
 
 export const KITS = {
+  luffy: {
+    type:'Elastic Brawler', energy:'Stamina', difficulty:'Medium',
+    summary:'Wind up. Let loose. A fearless pirate whose elastic body turns punches, kicks, and wild ideas into unpredictable attacks. Close the distance and turn a clean opening into a flowing combo.',
+    passive:{ name:'Wind-Up', effect:'0–3 pips. Each distinct grounded unblocked normal gives one pip; decay starts after 180 simulation frames, then every 120. Stamina: +3 per clean normal instance and +2/s in eligible neutral. Charge earns no Stamina.' },
+    basics:[
+      {name:'Quick Knuckle → Body Hook → Stretch Finish',input:'Light, fresh Light, fresh Light',desc:'5/6/9f startup; three stages maximum. Retap during confirmed recovery; holding never chains.'},
+      {name:'Coiled Straight',input:'Heavy',desc:'14f wind-up, long reach, 26f recovery. Confirm can cancel into neutral Special or Ultimate.'},
+      {name:'Rubber Sweep',input:'Down + Light / Heavy',desc:'8f low, short reach, no launcher.'},
+      {name:'Rising Stretch',input:'Up-Attack / Up + Heavy',desc:'12f launcher. Luffy stays grounded; manually jump-cancel a confirmed launcher.'},
+      {name:'Air Heel',input:'Air Light / Heavy',desc:'8f strike. Down selects the supplied downward leg pose.'},
+      {name:'Advancing command chain',input:'Forward + Heavy, fresh Heavy, fresh Heavy',desc:'Confirm-only recovery retaps. Up+Heavy at the last branch replaces knock-away with Rising Stretch.'},
+      {name:'Grab / Throw',input:'Grab',desc:'Shared universal grab and throw rules; supplied reaching pose fallback.'}
+    ],
+    specials:[
+      {name:'Stretch Piston',input:'Neutral + Special',cost:12,desc:'13f straight attached punch. Punishable block/whiff. A clean hit offers Snapback.'},
+      {name:'Reel-In',input:'Forward + Special',cost:18,desc:'18f blockable hand strike. One bounded grounded pull per combo; no air restand. Snapback after pull resolves.'},
+      {name:'Rubber Pinwheel',input:'Down + Special',cost:20,desc:'11f start; three separated contacts, 12+12+22 raw. No invulnerability or Snapback.'},
+      {name:'Balloon Brace',input:'Back + Special',cost:18,desc:'10f startup, up to 24f active, 22f recovery, 180f cooldown. Absorbs one ordinary melee strike, +1 pip; throws, launchers, ultimates and projectiles bypass.'},
+      {name:'Anchor Heel',input:'Air Down + Special',cost:15,desc:'12f downward stretched-leg strike. One use per airtime, capped descent and 24f vulnerable landing recovery.'},
+      {name:'Snapback',input:'Fresh Special retap after confirmed Piston / resolved Reel-In',cost:0,desc:'Spend one Wind-Up pip. Retap within 10 simulation frames; retract only in designated late recovery into 6f grounded ready. Once per combo. No damage or invulnerability.'}
+    ],
+    mobility:{name:'Close in',input:'Move / double-tap direction / manual Jump',cost:0,desc:'Slightly above baseline brawler movement; one moderate-high jump. No flight.'},
+    ultimate:{name:'Full-Stretch Finale',input:'Ultimate (100 Stamina)',cost:100,desc:'28f coiled opening. Clean opener enables four resolved contacts, 30+30+40+120 raw through shared scaling. Miss/block: substantial recovery, no capture.'},
+    combos:[
+      {name:'Beginner',sequence:'Light → fresh Light → fresh Light',desc:'True combo at close spacing with confirmed recovery retaps.'},
+      {name:'Basic conversion',sequence:'Light → Heavy → Neutral Special',desc:'Confirm cancels; spacing still matters.'},
+      {name:'Manual air route',sequence:'Launcher → Jump → Air Heel → Air Down Special',desc:'Manual chase; measured reset before Anchor, not a guaranteed combo.'},
+      {name:'Resource route',sequence:'Heavy → Piston → Snapback → Forward Heavy',desc:'Snapback retracts the body; it does not close distant spacing.'},
+      {name:'Pull route',sequence:'Reel-In → grounded Light chain',desc:'True at close pull spacing; max-range pull leaves normals out of reach.'},
+      {name:'Command branch',sequence:'Forward Heavy → Heavy → Up+Heavy → Jump → Air Heel',desc:'Fresh confirmed recovery retaps choose the launcher branch.'},
+      {name:'Ultimate conversion',sequence:'Confirmed Heavy → Ultimate',desc:'Consumes a full Stamina bar; no follow-up commitment on whiff or block.'}
+    ]
+  },
   // ── DRAGON BALL ──────────────────────────────────────────────
   goku: {
     type: "Balanced Saiyan / Transformations", energy: "Ki", difficulty: "Medium",

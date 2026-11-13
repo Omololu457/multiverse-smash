@@ -18,6 +18,9 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  luffy: { work: 'Monkey D. Luffy — One Piece (Game Boy Advance)', artists: ['Paddy (ripper)'],
+    source: 'Supplied sheet; visible credit: Ripped by Paddy / No credit needed. Original pixels retained.',
+    files: ['assets/sprites/luffy/*.png'] },
   // Gon Freecss (Hunter x Hunter) — RE-SKINNED (2026-10-11) onto a fan JUS-style sheet credited in-sheet to
   // an in-sheet block "Don't forgot to give credits to: AmandioHype / sonictheminecrafthog" (verified full-res).
   // Attribution MANDATORY. Border-flood-fill keyed + per-action sliced (gon_work/slice.py) → gon_*_uniform.png.

@@ -127,6 +127,7 @@ function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", she
 function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
 
 export const SKINS = {
+  luffy: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.luffy.portrait, spriteScale: characters.luffy.spriteScale, animationData: null }],
   // Gojo — base sprite transparency-repaired (2026-07-30), then rebuilt with 4 coordinated head-to-toe
   // colour skins (HAIR + main clothing/top + EYES all in one hue family; face/skin + white pants kept
   // natural) via tools/gen_gojo_creative.py, registered DIRECTLY here (like the Rengoku/Shinobu/Sukuna

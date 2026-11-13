@@ -672,7 +672,7 @@ function _resolveAction(fighter, currentAction = "idle") {
   if (fighter.domainFrozen) return fighter._lastSpriteAction || currentAction || "idle";
 
   // Freeze visible animation during hitstop
-  if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
+  if ((fighter.hitstop || 0) > 0 && !(fighter.rosterKey === "luffy" && fighter.attacking && fighter.currentAttack?.lf)) return currentAction || fighter._lastSpriteAction || "idle";
 
   // TAUNT (committed phase): a fighter mid-taunt is fully locked and plays its taunt
   // strip. The taunt state machine (game.js updateTauntState) clears _tauntPlaying the
@@ -746,6 +746,7 @@ function _resolveAction(fighter, currentAction = "idle") {
       if (fighter._fakeReactVisual === "heavy" && (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
       return "hurt";
     }
+    if (fighter.rosterKey === 'luffy' && fighter._hudDmgTier === 'big') return 'hurt_heavy';
     return "hurt";
   }
   if ((fighter.stun || 0) > 0) return "hurt";
@@ -758,6 +759,8 @@ function _resolveAction(fighter, currentAction = "idle") {
   // An actively-attacking fighter always shows the attack over a simultaneous block-hold.
   // ALSO gated on no active sprite-cast: a Down+Special cast pose (Killua's Electric Ball) holds
   // Down → isBlocking, so without this the cast strip would be shadowed by the guard pose.
+  if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter.blockstun || 0) > 0) return 'guard_hit';
+  if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter._luffyLandingVisual || 0) > 0) return 'land';
   if (fighter.isBlocking && !fighter.attacking && !((fighter._spriteCastTimer || 0) > 0 && fighter._spriteCastMove)) {
     return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
   }
@@ -862,6 +865,7 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Opt-in run-cycle chars (Tobirama): forward movement plays RUN at any speed, since
   // normal walking never crosses the >10 threshold above. Backpedal still falls to walk.
   if (fighter.runWhenAdvancing && movingForward && Math.abs(gvx) > 0.1) return "run";
+  if (!movingForward && Math.abs(gvx) > 0.1 && (fighter._skinAnim?.walk_back || fighter.animationData?.walk_back)) return 'walk_back';
   if (Math.abs(gvx) > 0.1) return "walk";
 
   // LOW-HEALTH COSMETIC IDLE: a fighter flagged _lowHealthIdle that ships an `idleLow` strip shows a
@@ -926,7 +930,7 @@ export class SpriteHandler {
       // cut into the next action reads as motion, not a snap. Gated to attacks (the combo-flow snap) and
       // skipped for giants (own bob smoothing) → locomotion + giants unchanged. See _drawTransitionGhost.
       const lr = this._lastRender;
-      if (lr && lr.wasAttacking && !fighter._canvasHeightFrac && _sheetReady(lr.sheet)) {
+      if (lr && lr.wasAttacking && fighter.rosterKey !== 'luffy' && !fighter._canvasHeightFrac && _sheetReady(lr.sheet)) {
         this._xfade = { ...lr, life: XFADE_FRAMES, max: XFADE_FRAMES };
       }
       this.currentAction = action;
@@ -997,6 +1001,8 @@ export class SpriteHandler {
       // looping strip resets to `loopStart` (not 0), so only the tail [loopStart, frames) repeats.
       // Default 0 → identical whole-strip loop as before (every existing action unchanged).
       loopStart: dim.loopStart ?? legacyFrameData?.loopStart ?? 0,
+      originX: dim.originX,
+      originY: dim.originY,
       anchorX: profileAction.anchorX ?? 0,
       anchorY: dim.anchorY ?? profileAction.anchorY ?? 0,
       // Atlas support: top-left source origin of this action's frames inside the
@@ -1064,10 +1070,10 @@ export class SpriteHandler {
     fighter._lastDstH = dstH;   // rendered cell height (scale-correctness checks / harness)
 
     // Center horizontally over the hitbox (using SCALED width)
-    const offsetX = (dstW - fighterW) / 2 + (frameData.anchorX || 0);
+    const offsetX = frameData.originX != null ? frameData.originX * scale - fighterW / 2 + (frameData.anchorX || 0) : (dstW - fighterW) / 2 + (frameData.anchorX || 0);
 
     // Anchor to the bottom of the hitbox (using SCALED height) so feet stay planted
-    const offsetY = (dstH - fighterH) + (frameData.anchorY || 0);
+    const offsetY = frameData.originY != null ? frameData.originY * scale - fighterH + (frameData.anchorY || 0) : (dstH - fighterH) + (frameData.anchorY || 0);
 
     // GIANT idle bob (Kurama-style continuous motion): giant forms (canvas-relative sizing) add a
     // slow, continuous sine RISE so the towering body reads as smoothly alive between the slow
@@ -1121,6 +1127,15 @@ export class SpriteHandler {
       this.frameIndex = Math.min(fighter._dashDirIdx, (frameData.frames || 1) - 1);
     }
 
+    if (profileAction.frameTimeline && fighter.currentAttack && fighter.attacking) {
+      const elapsed = fighter.currentAttack.total - fighter.currentAttack.timer;
+      this.frameIndex = profileAction.frameTimeline.reduce((idx, [at, frame]) => elapsed >= at ? frame : idx, 0);
+      this.frameIndex = Math.min(frameData.frames - 1, this.frameIndex);
+    }
+    if (profileAction.groundClearance) {
+      const clearance = Math.max(0, (fighter.groundY ?? fighter.y + fighter.h) - (fighter.y + fighter.h));
+      while (this.frameIndex > 0 && profileAction.groundClearance[this.frameIndex] * scale > clearance) this.frameIndex--;
+    }
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 

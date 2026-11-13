@@ -1,0 +1,1883 @@
+{
+ "source": "assets/incoming/buggy/buggy_sheet.png",
+ "sha256": "151ede2054d8cc9cfe51e3486a18eb9e3829a23ab3beb4b44d1cf399ea283964",
+ "cell": [
+  160,
+  112
+ ],
+ "origin": [
+  80,
+  100
+ ],
+ "rowCounts": [
+  5,
+  4,
+  2,
+  4,
+  4,
+  2,
+  4,
+  3,
+  2,
+  3,
+  3,
+  3,
+  4,
+  4,
+  9,
+  8,
+  7,
+  1,
+  10,
+  3,
+  6,
+  2,
+  8,
+  2,
+  1
+ ],
+ "frames": {
+  "R1F1": {
+   "rect": [
+    4,
+    9,
+    42,
+    63
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "idle",
+    "getup",
+    "intro",
+    "bHead"
+   ],
+   "masks": [
+    [
+     5,
+     0,
+     30,
+     17
+    ],
+    [
+     0,
+     25,
+     11,
+     32
+    ],
+    [
+     9,
+     48,
+     23,
+     54
+    ]
+   ]
+  },
+  "R1F2": {
+   "rect": [
+    48,
+    3,
+    91,
+    63
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "idle",
+    "idle",
+    "taunt",
+    "win",
+    "bRecall"
+   ],
+   "masks": [
+    [
+     9,
+     0,
+     37,
+     19
+    ],
+    [
+     0,
+     15,
+     11,
+     26
+    ],
+    [
+     12,
+     54,
+     23,
+     60
+    ]
+   ]
+  },
+  "R1F3": {
+   "rect": [
+    96,
+    3,
+    138,
+    63
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "idle",
+    "taunt",
+    "bRecall"
+   ],
+   "masks": [
+    [
+     9,
+     0,
+     37,
+     19
+    ],
+    [
+     0,
+     15,
+     11,
+     26
+    ],
+    [
+     12,
+     54,
+     23,
+     60
+    ]
+   ]
+  },
+  "R1F4": {
+   "rect": [
+    164,
+    18,
+    193,
+    48
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_small_head (HUD Chop badge)"
+   ],
+   "masks": null
+  },
+  "R1F5": {
+   "rect": [
+    218,
+    8,
+    305,
+    63
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "portrait + portrait_frame (select / WIN 1)"
+   ],
+   "masks": null
+  },
+  "R2F1": {
+   "rect": [
+    1,
+    74,
+    41,
+    127
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ],
+   "masks": [
+    [
+     7,
+     0,
+     31,
+     17
+    ],
+    [
+     0,
+     25,
+     11,
+     32
+    ],
+    [
+     10,
+     47,
+     23,
+     53
+    ]
+   ]
+  },
+  "R2F2": {
+   "rect": [
+    51,
+    73,
+    88,
+    127
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ],
+   "masks": [
+    [
+     7,
+     0,
+     31,
+     17
+    ],
+    [
+     0,
+     25,
+     11,
+     32
+    ],
+    [
+     10,
+     47,
+     23,
+     53
+    ]
+   ]
+  },
+  "R2F3": {
+   "rect": [
+    101,
+    73,
+    138,
+    127
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ],
+   "masks": [
+    [
+     7,
+     0,
+     31,
+     17
+    ],
+    [
+     0,
+     25,
+     11,
+     32
+    ],
+    [
+     10,
+     47,
+     23,
+     53
+    ]
+   ]
+  },
+  "R2F4": {
+   "rect": [
+    147,
+    73,
+    186,
+    127
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ],
+   "masks": [
+    [
+     7,
+     0,
+     31,
+     17
+    ],
+    [
+     0,
+     25,
+     11,
+     32
+    ],
+    [
+     10,
+     47,
+     23,
+     53
+    ]
+   ]
+  },
+  "R3F1": {
+   "rect": [
+    6,
+    136,
+    54,
+    199
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "win2",
+    "bCape"
+   ],
+   "masks": [
+    [
+     14,
+     0,
+     34,
+     21
+    ],
+    [
+     0,
+     5,
+     11,
+     16
+    ],
+    [
+     13,
+     55,
+     26,
+     63
+    ]
+   ]
+  },
+  "R3F2": {
+   "rect": [
+    62,
+    136,
+    110,
+    199
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_silhouette (chopped / reassemble flash)"
+   ],
+   "masks": null
+  },
+  "R4F1": {
+   "rect": [
+    0,
+    205,
+    43,
+    263
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "guard",
+    "guard_hit",
+    "light"
+   ],
+   "masks": [
+    [
+     9,
+     0,
+     33,
+     17
+    ],
+    [
+     0,
+     15,
+     11,
+     26
+    ],
+    [
+     12,
+     52,
+     24,
+     58
+    ]
+   ]
+  },
+  "R4F2": {
+   "rect": [
+    56,
+    209,
+    95,
+    263
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "crouch",
+    "getup",
+    "light"
+   ],
+   "masks": [
+    [
+     8,
+     0,
+     33,
+     17
+    ],
+    [
+     0,
+     22,
+     10,
+     32
+    ],
+    [
+     8,
+     48,
+     22,
+     54
+    ]
+   ]
+  },
+  "R4F3": {
+   "rect": [
+    109,
+    209,
+    177,
+    263
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bSlash",
+    "bFan",
+    "fx_knife (derived copy: streak pixels only)"
+   ],
+   "masks": [
+    [
+     29,
+     0,
+     55,
+     16
+    ],
+    [
+     26,
+     14,
+     34,
+     24
+    ],
+    [
+     25,
+     47,
+     40,
+     54
+    ]
+   ]
+  },
+  "R4F4": {
+   "rect": [
+    187,
+    209,
+    263,
+    263
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "throw",
+    "bSlash",
+    "bFan"
+   ],
+   "masks": [
+    [
+     36,
+     0,
+     62,
+     16
+    ],
+    [
+     0,
+     13,
+     27,
+     27
+    ],
+    [
+     34,
+     48,
+     47,
+     54
+    ]
+   ]
+  },
+  "R5F1": {
+   "rect": [
+    3,
+    273,
+    75,
+    327
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "grab",
+    "throw",
+    "heavy",
+    "bCannon"
+   ],
+   "masks": [
+    [
+     35,
+     0,
+     60,
+     16
+    ],
+    [
+     0,
+     13,
+     22,
+     26
+    ],
+    [
+     34,
+     48,
+     48,
+     54
+    ]
+   ]
+  },
+  "R5F2": {
+   "rect": [
+    86,
+    273,
+    132,
+    327
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "heavy",
+    "bCannon"
+   ],
+   "masks": [
+    [
+     9,
+     0,
+     35,
+     16
+    ],
+    null,
+    [
+     8,
+     48,
+     22,
+     54
+    ]
+   ]
+  },
+  "R5F3": {
+   "rect": [
+    138,
+    273,
+    187,
+    327
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bCannon",
+    "bStab"
+   ],
+   "masks": [
+    [
+     9,
+     0,
+     35,
+     16
+    ],
+    null,
+    [
+     8,
+     48,
+     22,
+     54
+    ]
+   ]
+  },
+  "R5F4": {
+   "rect": [
+    208,
+    293,
+    231,
+    306
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_cannon_hand (Cannon hand in flight)"
+   ],
+   "masks": null
+  },
+  "R6F1": {
+   "rect": [
+    5,
+    352,
+    62,
+    399
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "knockdown",
+    "intro",
+    "bFestival",
+    "bEscape",
+    "bSuperMiss",
+    "bStagger",
+    "bChopped",
+    "fx_split_pieces"
+   ],
+   "masks": null
+  },
+  "R6F2": {
+   "rect": [
+    75,
+    338,
+    132,
+    399
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "hurt",
+    "hurt_heavy",
+    "hurt_air",
+    "intro",
+    "bFestival",
+    "bEscape",
+    "bSuper",
+    "bStagger",
+    "bChopped",
+    "fx_split_pieces"
+   ],
+   "masks": null
+  },
+  "R7F1": {
+   "rect": [
+    6,
+    405,
+    54,
+    445
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_capes (Cape Flourish sweep)"
+   ],
+   "masks": null
+  },
+  "R7F2": {
+   "rect": [
+    64,
+    405,
+    111,
+    445
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_capes (Cape Flourish sweep)"
+   ],
+   "masks": null
+  },
+  "R7F3": {
+   "rect": [
+    122,
+    405,
+    168,
+    445
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_capes (Cape Flourish sweep)"
+   ],
+   "masks": null
+  },
+  "R7F4": {
+   "rect": [
+    179,
+    405,
+    223,
+    445
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_capes (Cape Flourish sweep)"
+   ],
+   "masks": null
+  },
+  "R8F1": {
+   "rect": [
+    0,
+    461,
+    48,
+    519
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bKick"
+   ],
+   "masks": [
+    [
+     16,
+     0,
+     42,
+     18
+    ],
+    [
+     0,
+     10,
+     13,
+     28
+    ],
+    [
+     11,
+     51,
+     24,
+     58
+    ]
+   ]
+  },
+  "R8F2": {
+   "rect": [
+    60,
+    451,
+    118,
+    519
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bKick",
+    "up"
+   ],
+   "masks": null
+  },
+  "R8F3": {
+   "rect": [
+    128,
+    458,
+    204,
+    525
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "up"
+   ],
+   "masks": null
+  },
+  "R9F1": {
+   "rect": [
+    6,
+    536,
+    63,
+    585
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "air"
+   ],
+   "masks": null
+  },
+  "R9F2": {
+   "rect": [
+    72,
+    538,
+    131,
+    587
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "air",
+    "down_air"
+   ],
+   "masks": null
+  },
+  "R10F1": {
+   "rect": [
+    2,
+    598,
+    70,
+    631
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bLow"
+   ],
+   "masks": null
+  },
+  "R10F2": {
+   "rect": [
+    82,
+    598,
+    150,
+    630
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bLow"
+   ],
+   "masks": null
+  },
+  "R10F3": {
+   "rect": [
+    161,
+    598,
+    230,
+    629
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bLow"
+   ],
+   "masks": null
+  },
+  "R11F1": {
+   "rect": [
+    8,
+    645,
+    69,
+    684
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "dash"
+   ],
+   "masks": null
+  },
+  "R11F2": {
+   "rect": [
+    81,
+    645,
+    140,
+    684
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "dash"
+   ],
+   "masks": null
+  },
+  "R11F3": {
+   "rect": [
+    176,
+    638,
+    247,
+    685
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "jump",
+    "fall"
+   ],
+   "masks": null
+  },
+  "R12F1": {
+   "rect": [
+    2,
+    699,
+    61,
+    743
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bWake",
+    "bSuper"
+   ],
+   "masks": null
+  },
+  "R12F2": {
+   "rect": [
+    75,
+    697,
+    131,
+    742
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bWake",
+    "bSuper"
+   ],
+   "masks": null
+  },
+  "R12F3": {
+   "rect": [
+    147,
+    698,
+    205,
+    742
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bWake",
+    "bSuper"
+   ],
+   "masks": null
+  },
+  "R13F1": {
+   "rect": [
+    1,
+    759,
+    62,
+    791
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_cart_ghost (super cart flash)"
+   ],
+   "masks": null
+  },
+  "R13F2": {
+   "rect": [
+    73,
+    759,
+    134,
+    791
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bBall"
+   ],
+   "masks": null
+  },
+  "R13F3": {
+   "rect": [
+    145,
+    760,
+    206,
+    791
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bBall"
+   ],
+   "masks": null
+  },
+  "R13F4": {
+   "rect": [
+    217,
+    759,
+    278,
+    791
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bBall"
+   ],
+   "masks": null
+  },
+  "R14F1": {
+   "rect": [
+    1,
+    804,
+    55,
+    839
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bSuper"
+   ],
+   "masks": null
+  },
+  "R14F2": {
+   "rect": [
+    66,
+    803,
+    115,
+    839
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "bSuper"
+   ],
+   "masks": null
+  },
+  "R14F3": {
+   "rect": [
+    128,
+    816,
+    143,
+    831
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_ball_buggy (super balls)"
+   ],
+   "masks": null
+  },
+  "R14F4": {
+   "rect": [
+    152,
+    816,
+    167,
+    831
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "fx_ball_plain (Buggy Ball travelling frame)"
+   ],
+   "masks": null
+  },
+  "L1P1": {
+   "rect": [
+    7,
+    852,
+    28,
+    876
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "HUD head pip"
+   ],
+   "masks": null
+  },
+  "L1P2": {
+   "rect": [
+    39,
+    852,
+    60,
+    877
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L1P3": {
+   "rect": [
+    66,
+    857,
+    91,
+    875
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_death (HEAD snap-back)"
+   ],
+   "masks": null
+  },
+  "L1P4": {
+   "rect": [
+    105,
+    858,
+    117,
+    870
+   ],
+   "type": "torso",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L1P5": {
+   "rect": [
+    122,
+    858,
+    134,
+    870
+   ],
+   "type": "torso",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L1P6": {
+   "rect": [
+    147,
+    858,
+    158,
+    868
+   ],
+   "type": "joint",
+   "note": "blue pelvis ring (waist joint)",
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "part_legs (derived copy: pelvis over boots \u2014 planted legs)"
+   ],
+   "masks": null
+  },
+  "L1P7": {
+   "rect": [
+    162,
+    858,
+    172,
+    869
+   ],
+   "type": "joint",
+   "note": "blue pelvis ring (waist joint, turned)",
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)"
+   ],
+   "masks": null
+  },
+  "L1P8": {
+   "rect": [
+    186,
+    858,
+    198,
+    869
+   ],
+   "type": "hand_L",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)",
+    "part_hand_death (HAND snap-back)"
+   ],
+   "masks": null
+  },
+  "L1P9": {
+   "rect": [
+    201,
+    859,
+    214,
+    869
+   ],
+   "type": "hand_R",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)",
+    "part_hand_death (HAND snap-back)"
+   ],
+   "masks": null
+  },
+  "L2P1": {
+   "rect": [
+    4,
+    884,
+    11,
+    892
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)"
+   ],
+   "masks": null
+  },
+  "L2P2": {
+   "rect": [
+    21,
+    884,
+    27,
+    892
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L2P3": {
+   "rect": [
+    35,
+    884,
+    43,
+    893
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)"
+   ],
+   "masks": null
+  },
+  "L2P4": {
+   "rect": [
+    51,
+    885,
+    60,
+    893
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "joint disc pasted on every masked stump (derived copies, rows 1-6)"
+   ],
+   "masks": null
+  },
+  "L2P5": {
+   "rect": [
+    68,
+    884,
+    76,
+    892
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)"
+   ],
+   "masks": null
+  },
+  "L2P6": {
+   "rect": [
+    84,
+    885,
+    92,
+    892
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L2P7": {
+   "rect": [
+    99,
+    884,
+    108,
+    893
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)"
+   ],
+   "masks": null
+  },
+  "L2P8": {
+   "rect": [
+    115,
+    884,
+    124,
+    893
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)"
+   ],
+   "masks": null
+  },
+  "L3P1": {
+   "rect": [
+    7,
+    905,
+    28,
+    927
+   ],
+   "type": "foot",
+   "note": "boot pair",
+   "uses": [
+    "part_legs (derived copy)"
+   ],
+   "masks": null
+  },
+  "L3P2": {
+   "rect": [
+    43,
+    908,
+    54,
+    923
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)",
+    "part_foot_death (FOOT snap-back)"
+   ],
+   "masks": null
+  },
+  "L3P3": {
+   "rect": [
+    57,
+    911,
+    66,
+    926
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_lose_pieces (LOSE scatter)",
+    "part_foot_death (FOOT snap-back)"
+   ],
+   "masks": null
+  },
+  "L3P4": {
+   "rect": [
+    75,
+    896,
+    103,
+    929
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "L3P5": {
+   "rect": [
+    115,
+    897,
+    136,
+    934
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "L3P6": {
+   "rect": [
+    151,
+    906,
+    191,
+    935
+   ],
+   "type": "cape_strip",
+   "note": "cape shoulder (epaulette)",
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "L3P7": {
+   "rect": [
+    206,
+    925,
+    255,
+    935
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "L4P1": {
+   "rect": [
+    3,
+    940,
+    69,
+    959
+   ],
+   "type": "body_lying",
+   "note": "full body lying flat (also the LOSE frame)",
+   "uses": [
+    "knockdown",
+    "lose"
+   ],
+   "masks": null
+  },
+  "L5P1": {
+   "rect": [
+    0,
+    969,
+    33,
+    995
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P2": {
+   "rect": [
+    41,
+    977,
+    54,
+    990
+   ],
+   "type": "torso",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P3": {
+   "rect": [
+    58,
+    979,
+    70,
+    990
+   ],
+   "type": "joint",
+   "note": "blue pelvis ring (waist joint)",
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P4": {
+   "rect": [
+    74,
+    978,
+    84,
+    989
+   ],
+   "type": "hand_R",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)",
+    "HUD hand pip"
+   ],
+   "masks": null
+  },
+  "L5P5": {
+   "rect": [
+    91,
+    980,
+    100,
+    988
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P6": {
+   "rect": [
+    107,
+    980,
+    115,
+    988
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P7": {
+   "rect": [
+    123,
+    980,
+    132,
+    989
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P8": {
+   "rect": [
+    139,
+    980,
+    147,
+    988
+   ],
+   "type": "joint",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L5P9": {
+   "rect": [
+    156,
+    978,
+    166,
+    989
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)",
+    "HUD foot pip"
+   ],
+   "masks": null
+  },
+  "L5P10": {
+   "rect": [
+    176,
+    980,
+    183,
+    990
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "fx_orbit (Festival / Super orbit)",
+    "fx_intro_pieces (INTRO assembly)"
+   ],
+   "masks": null
+  },
+  "L6P1": {
+   "rect": [
+    5,
+    1004,
+    60,
+    1033
+   ],
+   "type": "cape_strip",
+   "note": "cape back, billowing",
+   "uses": [
+    "fx_cape_back (Cape Flourish / WIN 2 billow)"
+   ],
+   "masks": null
+  },
+  "L6P2": {
+   "rect": [
+    71,
+    1004,
+    125,
+    1034
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_back (Cape Flourish / WIN 2 billow)"
+   ],
+   "masks": null
+  },
+  "L6P3": {
+   "rect": [
+    134,
+    1004,
+    187,
+    1034
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_back (Cape Flourish / WIN 2 billow)"
+   ],
+   "masks": null
+  },
+  "L7P1": {
+   "rect": [
+    3,
+    1041,
+    27,
+    1063
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L7P2": {
+   "rect": [
+    37,
+    1043,
+    61,
+    1065
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L7P3": {
+   "rect": [
+    69,
+    1043,
+    93,
+    1066
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L7P4": {
+   "rect": [
+    101,
+    1043,
+    125,
+    1066
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L7P5": {
+   "rect": [
+    136,
+    1041,
+    167,
+    1066
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L7P6": {
+   "rect": [
+    176,
+    1041,
+    206,
+    1066
+   ],
+   "type": "head",
+   "note": null,
+   "uses": [
+    "part_head_idle (HEAD part) + idle look-around"
+   ],
+   "masks": null
+  },
+  "L8P1": {
+   "rect": [
+    3,
+    1081,
+    26,
+    1094
+   ],
+   "type": "knife",
+   "note": "hand_R holding knives (the Cannon hand)",
+   "uses": [
+    "part_hand_idle (HAND part) + fx_knives_fan (WIN 2)"
+   ],
+   "masks": null
+  },
+  "L8P2": {
+   "rect": [
+    33,
+    1078,
+    59,
+    1098
+   ],
+   "type": "knife",
+   "note": "hand_R holding knives, fanned",
+   "uses": [
+    "part_hand_idle (HAND part) + fx_knives_fan (WIN 2)"
+   ],
+   "masks": null
+  },
+  "L9P1": {
+   "rect": [
+    3,
+    1109,
+    14,
+    1118
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P2": {
+   "rect": [
+    18,
+    1109,
+    24,
+    1119
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P3": {
+   "rect": [
+    39,
+    1109,
+    55,
+    1119
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P4": {
+   "rect": [
+    60,
+    1107,
+    81,
+    1119
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P5": {
+   "rect": [
+    88,
+    1105,
+    105,
+    1118
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P6": {
+   "rect": [
+    115,
+    1106,
+    130,
+    1118
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P7": {
+   "rect": [
+    142,
+    1106,
+    163,
+    1118
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L9P8": {
+   "rect": [
+    170,
+    1106,
+    182,
+    1119
+   ],
+   "type": "foot",
+   "note": null,
+   "uses": [
+    "part_foot_idle (FOOT part spin)"
+   ],
+   "masks": null
+  },
+  "L10P1": {
+   "rect": [
+    5,
+    1128,
+    53,
+    1153
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "L10P2": {
+   "rect": [
+    64,
+    1128,
+    109,
+    1149
+   ],
+   "type": "cape_strip",
+   "note": null,
+   "uses": [
+    "fx_cape_strips (Cape Flourish trail)"
+   ],
+   "masks": null
+  },
+  "MERRY": {
+   "rect": [
+    0,
+    1167,
+    163,
+    1220
+   ],
+   "type": null,
+   "note": null,
+   "uses": [
+    "One Piece emblem \u2192 reuses assets/zoro/merry.png (same figurehead art)"
+   ],
+   "masks": null
+  }
+ },
+ "excluded": {
+  "credit_panel": [
+   58,
+   1167,
+   163,
+   1220
+  ]
+ },
+ "merryIdentical": false,
+ "unused": []
+}

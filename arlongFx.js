@@ -2,6 +2,8 @@
 // shimmer / spray, the thrown blade, torpedo, shockwaves, splash bursts). Reads simulation state (fighter._arlong)
 // and never writes it. Image objects are presentation caches. Any jitter is a pure hash of (frame, slot).
 import { ARLONG_FX } from './arlongSprites.js'
+import { ARLONG_WIN2_ANIM } from './arlongData.js'
+import { arlongWinVariant } from './arlongState.js'
 
 const _img = {}
 function img(src) {
@@ -126,9 +128,96 @@ function drawBlade(c, s, frame) {
     c.restore()
   }
 }
+// ── PHASE 7 PRESENTATION — intro / wins / lose. Render-only: _alIntroT / _alEndT are presentation clocks on the
+// fighter (frames since the pose began, from the game frame counter), never read by the simulation; every position
+// is a pure function of them (hash-placed, no Math.random). ──
+const K = 1.6   // FX sprites share the fighter sheet's pixel scale
+function drawPresentation(c, f, frame) {
+  if (f._introPlaying && !f._alIntroOn) { f._alIntroOn = true; f._alIntro0 = frame }   // rising edge: restart the intro clock
+  if (!f._introPlaying) f._alIntroOn = false
+  if (f._alIntro0 != null) { f._alIntroT = Math.min(96, frame - f._alIntro0); if (f._alIntroT < 96) drawIntro(c, f, f._alIntroT) }
+  const fa = f._forceAction
+  if (fa === 'win' || fa === 'lose') {
+    if (!f._alEndT || f._alEndFa !== fa) { f._alEnd0 = frame - 1; f._alEndFa = fa }
+    const t = f._alEndT = Math.max(1, frame - f._alEnd0)
+    if (fa === 'win') {
+      const v = arlongWinVariant(f), want = v === 2 ? ARLONG_WIN2_ANIM : null
+      if ((f._skinAnim || null) !== want) f._skinAnim = want   // the sim may be paused on the result screen
+      if (v === 2) drawWin2(c, f, t); else drawWin1(c, f, t)
+    } else { if (f._skinAnim) f._skinAnim = null; drawLose(c, f, t) }
+  } else if (f._alEndT) { f._alEndT = 0; f._alEndFa = null }
+}
+const feet = f => ({ fx: (f.x || 0) + (f.w ?? 48) / 2, fy: (f.y || 0) + (f.h ?? 94), d: f.facing || 1 })
+// INTRO (intro strip = walk in dragging the Kiribachi → water pours from his gills → blade onto the shoulder):
+// sparks where the saw scrapes the floor, then gill water spilling down, then a ring of splash on the shoulder beat.
+function drawIntro(c, f, t) {
+  const { fx, fy, d } = feet(f)
+  if (t < 34) {   // drag: sparks + a scrape line behind him
+    const tipX = fx - d * 58
+    c.save(); c.strokeStyle = 'rgba(255,214,140,0.7)'; c.lineWidth = 2
+    c.beginPath(); c.moveTo(tipX, fy - 2); c.lineTo(tipX - d * Math.min(90, t * 4), fy - 1); c.stroke()
+    for (let k = 0; k < 6; k++) {
+      const ph = ((t + k * 5) % 12) / 12
+      c.fillStyle = `rgba(255,${200 + (k * 9) % 50},120,${1 - ph})`
+      c.fillRect(tipX - d * (4 + ph * 26 * (0.5 + hash(k, t >> 2))), fy - 4 - ph * (16 + 12 * hash(k + 3, t >> 2)), 3, 3)
+    }
+    c.restore()
+  }
+  if (t >= 28 && t < 78) {   // GILLS: water spills from the gill slits on his neck and patters onto the floor
+    const gx = fx + d * 8, gy = fy - (f.h ?? 94) * 0.82, a = Math.min(1, (t - 28) / 6) * Math.min(1, (78 - t) / 10)
+    c.save(); c.globalAlpha = a
+    for (let k = 0; k < 9; k++) {
+      const ph = ((t * 2 + k * 7) % 30) / 30, sx = gx + (k % 3 - 1) * 4 + d * ph * 10
+      c.fillStyle = 'rgba(160,195,255,0.85)'; c.fillRect(sx, gy + ph * (fy - gy), 2, 5)
+    }
+    c.restore()
+    drawPoolLite(c, fx + d * 10, fy, 26 + Math.min(1, (t - 40) / 30) * 30, a * 0.8, t)
+  }
+  if (t >= 72 && t < 96) {   // the shoulder beat: a ring of spray
+    const p = (t - 72) / 24
+    c.save(); c.strokeStyle = `rgba(200,225,255,${1 - p})`; c.lineWidth = 2
+    c.beginPath(); c.ellipse(fx, fy - 2, 20 + p * 70, 4 + p * 10, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
+}
+function drawPoolLite(c, cx, y, r, alpha, t) {
+  c.save(); c.globalAlpha = alpha; c.fillStyle = 'rgba(90,120,230,0.55)'
+  c.beginPath(); c.ellipse(cx, y, r, Math.max(3, r * 0.16), 0, 0, Math.PI * 2); c.fill()
+  c.strokeStyle = 'rgba(210,225,255,0.6)'; c.lineWidth = 1
+  c.beginPath(); c.ellipse(cx, y - 1, r * (0.4 + 0.3 * ((t % 30) / 30)), r * 0.08, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+}
+// WIN 1 — the portrait panel (his grin) hangs over his shoulder and the Kiribachi is stabbed upright beside him.
+function drawWin1(c, f, t) {
+  const { fx, fy, d } = feet(f), p = Math.min(1, t / 14)
+  sprite(c, 'bladeV', 0, fx + d * 62, fy + 20 - (1 - p) * 60, { sx: K, sy: K, anchor: 'b', alpha: p })   // drops in, plants
+  if (t > 12 && t < 22) drawPoolLite(c, fx + d * 62, fy, 20 + (t - 12) * 3, 1 - (t - 12) / 10, t)
+  const im = img(ARLONG_FX.portrait?.sheet)
+  if (im) {
+    const s = 0.5, w = im.width * s, h = im.height * s, px = fx - d * 70, py = fy - (f.h ?? 94) - 40 - (1 - p) * 24
+    c.save(); c.globalAlpha = p; c.imageSmoothingEnabled = false
+    c.fillStyle = '#0d1a33'; c.fillRect(px - w / 2 - 4, py - h / 2 - 4, w + 8, h + 8)
+    c.strokeStyle = '#7fa8ff'; c.lineWidth = 2; c.strokeRect(px - w / 2 - 4, py - h / 2 - 4, w + 8, h + 8)
+    c.drawImage(im, px - w / 2, py - h / 2, w, h); c.restore()
+  }
+}
+// WIN 2 — wide stance → Kiribachi overhead (win2 strip): a spout of water erupts behind him as the blade goes up.
+function drawWin2(c, f, t) {
+  const { fx, fy, d } = feet(f)
+  if (t < 24) return
+  const p = Math.min(1, (t - 24) / 16)
+  for (let k = 0; k < 3; k++) sprite(c, 'jets', (t >> 2) + k, fx - d * (30 + k * 26), fy, { sx: 1.1, sy: 1.1 * p * (1 - k * 0.2), anchor: 'b', alpha: 0.9 })
+}
+// LOSE — he lies flat (lose strip) and the Kiribachi lies flat on the floor beside him; a little water seeps out.
+function drawLose(c, f, t) {
+  const { fx, fy, d } = feet(f), p = Math.min(1, t / 18)
+  sprite(c, 'bladeFlat', 0, fx + d * 96, fy - 14 - (1 - p) * (1 - p) * 40, { sx: K * d, sy: K, rot: (1 - p) * 0.6 * d })
+  if (t > 18) drawPoolLite(c, fx, fy, 30 + Math.min(40, (t - 18) * 0.8), 0.7, t)
+}
+
 // World-space FX drawn after the fighter sprite.
 export function drawArlongFx(c, f, frame = 0) {
-  if (!c || f?.rosterKey !== 'arlong' || !f._arlong) return
+  if (!c || f?.rosterKey !== 'arlong') return
+  drawPresentation(c, f, frame)
+  if (!f._arlong) return
   const s = f._arlong, w = f.w ?? 48, h = f.h ?? 94, cx = f.x + w / 2
   if (s.blade && s.blade.st !== 'hand') drawBlade(c, s, frame)
   for (const p of s.shots || []) {   // WATER SHOT: a pressurised jet (R16 jet sprite laid sideways) + trailing droplets

@@ -60,4 +60,5 @@ export async function run(X) {
   const t = await as()
   check('combo route leaves teeth bookkeeping consistent (0-3)', t.a.teeth >= 0 && t.a.teeth <= 3, t.a.teeth)
   fs.writeFileSync('/tmp/ms-arlong-render/combos.json', JSON.stringify(R, null, 1))
+  if (PHASE >= 7) { const m = await import('./arlong_scen_p7.mjs'); await m.run(X) }
 }

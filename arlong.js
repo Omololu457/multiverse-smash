@@ -9,7 +9,7 @@
 // Specials (A = Special button, B = Heavy):
 //   ↓↘→+A Shark On Tooth · →→+A Shark On Darts · ↓↙←+A Gosenmaigawara Seiken · ↓↓+A Tidal Sweep
 //   ↓↘→+B Kiribachi Throw (blade in hand) / Recall (blade planted) · ↓↙←+B Water Shot · B beside the planted blade = pick up
-//   Simple-input fallbacks: A Tooth · →+A Darts · ←+A Seiken · ↓+A Tidal · ↑+A Water Shot
+//   Simple-input fallbacks: A Tooth (close) / Water Shot (far) · →+A Darts · ←+A Seiken · ↓+A Tidal · ↑+A Water Shot
 //   Super ARLONG PARK: ↓↘→↓↘→+A or the Ultimate button (100 Tide)
 // While the Kiribachi is thrown / planted every blade normal swaps to its FISHMAN KARATE replacement.
 import { startMove } from './combat.js'
@@ -83,7 +83,7 @@ export function canDo(f, key) {
 }
 const nearBlade = f => { const b = f._arlong?.blade; return b?.st === 'planted' && Math.abs(b.x - ctrX(f)) <= ARLONG_SPECIAL.pickup.reach }
 // Which special does this press ask for? (null = none)
-function specialFor(f, s, button, inp) {
+function specialFor(f, s, button, inp, opp) {
   const fwd = f.facing === -1 ? inp.left : inp.right, back = f.facing === -1 ? inp.right : inp.left
   if (button === 'ultimate') return 'aSuper'
   if (button === 'special') {
@@ -96,7 +96,7 @@ function specialFor(f, s, button, inp) {
     if (inp.up) return 'aShot'
     if (fwd) return 'aDarts'
     if (back) return 'aSeiken'
-    return 'aTooth'
+    return opp && Math.abs(ctrX(opp) - ctrX(f)) > TOOTH_REACH ? 'aShot' : 'aTooth'   // neutral A: the lunge bite up close, a Water Shot at range
   }
   if (button === 'heavy') {
     if (hasMotion(s, '236', 16)) return bladeInHand(f) ? 'aThrow' : s.blade.st === 'planted' ? 'aRecall' : null
@@ -105,10 +105,11 @@ function specialFor(f, s, button, inp) {
   }
   return null
 }
-function trySpecial(f, s, inp, grounded) {
+export const TOOTH_REACH = 260   // neutral Special beyond this centre distance = Water Shot instead of Shark On Tooth
+function trySpecial(f, s, inp, grounded, opp) {
   for (const b of ['ultimate', 'special', 'heavy']) {
     if (!fresh(s, b)) continue
-    const want = specialFor(f, s, b, pressDir(s, b, inp, f.facing))
+    const want = specialFor(f, s, b, pressDir(s, b, inp, f.facing), opp)
     if (!want) { if (b !== 'heavy') use(s, b); continue }
     if (!grounded && want !== 'aShot') { if (b !== 'heavy') use(s, b); continue }   // specials are grounded (Water Shot works in the air)
     const key = resolveKey(f, want)
@@ -133,7 +134,7 @@ export function updateArlongCommandCombat(f, inp, opp, ctx = {}) {
   if (a) {
     const t = a.total - a.timer, contact = a.hasHit && !a.al?.noHit && t >= a.activeStart
     if (contact && !ARLONG_MOVES[a.name]?.isSpecial && !a.isUltimate) {
-      if (trySpecial(f, s, inp, grounded)) return 'consumed'   // special / super cancel out of a connected normal
+      if (trySpecial(f, s, inp, grounded, opp)) return 'consumed'   // special / super cancel out of a connected normal
       for (const b of ['light', 'heavy', 'upAttack']) {
         if (!fresh(s, b) || !grounded) continue
         let next = normalFor(f, pressDir(s, b, inp, f.facing), b, grounded, opp)
@@ -148,7 +149,7 @@ export function updateArlongCommandCombat(f, inp, opp, ctx = {}) {
   }
 
   if (f.attackCooldown > 0 || inp.block) return 'grab'
-  if (trySpecial(f, s, inp, grounded)) return 'consumed'
+  if (trySpecial(f, s, inp, grounded, opp)) return 'consumed'
   if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, resolveKey(f, 'up'))) { acue(f, 'swingLight'); return 'consumed' } }
   for (const b of ['light', 'heavy']) {
     if (!fresh(s, b)) continue

@@ -17,4 +17,5 @@ export async function run(X) {
   check('metadata: bio (verbatim)', m.bio === BIO, m.bio)
   check('pickable (not hidden)', !m.hidden && m.playable, JSON.stringify({ h: m.hidden, p: m.playable }))
   check('Move List entry (kits.js): Tide, 6 specials, ARLONG PARK', m.kit && m.kit.energy === 'Tide' && m.kit.specials === 6 && m.kit.ult === 'ARLONG PARK' && m.kit.type === 'Heavy Bruiser / Zone Control', JSON.stringify(m.kit))
+  if (X.PHASE >= 10) { const m = await import('./arlong_scen_p10.mjs'); await m.run(X) }
 }

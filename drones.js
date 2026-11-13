@@ -58,7 +58,7 @@ export const DRONE_PROFILES = {
     sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
     hp: 50, accel: 1.4, maxH: 10, maxV: 9, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
     hoverHeight: 150, bobAmp: 4, leash: 320, behaviour: "follow", cooldownOnDeath: 120,
-    techCost: 20, hurtbox: { w: 40, h: 28 }, scale: 1.4, frontFacing: true,
+    techCost: 20, hurtbox: { w: 40, h: 28 }, scale: 1.4, frontFacing: true, nativeFacing: "front",
   },
 }
 
@@ -281,12 +281,32 @@ function moveToward(d, p) {
   // don't overshoot the target this frame
   if (Math.abs(dx) < Math.abs(d.vx)) { d.vx = dx }
   if (Math.abs(dy) < Math.abs(d.vy)) { d.vy = dy }
-  // mirror toward motion / owner (front-facing types never flip)
-  if (!p.frontFacing) {
-    if (Math.abs(d.vx) > 0.5) d.facing = d.vx < 0 ? -1 : 1
-    else if (d.owner) d.facing = d.owner.facing || d.facing
-  }
+  updateDroneFacing(d, p)
 }
+
+// DESIRED FACING — sim state (stored on d.facing for determinism). Data-driven:
+//   nativeFacing "front" → symmetric art, facing is irrelevant (drawDrones never flips).
+//   faceMode "target" → always face the target (a turret/gunship keeps facing it even while
+//     thrusting BACKWARD; the real turn-around happens when it crosses to the target's other side).
+//   faceMode "travel" (default) → face travel velocity.
+// Deadzone/hysteresis (|dx|>24, |vx|>1.2) stops flicker near overlap / at rest.
+function updateDroneFacing(d, p) {
+  const native = droneNative(p)
+  if (native === "front") { d.facing = d.facing || 1; return }
+  const mode = p.faceMode || "travel"
+  const tgt = (d.state === "hookSelf") ? null : (d.target || d._opp)
+  let desired = d.facing || 1
+  if (mode === "target" && tgt && !tgt.eliminated) {
+    const tdx = (tgt.x || 0) - d.x
+    if (Math.abs(tdx) > 24) desired = tdx < 0 ? -1 : 1
+  } else if (Math.abs(d.vx) > 1.2) {
+    desired = d.vx < 0 ? -1 : 1
+  } else if (d.owner) {
+    desired = d.owner.facing || desired
+  }
+  d.facing = desired
+}
+function droneNative(p) { return p.nativeFacing || (p.frontFacing ? "front" : "right") }
 
 function leashAndBound(d, env) {
   const o = d.owner
@@ -441,7 +461,8 @@ export function drawDrones(ctx, frame = 0, camera = null) {
       const sc = d.profile.scale || 1
       const dw = fw * sc, dh = fh * sc
       const fi = Math.min(frames - 1, d.frame)
-      const flip = !d.profile.frontFacing && d.facing === -1
+      const _native = droneNative(d.profile)
+      const flip = _native !== "front" && d.facing !== (_native === "left" ? -1 : 1)
       ctx.translate(rx, ry)
       if (flip) ctx.scale(-1, 1)
       ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
@@ -473,6 +494,12 @@ function drawDroneDebug(ctx, d) {
   ctx.fillStyle = hpf > 0.5 ? "#39d353" : hpf > 0.25 ? "#e3b341" : "#f85149"
   ctx.fillRect(r.x, r.y - 6, w * hpf, 3)
   ctx.fillStyle = "#fff"; ctx.font = "8px monospace"
-  ctx.fillText(`${d.type} ${Math.ceil(d.hp)}`, r.x, r.y - 8)
+  const nat = droneNative(d.profile)
+  ctx.fillText(`${d.type} ${Math.ceil(d.hp)} [${nat}]`, r.x, r.y - 8)
+  // facing arrow (sim facing) — cyan line + head in the facing direction
+  const cy = r.y + r.h / 2, cx = r.x + r.w / 2, dir = d.facing || 1
+  ctx.strokeStyle = "#5fe0ff"; ctx.fillStyle = "#5fe0ff"; ctx.lineWidth = 1.5
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dir * 14, cy); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(cx + dir * 14, cy); ctx.lineTo(cx + dir * 9, cy - 3); ctx.lineTo(cx + dir * 9, cy + 3); ctx.closePath(); ctx.fill()
   ctx.restore()
 }

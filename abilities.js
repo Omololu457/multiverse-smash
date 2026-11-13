@@ -36266,39 +36266,39 @@ registerDroneProfile("overwatch", {
   sprites: { idle: { sheet: "./ga_overwatch_idle_sheet.png", frames: 4 }, scan: { sheet: "./ga_overwatch_scan_sheet.png", frames: 8 }, walk: { sheet: "./ga_overwatch_walk_sheet.png", frames: 4 }, walkscan: { sheet: "./ga_overwatch_walkscan_sheet.png", frames: 8 }, death: { sheet: "./ga_overwatch_death_sheet.png", frames: 6 } },
   hp: 70, accel: 1.6, maxH: 11, maxV: 9, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 165, bobAmp: 4, leash: 360, behaviour: "recon", cooldownOnDeath: 300,
-  techCost: 20, hurtbox: { w: 54, h: 30 }, scale: 2.0, frontFacing: true,
+  techCost: 20, hurtbox: { w: 54, h: 30 }, scale: 2.0, frontFacing: true, nativeFacing: "front",
 })
 registerDroneProfile("bulwark", {
   sprites: { capsule: { sheet: "./ga_bulwark_capsule_sheet.png", frames: 6 }, drop: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 }, walk: { sheet: "./ga_bulwark_walk_sheet.png", frames: 4 }, walk2: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, idle: { sheet: "./ga_bulwark_walk2_sheet.png", frames: 4 }, death: { sheet: "./ga_bulwark_drop_sheet.png", frames: 6 } },
   hp: 130, accel: 0.9, maxH: 3.2, maxV: 8, drag: 0.8, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 0, bobAmp: 0, leash: 520, behaviour: "planted", cooldownOnDeath: 360,
-  techCost: 25, hurtbox: { w: 46, h: 30 }, scale: 2.0, frontFacing: false,
+  techCost: 25, hurtbox: { w: 46, h: 30 }, scale: 2.0, frontFacing: false, nativeFacing: "left", faceMode: "target",
   lifetime: 720, expireMode: "death",
 })
 registerDroneProfile("aegis", {
   sprites: { idle: { sheet: "./ga_aegis_idle_sheet.png", frames: 4 }, walk: { sheet: "./ga_aegis_walk_sheet.png", frames: 5 }, death: { sheet: "./ga_aegis_death_sheet.png", frames: 6 } },
   hp: 150, accel: 1.4, maxH: 8, maxV: 8, drag: 0.85, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 70, bobAmp: 2, leash: 220, behaviour: "guard", cooldownOnDeath: 300,
-  techCost: 20, hurtbox: { w: 52, h: 40 }, scale: 2.2, frontFacing: true,
+  techCost: 20, hurtbox: { w: 52, h: 40 }, scale: 2.2, frontFacing: true, nativeFacing: "front",
   absorbsProjectiles: true, lifetime: 600, expireMode: "retire",
 })
 registerDroneProfile("kestrel", {
   sprites: { idle: { sheet: "./ga_kestrel_idle_sheet.png", frames: 4 }, forward: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 }, back: { sheet: "./ga_kestrel_back_sheet.png", frames: 4 }, fire1: { sheet: "./ga_kestrel_fire1_sheet.png", frames: 11 }, fire2: { sheet: "./ga_kestrel_fire2_sheet.png", frames: 11 }, death: { sheet: "./ga_kestrel_death_sheet.png", frames: 9 }, walk: { sheet: "./ga_kestrel_forward_sheet.png", frames: 4 } },
   hp: 90, accel: 1.8, maxH: 13, maxV: 10, drag: 0.88, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 210, bobAmp: 3, leash: 760, behaviour: "strafe", cooldownOnDeath: 330,
-  techCost: 30, hurtbox: { w: 60, h: 24 }, scale: 2.2, frontFacing: false,
+  techCost: 30, hurtbox: { w: 60, h: 24 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "target",
 })
 registerDroneProfile("skyhook", {
   sprites: { idle: { sheet: "./ga_skyhook_idle_sheet.png", frames: 4 }, landing: { sheet: "./ga_skyhook_landing_sheet.png", frames: 8 }, walk: { sheet: "./ga_skyhook_walk_sheet.png", frames: 4 }, death: { sheet: "./ga_skyhook_death_sheet.png", frames: 6 } },
   hp: 110, accel: 1.5, maxH: 9, maxV: 10, drag: 0.86, reverseBrake: 0.7, overspeedDrag: 0.9,
   hoverHeight: 190, bobAmp: 3, leash: 420, behaviour: "hook", cooldownOnDeath: 330,
-  techCost: 25, hurtbox: { w: 70, h: 46 }, scale: 1.9, frontFacing: true,
+  techCost: 25, hurtbox: { w: 70, h: 46 }, scale: 1.9, frontFacing: true, nativeFacing: "front",
 })
 registerDroneProfile("payload", {
   sprites: { drop: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, idle: { sheet: "./ga_payload_drop_sheet.png", frames: 6 }, death: { sheet: "./ga_payload_drop_sheet.png", frames: 6 } },
   hp: 999, accel: 2.0, maxH: 14, maxV: 6, drag: 0.95, reverseBrake: 0.7, overspeedDrag: 0.95,
   hoverHeight: 300, bobAmp: 0, leash: 2000, behaviour: "bomber", cooldownOnDeath: 0,
-  techCost: 0, hurtbox: { w: 120, h: 40 }, scale: 2.2, frontFacing: false,
+  techCost: 0, hurtbox: { w: 120, h: 40 }, scale: 2.2, frontFacing: false, nativeFacing: "left", faceMode: "travel",
   lifetime: 150, expireMode: "retire",
 })
 
@@ -36609,7 +36609,7 @@ function _gaArrow(fighter, context, o) {
     knockbackX: (o.knockbackX != null ? o.knockbackX : face * 4), knockbackY: o.knockbackY ?? -1,
     hitstun: o.hitstun || 16, piercing: !!o.piercing, piercesMulti: !!o.piercing,
     spawnX: o.spawnX ?? (fighter.x + face * 42), spawnY: o.spawnY ?? (fighter.y + (fighter.h || 100) * 0.42),
-    sheet: o.sheet || "./green_arrow_plainarrow.png", spriteFrames: o.spriteFrames || 1,
+    sheet: o.sheet || "./green_arrow_plainarrow.png", spriteFrames: o.spriteFrames || 1, spriteScale: o.spriteScale || 1,
     isSpecial: true, impact: o.impact || null, dot: o.dot || null,
   }
   // TAGGED: arrows aim at the tagged target (approximates the homing lock-on).
@@ -36648,7 +36648,7 @@ function fireGAPlain(fighter, context, charge = 0) {
   const face = fighter.facing || 1
   const pierce = charge >= 1
   _gaArrow(fighter, context, { kind: "plain", type: "gaPlainArrow", damage: pierce ? 70 : 45,
-    speed: 20, piercing: pierce, w: 18 + charge * 2, h: 8, sheet: "./green_arrow_plainarrow.png" })
+    speed: 20, piercing: pierce, w: 18 + charge * 2, h: 8, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.6 })
   fighter._spriteCastMove = "draw"; fighter._spriteCastTimer = 16
   fighter.attackCooldown = getAttackDuration(10, fighter)
   if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
@@ -36657,7 +36657,7 @@ function fireGAPlain(fighter, context, charge = 0) {
 function fireGAAntiAir(fighter, context) {
   const face = fighter.facing || 1
   _gaArrow(fighter, context, { kind: "antiair", type: "gaAntiAirArrow", damage: 45, speed: 17,
-    vx: face * 12, vy: -16, w: 18, h: 8, lifetime: 90, sheet: "./green_arrow_plainarrow.png" })
+    vx: face * 12, vy: -16, w: 18, h: 8, lifetime: 90, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.6 })
   fighter._spriteCastMove = "antiair"; fighter._spriteCastTimer = 16
   fighter.attackCooldown = getAttackDuration(12, fighter)
   if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")
@@ -36718,7 +36718,7 @@ function fireGATrick(fighter, context) {
   const face = fighter.facing || 1
   for (const vy of [-5, 0, 5]) {    // 3-arrow fan
     _gaArrow(fighter, context, { kind: "trick", type: "gaTrickArrow", damage: 30, speed: 17,
-      vx: face * 15, vy, w: 18, h: 8, lifetime: 80, sheet: "./green_arrow_plainarrow.png" })
+      vx: face * 15, vy, w: 18, h: 8, lifetime: 80, sheet: "./green_arrow_plainarrow.png", spriteScale: 2.3 })
   }
   fighter._spriteCastMove = "airdraw"; fighter._spriteCastTimer = 14
   if (typeof sound !== "undefined") sound.play?.("ga_arrow_release")

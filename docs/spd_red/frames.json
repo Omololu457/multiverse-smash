@@ -1,0 +1,963 @@
+{
+ "sha256": "a7c60bd668a86e963e8073f1bca2ae0bfa3565eceda0489a61ab0b29c4535632",
+ "counts": [
+  2,
+  8,
+  1,
+  2,
+  1,
+  5,
+  4,
+  3,
+  2,
+  3,
+  2,
+  1,
+  6,
+  3,
+  1,
+  3,
+  2,
+  3
+ ],
+ "frames": {
+  "R1F1": {
+   "box": [
+    48,
+    8,
+    79,
+    63
+   ],
+   "desc": "idle A (standing, fists loose)",
+   "uses": [
+    "idle",
+    "idleGlint",
+    "intro"
+   ]
+  },
+  "R1F2": {
+   "box": [
+    88,
+    8,
+    119,
+    63
+   ],
+   "desc": "idle B",
+   "uses": [
+    "idle",
+    "idleGlint"
+   ]
+  },
+  "R2F1": {
+   "box": [
+    48,
+    72,
+    95,
+    127
+   ],
+   "desc": "run 1",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F2": {
+   "box": [
+    104,
+    72,
+    151,
+    127
+   ],
+   "desc": "run 2 (long stride)",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F3": {
+   "box": [
+    160,
+    72,
+    207,
+    127
+   ],
+   "desc": "run 3",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F4": {
+   "box": [
+    216,
+    72,
+    263,
+    127
+   ],
+   "desc": "run 4",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F5": {
+   "box": [
+    272,
+    72,
+    319,
+    127
+   ],
+   "desc": "run 5",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F6": {
+   "box": [
+    328,
+    72,
+    375,
+    127
+   ],
+   "desc": "run 6 (long stride)",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F7": {
+   "box": [
+    384,
+    72,
+    431,
+    127
+   ],
+   "desc": "run 7",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R2F8": {
+   "box": [
+    440,
+    72,
+    487,
+    127
+   ],
+   "desc": "run 8",
+   "uses": [
+    "walk",
+    "walk_back",
+    "run"
+   ]
+  },
+  "R3F1": {
+   "box": [
+    48,
+    136,
+    79,
+    191
+   ],
+   "desc": "crouch / landing",
+   "uses": [
+    "crouch",
+    "intro",
+    "sLow"
+   ]
+  },
+  "R4F1": {
+   "box": [
+    48,
+    200,
+    87,
+    263
+   ],
+   "desc": "punch 1 \u2014 lunging jab (rear leg extended)",
+   "uses": [
+    "throw",
+    "light",
+    "sStraight"
+   ]
+  },
+  "R4F2": {
+   "box": [
+    96,
+    200,
+    135,
+    263
+   ],
+   "desc": "punch 2 \u2014 compact straight",
+   "uses": [
+    "grab",
+    "throw",
+    "sStraight"
+   ]
+  },
+  "R5F1": {
+   "box": [
+    48,
+    272,
+    79,
+    319
+   ],
+   "desc": "hunched ready / guard stance",
+   "uses": [
+    "guard",
+    "guard_hit"
+   ]
+  },
+  "R6F1": {
+   "box": [
+    48,
+    328,
+    103,
+    375
+   ],
+   "desc": "struck \u2014 recoil leaning back",
+   "uses": [
+    "hurt",
+    "hurt_heavy",
+    "knockdown",
+    "lose"
+   ]
+  },
+  "R6F2": {
+   "box": [
+    112,
+    328,
+    167,
+    375
+   ],
+   "desc": "thrown \u2014 airborne, horizontal",
+   "uses": [
+    "hurt_air",
+    "knockdown",
+    "lose"
+   ]
+  },
+  "R6F3": {
+   "box": [
+    176,
+    328,
+    231,
+    375
+   ],
+   "desc": "lying flat, face down",
+   "uses": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  "R6F4": {
+   "box": [
+    240,
+    328,
+    295,
+    375
+   ],
+   "desc": "back-roll, legs up (getting up)",
+   "uses": [
+    "getup"
+   ]
+  },
+  "R6F5": {
+   "box": [
+    304,
+    328,
+    359,
+    375
+   ],
+   "desc": "rising stagger, arms flung",
+   "uses": [
+    "getup"
+   ]
+  },
+  "R7F1": {
+   "box": [
+    48,
+    384,
+    103,
+    439
+   ],
+   "desc": "wide forward ready stance",
+   "uses": [
+    "getup",
+    "sFlip",
+    "sCharge"
+   ]
+  },
+  "R7F2": {
+   "box": [
+    112,
+    384,
+    167,
+    439
+   ],
+   "desc": "back-handspring (arched, vertical)",
+   "uses": [
+    "air",
+    "sFlip"
+   ]
+  },
+  "R7F3": {
+   "box": [
+    176,
+    384,
+    231,
+    439
+   ],
+   "desc": "one-hand handstand kick (horizontal)",
+   "uses": [
+    "air",
+    "down_air",
+    "sFlip"
+   ]
+  },
+  "R7F4": {
+   "box": [
+    241,
+    384,
+    296,
+    439
+   ],
+   "desc": "low handspring landing / sweep",
+   "uses": [
+    "sFlip"
+   ]
+  },
+  "R8F1": {
+   "box": [
+    48,
+    448,
+    95,
+    503
+   ],
+   "desc": "standing chamber",
+   "uses": [
+    "sKick"
+   ]
+  },
+  "R8F2": {
+   "box": [
+    104,
+    448,
+    151,
+    503
+   ],
+   "desc": "prone slide sweep (low)",
+   "uses": [
+    "sLow"
+   ]
+  },
+  "R8F3": {
+   "box": [
+    160,
+    448,
+    207,
+    503
+   ],
+   "desc": "kneeling low crouch",
+   "uses": [
+    "sLow"
+   ]
+  },
+  "R9F1": {
+   "box": [
+    48,
+    512,
+    95,
+    575
+   ],
+   "desc": "fighting pose (same pose as R7F1, not pixel-identical)",
+   "uses": [
+    "taunt",
+    "win"
+   ]
+  },
+  "R9F2": {
+   "box": [
+    104,
+    512,
+    151,
+    575
+   ],
+   "desc": "victory pose \u2014 fist raised high",
+   "uses": [
+    "taunt",
+    "win",
+    "sUpper",
+    "sSuper",
+    "portrait body"
+   ]
+  },
+  "R10F1": {
+   "box": [
+    48,
+    584,
+    95,
+    639
+   ],
+   "desc": "kick chamber",
+   "uses": [
+    "heavy"
+   ]
+  },
+  "R10F2": {
+   "box": [
+    104,
+    584,
+    151,
+    639
+   ],
+   "desc": "HIGH kick (leg vertical)",
+   "uses": [
+    "heavy"
+   ]
+  },
+  "R10F3": {
+   "box": [
+    160,
+    584,
+    207,
+    639
+   ],
+   "desc": "kick recovery (pixel-identical to R10F1)",
+   "uses": [
+    "heavy"
+   ]
+  },
+  "R11F1": {
+   "box": [
+    48,
+    648,
+    111,
+    711
+   ],
+   "desc": "tuck jump (knees up)",
+   "uses": [
+    "jump",
+    "fall",
+    "sPhase"
+   ]
+  },
+  "R11F2": {
+   "box": [
+    120,
+    648,
+    183,
+    711
+   ],
+   "desc": "flying side kick",
+   "uses": [
+    "sPhase",
+    "sSuper"
+   ]
+  },
+  "R12F1": {
+   "box": [
+    48,
+    720,
+    95,
+    767
+   ],
+   "desc": "one-hand handstand kick (dash attack)",
+   "uses": [
+    "sCharge",
+    "sSuper"
+   ]
+  },
+  "R13F1": {
+   "box": [
+    48,
+    776,
+    111,
+    839
+   ],
+   "desc": "run-in stance",
+   "uses": [
+    "up",
+    "sUpper"
+   ]
+  },
+  "R13F2": {
+   "box": [
+    120,
+    776,
+    183,
+    839
+   ],
+   "desc": "leaping split kick",
+   "uses": [
+    "up",
+    "sUpper",
+    "sSuper"
+   ]
+  },
+  "R13F3": {
+   "box": [
+    192,
+    776,
+    255,
+    839
+   ],
+   "desc": "stride",
+   "uses": [
+    "up"
+   ]
+  },
+  "R13F4": {
+   "box": [
+    264,
+    776,
+    327,
+    839
+   ],
+   "desc": "stride landing",
+   "uses": [
+    "sWake"
+   ]
+  },
+  "R13F5": {
+   "box": [
+    336,
+    776,
+    399,
+    839
+   ],
+   "desc": "turned spin (back to camera)",
+   "uses": [
+    "sWake"
+   ]
+  },
+  "R13F6": {
+   "box": [
+    408,
+    776,
+    471,
+    839
+   ],
+   "desc": "standing side kick",
+   "uses": [
+    "sKick",
+    "sWake"
+   ]
+  },
+  "R14F1": {
+   "box": [
+    48,
+    848,
+    103,
+    903
+   ],
+   "desc": "blaster drawn, low",
+   "uses": [
+    "sBlaster",
+    "sJudge"
+   ]
+  },
+  "R14F2": {
+   "box": [
+    112,
+    848,
+    167,
+    903
+   ],
+   "desc": "blaster aimed (arm extended)",
+   "uses": [
+    "sBlaster",
+    "sRapid",
+    "sJudge"
+   ]
+  },
+  "R14F3": {
+   "box": [
+    176,
+    848,
+    231,
+    903
+   ],
+   "desc": "blaster fired (muzzle kick)",
+   "uses": [
+    "sBlaster",
+    "sRapid"
+   ]
+  },
+  "R15F1": {
+   "box": [
+    48,
+    912,
+    95,
+    975
+   ],
+   "desc": "hopping shot (one knee up, aiming)",
+   "uses": [
+    "sBlasterAir"
+   ]
+  },
+  "R16F1": {
+   "box": [
+    47,
+    984,
+    118,
+    1039
+   ],
+   "desc": "white beam from the hands \u2014 small",
+   "uses": [
+    "sDeltamax",
+    "sSuper"
+   ]
+  },
+  "R16F2": {
+   "box": [
+    127,
+    984,
+    198,
+    1039
+   ],
+   "desc": "white beam \u2014 full",
+   "uses": [
+    "sDeltamax",
+    "sSuper"
+   ]
+  },
+  "R16F3": {
+   "box": [
+    207,
+    984,
+    278,
+    1039
+   ],
+   "desc": "large weapon braced (Deltamax)",
+   "uses": [
+    "win2",
+    "sDeltamax",
+    "sSuper"
+   ]
+  },
+  "R17F1": {
+   "box": [
+    48,
+    1048,
+    87,
+    1103
+   ],
+   "desc": "RED SPEED STREAK \u2014 horizontal (body dissolving into streaks)",
+   "uses": [
+    "dash",
+    "intro",
+    "blinkStart",
+    "sSuper",
+    "sSuper",
+    "sSuper",
+    "FX blink vanish streak"
+   ]
+  },
+  "R17F2": {
+   "box": [
+    96,
+    1048,
+    143,
+    1111
+   ],
+   "desc": "RED SPEED STREAK \u2014 diagonal (re-forming)",
+   "uses": [
+    "intro",
+    "blinkEnd",
+    "FX blink travel streak"
+   ]
+  },
+  "R18F1": {
+   "box": [
+    48,
+    1128,
+    119,
+    1151
+   ],
+   "desc": "SPRITE: small bolt with a star-burst head",
+   "uses": [
+    "FX bolt (Delta Blaster)"
+   ]
+  },
+  "R18F2": {
+   "box": [
+    128,
+    1128,
+    199,
+    1151
+   ],
+   "desc": "SPRITE: white beam bolt with red trim",
+   "uses": [
+    "FX beam (Deltamax / Super beam, tiled)"
+   ]
+  },
+  "R18F3": {
+   "box": [
+    208,
+    1128,
+    279,
+    1151
+   ],
+   "desc": "SPRITE: thin red beam line",
+   "uses": [
+    "FX tracer (Rapid Fire)"
+   ]
+  }
+ },
+ "labels": {
+  "R2": {
+   "text": "\u2192",
+   "boxes": [
+    [
+     8,
+     88,
+     23,
+     103
+    ]
+   ]
+  },
+  "R3": {
+   "text": "\u2193",
+   "boxes": [
+    [
+     8,
+     152,
+     23,
+     167
+    ]
+   ]
+  },
+  "R4": {
+   "text": "A",
+   "boxes": [
+    [
+     8,
+     216,
+     23,
+     231
+    ]
+   ]
+  },
+  "R8": {
+   "text": "B",
+   "boxes": [
+    [
+     8,
+     464,
+     23,
+     479
+    ]
+   ]
+  },
+  "R11": {
+   "text": "A , B",
+   "boxes": [
+    [
+     1,
+     664,
+     15,
+     679
+    ],
+    [
+     24,
+     664,
+     39,
+     679
+    ],
+    [
+     17,
+     671,
+     20,
+     678
+    ]
+   ]
+  },
+  "R12": {
+   "text": "\u2192\u2192 + B",
+   "boxes": [
+    [
+     0,
+     740,
+     44,
+     755
+    ]
+   ]
+  },
+  "R13": {
+   "text": "\u2191 + B",
+   "boxes": [
+    [
+     1,
+     792,
+     39,
+     807
+    ]
+   ]
+  },
+  "R14": {
+   "text": "\u2193 + B",
+   "boxes": [
+    [
+     1,
+     864,
+     39,
+     879
+    ]
+   ]
+  },
+  "R15": {
+   "text": "\u2193 + B",
+   "boxes": [
+    [
+     1,
+     928,
+     39,
+     943
+    ]
+   ]
+  },
+  "R16": {
+   "text": "A + B",
+   "boxes": [
+    [
+     1,
+     1000,
+     39,
+     1015
+    ]
+   ]
+  },
+  "R17": {
+   "text": "\u2192 + \u2192",
+   "boxes": [
+    [
+     1,
+     1064,
+     39,
+     1079
+    ]
+   ]
+  }
+ },
+ "poster": [
+  620,
+  18,
+  721,
+  135
+ ],
+ "creditBand": [
+  620,
+  97,
+  721,
+  135
+ ],
+ "gem": [
+  656,
+  45,
+  685,
+  73
+ ],
+ "chroma": {
+  "keys": [
+   [
+    182,
+    52,
+    52
+   ],
+   [
+    255,
+    123,
+    123
+   ]
+  ],
+  "tolerance": 0,
+  "nearestKept": {
+   "dist": 19,
+   "rgb": [
+    173,
+    41,
+    33
+   ]
+  },
+  "idleRun": {
+   "R1F1": {
+    "suit_src": 485,
+    "suit_kept": 485,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 56
+   },
+   "R1F2": {
+    "suit_src": 478,
+    "suit_kept": 478,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 54
+   },
+   "R2F1": {
+    "suit_src": 432,
+    "suit_kept": 432,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 52
+   },
+   "R2F2": {
+    "suit_src": 438,
+    "suit_kept": 438,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 65
+   },
+   "R2F3": {
+    "suit_src": 426,
+    "suit_kept": 426,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 35
+   },
+   "R2F4": {
+    "suit_src": 431,
+    "suit_kept": 431,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 40
+   },
+   "R2F5": {
+    "suit_src": 464,
+    "suit_kept": 464,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 56
+   },
+   "R2F6": {
+    "suit_src": 465,
+    "suit_kept": 465,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 75
+   },
+   "R2F7": {
+    "suit_src": 396,
+    "suit_kept": 396,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 28
+   },
+   "R2F8": {
+    "suit_src": 412,
+    "suit_kept": 412,
+    "pct": 100.0,
+    "key_left": 0,
+    "shadow_removed": 35
+   }
+  }
+ }
+}

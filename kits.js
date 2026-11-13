@@ -150,7 +150,7 @@ export const KITS = {
     ]
   },
   sanji: {
-    type:'Rushdown / Kick Specialist', energy:'Heat', difficulty:'4',
+    type:'Rushdown / Chain Specialist', energy:'Heat', difficulty:'4',
     summary:'Black Leg Sanji never uses his hands — every attack is a kick. Heat builds from kicks landed (+4) and blocked (+2), +0.5/s, and +8 per Course step. Ignite DIABLE JAMBE for burning kicks, and route the six butcher\'s cuts in order to open a free super.',
     passive:{ name:'The Course', effect:'Six cuts: COLLIER → ÉPAULE → CÔTELETTE → SELLE → POITRINE → GIGOT. Landing them in order (inside a combo or across neutral) lights a pip each (+8 Heat). Out of order drops a step; 3s without landing resets. All six → 5s window where the super is FREE (↓↘→ + Special or Ultimate).' },
     basics:[

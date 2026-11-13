@@ -2,7 +2,7 @@
 // Reads/writes through the accessors game.js passes in; never imported by simulation code.
 import { spdRedState, isSpdRed } from './spdRedState.js'
 import { spdRedHudState } from './spdRedFx.js'
-import { getHurtbox } from './combat.js'
+import { getHurtbox, getAttackPhase } from './combat.js'
 import { ensureRangerState, startBlink, judgmentBegin, RANGER_PROFILES } from './rangers.js'
 
 export function spdRedHarnessApi(g) {
@@ -34,5 +34,6 @@ export function spdRedHarnessApi(g) {
     blink: (dir = 1, w = 'p1') => { const f = pick(w); ensureRangerState(f); return startBlink(f, dir) },
     judge: (w = 'p1') => { const f = pick(w), o = w === 'p2' ? g.p1() : g.p2(); return judgmentBegin(f, o) },
     profiles: () => Object.keys(RANGER_PROFILES),
+    atk: (w = 'p2') => { const f = pick(w), a = f?.currentAttack; return a ? { name: a.name, elapsed: a.total - a.timer, activeStart: a.activeStart, activeEnd: a.activeEnd, phase: getAttackPhase(f), buff: !!a._dodgeBuff } : null },
   }
 }

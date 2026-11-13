@@ -183,6 +183,7 @@ function resolveDest(f, opp, b, p, W) {
     y1 = Math.min(floor, Math.max(-360, b.y0 + b.vdir * Math.round(RANGER_SCREEN_H * B.verticalPct)))
   }
   b.x1 = Math.round(x1); b.y1 = Math.round(y1)
+  b.oppFacing = opp?.facing || 1   // PHASE STEP locks the foe to the way it faced BEFORE he passed through it
 }
 function stepBlink(f, opp, r, p, W) {
   const b = r.blink, B = p.blink, t = b.t
@@ -210,7 +211,7 @@ function stepBlink(f, opp, r, p, W) {
     if (t === tEnd - 1) {
       ev(r, 'arrive', { x: b.x1, crossed: b.crossed, dodge: b.dodge })
       if (b.air) { f.vx = flightSoftLimit(b.vx, B.airMomentumMax, { overspeedDrag: 0 }); f.vy = b.vy }   // keeps momentum
-      if (b.crossed && opp && B.faceLockOnCross > 0) { r.faceLock = B.faceLockOnCross; r.faceLockDir = opp.facing || 1 }   // PHASE STEP
+      if (b.crossed && opp && B.faceLockOnCross > 0) { r.faceLock = B.faceLockOnCross - 1; r.faceLockDir = b.oppFacing || opp.facing || 1; opp.facing = r.faceLockDir }   // arrival frame + (N − 1) more = exactly N frames (updateFacing runs before the next tick)   // PHASE STEP
       if (opp) f.facing = ctrX(opp) < ctrX(f) ? -1 : 1
     }
   } else {   // recovery

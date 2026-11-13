@@ -11,7 +11,12 @@ export const SPD_RED_PROFILE = registerRangerProfile('spd_red', {
   team: 'S.P.D. B-Squad',
   badge: { color: '#e0201c', accent: '#36d6e6', emblem: 'gem' },   // S.P.D. red + the WANTED-poster gem cyan
   morph: { alwaysMorphed: true },                                   // the sheet has no unmorphed Jack → born morphed
-  blink: { run: { speed: 8.4, walk: 5.6 } },
+  // BLINK (brief Phase 5): 22% of the screen, 11 f (3 startup / 5 invulnerable / 3 recovery), 2 charges each refilling
+  // over 90 f, crossups + air blinks allowed, no Delta cost. DODGE REWARD: travel overlapping a live foe hitbox /
+  // projectile → +5 Delta and the next attack within 20 f does +15% (white flash on the streak). PHASE STEP: a
+  // crossup costs no extra charge and leaves the foe facing the wrong way for 8 f.
+  blink: { distPct: 0.22, startup: 3, travel: 5, recovery: 3, charges: 2, recharge: 90, crossup: true, air: true, vertical: false,
+    faceLockOnCross: 8, dodge: { energy: 5, window: 20, dmgMul: 1.15 }, run: { speed: 8.4, walk: 5.6 } },
   // JUDGMENT (brief Phase 4): 1 point per hit, 20 to fill; verdict GUILTY at or below 30% HP; time freezes 30 f;
   // GUILTY = sealed in the gem card 3 s (cannot act, the card absorbs 50%), released at the far side of the screen;
   // INNOCENT = +40 Delta and the meter stays full 5 s for one re-attempt. Once per round. A Ranger foe is always innocent.

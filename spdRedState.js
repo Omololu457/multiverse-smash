@@ -2,7 +2,7 @@
 // and the shared Ranger framework state in `fighter._ranger` (rangers.js); both are plain JSON pushed into the replay
 // checkpoint snapshot, so they reproduce bit-identically. No Math.random / gameRng: sim randomness (Rapid Fire
 // spread) is rangerHash(match seed, frame, player index). Render jitter lives in spdRedFx.js.
-import { spdRed as SPD_RED_CHAR, SPD_RED_MOVES } from './spdRedData.js'
+import { spdRed as SPD_RED_CHAR, SPD_RED_MOVES, SPD_RED_PROFILE } from './spdRedData.js'
 import { tickRanger, clearRanger, rangerWalkMul, ensureRangerState, judgmentAddHit, rangerSealAbsorb, isSealed } from './rangers.js'
 import { meleeDamageType } from './damageTypes.js'
 export const isSpdRed = f => f?.rosterKey === 'spd_red'
@@ -85,6 +85,9 @@ export function tickSpdRed(f, opp, raw = {}, W = null) {
   s.clock++
   if (s.lockout > 0) s.lockout--
   for (let i = s.fx.length - 1; i >= 0; i--) if (--s.fx[i].t <= 0) s.fx.splice(i, 1)
+  // DODGE BUFF: the next attack started while the 20 f window is open is stamped +15% (consumes the window)
+  const a = f.attacking ? f.currentAttack : null
+  if (a && !a._srBuffChecked) { a._srBuffChecked = true; if (f._ranger?.dodgeBuff > 0) { a._dodgeBuff = true; f._ranger.dodgeBuff = 0; rcue(f, 'buff') } }
   const still = grounded(f) && !f.attacking && !f.isBlocking && !(f.hitstun > 0) && Math.abs(f.vx || 0) < 0.3 && !BUTTONS.some(k => raw[k]) && !f._ranger?.blink
   s.idleT = still ? s.idleT + 1 : 0
 }
@@ -92,7 +95,7 @@ function onRangerEvent(f, opp, s, e) {
   switch (e.type) {
     case 'blinkStart': rcue(f, 'blink'); break
     case 'arrive': rcue(f, 'blinkPop'); break
-    case 'dodge': gainDelta(f, SPD_DELTA.perDodge); rcue(f, 'dodge'); break
+    case 'dodge': gainDelta(f, e.energy || SPD_DELTA.perDodge); rcue(f, 'dodge'); break   // DODGE REWARD: +5 Delta (+15% next attack via r.dodgeBuff)
     case 'guilty': rcue(f, 'guilty'); rcue(f, 'contain'); break
     case 'innocent': if (e.energy) gainDelta(f, e.energy); rcue(f, 'innocent'); break   // INNOCENT: +40 Delta (once per round)
     case 'release': rcue(f, 'release'); break
@@ -162,5 +165,7 @@ export function spdRedDamageMods(target, rawDamage, opts = {}) {
   const a = opts.attacker
   // GUILTY containment: the gem card absorbs 50% of every hit on the sealed target (whoever lands it)
   if (a && a !== target && isSealed(target, a)) rawDamage = (rawDamage || 0) * rangerSealAbsorb(target, a)
+  // POST-DODGE BUFF: the attack stamped after a rewarded blink dodge does +15% (melee + anything it launched)
+  if (a && a !== target && isSpdRed(a) && opts.source !== 'block-chip' && (opts.dodgeBuff || (a.currentAttack?._dodgeBuff && opts.source !== 'ability'))) rawDamage = (rawDamage || 0) * (SPD_RED_PROFILE.blink.dodge?.dmgMul || 1.15)
   return rawDamage
 }

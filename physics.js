@@ -15,6 +15,7 @@ import { setupBen10, updateOmnitrix } from "./fighters.js"
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
 import { zoroPhasing, zoroNoJump } from './zoroState.js'   // Roronoa Zoro dash-through + Shishi Sonson ↗ (zoro-gated)
 import { sanjiPhasing, sanjiNoJump } from './sanjiState.js'   // Sanji: handstand / super pass-through + special jump lock (sanji-gated)
+import { rangerWalkMul } from './rangers.js'   // Ranger framework: run after a ground blink (1 for everyone else)
 import { arlongWalkMul, arlongDashMul } from './arlongState.js'   // Arlong: 4.4 px/f walk, ×1.25 in his water; foes slide 10% further back in it (arlong-gated, 1 for everyone else)
 import { buggyWalkMul } from './buggyState.js'   // Buggy the Clown: Festival walks at 60% (buggy-gated, 1 for everyone else)
 import { stepFlight, isFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): richer data-driven flyer, gated on fighter._flightCtl (no-op for everyone else, incl. the separate _flightActive Omni-Man/Superman system)
@@ -232,7 +233,7 @@ export const physics = {
         // AMBER identity: slightly higher ground movement speed (skin modifier; see GHOSTFACE_SKIN_MODS).
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
         // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
-        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0)
+        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0)
         const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : -walkSpeed

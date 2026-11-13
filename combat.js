@@ -7,6 +7,7 @@ import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown 
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
 import { sanjiHitbox, sanjiBlockstun, sanjiComboScale, sanjiHit, sanjiKnockback } from './sanjiState.js'   // Sanji hooks (sanji-gated no-ops for everyone else)
 import { sanjiProjectileHit } from './sanjiState.js'   // Sanji: Plate Kick hit bookkeeping (sanji-gated)
+import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 /**
@@ -184,6 +185,7 @@ export const GLOBAL_DAMAGE_SCALE = 0.60
 export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
   if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
+  rawDamage = spdRedDamageMods(target, rawDamage, opts)   // S.P.D. Red — containment card absorb / post-dodge buff (returns rawDamage untouched unless a Ranger is involved)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
@@ -3388,6 +3390,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
     if (!flawless) arlongBlockstun(attacker, defender, atk) // Arlong: per-move block stun; arlong-gated
+    if (!flawless) spdRedBlockstun(attacker, defender, atk) // S.P.D. Red: per-move block stun + Delta on a blocked hit; spd_red-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
@@ -3434,6 +3437,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     buggyHit(attacker, defender, atk)
     sanjiHit(attacker, defender, atk)
     arlongHit(attacker, defender, atk)
+    spdRedHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3500,6 +3504,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     buggyKnockback(attacker, defender, atk)
     sanjiKnockback(attacker, defender, atk)
     arlongKnockback(attacker, defender, atk)
+    spdRedKnockback(attacker, defender, atk)
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —

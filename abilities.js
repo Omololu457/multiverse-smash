@@ -2,6 +2,7 @@ import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
 import { luffyRegen } from './luffyState.js'
 import { zoroRegen } from './zoroState.js'
 import { sanjiRegen } from './sanjiState.js'   // Sanji: Heat passive (+0.5/s) replaces the shared regen
+import { spdRedRegen } from './spdRedState.js'   // S.P.D. Red: Delta passive (+1.5/s) replaces the shared regen
 import { arlongRegen } from './arlongState.js'   // Arlong: Tide passive (+1/s, +2/s more in his water) replaces the shared regen
 import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive (+1.5/s) replaces the shared regen
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
@@ -36154,6 +36155,7 @@ export function doEnergyCharge(fighter) {
   if (fighter?.rosterKey === 'buggy') return  // Chop only comes from hits, nullified slashes and the passive
   if (fighter?.rosterKey === 'sanji') return  // Heat only comes from his kicks (landed / blocked), the passive and the Course
   if (fighter?.rosterKey === 'arlong') return // Tide only comes from hits, the passive and his own water
+  if (fighter?.rosterKey === 'spd_red') return // Delta only comes from hits, blocked hits, the passive and blink dodges
 
   if (!fighter?.maxEnergy) return
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
@@ -36169,6 +36171,7 @@ export function regenEnergy(fighter) {
   if (zoroRegen(fighter)) return
   if (buggyRegen(fighter)) return
   if (arlongRegen(fighter)) return
+  if (spdRedRegen(fighter)) return
   if (sanjiRegen(fighter)) return
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
   if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down

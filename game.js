@@ -11,6 +11,10 @@ import { updateArlongCommandCombat } from './arlong.js'   // Arlong command laye
 import { tickArlong, isArlong, clearArlong, arlongRoundReset } from './arlongState.js'   // Arlong (arlong-gated)
 import { drawArlongFx, drawArlongUnder } from './arlongFx.js'   // Arlong render-only FX
 import { arlongHarnessApi } from './arlongHarness.js'   // Arlong test API (window.__harness.arlongTest)
+import { tickSpdRed, isSpdRed, clearSpdRed, spdRedRoundReset } from './spdRedState.js'   // S.P.D. Red Ranger (spd_red-gated)
+import { drawSpdRedFx, drawSpdRedUnder, spdRedBodyAlpha } from './spdRedFx.js'   // S.P.D. Red render-only FX (blink streak / dissolve, sparks)
+import { spdRedHarnessApi } from './spdRedHarness.js'   // S.P.D. Red test API (window.__harness.spdRedTest)
+import { rangerFacingFix } from './rangers.js'   // Ranger framework: PHASE STEP face lock (no-op unless a Ranger crossed up)
 import { updateBuggyCommandCombat } from './buggy.js'   // Buggy the Clown command layer (buggy-gated)
 import { drawZoroFx } from './zoroFx.js'   // Roronoa Zoro render-only FX
 import { zoroWorld } from './zoro.js'
@@ -19,6 +23,12 @@ import { drawBuggyFx } from './buggyFx.js'   // Buggy the Clown render-only FX
 import { buggyHarnessApi } from './buggyHarness.js'   // Buggy the Clown test API (window.__harness.buggyTest)
 import { zoroIntroStart, updateZoroIntro, finalizeZoroIntroPos } from './zoro.js'   // Roronoa Zoro intro walk-in (zoro-gated)
 const SANJI_WORLD = sanjiWorld({ projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) })   // Sanji world accessors
+// S.P.D. Red / Ranger framework world accessors (stage width, sim frame, match seed, the damage choke-point, the foe's LIVE
+// attack box (active frames only) and its projectiles as rects — read by rangers.js dodge detection; never mutated).
+const SPD_RED_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig.seed | 0) || 1,
+  damage: (t, n, o) => applyScaledDamage(t, n, o),
+  attackBox: o => (o && o.attacking && getAttackPhase(o) === 'active' && !(o.currentAttack && o.currentAttack.hasHit)) ? getAttackHitbox(o) : null,
+  projectiles: o => activeProjectiles.filter(p => p.owner === o).map(p => { const r = p.radius || (p.w || 20) / 2; return { x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 } }) }
 const ARLONG_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Arlong world accessors (sim reads stage width / frame / the damage choke-point)
 const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
@@ -1347,7 +1357,7 @@ function _rewindTeardown() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -4032,6 +4042,8 @@ function updateFFACombat(fighter, others, opts) {
   tickBuggy(fighter, nearest, readRawControls(fighter) || {}, BUGGY_WORLD)
   tickArlong(fighter, nearest, readRawControls(fighter) || {}, ARLONG_WORLD)
   tickSanji(fighter, nearest, readRawControls(fighter) || {}, SANJI_WORLD)
+  tickSpdRed(fighter, nearest, readRawControls(fighter) || {}, SPD_RED_WORLD)
+  if (fighter._spdRedCues) { for (const c of fighter._spdRedCues) sound.play('spdred_' + c); fighter._spdRedCues = null }   // S.P.D. Red SFX cues (FFA step)
   if (fighter._sanjiCues) { for (const c of fighter._sanjiCues) sound.play('sanji_' + c); fighter._sanjiCues = null }   // Sanji SFX cues (FFA step)
   if (fighter._arlongCues) { for (const c of fighter._arlongCues) sound.play('arlong_' + c); fighter._arlongCues = null }   // Arlong SFX cues (FFA step)
   if (fighter._buggyCues) { for (const c of fighter._buggyCues) sound.play('buggy_' + c); fighter._buggyCues = null }   // Buggy SFX cues (FFA step)
@@ -4947,7 +4959,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -5665,6 +5677,7 @@ function _replaySnap(f) {
   if (isZoro(f)) snap.push(JSON.stringify(f._zoro || null), JSON.stringify(f.currentAttack || null))
   if (isBuggy(f)) snap.push(JSON.stringify(f._buggy || null), JSON.stringify(f.currentAttack || null))
   if (isArlong(f)) snap.push(JSON.stringify(f._arlong || null), JSON.stringify(f.currentAttack || null))
+  if (isSpdRed(f) || f._ranger) snap.push(JSON.stringify(f._spdRed || null), JSON.stringify(f._ranger || null), JSON.stringify(f.currentAttack || null))   // S.P.D. Red + Ranger framework GAME_STATE
   if (isSanji(f)) snap.push(JSON.stringify(f._sanji || null), JSON.stringify(f.currentAttack || null))
   return snap
 }
@@ -5994,7 +6007,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -9853,7 +9866,7 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
-  clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2)
+  clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
   // in whatever form the match ended in). Re-arm the device so they start the
@@ -9885,7 +9898,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -10058,6 +10071,7 @@ function updateFacing() {
   if (!p1 || !p2) return
   if (p1.x < p2.x) { p1.facing =  1; p2.facing = -1 }
   else             { p1.facing = -1; p2.facing =  1 }
+  rangerFacingFix(p1, p2); rangerFacingFix(p2, p1)   // Ranger PHASE STEP: a crossed-up foe keeps facing the wrong way (no-op otherwise)
 }
 
 // P (charge) is HOLD-to-charge / TAP-to-toggle. On keydown we only remember when
@@ -11386,6 +11400,8 @@ function _updatePlayerCombatBody(fighter) {
   tickBuggy(fighter, getOpponent(fighter), readRawControls(fighter) || {}, BUGGY_WORLD)
   tickArlong(fighter, getOpponent(fighter), readRawControls(fighter) || {}, ARLONG_WORLD)
   tickSanji(fighter, getOpponent(fighter), readRawControls(fighter) || {}, SANJI_WORLD)
+  tickSpdRed(fighter, getOpponent(fighter), readRawControls(fighter) || {}, SPD_RED_WORLD)
+  if (fighter._spdRedCues) { for (const c of fighter._spdRedCues) sound.play('spdred_' + c); fighter._spdRedCues = null }   // S.P.D. Red SFX cues (1v1 step)
   if (fighter._sanjiCues) { for (const c of fighter._sanjiCues) sound.play('sanji_' + c); fighter._sanjiCues = null }   // Sanji SFX cues (1v1 step)
   if (fighter._arlongCues) { for (const c of fighter._arlongCues) sound.play('arlong_' + c); fighter._arlongCues = null }   // Arlong SFX cues (1v1 step)
   if (fighter._buggyCues) { for (const c of fighter._buggyCues) sound.play('buggy_' + c); fighter._buggyCues = null }   // Buggy SFX cues (1v1 step)
@@ -19801,6 +19817,7 @@ function resetTraining() {
     clearBuggy(f)
     clearArlong(f)
     clearSanji(f)
+    clearSpdRed(f)
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
     revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
@@ -21035,6 +21052,7 @@ function renderHybridFighter(fighter) {
     drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
     drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
     _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3): dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
+    drawSpdRedUnder(c, fighter, globalFrameCount)   // S.P.D. Red — blink streak afterimages + dissolve, BEHIND the body (render-only; spd_red only)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
     // JUICE (Phase 3) dash squash/stretch + wind-up lean + HIT FEEL (Phase A) visual knockback nudge —
     // wrap ONLY the body draw (not the trail/auras), scaled about the feet. Render-only transforms; the
@@ -21051,7 +21069,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter)   // × S.P.D. Red blink dissolve (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
@@ -21107,6 +21125,7 @@ function renderHybridFighter(fighter) {
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
     drawBuggyFx(c, fighter, globalFrameCount)   // Buggy the Clown — split flashes, orbiting pieces, cape sweep (render-only; buggy only)
     drawSanjiFx(c, fighter)                 // Sanji — flames, embers, afterimages, cigarette glow, callouts (render-only; sanji only)
+    drawSpdRedFx(c, fighter, globalFrameCount)  // S.P.D. Red — impact sparks, bolts, beams, containment card (render-only; spd_red only)
     drawArlongFx(c, fighter, globalFrameCount)  // Arlong — water shimmer / spray, thrown blade, torpedo, shockwaves, splash (render-only; arlong only)
     drawZoroFx(c, fighter)                  // Roronoa Zoro — Santoryu aura, afterimages, haki ring, slash FX (render-only; zoro only)
     drawZoldyckFx(c, fighter)               // Killua (Godspeed) — Rhythm Echo / Echo Strike afterimages + Thunderbolt Barrage lightning crackle + Snack Break "+VOLTS" pop (code-drawn; zoldyck only)
@@ -26763,6 +26782,7 @@ gameLoop()
     // ── FLOATING DAMAGE-NUMBER harness (render-only read window) ──
     dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
     sanjiTest: sanjiHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
+    spdRedTest: spdRedHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     arlongTest: arlongHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     buggyTest: buggyHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     zoroTest: zoroHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),

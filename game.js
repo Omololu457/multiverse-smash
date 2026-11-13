@@ -50,7 +50,7 @@ import {
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
 import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
-import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
+import { spawnMunition, updateMunitions, updateMunitionShootDown, tickMunitionChains, updateMunitionArrowInteract, drawMunitions, drawMunitionDebug, resetMunitions, activeMunitions, setMunitionDebug, explodeAt, registerMunitionProfile, MUNITION_PROFILES } from "./munitions.js"   // GREEN ARROW generic bomb/hazard module (leaf beside combat/flight → no cycle)
 import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
@@ -20587,6 +20587,7 @@ function updateBattle() {
     updateMunitions(globalFrameCount, _gaMEnv)
     updateMunitionShootDown([p1, p2].filter(Boolean), activeProjectiles, globalFrameCount, _gaMEnv)
     tickMunitionChains(globalFrameCount, _gaMEnv)
+    updateMunitionArrowInteract(activeProjectiles, _gaMEnv)
   }
 
   for (const fighter of [p1, p2].filter(Boolean)) {

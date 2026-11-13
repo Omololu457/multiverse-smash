@@ -36385,9 +36385,9 @@ registerBehaviour("planted", (d, { frame }) => {
     d.tx = (o.x || 0) + Math.sign((opp.x || 0) - (o.x || 0)) * GA_SCR_W * 0.14   // just in front of Oliver (never on him)
     d.facing = ((opp.x || 0) < d.x) ? -1 : 1
     d.data.fireT = (d.data.fireT || 0) + 1
-    if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20 && d.data.fireT >= 45) {
+    if (Math.abs((opp.x || 0) - (o.x || 0)) < GA_SCR_W * 0.20 && d.data.fireT >= 80) {
       d.data.fireT = 0; const dir = ((opp.x || 0) < d.x) ? -1 : 1
-      _gaDroneShot(o, d._ctx, { type: "gaBulwarkMissile", damage: 18, vx: dir * 11, spawnX: d.x, spawnY: d.y - 6, w: 20, h: 10, lifetime: Math.round(GA_SCR_W * 0.22 / 11), knockbackX: dir * 3, color: "#ff7a3c", sheet: "./ga_payload_bombs_sheet.png", spriteFrames: 2 })
+      spawnMunition(o, "dumb", { x: d.x, y: d.y - 10, vx: dir * 7, vy: -9, damage: 35, blastRadius: 72, target: opp })   // MORTAR: lobbed high arc, clears walls / an Aegis in the way
       if (typeof sound !== "undefined") sound.play?.("ga_bulwark_fire")
     }
   } else d.tx = d.x
@@ -36454,6 +36454,7 @@ registerBehaviour("strafe", (d, { frame }) => {
       d.data.firing--; const dir = opp ? ((opp.x || 0) < d.x ? -1 : 1) : (o.facing || 1)
       d.facing = dir
       _gaDroneShot(o, d._ctx, { type: "gaKestrelShot", damage: 8, vx: dir * 13, vy: 4, spawnX: d.x, spawnY: d.y, w: 14, h: 8, lifetime: 40, color: "#ffd166" })
+      if (opp && Math.abs((opp.x || 0) - d.x) < 90) spawnMunition(o, "dumb", { x: d.x, y: d.y + 10, vx: 0, vy: 5, damage: 10, blastRadius: 54, target: opp })   // BOMBING RUN: drop a bomb in its flight path
       if (typeof sound !== "undefined" && d.data.ftick % 8 === 0) sound.play?.("ga_kestrel")
     }
   }
@@ -36497,7 +36498,7 @@ registerBehaviour("hook", (d, { frame }) => {
       opp._gaHooked = true
       if (d.data.hookT <= 40) { opp.y = (d.y) + 20; opp.vy = 0; opp.vx = 0; opp.hitstun = Math.max(opp.hitstun || 0, 6) }
       else if (d.data.hookT <= 70) { const corner = (o.x || 0) - (o.facing || 1) * 400; opp.x += Math.sign(corner - opp.x) * 6; opp.y = d.y + 20; opp.hitstun = Math.max(opp.hitstun || 0, 6) }
-      else { opp._gaHooked = false; opp.vy = 10; applyScaledDamage(opp, 90, { source: "ability", attacker: o, move: "skyhookDrop" }); opp.isLaunched = true; opp.hitstun = Math.max(opp.hitstun || 0, 24); d._retiring = "expire" }
+      else { opp._gaHooked = false; opp.vy = 10; applyScaledDamage(opp, 90, { source: "ability", attacker: o, move: "skyhookDrop" }); opp.isLaunched = true; opp.hitstun = Math.max(opp.hitstun || 0, 24); spawnMunition(o, "dumb", { x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) - 120, vy: 5, damage: 60, blastRadius: 70, target: opp }); d._retiring = "expire" }   // AIRDROP a bomb on the dropped foe
     } else d._retiring = "expire"
     d.tx = d.x; d.ty = d.y
     return
@@ -36527,7 +36528,7 @@ registerBehaviour("bomber", (d, { frame }) => {
   d.data.dropT = (d.data.dropT || 0) + 1
   if (d.data.dropT % spacing === 0 && (d.data.bombs || 0) < maxB) {
     d.data.bombs = (d.data.bombs || 0) + 1
-    _gaDroneShot(o, d._ctx, { type: "gaPayloadBomb", damage: d.bombDmg || 35, vx: d.facing * 2, vy: 7, spawnX: d.x, spawnY: d.y + 20, w: 16, h: 16, radius: 20, lifetime: 80, knockbackY: -6, color: "#ff6a2a", sheet: "./ga_payload_bombs_sheet.png", spriteFrames: 6, impact: "explosion" })
+    spawnMunition(o, "dumb", { x: d.x, y: d.y + 20, vx: d.facing * 2, vy: 7, damage: d.bombDmg || 35, blastRadius: 72, target: d.target })   // Carpet Run drops real bombs
   }
 })
 
@@ -36544,6 +36545,7 @@ registerBehaviour("swarm", (d, { frame }) => {
     if (_gaHitsOpp(d, opp, 30) && d.data.scouts > 0 && d.data.rushTick % 9 === 0) {
       d.hp = Math.max(0, d.hp - 20)                            // a scout rams + explodes
       applyScaledDamage(opp, 20, { source: "ability", attacker: o, move: "swarmRam" })
+      spawnMunition(o, "dumb", { x: d.x, y: d.y, vy: 4, damage: 12, blastRadius: 40, scale: 0.4, target: opp })   // SWARM: each scout carries a micro-bomb
       opp.hitstun = Math.max(opp.hitstun || 0, 10)
       _gaExplosionFx(o, d.x + ((d.data.scouts % 2) ? 20 : -20), d.y, 0.5, d._ctx)
       if (d.hp <= 0) _gaDie(d)

@@ -98,6 +98,10 @@ export function updateMunitions(frame, env = {}) {
     if (m.detonated) { activeMunitions.splice(i, 1); continue }
     m.armT++
     const p = m.profile
+    // OVERWATCH TAG: a guided bomb with no (or a dead) target locks onto the owner's TAGGED foe.
+    if (p.homing && (!m.target || m.target.eliminated)) {
+      for (const f of (env.fighters || [])) { if (env.isEnemy?.(m.owner, f) && (f._gaTagged || 0) > 0) { m.target = f; break } }
+    }
     // GUIDED homing — cap the turn at turnRate deg/frame toward the target.
     if (p.homing && m.target && !m.target.eliminated && m.armT > p.armTime) {
       const tx = (m.target.x || 0) + (m.target.w || 60) / 2, ty = (m.target.y || 0) + (m.target.h || 100) * 0.4
@@ -282,6 +286,21 @@ function _reticle(ctx, x, y, col) {
     ctx.beginPath(); ctx.moveTo(x + sx * r, y + sy * r - sy * 6); ctx.lineTo(x + sx * r, y + sy * r); ctx.lineTo(x + sx * r - sx * 6, y + sy * r); ctx.stroke()
   }
   ctx.restore()
+}
+
+// INTERACTIONS: the owner's FIRE arrow detonates a bomb as NAPALM; the EMP arrow disables it (fizzle).
+export function updateMunitionArrowInteract(projectiles, env = {}) {
+  if (!activeMunitions.length || !Array.isArray(projectiles)) return
+  for (let i = activeMunitions.length - 1; i >= 0; i--) {
+    const m = activeMunitions[i]
+    if (m.detonated) continue
+    for (const pr of projectiles) {
+      if (!pr._gaArrow || pr.owner !== m.owner) continue
+      if (Math.abs((pr.x || 0) - m.x) > (pr.w || 16) + 16 || Math.abs((pr.y || 0) - m.y) > (pr.h || 12) + 16) continue
+      if (pr._gaArrow === "fire") { explodeAt(m.owner, m.x, m.y, { blastRadius: m.blastRadius, damage: m.damage, onImpact: "napalm", scale: m.scale }, env, 0, 1); m.detonated = true; activeMunitions.splice(i, 1); break }
+      if (pr._gaArrow === "emp") { m.detonated = true; activeMunitions.splice(i, 1); break }   // disabled, no explosion
+    }
+  }
 }
 
 export function getActiveMunitions() { return activeMunitions }

@@ -73,4 +73,5 @@ export async function run(X) {
   if (PHASE >= 5) { const m = await import('./sanji_render_scenarios_p5.mjs'); await m.run(X) }
   if (PHASE >= 6) { const m = await import('./sanji_render_scenarios_p6.mjs'); await m.run(X) }
   if (PHASE >= 7) { const m = await import('./sanji_render_scenarios_p7.mjs'); await m.run(X) }
+  if (PHASE >= 8) { const m = await import('./sanji_render_scenarios_p8.mjs'); await m.run(X) }
 }

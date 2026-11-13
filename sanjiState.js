@@ -241,7 +241,7 @@ function tickMove(f, opp, s, z, W) {
       const i = z.contacts.indexOf(t)
       if (i >= 0) { a.hasHit = false; z.contact = i }
       if (opp && z.anyHit && t < a.activeEnd) { opp.vx = 0; opp.hitstun = Math.max(opp.hitstun || 0, 10) }
-      if (t >= a.activeStart && t < a.activeEnd && (t - a.activeStart) % 5 === 0) scue(f, 'hachis')
+      if (t === a.activeStart) scue(f, 'hachis')   // one cue → the 8-per-second thud run (sanjiSound)
       break
     }
     case 'ptkc': tickPTKC(f, opp, s, z, a, t, clampX, W); break

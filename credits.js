@@ -18,6 +18,9 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  zoro: { work: 'Roronoa Zoro — One Piece (Game Boy Advance)', artists: ['Paddy (ripper)'],
+    source: 'Supplied sheet; visible credit: Ripped by Paddy / No credit needed (credit text excluded from the game, see docs/zoro/CREDITS.md). Original pixels retained.',
+    files: ['assets/zoro/*.png'] },
   luffy: { work: 'Monkey D. Luffy — One Piece (Game Boy Advance)', artists: ['Paddy (ripper)'],
     source: 'Supplied sheet; visible credit: Ripped by Paddy / No credit needed. Original pixels retained.',
     files: ['assets/sprites/luffy/*.png'] },

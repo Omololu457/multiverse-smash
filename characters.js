@@ -3,6 +3,7 @@
 // Merge of both character sources into one central roster.
 
 import { luffy } from './luffyData.js'
+import { zoro } from './zoroData.js'   // Roronoa Zoro (One Piece) — zoroData.js
 
 const DEFAULT_ANIM = {
   idle:     { frames: 6, width: 128, height: 128, speed: 8 },
@@ -11387,6 +11388,7 @@ export const characters = {
   shizuku,                           // NEW additive standalone (Shizuku Murasaki / "The Cleaner", Phantom Troupe #8) — Blinky vacuum absorber; built from the AmandioHype JUS sheet; all others untouched
   zoldyck,                           // NEW additive standalone (Killua (Godspeed), rosterKey `zoldyck`) — electric rushdown + Volts/Godspeed; AmandioHype "new outfit" sheet; base `killua` untouched
   soldier_boy: soldierBoy,           // NEW additive standalone (Soldier Boy / The Boys, rosterKey `soldier_boy`, MARVEL group) — grounded Bruiser/Gunner: Armed Mode loadout swap + SMG/rifle/boomerang-shield + Nuclear Burst ult; metalsonictypeone sheet; all others untouched
+  zoro,                              // Roronoa Zoro (One Piece) — Santoryu stance swordsman; zoroData.js / zoro*.js
   luffy
 }
 

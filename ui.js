@@ -1,4 +1,5 @@
 // ui.js
+import { drawZoroHud } from './zoroFx.js'   // Roronoa Zoro — Going Merry Spirit badge (render-only)
 // Shared UI rendering and menu layout helpers.
 // HUD LAYOUT: Health bars → TOP of screen | Energy bars → BOTTOM of screen
 
@@ -4708,6 +4709,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.restore()
     }
 
+    drawZoroHud(ctx, fighter, { x, enY, pbw, flip })
     if (!hasEnergy) return
 
     const maxEn  = Math.max(1, fighter.maxEnergy || 100)

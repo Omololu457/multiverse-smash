@@ -1,5 +1,7 @@
 import { updateLuffyCommandCombat } from './luffy.js'
 import { tickLuffy, luffyState, isLuffy, clearLuffy } from './luffyState.js'
+import { tickZoro, isZoro, clearZoro, zoroState } from './zoroState.js'   // Roronoa Zoro (zoro-gated)
+import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (window.__harness.zoroTest)
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -3974,6 +3976,7 @@ function updateFFACombat(fighter, others, opts) {
   const nearest = ffaNearest(fighter, others)
   if (!nearest) return
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
+  tickZoro(fighter, nearest, readRawControls(fighter) || {})
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
 
@@ -5580,6 +5583,7 @@ function _replaySnap(f) {
   const r = v => Math.round((v || 0) * 1e4) / 1e4
   const snap = f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0]
   if (isLuffy(f)) snap.push(JSON.stringify(f._luffy || null), JSON.stringify(f.currentAttack || null))
+  if (isZoro(f)) snap.push(JSON.stringify(f._zoro || null), JSON.stringify(f.currentAttack || null))
   return snap
 }
 
@@ -9607,7 +9611,7 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
-  clearLuffy(p1); clearLuffy(p2)
+  clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
   // in whatever form the match ended in). Re-arm the device so they start the
@@ -11133,6 +11137,7 @@ function updatePlayerCombat(fighter) {
 function _updatePlayerCombatBody(fighter) {
   if (!fighter) return
   tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})
+  tickZoro(fighter, getOpponent(fighter), readRawControls(fighter) || {})
   if (fighter._luffyCue) { sound.play('luffy_' + fighter._luffyCue); fighter._luffyCue = null }
   const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
 
@@ -19503,6 +19508,7 @@ function resetTraining() {
     f.hitstun = 0; f.blockstun = 0; f.stun = 0; f.hitstop = 0
     f.knockdownState = false; f.knockdownTimer = 0
     clearLuffy(f)
+    clearZoro(f)
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
     revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
@@ -26438,6 +26444,7 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     // ── FLOATING DAMAGE-NUMBER harness (render-only read window) ──
     dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
+    zoroTest: zoroHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     luffyTest: {
       state: (who = 'p1') => {
         const f = who === 'p2' ? p2 : p1

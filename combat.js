@@ -1,4 +1,5 @@
 import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
+import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -3392,6 +3393,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       !atk.launcher && !atk.spike && cat !== "ultimate"
 
     luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
+    zoroHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3453,6 +3455,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     } else {
       defender.vy = atk.launchY ?? -2
     }
+
+    zoroKnockback(attacker, defender, atk)
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —

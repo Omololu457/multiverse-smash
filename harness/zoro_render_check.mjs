@@ -19,6 +19,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], missing = []
 page.on('pageerror', e => errors.push(e.message))
 page.on('response', r => { if (r.status() === 404) missing.push(new URL(r.url()).pathname) })
+const sleep = ms => new Promise(r => setTimeout(r, ms))
 await page.addInitScript(() => { window.requestAnimationFrame = () => 0 })   // drive frames manually (deterministic)
 
 const P1 = PHASE >= 2 ? 'zoro' : 'luffy', P2 = 'luffy'
@@ -40,7 +41,7 @@ try {
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle() })
   await step(2)
   await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { timeout: 30000 })
-  await step(30)
+  for (let i = 0; i < 6; i++) { await step(5); await new Promise(r => setTimeout(r, 250)) }   // let sheets decode (real time)
   const a = await ls('p1'), b = await ls('p2')
   check(`P1 spawned as ${P1}`, a?.key === P1, a?.key)
   check(`P2 spawned as ${P2}`, b?.key === P2, b?.key)
@@ -102,6 +103,8 @@ try {
     const cs2 = await canvasStats()
     check('still not blank after the Super', cs2.play > 40, `uniq=${cs2.play}`)
   }
+  const other404 = [...new Set(missing.filter(m => !/zoro/i.test(m)))]
+  if (other404.length) console.log(`  ℹ non-Zoro 404s (not part of this build): ${other404.slice(0, 6).join(', ')}${other404.length > 6 ? ' …' : ''}`)
   check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))
   const zMissing = missing.filter(m => /zoro/i.test(m))
   check('no Zoro 404s', zMissing.length === 0, zMissing.join(', '))

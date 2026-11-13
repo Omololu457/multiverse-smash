@@ -169,6 +169,7 @@ export const STANDARD_STRING = {
 // specials, no chain by design) and all-special zoners (brainiac). Membership here just records
 // "currently has no combo string" — it is NOT a runtime change (they already behave this way).
 export const ZONER = [
+  "zoro",   // Roronoa Zoro, phase 2 (engine-default normals; his L→L→H command chain lands in phase 4)
   "jesus",   // additive JUS char: projectile-forward kit (lion/fire/lightning/bread/ultimate), no L,L,H auto-combo
   "jiraiya", // Sannin Toad Sage: summon/ninjutsu zoner (rasengan/fire/barrier/hair/Gamabunta + Sage Mode), no command-combat driver → single-poke (same bucket as jesus)
   "rickPrime", "evilMorty", "beerus", "piccolo", "frieza",   // original ranged zoners
@@ -300,6 +301,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
-  zoner:                34,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          119,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
+  zoner:                35,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
+  rosterTotal:          120,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
 }

@@ -165,7 +165,7 @@ function drawSuperCallout(c, f, s) {
   const [n, at] = s.superFx, age = s.clock - at
   if (age > 30 || n < 1) return
   const txt = SUPER_CUTS[n - 1], x = f.x + (f.w || 48) / 2, y = f.y - 34 - age * 0.6
-  c.save(); c.globalAlpha = age < 4 ? age / 4 : Math.max(0, 1 - (age - 18) / 12)
+  c.save(); c.globalAlpha = age < 4 ? (age + 1) / 4 : Math.max(0, 1 - (age - 18) / 12)   // visible on the contact frame (hit-stop freezes the clock)
   c.font = `bold ${n === 7 ? 30 : 20}px Arial`; c.textAlign = 'center'; c.textBaseline = 'bottom'
   c.lineWidth = 5; c.strokeStyle = '#1b1208'; c.strokeText(txt, x, y)
   c.fillStyle = n === 7 ? '#ffd35a' : s.dj > 0 ? '#ffb070' : '#bfe0ff'; c.fillText(txt, x, y)
@@ -174,7 +174,7 @@ function drawSuperCallout(c, f, s) {
 
 // Course callout: the cut's name pops above the opponent ("COLLIER!" … "GIGOT!"), red "−1" on a dropped step.
 function drawCourseCallout(c, s) {
-  const [k, at, x, y] = s.courseFx, age = s.clock - at, a = age < 6 ? age / 6 : Math.max(0, 1 - (age - 24) / 16)
+  const [k, at, x, y] = s.courseFx, age = s.clock - at, a = age < 6 ? (age + 1) / 6 : Math.max(0, 1 - (age - 24) / 16)   // visible from the contact frame (the clock is frozen through hit-stop)
   const txt = k > 0 ? `${k}. ${COURSE[k - 1]}!` : 'COURSE −1', rise = age * 0.8
   c.save(); c.globalAlpha = a; c.font = `bold ${k === 6 ? 22 : 17}px Arial`; c.textAlign = 'center'; c.textBaseline = 'bottom'
   c.lineWidth = 4; c.strokeStyle = '#1b1208'; c.strokeText(txt, x, y - 14 - rise)

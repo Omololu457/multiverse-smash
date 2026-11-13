@@ -7,7 +7,8 @@ with real keyboard input (P1 Sanji facing right vs an idle Zoro dummy), records 
 * **85% per-hit scaling**: hit *k* (0-based) deals `raw × 0.85^k × 0.6` (`0.6` = the engine's global damage scale).
   The combo counter is the shared one and resets after 1.5 s (90 frames) without a hit.
 
-Nothing in Sanji's kit branches on game mode, so the routes are the same in Training.
+The harness match **is Training mode** (`matchConfig.mode = "training"`, dummy CPU): the default for every
+`?harness=1` match. Nothing in Sanji's kit branches on game mode, so the routes are identical in a versus match.
 
 **Notation**: L = Light (J), H = Heavy (K), S = Special (L key), U = Ultimate. Directions are for Sanji facing
 right (→ = toward the foe). `↓↘→` is a quarter-circle forward, `→·→` is forward, neutral, forward, and

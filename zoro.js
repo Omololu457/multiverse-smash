@@ -36,10 +36,10 @@ function fresh(s, k, win = BUFFER) {
 }
 const use = (s, ...ks) => { for (const k of ks) if (s.edgeAt[k] != null) s.used[k] = s.edgeAt[k] }
 
-function santoryuPressed(s) {
+function santoryuPressed(s, early) {   // early: the Special edge only started a ≤3-frame move that A+B may cancel
   const a = s.edgeAt.special, b = s.edgeAt.heavy
   if (a == null || b == null || !s.prev.special || !s.prev.heavy) return false
-  return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && s.used.special !== a
+  return Math.abs(a - b) <= LENIENCY && Math.max(a, b) >= s.tick - 1 && (early || s.used.special !== a)
 }
 
 const cost = key => ZORO_MOVES[key]?.cost || 0
@@ -95,8 +95,8 @@ export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
   const a = f.attacking ? f.currentAttack : null
 
   // ── A+B → SANTORYU (a staggered press may cancel the first ≤3 frames of the Heavy / Special it started) ──
-  if (grounded && santoryuPressed(s) && !s.santoryu && s.santoryuCd <= 0 && (f.energy || 0) >= SANTORYU.cost) {
-    const early = a && !a.hasHit && a.total - a.timer <= LENIENCY && (a.name === 'heavy' || a.name === 'zWake' || ZORO_MOVES[a.name]?.isSpecial)
+  const early = !!(a && (!a.hasHit || a.zr?.noHit) && a.total - a.timer <= LENIENCY && (a.name === 'heavy' || a.name === 'zWake' || ZORO_MOVES[a.name]?.isSpecial))
+  if (grounded && santoryuPressed(s, early) && !s.santoryu && s.santoryuCd <= 0 && (f.energy || 0) + (early ? cost(a.name) : 0) >= SANTORYU.cost) {
     if (early) f.energy += cost(a.name)   // refund the cancelled special
     if ((!a || early) && W_START(f, 'zSanto') && enterSantoryu(f)) { use(s, 'special', 'heavy'); return 'consumed' }
   }

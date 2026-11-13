@@ -49,7 +49,8 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import { flightToggleInput, flightTakeoff, tickFlightDriver, resetFlight, isFlying as isFlightModuleFlying, getFlightProfile } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): charge-edge toggle + takeoff (Superman Flight Escape) + per-frame driver + round reset + profile (HUD gauge max)
-import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { updateDrones, updateDroneCollisions, drawDrones, drawGreenArrowFx, resetDrones, activeDrones, toggleDroneDebug, setDroneDebug } from "./drones.js"   // GREEN ARROW deployable-drone module (generic; reset/tick/collide/draw + training drone-debug toggle)
+import { forceGround as _gaForceGround2 } from "./flight.js"   // GREEN ARROW P5 render-check hook (flight.js is a leaf → no cycle)
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
@@ -28199,6 +28200,10 @@ gameLoop()
     // Madara Gunbai-reflect test). Mirrors p2ProjectileAtClone's enemy-projectile pattern.
     spawnEnemyBolt:    (opts = {}) => { if (!p1 || !p2) return null; const p = spawnProjectile(p2, "testBolt", { damage: opts.damage ?? 40, speed: 10, lifetime: 90, vx: -10, vy: 0, w: 28, h: 28, hitstun: 12, knockbackX: 5, spawnX: p1.x + (p1.w || 60) + 60, spawnY: p1.y + (p1.h || 100) * 0.4 }, {}); return p ? { name: p.name, vx: p.vx } : null },
     clearSummons:      () => { activeSummons.length = 0 },
+    gaSpawn2: (type = "overwatch", strike = false) => { if (!p1) return -1; const n = performance.now(); p1._gaStrikeMod = !!strike; p1._gaLastSpecialFrame = null; p1._gaSuperActive = true; p1.energy = 100; p1.attacking = false; p1.attackCooldown = 0; p1.hitstun = 0; if (type === "swarm") { p1.directionHistory = [{ dir: "D", time: n - 30 }, { dir: "D", time: n - 10 }]; p1._specialHeldDir = "D" } else if (type === "payload") { p1.directionHistory = [{ dir: "U", time: n - 30 }, { dir: "U", time: n - 10 }]; p1._specialHeldDir = "U" } else { p1.directionHistory = []; p1._specialHeldDir = ({ skyhook: "U", kestrel: "F", aegis: "B", bulwark: "D" }[type]) || null } const ok = triggerSpecial(p1, getAbilityContext()); const d = activeDrones[activeDrones.length - 1]; if (d) { d._ctx = getAbilityContext(); d.target = p2; d._opp = p2 } return ok ? activeDrones.length : -1 },   // non-clearing drone spawn (mode/swarm/payload) for render checks
+    gaDrones2: () => activeDrones.map(d => ({ type: d.type, mode: d.mode, facing: d.facing, x: Math.round(d.x), y: Math.round(d.y), hp: Math.round(d.hp), dying: !!d.dying })),
+    gaDebug: (on = true) => setDroneDebug(on),
+    gaTestNet: (who = "p2") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._gaNetted = 60; let g = false; try { g = _gaForceGround2(f, 72) } catch (_) {} return { netted: f._gaNetted, grounded: g, forceTimer: f._forceGroundTimer || 0 } },
     // GREEN ARROW drone/super harness hooks (render-check + determinism driving).
     gaSpawnDrone: (type = "overwatch") => { if (!p1) return -1; activeDrones.length = 0; if (p1._gaDroneCd) p1._gaDroneCd = {}; p1._gaLastSpecialFrame = null; p1.attacking = false; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; p1._gaArrowstormActive = null; p1._gaTechLock = 0; p1._gaSuperActive = false; p1.currentMove = null; p1._specialHeldDir = ({ skyhook: "U", kestrel: "F", aegis: "B", bulwark: "D" }[type]) || null; p1.energy = 100; const ok = triggerSpecial(p1, getAbilityContext()); return ok ? activeDrones.length : -1 },
     gaDrones: () => activeDrones.map(d => ({ type: d.type, x: Math.round(d.x), y: Math.round(d.y), hp: Math.round(d.hp), dying: !!d.dying })),

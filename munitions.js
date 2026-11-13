@@ -313,8 +313,14 @@ export function drawMunitionDebug(ctx) {
   if (!ctx || !_munDebug) return
   ctx.save()
   for (const m of activeMunitions) {
-    ctx.strokeStyle = "#ff3b6b"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(m.x, m.y, m.blastRadius, 0, Math.PI * 2); ctx.stroke()
+    ctx.strokeStyle = "#ff3b6b"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(m.x, m.y, m.blastRadius, 0, Math.PI * 2); ctx.stroke()   // blast radius
     ctx.fillStyle = "#fff"; ctx.font = "8px monospace"; ctx.fillText(`${m.type} hp${m.hp}${m._chainQueued ? " chain" + m._chainDepth : ""}`, m.x - 20, m.y - m.blastRadius - 4)
+    // reticle target: a line from a guided bomb to the fighter it is homing on
+    if (m.profile.homing && m.target && !m.target.eliminated) {
+      const tx = (m.target.x || 0) + (m.target.w || 60) / 2, ty = (m.target.y || 0) + (m.target.h || 100) * 0.4
+      ctx.strokeStyle = "#5fe0ff"; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([])
+    }
   }
+  for (const fp of activeFirePatches) { ctx.strokeStyle = "#ff7a2a"; ctx.strokeRect(fp.x - 44, fp.y - 20, 88, 20) }   // napalm hazard box
   ctx.restore()
 }

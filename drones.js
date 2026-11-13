@@ -601,7 +601,14 @@ function drawDroneDebug(ctx, d) {
   ctx.fillRect(r.x, r.y - 6, w * hpf, 3)
   ctx.fillStyle = "#fff"; ctx.font = "8px monospace"
   const nat = droneNative(d.profile)
-  ctx.fillText(`${d.type} ${Math.ceil(d.hp)} [${nat}]`, r.x, r.y - 8)
+  const ord = (d.owner && d.owner._gaOrder) || "focus"
+  ctx.fillText(`${d.type} ${Math.ceil(d.hp)} [${nat}] ${ord.toUpperCase()}${d._gaHold ? "*" : ""}`, r.x, r.y - 8)
+  // target line (training: which fighter this drone is locked on)
+  if (d.target && !d.target.eliminated) {
+    const tx = (d.target.x || 0) + (d.target.w || 60) / 2, ty = (d.target.y || 0) + (d.target.h || 100) * 0.4
+    ctx.strokeStyle = "#e3b341"; ctx.lineWidth = 1; ctx.setLineDash([3, 3])
+    ctx.beginPath(); ctx.moveTo(r.x + r.w / 2, r.y + r.h / 2); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([])
+  }
   // facing arrow (sim facing) — cyan line + head in the facing direction
   const cy = r.y + r.h / 2, cx = r.x + r.w / 2, dir = d.facing || 1
   ctx.strokeStyle = "#5fe0ff"; ctx.fillStyle = "#5fe0ff"; ctx.lineWidth = 1.5

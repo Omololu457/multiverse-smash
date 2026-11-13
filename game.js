@@ -19557,7 +19557,7 @@ function updateTrainingMode() {
   // indistinguishable from the real fighter until hit. The hit-reveal rule still applies in both modes.
   if (_trainingKeyPressed("f6")) { trainingState.cloneNoTell = !trainingState.cloneNoTell; setCloneTell(!trainingState.cloneNoTell) }
   // F8 — GREEN ARROW drone debug (training): toggle drone hurtboxes + HP bars (no-op when no drones).
-  if (_trainingKeyPressed("f8")) toggleDroneDebug()
+  if (_trainingKeyPressed("f8")) { const _gaDbg = toggleDroneDebug(); setMunitionDebug(_gaDbg) }   // GREEN ARROW: F8 = drone + munition training overlays
   // F7 — WOOD RELEASE climbable-terrain PROBE (Stage 1, isolated): spawn a test platform a short reach
   // in front of P1, rising from the fighter's own ground. NOT wired to any character's kit — a debug hook
   // to prove jump-onto-growing / stand-at-full / recede-sync before Hashirama's Wood Release consumes it.

@@ -409,6 +409,7 @@ function updateNarutoToadPose(s) {
 // SPAWN
 // ─────────────────────────────────────────────────────────────────
 export function spawnSummon(owner, summonData, target) {
+  if (owner && (owner._gaDisabled || 0) > 0) return null   // GREEN ARROW EMP: summons disabled (no-op unless EMP'd)
   if (!owner || !summonData) return null
 
   const templateKey =

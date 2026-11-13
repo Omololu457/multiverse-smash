@@ -3885,6 +3885,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   // SUPERMAN — FREEZE BREATH lock: while _supFrozen, keep the fighter action-locked (top up hitstun) and
   // count the status down. Only Superman's Freeze Breath ever sets _supFrozen (no-op for everyone else).
   if ((fighter._supFrozen || 0) > 0) { fighter._supFrozen--; if (fighter.hitstun < fighter._supFrozen) fighter.hitstun = fighter._supFrozen; fighter.vx = 0 }
+  if ((fighter._gaDisabled || 0) > 0) fighter._gaDisabled--   // GREEN ARROW EMP: summon/drone lockout countdown (only GA's EMP sets it)
   if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
   if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
@@ -4308,6 +4309,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // ITACHI CROW CLONE (one-shot): a projectile carrying `onHitBlind` stamps the `obscured` blind debuff on a
       // cleanly-hit target — crows scatter into their eyes. game.js drawCrowBlindOverlay makes it visible.
       if (!fighter.isBlocking && proj.onHitBlind && (fighter.health || 0) > 0) { fighter.obscured = true; fighter.obscuredTimer = Math.max(fighter.obscuredTimer || 0, 90) }
+      // GREEN ARROW trick-arrow on-hit status (gated on proj._gaArrow kind; only GA arrows set it).
+      if (!fighter.isBlocking && proj._gaArrow === "ice" && (fighter.health || 0) > 0) { fighter._supFrozen = 42; fighter._supFrozenMax = 42; fighter.hitstun = Math.max(fighter.hitstun || 0, 42); fighter.vx = 0; if (proj.owner) proj.owner._gaIceHookHit = fighter }
+      if (!fighter.isBlocking && proj._gaArrow === "emp" && (fighter.health || 0) > 0) { fighter._gaDisabled = 180; if (proj.owner) proj.owner._gaEmpHit = fighter }
 
       if (fighter.health <= 0) {
         try { sound?.play?.(SFX?.KO) } catch (_) {}

@@ -114,6 +114,7 @@ export function spawnDrone(owner, type, opts = {}) {
   if (!owner || !profile) return null
   ensureDroneOwnerState(owner)
   if (droneTypeOnCooldown(owner, type)) return null
+  if ((owner._gaDisabled || 0) > 0) return null       // EMP lockout — no new drones while disabled
   if (activeDrones.length >= MAX_RENDER) return null
   const cap = owner._gaSuperActive ? 3 : MAX_ACTIVE_DEFAULT
 

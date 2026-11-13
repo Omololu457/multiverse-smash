@@ -117,6 +117,7 @@ import {
   updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
   updatePiccoloCommandCombat, // Piccolo rush chain (Fwd+Heavy 3-stage rekka: elbow/chop opener → axe smash → roundhouse launcher, cancel-on-hit)
   updateGokuCommandCombat,    // Goku "Meteor Combination" rush chain (Fwd+Heavy 3-stage rekka: lunge-punch → flurry hook → roundhouse crescent launcher, cancel-on-hit)
+  updateGreenArrowCommandCombat,   // GREEN ARROW: trick-arrow motions (qcf/qcb/dd + L/H/Up) on the attack buttons + →+Heavy bow slash
   updateVegetaDarkCommandCombat,   // Dark Vegeta "Villain's Rush" chain (Fwd+Heavy 3-stage rekka: lunge-thrust → flurry → uppercut launcher, cancel-on-hit)
   updateGohanCommandCombat,   // Teen Gohan "Rush Combo" chain (Fwd+Heavy 3-stage rekka: advancing punch → crescent sweep kick → spin-roundhouse launcher, cancel-on-hit)
   updateKakashiCommandCombat, // Kakashi "Y-Combo" chain (Fwd+Heavy 3-stage rekka: kunai draw-slash → punch flurry → orange kick launcher, cancel-on-hit)
@@ -11660,6 +11661,11 @@ function _updatePlayerCombatBody(fighter) {
   // Red-Chakra +dmg/+hitbox. Consumes the input only when it fires; neutral heavy stays the normal Strong.
   if ((fighter.rosterKey || "").toLowerCase() === "naruto_seventh" && !charging &&
       updateNarutoSeventhCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GREEN ARROW: trick-arrow MOTIONS on the attack buttons (qcf/qcb/dd + L/H/Up) fire arrows; a bare
+  // L/H/Up stays the normal (jab/straight/kick). →+Heavy = bow slash. Consumes only when an arrow fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" && !charging &&
+      updateGreenArrowCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // DARK VEGETA "Villain's Rush": Fwd+Heavy opens vegetaDarkRush1 (lunge-thrust), re-tap Heavy during recovery
   // to cancel into vegetaDarkRush2 (flurry) → vegetaDarkRush3 (rising uppercut launcher) — cancel-on-hit;

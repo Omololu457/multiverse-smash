@@ -76,6 +76,7 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation, cycleSasukeSenseiEyeSet, SS_EYE_LABEL,
   triggerShisuiSignal, triggerShisuiVariantSwap, shisuiIntroBanter, shisuiWinBanter,   // Shisui (Trinity) — the Trinity System (Mangekyou Signal / Variant Swap / banter)
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
+  executeGreenArrowExtraction, greenArrowSomersault,   // GREEN ARROW: Emergency Extraction reversal + somersault evasion
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
   tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
   isIdentitySwapped,
@@ -11165,6 +11166,16 @@ function _updatePlayerCombatBody(fighter) {
     updateCombat(fighter, getOpponent(fighter), {}, opts); return
   }
 
+  // GREEN ARROW — Emergency Extraction reversal: ↑+Special while knocked down (>=25 Tech, 12s cd)
+  // → Skyhook yanks Oliver out with 20 invuln. Read AHEAD of the stun early-return (like Tobirama).
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" &&
+      ((fighter.hitstun || 0) > 0 || fighter.knockdownState || (fighter.knockdownTimer || 0) > 0) &&
+      getFighterInput(fighter).special &&
+      (getFighterInput(fighter).up || betaHeldDirFromInput(getFighterInput(fighter), fighter.facing) === "U") &&
+      executeGreenArrowExtraction(fighter, getAbilityContext())) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
+  }
+
   // COMBO BREAKER (MK-feel Stage 2d; universal break-stock resource): while in HITSTUN and being combo'd
   // (attacker comboCounter >= 3), BLOCK + SPECIAL breaks out (spends one per-round BREAK STOCK, i-frames,
   // blasts the attacker away). Read AHEAD of the stun early-return below (like Tobirama's reversal) so it's a
@@ -11666,6 +11677,9 @@ function _updatePlayerCombatBody(fighter) {
   // L/H/Up stays the normal (jab/straight/kick). →+Heavy = bow slash. Consumes only when an arrow fires.
   if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" && !charging &&
       updateGreenArrowCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+  // GREEN ARROW — somersault evasion: double-tap Back → 10-invuln back-flip (consumes the double-tap).
+  if ((fighter.rosterKey || "").toLowerCase() === "green_arrow" && !charging &&
+      greenArrowSomersault(fighter, getAbilityContext())) return
 
   // DARK VEGETA "Villain's Rush": Fwd+Heavy opens vegetaDarkRush1 (lunge-thrust), re-tap Heavy during recovery
   // to cancel into vegetaDarkRush2 (flurry) → vegetaDarkRush3 (rising uppercut launcher) — cancel-on-hit;

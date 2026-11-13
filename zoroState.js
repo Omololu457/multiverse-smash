@@ -6,7 +6,7 @@ import { ZORO_SANTO_ANIM, ZORO_MOVES } from './zoroData.js'
 import { ZORO_FX } from './zoroSprites.js'
 export const isZoro = f => f?.rosterKey === 'zoro'
 
-export const ZORO_SPIRIT = { perHitDealt: 5, perHitTaken: 3, passivePerSec: 1, perTornadoTick: 1 }
+export const ZORO_SPIRIT = { perHitDealt: 5, perHitTaken: 3, passivePerSec: 1, perTornadoTick: 5 }   // a tornado tick is a sword-technique hit (+5)
 // SANTORYU (three-sword stance) — a timed form on the shared currentForm/currentFormData pattern
 // (abilities.updateTransformationState applies the multipliers every frame; updateZoroSantoryu ticks it).
 export const SANTORYU = { cost: 15, duration: 600, cooldown: 240, dmg: 1.12, kb: 1.08 }
@@ -116,7 +116,7 @@ function tickMove(f, opp, s, z, W) {
   const clampX = x => Math.max(0, Math.min(sw - (f.w || 48), x))
   switch (z.kind) {
     case 'taka':
-      if (t === z.spawnAt && W) spawnTaka(f, s, W)
+      if (t === z.spawnAt && W) spawnTaka(f, s, W, opp)
       break
     case 'tatsu':
       if (t === z.spawnAt && W) spawnTatsu(f, s, W)
@@ -181,12 +181,18 @@ function tickAshura(f, opp, s, z, a, t, clampX, W) {
 const zoroProjectiles = (f, W, kind) => W.projectiles.filter(p => p.owner === f && p.zoroKind === kind)
 export function takaReady(f, W) { return !W || zoroProjectiles(f, W, 'taka').length === 0 }        // one active at a time
 export function tatsuSlots(f, W) { return W ? ZORO_TUNING.tatsu.pool - zoroProjectiles(f, W, 'tatsu').length : 2 }
-function spawnTaka(f, s, W) {
+function spawnTaka(f, s, W, opp) {
   const T = ZORO_TUNING.taka, fx = ZORO_FX.takaNami, dir = f.facing || 1, sc = 1.6
+  const sx = dir === 1 ? f.x + (f.w || 48) : f.x - fx.w * sc, sy = f.y + (f.h || 100) * 0.3
+  // A flying slash follows its target upward: aimed at an AIRBORNE opponent in front (juggles), else flat.
+  let aimAt = null
+  if (opp && !(opp.onGround || opp.grounded)) {
+    const ox = opp.x + (opp.w || 48) / 2, oy = opp.y + (opp.h || 100) * 0.5
+    if ((ox - (f.x + (f.w || 48) / 2)) * dir > 0) aimAt = { x: ox, y: oy }
+  }
   const p = W.spawn(f, 'zoroTakaNami', { damage: Math.round(T.damage * (f.damageMultiplier || 1)), speed: T.speed, lifetime: T.lifetime,
     w: fx.w * sc, h: fx.h * sc, radius: 30, sheet: fx.sheet, spriteFrames: 1, spriteW: fx.w, spriteH: fx.h, spriteScale: sc,
-    hitstun: 26, knockbackX: 5, knockbackY: -5, isSpecial: true, color: '#e8f060',
-    spawnX: dir === 1 ? f.x + (f.w || 48) : f.x - fx.w * sc, spawnY: f.y + (f.h || 100) * 0.3 })
+    hitstun: 26, knockbackX: 5, knockbackY: -5, isSpecial: true, color: '#e8f060', spawnX: sx, spawnY: sy, aimAt })
   if (p) { p.zoroKind = 'taka'; p.zoroSerial = ++s.serial }
 }
 function spawnTatsu(f, s, W) {
@@ -197,9 +203,9 @@ function spawnTatsu(f, s, W) {
   for (let k = 0; k < Math.min(n, slots); k++) {
     const x0 = (dir === 1 ? f.x + (f.w || 48) + 10 : f.x - 10) - dir * k * 48
     const p = W.spawn(f, 'zoroTatsuMaki', { damage: Math.round(T.damage * (f.damageMultiplier || 1)), speed: T.speed, lifetime: T.lifetime,
-      w: 70, h: 120, radius: 46, sheet: fx.sheet, spriteFrames: 4, spriteW: fx.w, spriteH: fx.h, spriteSpeed: 4, spriteScale: sc,
+      w: 70, h: 120, radius: 64, sheet: fx.sheet, spriteFrames: 4, spriteW: fx.w, spriteH: fx.h, spriteSpeed: 4, spriteScale: sc,
       spriteBottomY: floor, hitstun: 16, knockbackX: 0.5, knockbackY: -1, piercesMulti: true, noHitstop: true, isSpecial: true,
-      color: '#dfe8f0', spawnX: x0, spawnY: floor - 60 })
+      color: '#dfe8f0', spawnX: x0, spawnY: floor - 84 })   // box floor-148…floor-20: catches popped foes too
     if (p) { p.zoroKind = 'tatsu'; p.zoroSerial = ++s.serial; p.zoroFloor = floor }
   }
 }
@@ -210,7 +216,7 @@ function tickProjectiles(f, opp, s, W) {
     if ((p.age || 0) > 0 && (p.age % T.tickEvery) === 0) p._pierceHits = []   // re-arm → multi-hit every 8f
     if (opp && opp.health > 0 && !(opp.invulnTimer > 0)) {   // DRAG: pull the opponent into the twister
       const oc = opp.x + (opp.w || 48) / 2, dx = p.x - oc
-      if (Math.abs(dx) < T.dragRange && Math.abs((opp.y + opp.h) - p.zoroFloor) < 140) opp.x += Math.sign(dx) * Math.min(T.drag, Math.abs(dx))
+      if (Math.abs(dx) < T.dragRange && p.zoroFloor - (opp.y + opp.h) < 220) opp.x += Math.sign(dx) * Math.min(T.drag, Math.abs(dx))
     }
   }
 }
@@ -263,6 +269,8 @@ export function zoroHit(attacker, defender, atk) {
 export function zoroProjectileHit(proj, target) {
   if (!proj || target.isBlocking) return
   const o = proj.owner
+  // A tornado is ONE hit for combo scaling: its re-armed ticks after the first don't deepen the 85% decay.
+  if (isZoro(o) && proj.zoroKind === 'tatsu') { if (proj._zoroCounted) o.comboCounter = Math.max(1, (o.comboCounter || 1) - 1); proj._zoroCounted = true }
   if (isZoro(o) && o !== target) gainSpirit(o, proj.zoroKind === 'tatsu' ? ZORO_SPIRIT.perTornadoTick : ZORO_SPIRIT.perHitDealt)
   if (isZoro(target) && o !== target) gainSpirit(target, ZORO_SPIRIT.perHitTaken)
 }
@@ -288,9 +296,10 @@ export const zoroPhasing = (a, b) => !!(a?._zoro?.phase || b?._zoro?.phase)
 // (normals keep the shared launcher jump-cancel).
 export const zoroNoJump = f => !!(f?._zoro && (f._zoro.noJump > 0 || (f.attacking && f.currentAttack?.zr && f.currentAttack.zr.kind !== 'normal')))
 
-// Combo scaling (combat._comboScale): Zoro's strings decay 85% per hit. The combo counter itself — and its
-// 90-frame (1.5 s) idle reset — is the shared engine one.
-export const zoroComboScale = f => Math.pow(0.85, Math.max(0, (f.comboCounter || 0) - 1))
+// Combo scaling (combat._comboScale): Zoro's strings decay 85% per hit. At damage time comboCounter = hits
+// already landed in this combo (1st hit 1.0, 2nd 0.85, 3rd 0.7225 …). The counter and its 90-frame (1.5 s)
+// idle reset are the shared engine ones.
+export const zoroComboScale = f => Math.pow(0.85, Math.max(0, f.comboCounter || 0))
 
 // Recent condensed motion string (numpad tokens) within `win` input ticks, current token last.
 export function recentMotion(s, win) {

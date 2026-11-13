@@ -81,6 +81,15 @@ export const ARLONG_ANIMS = ANIM
 // Victory variant 2 (wide stance → blade overhead) / idle flex: the same set with `win` / `idle` pointing elsewhere.
 export const ARLONG_WIN2_ANIM = { ...ANIM, win: ANIM.win2 }
 export const ARLONG_FLEX_ANIM = { ...ANIM, idle: ANIM.idleFlex }
+// Alt skins (arlongSkins.js): a whole anim set with every sheet retagged `<sheet>__<tag>.png`. No tag → the set
+// itself (default skin byte-identical). Cached → stable identity (the renderer compares sets by reference).
+const _skinSets = new Map()
+export function arlongSkinSet(set, tag) {
+  if (!tag) return set
+  const base = set || ANIM
+  let byTag = _skinSets.get(base); if (!byTag) _skinSets.set(base, byTag = {})
+  return byTag[tag] || (byTag[tag] = Object.fromEntries(Object.entries(base).map(([k, a]) => [k, a?.sheet ? { ...a, sheet: a.sheet.replace(/\.png$/i, `__${tag}.png`) } : a])))
+}
 
 export const arlong = {
   rosterKey: 'arlong', name: 'Arlong', displayName: 'Arlong', hudName: 'Arlong', universe: 'one_piece', color: '#5b6fb0',

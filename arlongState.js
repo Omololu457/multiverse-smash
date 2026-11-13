@@ -3,7 +3,7 @@
 // replay checkpoint and reproduced bit-identically. No Math.random / gameRng anywhere in the kit: timings are fixed
 // frame counts and positions derive from the fighters' positions. (The kit needs no sim randomness at all; render
 // jitter is hash(frame, slot) in arlongFx.js.)
-import { ARLONG_MOVES, ARLONG_WIN2_ANIM, ARLONG_FLEX_ANIM, arlong as ARLONG_CHAR } from './arlongData.js'
+import { ARLONG_MOVES, ARLONG_WIN2_ANIM, ARLONG_FLEX_ANIM, arlongSkinSet, arlong as ARLONG_CHAR } from './arlongData.js'
 import { meleeDamageType } from './damageTypes.js'
 export const isArlong = f => f?.rosterKey === 'arlong'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickArlong; never read by the sim).
@@ -58,12 +58,12 @@ export function arlongRoundReset(f) {
   f.baseSpeed = f.speed = st.speed
   f.dashSpeed = st.dashSpeed
   if (f._arlong) delete f._arlong
-  f._skinAnim = null
+  f._skinAnim = f._baseSkinAnim || null   // back to the skin's own (recoloured) base set
   f._alSlick = 0
   f._alWinVar = 0
 }
 export function clearArlong(f) {
-  if (f?._arlong || isArlong(f)) { delete f._arlong; delete f._arlongCues; if (isArlong(f)) f._skinAnim = null }
+  if (f?._arlong || isArlong(f)) { delete f._arlong; delete f._arlongCues; if (isArlong(f)) f._skinAnim = f._baseSkinAnim || null }
 }
 
 export const tideBlocked = f => !!(f?._arlong && (f._arlong.lockout > 0 || f._arlong.inSuper))
@@ -240,10 +240,13 @@ export function arlongWinVariant(f) {
   }
   return f._alWinVar
 }
+// Win-2 / idle-flex swap the whole anim set; with an alt skin the swapped set is the skin's recoloured copy
+// (arlongSkinSet), and "no swap" means the skin's own base set — never the default colours.
 function applyAnimSet(f, s) {
-  let want = null
-  if (f._forceAction === 'win') want = arlongWinVariant(f) === 2 ? ARLONG_WIN2_ANIM : null
-  else if (s.idleT >= ARLONG_IDLE.after) want = ARLONG_FLEX_ANIM
+  const base = f._baseSkinAnim || null, tag = f._recolorTag || null
+  let want = base
+  if (f._forceAction === 'win') { if (arlongWinVariant(f) === 2) want = arlongSkinSet(ARLONG_WIN2_ANIM, tag) }
+  else if (s.idleT >= ARLONG_IDLE.after) want = arlongSkinSet(ARLONG_FLEX_ANIM, tag)
   if ((f._skinAnim || null) !== want) f._skinAnim = want
 }
 

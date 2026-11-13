@@ -120,9 +120,9 @@ Animation → move/state mapping lives in `buggyData.js` (normals/specials) and 
 | 80 | L5P8 | joint | (139, 980, 147, 988) | fx_orbit (Festival / Super orbit); fx_intro_pieces (INTRO assembly) |
 | 81 | L5P9 | foot | (156, 978, 166, 989) | fx_orbit (Festival / Super orbit); fx_intro_pieces (INTRO assembly); HUD foot pip |
 | 82 | L5P10 | foot | (176, 980, 183, 990) | fx_orbit (Festival / Super orbit); fx_intro_pieces (INTRO assembly) |
-| 83 | L6P1 | cape_strip — cape back, billowing | (5, 1004, 60, 1033) | fx_cape_back (Cape Flourish / WIN 2 billow) |
-| 84 | L6P2 | cape_strip | (71, 1004, 125, 1034) | fx_cape_back (Cape Flourish / WIN 2 billow) |
-| 85 | L6P3 | cape_strip | (134, 1004, 187, 1034) | fx_cape_back (Cape Flourish / WIN 2 billow) |
+| 83 | L6P1 | cape_strip — cape back, billowing | (5, 1004, 60, 1033) | fx_cape_back (Cape Flourish billow) |
+| 84 | L6P2 | cape_strip | (71, 1004, 125, 1034) | fx_cape_back (Cape Flourish billow) |
+| 85 | L6P3 | cape_strip | (134, 1004, 187, 1034) | fx_cape_back (Cape Flourish billow) |
 | 86 | L7P1 | head | (3, 1041, 27, 1063) | part_head_idle (HEAD part) + idle look-around |
 | 87 | L7P2 | head | (37, 1043, 61, 1065) | part_head_idle (HEAD part) + idle look-around |
 | 88 | L7P3 | head | (69, 1043, 93, 1066) | part_head_idle (HEAD part) + idle look-around |

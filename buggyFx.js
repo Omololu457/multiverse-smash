@@ -120,8 +120,13 @@ function drawCartWheelIn(c, f, t) {   // the cannon cart rolls in behind him as 
   const { k, fx, fy } = anchor(f), dir = f.facing || 1, p = Math.min(1, t / 14)
   frameOf(c, BUGGY_FX.cartGhost, 0, fx - dir * (120 - 70 * p) * k / 2.3, fy - BUGGY_FX.cartGhost.h * k / 2, k, dir < 0, 0.55 * (1 - Math.max(0, (t - 14) / 10)))
 }
-function drawCape(c, f, t) {
+function drawCape(c, f, t) {   // the sweep: cape-back billow behind him, the cape shape in front, cut-strip trail
   const { k, fx, fy } = anchor(f), dir = f.facing || 1
+  frameOf(c, BUGGY_FX.capeBack, Math.min(2, t >> 2), fx - dir * 10 * k / 2.3, fy - 50 * k, k, dir < 0, 0.45)
+  for (let j = 0; j < 3; j++) {   // strips peel off the sweep and trail back (6 strip frames, fading)
+    const tt = t - j * 3; if (tt < 0) continue
+    frameOf(c, BUGGY_FX.capeStrips, (j * 2 + (tt >> 2)) % 6, fx - dir * (8 + tt * 3) * k / 2.3, fy - (36 + j * 9) * k, k * 0.8, dir < 0, Math.max(0, 0.6 - tt * 0.04))
+  }
   frameOf(c, BUGGY_FX.capes, Math.min(3, t >> 2), fx + dir * 22 * k / 2.3, fy - 42 * k, k, dir < 0, t < 8 ? 1 : 0.7)
 }
 

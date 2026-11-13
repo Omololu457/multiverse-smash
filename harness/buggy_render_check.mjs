@@ -330,7 +330,7 @@ try {
     const cz0 = await zhp()
     await page.evaluate(async () => { const ab = await import('./abilities.js'); const z = __harness.buggyTest.raw('p2'), b = __harness.buggyTest.raw('p1')
       ab.spawnProjectile(z, 'kiBlast', { damage: 50, speed: 14, spawnX: b.x + 70, spawnY: b.y + 40, vx: -14, vy: 0 }) })
-    for (let i = 0; i < 40; i++) await step(1)
+    for (let i = 0; i < 40; i++) { await step(1); if (i === 4) await shot(`p${PHASE}-14b-cape-flourish`) }
     st = await bs()
     check('Cape Flourish (↓↙←+B) reflects a projectile for 40', st.health === st.maxHealth && (await zhp()) < cz0, `buggy ${st.health} zoro ${cz0}→${await zhp()}`)
     // ROLL (dash) = 8 invulnerable frames

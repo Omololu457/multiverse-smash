@@ -27,7 +27,7 @@ export const PART_TUNING = {
   partHitChop: 3,
 }
 export const REF_SCREEN_W = 1280   // the 1280-px reference screen (fixed — never the device canvas → LAN/replay-safe)
-const S = 2.6   // part art → world scale (matches Buggy's on-screen body scale)
+const S = 2.6 / 1.12   // part art → world scale = 2.6 on screen (matches Buggy's body); drones.js now draws every drone ×1.12 (GA a2336465), compensated here
 const sprites = (p, extra = {}) => ({ idle: { sheet: p.idle.sheet, frames: p.idle.frames }, death: { sheet: p.death.sheet, frames: p.death.frames }, ...extra })
 
 // Shared profile fields: parts come HOME on retire / recall / expiry (drones.js retireMode 'home').

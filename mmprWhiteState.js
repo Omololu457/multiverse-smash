@@ -123,6 +123,9 @@ function onZordEvent(f, s, e) {
     if (e.type === 'hit') s.stats.followHits++
     const a = f.attacking ? f.currentAttack : null
     if (e.type === 'hit' && a?.mw?.key === 'wOrder' && !s.leaderUsed && f.health > 0) { s.leader = { t: LEADER.window, serial: a.mw.serial }; s.stats.leaderOffers++; cue(f, 'leaderOffer') }
+    // CRANE RISE follow-up landed on the airborne foe → the signal pose becomes jump-cancellable through the engine's own
+    // launcher jump-cancel (physics.js: currentAttack.launcher && hasHit; fresh press required) so Tommy can chase in the air.
+    if (e.type === 'hit' && e.kind === 'ninjaCraneRise' && a?.mw?.key === 'wOrder' && f.health > 0) { a.launcher = true; a.hasHit = true; f.jumpHeld = true; f.jumpCount = 0; s.stats.craneJC = (s.stats.craneJC || 0) + 1 }
   }
 }
 // The command layer calls this on a fresh Special while s.accept is open. Returns true if accepted.

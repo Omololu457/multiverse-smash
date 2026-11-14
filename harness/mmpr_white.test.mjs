@@ -242,8 +242,10 @@ try {
   // ── MEASURED ROUTES (brief Phase 12) ──
   r = await measure('Formation Crane Rise -> air conversion', async M => {
     await S('H.giveToken()'); await M.press(['w', 'l']); await M.until(q => q.a.s.accept, 40); await M.press(['l']); await M.until(q => q.a.falcon.sortie?.age >= 36 || !q.a.falcon.sortie, 40)
-    await M.until(q => !q.a.attack, 40); await M.press(['w']); await M.watch(6); await M.press(['j']) }, { gap: 110, note: 'order hit (launch) + push-kick follow-up + manual jump air kick' })
-  ck(r.label + ': launch + follow-up land (air conversion measured)', r.hits.length >= 2, JSON.stringify(r))
+    await M.until(q => q.a.s.stats.followHits > 0, 40); await M.watch(3); await M.press(['w'], 2); await M.watch(3); await M.press(['d', 'j']); await M.watch(40) },
+    { gap: 110, note: 'order hit (launch) + pop-up follow-up + jump-cancel of the signal pose + air Turning Heel' })
+  ck(r.label + ': launch + follow-up + air kick, a TRUE 3-hit combo', r.hits.length >= 3 && r.trueCombo, JSON.stringify(r))
+  ck(r.label + ': the follow-up opened the signal-pose jump-cancel', (r.stats?.craneJC || 0) >= 1, JSON.stringify(r.stats))
   r = await measure('Delayed Ninja Edge -> ground pressure', async M => { await M.press(['a', 'l']); await M.until(q => !q.a.attack, 40); await page.keyboard.down('d'); await M.watch(16); await page.keyboard.up('d'); await M.until(q => q.block > 0, 40); await M.watch(2); await M.press(['j']) },
     { gap: 160, dummy: 'block', kind: 'pressure', note: 'the slow slash is blocked while Tommy walks in; follow-up Light measured vs blockstun' })
   ck(r.label + ': Edge blocked while Tommy closes distance (pressure, not a combo)', r.blockedEvents >= 1, JSON.stringify(r))

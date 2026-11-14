@@ -16,7 +16,7 @@ Art ledger: [SPRITE_LEDGER.md](SPRITE_LEDGER.md). Credit: "Sprites ripped by Bel
 | Cost | 15 Energy + 1 pip | 18 Energy + 1 pip | 20 Energy + 1 pip |
 | Warning | ages 0-13 | ages 0-11 | ages 0-23 (the delayed, readable one) |
 | Main contact | ages 17-21, raw 38, hitstun 30, blockstun 16 | ages 17-21, raw 44, **launch** (vy −20, once per combo via the shared assist-launch rule) | ages 34-38, raw 54, 150×110 zone |
-| Formation follow-up (gate `formation`) | ages 32-35, raw 24 | ages 33-36, raw 20, **push** (knockbackX 10) — changes spacing, never re-launches | ages 52-55, raw 26 arc (`arc0` FX) |
+| Formation follow-up (gate `formation`) | ages 32-35, raw 24 | ages 33-36, raw 20, **pop-up push** (knockbackY −15, not a `launch`); its hit makes Tommy's signal pose jump-cancellable → air conversion | ages 52-55, raw 26 arc (`arc0` FX) |
 | Life | 56 | 60 | 76 |
 
 The follow-up contacts are **gated**: `falconzord.js` skips any contact whose `gate` is not in `sortie.gates`. Only an accepted Formation sets `gates = ['formation']`; without it the robot plays the follow-up pose substitution (`gatePoses`) and never hits.

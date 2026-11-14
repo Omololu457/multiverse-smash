@@ -479,23 +479,27 @@
    "kind": "combo",
    "hits": [
     45,
-    20
+    20,
+    29
    ],
    "stunBefore": [
     0,
-    24
+    24,
+    14
    ],
    "hitFrames": [
     31,
-    47
+    47,
+    65
    ],
    "gapAtHit": [
     110,
-    110
+    110,
+    78
    ],
    "blockedEvents": 0,
-   "damage": 65,
-   "energySpent": 22.3,
+   "damage": 94,
+   "energySpent": 22.18,
    "pipsSpent": 1,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -522,11 +526,12 @@
     "ultStarts": 0,
     "ultWhiffs": 0,
     "ultDone": 0,
-    "ultRhythm": 0
+    "ultRhythm": 0,
+    "craneJC": 1
    },
    "gap": 110,
    "flip": false,
-   "note": "order hit (launch) + push-kick follow-up + manual jump air kick",
+   "note": "order hit (launch) + pop-up follow-up + jump-cancel of the signal pose + air Turning Heel",
    "verdict": "true combo"
   },
   {
@@ -851,7 +856,8 @@
     "ultStarts": 0,
     "ultWhiffs": 0,
     "ultDone": 0,
-    "ultRhythm": 0
+    "ultRhythm": 0,
+    "craneJC": 1
    },
    "energySpent": 23.68,
    "attack": null
@@ -1016,7 +1022,7 @@
   "jumpApexPx": 385
  },
  "engineDamageScale": 0.581,
- "pass": 103,
+ "pass": 104,
  "fail": 0,
  "errors": []
 }

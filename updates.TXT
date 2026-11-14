@@ -517,3 +517,4 @@
 - Fixes in shared code: rangers.js clearRanger releases the blink root on reset; mmprBlackState.js no longer clears another owner's Zord sortie.
 - Tests: mmpr_white 103/0, determinism/replay/LAN/pad 23/0, skins 70/0, real-menu visual 22/0; frame-data diff zero for all 134 other fighters; mmpr_black 85/0, spd_red_final 33/0, krybot 58/0, spd_blue 54/0, spd_blue_teleport 26/0, spd_green 60/0, luffy_combos pass.
 - Docs: docs/mmpr_white/ (START_STATE, CODEX_OWNERSHIP, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/ninja_megazord/.
+- Follow-up: Formation Crane Rise now air-converts. The follow-up push kick pops the foe (knockbackY -15, not a launch) and its hit makes Tommy's signal pose jump-cancellable; Crane Rise -> follow-up -> jump -> air kick is a true 3-hit combo (94 dmg). mmpr_white 104/0, determinism 23/0, visual 22/0.

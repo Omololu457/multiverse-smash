@@ -12,7 +12,7 @@ All numbers are **measured** by `harness/mmpr_white.test.mjs` (real key input, f
 | HAND → FOOT → BLADE, three separate exchanges | 18 / 25 / 52 | free between | 95 | — | **collection, not a combo**: token earned, HAND→BLADE 131 f (< 180) |
 | BLADE → HAND → FOOT | 57 / 17 / 21 | free between | 95 | — | collection in any order ✔ |
 | Formation Twin Fist → Leader's Return → Heavy | 39 / 24 / 52 | 21, 5 | 115 | 15 + 10 E, 1 pip, token, 1 blink charge | **true combo**, 5 f margin |
-| Formation Crane Rise (launch + push follow-up) | 45 / 20 | 24 | 65 | 18 + 10 E, 1 pip, token | **true combo** for the two Megazord hits. The planned air conversion after the push kick did **not** connect at this spacing: the push moves the foe out of a manual jump's reach (by design it changes spacing, never re-launches). |
+| Formation Crane Rise → jump-cancel → Air Turning Heel | 45 / 20 / 29 | 24, 14 | 94 | 18 + 10 E, 1 pip, token | **true combo**. The follow-up pops the foe (knockbackY −15, not a `launch`) and makes Tommy's signal pose jump-cancellable (engine launcher jump-cancel, fresh press). Window measured with a −15 pop: jump 3-6 f after the follow-up, air kick 0-3 f after take-off (also 9 f). |
 | Delayed Ninja Edge → walk in | blocked slash, then Light 18 | 0 | 24 | 20 E, 1 pip | **pressure, not a combo**: the slow slash is blocked while Tommy closes; the Light after blockstun is a frame trap/reset |
 | Saba Cut → Ultimate (recovery cancel) | 57 / 33 + 34 / 30 / 34 / 111 | 6, then sequence | 299 | 100 E | **true combo**; opener lands 6 f inside hitstun |
 
@@ -27,7 +27,7 @@ All numbers are **measured** by `harness/mmpr_white.test.mjs` (real key input, f
 - Tiger Descent: vy capped at 14, **24 f** landing; grants no FOOT. Ascent: 16 f landing, once per airtime.
 - Ultimate whiff/block: **93 f** total (30 + 3 + 60). Clean: contacts 37 / 33 / 37 / 121 HP after the opener (raw 40 / 35 / 40 / 130), 200-frame sequence, knockdown, control restored, orders locked 120 f, pips not refilled. A held token changes only the flash rhythm (identical damage, measured).
 - Blink distance **230 px**; walk 360 px / 60 f; jump apex 385 px.
-- Tuning during measurement: Heavy cancel list gained `wLow` (Low → Heavy route); Saba's Answer reach comment corrected to the measured 142.
+- Tuning during measurement: Heavy cancel list gained `wLow` (Low → Heavy route); Saba's Answer reach comment corrected to the measured 142; Crane Rise follow-up knockbackY −1 → **−15** + signal-pose jump-cancel on its hit (with −1 the foe fell before Tommy's 28 f signal pose ended, so no air conversion was possible).
 
 ## Resources & counterplay
 - 2 pips, 180 f sequential refill, 60 f lockout, one order at a time, 120 f post-ultimate lock.

@@ -59,7 +59,7 @@
   "afterP1": {
     "gameState": "selectUniverse",
     "countdown": 180,
-    "frame": 431
+    "frame": 421
   },
   "preStage": {
     "gameState": "selectStage",
@@ -93,8 +93,8 @@
     "e": 100,
     "blink": null,
     "facing": 1,
-    "x": 1271,
-    "bx": 1331,
+    "x": 1300,
+    "bx": 1365.705003710609,
     "kd": false
   },
   "formationPost_R": {
@@ -105,7 +105,7 @@
     "s": {
       "edges": {
         "light": {
-          "tick": 89,
+          "tick": 90,
           "clock": 81,
           "down": false,
           "up": false,
@@ -114,8 +114,8 @@
           "block": false
         },
         "special": {
-          "tick": 585,
-          "clock": 572,
+          "tick": 619,
+          "clock": 606,
           "down": false,
           "up": false,
           "fwd": true,
@@ -124,8 +124,8 @@
         }
       },
       "used": {
-        "light": 89,
-        "special": 585
+        "light": 90,
+        "special": 619
       }
     }
   },
@@ -157,7 +157,7 @@
     "blink": null,
     "facing": -1,
     "x": 1300,
-    "bx": 1230.6433717201967,
+    "bx": 1236.1953047547483,
     "kd": false
   },
   "formationPost_L": {
@@ -168,8 +168,8 @@
     "s": {
       "edges": {
         "light": {
-          "tick": 977,
-          "clock": 936,
+          "tick": 1006,
+          "clock": 949,
           "down": false,
           "up": false,
           "fwd": false,
@@ -177,8 +177,8 @@
           "block": false
         },
         "special": {
-          "tick": 1476,
-          "clock": 1435,
+          "tick": 1498,
+          "clock": 1425,
           "down": false,
           "up": false,
           "fwd": true,
@@ -186,8 +186,8 @@
           "block": false
         },
         "ultimate": {
-          "tick": 881,
-          "clock": 868,
+          "tick": 911,
+          "clock": 882,
           "down": false,
           "up": false,
           "fwd": false,
@@ -196,9 +196,9 @@
         }
       },
       "used": {
-        "light": 965,
-        "special": 1476,
-        "ultimate": 881
+        "light": 994,
+        "special": 1498,
+        "ultimate": 911
       }
     }
   },
@@ -213,14 +213,14 @@
     "gap": 60
   },
   "profile": {
-    "msPerFrameIdle": 0.079,
-    "msPerFrameSorties": 0.106,
-    "msPerFrameUlt": 0.102,
-    "calls": 49,
+    "msPerFrameIdle": 0.102,
+    "msPerFrameSorties": 0.125,
+    "msPerFrameUlt": 0.156,
+    "calls": 46,
     "fxCacheBefore": 1,
     "fxCacheAfter": 1,
     "projectilesLeft": 0,
-    "rejected": 11,
+    "rejected": 14,
     "unexplained": 0,
     "rejectSample": [
       {
@@ -236,7 +236,31 @@
         "cd": 0,
         "bs": 0,
         "grab": false,
-        "hst": 4,
+        "hst": 0,
+        "F": {
+          "p": 2,
+          "l": 0,
+          "pu": 0,
+          "pk": null
+        },
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      },
+      {
+        "k": "ninjaTwinFist",
+        "hs": 0,
+        "g": true,
+        "land": 0,
+        "ws": {
+          "lp": false,
+          "de": false
+        },
+        "blink": false,
+        "cd": 0,
+        "bs": 0,
+        "grab": false,
+        "hst": 17,
         "F": {
           "p": 2,
           "l": 0,
@@ -250,7 +274,7 @@
       },
       {
         "k": "ninjaEdge",
-        "hs": 25,
+        "hs": 17,
         "g": false,
         "land": 0,
         "ws": {
@@ -270,36 +294,12 @@
         },
         "e": 100,
         "kd": false,
-        "hp": 894
-      },
-      {
-        "k": "ninjaCraneRise",
-        "hs": 23,
-        "g": true,
-        "land": 0,
-        "ws": {
-          "lp": false,
-          "de": false
-        },
-        "blink": false,
-        "cd": 0,
-        "bs": 0,
-        "grab": true,
-        "hst": 0,
-        "F": {
-          "p": 2,
-          "l": 0,
-          "pu": 0,
-          "pk": null
-        },
-        "e": 100,
-        "kd": false,
-        "hp": 1000
+        "hp": 930
       }
     ],
     "unexplainedSample": []
   },
-  "fps": 48,
+  "fps": 42,
   "passes": 22,
   "failures": 0,
   "errors": []

@@ -21,7 +21,7 @@ Hitboxes come from move data (`rangeX/rangeY/boxY`), never from sprite pixels; t
 | White Tiger Ascent (`wAscent`) | Down+Special (ground) | compact0 → riseKick0@9 → air0@16 | 10/8/20 | 38 | 42 | FOOT | leaves ground f9; once per airtime; 16 f landing |
 | Tiger Descent (`wDescent`) | Down+Special (air) | ball0 → flyKick0@11 | 12/≤40/0 | ≤52 | 44 | — | vy capped 14, vx 5; 24 f landing; once per airtime |
 | Order call (`wCall`) | Fwd / Up / Back + Special (ground) | punch2 → reach0@12 | 12/1/14 | 27 | — | — | f12 = COMMIT (see Ninja Megazord README) |
-| Formation signal (`wOrder`) | Special retap in the 10 f offer | reach0 | 1/1/28 | 30 | — | — | late recovery = the only Leader's Return window |
+| Formation signal (`wOrder`) | Special retap in the 10 f offer | reach0 | 1/1/28 | 30 | — | — | late recovery = the only Leader's Return window; a Crane Rise follow-up hit makes it jump-cancellable |
 | White Light opener (`wUltOpen`) | Ultimate (neutral, or cancel from clean heavy/wSaba/wKnock/wJ3) | sabaDraw0 → sabaWind0@12 → sabaCut0@30 | 30/3/60 | 93 | 35 | — | travels 3 px/f f6-30; clean hit → sequence, miss/block → 60 f recovery |
 | Jump | Up (grounded) | jump strip | 3 f Up grace | — | — | — | Up pressed 1-2 f before Special becomes Crane Rise, never a jump |
 | Blink (rangers.js) | double-tap Fwd/Back | dive0 | 3/5/3 | 11 | — | — | 2 charges, 90 f recharge, 18 % of 1280 ≈ 230 px |

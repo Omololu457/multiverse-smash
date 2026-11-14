@@ -90,8 +90,9 @@ registerFalconSortie('ninjaCraneRise', {
   keys: [[0, -170, 0, 'step'], [12, -20, 0, 'chamber'], [17, -20, 0, 'crane'], [26, -20, 0, 'recover'], [33, -20, 0, 'push'], [42, -20, 0, 'ready'], [46, -20, 0, 'rear'], [60, -200, 0, 'rear']],
   gatePoses: { push: 'ready' },
   contacts: [{ from: 17, to: 21, raw: 44, hitstun: 34, blockstun: 16, knockbackX: 1, knockbackY: 0, launch: true, launchVy: -20, box: { w: 100, h: 120, dx: 80, dy: -75 } },
-    // follow-up: a horizontal push kick — moves the target AWAY (spacing), never re-launches or resets the juggle.
-    { gate: 'formation', from: 33, to: 36, raw: 20, hitstun: 26, blockstun: 14, knockbackX: 10, knockbackY: -1, box: { w: 110, h: 140, dx: 95, dy: -95 } }],
+    // follow-up: a push kick that pops the airborne foe back up (knockbackY −15, NOT a `launch`: the once-per-combo assist
+    // launch and juggle rules are untouched). Hitting it makes Tommy's signal pose jump-cancellable → air conversion.
+    { gate: 'formation', from: 33, to: 36, raw: 20, hitstun: 26, blockstun: 14, knockbackX: 10, knockbackY: -15, box: { w: 110, h: 140, dx: 95, dy: -95 } }],
 })
 registerFalconSortie('ninjaEdge', {
   name: 'Ninja Edge', cost: 20, origin: 'owner', laneY: 0, warn: 24, life: 76, move: 'ninja_edge', zord: 'ninja',

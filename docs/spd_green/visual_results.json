@@ -1,0 +1,73 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green"
+  ],
+  "detail": {
+    "key": "spd_green",
+    "name": "S.P.D. Green Ranger",
+    "stats": {
+      "maxHealth": 980,
+      "maxEnergy": 100,
+      "attack": 80,
+      "defense": 78,
+      "speed": 92,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Acrobatic Read / Counterpressure",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 7,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 392
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "match": {
+    "p1": "spd_green",
+    "skin": "spd_green_inspired_upgrade",
+    "tag": "upgrade",
+    "p2": "krybot"
+  },
+  "fps": 54,
+  "passes": 12,
+  "failures": 0,
+  "errors": []
+}

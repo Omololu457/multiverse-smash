@@ -1,0 +1,1588 @@
+{
+  "source": "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Green Ranger.png",
+  "sha256": "cd3c4810f442a86c73846a35ded127e4e17dd6637f4771009576ae034d4dee60",
+  "size": [
+    727,
+    1160
+  ],
+  "mode": "RGB",
+  "outerBackground": [
+    57,
+    182,
+    52
+  ],
+  "cellBackground": [
+    128,
+    255,
+    123
+  ],
+  "keyPolicy": "exact cell-fill RGB(128,255,123) only, inside verified cell rects; outer colour kept wherever it occurs inside a cell (suit shading)",
+  "credit": "ripped by the FRANKETE, for TSR (WANTED-poster credit panel, top right)",
+  "creditPanel": [
+    620,
+    18,
+    102,
+    118
+  ],
+  "inputIcons": [
+    [
+      8,
+      88,
+      16,
+      16
+    ],
+    [
+      8,
+      152,
+      16,
+      16
+    ],
+    [
+      8,
+      216,
+      16,
+      16
+    ],
+    [
+      8,
+      464,
+      16,
+      16
+    ],
+    [
+      0,
+      664,
+      16,
+      16
+    ],
+    [
+      24,
+      664,
+      16,
+      16
+    ],
+    [
+      17,
+      671,
+      4,
+      8
+    ],
+    [
+      0,
+      740,
+      45,
+      16
+    ],
+    [
+      0,
+      784,
+      40,
+      16
+    ],
+    [
+      0,
+      856,
+      40,
+      16
+    ],
+    [
+      0,
+      920,
+      40,
+      16
+    ],
+    [
+      0,
+      992,
+      40,
+      16
+    ],
+    [
+      1,
+      1056,
+      39,
+      16
+    ]
+  ],
+  "inputIconNote": "left-column controller glyphs (\u2192, \u2193, A, B, \u2191+B \u2026) \u2014 labels, not body art",
+  "frame": {
+    "width": 144,
+    "height": 96,
+    "originX": 64,
+    "originY": 84
+  },
+  "frames": [
+    {
+      "name": "ready0",
+      "rect": [
+        48,
+        8,
+        32,
+        56
+      ],
+      "anchor": [
+        16,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1055,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        1,
+        32,
+        56
+      ],
+      "opaquePixels": 737
+    },
+    {
+      "name": "ready1",
+      "rect": [
+        88,
+        8,
+        32,
+        56
+      ],
+      "anchor": [
+        16,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1065,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        2,
+        32,
+        56
+      ],
+      "opaquePixels": 727
+    },
+    {
+      "name": "run0",
+      "rect": [
+        48,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2058,
+      "outerColourKept": 0,
+      "bbox": [
+        9,
+        2,
+        39,
+        56
+      ],
+      "opaquePixels": 630
+    },
+    {
+      "name": "run1",
+      "rect": [
+        104,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2040,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        2,
+        43,
+        56
+      ],
+      "opaquePixels": 648
+    },
+    {
+      "name": "run2",
+      "rect": [
+        160,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2100,
+      "outerColourKept": 0,
+      "bbox": [
+        7,
+        3,
+        35,
+        56
+      ],
+      "opaquePixels": 588
+    },
+    {
+      "name": "run3",
+      "rect": [
+        216,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2072,
+      "outerColourKept": 0,
+      "bbox": [
+        12,
+        2,
+        40,
+        56
+      ],
+      "opaquePixels": 616
+    },
+    {
+      "name": "run4",
+      "rect": [
+        272,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1996,
+      "outerColourKept": 0,
+      "bbox": [
+        11,
+        0,
+        43,
+        56
+      ],
+      "opaquePixels": 692
+    },
+    {
+      "name": "run5",
+      "rect": [
+        328,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2007,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        2,
+        45,
+        56
+      ],
+      "opaquePixels": 681
+    },
+    {
+      "name": "run6",
+      "rect": [
+        384,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2131,
+      "outerColourKept": 0,
+      "bbox": [
+        12,
+        1,
+        37,
+        56
+      ],
+      "opaquePixels": 557
+    },
+    {
+      "name": "run7",
+      "rect": [
+        440,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2089,
+      "outerColourKept": 0,
+      "bbox": [
+        12,
+        4,
+        37,
+        56
+      ],
+      "opaquePixels": 599
+    },
+    {
+      "name": "crouchReady0",
+      "rect": [
+        48,
+        136,
+        32,
+        56
+      ],
+      "anchor": [
+        16,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1158,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        4,
+        31,
+        56
+      ],
+      "opaquePixels": 634
+    },
+    {
+      "name": "jump0",
+      "rect": [
+        48,
+        200,
+        40,
+        64
+      ],
+      "anchor": [
+        18,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1930,
+      "outerColourKept": 0,
+      "bbox": [
+        3,
+        2,
+        38,
+        64
+      ],
+      "opaquePixels": 630
+    },
+    {
+      "name": "jump1",
+      "rect": [
+        96,
+        200,
+        40,
+        64
+      ],
+      "anchor": [
+        18,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1949,
+      "outerColourKept": 0,
+      "bbox": [
+        6,
+        2,
+        34,
+        54
+      ],
+      "opaquePixels": 611
+    },
+    {
+      "name": "guard0",
+      "rect": [
+        48,
+        272,
+        32,
+        48
+      ],
+      "anchor": [
+        16,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 813,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        3,
+        31,
+        48
+      ],
+      "opaquePixels": 723
+    },
+    {
+      "name": "fall0",
+      "rect": [
+        48,
+        328,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2051,
+      "outerColourKept": 0,
+      "bbox": [
+        9,
+        1,
+        48,
+        48
+      ],
+      "opaquePixels": 637
+    },
+    {
+      "name": "fall1",
+      "rect": [
+        112,
+        328,
+        56,
+        48
+      ],
+      "anchor": [
+        26,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2095,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        3,
+        54,
+        40
+      ],
+      "opaquePixels": 593
+    },
+    {
+      "name": "fall2",
+      "rect": [
+        176,
+        328,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2151,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        32,
+        56,
+        48
+      ],
+      "opaquePixels": 537
+    },
+    {
+      "name": "fall3",
+      "rect": [
+        240,
+        328,
+        56,
+        48
+      ],
+      "anchor": [
+        26,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2140,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        11,
+        38,
+        48
+      ],
+      "opaquePixels": 548
+    },
+    {
+      "name": "fall4",
+      "rect": [
+        304,
+        328,
+        56,
+        48
+      ],
+      "anchor": [
+        26,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2052,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        2,
+        45,
+        48
+      ],
+      "opaquePixels": 636
+    },
+    {
+      "name": "ground0",
+      "rect": [
+        48,
+        384,
+        56,
+        56
+      ],
+      "anchor": [
+        26,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2514,
+      "outerColourKept": 0,
+      "bbox": [
+        11,
+        8,
+        33,
+        56
+      ],
+      "opaquePixels": 622
+    },
+    {
+      "name": "ground1",
+      "rect": [
+        112,
+        384,
+        56,
+        56
+      ],
+      "anchor": [
+        26,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2575,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        27,
+        50,
+        56
+      ],
+      "opaquePixels": 561
+    },
+    {
+      "name": "ground2",
+      "rect": [
+        176,
+        384,
+        56,
+        56
+      ],
+      "anchor": [
+        26,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2614,
+      "outerColourKept": 0,
+      "bbox": [
+        14,
+        21,
+        40,
+        56
+      ],
+      "opaquePixels": 522
+    },
+    {
+      "name": "kick0",
+      "rect": [
+        48,
+        448,
+        48,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2057,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        4,
+        30,
+        56
+      ],
+      "opaquePixels": 631
+    },
+    {
+      "name": "kick1",
+      "rect": [
+        104,
+        448,
+        48,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2054,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        2,
+        33,
+        56
+      ],
+      "opaquePixels": 634
+    },
+    {
+      "name": "kick2",
+      "rect": [
+        160,
+        448,
+        48,
+        56
+      ],
+      "anchor": [
+        18,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1966,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        0,
+        47,
+        56
+      ],
+      "opaquePixels": 722
+    },
+    {
+      "name": "strike0",
+      "rect": [
+        48,
+        512,
+        48,
+        64
+      ],
+      "anchor": [
+        20,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2437,
+      "outerColourKept": 0,
+      "bbox": [
+        9,
+        10,
+        41,
+        64
+      ],
+      "opaquePixels": 635
+    },
+    {
+      "name": "strike1",
+      "rect": [
+        104,
+        512,
+        48,
+        64
+      ],
+      "anchor": [
+        20,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2358,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        11,
+        48,
+        64
+      ],
+      "opaquePixels": 714
+    },
+    {
+      "name": "acro0",
+      "rect": [
+        48,
+        583,
+        56,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2411,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        8,
+        45,
+        56
+      ],
+      "opaquePixels": 725
+    },
+    {
+      "name": "acro1",
+      "rect": [
+        112,
+        583,
+        56,
+        56
+      ],
+      "anchor": [
+        26,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2580,
+      "outerColourKept": 0,
+      "bbox": [
+        7,
+        0,
+        38,
+        56
+      ],
+      "opaquePixels": 556
+    },
+    {
+      "name": "acro2",
+      "rect": [
+        176,
+        583,
+        56,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "fullRect": false,
+      "keyedPixels": 2514,
+      "outerColourKept": 1,
+      "bbox": [
+        9,
+        13,
+        55,
+        56
+      ],
+      "opaquePixels": 622
+    },
+    {
+      "name": "acro3",
+      "rect": [
+        240,
+        583,
+        56,
+        56
+      ],
+      "anchor": [
+        30,
+        56
+      ],
+      "kind": "body",
+      "fullRect": false,
+      "keyedPixels": 2509,
+      "outerColourKept": 1,
+      "bbox": [
+        8,
+        20,
+        56,
+        56
+      ],
+      "opaquePixels": 627
+    },
+    {
+      "name": "acro4",
+      "rect": [
+        304,
+        583,
+        56,
+        56
+      ],
+      "anchor": [
+        28,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2514,
+      "outerColourKept": 0,
+      "bbox": [
+        16,
+        8,
+        38,
+        56
+      ],
+      "opaquePixels": 622
+    },
+    {
+      "name": "airKick0",
+      "rect": [
+        48,
+        648,
+        64,
+        64
+      ],
+      "anchor": [
+        24,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3522,
+      "outerColourKept": 0,
+      "bbox": [
+        12,
+        2,
+        39,
+        49
+      ],
+      "opaquePixels": 574
+    },
+    {
+      "name": "airKick1",
+      "rect": [
+        120,
+        648,
+        64,
+        64
+      ],
+      "anchor": [
+        22,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3490,
+      "outerColourKept": 0,
+      "bbox": [
+        9,
+        2,
+        59,
+        41
+      ],
+      "opaquePixels": 606
+    },
+    {
+      "name": "flyKick0",
+      "rect": [
+        48,
+        720,
+        48,
+        48
+      ],
+      "anchor": [
+        20,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1683,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        5,
+        46,
+        48
+      ],
+      "opaquePixels": 621
+    },
+    {
+      "name": "arc0",
+      "rect": [
+        48,
+        776,
+        64,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2949,
+      "outerColourKept": 0,
+      "bbox": [
+        15,
+        2,
+        47,
+        56
+      ],
+      "opaquePixels": 635
+    },
+    {
+      "name": "arc1",
+      "rect": [
+        120,
+        776,
+        64,
+        56
+      ],
+      "anchor": [
+        30,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3065,
+      "outerColourKept": 0,
+      "bbox": [
+        10,
+        2,
+        50,
+        34
+      ],
+      "opaquePixels": 519
+    },
+    {
+      "name": "arc2",
+      "rect": [
+        192,
+        776,
+        65,
+        56
+      ],
+      "anchor": [
+        28,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3075,
+      "outerColourKept": 0,
+      "bbox": [
+        11,
+        2,
+        60,
+        34
+      ],
+      "opaquePixels": 565
+    },
+    {
+      "name": "arc3",
+      "rect": [
+        264,
+        776,
+        66,
+        56
+      ],
+      "anchor": [
+        30,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3179,
+      "outerColourKept": 0,
+      "bbox": [
+        12,
+        2,
+        52,
+        34
+      ],
+      "opaquePixels": 517
+    },
+    {
+      "name": "arc4",
+      "rect": [
+        336,
+        776,
+        67,
+        56
+      ],
+      "anchor": [
+        28,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3132,
+      "outerColourKept": 0,
+      "bbox": [
+        19,
+        2,
+        50,
+        54
+      ],
+      "opaquePixels": 620
+    },
+    {
+      "name": "arc5",
+      "rect": [
+        408,
+        776,
+        68,
+        56
+      ],
+      "anchor": [
+        28,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3063,
+      "outerColourKept": 0,
+      "bbox": [
+        15,
+        0,
+        65,
+        56
+      ],
+      "opaquePixels": 745
+    },
+    {
+      "name": "arc6",
+      "rect": [
+        485,
+        776,
+        64,
+        56
+      ],
+      "anchor": [
+        30,
+        56
+      ],
+      "kind": "body",
+      "fullRect": false,
+      "keyedPixels": 2896,
+      "outerColourKept": 66,
+      "bbox": [
+        17,
+        8,
+        39,
+        56
+      ],
+      "opaquePixels": 688
+    },
+    {
+      "name": "arc7",
+      "rect": [
+        558,
+        776,
+        64,
+        56
+      ],
+      "anchor": [
+        32,
+        56
+      ],
+      "kind": "body",
+      "fullRect": false,
+      "keyedPixels": 3032,
+      "outerColourKept": 11,
+      "bbox": [
+        16,
+        18,
+        42,
+        56
+      ],
+      "opaquePixels": 552
+    },
+    {
+      "name": "aim0",
+      "rect": [
+        48,
+        840,
+        56,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2419,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        4,
+        34,
+        56
+      ],
+      "opaquePixels": 717
+    },
+    {
+      "name": "aim1",
+      "rect": [
+        112,
+        840,
+        56,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2340,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        3,
+        50,
+        56
+      ],
+      "opaquePixels": 796
+    },
+    {
+      "name": "aim2",
+      "rect": [
+        176,
+        840,
+        56,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2339,
+      "outerColourKept": 0,
+      "bbox": [
+        2,
+        3,
+        47,
+        56
+      ],
+      "opaquePixels": 797
+    },
+    {
+      "name": "airAim0",
+      "rect": [
+        48,
+        904,
+        48,
+        64
+      ],
+      "anchor": [
+        18,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2372,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        3,
+        48,
+        64
+      ],
+      "opaquePixels": 700
+    },
+    {
+      "name": "fire0",
+      "rect": [
+        47,
+        976,
+        72,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3092,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        0,
+        64,
+        56
+      ],
+      "opaquePixels": 940
+    },
+    {
+      "name": "fire1",
+      "rect": [
+        127,
+        976,
+        72,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2869,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1163
+    },
+    {
+      "name": "fire2",
+      "rect": [
+        207,
+        976,
+        72,
+        56
+      ],
+      "anchor": [
+        22,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2937,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1095
+    },
+    {
+      "name": "streak0",
+      "rect": [
+        48,
+        1040,
+        40,
+        56
+      ],
+      "anchor": [
+        20,
+        56
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1515,
+      "outerColourKept": 0,
+      "bbox": [
+        1,
+        1,
+        39,
+        56
+      ],
+      "opaquePixels": 725
+    },
+    {
+      "name": "streak1",
+      "rect": [
+        96,
+        1040,
+        48,
+        64
+      ],
+      "anchor": [
+        24,
+        64
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 2243,
+      "outerColourKept": 0,
+      "bbox": [
+        3,
+        4,
+        46,
+        64
+      ],
+      "opaquePixels": 829
+    },
+    {
+      "name": "beam0",
+      "rect": [
+        48,
+        1120,
+        72,
+        24
+      ],
+      "anchor": [
+        0,
+        12
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1607,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        3,
+        16,
+        23
+      ],
+      "opaquePixels": 121
+    },
+    {
+      "name": "beam1",
+      "rect": [
+        128,
+        1120,
+        72,
+        24
+      ],
+      "anchor": [
+        0,
+        12
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1507,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        11,
+        64,
+        15
+      ],
+      "opaquePixels": 221
+    },
+    {
+      "name": "beam2",
+      "rect": [
+        208,
+        1120,
+        72,
+        24
+      ],
+      "anchor": [
+        0,
+        12
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1534,
+      "outerColourKept": 0,
+      "bbox": [
+        0,
+        12,
+        66,
+        15
+      ],
+      "opaquePixels": 194
+    }
+  ],
+  "sequences": {
+    "idle": [
+      "ready0",
+      "ready1"
+    ],
+    "walk": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "run": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "walk_back": [
+      "run7",
+      "run6",
+      "run5",
+      "run4",
+      "run3",
+      "run2",
+      "run1",
+      "run0"
+    ],
+    "dash": [
+      "run1"
+    ],
+    "jump": [
+      "jump0"
+    ],
+    "fall": [
+      "jump1"
+    ],
+    "crouch": [
+      "ground2"
+    ],
+    "guard": [
+      "guard0"
+    ],
+    "hurt": [
+      "fall0"
+    ],
+    "knockdown": [
+      "fall0",
+      "fall1",
+      "fall2"
+    ],
+    "getup": [
+      "fall3",
+      "fall4",
+      "ready0"
+    ],
+    "light": [
+      "strike0",
+      "strike1"
+    ],
+    "gJ2": [
+      "kick0",
+      "kick1"
+    ],
+    "gJ3": [
+      "kick1",
+      "kick2"
+    ],
+    "heavy": [
+      "arc4",
+      "arc5"
+    ],
+    "gLow": [
+      "ground1"
+    ],
+    "up": [
+      "acro0",
+      "acro1"
+    ],
+    "air": [
+      "airKick0",
+      "airKick1"
+    ],
+    "down_air": [
+      "airKick1"
+    ],
+    "gAdvance": [
+      "flyKick0"
+    ],
+    "gChain": [
+      "aim0",
+      "aim1"
+    ],
+    "gAway": [
+      "arc4",
+      "arc5"
+    ],
+    "gScan": [
+      "ground2",
+      "arc7"
+    ],
+    "gShot": [
+      "aim0",
+      "aim1",
+      "aim2"
+    ],
+    "gAcro": [
+      "acro2",
+      "acro3",
+      "acro4"
+    ],
+    "gFollow": [
+      "kick1",
+      "kick2"
+    ],
+    "gRise": [
+      "jump0",
+      "airKick1"
+    ],
+    "gRetreat": [
+      "arc1",
+      "arc2",
+      "arc3"
+    ],
+    "gHeel": [
+      "airKick0"
+    ],
+    "ultimate": [
+      "fire0",
+      "fire1",
+      "fire2"
+    ],
+    "grab": [
+      "strike0",
+      "strike1"
+    ],
+    "win": [
+      "arc6",
+      "ready0"
+    ],
+    "intro": [
+      "arc7",
+      "arc6"
+    ]
+  }
+}

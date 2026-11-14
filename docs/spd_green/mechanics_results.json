@@ -1,0 +1,311 @@
+{
+  "routes": [
+    {
+      "label": "J1 -> J2 -> J3",
+      "hits": [
+        10,
+        12,
+        15
+      ],
+      "damage": 37,
+      "energySpent": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "J1 -> J2 -> J3 (mirrored)",
+      "hits": [
+        10,
+        12,
+        15
+      ],
+      "damage": 37,
+      "energySpent": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": true
+    },
+    {
+      "label": "J1 -> Heavy -> Deltamax Check",
+      "hits": [
+        10,
+        31,
+        19
+      ],
+      "damage": 60,
+      "energySpent": 11.159999999999968,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        35
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Forward+Heavy -> Heavy -> Heavy",
+      "hits": [
+        14,
+        17,
+        22
+      ],
+      "damage": 53,
+      "energySpent": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        29,
+        33
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Launcher -> manual Jump -> Air",
+      "damage": 40,
+      "hits": null,
+      "trueCombo": true,
+      "comboCounter": 2
+    },
+    {
+      "label": "Aura Read -> Acrobat Step -> marked Heavy follow-up",
+      "hp0": 980,
+      "stunAtRecovery": 31,
+      "stunAtFollowStart": 30,
+      "follows": 1,
+      "followHit": 11,
+      "followCost": 4.94,
+      "damage": 39,
+      "mark": false,
+      "combo": 3,
+      "trueCombo": true
+    },
+    {
+      "label": "Phase step (120px) -> Heavy punish",
+      "damage": 31,
+      "energySpent": 6.379999999999939
+    }
+  ],
+  "advantages": [
+    {
+      "key": "light",
+      "guard": false,
+      "total": 17,
+      "contactFrame": 5,
+      "attackerReadyAfter": 16,
+      "defenderFreeAfter": 21,
+      "advantage": 5
+    },
+    {
+      "key": "gJ2",
+      "guard": false,
+      "total": 20,
+      "contactFrame": 6,
+      "attackerReadyAfter": 18,
+      "defenderFreeAfter": 24,
+      "advantage": 6
+    },
+    {
+      "key": "gJ3",
+      "guard": false,
+      "total": 30,
+      "contactFrame": 9,
+      "attackerReadyAfter": 25,
+      "defenderFreeAfter": 31,
+      "advantage": 6
+    },
+    {
+      "key": "heavy",
+      "guard": false,
+      "total": 41,
+      "contactFrame": 13,
+      "attackerReadyAfter": 38,
+      "defenderFreeAfter": 48,
+      "advantage": 10
+    },
+    {
+      "key": "gLow",
+      "guard": false,
+      "total": 26,
+      "contactFrame": 8,
+      "attackerReadyAfter": 22,
+      "defenderFreeAfter": 28,
+      "advantage": 6
+    },
+    {
+      "key": "up",
+      "guard": false,
+      "total": 37,
+      "contactFrame": 12,
+      "attackerReadyAfter": 37,
+      "defenderFreeAfter": 46,
+      "advantage": 9
+    },
+    {
+      "key": "gAdvance",
+      "guard": false,
+      "total": 32,
+      "contactFrame": 10,
+      "attackerReadyAfter": 32,
+      "defenderFreeAfter": 42,
+      "advantage": 10
+    },
+    {
+      "key": "gChain",
+      "guard": false,
+      "total": 35,
+      "contactFrame": 11,
+      "attackerReadyAfter": 34,
+      "defenderFreeAfter": 46,
+      "advantage": 12
+    },
+    {
+      "key": "gAway",
+      "guard": false,
+      "total": 42,
+      "contactFrame": 13,
+      "attackerReadyAfter": 39,
+      "defenderFreeAfter": 44,
+      "advantage": 5
+    },
+    {
+      "key": "gFollow",
+      "guard": false,
+      "total": 29,
+      "contactFrame": 6,
+      "attackerReadyAfter": 33,
+      "defenderFreeAfter": 39,
+      "advantage": 6
+    },
+    {
+      "key": "gRise",
+      "guard": false,
+      "total": 44,
+      "contactFrame": 10,
+      "attackerReadyAfter": 50,
+      "defenderFreeAfter": 47,
+      "advantage": -3
+    },
+    {
+      "key": "light",
+      "guard": true,
+      "total": 17,
+      "contactFrame": 5,
+      "attackerReadyAfter": 12,
+      "defenderFreeAfter": 10,
+      "advantage": -2
+    },
+    {
+      "key": "gJ2",
+      "guard": true,
+      "total": 20,
+      "contactFrame": 6,
+      "attackerReadyAfter": 14,
+      "defenderFreeAfter": 11,
+      "advantage": -3
+    },
+    {
+      "key": "gJ3",
+      "guard": true,
+      "total": 30,
+      "contactFrame": 9,
+      "attackerReadyAfter": 21,
+      "defenderFreeAfter": 11,
+      "advantage": -10
+    },
+    {
+      "key": "heavy",
+      "guard": true,
+      "total": 41,
+      "contactFrame": 13,
+      "attackerReadyAfter": 28,
+      "defenderFreeAfter": 13,
+      "advantage": -15
+    },
+    {
+      "key": "gLow",
+      "guard": true,
+      "total": 26,
+      "contactFrame": 8,
+      "attackerReadyAfter": 18,
+      "defenderFreeAfter": 11,
+      "advantage": -7
+    },
+    {
+      "key": "up",
+      "guard": true,
+      "total": 37,
+      "contactFrame": 12,
+      "attackerReadyAfter": 25,
+      "defenderFreeAfter": 11,
+      "advantage": -14
+    },
+    {
+      "key": "gAdvance",
+      "guard": true,
+      "total": 32,
+      "contactFrame": 10,
+      "attackerReadyAfter": 22,
+      "defenderFreeAfter": 11,
+      "advantage": -11
+    },
+    {
+      "key": "gChain",
+      "guard": true,
+      "total": 35,
+      "contactFrame": 11,
+      "attackerReadyAfter": 24,
+      "defenderFreeAfter": 11,
+      "advantage": -13
+    },
+    {
+      "key": "gAway",
+      "guard": true,
+      "total": 42,
+      "contactFrame": 13,
+      "attackerReadyAfter": 29,
+      "defenderFreeAfter": 11,
+      "advantage": -18
+    },
+    {
+      "key": "gFollow",
+      "guard": true,
+      "total": 29,
+      "contactFrame": 6,
+      "attackerReadyAfter": 23,
+      "defenderFreeAfter": 11,
+      "advantage": -12
+    },
+    {
+      "key": "gRise",
+      "guard": true,
+      "total": 44,
+      "contactFrame": 10,
+      "attackerReadyAfter": 34,
+      "defenderFreeAfter": 11,
+      "advantage": -23
+    }
+  ],
+  "moves": {
+    "acroUnmarked": {
+      "contacts": [
+        "gAcro:20",
+        "gAcro2:28"
+      ],
+      "applied": 28,
+      "cost": 18
+    }
+  },
+  "engineDamageScale": 0.588,
+  "passes": 60,
+  "failures": 0,
+  "errors": []
+}

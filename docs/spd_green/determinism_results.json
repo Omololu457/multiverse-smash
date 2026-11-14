@@ -1,0 +1,45 @@
+{
+  "replay": {
+    "frames": 1100,
+    "identical": true,
+    "exercised": [
+      "gScan",
+      "mark",
+      "teleport",
+      "gAcro",
+      "gAcro2",
+      "follow",
+      "gFollow",
+      "gShot",
+      "gRetreat",
+      "gRise",
+      "gHeel",
+      "light",
+      "gJ2"
+    ]
+  },
+  "renderBatching": {
+    "samples": 275,
+    "identical": true
+  },
+  "lifecycle": {
+    "marked": true,
+    "shot": true,
+    "trainingClears": true,
+    "mirrors": true
+  },
+  "lan": {
+    "scan": true,
+    "shot": true,
+    "tp": true,
+    "frame": 200,
+    "remote": true
+  },
+  "gamepad": {
+    "scan": true,
+    "mark": true,
+    "shot": true
+  },
+  "passes": 17,
+  "errors": []
+}

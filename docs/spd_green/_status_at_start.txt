@@ -1,0 +1,328 @@
+ M characters.js
+ M combat.js
+ M command.txt
+ M credits.js
+ M game.js
+ M homelanderEyeAnchors.js
+ M homelander_work/_render_10_ult_slam.png
+ M homelander_work/_render_1_grounded.png
+ M homelander_work/_render_2_flying_climb.png
+ M homelander_work/_render_3_flying_cruise.png
+ M homelander_work/_render_4_landed.png
+ M homelander_work/_render_5_heat_vision.png
+ M homelander_work/_render_6_supersonic.png
+ M homelander_work/_render_7_sonic_clap.png
+ M homelander_work/_render_8_barrage.png
+ M homelander_work/_render_9_ult_startup.png
+ M index.html
+ M input.js
+ M kits.js
+ M naruto_seventh_kcm_jump_uniform.png
+ M skins.js
+ M spdRedData.js
+ M spdRedFx.js
+ M spdRedState.js
+ M spritesheets.js
+ M supermanEyeAnchors.js
+ M updates.TXT
+?? 2148577_orig.png
+?? 267474479_orig.png
+?? 318483511_orig.png
+?? "351942199_orig (1).png"
+?? 351942199_orig.png
+?? 690129926_orig.png
+?? 802271_orig.png
+?? 808464038.png
+?? 820786773_orig.png
+?? 9203486_orig.png
+?? "Arcade - Marvel Super Heroes - Fighters - Spider-Man.gif"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Diamondhead.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Four Arms.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Grey Matter.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Heatblast.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Upgrade.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - Wildmutt.png"
+?? "Browser Games - Ben 10_ Battle Ready - Aliens - XLR8.png"
+?? "Browser Games - Ben 10_ Battle Ready - Miscellaneous - Omnitrix.png"
+?? "DS _ DSi - Ben 10_ Alien Force - Bosses - Atasian_Highbreed.png"
+?? Free-Drones-Pack-Pixel-Art2.jpg
+?? Free-Drones-Pack-Pixel-Art3.jpg
+?? Free-Drones-Pack-Pixel-Art6.jpg
+?? "Game Boy Advance - One Piece - Enemies - Arlong.png"
+?? "Game Boy Advance - One Piece - Enemies - Buggy.png"
+?? "Game Boy Advance - One Piece - Non-Playable Characters - Roronoa Zoro.png"
+?? "Game Boy Advance - One Piece - Non-Playable Characters - Sanji.png"
+?? "Game Boy Advance - One Piece - Playable Characters - Monkey D. Luffy.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Enemies and Bosses - Krybot.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Blue Ranger.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Green Ranger.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Pink Ranger.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Red Ranger.png"
+?? "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Yellow Ranger.png"
+?? "SNES - Justice League Task Force - Fighters - Green Arrow.png"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Miscellaneous - HUD & Coins.png"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Rangers - Black Ranger.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Rangers - Blue Ranger.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Rangers - Pink Ranger.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Rangers - White Ranger.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Rangers - Yellow Ranger.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Falconzord.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Ninja Falcon Megazord.png"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Ninja Megazord.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Thunder Megazord.gif"
+?? "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - White Tigerzord.gif"
+?? articguana_sprite_sheet_by_dragonrod342_db3ji8s.png
+?? assets/fx/
+?? assets/incoming/zoro/
+?? assets/krybot/
+?? assets/spd_blue/
+?? assets/sprites/ben10/
+?? assets/sprites/zoro/
+?? barrierRingFx.js
+?? ben10_work/
+?? ben_10_rath_sprites_sheet_by_mhcd12_dmav8zd.png
+?? ben_10_ulsw_sprite_sheet_by_elguindbz_dmy5m86.png
+?? ben_tennyson_sprites_jus_ben_10__by_xmaygrrr_db485kk.png
+?? benwolf_sprite_sheet_by_dragonrod342_d84osmt.png
+?? brutality_work/shots/buggy/
+?? brutality_work/shots/buggy_skins/
+?? brutality_work/shots/ga_blast/
+?? deadpool_sprite_sheet_by_shubuster_dijeb4i.png
+?? dfqv7c5-54365028-a0f9-4083-bc5a-c02492dbfd90.png
+?? dfsjqtg-983225fc-cf77-43d1-8565-e7063defaa4e.png
+?? diamondhead_omniverse_style_sprite_sheet_by_arksalazarx31_da8cjah-375w-2x.jpg
+?? docs/greenarrow/ga_bands_contact.png
+?? docs/krybot/
+?? docs/skins/
+?? docs/spd_blue/
+?? docs/spd_green/
+?? docs/spd_red/muzzle_anchors.png
+?? docs/zoro/contact_zoro.png
+?? docs/zoro/source_rects.json
+?? feedback_omniverse_style_sprite_sheet_by_fusioncj_dd7x6y0.png
+?? ghostface_sfx/
+?? ghostface_work/
+?? gojo_work/
+?? gojo_work_alienx.png
+?? gojo_work_alienx_live_zoom.png
+?? gojo_work_diag.png
+?? gojo_work_gojoAlienX_wide.png
+?? gojo_work_gojoHollowPurple_wide.png
+?? gojo_work_hp_fixed.png
+?? gojo_work_hp_live.png
+?? gojo_work_idle_big.png
+?? gojo_work_live_montage.png
+?? gojo_work_montage.png
+?? gojo_work_portraits.png
+?? goku_base_sin_terminar_by_jonodio369_dexdfwt.png
+?? goku_work/_R18.png
+?? goku_work/_R8.png
+?? goku_work/_bd.png
+?? goku_work/_blue_full.png
+?? goku_work/_bottom.png
+?? goku_work/_cc_R8.png
+?? goku_work/_cluster_low.png
+?? goku_work/_contact_blue.png
+?? goku_work/_contact_god.png
+?? goku_work/_contact_ssj.png
+?? goku_work/_contact_ssj2.png
+?? goku_work/_contact_ssj3.png
+?? goku_work/_contact_ui.png
+?? goku_work/_crown.png
+?? goku_work/_diag.png
+?? goku_work/_faces.png
+?? goku_work/_faces2_A.png
+?? goku_work/_faces2_B.png
+?? goku_work/_forms_report.json
+?? goku_work/_fx_barrage.png
+?? goku_work/_ghost.png
+?? goku_work/_gold_ctx.png
+?? goku_work/_head_only.png
+?? goku_work/_heads.png
+?? goku_work/_heads_dn.png
+?? goku_work/_heads_gold.png
+?? goku_work/_idle0_ssj.png
+?? goku_work/_ig.png
+?? goku_work/_ig_base.png
+?? goku_work/_ig_ssj.png
+?? goku_work/_kameha.png
+?? goku_work/_kameha_pick.png
+?? goku_work/_kameha_search.png
+?? goku_work/_kameha_strip.png
+?? goku_work/_lastrow.png
+?? goku_work/_loose.png
+?? goku_work/_midright.png
+?? goku_work/_normals_qa.png
+?? goku_work/_pick_678.png
+?? goku_work/_pick_9to13.png
+?? goku_work/_pick_kicks.png
+?? goku_work/_pick_more.png
+?? goku_work/_qa.png
+?? goku_work/_rightjump.png
+?? goku_work/_ssj3.png
+?? goku_work/_ssj3check.png
+?? goku_work/_strip_meta.json
+?? goku_work/_strips_qa.png
+?? goku_work/_t1.png
+?? goku_work/_t2.png
+?? goku_work/_t3.png
+?? goku_work/_t4.png
+?? goku_work/_t5.png
+?? goku_work/_tall_montage.png
+?? goku_work/_test_ssj.png
+?? goku_work/_test_ssj_zoomL.png
+?? goku_work/_topmid.png
+?? goku_work/_transplant_contact.png
+?? goku_work/_transplant_gold.png
+?? goku_work/_view_BL.png
+?? goku_work/_view_BR.png
+?? goku_work/_view_TL.png
+?? goku_work/_view_TR.png
+?? goku_work/_view_full.png
+?? goku_work/_xform.png
+?? goku_work/_xform2.png
+?? green_arrow_work/_facing_audit.png
+?? green_arrow_work/base/
+?? green_arrow_work/base2/
+?? green_arrow_work/swap.sh
+?? green_arrow_work/verify_drones.png
+?? green_arrow_work/verify_special.png
+?? green_arrow_work/z_b11.png
+?? green_arrow_work/z_b15.png
+?? green_arrow_work/z_b16.png
+?? green_arrow_work/z_b9.png
+?? green_arrow_work/z_proj.png
+?? green_arrow_work/zz_b10_draw.png
+?? green_arrow_work/zz_b15_knockdown.png
+?? green_arrow_work/zz_b9_slash.png
+?? groundTeleport.js
+?? harness/_ga_audit.mjs
+?? harness/_zoro_boot_tmp.mjs
+?? harness/fixtures/
+?? harness/inspired_skins_krybot_spd_blue.mjs
+?? harness/krybot.test.mjs
+?? harness/krybot_ai.mjs
+?? harness/krybot_determinism.mjs
+?? harness/krybot_lifecycle.mjs
+?? harness/krybot_render.mjs
+?? harness/krybot_routes.mjs
+?? harness/krybot_skins.test.mjs
+?? harness/krybot_skins_lan.mjs
+?? harness/krybot_skins_mirrors.mjs
+?? harness/krybot_skins_perf.mjs
+?? harness/krybot_skins_render_cost.mjs
+?? harness/krybot_skins_visual.mjs
+?? harness/krybot_visual.mjs
+?? harness/spd_blue.test.mjs
+?? harness/spd_blue_defense_pad.mjs
+?? harness/spd_blue_smoke.mjs
+?? harness/spd_blue_teleport.test.mjs
+?? harness/zoro_framedata_diff.mjs
+?? heatblast_sprite_sheet_by_dragonrod_by_dragonrod342_d7yh7km.png
+?? homelander_work/_autoaim.png
+?? homelander_work/_eye_debug.png
+?? homelander_work/_fix_flyCruise0.png
+?? homelander_work/_fix_flyCruise1.png
+?? homelander_work/_fix_flyCruise2.png
+?? homelander_work/_fix_flyCruise3.png
+?? homelander_work/_fix_flyDive0.png
+?? homelander_work/_fix_flyTurn0.png
+?? homelander_work/_fix_flyTurn1.png
+?? homelander_work/_fix_montage.png
+?? homelander_work/_fullskins.png
+?? homelander_work/_hair_mask.png
+?? homelander_work/_hairskins.png
+?? homelander_work/_hlult_0.png
+?? homelander_work/_hlult_1.png
+?? homelander_work/_hlult_2.png
+?? homelander_work/_hlult_3.png
+?? homelander_work/_hlult_4.png
+?? homelander_work/_hlult_5.png
+?? homelander_work/_hlult_6.png
+?? homelander_work/_hlult_7.png
+?? homelander_work/_hlult_8.png
+?? homelander_work/_hv_eye_zoom.png
+?? homelander_work/_hv_eye_zoom2.png
+?? homelander_work/_hv_gap.png
+?? homelander_work/_hv_gap_zoom.png
+?? homelander_work/_kit_flex.png
+?? homelander_work/_kit_ride.png
+?? homelander_work/_skin_mask.png
+?? homelander_work/eye_anchors.json
+?? homelander_work/eye_detect.py
+?? humungousaur_ben_10_sprites_sheet_by_ipmugenofficial_djlwsq9.png
+?? humungousaur_by_dragonrod342_db34ddm.png
+?? killua_work/
+?? killua_work_montage.png
+?? krybot.js
+?? krybotAudio.js
+?? krybotData.js
+?? krybotFx.js
+?? krybotHarness.js
+?? krybotKit.js
+?? krybotSkins.js
+?? krybotSprites.js
+?? krybotState.js
+?? mmpr_green_ranger_custom_sprite_sheet_by_supaman2525_d65abhs.png
+?? ripjaws_sprite_sheet_by_dragonrod342_d7yqxvd.png
+?? soldier_boy_work/_contact.png
+?? soldier_boy_work/_contact_0.png
+?? soldier_boy_work/_contact_1.png
+?? soldier_boy_work/_contact_2.png
+?? soldier_boy_work/_contact_3.png
+?? soldier_boy_work/_contact_4.png
+?? soldier_boy_work/_gun_rifle.png
+?? soldier_boy_work/_gun_smg.png
+?? soldier_boy_work/_gun_smg_zoom.png
+?? soldier_boy_work/_kit_1_goldrush.png
+?? soldier_boy_work/_kit_2_nuke_startup.png
+?? soldier_boy_work/_kit_3_nuke_blast.png
+?? soldier_boy_work/_render_1_idle.png
+?? soldier_boy_work/_render_2_walk.png
+?? soldier_boy_work/_render_3_jump.png
+?? soldier_boy_work/_render_4_crouch.png
+?? soldier_boy_work/_verify.png
+?? soldier_boy_work/_z_alienx.png
+?? soldier_boy_work/_z_alienx_zoom.png
+?? soldier_boy_work_idle.png
+?? soldier_boy_work_montage.png
+?? soldierboy_sprite_sheet_by_crow_animaraz_by_metalsonictypeone_dlwzetj.png
+?? spdBlue.js
+?? spdBlueData.js
+?? spdBlueFx.js
+?? spdBlueHarness.js
+?? spdBlueKit.js
+?? spdBlueSkins.js
+?? spdBlueSprites.js
+?? spdBlueState.js
+?? spdRedMuzzles.js
+?? spiderman_work/
+?? superman_work/
+?? swampfire_work/
+?? tools/eye_anchor_check.py
+?? tools/krybot/
+?? tools/spd_blue/
+?? tools/spd_red_build/detect_muzzles.py
+?? tools/zoro/
+?? triage_round2.txt
+?? vilgax_work/_drone_fullres.png
+?? vilgax_work/_drone_montage.png
+?? vilgax_work/_drone_summary.json
+?? vilgax_work/_overview_boxes.png
+?? vilgax_work/_panel_city.png
+?? vilgax_work/_panel_eye.png
+?? vilgax_work/_panels.png
+?? vilgax_work/_qa_montage.png
+?? vilgax_work/_rows_preview.png
+?? vilgax_work/_summary.json
+?? vilgax_work/_summary_clean.json
+?? vilgax_work/brutality_shots/
+?? vilgax_work/drone_shots/
+?? vilgax_work/evasion_shots/
+?? vilgax_work/kit_shots/
+?? vilgax_work/render_shots/
+?? vilgax_work/ult_shots/
+?? wildmutt_by_dragonrod342_davs1vq.png
+?? wildvine_sprite_sheet_by_dragonrod342_d829hfh.png
+?? xlr8_sprite_sheet_by_dragonrod342_d7ylyle.png
+?? zoroAssets.js

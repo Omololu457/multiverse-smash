@@ -1,0 +1,853 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "black: outlines + visor + black side panels (kept)",
+  "2": "suit: helmet + green cloth",
+  "3": "trim: gloves / belt / chest+leg stripes / boot trim",
+  "4": "grey: floor shadow + Deltamax body (kept)",
+  "5": "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)",
+  "6": "other stray pixels (kept)"
+ },
+ "suitRamp": [
+  [
+   8,
+   66,
+   24
+  ],
+  [
+   16,
+   99,
+   33
+  ],
+  [
+   24,
+   123,
+   49
+  ],
+  [
+   24,
+   156,
+   66
+  ],
+  [
+   33,
+   181,
+   82
+  ],
+  [
+   41,
+   214,
+   99
+  ]
+ ],
+ "suitExtra": {
+  "(57, 182, 52)": 4
+ },
+ "trimRamp": [
+  [
+   148,
+   148,
+   140
+  ],
+  [
+   198,
+   198,
+   181
+  ],
+  [
+   247,
+   255,
+   231
+  ]
+ ],
+ "black": [
+  [
+   0,
+   0,
+   0
+  ],
+  [
+   8,
+   8,
+   8
+  ]
+ ],
+ "grey": [
+  [
+   49,
+   49,
+   41
+  ],
+  [
+   99,
+   99,
+   90
+  ]
+ ],
+ "weaponRule": "light blob with >=45% transparent rim or >=160 px",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "spdGreenAlienX",
+   "class": "Crossover palette",
+   "suit": [
+    [
+     8,
+     9,
+     10
+    ],
+    [
+     13,
+     14,
+     16
+    ],
+    [
+     19,
+     20,
+     23
+    ],
+    [
+     26,
+     28,
+     31
+    ],
+    [
+     34,
+     38,
+     40
+    ],
+    [
+     44,
+     66,
+     52
+    ]
+   ],
+   "trim": [
+    [
+     160,
+     166,
+     168
+    ],
+    [
+     212,
+     216,
+     218
+    ],
+    [
+     242,
+     246,
+     246
+    ]
+   ],
+   "fx": [
+    "#d8ffe4",
+    "#3fae6a"
+   ],
+   "source": "Ben 10: Alien Force / Ultimate Alien \u2014 Alien X (Celestialsapien) colour scheme only",
+   "notes": "Charcoal/black suit; light trim; restrained green only on the top suit highlight step. The project's existing Alien X starfield overlay (game.js drawAlienXStarfield, id ends \"AlienX\") draws on top. No Alien X anatomy, horns or constellations added to the pixels."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "spd_green_inspired_upgrade",
+   "class": "Crossover palette",
+   "suit": [
+    [
+     4,
+     6,
+     4
+    ],
+    [
+     8,
+     11,
+     8
+    ],
+    [
+     12,
+     16,
+     12
+    ],
+    [
+     17,
+     22,
+     17
+    ],
+    [
+     23,
+     30,
+     23
+    ],
+    [
+     31,
+     40,
+     31
+    ]
+   ],
+   "trim": [
+    [
+     40,
+     170,
+     70
+    ],
+    [
+     80,
+     225,
+     110
+    ],
+    [
+     165,
+     255,
+     180
+    ]
+   ],
+   "fx": [
+    "#8dffad",
+    "#1fd060"
+   ],
+   "source": "Ben 10 (2005) \u2014 Upgrade (Galvanic Mechamorph) colour scheme only",
+   "notes": "Dark suit; the EXISTING trim pixels (stripes, belt, gloves) turn bright green. No circuitry pattern added."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "spd_green_inspired_diamondhead",
+   "class": "Crossover palette",
+   "suit": [
+    [
+     6,
+     40,
+     52
+    ],
+    [
+     10,
+     66,
+     80
+    ],
+    [
+     18,
+     98,
+     112
+    ],
+    [
+     36,
+     140,
+     150
+    ],
+    [
+     70,
+     186,
+     192
+    ],
+    [
+     126,
+     228,
+     228
+    ]
+   ],
+   "trim": [
+    [
+     170,
+     196,
+     204
+    ],
+    [
+     214,
+     236,
+     240
+    ],
+    [
+     244,
+     255,
+     255
+    ]
+   ],
+   "fx": [
+    "#a8fff2",
+    "#2fb8b0"
+   ],
+   "source": "Ben 10 (2005) \u2014 Diamondhead (Petrosapien) colour scheme only",
+   "notes": "Cyan/teal suit, pale highlights, deep cool shadows. No crystal shards or facets added."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "spd_green_inspired_heatblast",
+   "class": "Crossover palette",
+   "suit": [
+    [
+     22,
+     8,
+     6
+    ],
+    [
+     38,
+     12,
+     8
+    ],
+    [
+     58,
+     18,
+     10
+    ],
+    [
+     84,
+     26,
+     12
+    ],
+    [
+     112,
+     36,
+     14
+    ],
+    [
+     140,
+     50,
+     18
+    ]
+   ],
+   "trim": [
+    [
+     214,
+     84,
+     18
+    ],
+    [
+     250,
+     140,
+     30
+    ],
+    [
+     255,
+     206,
+     96
+    ]
+   ],
+   "fx": [
+    "#ffc070",
+    "#ff6a10"
+   ],
+   "source": "Ben 10 (2005) \u2014 Heatblast (Pyronite) colour scheme only",
+   "notes": "Dark volcanic suit; warm orange/red on the existing trim. No flame particles or rock texture."
+  },
+  "spd_blue": {
+   "name": "SPD Blue \u2014 Inspired Palette",
+   "id": "spd_green_inspired_spd_blue",
+   "class": "Team palette swap",
+   "suit": [
+    [
+     0,
+     8,
+     74
+    ],
+    [
+     24,
+     33,
+     99
+    ],
+    [
+     41,
+     49,
+     123
+    ],
+    [
+     66,
+     74,
+     156
+    ],
+    [
+     82,
+     99,
+     181
+    ],
+    [
+     99,
+     115,
+     206
+    ]
+   ],
+   "trim": [
+    [
+     148,
+     148,
+     140
+    ],
+    [
+     198,
+     198,
+     181
+    ],
+    [
+     247,
+     255,
+     231
+    ]
+   ],
+   "fx": [
+    "#78bdff",
+    "#287aff"
+   ],
+   "source": "Same game: the S.P.D. Blue Ranger sheet's exact 6-step suit ramp (assets/spd_blue / tools/spd_blue/skins) mapped onto Green's 6-step ramp",
+   "notes": "Bridge Carson's own helmet silhouette, pose set, kit and identity in Blue's colours \u2014 not Sky Tate / the Blue Ranger. The sprite carries no legible suit number; nothing is added."
+  },
+  "shadow": {
+   "name": "SPD Shadow \u2014 Inspired Palette",
+   "id": "spd_green_inspired_shadow",
+   "class": "Original interpretation",
+   "suit": [
+    [
+     8,
+     10,
+     22
+    ],
+    [
+     14,
+     17,
+     34
+    ],
+    [
+     20,
+     24,
+     46
+    ],
+    [
+     28,
+     33,
+     60
+    ],
+    [
+     38,
+     44,
+     76
+    ],
+    [
+     50,
+     58,
+     94
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     156,
+     168
+    ],
+    [
+     196,
+     202,
+     212
+    ],
+    [
+     236,
+     240,
+     246
+    ]
+   ],
+   "fx": [
+    "#d6e0f0",
+    "#5a6c98"
+   ],
+   "source": "Inspired by the S.P.D. Shadow Ranger colour scheme (Power Rangers S.P.D., 2005)",
+   "notes": "Navy/charcoal suit with silver trim \u2014 an interpretation using existing regions only. No canine features; not presented as Doggie Cruger."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 103,
+    "suit: helmet + green cloth": 791,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 186,
+    "grey: floor shadow + Deltamax body (kept)": 82,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 18
+   },
+   "maskSha256": "01fbc0865f21e4bf762df57e0625e544b15fbb0aa0a8928aa47b937cdbabc648"
+  },
+  "crouch.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 59,
+    "suit: helmet + green cloth": 366,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 31,
+    "grey: floor shadow + Deltamax body (kept)": 34,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 32
+   },
+   "maskSha256": "a4745f8b12730983e14f53e23db8010be33810bbf8d7eaf2eb14c834b22a38bc"
+  },
+  "dash.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 88,
+    "suit: helmet + green cloth": 438,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 70,
+    "grey: floor shadow + Deltamax body (kept)": 27,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 25
+   },
+   "maskSha256": "3afef611732054bb81d9bc1ed86bed5ae63228b6c712131ddee805fb55831fe1"
+  },
+  "down_air.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 69,
+    "suit: helmet + green cloth": 391,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 109,
+    "grey: floor shadow + Deltamax body (kept)": 37
+   },
+   "maskSha256": "32a5de86076881e3100c6422fca0a5cc04de600d5833a4ec104a3826e81ef61e"
+  },
+  "fall.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 29,
+    "suit: helmet + green cloth": 421,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 80,
+    "grey: floor shadow + Deltamax body (kept)": 40,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 41
+   },
+   "maskSha256": "718b55506fc55f6b423e15f20debdb3456a2a7d65acf83c9cacee5fb243aeee0"
+  },
+  "fx_beam0.png": {
+   "regions": {
+    "suit: helmet + green cloth": 56,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 65
+   },
+   "maskSha256": "664cff8304f9e433d13aa2b499c3257b944670089481fe4270d3ca1702f72511"
+  },
+  "fx_beam1.png": {
+   "regions": {
+    "suit: helmet + green cloth": 125,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 96
+   },
+   "maskSha256": "320ab34afd67258faba38b6a010e3e0c7212c2281ffbba11aaa752908102bb49"
+  },
+  "fx_beam2.png": {
+   "regions": {
+    "suit: helmet + green cloth": 130,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 64
+   },
+   "maskSha256": "2aa69b41932e629cd4db54491d20d133f8d2c561bab28f162cd10d339e4d09df"
+  },
+  "fx_streak0.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 29,
+    "suit: helmet + green cloth": 652,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 24,
+    "grey: floor shadow + Deltamax body (kept)": 16,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 3,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "8bd6368b75c5ab24af9592ab2df875ac6f3ec6f65299e35bc5535b3d74a472fd"
+  },
+  "fx_streak1.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 98,
+    "suit: helmet + green cloth": 535,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 128,
+    "grey: floor shadow + Deltamax body (kept)": 27,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 37,
+    "other stray pixels (kept)": 4
+   },
+   "maskSha256": "f72be7281296946a3089fc0704e428465430454e3e62fe8b8b386b1e61bcb577"
+  },
+  "gAcro.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 366,
+    "suit: helmet + green cloth": 1089,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 211,
+    "grey: floor shadow + Deltamax body (kept)": 151,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 54
+   },
+   "maskSha256": "6ae6661ec5ca462ce5e65e2559319ed9960b89895af80ee92a52797be0127d93"
+  },
+  "gAdvance.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 120,
+    "suit: helmet + green cloth": 371,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 38,
+    "grey: floor shadow + Deltamax body (kept)": 55,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 37
+   },
+   "maskSha256": "774f76632c85ca73a7736f94d5f910cb8d45f771c94fc682829fd2a67b7db3e3"
+  },
+  "gAway.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 176,
+    "suit: helmet + green cloth": 926,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 140,
+    "grey: floor shadow + Deltamax body (kept)": 91,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 32
+   },
+   "maskSha256": "ce279a4de4e1ff191f92896246a0d16408060ff9f236c6ec4907c15510400cc6"
+  },
+  "gChain.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 183,
+    "suit: helmet + green cloth": 983,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 169,
+    "grey: floor shadow + Deltamax body (kept)": 75,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 103
+   },
+   "maskSha256": "0ba7119a8acf3dd6e6946bad7d313db5fdddfebdc7c4cd25c95e8cdaf46c9c4c"
+  },
+  "gFollow.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 211,
+    "suit: helmet + green cloth": 880,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 128,
+    "grey: floor shadow + Deltamax body (kept)": 105,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 32
+   },
+   "maskSha256": "334ad67e971a35adcf93fe0fd2ed8fb8ea6fca7770468a5ed3cedad06a491219"
+  },
+  "gHeel.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 34,
+    "suit: helmet + green cloth": 400,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 77,
+    "grey: floor shadow + Deltamax body (kept)": 45,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 18
+   },
+   "maskSha256": "c44cd0b2b24ac28a3d1a3bdd9446739e98711811e661ac3b4d538c8b01a0dc4a"
+  },
+  "gJ2.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 136,
+    "suit: helmet + green cloth": 861,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 132,
+    "grey: floor shadow + Deltamax body (kept)": 80,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 56
+   },
+   "maskSha256": "08351d16640147a2b2ac8b87a6d323edc2ad325a5630027475c55f83bc8f097f"
+  },
+  "gJ3.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 211,
+    "suit: helmet + green cloth": 880,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 128,
+    "grey: floor shadow + Deltamax body (kept)": 105,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 32
+   },
+   "maskSha256": "334ad67e971a35adcf93fe0fd2ed8fb8ea6fca7770468a5ed3cedad06a491219"
+  },
+  "gLow.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 113,
+    "suit: helmet + green cloth": 342,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 50,
+    "grey: floor shadow + Deltamax body (kept)": 36,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 20
+   },
+   "maskSha256": "43f74b0ffd8fd4bd0cdcba38d5541928eee75b6be4095d8d0f42de1e25dd95eb"
+  },
+  "gRetreat.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 75,
+    "suit: helmet + green cloth": 1222,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 177,
+    "grey: floor shadow + Deltamax body (kept)": 94,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 33
+   },
+   "maskSha256": "e1b0ad58befb37c84eb4f88d941032df8508cdfec9768c63e9b313c85d8fb6da"
+  },
+  "gRise.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 106,
+    "suit: helmet + green cloth": 818,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 216,
+    "grey: floor shadow + Deltamax body (kept)": 70,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 25,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "690bdb503f21df7312a20bc99c3c52033d87c9e7ae0e8bcc86051eff2900d8b7"
+  },
+  "gScan.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 102,
+    "suit: helmet + green cloth": 754,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 97,
+    "grey: floor shadow + Deltamax body (kept)": 61,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 60
+   },
+   "maskSha256": "0c7be67072d98e575505dd94e5e1806da9c734a15c2483692a9d304ffb8e4f70"
+  },
+  "gShot.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 282,
+    "suit: helmet + green cloth": 1481,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 254,
+    "grey: floor shadow + Deltamax body (kept)": 113,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 180
+   },
+   "maskSha256": "fb4f841dcd972dcdbf1b5cbae602c06e3ef24eeec4a5758ddca7e3fde8e39835"
+  },
+  "getup.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 217,
+    "suit: helmet + green cloth": 1342,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 177,
+    "grey: floor shadow + Deltamax body (kept)": 95,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 84,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "471d6ec558979ccbe5b42d6b5584f72b3da0f67a1bddc98a6d140bbf07ce0ee3"
+  },
+  "grab.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 166,
+    "suit: helmet + green cloth": 930,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 146,
+    "grey: floor shadow + Deltamax body (kept)": 71,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 36
+   },
+   "maskSha256": "5e953def82b29b7286a2619bd70f1c21fa958c7b288eca984649a96fd59a2242"
+  },
+  "guard.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 115,
+    "suit: helmet + green cloth": 472,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 73,
+    "grey: floor shadow + Deltamax body (kept)": 22,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 41
+   },
+   "maskSha256": "354692125a11c0d260581743caf2d7064e334b4f6f97f9b7f9a5e4cd03730685"
+  },
+  "heavy.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 176,
+    "suit: helmet + green cloth": 926,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 140,
+    "grey: floor shadow + Deltamax body (kept)": 91,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 32
+   },
+   "maskSha256": "ce279a4de4e1ff191f92896246a0d16408060ff9f236c6ec4907c15510400cc6"
+  },
+  "hurt.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 35,
+    "suit: helmet + green cloth": 476,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 57,
+    "grey: floor shadow + Deltamax body (kept)": 25,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 44
+   },
+   "maskSha256": "67e3177b7323279b6b8efd61362d373c02976291ac9ef13f9d7a39954bea76ad"
+  },
+  "idle.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 173,
+    "suit: helmet + green cloth": 963,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 187,
+    "grey: floor shadow + Deltamax body (kept)": 87,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 53,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "d3ce39d775e7981ea47837c23c05162a923f40bb2aeef7ea94ae67edd4c60195"
+  },
+  "intro.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 158,
+    "suit: helmet + green cloth": 791,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 187,
+    "grey: floor shadow + Deltamax body (kept)": 76,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 28
+   },
+   "maskSha256": "64c5f685d2a91bafc5b50f75cf003acf3866725c75e1429049b8a7b446e9c37f"
+  },
+  "jump.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 37,
+    "suit: helmet + green cloth": 427,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 107,
+    "grey: floor shadow + Deltamax body (kept)": 33,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 25,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "f538c21e13cc67181efd5dc50de3ae9120bf34f8c893808606c11ee26c2c8847"
+  },
+  "knockdown.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 84,
+    "suit: helmet + green cloth": 1343,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 167,
+    "grey: floor shadow + Deltamax body (kept)": 72,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 99,
+    "other stray pixels (kept)": 2
+   },
+   "maskSha256": "665de2028248cac1b6218e8d1bba6ebedcd7a588ec8e2d7fe7b1484a1d54957e"
+  },
+  "light.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 166,
+    "suit: helmet + green cloth": 930,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 146,
+    "grey: floor shadow + Deltamax body (kept)": 71,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 36
+   },
+   "maskSha256": "5e953def82b29b7286a2619bd70f1c21fa958c7b288eca984649a96fd59a2242"
+  },
+  "portrait.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 432,
+    "suit: helmet + green cloth": 2400,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 480,
+    "grey: floor shadow + Deltamax body (kept)": 592,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 880
+   },
+   "maskSha256": "c5f12ebacf9c5ec4ee458f744836d7f42cd324da11db299324580cc166d1a3d4"
+  },
+  "run.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + green cloth": 3464,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "1e93cfef4bbcfcabcfe14c5faf8a19224eed33b1a417caf4b7f0edc4f5cbd9af"
+  },
+  "ultimate.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 327,
+    "suit: helmet + green cloth": 1359,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 135,
+    "grey: floor shadow + Deltamax body (kept)": 209,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 1163,
+    "other stray pixels (kept)": 5
+   },
+   "maskSha256": "b04974d613efaf10a52c73149f20f212b18a25e04f61151202df4f9c9317cbec"
+  },
+  "up.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 201,
+    "suit: helmet + green cloth": 812,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 101,
+    "grey: floor shadow + Deltamax body (kept)": 86,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 81
+   },
+   "maskSha256": "91b34d6f7d925625d7c4c92028d1452b3bea9db858512111c6928a9b9b346c4d"
+  },
+  "walk.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + green cloth": 3464,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "1e93cfef4bbcfcabcfe14c5faf8a19224eed33b1a417caf4b7f0edc4f5cbd9af"
+  },
+  "walk_back.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + green cloth": 3464,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "54c7565492dbddb59cc0f7632a1b7193440e285791f31bec3622282c2de35392"
+  },
+  "win.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 205,
+    "suit: helmet + green cloth": 888,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 214,
+    "grey: floor shadow + Deltamax body (kept)": 92,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 26
+   },
+   "maskSha256": "0e0f0f3a307e910aad9d184e538b647fe0f0f6416bb321a2f526d7241fb7212b"
+  }
+ }
+}

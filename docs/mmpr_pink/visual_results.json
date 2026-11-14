@@ -1,0 +1,113 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink",
+    "mmpr_pink"
+  ],
+  "detail": {
+    "key": "mmpr_pink",
+    "name": "Pink Ranger",
+    "stats": {
+      "maxHealth": 950,
+      "maxEnergy": 100,
+      "attack": 76,
+      "defense": 74,
+      "speed": 100,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 15,
+      "dashDuration": 10,
+      "dashCooldownMax": 34
+    },
+    "kitType": "Acrobatic Archer / Precision Assist",
+    "difficulty": "Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 7,
+    "selId": null,
+    "mouseX": 759,
+    "mouseY": 286
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 368
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "mmpr_pink",
+    "skin": "mmpr_pink_inspired_upgrade",
+    "tag": "upgrade",
+    "p2": "krybot"
+  },
+  "profile": {
+    "msPerFrameIdle": 0.148,
+    "msPerFrameSorties": 0.832,
+    "msPerFrameUlt": 0.147,
+    "calls": 40,
+    "fxCacheBefore": 17,
+    "fxCacheAfter": 17,
+    "arrowsLeft": 0,
+    "rejected": 20,
+    "unexplained": 0,
+    "rejectSample": [
+      {
+        "k": "thunderLine",
+        "hs": 0,
+        "g": true,
+        "e": 100,
+        "kd": null,
+        "hp": 950
+      },
+      {
+        "k": "skySplitter",
+        "hs": 0,
+        "g": true,
+        "e": 100,
+        "kd": null,
+        "hp": 950
+      },
+      {
+        "k": "skySplitter",
+        "hs": 0,
+        "g": true,
+        "e": 100,
+        "kd": null,
+        "hp": 950
+      }
+    ]
+  },
+  "fps": 20,
+  "passes": 22,
+  "failures": 0,
+  "errors": []
+}

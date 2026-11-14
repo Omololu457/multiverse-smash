@@ -1,0 +1,404 @@
+{
+  "routes": [
+    {
+      "label": "J1 -> J2 -> J3",
+      "hits": [
+        22,
+        27,
+        35
+      ],
+      "damage": 84,
+      "energySpentNet": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "J1 -> J2 -> J3 (mirrored)",
+      "hits": [
+        22,
+        27,
+        35
+      ],
+      "damage": 84,
+      "energySpentNet": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": true
+    },
+    {
+      "label": "J1 -> Heavy -> Deltamax Shot",
+      "hits": [
+        22,
+        76,
+        46
+      ],
+      "damage": 144,
+      "energySpentNet": 11.1,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        37
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Forward+Heavy -> Heavy -> Heavy",
+      "hits": [
+        31,
+        37,
+        48
+      ],
+      "damage": 116,
+      "energySpentNet": 0,
+      "trueCombo": true,
+      "stunAtRetap": [
+        29,
+        33
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Launcher -> manual Jump -> Air",
+      "damage": 86,
+      "hits": null,
+      "trueCombo": true,
+      "comboCounter": 2
+    },
+    {
+      "label": "Iron Reserve -> charged Heavy punish (opponent Heavy whiffed at 100px edge gap; Syd walks in)",
+      "damage": 92,
+      "defenderStillRecovering": true
+    },
+    {
+      "label": "J1 -> J2 -> Iron Breaker (confirm)",
+      "hits": [
+        22,
+        27,
+        67
+      ],
+      "damage": 116,
+      "energySpentNet": 19.04,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Iron Reserve, then J1 -> J2 -> charged Iron Breaker",
+      "hits": [
+        22,
+        27,
+        87
+      ],
+      "damage": 136,
+      "energySpentNet": 18.86,
+      "trueCombo": true,
+      "stunAtRetap": [
+        15,
+        18
+      ],
+      "comboCounter": 3,
+      "flip": false
+    },
+    {
+      "label": "Baton Reprisal counter -> response",
+      "damage": 52,
+      "trueCombo": null,
+      "note": "one response; not a stun riposte"
+    },
+    {
+      "label": "Phase step (120px) -> Heavy punish",
+      "damage": 76,
+      "energySpentNet": 6.26
+    }
+  ],
+  "advantages": [
+    {
+      "key": "light",
+      "guard": false,
+      "total": 17,
+      "contactFrame": 5,
+      "attackerReadyAfter": 16,
+      "defenderFreeAfter": 21,
+      "advantage": 5
+    },
+    {
+      "key": "pJ2",
+      "guard": false,
+      "total": 20,
+      "contactFrame": 6,
+      "attackerReadyAfter": 18,
+      "defenderFreeAfter": 24,
+      "advantage": 6
+    },
+    {
+      "key": "pJ3",
+      "guard": false,
+      "total": 31,
+      "contactFrame": 10,
+      "attackerReadyAfter": 25,
+      "defenderFreeAfter": 31,
+      "advantage": 6
+    },
+    {
+      "key": "heavy",
+      "guard": false,
+      "total": 44,
+      "contactFrame": 15,
+      "attackerReadyAfter": 39,
+      "defenderFreeAfter": 50,
+      "advantage": 11
+    },
+    {
+      "key": "heavyIron",
+      "guard": false,
+      "total": 53,
+      "contactFrame": 18,
+      "attackerReadyAfter": 45,
+      "defenderFreeAfter": 50,
+      "advantage": 5
+    },
+    {
+      "key": "pLow",
+      "guard": false,
+      "total": 26,
+      "contactFrame": 8,
+      "attackerReadyAfter": 22,
+      "defenderFreeAfter": 28,
+      "advantage": 6
+    },
+    {
+      "key": "up",
+      "guard": false,
+      "total": 37,
+      "contactFrame": 12,
+      "attackerReadyAfter": 37,
+      "defenderFreeAfter": 46,
+      "advantage": 9
+    },
+    {
+      "key": "pCheck",
+      "guard": false,
+      "total": 32,
+      "contactFrame": 10,
+      "attackerReadyAfter": 32,
+      "defenderFreeAfter": 42,
+      "advantage": 10
+    },
+    {
+      "key": "pKick",
+      "guard": false,
+      "total": 36,
+      "contactFrame": 12,
+      "attackerReadyAfter": 34,
+      "defenderFreeAfter": 46,
+      "advantage": 12
+    },
+    {
+      "key": "pAway",
+      "guard": false,
+      "total": 43,
+      "contactFrame": 14,
+      "attackerReadyAfter": 39,
+      "defenderFreeAfter": 44,
+      "advantage": 5
+    },
+    {
+      "key": "pBreaker",
+      "guard": false,
+      "total": 48,
+      "contactFrame": 17,
+      "attackerReadyAfter": 47,
+      "defenderFreeAfter": 54,
+      "advantage": 7
+    },
+    {
+      "key": "pBreakerIron",
+      "guard": false,
+      "total": 57,
+      "contactFrame": 20,
+      "attackerReadyAfter": 53,
+      "defenderFreeAfter": 54,
+      "advantage": 1
+    },
+    {
+      "key": "pRise",
+      "guard": false,
+      "total": 45,
+      "contactFrame": 11,
+      "attackerReadyAfter": 50,
+      "defenderFreeAfter": 47,
+      "advantage": -3
+    },
+    {
+      "key": "pReprisal",
+      "guard": false,
+      "total": 29,
+      "contactFrame": 6,
+      "attackerReadyAfter": 39,
+      "defenderFreeAfter": 45,
+      "advantage": 6
+    },
+    {
+      "key": "light",
+      "guard": true,
+      "total": 17,
+      "contactFrame": 5,
+      "attackerReadyAfter": 12,
+      "defenderFreeAfter": 10,
+      "advantage": -2
+    },
+    {
+      "key": "pJ2",
+      "guard": true,
+      "total": 20,
+      "contactFrame": 6,
+      "attackerReadyAfter": 14,
+      "defenderFreeAfter": 11,
+      "advantage": -3
+    },
+    {
+      "key": "pJ3",
+      "guard": true,
+      "total": 31,
+      "contactFrame": 10,
+      "attackerReadyAfter": 21,
+      "defenderFreeAfter": 11,
+      "advantage": -10
+    },
+    {
+      "key": "heavy",
+      "guard": true,
+      "total": 44,
+      "contactFrame": 15,
+      "attackerReadyAfter": 29,
+      "defenderFreeAfter": 13,
+      "advantage": -16
+    },
+    {
+      "key": "heavyIron",
+      "guard": true,
+      "total": 53,
+      "contactFrame": 18,
+      "attackerReadyAfter": 35,
+      "defenderFreeAfter": 13,
+      "advantage": -22
+    },
+    {
+      "key": "pLow",
+      "guard": true,
+      "total": 26,
+      "contactFrame": 8,
+      "attackerReadyAfter": 18,
+      "defenderFreeAfter": 11,
+      "advantage": -7
+    },
+    {
+      "key": "up",
+      "guard": true,
+      "total": 37,
+      "contactFrame": 12,
+      "attackerReadyAfter": 25,
+      "defenderFreeAfter": 11,
+      "advantage": -14
+    },
+    {
+      "key": "pCheck",
+      "guard": true,
+      "total": 32,
+      "contactFrame": 10,
+      "attackerReadyAfter": 22,
+      "defenderFreeAfter": 11,
+      "advantage": -11
+    },
+    {
+      "key": "pKick",
+      "guard": true,
+      "total": 36,
+      "contactFrame": 12,
+      "attackerReadyAfter": 24,
+      "defenderFreeAfter": 11,
+      "advantage": -13
+    },
+    {
+      "key": "pAway",
+      "guard": true,
+      "total": 43,
+      "contactFrame": 14,
+      "attackerReadyAfter": 29,
+      "defenderFreeAfter": 11,
+      "advantage": -18
+    },
+    {
+      "key": "pBreaker",
+      "guard": true,
+      "total": 48,
+      "contactFrame": 17,
+      "attackerReadyAfter": 31,
+      "defenderFreeAfter": 15,
+      "advantage": -16
+    },
+    {
+      "key": "pBreakerIron",
+      "guard": true,
+      "total": 57,
+      "contactFrame": 20,
+      "attackerReadyAfter": 37,
+      "defenderFreeAfter": 15,
+      "advantage": -22
+    },
+    {
+      "key": "pRise",
+      "guard": true,
+      "total": 45,
+      "contactFrame": 11,
+      "attackerReadyAfter": 34,
+      "defenderFreeAfter": 11,
+      "advantage": -23
+    },
+    {
+      "key": "pReprisal",
+      "guard": true,
+      "total": 29,
+      "contactFrame": 6,
+      "attackerReadyAfter": 23,
+      "defenderFreeAfter": 13,
+      "advantage": -10
+    }
+  ],
+  "moves": {},
+  "iron": {
+    "chargedHeavyApplied": 92
+  },
+  "counter": {
+    "success": {
+      "start": "pStance",
+      "spent": 18,
+      "hpA": 1120,
+      "hpB": 1068,
+      "counters": 1,
+      "responseAt": 16,
+      "responseHit": 52,
+      "blockedResponse": false,
+      "cd": 126
+    }
+  },
+  "engineDamageScale": 0.759,
+  "passes": 78,
+  "failures": 0,
+  "errors": []
+}

@@ -1,0 +1,91 @@
+{
+  "method": "4 rotating paired rounds, 80 identical frozen renders each; getImageData flush; both fighters use selected skin; no gameplay advance, all sheets warm",
+  "medians": {
+    "default": 24.625625000009315,
+    "krybot_tv": 24.26875,
+    "krybot_super_legends_ds": 24.281875000009315,
+    "krybot_super_legends_ds_red": 24.242499999993015
+  },
+  "observations": [
+    {
+      "id": "default",
+      "round": 0,
+      "renderMs": 24.405000000004655
+    },
+    {
+      "id": "krybot_tv",
+      "round": 0,
+      "renderMs": 24.35
+    },
+    {
+      "id": "krybot_super_legends_ds",
+      "round": 0,
+      "renderMs": 24.316250000009312
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "round": 0,
+      "renderMs": 24.263749999995344
+    },
+    {
+      "id": "krybot_tv",
+      "round": 1,
+      "renderMs": 24.1875
+    },
+    {
+      "id": "krybot_super_legends_ds",
+      "round": 1,
+      "renderMs": 24.247500000009314
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "round": 1,
+      "renderMs": 24.2875
+    },
+    {
+      "id": "default",
+      "round": 1,
+      "renderMs": 24.286250000004657
+    },
+    {
+      "id": "krybot_super_legends_ds",
+      "round": 2,
+      "renderMs": 24.192500000004657
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "round": 2,
+      "renderMs": 24.182499999995343
+    },
+    {
+      "id": "default",
+      "round": 2,
+      "renderMs": 24.84625000001397
+    },
+    {
+      "id": "krybot_tv",
+      "round": 2,
+      "renderMs": 24.161250000004657
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "round": 3,
+      "renderMs": 24.221249999990686
+    },
+    {
+      "id": "default",
+      "round": 3,
+      "renderMs": 37.0875
+    },
+    {
+      "id": "krybot_tv",
+      "round": 3,
+      "renderMs": 32.297500000009315
+    },
+    {
+      "id": "krybot_super_legends_ds",
+      "round": 3,
+      "renderMs": 26.94000000001397
+    }
+  ]
+}

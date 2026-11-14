@@ -1,0 +1,306 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink",
+    "mmpr_pink",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_white"
+  ],
+  "detail": {
+    "key": "mmpr_white",
+    "name": "White Ranger",
+    "stats": {
+      "maxHealth": 1000,
+      "maxEnergy": 100,
+      "attack": 80,
+      "defense": 78,
+      "speed": 97,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Saba Duelist / Formation Leader",
+    "difficulty": "Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 7,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 431
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "mmpr_white",
+    "skin": "mmpr_white_inspired_upgrade",
+    "tag": "upgrade",
+    "p2": "krybot"
+  },
+  "formationPre_R": {
+    "g": true,
+    "land": 0,
+    "hs": 0,
+    "bs": 0,
+    "F": {
+      "pips": 2,
+      "max": 2,
+      "refill": 0,
+      "lockout": 0,
+      "postUlt": 0,
+      "active": null,
+      "pending": null
+    },
+    "e": 100,
+    "blink": null,
+    "facing": 1,
+    "x": 1271,
+    "bx": 1331,
+    "kd": false
+  },
+  "formationPost_R": {
+    "atk": "wCall",
+    "pk": "ninjaTwinFist",
+    "calls": 4,
+    "facing": 1,
+    "s": {
+      "edges": {
+        "light": {
+          "tick": 89,
+          "clock": 81,
+          "down": false,
+          "up": false,
+          "fwd": false,
+          "back": false,
+          "block": false
+        },
+        "special": {
+          "tick": 585,
+          "clock": 572,
+          "down": false,
+          "up": false,
+          "fwd": true,
+          "back": false,
+          "block": false
+        }
+      },
+      "used": {
+        "light": 89,
+        "special": 585
+      }
+    }
+  },
+  "formation_R": {
+    "offer": true,
+    "token": true,
+    "bhp": 1041,
+    "hp0": 1080,
+    "blk": 0,
+    "sortie": "ninjaTwinFist",
+    "age": 18,
+    "gap": 60
+  },
+  "formationPre_L": {
+    "g": true,
+    "land": 0,
+    "hs": 0,
+    "bs": 0,
+    "F": {
+      "pips": 2,
+      "max": 2,
+      "refill": 0,
+      "lockout": 0,
+      "postUlt": 0,
+      "active": null,
+      "pending": null
+    },
+    "e": 100,
+    "blink": null,
+    "facing": -1,
+    "x": 1300,
+    "bx": 1230.6433717201967,
+    "kd": false
+  },
+  "formationPost_L": {
+    "atk": "wCall",
+    "pk": "ninjaTwinFist",
+    "calls": 8,
+    "facing": -1,
+    "s": {
+      "edges": {
+        "light": {
+          "tick": 977,
+          "clock": 936,
+          "down": false,
+          "up": false,
+          "fwd": false,
+          "back": false,
+          "block": false
+        },
+        "special": {
+          "tick": 1476,
+          "clock": 1435,
+          "down": false,
+          "up": false,
+          "fwd": true,
+          "back": false,
+          "block": false
+        },
+        "ultimate": {
+          "tick": 881,
+          "clock": 868,
+          "down": false,
+          "up": false,
+          "fwd": false,
+          "back": false,
+          "block": false
+        }
+      },
+      "used": {
+        "light": 965,
+        "special": 1476,
+        "ultimate": 881
+      }
+    }
+  },
+  "formation_L": {
+    "offer": true,
+    "token": true,
+    "bhp": 1041,
+    "hp0": 1080,
+    "blk": 0,
+    "sortie": "ninjaTwinFist",
+    "age": 18,
+    "gap": 60
+  },
+  "profile": {
+    "msPerFrameIdle": 0.079,
+    "msPerFrameSorties": 0.106,
+    "msPerFrameUlt": 0.102,
+    "calls": 49,
+    "fxCacheBefore": 1,
+    "fxCacheAfter": 1,
+    "projectilesLeft": 0,
+    "rejected": 11,
+    "unexplained": 0,
+    "rejectSample": [
+      {
+        "k": "ninjaTwinFist",
+        "hs": 0,
+        "g": false,
+        "land": 0,
+        "ws": {
+          "lp": false,
+          "de": false
+        },
+        "blink": false,
+        "cd": 0,
+        "bs": 0,
+        "grab": false,
+        "hst": 4,
+        "F": {
+          "p": 2,
+          "l": 0,
+          "s": "ninjaEdge",
+          "pu": 0,
+          "pk": null
+        },
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      },
+      {
+        "k": "ninjaEdge",
+        "hs": 25,
+        "g": false,
+        "land": 0,
+        "ws": {
+          "lp": false,
+          "de": false
+        },
+        "blink": false,
+        "cd": 0,
+        "bs": 0,
+        "grab": false,
+        "hst": 0,
+        "F": {
+          "p": 2,
+          "l": 0,
+          "pu": 0,
+          "pk": null
+        },
+        "e": 100,
+        "kd": false,
+        "hp": 894
+      },
+      {
+        "k": "ninjaCraneRise",
+        "hs": 23,
+        "g": true,
+        "land": 0,
+        "ws": {
+          "lp": false,
+          "de": false
+        },
+        "blink": false,
+        "cd": 0,
+        "bs": 0,
+        "grab": true,
+        "hst": 0,
+        "F": {
+          "p": 2,
+          "l": 0,
+          "pu": 0,
+          "pk": null
+        },
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      }
+    ],
+    "unexplainedSample": []
+  },
+  "fps": 48,
+  "passes": 22,
+  "failures": 0,
+  "errors": []
+}

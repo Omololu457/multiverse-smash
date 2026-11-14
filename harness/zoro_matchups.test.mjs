@@ -14,7 +14,7 @@ const { ZORO_MOVES } = await import('../zoroData.js')
 const { LUFFY_MOVES } = await import('../luffyData.js')
 console.log('\n── data claims ──')
 check('vs Luffy: Luffy out-reaches (Piston 230px vs Zoro\'s longest normal)', LUFFY_MOVES.lfPiston.rangeX > Math.max(...['light', 'zSlash', 'heavy', 'zLow'].map(k => ZORO_MOVES[k].rangeX)))
-check('vs Luffy: Zoro out-damages (Heavy 90 raw vs Luffy Heavy 58)', ZORO_MOVES.heavy.damage > LUFFY_MOVES.heavy.damage)
+check(`vs Luffy: Zoro out-damages (Heavy ${ZORO_MOVES.heavy.damage} raw vs Luffy Heavy ${LUFFY_MOVES.heavy.damage})`, ZORO_MOVES.heavy.damage > LUFFY_MOVES.heavy.damage)
 // Speed stats = Toji's (owner request, post-build): walk speed, dash speed/duration/cooldown all identical.
 const T = characters.toji.stats, Z = characters.zoro.stats
 check('Zoro has Toji\'s speed stats (speed 98 · dashSpeed 22 · dashDuration 10 · dashCooldownMax 26)',

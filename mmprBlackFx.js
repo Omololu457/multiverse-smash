@@ -17,6 +17,16 @@ export const mmprBlackFxCacheSize = () => cache.size
 const ownerArt = (f, n) => image(f._recolorTag ? `./assets/mmpr_black/skins/${f._recolorTag}/${n}.png` : `./assets/mmpr_black/${n}.png`)
 const cols = f => MMPR_BLACK_FX_COLORS[f._recolorTag] || MMPR_BLACK_FX_COLORS.default
 
+// SHARED ZORD CELL DRAW (one image cache for every Zord profile: Falconzord here, the Ninja Megazord in mmprWhiteFx.js).
+// `cells` = a generated {name:{src,w,h,ax,ay,face}} table; draws at the cell's anchor, facing `dir` (+1 = right).
+export function drawZordCell(c, cells, name, x, y, dir, alpha = 1, scale = 1) {
+  const cell = cells[name]; if (!cell) return
+  const im = image(cell.src); if (!im.complete || !im.naturalWidth) return
+  const flip = dir * (cell.face || 1) < 0
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha; c.translate(Math.round(x), Math.round(y)); if (flip) c.scale(-1, 1)
+  c.drawImage(im, -cell.ax * scale, -cell.ay * scale, cell.w * scale, cell.h * scale); c.restore()
+}
+export const preloadZordCells = cells => { for (const k in cells) image(cells[k].src) }
 // Draw one Falconzord cell at a world point (the cell's torso / wing-root anchor), facing `dir` (+1 = right).
 export function drawFalconCell(c, name, x, y, dir, alpha = 1, scale = FALCON_SCALE) {
   const cell = FALCON_CELLS[name]; if (!cell) return

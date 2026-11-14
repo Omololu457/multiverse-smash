@@ -1,7 +1,7 @@
 // S.P.D. Green Ranger — command layer (press edges recorded in tickSpdGreen from readRawControls,
 // so keyboard / pad / replay / LAN feed the same parser). Returns 'consumed' | 'grab'.
 import {startMove,rekkaContinue,cancelWindowOpen} from './combat.js'
-import {isSpdGreen,spdGreenState,startSpdGreenMove,spdGreenFollowOpen} from './spdGreenState.js'
+import {isSpdGreen,spdGreenState,startSpdGreenMove,spdGreenFollowOpen,spdGreenMarked} from './spdGreenState.js'
 import {groundTeleportLocked} from './groundTeleport.js'
 const fresh=(s,k)=>s.edges[k]&&s.used[k]!==s.edges[k].tick&&s.clock-s.edges[k].clock<=8
 const use=(s,k)=>s.used[k]=s.edges[k].tick
@@ -26,14 +26,15 @@ export function updateSpdGreenCommandCombat(f,inp,opp,W){
  // Shared Zord ultimate not present: press consumed, no meter, no fallback.
  if(fresh(s,'ultimate')){use(s,'ultimate');return 'consumed'}
  // AURA READ: fresh Charge press, grounded neutral (no attack, no guard, no crouch). Held Charge never repeats.
- if(fresh(s,'charge')){const e=s.edges.charge;use(s,'charge');if(!a&&g&&!e.block&&!e.down)fire('gScan');return a?'consumed':'grab'}
- if(fresh(s,'special')&&(!a||['light','gJ2','heavy','air'].includes(a.name))){
+ if(fresh(s,'charge')){const e=s.edges.charge;use(s,'charge');if(!a&&g&&!e.block&&!e.down)fire(e.fwd?'gRam':e.back?'gRead':'gScan');return a?'consumed':'grab'}
+ if(fresh(s,'special')&&(!a||['light','gJ2','heavy','air','gElbow'].includes(a.name))){
   const e=s.edges.special;use(s,'special')
-  const k=!g?(e.down?'gHeel':null):e.down?'gRise':e.fwd?'gAcro':e.back?(a?null:'gRetreat'):'gShot'
+  // ↓↘→ (motion recorded from raw directions) against YOUR marked foe → Read Rush; otherwise the normal directional set.
+  const k=!g?(e.down?'gHeel':'gAirShot'):e.qcf&&spdGreenMarked(f,opp)?'gRush1':e.qcb?'gArc':e.down?'gRise':e.up?'gSomer':e.fwd?'gAcro':e.back?(a?null:'gRetreat'):'gShot'
   if(k)fire(k,!!a)
   return 'consumed'
  }
- if(fresh(s,'light')){const e=s.edges.light,k=a?(a.name==='light'?'gJ2':a.name==='gJ2'?'gJ3':null):!g?'air':e.down?'gLow':'light';use(s,'light');if(k)fire(k,!!a);return 'consumed'}
- if(fresh(s,'heavy')||fresh(s,'upAttack')){const k=fresh(s,'upAttack')?'upAttack':'heavy',e=s.edges[k];use(s,k);const move=!g?'air':k==='upAttack'||e.up?'up':e.down?'gLow':e.fwd?'gAdvance':'heavy';if(!a||a.name==='light')fire(move,!!a);return 'consumed'}
+ if(fresh(s,'light')){const e=s.edges.light,k=a?(a.name==='light'?'gJ2':a.name==='gJ2'?'gJ3':null):!g?'air':e.down?'gLow':e.fwd?'gElbow':e.back?'gSnap':'light';use(s,'light');if(k)fire(k,!!a);return 'consumed'}
+ if(fresh(s,'heavy')||fresh(s,'upAttack')){const k=fresh(s,'upAttack')?'upAttack':'heavy',e=s.edges[k];use(s,k);const move=!g?(k==='heavy'?'gAirH':'air'):k==='heavy'&&e.qcb&&!a?'gToss':k==='upAttack'||e.up?'up':e.down?(k==='heavy'?'gSweep':'gLow'):e.fwd?'gAdvance':e.back&&!a?'gEvade':'heavy';if(!a||a.name==='light')fire(move,!!a);return 'consumed'}
  return a?'consumed':'grab'
 }

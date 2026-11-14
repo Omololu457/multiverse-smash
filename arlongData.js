@@ -23,6 +23,10 @@ export const ARLONG_MOVES = {
   up:        n(80, 10, 4, 20, { blockstun: adv(-8, 4, 20), hitstun: 26, rangeX: 74, rangeY: 150, launcher: true, launchVy: -24, selfVy: 0,   // Rising claw (anti-air)
                al: { boxY: -80 } }),
   air:       n(70, 7, 5, 12,  { blockstun: 12, hitstun: 20, rangeX: 96, rangeY: 70, knockbackX: 3, knockbackY: -2, damageType: 'slash', blade: true, karate: 'aKAir' }),   // Air saw (jump-in)
+  aGrip:     n(90, 7, 2, 32, { damageType: 'grab', unblockable: true, category: 'heavy', blockstun: 0, hitstun: 40, rangeX: 50, rangeY: 44, knockbackX: 6, al: { boxY: 40, knockdown: true } }),   // VARIETY L8 Charge+Back SHARK GRIP: command throw (unblockable), knockdown
+  aRam:      n(110, 22, 4, 28, { cost: 25, category: 'heavy', armor: 21, blockstun: adv(-10, 4, 28), hitstun: 30, rangeX: 84, rangeY: 70, knockbackX: 12, al: { lunge: [6, 22, 4] } }),   // VARIETY L7 Charge+Forward TOUGH HIDE RAM: fishman hide armors f1-21, charges ~64px
+  aTail:     n(80, 12, 4, 24, { blockstun: adv(-10, 4, 24), hitstun: 30, rangeX: 118, rangeY: 32, hitLevel: 'low', knockbackX: 4, al: { boxY: 64, knockdown: true } }),   // VARIETY L5 Back+Light SHARK TAIL SWEEP: long low knockdown
+  aAirH:     n(90, 10, 5, 16, { blockstun: 12, hitstun: 24, rangeX: 96, rangeY: 80, knockbackX: 5, knockbackY: 3, damageType: 'blunt' }),   // VARIETY: air Heavy Shark Dive claw
   down_air:  n(60, 9, 6, 16,  { blockstun: 12, hitstun: 20, rangeX: 70, rangeY: 150, knockbackY: 9, al: { boxY: 40, centered: true } }),   // nose dive
   aLunge:    n(85, 11, 3, 18, { blockstun: adv(-4, 3, 18), hitstun: 24, rangeX: 84, knockbackX: 5, al: { lunge: [2, 12, 7.5] } }),   // Lunge punch (advances)
   aWake:     n(75, 6, 4, 26,  { blockstun: adv(-12, 4, 26), hitstun: 24, rangeX: 104, rangeY: 96, knockbackX: 8, invuln: 6, damageType: 'slash', blade: true, karate: 'aKWake',
@@ -63,7 +67,7 @@ export const ARLONG_MOVES = {
 // Source-frame index at exact elapsed sim frames (presentation follows the simulation, never drives it).
 export const ARLONG_TIMELINES = {
   light: [[0, 0], [6, 1]], aStraight: [[0, 0], [9, 1]], aSwing: [[0, 0], [8, 1], [13, 2]], heavy: [[0, 0], [12, 1], [18, 2]],
-  aLow: [[0, 0], [8, 1]], up: [[0, 0], [10, 1]], air: [[0, 0]], down_air: [[0, 0]], aLunge: [[0, 0], [11, 1]],
+  aLow: [[0, 0], [8, 1]], aTail: [[0, 0], [11, 1]], aRam: [[0, 0], [21, 1]], aGrip: [[0, 0], [6, 1]], up: [[0, 0], [10, 1]], air: [[0, 0]], down_air: [[0, 0]], aLunge: [[0, 0], [11, 1]],
   aWake: [[0, 0], [3, 1], [6, 2]], aBite: [[0, 0], [6, 1], [10, 2]], aHeadbutt: [[0, 0], [6, 1], [10, 2]],
   aKSwing: [[0, 0], [11, 1]], aKHeavy: [[0, 0], [14, 1]], aKLow: [[0, 0]], aKAir: [[0, 0]], aKWake: [[0, 0], [4, 1]],
   aTooth: [[0, 0], [8, 1], [12, 2], [16, 3]], aToothHead: [[0, 0], [8, 1], [12, 2], [16, 3]], aDarts: [[0, 0], [10, 1], [14, 2], [18, 3], [22, 1], [26, 2], [30, 3], [36, 4]],
@@ -77,6 +81,10 @@ ANIM.aHeadbutt = ANIM.aBite                       // 0-teeth headbutt: same fram
 ANIM.aToothHead = ANIM.aTooth                     // 0-teeth Shark On Tooth: same frames
 ANIM.aKTidal = { ...ANIM.aKLow, frameTimeline: [[0, 0]] }
 ANIM.transform = ANIM.intro
+ANIM.aAirH = { ...ARLONG_ANIM.down_air }   // variety pass: existing strip
+ANIM.aTail = { ...ARLONG_ANIM.aLow, frameTimeline: ARLONG_TIMELINES.aTail }   // variety L5: existing strip
+ANIM.aRam = { ...ARLONG_ANIM.aLunge, frameTimeline: ARLONG_TIMELINES.aRam }   // variety L7: existing strip
+ANIM.aGrip = { ...ARLONG_ANIM.aBite, frameTimeline: ARLONG_TIMELINES.aGrip }   // variety L8: existing strip
 export const ARLONG_ANIMS = ANIM
 // Victory variant 2 (wide stance → blade overhead) / idle flex: the same set with `win` / `idle` pointing elsewhere.
 export const ARLONG_WIN2_ANIM = { ...ANIM, win: ANIM.win2 }
@@ -108,7 +116,7 @@ export const arlong = {
   //   ground dash = clamp(dashSpeed × 0.55, 8, 16) → the engine floor is 8 px/f (6.8 is below it; dashSpeed 13);
   //     ×1.25 in water (arlongDashMul) = 10 px/f swim-dash
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 25 · weight 1.3 → knockback taken ÷ 1.3 (arlongKnockback)
-  stats: { maxHealth: 1120, maxEnergy: 100, attack: 82, defense: 84, speed: 78, jumpPower: 25, maxJumps: 1, weight: 1.3,
+  stats: { maxHealth: 1220, maxEnergy: 100, attack: 82, defense: 84, speed: 78, jumpPower: 25, maxJumps: 1, weight: 1.3,
     dashSpeed: 13, dashDuration: 10, dashCooldownMax: 34 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

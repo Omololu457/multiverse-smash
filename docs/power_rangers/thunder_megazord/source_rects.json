@@ -1,0 +1,897 @@
+{
+ "source": "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Thunder Megazord.gif",
+ "sha256": "f6f8eaecaa6e051b46f874fbb872517516e419489e3e89e7b3ba30598fcc9060",
+ "size": [
+  410,
+  740
+ ],
+ "mode": "P",
+ "transparencyIndex": 0,
+ "keyPolicy": "GIF transparency index 0 only; index 15 (also RGB 0,0,0) is the opaque outline and is kept",
+ "credit": "Sprites Ripped by Belial",
+ "creditBox": [
+  127,
+  713,
+  127,
+  12
+ ],
+ "creditGlyphComponents": 20,
+ "cells": [
+  {
+   "name": "ready0",
+   "rect": [
+    3,
+    2,
+    55,
+    87
+   ],
+   "parts": [
+    [
+     3,
+     2
+    ]
+   ],
+   "anchor": [
+    23,
+    87
+   ],
+   "opaquePixels": 3044,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "ready"
+   ]
+  },
+  {
+   "name": "ready1",
+   "rect": [
+    63,
+    2,
+    55,
+    86
+   ],
+   "parts": [
+    [
+     63,
+     2
+    ]
+   ],
+   "anchor": [
+    23,
+    86
+   ],
+   "opaquePixels": 3033,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "draw0",
+   "rect": [
+    129,
+    3,
+    75,
+    86
+   ],
+   "parts": [
+    [
+     129,
+     3
+    ]
+   ],
+   "anchor": [
+    39,
+    86
+   ],
+   "opaquePixels": 2789,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "hwind"
+   ]
+  },
+  {
+   "name": "guard0",
+   "rect": [
+    219,
+    3,
+    59,
+    88
+   ],
+   "parts": [
+    [
+     219,
+     3
+    ]
+   ],
+   "anchor": [
+    16,
+    88
+   ],
+   "opaquePixels": 2581,
+   "face": -1,
+   "kind": "body",
+   "usedIn": [
+    "guard"
+   ]
+  },
+  {
+   "name": "walk0",
+   "rect": [
+    2,
+    94,
+    60,
+    95
+   ],
+   "parts": [
+    [
+     2,
+     94
+    ]
+   ],
+   "anchor": [
+    30,
+    95
+   ],
+   "opaquePixels": 2489,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk1",
+   "rect": [
+    67,
+    100,
+    57,
+    87
+   ],
+   "parts": [
+    [
+     67,
+     100
+    ]
+   ],
+   "anchor": [
+    16,
+    87
+   ],
+   "opaquePixels": 1924,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk2",
+   "rect": [
+    128,
+    99,
+    54,
+    86
+   ],
+   "parts": [
+    [
+     128,
+     99
+    ]
+   ],
+   "anchor": [
+    24,
+    86
+   ],
+   "opaquePixels": 2262,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk3",
+   "rect": [
+    188,
+    98,
+    56,
+    88
+   ],
+   "parts": [
+    [
+     188,
+     98
+    ]
+   ],
+   "anchor": [
+    32,
+    88
+   ],
+   "opaquePixels": 2566,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk4",
+   "rect": [
+    250,
+    98,
+    58,
+    89
+   ],
+   "parts": [
+    [
+     250,
+     98
+    ]
+   ],
+   "anchor": [
+    20,
+    89
+   ],
+   "opaquePixels": 1927,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk5",
+   "rect": [
+    315,
+    101,
+    60,
+    87
+   ],
+   "parts": [
+    [
+     315,
+     101
+    ]
+   ],
+   "anchor": [
+    18,
+    87
+   ],
+   "opaquePixels": 2322,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "windup0",
+   "rect": [
+    3,
+    212,
+    107,
+    88
+   ],
+   "parts": [
+    [
+     4,
+     212
+    ],
+    [
+     3,
+     221
+    ],
+    [
+     25,
+     243
+    ]
+   ],
+   "anchor": [
+    77,
+    88
+   ],
+   "opaquePixels": 3340,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "uwindL"
+   ]
+  },
+  {
+   "name": "raise0",
+   "rect": [
+    119,
+    191,
+    86,
+    112
+   ],
+   "parts": [
+    [
+     119,
+     191
+    ]
+   ],
+   "anchor": [
+    59,
+    112
+   ],
+   "opaquePixels": 3030,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "raise"
+   ]
+  },
+  {
+   "name": "hslash0",
+   "rect": [
+    219,
+    205,
+    112,
+    96
+   ],
+   "parts": [
+    [
+     219,
+     205
+    ]
+   ],
+   "anchor": [
+    20,
+    96
+   ],
+   "opaquePixels": 3092,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "hslash"
+   ]
+  },
+  {
+   "name": "lunge0",
+   "rect": [
+    5,
+    324,
+    104,
+    76
+   ],
+   "parts": [
+    [
+     5,
+     324
+    ]
+   ],
+   "anchor": [
+    46,
+    76
+   ],
+   "opaquePixels": 2795,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "low0",
+   "rect": [
+    120,
+    326,
+    70,
+    74
+   ],
+   "parts": [
+    [
+     120,
+     326
+    ]
+   ],
+   "anchor": [
+    17,
+    74
+   ],
+   "opaquePixels": 2342,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "uwind"
+   ]
+  },
+  {
+   "name": "rslash0",
+   "rect": [
+    196,
+    298,
+    117,
+    99
+   ],
+   "parts": [
+    [
+     196,
+     298
+    ]
+   ],
+   "anchor": [
+    24,
+    99
+   ],
+   "opaquePixels": 3045,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "uslash"
+   ]
+  },
+  {
+   "name": "over0",
+   "rect": [
+    330,
+    295,
+    54,
+    104
+   ],
+   "parts": [
+    [
+     330,
+     295
+    ],
+    [
+     374,
+     296
+    ]
+   ],
+   "anchor": [
+    19,
+    104
+   ],
+   "opaquePixels": 2498,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "dwind"
+   ]
+  },
+  {
+   "name": "front0",
+   "rect": [
+    5,
+    419,
+    72,
+    88
+   ],
+   "parts": [
+    [
+     5,
+     419
+    ]
+   ],
+   "anchor": [
+    27,
+    88
+   ],
+   "opaquePixels": 2923,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "back0",
+   "rect": [
+    82,
+    410,
+    66,
+    96
+   ],
+   "parts": [
+    [
+     82,
+     410
+    ]
+   ],
+   "anchor": [
+    30,
+    96
+   ],
+   "opaquePixels": 2599,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "thrust0",
+   "rect": [
+    159,
+    420,
+    94,
+    83
+   ],
+   "parts": [
+    [
+     159,
+     420
+    ],
+    [
+     229,
+     483
+    ]
+   ],
+   "anchor": [
+    24,
+    83
+   ],
+   "opaquePixels": 2527,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "thrust"
+   ]
+  },
+  {
+   "name": "rslash1",
+   "rect": [
+    259,
+    404,
+    91,
+    104
+   ],
+   "parts": [
+    [
+     259,
+     404
+    ]
+   ],
+   "anchor": [
+    24,
+    104
+   ],
+   "opaquePixels": 2936,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "uslash"
+   ]
+  },
+  {
+   "name": "over1",
+   "rect": [
+    361,
+    405,
+    47,
+    104
+   ],
+   "parts": [
+    [
+     361,
+     405
+    ],
+    [
+     402,
+     406
+    ]
+   ],
+   "anchor": [
+    24,
+    104
+   ],
+   "opaquePixels": 2665,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "dwind"
+   ]
+  },
+  {
+   "name": "dslash0",
+   "rect": [
+    1,
+    520,
+    76,
+    102
+   ],
+   "parts": [
+    [
+     1,
+     520
+    ],
+    [
+     57,
+     528
+    ],
+    [
+     59,
+     529
+    ]
+   ],
+   "anchor": [
+    32,
+    102
+   ],
+   "opaquePixels": 2642,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "dtop"
+   ]
+  },
+  {
+   "name": "sweep0",
+   "rect": [
+    84,
+    538,
+    77,
+    80
+   ],
+   "parts": [
+    [
+     84,
+     538
+    ]
+   ],
+   "anchor": [
+    25,
+    80
+   ],
+   "opaquePixels": 2461,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "dslash"
+   ]
+  },
+  {
+   "name": "ready2",
+   "rect": [
+    173,
+    529,
+    73,
+    80
+   ],
+   "parts": [
+    [
+     173,
+     529
+    ]
+   ],
+   "anchor": [
+    34,
+    80
+   ],
+   "opaquePixels": 2815,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "brace0",
+   "rect": [
+    260,
+    521,
+    66,
+    87
+   ],
+   "parts": [
+    [
+     260,
+     521
+    ]
+   ],
+   "anchor": [
+    32,
+    87
+   ],
+   "opaquePixels": 2987,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "brace"
+   ]
+  },
+  {
+   "name": "fall0",
+   "rect": [
+    6,
+    643,
+    88,
+    71
+   ],
+   "parts": [
+    [
+     6,
+     643
+    ]
+   ],
+   "anchor": [
+    16,
+    71
+   ],
+   "opaquePixels": 2963,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "prone0",
+   "rect": [
+    102,
+    624,
+    87,
+    39
+   ],
+   "parts": [
+    [
+     102,
+     624
+    ]
+   ],
+   "anchor": [
+    56,
+    39
+   ],
+   "opaquePixels": 2326,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "prone1",
+   "rect": [
+    103,
+    668,
+    88,
+    27
+   ],
+   "parts": [
+    [
+     103,
+     668
+    ]
+   ],
+   "anchor": [
+    41,
+    27
+   ],
+   "opaquePixels": 1960,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "kneel0",
+   "rect": [
+    194,
+    637,
+    80,
+    62
+   ],
+   "parts": [
+    [
+     194,
+     637
+    ]
+   ],
+   "anchor": [
+    30,
+    62
+   ],
+   "opaquePixels": 2702,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "kneel1",
+   "rect": [
+    281,
+    628,
+    53,
+    69
+   ],
+   "parts": [
+    [
+     281,
+     628
+    ]
+   ],
+   "anchor": [
+    25,
+    69
+   ],
+   "opaquePixels": 2569,
+   "face": 1,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "brace1",
+   "rect": [
+    345,
+    618,
+    56,
+    85
+   ],
+   "parts": [
+    [
+     345,
+     618
+    ]
+   ],
+   "anchor": [
+    27,
+    85
+   ],
+   "opaquePixels": 3116,
+   "face": 1,
+   "kind": "body",
+   "usedIn": [
+    "brace",
+    "exit"
+   ]
+  }
+ ],
+ "sequences": {
+  "ready": [
+   "ready0"
+  ],
+  "step": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5"
+  ],
+  "guard": [
+   "guard0"
+  ],
+  "hwind": [
+   "draw0"
+  ],
+  "hslash": [
+   "hslash0"
+  ],
+  "uwind": [
+   "low0"
+  ],
+  "uslash": [
+   "rslash0",
+   "rslash1"
+  ],
+  "dwind": [
+   "over1",
+   "over0"
+  ],
+  "dtop": [
+   "dslash0"
+  ],
+  "dslash": [
+   "sweep0"
+  ],
+  "thrust": [
+   "thrust0"
+  ],
+  "uwindL": [
+   "windup0"
+  ],
+  "raise": [
+   "raise0"
+  ],
+  "brace": [
+   "brace0",
+   "brace1"
+  ],
+  "exit": [
+   "brace1"
+  ]
+ },
+ "unusedCells": [
+  "ready1",
+  "lunge0",
+  "front0",
+  "back0",
+  "ready2",
+  "fall0",
+  "prone0",
+  "prone1",
+  "kneel0",
+  "kneel1"
+ ]
+}

@@ -1,0 +1,107 @@
+{
+  "idle": {
+    "frames": 2,
+    "width": 36,
+    "height": 55
+  },
+  "walk": {
+    "frames": 4,
+    "width": 36,
+    "height": 56
+  },
+  "run": {
+    "frames": 6,
+    "width": 45,
+    "height": 53
+  },
+  "jump": {
+    "frames": 1,
+    "width": 46,
+    "height": 60
+  },
+  "fall": {
+    "frames": 1,
+    "width": 38,
+    "height": 63
+  },
+  "crouch": {
+    "frames": 1,
+    "width": 36,
+    "height": 60
+  },
+  "hurt": {
+    "frames": 1,
+    "width": 36,
+    "height": 60
+  },
+  "knockdown": {
+    "frames": 1,
+    "width": 38,
+    "height": 63
+  },
+  "getup": {
+    "frames": 1,
+    "width": 36,
+    "height": 60
+  },
+  "guard": {
+    "frames": 1,
+    "width": 35,
+    "height": 56
+  },
+  "light": {
+    "frames": 2,
+    "width": 44,
+    "height": 55
+  },
+  "heavy": {
+    "frames": 2,
+    "width": 44,
+    "height": 56
+  },
+  "up": {
+    "frames": 2,
+    "width": 46,
+    "height": 66
+  },
+  "air": {
+    "frames": 1,
+    "width": 46,
+    "height": 66
+  },
+  "down_air": {
+    "frames": 1,
+    "width": 46,
+    "height": 66
+  },
+  "grab": {
+    "frames": 1,
+    "width": 44,
+    "height": 55
+  },
+  "transform": {
+    "frames": 3,
+    "width": 59,
+    "height": 65
+  },
+  "taunt": {
+    "frames": 1,
+    "width": 31,
+    "height": 64
+  },
+  "intro": {
+    "frames": 2,
+    "width": 59,
+    "height": 65
+  },
+  "win": {
+    "frames": 1,
+    "width": 31,
+    "height": 64
+  },
+  "lose": {
+    "frames": 1,
+    "width": 36,
+    "height": 60
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "luffy": {
+    "kane": 52,
+    "muchi": 52,
+    "hop": 82.5,
+    "stamp": 50,
+    "gatling": {
+      "hits": 6,
+      "applied": 75
+    },
+    "bazooka": 92,
+    "ono": 67,
+    "commandThrow": 92
+  },
+  "zoro": {
+    "step": 96.8,
+    "airCross": 54,
+    "nigiri": 62,
+    "backLight": {
+      "applied": 66,
+      "pushed": 46.5
+    }
+  },
+  "sanji": {
+    "airHeavy": 62,
+    "backLight": {
+      "applied": 54,
+      "pushed": 48.2
+    }
+  },
+  "buggy": {
+    "airHeavy": 54,
+    "splitCut": {
+      "applied": 46,
+      "moved": 60
+    }
+  },
+  "arlong": {
+    "airHeavy": 63,
+    "tailSweep": 55,
+    "ram": 78,
+    "commandThrow": 63
+  },
+  "passes": 43,
+  "failures": 0
+}

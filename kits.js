@@ -1,4 +1,10 @@
+import { KRYBOT_KIT } from './krybotKit.js'
+import { SPD_BLUE_KIT } from './spdBlueKit.js'
+import { SPD_GREEN_KIT } from './spdGreenKit.js'
+import { SPD_PINK_KIT } from './spdPinkKit.js'
+import { MMPR_PINK_KIT } from './mmprPinkKit.js'   // Pink Ranger (mmpr_pink) Move List
 import { MMPR_BLACK_KIT } from './mmprBlackKit.js'   // Black Ranger (mmpr_black) Move List
+import { MMPR_WHITE_KIT } from './mmprWhiteKit.js'   // White Ranger (mmpr_white) Move List
 // kits.js
 // ─────────────────────────────────────────────────────────────────
 // MOVE LIST / KIT PROFILES — human-readable per-character data shown on the
@@ -82,7 +88,13 @@ export const CONTROL_REFERENCE = {
 }
 
 export const KITS = {
+  spd_blue: SPD_BLUE_KIT,
+  spd_green: SPD_GREEN_KIT,
+  spd_pink: SPD_PINK_KIT,
   mmpr_black: MMPR_BLACK_KIT,
+  mmpr_white: MMPR_WHITE_KIT,
+  mmpr_pink: MMPR_PINK_KIT,
+  krybot: KRYBOT_KIT,
   zoro: {
     type:'Swordsman / Stance Fighter', energy:'Spirit', difficulty:'3',
     summary:'Nothing happened. The Three-Sword Style swordsman: heavy blades, slow feet. Spirit builds from every sword hit (+5), every hit taken (+3) and +1/s; spend it on iai techniques, the Santoryu stance and ASHURA.',
@@ -93,11 +105,15 @@ export const KITS = {
       {name:'Heavy slash',input:'Heavy',desc:'90 dmg, 13f, −6 on block, launches.'},
       {name:'Low thrust',input:'Down + Light',desc:'50 dmg, 7f, low.'},
       {name:'Rising slash',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 9f anti-air launcher; jump-cancel on hit.'},
-      {name:'Air slash',input:'Air Light / Heavy',desc:'60 dmg jump-in (air Down = plunge).'},
+      {name:'Air slash',input:'Air Light',desc:'60 dmg jump-in (air Down = plunge).'},
+      {name:'Yakkodori',input:'Back + Light',desc:'85 dmg, 15f, long-range (124px) sword-wind slash that shoves the foe far away. -6 on block.'},
+      {name:'Nitoryu Air Cross',input:'Air Heavy',desc:'70 dmg, 9f, bigger two-sword downward cross.'},
+      {name:'Iai Backstep',input:'Back + Heavy',desc:'Free evade: ~95px back, invulnerable frames 1-6, no hitbox.'},
       {name:'Wake-up reversal',input:'Forward + Heavy',desc:'70 dmg, 6f, 6 invulnerable frames, −12 on block.'},
       {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
     ],
     specials:[
+      {name:'Nitoryu: Nigiri',input:'Up + Special',cost:12,desc:'80 dmg, 8f two-sword anti-air launcher, invulnerable frames 1-4, −14 on block.'},
       {name:'Taka Nami "Falcon Wave"',input:'↓↘→ + Special',cost:10,desc:'Flying slash, 55 dmg, ~60% screen. One at a time.'},
       {name:'Oni Giri "Demon Cut"',input:'→→ + Special (or Forward + Special)',cost:12,desc:'Crossed-swords dash THROUGH the foe, 90 dmg, ends behind them. Whiff = long recovery.'},
       {name:'Tatsu Maki "Dragon Twister"',input:'↓↓ + Special (or Down + Special, also airborne)',cost:20,desc:'Travelling tornado, 10 dmg per tick every 8f, drags foes in. Max 2 out. Santoryu: twin tornado.'},
@@ -126,7 +142,9 @@ export const KITS = {
       {name:'Low knife',input:'Down + Light',desc:'45 dmg, 7f, low.'},
       {name:'Clown kick',input:'Down + Heavy',desc:'55 dmg, 8f (blunt).'},
       {name:'Acrobatic kick',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 10f anti-air launcher (blunt).'},
-      {name:'Air knife',input:'Air Light / Heavy',desc:'55 dmg jump-in (air Down = dive).'},
+      {name:'Air knife',input:'Air Light',desc:'55 dmg jump-in (air Down = dive).'},
+      {name:'Bara Bara Split Cut',input:'Back + Heavy',desc:'60 dmg, 11f: his body splits ~60px back while the knife hand lunges out (170px reach). Punishes walk-ins.'},
+      {name:'Bara Bara Air Carve',input:'Air Heavy',desc:'70 dmg, 9f, detached forearm extends the knife (long reach).'},
       {name:'Wake-up reversal',input:'Forward + Heavy',desc:'70 dmg, 6 invulnerable frames, −12 on block.'},
       {name:'Roll',input:'Double-tap dash',desc:'8 invulnerable frames.'},
       {name:'Grab / Throw',input:'Grab',desc:'Shared grab and throw.'}
@@ -157,6 +175,7 @@ export const KITS = {
     passive:{ name:'The Course', effect:'Six cuts: COLLIER → ÉPAULE → CÔTELETTE → SELLE → POITRINE → GIGOT. Landing them in order (inside a combo or across neutral) lights a pip each (+8 Heat). Out of order drops a step; 3s without landing resets. All six → 5s window where the super is FREE (↓↘→ + Special or Ultimate).' },
     basics:[
       {name:'1 · Collier (neck)',input:'Light',desc:'45 dmg, 6f, +1 on block.'},
+      {name:'Flanchet Shot',input:'Back + Light',desc:'70 dmg, 13f turning back-kick that blasts the foe away (big push, spacing reset). Not a Course step. -4 on block.'},
       {name:'2 · Épaule (shoulder)',input:'Forward + Light',desc:'60 dmg, 9f, −3 on block.'},
       {name:'3 · Côtelette (ribs)',input:'Heavy',desc:'70 dmg, 10f, −4 on block.'},
       {name:'4 · Selle (hip)',input:'Forward + Heavy',desc:'65 dmg, 9f, −2 on block.'},
@@ -164,7 +183,8 @@ export const KITS = {
       {name:'6 · Gigot (leg)',input:'Down-Forward + Light',desc:'50 dmg, 7f, low.'},
       {name:'Crouch kick',input:'Down + Light',desc:'40 dmg, 6f, low.'},
       {name:'Anti-air knee',input:'Up + Heavy / Up-Attack',desc:'75 dmg, 8f launcher.'},
-      {name:'Air kick',input:'Air Light / Heavy (air Down = drop kick)',desc:'65 dmg jump-in.'},
+      {name:'Air kick',input:'Air Light (air Down = drop kick)',desc:'65 dmg jump-in.'},
+      {name:'Axe-Heel Stomp',input:'Air Heavy',desc:'80 dmg, 9f, bigger downward heel.'},
       {name:'Handstand spin',input:'Down + Heavy',desc:'70 dmg, 10f; spins through a close foe (cross-up).'},
       {name:'Wake-up crescent',input:'Special (neutral)',desc:'70 dmg, 6 invulnerable frames, −12 on block.'},
       {name:'Diable Jambe',input:'Special + Heavy (≥50 Heat)',desc:'Ignite the leg: 12s of +25% kicks (+40% the first 3s), burn 3/20f, +10% run, drains 4 Heat/s.'}
@@ -198,7 +218,11 @@ export const KITS = {
       {name:'Heavy saw arc',input:'Down + Heavy',desc:'110 dmg, 16f, −8 on block, launches (slash).'},
       {name:'Low saw',input:'Down + Light',desc:'55 dmg, 8f, low (slash).'},
       {name:'Rising claw',input:'Up + Heavy / Up-Attack',desc:'80 dmg, 10f anti-air (blunt).'},
-      {name:'Air saw',input:'Air Light / Heavy',desc:'70 dmg jump-in (slash).'},
+      {name:'Air saw',input:'Air Light',desc:'70 dmg jump-in (slash).'},
+      {name:'Shark Grip',input:'Charge + Back',desc:'90 dmg command throw: 7f, UNBLOCKABLE, knocks down. Short grounded reach; whiff = 32f recovery.'},
+      {name:'Tough Hide Ram',input:'Charge + Forward',cost:25,desc:'110 dmg, 22f: fishman hide ARMORS the whole startup (damage still taken; launchers/throws/ultimates beat it) as he charges ~64px. -10 on block.'},
+      {name:'Shark Tail Sweep',input:'Back + Light',desc:'80 dmg, 12f, long LOW sweep (118px) that knocks down. -10 on block.'},
+      {name:'Shark Dive Claw',input:'Air Heavy',desc:'90 dmg, 10f, blunt claw dive (works with or without Kiribachi).'},
       {name:'Lunge punch',input:'Forward + Heavy (at range)',desc:'85 dmg, 11f, advances (blunt).'},
       {name:'Wake-up reversal',input:'Back + Heavy',desc:'75 dmg, 6 invulnerable frames, −12 on block (slash).'},
       {name:'BITE',input:'Forward + Heavy (close)',desc:'100 dmg, spends a tooth, bleeds 4 per 20f for 2s (slash). 0 teeth: 40 headbutt.'},
@@ -265,13 +289,21 @@ export const KITS = {
     basics:[
       {name:'Quick Knuckle → Body Hook → Stretch Finish',input:'Light, fresh Light, fresh Light',desc:'5/6/9f startup; three stages maximum. Retap during confirmed recovery; holding never chains.'},
       {name:'Coiled Straight',input:'Heavy',desc:'14f wind-up, long reach, 26f recovery. Confirm can cancel into neutral Special or Ultimate.'},
-      {name:'Rubber Sweep',input:'Down + Light / Heavy',desc:'8f low, short reach, no launcher.'},
+      {name:'Gomu Gomu no Kazaguruma',input:'↓↙← + Heavy',desc:'Windmill leg-grab command throw: 7f, UNBLOCKABLE, knocks down. Short grounded reach; whiff = 32f recovery.'},
+      {name:'Gomu Gomu no Ono',input:'Back + Light',desc:'18f rubber-armored axe kick: absorbs hits during startup (damage still taken), knocks down.'},
+      {name:'Gomu Gomu no Kane',input:'Forward + Light',desc:'14f stretched-neck headbutt, mid range, heavy hitstun. Committed.'},
+      {name:'Rubber Sweep',input:'Down + Light',desc:'8f low, short reach, no launcher.'},
+      {name:'Gomu Gomu no Muchi',input:'Down + Heavy',desc:'13f long sweeping leg whip; hits low and knocks down.'},
+      {name:'Rubber Hop',input:'Back + Heavy',desc:'Free evade: bounces ~85px back, invulnerable frames 1-6, no hitbox.'},
       {name:'Rising Stretch',input:'Up-Attack / Up + Heavy',desc:'12f launcher. Luffy stays grounded; manually jump-cancel a confirmed launcher.'},
-      {name:'Air Heel',input:'Air Light / Heavy',desc:'8f strike. Down selects the supplied downward leg pose.'},
+      {name:'Air Heel',input:'Air Light',desc:'8f strike. Down selects the supplied downward leg pose.'},
+      {name:'Gomu Gomu no Stamp',input:'Air Heavy',desc:'11f stretched-sole aerial with long reach.'},
       {name:'Advancing command chain',input:'Forward + Heavy, fresh Heavy, fresh Heavy',desc:'Confirm-only recovery retaps. Up+Heavy at the last branch replaces knock-away with Rising Stretch.'},
       {name:'Grab / Throw',input:'Grab',desc:'Shared universal grab and throw rules; supplied reaching pose fallback.'}
     ],
     specials:[
+      {name:'Gomu Gomu no Gatling',input:'↓↘→ + Special',cost:22,desc:'12f; five rapid stretched punches then a stronger last fist (6 contacts). Committed.'},
+      {name:'Gomu Gomu no Bazooka',input:'↓↙← + Special',cost:25,desc:'20f two-palm shove, raw 70, big knockback. Slow and punishable.'},
       {name:'Stretch Piston',input:'Neutral + Special',cost:12,desc:'13f straight attached punch. Punishable block/whiff. A clean hit offers Snapback.'},
       {name:'Reel-In',input:'Forward + Special',cost:18,desc:'18f blockable hand strike. One bounded grounded pull per combo; no air restand. Snapback after pull resolves.'},
       {name:'Rubber Pinwheel',input:'Down + Special',cost:20,desc:'11f start; three separated contacts, 12+12+22 raw. No invulnerability or Snapback.'},

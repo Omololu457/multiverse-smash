@@ -1,0 +1,22 @@
+{
+ "cellW": 135,
+ "cellH": 128,
+ "frames": {
+  "idle": 3,
+  "walk": 4,
+  "crouch": 2,
+  "jump": 1,
+  "hurt": 2,
+  "knockdown": 2,
+  "taunt": 2,
+  "light": 2,
+  "heavy": 2,
+  "slash": 6,
+  "lowslash": 3,
+  "up": 2,
+  "air": 2,
+  "downair": 1,
+  "lunge": 2,
+  "charge": 1
+ }
+}

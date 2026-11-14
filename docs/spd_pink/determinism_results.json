@@ -1,0 +1,45 @@
+{
+  "replay": {
+    "frames": 1100,
+    "identical": true,
+    "exercised": [
+      "pPrep",
+      "reserve",
+      "teleport",
+      "pBreakerIron",
+      "pShot",
+      "shot",
+      "pStance",
+      "pRise",
+      "pRose",
+      "light",
+      "pJ2",
+      "heavy",
+      "pCheck"
+    ]
+  },
+  "renderBatching": {
+    "samples": 275,
+    "identical": true
+  },
+  "lifecycle": {
+    "charged": true,
+    "shot": true,
+    "trainingClears": true,
+    "mirrors": true
+  },
+  "lan": {
+    "scan": true,
+    "shot": true,
+    "tp": true,
+    "frame": 200,
+    "remote": true
+  },
+  "gamepad": {
+    "scan": true,
+    "mark": true,
+    "shot": true
+  },
+  "passes": 18,
+  "errors": []
+}

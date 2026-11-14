@@ -1,0 +1,16 @@
+{
+  "appearance": [
+    {
+      "id": "krybot_tv",
+      "sheet": "./assets/krybot/skins/tv/idle.png",
+      "tint": null
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "sheet": "./assets/krybot/skins/ds_red/idle.png",
+      "tint": null
+    }
+  ],
+  "sharedFrames": 70,
+  "errors": []
+}

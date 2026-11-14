@@ -15,7 +15,7 @@ check('difficulty 3', z.difficulty === 3, z.difficulty)
 check('archetype "Swordsman / Stance Fighter"', z.archetype === 'Swordsman / Stance Fighter', z.archetype)
 check('tagline "Nothing happened."', z.tagline === 'Nothing happened.', z.tagline)
 check('bio', z.bio === "First mate of the Straw Hat Pirates. The Three-Sword Style Swordsman who swore to become the world's greatest. Terrible sense of direction, unbreakable resolve, and a habit of napping on the job.")
-check('stats: HP 1000, Spirit 100', z.stats.maxHealth === 1000 && z.stats.maxEnergy === 100 && z.traits.energyName === 'Spirit')
+check('stats: HP 1170 (roster-parity pass 2026-11-13), Spirit 100', z.stats.maxHealth === 1170 && z.stats.maxEnergy === 100 && z.traits.energyName === 'Spirit')
 check('portrait = Going Merry emblem', /assets\/zoro\/portrait\.png$/.test(z.portrait), z.portrait)
 check('listed in characterList', characterList.some(c => c.rosterKey === 'zoro'))
 

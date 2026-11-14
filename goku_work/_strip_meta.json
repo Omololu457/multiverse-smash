@@ -1,0 +1,97 @@
+{
+ "idle": {
+  "frames": 6,
+  "width": 54,
+  "height": 60
+ },
+ "walk": {
+  "frames": 4,
+  "width": 36,
+  "height": 70
+ },
+ "jump": {
+  "frames": 3,
+  "width": 50,
+  "height": 71
+ },
+ "crouch": {
+  "frames": 2,
+  "width": 63,
+  "height": 47
+ },
+ "guard": {
+  "frames": 2,
+  "width": 53,
+  "height": 53
+ },
+ "hurt": {
+  "frames": 1,
+  "width": 50,
+  "height": 59
+ },
+ "knockdown": {
+  "frames": 1,
+  "width": 74,
+  "height": 30
+ },
+ "getup": {
+  "frames": 1,
+  "width": 40,
+  "height": 44
+ },
+ "kiCharge": {
+  "frames": 8,
+  "width": 42,
+  "height": 71
+ },
+ "win": {
+  "frames": 8,
+  "width": 56,
+  "height": 62
+ },
+ "light": {
+  "frames": 2,
+  "width": 48,
+  "height": 66
+ },
+ "heavy": {
+  "frames": 2,
+  "width": 67,
+  "height": 67
+ },
+ "up": {
+  "frames": 2,
+  "width": 36,
+  "height": 71
+ },
+ "air": {
+  "frames": 2,
+  "width": 44,
+  "height": 73
+ },
+ "down_air": {
+  "frames": 2,
+  "width": 59,
+  "height": 62
+ },
+ "crouchLight": {
+  "frames": 2,
+  "width": 76,
+  "height": 67
+ },
+ "battleDamage": {
+  "frames": 2,
+  "width": 50,
+  "height": 76
+ },
+ "crescent": {
+  "frames": 2,
+  "width": 55,
+  "height": 62
+ },
+ "kameha": {
+  "frames": 4,
+  "width": 51,
+  "height": 61
+ }
+}

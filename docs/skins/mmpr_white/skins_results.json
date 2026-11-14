@@ -1,0 +1,78 @@
+{
+  "skins": {
+    "mmprWhiteAlienX": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    },
+    "mmpr_white_inspired_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    },
+    "mmpr_white_inspired_diamondhead": {
+      "tag": "diamondhead",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    },
+    "mmpr_white_inspired_heatblast": {
+      "tag": "heatblast",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    },
+    "mmpr_white_inspired_chromastone": {
+      "tag": "chromastone",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    },
+    "mmpr_white_inspired_ghostfreak": {
+      "tag": "ghostfreak",
+      "traceIdentical": true,
+      "actions": 42,
+      "megazordCells": 2,
+      "kept": {
+        "strips": 42,
+        "blade": 648,
+        "outline": 40950,
+        "changed": 0
+      }
+    }
+  },
+  "passes": 70,
+  "failures": 0
+}

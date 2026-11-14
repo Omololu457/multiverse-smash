@@ -527,7 +527,7 @@ export function getFighterInput(fighter) {
   // into this fighter's synthetic keyboard binds via applyAIInputToKeys, so it must read the
   // keyboard/buffer path below, never a physical pad that happens to be bound to this slot's
   // player number. (1v1 P1/P2 never set _aiControlled → this branch is unchanged for them.)
-  if (type === "controller" && !fighter._aiControlled && !fighter._mmprBlackRemoteInput) {
+  if (type === "controller" && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput) {
     const gpInput = pollGamepad(pn, buffer)
     if (gpInput) return gpInput
   }
@@ -588,7 +588,7 @@ export function readRawControls(fighter) {
   // Buggy's command layers (press edges + motions) read this same snapshot, so a pad must feed it too.
   // Reuse this raw snapshot for replay/LAN as well; no extra buffer polling or input parser.
   const pn = fighter.playerNumber || 1
-  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red' || fighter.rosterKey === 'mmpr_black') && !fighter._aiControlled && !fighter._mmprBlackRemoteInput && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
+  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'spd_blue' || fighter.rosterKey === 'krybot' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red' || fighter.rosterKey === 'spd_green' || fighter.rosterKey === 'spd_pink' || fighter.rosterKey === 'mmpr_black' || fighter.rosterKey === 'mmpr_white' || fighter.rosterKey === 'mmpr_pink') && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
     const gp = getPlayerGamepad(pn)
     if (gp) {
       const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []

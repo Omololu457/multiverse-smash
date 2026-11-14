@@ -185,6 +185,11 @@ function tickMove(f, opp, s, z, W) {
         zoroStartMove(f, 'zShishiStrike', W?.startMove)
       }
       break
+    case 'step': {   // variety pass: Iai Backstep (negative lunge = straight back; clamped to the stage)
+      const [st, en, step] = z.lunge
+      if (t >= st && t < en) { f.x = clampX(f.x + dir * step); f.vx = 0 }
+      break
+    }
     case 'shishiStrike': {
       const [st, en, step] = z.dash
       if (t >= st && t < en) { s.phase = 1; f.facing = dir; f.x = clampX(f.x + dir * step); f.vx = 0 }

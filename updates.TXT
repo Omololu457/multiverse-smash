@@ -1,3 +1,500 @@
+══════════════════════════════════════════════════════════════════════════════════════════════
+ CONTROLLER (PS5 DualSense) FLOW — DEEP AUDIT + FIX PLAN          written 2026-11-13
+ Scope: every input path on main (input.js, game.js, physics.js, combat.js, abilities.js,
+ motionInput.js, rangers.js, zoro/sanji/buggy command layers, ui.js / kits.js / academy.js help).
+ Nothing below is implemented yet. Line numbers are approximate (game.js has uncommitted
+ Krybot/SPD Blue edits in the working tree).
+══════════════════════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 1. HOW A PS5 BUTTON PRESS TRAVELS TODAY
+──────────────────────────────────────────────────────────────────────────────────────────────
+  navigator.getGamepads()  ──(polled once per 60 Hz logic frame, no events for buttons)
+     │
+     ├─ input.js pollGamepad()          held state → per-player BUFFER (10 f) → inputState
+     │      Square=Light  Triangle=Heavy  Cross=Jump  R1=Special  R2=Ultimate
+     │      L1=Grab  L2=Charge  Circle=Block  Up(stick/d-pad)=Jump  Up+attack=Up-attack
+     │
+     ├─ game.js updateGamepadEdges()    press EDGES only: d-pad/stick → directionHistory
+     │      (motion specials), motionInput.js (Naruto chars), double-tap dash/teleport,
+     │      L2 tap-vs-hold, R1/R2 press+release for 5–6 hard-coded characters
+     │
+     ├─ game.js mapInputToVirtualKeys() inputState → FAKE KEYBOARD KEYS ("vKeys") that
+     │      physics.js / combat.js read as if a keyboard were pressed
+     │
+     ├─ input.js readRawControls()      a SECOND, separate pad reader — only for
+     │      luffy, spd_blue, krybot, sanji, zoro, buggy, spd_red (their own command layers),
+     │      and the snapshot that replays + LAN record
+     │
+     └─ input.js pollMenuGamepad()      a THIRD reader for menus (first connected pad only,
+            synthesises keydown events / moves a virtual mouse cursor)
+
+  Five separate motion/command systems read directions:
+    (a) fighter.directionHistory (game.js recordDirectionInput, ms timestamps, 700 ms window)
+    (b) motionInput.js (Naruto-universe only, ms timestamps, 700–1000 ms windows)
+    (c) _specialHeldDir / betaHeldDir (direction held the frame Special is pressed, U>F>B>D)
+    (d) per-character regex/tick parsers (zoro.js MOTIONS, sanji, buggy) on readRawControls
+    (e) rangers.js (frame ticks, 12-tick double-tap window, diagonals never count)
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 2. CONFIRMED PROBLEMS (each one checked in code; ★ = measured in the real game)
+──────────────────────────────────────────────────────────────────────────────────────────────
+
+ ★ P1. THE INPUT BUFFER IS HALF AS LONG AS INTENDED (keyboard AND pad)
+     getFighterInput() decrements every buffer each time it is CALLED, and it is called
+     twice per fighter per frame (updateMovementInput + _updatePlayerCombatBody). Measured
+     in a live match: exactly 2.0 calls/frame for P1 and P2. So INPUT_BUFFER_FRAMES = 10
+     (≈167 ms) is really ≈5 frames (≈83 ms). During hitstun/blockstun it gets worse, since the
+     Tobirama / Green Arrow / Combo Breaker / Sasuke reversal checks call getFighterInput()
+     again (up to 4–6 calls → 2–3 frame buffer). This is the single biggest cause of
+     "my input got eaten" — chains, links and reversals drop presses.
+     FIX: poll ONCE per frame into an immutable per-player InputFrame; everything reads that.
+
+   P2. ON-SCREEN CONTROLLER HELP IS WRONG (4 places, 3 different layouts)
+       Real mapping (input.js pollGamepad):
+         □ Light   △ Heavy   ✕ Jump   ○ Block   R1 Special   R2 Ultimate   L1 Grab   L2 Charge
+       What the game TELLS a PS5 player:
+         kits.js CONTROL_REFERENCE   ✕ Light, □ Heavy, △ Special, ○ Dash, L2/R2 Ult, R1 Charge
+         game.js _controlRefForPad   same wrong layout (Move List)
+         ui.js controls overlay      same wrong layout (pause/controls screen)
+         academy.js labels           ✕ Light, □ Heavy, △ Special, R1 Charge AND R1 BLOCK
+         input.js PS5_MAP header     ✕ light, □ heavy, △ special, ○ block, R1 charge, L2 ult
+       A player following the Move List presses ✕ for Light and jumps; presses △ for Special
+       and gets Heavy; presses ○ to Dash and blocks. FIX: one mapping table → generate every
+       help string from it (and from the user's remap, see §4).
+
+   P3. ONLINE / LAN IGNORES THE CONTROLLER; REPLAYS RECORD NOTHING FOR MOST PAD PLAYERS
+       - hostChooseMatchup() forces inputSettings.p1Type = "keyboard".
+       - netMatch.sample() sends readRawControls(NET_LOCAL_INPUT_REF), and that ref is
+         { controls: P1_CONTROLS } with no rosterKey/playerNumber, so it ALWAYS reads keyboard keys.
+       - replay.recordInputs() uses readRawControls(p1/p2). For a pad player on any character
+         NOT in the 7-character list, that returns the (empty) keyboard state, so the replay
+         has no inputs and desyncs.
+       FIX: the InputFrame (P1 fix) becomes the thing LAN sends and replays record.
+
+   P4. THE 7-CHARACTER HARD-CODED LIST IN readRawControls()
+       Every new character with its own command layer has to be added by hand to a
+       rosterKey list, or its motions/press edges silently don't work on a pad. Same for the
+       R1 press/release block in updateGamepadEdges (Saitama, Genos, Iron Man 2/3, Vilgax only)
+       and R2. Keyboard players get those handlers via keydown for everyone. Fragile parity.
+
+   P5. THE STICK IS PROCESSED AS FOUR SEPARATE SWITCHES
+       - Per-axis ("square") deadzone of 0.4: pushing "right" with a little natural downward
+         tilt (y ≥ 0.4) registers RIGHT + DOWN. Pushing slightly up registers UP = JUMP.
+       - There is no 8-way gate, no radial deadzone, no hysteresis. Directions flicker at the
+         0.4 boundary, which creates false press edges → false double-taps and false motions.
+       - Held-direction priority is U > F > B > D. A stick resting at down-forward after a
+         quarter-circle reads as FORWARD, so "↓ + Special" needs a perfectly straight down.
+       - Rangers (SPD Red/Blue) ignore diagonal presses for the blink, so a stick-tapped
+         blink that is a few degrees off-axis does nothing.
+       - Any upward tilt = jump, so up-specials, up-attacks and ↓↓↑ clone summons jump
+         unless the Special is pressed the SAME frame as Up. (Keyboard has a clone-summon
+         "jump grace", but the pad path doesn't — input.js only applies it to keys.)
+
+   P6. MOTIONS ONLY SEE CARDINAL PRESS EDGES
+       directionHistory/motionInput record L/R/U/D press edges only. A real stick roll
+       (↓ ↘ →) produces edges in an order that depends on which axis crosses 0.4 first, and
+       the diagonal itself is never recorded. Motion success on the stick is lower than on
+       the d-pad, and lower again than on a keyboard.
+
+   P7. INPUT TIMING IS IN WALL-CLOCK MILLISECONDS, NOT GAME FRAMES
+       DOUBLE_TAP_TIME 240 ms, COMMAND_INPUT_MAX_AGE 700 ms, motionInput 700–1000 ms,
+       clone-summon grace 800 ms, and charge/hold timers (performance.now) all count real time.
+       During hitstop, slowdown (Killua Godspeed), a dropped frame or a 120 Hz display skip,
+       the windows shrink or grow relative to what you see. They also can't be replayed or
+       sent over LAN deterministically. rangers.js and zoro/sanji already use frame ticks: the right model.
+
+   P8. ATTACKS FIRE WHILE THE BUTTON IS DOWN, NOT ON A FRESH PRESS
+       pollGamepad re-arms the buffer EVERY frame a button is held, and combat starts a move
+       whenever controls.light is true. Holding □ = auto-repeating jabs. A buffered press is
+       never CONSUMED when it starts a move, so one tap can sometimes start two moves. There is
+       no press/release edge data for normals, so "negative edge" (release-to-fire) and "plinking"
+       (tapping two buttons a frame apart for a 2-frame window) are impossible.
+
+   P9. VERY FAST TAPS CAN BE MISSED
+       The pad is sampled only once per 60 Hz logic frame. A tap shorter than one frame
+       (common when mashing or plinking) can start and end between samples and never be seen.
+       The Gamepad API has no button events, so nothing latches it.
+
+   P10. MENUS: ONE SHARED CURSOR, FIRST PAD WINS
+       pollMenuGamepad reads the first connected pad only. With two PS5s, P2 can't drive their
+       own cursor on character select; the whole UI is one virtual mouse. Synthesised keydown
+       events (ArrowUp/Enter/Escape) also run through the same document listener as gameplay keys.
+
+   P11. TRAINING MODE IS KEYBOARD-ONLY
+       F1 (training toggle), F2 (reset), F3 (infinite HP/EN), F4 (dummy mode) have no pad
+       equivalents. A pad player has to reach for the keyboard to reset positions.
+
+   P12. TRIGGERS USE THE BROWSER'S .pressed, NOT .value
+       L2 (Charge) and R2 (Ultimate) trip at whatever analog threshold the browser picks.
+       There's no consistent threshold, no hysteresis, and no use of the analog travel.
+
+   P13. NO CHECK FOR NON-STANDARD MAPPING
+       pollGamepad assumes gp.mapping === "standard". DualSense on some browser/OS combos
+       (notably Firefox on macOS, and some Bluetooth stacks) reports a non-standard layout:
+       the d-pad arrives as an axis/hat, and buttons are shuffled. The game would silently
+       misread it. Nothing warns.
+
+   P14. NO REMAP, NO PRESETS, NO PER-PLAYER PAD SETTINGS, NO RUMBLE
+       Keyboard has a rebind UI. The pad layout is hard-coded. No deadzone setting, no
+       tap-jump toggle, no button-layout presets. vibrationActuator (supported for DualSense in
+       Chrome as "dual-rumble") is never used.
+
+   P15. DEVICE ASSIGNMENT IS IMPLICIT AND SURPRISING
+       A connected pad auto-flips P1 to "controller"; PvP then forces P1 back to keyboard
+       unless 2+ pads are present; online host forces keyboard. Chrome only exposes a pad
+       after a button is pressed on it, so "is my controller connected?" depends on whether
+       you've touched it yet. Device type is a "click to change" toggle on the Settings screen.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 3. THE CORE IDEA: ONE INPUT PIPELINE (fixes P1, P3, P4, P7, P8, P9 together)
+──────────────────────────────────────────────────────────────────────────────────────────────
+ Build a single module (e.g. inputFrame.js) that, ONCE per logic frame per player, produces:
+
+   InputFrame {
+     frame,                       // sim frame number (not ms)
+     dir: 1..9,                   // numpad notation after stick processing (5 = neutral)
+     stick: {x, y, mag, angle},   // processed analog, for anything that wants it
+     held:     bitmask,           // Light Heavy Jump Special Ult Grab Charge Block …
+     pressed:  bitmask,           // went down since last frame (incl. latched sub-frame taps)
+     released: bitmask,           // went up since last frame (negative edge)
+   }
+
+ - Keyboard and pad BOTH produce InputFrames. Physics, combat, every command layer, LAN,
+   replay, training input display and AI-recording read InputFrames. No more vKeys hack,
+   no 7-character list, and no difference between keyboard and pad characters.
+ - A per-player ring buffer of the last ~60 InputFrames replaces directionHistory,
+   motionInput history, the ms-timed double-tap fields and per-character tap tick tables.
+ - ONE shared motion parser on that ring buffer, frame-windowed and numpad-based:
+     236 (QCF), 214 (QCB), 623 (DP), 22 (down-down), 66/44 (dash), 2-8 (charge),
+     clone 228, etc., with configurable leniency (skipped diagonal OK, ±N frames,
+     "shortcuts" like 6236 → DP). Characters register named motions instead of writing parsers.
+ - Buffering on PRESS EDGES with CONSUMPTION: a press is held for N frames (true N, since it's
+   read once) and is cleared the moment it starts a move. Different windows per kind are
+   possible (e.g. normals 6 f, specials 10 f, wake-up reversal 12 f).
+ - LAN sends the packed InputFrame (it's already a bitmask + dir); replays store it.
+   That makes pad play deterministic and fixes P3 for free.
+ - Sub-frame latching: sample the pad more often than the logic rate (rAF at 120 Hz on
+   ProMotion Macs, or a 4 ms setInterval sampler) and OR every "down" seen since the last
+   logic frame into pressed. Mash/plink taps are never lost.
+
+ Migration can be gradual: InputFrame can produce the old inputState + vKeys as an adapter, so
+ nothing breaks while characters move over one at a time. Start with the 2× buffer drain,
+ because one shared read fixes it immediately.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 4. STICK, BUTTONS AND LAYOUT — MAKING THE DUALSENSE FEEL GOOD
+──────────────────────────────────────────────────────────────────────────────────────────────
+ STICK PROCESSING
+   - Radial deadzone (≈0.25–0.30 magnitude), then an 8-way ANGULAR gate:
+     cardinals get ±30° (wider), diagonals ±15°. That makes straight ↓ / → easy to hold
+     while ↘ still exists for motions.
+   - Hysteresis: once in a sector you must move ~8° past its edge to leave it, so there's
+     no flicker at boundaries and no fake double-taps.
+   - Separate thresholds for "direction held" vs "direction TAPPED" (dash/blink): a tap
+     needs a fast throw (magnitude rise > X within 3 frames), a slow drift doesn't count.
+   - SOCD cleaning (left+right → neutral, up+down → up) when stick and d-pad disagree.
+ TAP-JUMP OPTION (big one for pad players)
+   - Setting: "Jump on Up: ON / OFF". OFF = only ✕ jumps; Up is just a direction, so
+     ↑+Special, ↑+attack and ↓↓↑ never jump by accident. Default OFF for pads.
+ TRIGGERS
+   - Read .value with our own threshold (≈0.35) + hysteresis. Optional "hair trigger".
+   - Use the analog travel where it's flavourful: L2 depth = charge speed, R2 full-pull
+     = ultimate confirm (prevents accidental ult on a light graze).
+ BUTTON LAYOUT PRESETS (selectable per player, stored per pad)
+   - CLASSIC (current):  □ L  △ H  ✕ Jump  ○ Block  R1 Sp  R2 Ult  L1 Grab  L2 Charge
+   - FIGHTSTICK-STYLE:   □ L  △ H  R1 Sp  ✕ Grab  ○ Block  R2 Ult  L1 Charge  (jump = Up)
+   - PLATFORM-FIGHTER:   ✕ Jump  □ Attack  ○ Special  R1 Block  L1 Grab  △ Jump  (smash-like)
+   - CUSTOM: full remap screen (press the button you want for each action), glyphs from
+     getPadType(), stored in localStorage keyed by the pad's id, so each controller keeps its layout.
+ FREE BUTTONS ON THE DUALSENSE THAT ARE CURRENTLY UNUSED
+   - L3 / R3 (10/11): taunt / quick-ult (L3+R3) / combo breaker shortcut.
+   - Right stick (axes 2/3): optional "flick" = dash/blink in that direction (no double-tap
+     needed), or directional specials (flick ↓ = ↓+Special). Huge for Rangers & speedsters.
+   - Touchpad click (17): training menu. Create/Share (8): training "reset position".
+   - Options (9): pause (already). PS (16): avoid. macOS opens Games/Game Center on it;
+     tell users how to disable that in System Settings › Game Controllers.
+ MACROS / SHORTCUTS (optional, off in "competitive" toggle)
+   - L1+R1 = combo breaker (Block+Special today), R2+L2 = ultimate, □+△ = up-attack.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 5. FEEDBACK: MAKE THE PAD TALK BACK
+──────────────────────────────────────────────────────────────────────────────────────────────
+ - Standard rumble (works today in Chrome via gp.vibrationActuator.playEffect("dual-rumble")):
+   light tick on landing a hit, heavier on blocked heavies, long on KO / brutality, pulse
+   on "meter full", a short buzz when a teleport/blink charge refills.
+ - WebHID DualSense driver (Chrome/Edge only, one permission prompt): talks to the pad directly
+   over USB/Bluetooth HID. That unlocks what the Gamepad API can't:
+     * Lightbar colour = player colour or character colour (SPD Red red, Homelander blue),
+       flashing red at low HP.
+     * Player LEDs = P1/P2 indicator.
+     * Adaptive triggers: resistance on L2 while charging, a "click" stop on R2 when Ultimate
+       is ready, trigger rumble on Heat Vision / beams.
+     * Haptic motor patterns instead of plain rumble.
+     * Higher, steadier report rate (lower latency than the Gamepad API's polling).
+   Falls back to the Gamepad API automatically when WebHID is unavailable (Safari/Firefox).
+ - Settings: rumble strength slider + per-event toggles; accessibility "no rumble".
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 6. MENUS, MULTIPLAYER, TRAINING
+──────────────────────────────────────────────────────────────────────────────────────────────
+ - "PRESS ✕ TO JOIN" device assignment: each pad claims a slot by pressing a button (like
+   Smash). Shows the pad's glyph type + slot colour. Keyboard can claim too. Removes the
+   auto-flip / force-keyboard surprises (P15) and makes online hosting work with a pad.
+ - Per-player cursors on character/stage select (two pads = two cursors, or P1 picks then
+   P2, each driven by their own pad).
+ - Disconnect handling: pause on pad disconnect mid-match ("Reconnect controller P2"), re-bind
+   the same pad by id on reconnect.
+ - Training on the pad: Touchpad = training menu, Create = reset, Create+direction = reset
+   to corner/mid-screen; a pad-driven dummy record/playback (L3 record, R3 play).
+ - Training INPUT DISPLAY: numpad arrows + button icons per frame with frame counts (the
+   InputFrame ring buffer makes this trivial). Plus a "motion checker" that shows the motion
+   parser's verdict live ("236 ✓ 3 f early").
+ - Connection hints: show "USB recommended" (DualSense over Bluetooth adds latency), detect
+   non-standard mapping and show a one-time warning + calibration screen ("press □").
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 7. TESTING (so it never regresses)
+──────────────────────────────────────────────────────────────────────────────────────────────
+ - A fake navigator.getGamepads() injected via page.addInitScript in the harness: scripted
+   button/axis timelines per frame (Playwright can't emulate pads, but a stub can). Today
+   only the MENU layer has an injection hook (updateMenuGamepad(injected)).
+ - Regression tests to add:
+     buffer length really = N frames (catches the 2× drain forever)
+     pad = keyboard parity for every character (same InputFrame → same moves)
+     stick at 20°/35°/50°/70° → expected numpad direction
+     QCF/DP/↓↓↑ success rate on stick rolls with noise
+     LAN/replay round-trip of a pad match is bit-identical
+     help-screen glyphs == the active mapping (catches P2 forever)
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 8. SUGGESTED ORDER (smallest risk → biggest win first)
+──────────────────────────────────────────────────────────────────────────────────────────────
+  1. Fix the 2× buffer drain (call getFighterInput once per frame and reuse the result). [S]
+  2. One mapping table + regenerate kits/ui/academy/Move List glyphs from it. [S]
+  3. Tap-jump OFF option for pads + clone-summon grace on pad. [S]
+  4. Radial deadzone + 8-way angular gate + hysteresis (stick processing only). [S–M]
+  5. Make readRawControls read the pad for EVERY character; remove the hard-coded lists
+     (R1/R2 handlers become generic press/release events). LAN host can use a pad. [M]
+  6. InputFrame module + per-player ring buffer + sub-frame latching (adapter keeps old code
+     working). Replays/LAN switch to it. [M–L]
+  7. Shared frame-based motion parser; migrate directionHistory / motionInput / per-char
+     parsers onto it one universe at a time. Convert ms windows to frames. [L]
+  8. Press-edge buffering with consumption + per-kind windows (+ optional negative edge). [M]
+  9. Layout presets + remap screen + per-pad saved settings + "press ✕ to join". [M]
+ 10. Rumble, then the WebHID DualSense driver (lightbar, adaptive triggers). [M / L]
+ 11. Training on the pad + input display + motion checker. [M]
+ 12. Fake-gamepad harness + the regression tests above (start this alongside step 1). [M]
+══════════════════════════════════════════════════════════════════════════════════════════════
+
+
+══════════════════════════════════════════════════════════════════════════════════════════════
+ ADDENDUM A — CONTROLLER MAPPING IN DEPTH                                   added 2026-11-13
+══════════════════════════════════════════════════════════════════════════════════════════════
+
+ A1. WHAT THE BROWSER ACTUALLY GIVES US FOR A DUALSENSE ("standard" mapping)
+     buttons[i]                                        axes[i]
+      0 ✕ Cross        9  Options                       0 Left stick X  (−1 left … +1 right)
+      1 ○ Circle      10  L3 (left stick click)         1 Left stick Y  (−1 UP … +1 down)
+      2 □ Square      11  R3 (right stick click)        2 Right stick X
+      3 △ Triangle    12  D-pad Up                      3 Right stick Y
+      4 L1            13  D-pad Down
+      5 R1            14  D-pad Left                   Triggers (6/7) carry .value 0…1 (analog)
+      6 L2 (analog)   15  D-pad Right                  as well as .pressed.
+      7 R2 (analog)   16  PS button
+      8 Create/Share  17  Touchpad click
+     Today the game uses 0–7, 9 and 12–15 and left-stick axes 0/1. Unused: 8, 10, 11, 16, 17,
+     right stick (2/3), and the analog value of 6/7.
+
+ A2. WHERE IT DIFFERS (things a mapping layer must absorb)
+     - gp.mapping !== "standard" (seen with DualSense on Firefox/macOS and some Bluetooth
+       stacks): d-pad arrives as ONE "hat" axis (≈axes[9], values −1…+1 in 8 steps); face buttons and
+       triggers are reordered; triggers can be axes that rest at −1 instead of buttons at 0.
+     - Chrome exposes a pad only after the first button press on it (a privacy rule), so
+       "no controller found" until the player touches it. The UI should say "press any button".
+     - Bluetooth vs USB-C: same layout, but Bluetooth adds latency and some browsers drop the
+       touchpad/PS buttons over BT.
+     - DualShock 4 = same layout as DualSense. Xbox = same POSITIONS (A=0 B=1 X=2 Y=3, LB/RB/LT/RT).
+       Switch Pro = same positions but the printed letters are swapped (B bottom, A right), so
+       glyphs must come from POSITION, which padGlyphs() already does correctly.
+     - Region convention: Japan traditionally uses ○ = confirm, ✕ = back. Offer a "swap
+       confirm/back" menu option (menus only, not gameplay).
+
+ A3. ONE SOURCE OF TRUTH FOR MAPPING (proposed data shape)
+     A per-pad profile, saved in localStorage under the pad's id string (so YOUR DualSense keeps
+     YOUR layout even if it reconnects as a different slot):
+       {
+         "id": "DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)",
+         "preset": "classic" | "fightstick" | "platform" | "custom",
+         "buttons": { "light":2, "heavy":3, "special":5, "ultimate":7, "jump":0,
+                      "block":1, "grab":4, "charge":6, "taunt":10, "quickBreaker":[4,5] },
+         "stick":   { "deadzone":0.28, "cardinalArc":60, "hysteresisDeg":8, "tapJump":false,
+                      "rightStick":"flickDash" | "directionalSpecial" | "off" },
+         "triggers":{ "threshold":0.35, "hysteresis":0.08 },
+         "menu":    { "confirm":0, "back":1, "swapConfirmBack":false },
+         "rumble":  1.0,
+         "calibration": null | { ...non-standard pad remap captured by the calibration screen... }
+       }
+     Everything that draws controls reads THIS (Move List, pause controls, Academy, character
+     Move Lists in kits.js, training input display, tutorial prompts). The four wrong tables found in
+     section 2 / P2 disappear because no help text is hand-written any more.
+
+ A4. THE PRESETS SPELLED OUT (action → DualSense)
+                     CLASSIC (today)   FIGHTSTICK            PLATFORM-FIGHTER       ONE-HAND/ACCESS
+     Light           □                 □                     □ (attack)            □
+     Heavy           △                 △                     △ (strong)            △
+     Special         R1                R1                    ○                     ○
+     Ultimate        R2                R2                    R2                    R1+○
+     Jump            ✕ (+Up)           Up only               ✕ / △ (tap-jump off)  ✕
+     Block           ○                 ○                     R1                    L1
+     Grab            L1                ✕                     L1                    L2
+     Charge/Toggle   L2                L1                    L2                    R2
+     Up-attack       Up+□/△            Up+□/△                Up+□                  L3
+     Dash/Blink      double-tap        double-tap or R-stick R-stick flick         R-stick flick
+     Combo Breaker   ○+R1 (Block+Sp)   ○+R1                  L1+R1                 L1+R1
+     Taunt           hold ↓ 10 s       L3                    L3                    —
+     The FIGHTSTICK preset puts the four attack buttons on the top row (□ △ R1 R2), the classic
+     arcade layout most fighting-game pad players use.
+
+ A5. REMAP SCREEN (UX)
+     - Pick your pad by pressing any button on it → its profile loads (or the default preset).
+     - List of actions; select one → "Press a button…" → captures the NEXT press edge
+       (ignores buttons already held, times out after 5 s). Triggers are captured by value.
+     - Conflicts: a button can be on one gameplay action only (warn + swap); chords allowed
+       for shortcuts only.
+     - "Test" area under the list: live input display that lights each action as you press it.
+     - Reset to preset. Export/import the profile as JSON (share layouts with friends).
+     - Locked: Options always = pause, so nobody can remap themselves out of the menu.
+
+ A6. MENU MAPPING (pad on every screen)
+     - Face: ✕ confirm, ○ back, △ = "details/move list" on character select, □ = "random",
+       L1/R1 = page tabs (universe tabs on select), L2/R2 = previous/next skin, Options = start.
+     - Stick and d-pad both move the cursor; hold to repeat (the current 22 f delay / 7 f rate is
+       fine). The right stick scrolls long lists (Codex, Move List).
+     - Each pad owns its own cursor on character/stage select (the slot it joined with).
+
+ A7. TINY QUICK WINS INSIDE THE MAPPING WORK
+     - Fix the PS5_MAP header comment and the 4 wrong help tables (they disagree with the code).
+     - Use axes 2/3 (right stick) at all: even just "right stick = d-pad duplicate" helps
+       players who prefer stick motions on one thumb and buttons on the other.
+     - Read gp.buttons[6/7].value for L2/R2 with our own threshold.
+     - Warn once when gp.mapping !== "standard" and open the calibration screen.
+
+══════════════════════════════════════════════════════════════════════════════════════════════
+ ADDENDUM B — TWO KEYBOARDS ON ONE COMPUTER                                 added 2026-11-13
+══════════════════════════════════════════════════════════════════════════════════════════════
+
+ B1. THE HARD LIMIT (why the game can't do it alone in a browser)
+     - A browser merges ALL keyboards into one stream. KeyboardEvent has no device id, so
+       "W from keyboard 1" and "W from keyboard 2" are byte-identical to the page.
+     - WebHID could read devices individually, but Chrome BLOCKS keyboards and mice in WebHID
+       (protected HID usage pages) for security (keyloggers). WebUSB blocks the HID class too.
+     - So two keyboards need ONE of: (1) the OS rewrites keyboard 2 into different keys,
+       (2) the OS turns keyboard 2 into a virtual gamepad, or (3) a small native helper reads
+       devices separately and forwards them to the game. All three are realistic.
+
+ B2. ROUTE 1 — "KEYBOARD 2 TYPES P2's KEYS" (works TODAY, zero game code)
+     The game already has P2 bindings (arrows + 1–7 + /). An OS-level per-device remapper makes
+     keyboard 2's WASD/JKL… produce P2's keys, so both players use the SAME comfortable layout on
+     their own keyboard, and the two keyboards no longer fight over key rollover.
+       macOS:   Karabiner-Elements, a complex rule with a "device_if" condition
+                (keyboard 2's vendor_id/product_id from Karabiner-EventViewer):
+                  w→up_arrow  a→left_arrow  s→down_arrow  d→right_arrow
+                  j→1  k→2  i→3  l→4  u→5  o→6  p→7  ;→/
+                We could ship this as tools/karabiner/multiverse_p2_keyboard.json with a
+                placeholder vendor/product id and a 3-line "how to" in the README.
+       Windows: AutoHotkey + AutoHotInterception (per-device remap via the Interception driver),
+                same mapping table.
+       Linux:   keyd or input-remapper, per-device config.
+     Downside: keyboard 2 is "for the game" while the rule is on (toggle it in the menu bar).
+
+ B3. ROUTE 2 — "KEYBOARD 2 BECOMES A GAMEPAD" (also zero game code, and it scales to 4 players)
+     - Windows: Keyboard Splitter (open-source, Interception driver + ViGEm) turns each extra
+       keyboard into its own virtual Xbox controller. The game then sees 2–4 GAMEPADS and the
+       existing pad code (incl. FFA P3/P4, which are controller-only today) just works.
+     - macOS: no maintained virtual-gamepad driver exists, so use Route 1 or Route 3 on Mac.
+     - Pair this with the mapping work above so keyboard-pads get a sensible default preset.
+
+ B4. ROUTE 3 — A TINY NATIVE "INPUT BRIDGE" (the real built-in solution)
+     A small helper app runs next to the game and reads every keyboard separately:
+       macOS   IOHIDManager (IOKit), callbacks carry the IOHIDDeviceRef → device id.
+               Needs the one-time "Input Monitoring" permission. Opens devices NON-exclusively, so
+               the keyboard still types normally elsewhere.
+       Windows Raw Input API (RegisterRawInputDevices + WM_INPUT): every event carries hDevice.
+       Linux   evdev (/dev/input/event*), one fd per keyboard.
+     It forwards { device, code, down } over a local WebSocket (ws://127.0.0.1:PORT). The game
+     adds an "External Input" source that turns those into per-player InputFrames, the same
+     object the pad and keyboard produce after section 3's refactor. In the game:
+       - Lobby: "Press any key on YOUR keyboard to join" → that device id = P2 (P3, P4…).
+       - Each keyboard gets its OWN full binding set (both players can use WASD+JKL).
+       - Falls back silently when the bridge isn't running (normal single-keyboard mode).
+     Packaging: the game already launches through a local server (Play Luffy.command / the
+     harness serve()). The bridge can be the same launcher (Node + a native addon, or a
+     ~200-line Swift binary on Mac) so players double-click one thing. A future desktop build
+     (Electron/Tauri) would embed it directly.
+     Bonus: the same bridge can expose ANY HID device (arcade sticks, foot pedals, a second mouse)
+     and lets the bridge stamp precise timestamps, which gives better input timing than the browser.
+
+ B5. ROUTE 4 — "THE SECOND KEYBOARD IS A PHONE" (no install at all)
+     touchControls.js already exists. Serve a controller page on the LAN (QR code on the
+     character-select screen); the phone connects over WebSocket/WebRTC and becomes P2's input
+     (Jackbox-style). Same External Input source as Route 3, so it's one integration for both.
+
+ B6. MAKING ONE SHARED KEYBOARD BETTER (in case two keyboards aren't available)
+     - Switch the game from e.key to e.code. e.code is layout-independent (AZERTY/Dvorak work),
+       unaffected by Shift/CapsLock, and tells NUMPAD keys apart from the top row
+       ("Numpad1" vs "Digit1"). That alone makes a cheap USB NUMPAD a usable second device
+       even with no remapper: it plugs in as keys the main keyboard's P1 never uses.
+     - Today P2 = arrows (right hand) + digits 1–7 (TOP-LEFT, right above P1's WASD hand), so
+       the two players' hands collide on one keyboard. Better default for P2 on a shared board:
+       arrows + the numpad (Numpad0/1/2/3/Enter/+…), or arrows + the right-side
+       punctuation cluster ( [ ] \ ' . / ).
+     - Key-rollover/ghosting: most laptop keyboards drop some 3–4-key combos. Pick P1 and P2
+       clusters that sit on different matrix rows; offer a "rollover test" screen that shows
+       which simultaneous keys the hardware actually reports.
+     - Let P2 rebind too (today only P1 rebinds, in memory only, limited to 11 allowed keys),
+       and save both binding sets.
+
+ B7. RECOMMENDATION
+     Short term: ship the Karabiner/AutoHotInterception rule files (Route 1) + switch to e.code
+     (B6). That's a couple of hours and two keyboards work on Mac and Windows immediately.
+     Medium term: the InputFrame refactor (section 3) gives every input source one entry point,
+     so the native bridge (Route 3) and phone controller (Route 4) plug in with no character code.
+
+
+==== 2026-11-13 S.P.D. GREEN RANGER (Bridge Carson, spd_green) ====
+- New separate fighter: HP980, Acrobatic Read / Counterpressure, Aura Read mark + Acrobat follow-up, Deltamax Check, Rising Arc, Heel Return, Read and Retreat, double-tap phase step (SPD Blue contract).
+- Skins: Default + 6 (Alien X, Upgrade, Diamondhead, Heatblast, SPD Blue palette, SPD Shadow palette), precomputed region masks.
+- Ultimate: shared Ranger Zord NOT present -> disabled (press consumed, no meter). Dependency documented.
+- Tests: mechanics 60/0, determinism/replay/LAN 17/0, skins 56/0, normal-launch visual 12/0; regressions unchanged.
+- PENDING: shared-file hooks are live in the worktree but uncommitted until SPD Blue/groundTeleport.js land. See docs/spd_green/INTEGRATION.md + HANDOFF.md.
+
+2026-11-13 - S.P.D. Pink + Ranger/One Piece variety and roster-parity pass (Claude)
+- SPD Pink (spd_pink, Syd Drew) added: Iron Reserve charge, Baton Reprisal counter, Deltamax shot, Rising Check, Falling Rose, 6 skins. Zord ult disabled (no shared Zord system).
+- Ranger variety (Red untouched): Blue/Green/Pink each got Down+Heavy sweep, Back+Heavy evade, air special, Up special, a 3-hit qcf string (ends on block), a qcb special, a Forward+Light move and an air Heavy.
+- One Piece variety: Luffy Kane/Muchi/Rubber Hop/Stamp/Gatling (qcf)/Bazooka (qcb); Zoro Iai Backstep/Air Cross/Nigiri anti-air; Sanji/Buggy/Arlong air Heavy.
+- Parity: Ranger/Krybot/Luffy move data x1.7, roster damage boost x1.3 (rosterParity.js, applied in combat.applyScaledDamage incl. grabs/chip), HP raised to 1080-1220.
+- Tests: spd_rangers_variety 70/0, onepiece_variety 26/0, spd_pink 78/0; HP/damage literals in older tests now derived from maxHealth/boost.
+- 2026-11-14 variety layer 5:
+  - Ranger Back+Light retreating pokes: Pink Retreating Backfist, Green Phase Snap Kick, Blue Withdrawing Strike. Each steps ~35px back, then a long-reach hit.
+  - Buggy Back+Heavy Bara Bara Split Cut (body retreats 60px, hand lunges out with 170px reach).
+  - Arlong Back+Light Shark Tail Sweep (long low knockdown).
+  - Tests: Ranger variety 76/0, One Piece variety 32/0.
+- 2026-11-14 variety layer 6:
+  - Rangers Charge+Forward armored charges: Pink Diamond Shoulder, Green Phase Ram, Blue Barrier Charge (20 energy, armored startup, ~55px advance).
+  - Luffy Back+Light Gomu Gomu no Ono (armored axe kick, knockdown); Zoro Back+Light Yakkodori (long-range push slash); Sanji Back+Light Flanchet Shot (push kick).
+  - Tests: Ranger variety 85/0, One Piece variety 37/0.
+- 2026-11-14 variety layer 7:
+  - Green/Blue Charge+Back counter stances (Phase Read -> Read Strike launcher; Barrier Parry -> Parry Strike push), so every Ranger now has a counter.
+  - Arlong Charge+Forward Tough Hide Ram (armored 110-dmg charge).
+  - Tests: Ranger variety 89/0, One Piece variety 39/0.
+- 2026-11-14 variety layer 8 — command throws that beat guard and counters:
+  - Rangers: Pink Iron Hip Toss, Green Phase Suplex, Blue S.P.D. Arrest Throw (↓↙←+Heavy).
+  - Luffy Gomu Gomu no Kazaguruma (↓↙←+Heavy); Arlong Shark Grip (Charge+Back).
+  - Green/Blue counter stances are now throwable.
+  - Tests: Ranger variety 97/0, One Piece variety 43/0.
+  - Zoro Heavy 90->100 so Zoro stays the harder hitter vs Luffy's scaled Heavy (99).
+
 2026-11-14 - Black Ranger (mmpr_black, Adam Park) + shared Falconzord sorties (Claude)
 - New fighter mmpr_black "Black Ranger" in Power Rangers: Martial Artist / Aerial Assist Commander, HP 1000, 100 Morph Energy, one jump. Supplied Genesis movie sheets (sprites ripped by Belial the Hedgehog), originals preserved.
 - Kit: J1/J2/J3 (5/7/10f), Heavy 14f, Ankle Sweep, launcher (jump-cancel), Forward+Heavy palm chain, Crescent Break (2 contacts), Rising Mastodon, Falcon Sweep / Talon Lift / Covering Volley sorties (2 pips, 180f sequential refill, 60f lockout, 12f call = commit boundary), Pincer Confirm, rangers.js blink, ultimate Falcon Formation: Blackout Descent (freeze cinematic, 30f opener, 260 raw).
@@ -5,3 +502,18 @@
 - 6 Inspired Palette skins (Alien X, Upgrade, Diamondhead, Heatblast, Chromastone, Ghostfreak); Falconzord never recoloured.
 - Tests: mmpr_black 85/0, determinism/replay/LAN/pad 20/0, skins 64/0, real-menu visual 20/0; frame-data diff zero for all 137 other fighters; det 14/0, combo-standard 231/9 and up-attack-roster 77/2 unchanged (pre-existing).
 - Docs: docs/mmpr_black/ (START_STATE, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/falconzord/.
+
+2026-11-14 - Pink Ranger (mmpr_pink, Kimberly Hart) + shared Thunder Megazord strikes (Claude)
+- New fighter mmpr_pink "Pink Ranger" in Power Rangers: Acrobatic Archer / Precision Assist, HP 950, 100 Morph Energy, one jump. Supplied Genesis movie sheets (Pink: "Sprites (shamefully) ripped by Belial."; Thunder Megazord: "Sprites Ripped by Belial"), originals preserved.
+- Kit: J1/J2/J3 (5/6/10f), Heavy 14f, Sliding Sweep, Rising Heel launcher, Forward+Heavy chain (+Up+Heavy branch), Power Bow Quick Shot (10 Energy, 12f) / Drawn Shot (hold 24f, +8, cap 45), Spotter Link (90f impact location), Thunder Line / Sky Splitter / Returning Edge calls (2 pips, 210f sequential, 75f lockout, 14f call), Crane Escape, Thread the Needle (+ Spotter's Reflex timing fix), rangers.js blink, ultimate Thunderstring: Heaven's Final Arrow (freeze cinematic, 270 raw after the opener).
+- 6 Crossover Inspired Palette skins (Alien X, Upgrade, Diamondhead, Heatblast, Chromastone, Ghostfreak); Thunder Megazord never recoloured.
+- Tests: mmpr_pink 102/0, determinism/replay/LAN/pad 20/0, skins 70/0, real-menu visual 22/0; frame-data diff zero for all 134 other fighters; mmpr_black 85/0 / 20/0 / 64/0 after the falconzord.js change; det 14/0, combo-standard 231/9 and up-attack-roster 77/2 unchanged (pre-existing), roster-integrity + frame-advantage-live green.
+- Docs: docs/mmpr_pink/ (CODEX_OWNERSHIP, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/thunder_megazord/.
+
+2026-11-14 - White Ranger (mmpr_white, Tommy Oliver) + Ninja Megazord orders (Claude)
+- New fighter mmpr_white "White Ranger" in Power Rangers: Saba Duelist / Formation Leader, HP 1000, 100 Morph Energy. Supplied Genesis movie sheets (White: "Sprites ripped by Belial the Hedgehog."; Ninja Megazord: "Sprites ripped by Belial"), originals preserved.
+- Kit: J1/J2/J3 (5/7/10f), Saba Cut 14f, Low Heel, Rising Tiger launcher, Forward+Heavy advance → Saba → knock-away (Up+Heavy branch), Saba's Answer (+Block feint), White Tiger Ascent / Tiger Descent, Twin Fist / Crane Rise / Ninja Edge orders (2 pips, 180f refill, 60f lockout, 12f commit), Three Disciplines → Formation token (upgrades one order with a 10f retap, +10 Energy), Leader's Return blink, White Light — Ninja Grand Formation ultimate (280 raw).
+- 6 Inspired Palette skins (Alien X, Upgrade, Diamondhead, Heatblast, Chromastone, Ghostfreak); Saba blade, outline and the Ninja Megazord never recoloured.
+- Fixes in shared code: rangers.js clearRanger releases the blink root on reset; mmprBlackState.js no longer clears another owner's Zord sortie.
+- Tests: mmpr_white 103/0, determinism/replay/LAN/pad 23/0, skins 70/0, real-menu visual 22/0; frame-data diff zero for all 134 other fighters; mmpr_black 85/0, spd_red_final 33/0, krybot 58/0, spd_blue 54/0, spd_blue_teleport 26/0, spd_green 60/0, luffy_combos pass.
+- Docs: docs/mmpr_white/ (START_STATE, CODEX_OWNERSHIP, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/ninja_megazord/.

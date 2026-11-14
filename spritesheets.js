@@ -51,7 +51,13 @@
 // (gojo_win.png is a single still, not an animation strip.)
 // ═══════════════════════════════════════════════════════════════════
 export const SPRITE_MANIFEST = {
+  spd_blue: { actions: { idle: './assets/spd_blue/idle.png' } },
+  spd_green: { actions: { idle: './assets/spd_green/idle.png' } },
+  spd_pink: { actions: { idle: './assets/spd_pink/idle.png' } },
   mmpr_black: { actions: { idle: './assets/mmpr_black/idle.png' } },
+  mmpr_white: { actions: { idle: './assets/mmpr_white/idle.png' } },
+  mmpr_pink: { actions: { idle: './assets/mmpr_pink/idle.png' } },
+  krybot: { actions: { idle: './assets/krybot/idle.png' } },
   luffy: { actions: { idle: './assets/sprites/luffy/idle.png' } },
   zoro: { actions: { idle: './assets/zoro/idle.png' } },
   buggy: { actions: { idle: './assets/buggy/idle.png' } },

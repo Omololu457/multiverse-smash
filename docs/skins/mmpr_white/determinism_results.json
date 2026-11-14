@@ -1,0 +1,103 @@
+{
+  "replay": {
+    "frames": 2600,
+    "identical": true,
+    "exercised": [
+      "light",
+      "wJ2",
+      "wJ3",
+      "wCall",
+      "order_ninjaTwinFist",
+      "wAnswer",
+      "wFeint",
+      "wAscent",
+      "order_ninjaCraneRise",
+      "order_ninjaEdge",
+      "blink",
+      "wAdv",
+      "wSaba",
+      "wKnock",
+      "wLow",
+      "heavy"
+    ]
+  },
+  "renderBatching": {
+    "samples": 650,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "tokenSameDamage": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "mirrorIndependent": true,
+    "mirror": {
+      "p1Cancelled": true,
+      "p2Committed": true,
+      "p2Pips": 1,
+      "p1Pips": 1
+    },
+    "identityClears": true,
+    "ident": {
+      "had": true,
+      "white": false,
+      "sortie": false,
+      "ranger": false
+    }
+  },
+  "whiteVsBlack": {
+    "both": true,
+    "wDone": true,
+    "bDone": true,
+    "wKind": null,
+    "aPips": 1,
+    "bPips": 1,
+    "bKey": "mmpr_black",
+    "aKey": "mmpr_white"
+  },
+  "lan": {
+    "call": true,
+    "sortie": true,
+    "answer": true,
+    "feint": true,
+    "blink": true,
+    "frame": 260,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "wCall",
+        "light",
+        "wJ2",
+        "wJ3",
+        "wAnswer",
+        "wFeint"
+      ],
+      "kinds": [
+        "ninjaTwinFist",
+        "ninjaCraneRise"
+      ],
+      "hp": 853
+    },
+    "pad": {
+      "names": [
+        "wCall",
+        "light",
+        "wJ2",
+        "wJ3",
+        "wAnswer",
+        "wFeint"
+      ],
+      "kinds": [
+        "ninjaTwinFist",
+        "ninjaCraneRise"
+      ],
+      "hp": 853
+    },
+    "same": true
+  },
+  "passes": 23,
+  "errors": []
+}

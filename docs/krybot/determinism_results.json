@@ -1,0 +1,21 @@
+{
+  "frames": 670,
+  "frameIdentical": true,
+  "sharedReplayCheckpoints": {
+    "cursor": 13,
+    "totalFrames": 13,
+    "checks": 12,
+    "matched": 12,
+    "desyncFrame": null,
+    "frameCount": 671
+  },
+  "recordedHelper": true,
+  "recordedShot": true,
+  "recordedSuper": true,
+  "lan": {
+    "helper": true,
+    "shot": true,
+    "frames": 150
+  },
+  "errors": []
+}

@@ -40,3 +40,13 @@ Unmarked Acrobat Step: 20+28 raw → 28 applied, cost 18. It has no follow-up.
 - Rising Arc is unsafe (−23 on block) and works once per airtime. Heel Return carries a 24f landing penalty.
 - Read and Retreat is ≤90px and still has 18f of recovery, so it is a spacing tool, not invulnerable escape.
 - The phase step reuses SPD Blue's contract exactly: window 12, cost 8, cooldown 36, 120px, plus the stage-edge clamp.
+
+## Variety pass (2026-11-13)
+Measured in `docs/rangers/variety_results.json` (`harness/spd_rangers_variety.test.mjs`):
+- Floor Sweep knocks down.
+- Backward Roll travels 100px with 7 invulnerable frames.
+- Somersault Read connects.
+- Read Rush hits three times, knocks down, and consumes the mark.
+- A blocked Read Rush stops after stage 1 with an 18f stop.
+
+Read Rush rewards a successful Aura Scan with a knockdown string, but it costs the mark and 25 energy.

@@ -130,7 +130,7 @@ export function pincerSpend(f) { const s = f._mmprBlack; s.pincer = null; s.stat
 
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer) ──
 export function tickMmprBlack(f, opp, raw, W) {
-  if (!isMmprBlack(f)) { if (f?._mmprBlack || f?._falcon?.sortie) clearMmprBlack(f, W); return }
+  if (!isMmprBlack(f)) { if (f?._mmprBlack) clearMmprBlack(f, W); return }   // only Black's own leftovers (another owner's shared sortie is theirs)
   const s = mmprBlackState(f); s.tick++
   falconState(f, FALCON_RESOURCE)
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)

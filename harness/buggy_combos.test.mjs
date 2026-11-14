@@ -5,6 +5,8 @@
 // the counter resets after 1.5 s (90 f) idle.
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+const BUGGY_BOOST = ROSTER_DAMAGE_BOOST.buggy || 1   // roster-parity pass (2026-11-13): applyScaledDamage multiplies Buggy's damage by this
 
 let PASS = 0, FAIL = 0
 const check = (n, c, d = '') => { (c ? PASS++ : FAIL++); console.log(`  ${c ? '✅' : '❌'} ${n}${d ? `  — ${d}` : ''}`) }
@@ -50,7 +52,7 @@ try {
   console.log(`  route 1: total ${await total()} dmg, combo ${(await st()).combo}`)
   check('1 · Jab → Knife slash → Heavy carve → Knife Fan: all 4 land', d1.every(x => x > 0), JSON.stringify(d1))
   check('1 · combo counter carries (≥ 4)', s.combo >= 4, s.combo)
-  check('1 · 85% scaling: the 2nd hit is scaled vs its raw value', d1[1] > 0 && d1[1] <= Math.ceil(60 * 0.6 * 0.85) + 1, `slash ${d1[1]} ≤ ${Math.ceil(60 * 0.6 * 0.85) + 1}`)
+  check('1 · 85% scaling: the 2nd hit is scaled vs its raw value', d1[1] > 0 && d1[1] <= Math.ceil(60 * 0.6 * 0.85 * BUGGY_BOOST) + 1, `slash ${d1[1]} ≤ ${Math.ceil(60 * 0.6 * 0.85 * BUGGY_BOOST) + 1}`)
 
   // 2 — Low knife → Clown kick → Cannon → stab
   await fresh(56)
@@ -120,7 +122,7 @@ try {
   for (let i = 0; i < 150; i++) { await step(1); const q = await st(); if (!q.move && i > 30) break }
   const neutralSuper = await total()
   console.log(`  neutral Super: ${neutralSuper} dmg (370 designed × 0.60 = 222)`)
-  check('SUPER from neutral lands its full designed total (370 × 0.60 global = 222)', neutralSuper >= 210 && neutralSuper <= 222, neutralSuper)
+  check('SUPER from neutral lands its full designed total (370 × 0.60 global = 222, × roster boost)', neutralSuper >= Math.floor(210 * BUGGY_BOOST) && neutralSuper <= Math.ceil(222 * BUGGY_BOOST), neutralSuper)
 
   // combo counter resets after 1.5 s idle
   await fresh(56); await keys(['j']); await waitHit(20)

@@ -11,8 +11,9 @@ const adv = (a, active, recovery) => a + (active - 1) + recovery + 2   // blocks
 // NORMALS (no Spirit). Ranges are px of reach in front of the 48px body box.
 export const ZORO_MOVES = {
   light:    n(40, 5, 3, 9,   { blockstun: adv(+1, 3, 9),  hitstun: 17, rangeX: 72, knockbackX: 2 }),                 // Jab        +1
+  zYakko:   n(85, 15, 3, 22, { blockstun: adv(-6, 3, 22), hitstun: 28, rangeX: 124, rangeY: 60, knockbackX: 20, zr: { kind: 'step', lunge: [1, 14, 1.5] } }),   // VARIETY L6 Back+Light YAKKODORI: plants his feet (cancels walk-back slide), small 20px step-in, long-range sword-wind slash, big push
   zSlash:   n(65, 8, 3, 14,  { blockstun: adv(-3, 3, 14), hitstun: 21, rangeX: 84, knockbackX: 3 }),                 // Slash      −3
-  heavy:    n(90, 13, 4, 22, { blockstun: adv(-6, 4, 22), hitstun: 30, rangeX: 96, rangeY: 70, knockbackX: 2,        // Heavy      −6, launches
+  heavy:    n(100, 13, 4, 22,   /* roster-parity 2026-11-14: 90→100 keeps Zoro the harder hitter vs Luffy's ×1.7 Heavy (99) */ { blockstun: adv(-6, 4, 22), hitstun: 30, rangeX: 96, rangeY: 70, knockbackX: 2,        // Heavy      −6, launches
              launcher: true, launchVy: -12, selfVy: 0 }),   // a short pop (~85px): juggle follow-ups (Taka Nami / Tora Gari / Tatsu Maki) reach
   zLow:     n(50, 7, 3, 13,  { blockstun: adv(-2, 3, 13), hitstun: 18, rangeX: 80, rangeY: 30, hitLevel: 'low',      // Low thrust
              zrBox: { boxY: 66 } }),
@@ -41,11 +42,20 @@ export const ZORO_MOVES = {
              blockstun: 20, zr: { kind: 'ashura', centered: true, boxY: 0, missAt: 20, invuln: 14,
                contacts: [[14, 4, 70], [30, 4, 70], [46, 4, 70], [62, 5, 150]] } }),   // 70+70+70+150 = 360 raw
   zAshuraMiss: n(0, 0, 1, 49, { zr: { kind: 'ashuraMiss', noHit: true } }),
+
+  // ── VARIETY PASS (2026-11-13; S.P.D. Red's layer template) ──
+  // Back+Heavy IAI BACKSTEP: free evade, ≈90px back, invulnerable frames 1-6, no hitbox, 16f recovery.
+  zStep:   n(0, 1, 12, 16,  { invuln: 6, zr: { kind: 'step', noHit: true, lunge: [1, 13, -7.5] } }),
+  // air Heavy NITORYU AIR CROSS: slower two-sword downward cross (air Light keeps the quick Air slash).
+  zAirH:   n(70, 9, 4, 16,  { blockstun: 12, hitstun: 24, rangeX: 88, rangeY: 80, knockbackX: 4, knockbackY: 3 }),
+  // Up+Special NITORYU: NIGIRI — two-sword rising anti-air launcher, invulnerable 1-4. Very punishable on block.
+  zNigiri: n(80, 8, 4, 24,  { cost: 12, category: 'special', isSpecial: true, launcher: true, launchVy: -24, selfVy: 0, rangeX: 70, rangeY: 150,
+             hitstun: 28, blockstun: adv(-14, 4, 24), invuln: 4, zrBox: { boxY: -78 } }),
 }
 
 // Source-frame index at exact elapsed sim frames (presentation follows the simulation, never drives it).
 export const ZORO_TIMELINES = {
-  light: [[0, 1], [5, 0], [8, 1]], zSlash: [[0, 0], [8, 1]], heavy: [[0, 0], [13, 1]],
+  light: [[0, 1], [5, 0], [8, 1]], zSlash: [[0, 0], [8, 1]], zYakko: [[0, 0], [14, 1]], heavy: [[0, 0], [13, 1]],
   zLow: [[0, 0], [7, 1]], up: [[0, 0], [9, 1], [13, 2]], air: [[0, 0], [6, 1]], down_air: [[0, 0]],
   zWake: [[0, 0], [6, 1]],
   zSanto: [[0, 0], [10, 1]], zsLight: [[0, 0], [5, 1]], zsHeavy: [[0, 0], [13, 1]],
@@ -56,7 +66,12 @@ export const ZORO_TIMELINES = {
 
 const ANIM = Object.fromEntries(Object.entries(ZORO_ANIM).map(([k, a]) => [k, ZORO_TIMELINES[k] ? { ...a, frameTimeline: ZORO_TIMELINES[k] } : a]))
 ANIM.transform = ANIM.intro   // fallback intro action
-ANIM.zIntroDraw = { ...ANIM.zShishi, speed: 40, loop: false }   // INTRO step 2: the one-sword draw (R3F1), held
+ANIM.zIntroDraw = { ...ANIM.zShishi, speed: 40, loop: false }
+// Variety pass: existing Zoro strips, re-timed (no new art).
+ANIM.zStep = { ...ZORO_ANIM.dash }
+ANIM.zAirH = { ...ZORO_ANIM.down_air }
+ANIM.zYakko = { ...ZORO_ANIM.zSlash, frameTimeline: ZORO_TIMELINES.zYakko }   // variety L6: existing strip
+ANIM.zNigiri = { ...ZORO_ANIM.up, frameTimeline: [[0, 0], [8, 1], [12, 2]] }   // INTRO step 2: the one-sword draw (R3F1), held
 // SANTORYU stance set (fighter._skinAnim while the form is active): the mouth-sword frames from R7.
 // WIN: every engine win path forces the `win` action, resolved through _skinAnim first — so a win IN the stance
 // (incl. any ASHURA finish, which is Santoryu-only) shows WIN 2 (R7F1 three-sword pose); otherwise WIN 1 (R2).
@@ -87,7 +102,7 @@ export const zoro = {
   // Speed stats = TOJI's (owner request): speed 98, dashSpeed 22, dashDuration 10, dashCooldownMax 26. speed 98
   // meets SPEED_TIER_THRESHOLD (game.js) → double-tap TOWARD the foe = Toji's blink-behind teleport-dash (plays
   // Zoro's own `dash` pose, R5F3). jumpForce 10.5 → jumpPower 28. weight 1.1 → knockback taken ÷1.1 (zoroState).
-  stats: { maxHealth: 1000, maxEnergy: 100, attack: 88, defense: 88, speed: 98, jumpPower: 28, maxJumps: 1, weight: 1.1,
+  stats: { maxHealth: 1170, maxEnergy: 100, attack: 88, defense: 88, speed: 98, jumpPower: 28, maxJumps: 1, weight: 1.1,
     dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
   movement: { crouchIdle: true, dashTeleport: true },   // double-tap TOWARD = Toji's blink-behind teleport-dash (own `dash` pose)
   // INTRO: Going Merry emblem flash → walk in (R1, eased 220px by zoro.updateZoroIntro) → draw one sword (R3F1).

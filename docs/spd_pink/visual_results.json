@@ -1,0 +1,74 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink"
+  ],
+  "detail": {
+    "key": "spd_pink",
+    "name": "S.P.D. Pink Ranger",
+    "stats": {
+      "maxHealth": 1120,
+      "maxEnergy": 100,
+      "attack": 82,
+      "defense": 76,
+      "speed": 92,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Precision Striker / Material Pressure",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 7,
+    "selId": null,
+    "mouseX": 521,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 366
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "match": {
+    "p1": "spd_pink",
+    "skin": "spd_pink_inspired_diamondhead",
+    "tag": "diamondhead",
+    "p2": "krybot"
+  },
+  "fps": 37,
+  "passes": 11,
+  "failures": 3,
+  "errors": []
+}

@@ -1,0 +1,1022 @@
+{
+ "routes": [
+  {
+   "label": "Light chain J1 -> J2 -> J3",
+   "kind": "combo",
+   "hits": [
+    18,
+    22,
+    28
+   ],
+   "stunBefore": [
+    0,
+    15,
+    10
+   ],
+   "hitFrames": [
+    5,
+    18,
+    34
+   ],
+   "gapAtHit": [
+    72,
+    72,
+    72
+   ],
+   "blockedEvents": 0,
+   "damage": 68,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 1,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 2,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Light chain J1 -> J2 -> J3 (mirrored)",
+   "kind": "combo",
+   "hits": [
+    18,
+    22,
+    28
+   ],
+   "stunBefore": [
+    0,
+    15,
+    10
+   ],
+   "hitFrames": [
+    5,
+    18,
+    34
+   ],
+   "gapAtHit": [
+    72,
+    72,
+    72
+   ],
+   "blockedEvents": 0,
+   "damage": 68,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 1,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 2,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": true,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Low -> Heavy (Saba Cut) -> Saba's Answer",
+   "kind": "combo",
+   "hits": [
+    25,
+    57,
+    43
+   ],
+   "stunBefore": [
+    0,
+    9,
+    23
+   ],
+   "hitFrames": [
+    8,
+    28,
+    54
+   ],
+   "gapAtHit": [
+    72,
+    72,
+    72
+   ],
+   "blockedEvents": 0,
+   "damage": 125,
+   "energySpent": 11.46,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 1,
+     "blade": 1
+    },
+    "discRepeat": 1,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Forward+Heavy -> Heavy -> Heavy (advance -> Saba -> knock-away)",
+   "kind": "combo",
+   "hits": [
+    24,
+    29,
+    37
+   ],
+   "stunBefore": [
+    0,
+    20,
+    20
+   ],
+   "hitFrames": [
+    10,
+    35,
+    62
+   ],
+   "gapAtHit": [
+    60,
+    60,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 90,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 1,
+     "blade": 1
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher (Rising Tiger) -> manual jump -> Air (Turning Heel)",
+   "kind": "combo",
+   "hits": [
+    45,
+    27
+   ],
+   "stunBefore": [
+    0,
+    19
+   ],
+   "hitFrames": [
+    12,
+    40
+   ],
+   "gapAtHit": [
+    72,
+    72
+   ],
+   "blockedEvents": 0,
+   "damage": 72,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 1,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "HAND -> FOOT -> BLADE over three separate neutral exchanges",
+   "kind": "collection",
+   "hits": [
+    18,
+    25,
+    52
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    57,
+    113
+   ],
+   "gapAtHit": [
+    72,
+    73,
+    77
+   ],
+   "blockedEvents": 0,
+   "damage": 95,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "marks": {
+    "hand": 21,
+    "foot": 79,
+    "blade": 152
+   },
+   "stats": {
+    "disc": {
+     "hand": 1,
+     "foot": 1,
+     "blade": 1
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 1,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "three separate hits with the defender free between them",
+   "verdict": "RESET at hit 2 (defender free before it; escape window measured)"
+  },
+  {
+   "label": "Saba first: BLADE -> HAND -> FOOT (any order)",
+   "kind": "collection",
+   "hits": [
+    57,
+    17,
+    21
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    14,
+    78,
+    122
+   ],
+   "gapAtHit": [
+    72,
+    82,
+    87
+   ],
+   "blockedEvents": 0,
+   "damage": 95,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 1,
+     "foot": 1,
+     "blade": 1
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 1,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 2 (defender free before it; escape window measured)"
+  },
+  {
+   "label": "Formation Twin Fist -> Leader's Return -> punish",
+   "kind": "combo",
+   "hits": [
+    39,
+    24,
+    52
+   ],
+   "stunBefore": [
+    0,
+    21,
+    5
+   ],
+   "hitFrames": [
+    31,
+    46,
+    75
+   ],
+   "gapAtHit": [
+    104,
+    104,
+    66
+   ],
+   "blockedEvents": 0,
+   "damage": 115,
+   "energySpent": 18.22,
+   "pipsSpent": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {
+    "blinkDone": 61
+   },
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 1
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 1,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Formation Crane Rise -> air conversion",
+   "kind": "combo",
+   "hits": [
+    45,
+    20
+   ],
+   "stunBefore": [
+    0,
+    24
+   ],
+   "hitFrames": [
+    31,
+    47
+   ],
+   "gapAtHit": [
+    110,
+    110
+   ],
+   "blockedEvents": 0,
+   "damage": 65,
+   "energySpent": 22.3,
+   "pipsSpent": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 110,
+   "flip": false,
+   "note": "order hit (launch) + push-kick follow-up + manual jump air kick",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Delayed Ninja Edge -> ground pressure",
+   "kind": "pressure",
+   "hits": [
+    18
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    55
+   ],
+   "gapAtHit": [
+    60
+   ],
+   "blockedEvents": 1,
+   "damage": 24,
+   "energySpent": 14.48,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 1,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "gap": 160,
+   "flip": false,
+   "note": "the slow slash is blocked while Tommy walks in; follow-up Light measured vs blockstun",
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Clean Saba confirm -> ultimate (Heavy recovery cancel)",
+   "kind": "combo",
+   "hits": [
+    57,
+    33,
+    34,
+    30,
+    34,
+    111
+   ],
+   "stunBefore": [
+    0,
+    6,
+    9998,
+    9998,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    14,
+    57,
+    113,
+    145,
+    179,
+    257
+   ],
+   "gapAtHit": [
+    80,
+    60,
+    60,
+    30,
+    60,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 299,
+   "energySpent": 96.52,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 1
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 0,
+    "acceptRejected": 0,
+    "followHits": 0,
+    "followWhiffs": 0,
+    "leaderOffers": 0,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "ultRhythm": 0
+   },
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 17,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 31
+  },
+  "heavy": {
+   "name": "heavy",
+   "total": 43,
+   "activeStart": 14,
+   "activeEnd": 16,
+   "damage": 95
+  },
+  "wLow": {
+   "name": "wLow",
+   "total": 26,
+   "activeStart": 8,
+   "activeEnd": 9,
+   "damage": 43
+  },
+  "up": {
+   "name": "up",
+   "total": 37,
+   "activeStart": 12,
+   "activeEnd": 14,
+   "damage": 75
+  },
+  "wAdv": {
+   "name": "wAdv",
+   "total": 32,
+   "activeStart": 10,
+   "activeEnd": 12,
+   "damage": 41
+  },
+  "wAnswer": {
+   "name": "wAnswer",
+   "total": 44,
+   "activeStart": 13,
+   "activeEnd": 15,
+   "damage": 78
+  },
+  "wAscent": {
+   "name": "wAscent",
+   "total": 38,
+   "activeStart": 10,
+   "activeEnd": 17,
+   "damage": 71
+  },
+  "wCall": {
+   "name": "wCall",
+   "total": 27,
+   "activeStart": 12,
+   "activeEnd": 12,
+   "damage": 40
+  },
+  "wUltOpen": {
+   "name": "wUltOpen",
+   "total": 93,
+   "activeStart": 30,
+   "activeEnd": 32,
+   "damage": 60
+  },
+  "wDescent": {
+   "name": "wDescent",
+   "total": 52,
+   "activeStart": 12,
+   "activeEnd": 51,
+   "damage": 75
+  }
+ },
+ "orders": {
+  "ninjaTwinFist": {
+   "cost": 15,
+   "commitFrameFromPress": 12,
+   "hits": 1,
+   "hitLog": [
+    {
+     "t": 30,
+     "d": 39,
+     "vy": 0,
+     "vx": 3
+    }
+   ],
+   "exitFromPress": 68
+  },
+  "ninjaCraneRise": {
+   "cost": 18,
+   "commitFrameFromPress": 12,
+   "hits": 1,
+   "hitLog": [
+    {
+     "t": 30,
+     "d": 45,
+     "vy": -20,
+     "vx": 1
+    }
+   ],
+   "exitFromPress": 72
+  },
+  "ninjaEdge": {
+   "cost": 20,
+   "commitFrameFromPress": 12,
+   "hits": 1,
+   "hitLog": [
+    {
+     "t": 47,
+     "d": 55,
+     "vy": 0,
+     "vx": 4
+    }
+   ],
+   "exitFromPress": 88
+  }
+ },
+ "disciplines": {
+  "p2Hit": true,
+  "realRoute": {
+   "framesHandToBlade": 131,
+   "tokens": 1,
+   "token": {
+    "t": 211,
+    "order": [
+     "hand",
+     "foot",
+     "blade"
+    ]
+   }
+  }
+ },
+ "formation": {
+  "twin": {
+   "hits": [
+    39,
+    24
+   ],
+   "offered": true,
+   "accepted": true,
+   "acceptCost": 9.94,
+   "token": false,
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "energySpent": 20.92,
+   "attack": null
+  },
+  "crane": {
+   "hits": [
+    45,
+    20
+   ],
+   "offered": true,
+   "accepted": true,
+   "acceptCost": 9.94,
+   "token": false,
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "energySpent": 23.68,
+   "attack": null
+  },
+  "edge": {
+   "hits": [
+    55,
+    26
+   ],
+   "offered": true,
+   "accepted": true,
+   "acceptCost": 9.94,
+   "token": false,
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 0,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   },
+   "energySpent": 24.72,
+   "attack": null
+  }
+ },
+ "leader": {
+  "offer": {
+   "t": 11,
+   "serial": 2
+  },
+  "afterBlink": {
+   "charges": 1,
+   "stats": {
+    "disc": {
+     "hand": 0,
+     "foot": 0,
+     "blade": 0
+    },
+    "discRepeat": 0,
+    "discBlocked": 0,
+    "collExpired": 0,
+    "collBroken": 0,
+    "tokens": 0,
+    "tokenExpired": 0,
+    "accepts": 1,
+    "acceptRejected": 0,
+    "followHits": 1,
+    "followWhiffs": 0,
+    "leaderOffers": 1,
+    "leaderUsed": 1,
+    "feints": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "ultRhythm": 0
+   }
+  }
+ },
+ "specials": {
+  "feint": {
+   "attack": "wFeint",
+   "energySpent": 14.64,
+   "total": 12,
+   "hpLoss": 0
+  },
+  "answerReachFromCentre": 142,
+  "descentLanding": 24,
+  "descentHit": 45
+ },
+ "teleport": {
+  "distance": 230
+ },
+ "ultimate": {
+  "whiff": {
+   "visibleFramesAfterPress": 91,
+   "lightSameMethod": 15,
+   "measuredTotal": 93
+  },
+  "plain": {
+   "started": 1,
+   "rhythm": 0,
+   "tokenAfter": false,
+   "liveOrderAtEntry": false,
+   "contacts": [
+    37,
+    33,
+    37,
+    121
+   ],
+   "frames": [
+    27,
+    59,
+    93,
+    171
+   ],
+   "total": 303,
+   "durationFrames": 200,
+   "done": 1,
+   "hud": {
+    "pips": 1,
+    "max": 2,
+    "refill": 0.25,
+    "lockout": 15,
+    "postUlt": 120,
+    "active": null,
+    "pending": null
+   },
+   "knockdown": true,
+   "free": true
+  },
+  "token": {
+   "started": 1,
+   "rhythm": 1,
+   "tokenAfter": false,
+   "liveOrderAtEntry": false,
+   "contacts": [
+    37,
+    33,
+    37,
+    121
+   ],
+   "frames": [
+    27,
+    59,
+    93,
+    171
+   ],
+   "total": 303,
+   "durationFrames": 200,
+   "done": 1,
+   "hud": {
+    "pips": 1,
+    "max": 2,
+    "refill": 0.25,
+    "lockout": 15,
+    "postUlt": 120,
+    "active": null,
+    "pending": null
+   },
+   "knockdown": true,
+   "free": true
+  }
+ },
+ "resources": {
+  "walk60f": 360,
+  "jumpApexPx": 385
+ },
+ "engineDamageScale": 0.581,
+ "pass": 103,
+ "fail": 0,
+ "errors": []
+}

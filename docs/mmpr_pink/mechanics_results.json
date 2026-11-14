@@ -1,0 +1,1052 @@
+{
+ "routes": [
+  {
+   "label": "J1 -> J2 -> J3",
+   "kind": "combo",
+   "hits": [
+    17,
+    21,
+    27
+   ],
+   "stunBefore": [
+    0,
+    15,
+    11
+   ],
+   "hitFrames": [
+    5,
+    17,
+    33
+   ],
+   "blockedEvents": 0,
+   "damage": 65,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "J1 -> J2 -> J3 (mirrored)",
+   "kind": "combo",
+   "hits": [
+    17,
+    21,
+    27
+   ],
+   "stunBefore": [
+    0,
+    15,
+    11
+   ],
+   "hitFrames": [
+    5,
+    17,
+    33
+   ],
+   "blockedEvents": 0,
+   "damage": 65,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": true,
+   "note": ""
+  },
+  {
+   "label": "Forward+Heavy chain (palm -> kick -> knock-away)",
+   "kind": "combo",
+   "hits": [
+    24,
+    29,
+    37
+   ],
+   "stunBefore": [
+    0,
+    20,
+    20
+   ],
+   "hitFrames": [
+    10,
+    35,
+    62
+   ],
+   "blockedEvents": 0,
+   "damage": 90,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Forward+Heavy chain -> confirmed Up+Heavy launcher",
+   "kind": "combo",
+   "hits": [
+    24,
+    29,
+    35
+   ],
+   "stunBefore": [
+    0,
+    20,
+    22
+   ],
+   "hitFrames": [
+    10,
+    35,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 88,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Light -> Heavy -> Quick Shot",
+   "kind": "combo",
+   "hits": [
+    17,
+    55,
+    28
+   ],
+   "stunBefore": [
+    0,
+    7,
+    23
+   ],
+   "hitFrames": [
+    5,
+    25,
+    51
+   ],
+   "blockedEvents": 0,
+   "damage": 100,
+   "energySpent": 8.32,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Rising Heel -> manual jump -> Flying Heel",
+   "kind": "combo",
+   "hits": [
+    42,
+    25
+   ],
+   "stunBefore": [
+    0,
+    18
+   ],
+   "hitFrames": [
+    12,
+    41
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 0,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Thunder Line at the default point",
+   "kind": "combo",
+   "hits": [
+    49
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 11.4,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {
+    "commit": 15
+   },
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Sky Splitter at the default point",
+   "kind": "combo",
+   "hits": [
+    18,
+    30
+   ],
+   "stunBefore": [
+    0,
+    18
+   ],
+   "hitFrames": [
+    32,
+    46
+   ],
+   "blockedEvents": 0,
+   "damage": 48,
+   "energySpent": 14.28,
+   "pipsSpent": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {
+    "x": 4
+   },
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Returning Edge at the default point",
+   "kind": "combo",
+   "hits": [
+    51
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    44
+   ],
+   "blockedEvents": 0,
+   "damage": 51,
+   "energySpent": 10.8,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Sky Splitter twice in one juggle (second launcher refused)",
+   "kind": "combo",
+   "hits": [
+    18,
+    30,
+    28
+   ],
+   "stunBefore": [
+    0,
+    18,
+    0
+   ],
+   "hitFrames": [
+    32,
+    46,
+    109
+   ],
+   "blockedEvents": 0,
+   "damage": 76,
+   "energySpent": 28.5,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": 2,
+   "marks": {
+    "launch1": 46
+   },
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Light -> Heavy -> Ultimate (close confirm)",
+   "kind": "combo",
+   "hits": [
+    17,
+    55,
+    28,
+    38,
+    30,
+    34,
+    102
+   ],
+   "stunBefore": [
+    0,
+    7,
+    5,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    5,
+    25,
+    69,
+    89,
+    125,
+    171,
+    193
+   ],
+   "blockedEvents": 0,
+   "damage": 304,
+   "energySpent": 98.14,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {
+    "ult": 70
+   },
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Ultimate raw (point blank)",
+   "kind": "combo",
+   "hits": [
+    30,
+    46,
+    36,
+    40,
+    122
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    33,
+    53,
+    89,
+    135,
+    157
+   ],
+   "blockedEvents": 0,
+   "damage": 274,
+   "energySpent": 98.02,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 120,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Arrow mark -> Thunder Line (marked)",
+   "kind": "combo",
+   "hits": [
+    30,
+    49
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    24,
+    65
+   ],
+   "blockedEvents": 0,
+   "damage": 79,
+   "energySpent": 19.66,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "marks": {},
+   "gap": 220,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Marked Sky Splitter -> air conversion",
+   "kind": "combo",
+   "hits": [
+    30,
+    18,
+    28
+   ],
+   "stunBefore": [
+    0,
+    0,
+    18
+   ],
+   "hitFrames": [
+    23,
+    61,
+    75
+   ],
+   "blockedEvents": 0,
+   "damage": 76,
+   "energySpent": 21.34,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "marks": {},
+   "gap": 200,
+   "flip": false,
+   "note": ""
+  },
+  {
+   "label": "Returning Edge area denial -> bow pressure",
+   "kind": "pressure",
+   "hits": [
+    30
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    48
+   ],
+   "blockedEvents": 1,
+   "damage": 36,
+   "energySpent": 20.8,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 170,
+   "flip": false,
+   "note": "held guard: the descending slash is blocked; an arrow that arrives inside its 16 f blockstun connects because this engine drops isBlocking during blockstun (pre-existing engine rule, also noted by the Black build). Recorded as measured."
+  }
+ ],
+ "moves": {
+  "walkSpeed": 6,
+  "jump": {
+   "height": 385,
+   "airFrames": 60
+  },
+  "light": {
+   "name": "light",
+   "total": 17,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 29
+  },
+  "heavy": {
+   "name": "heavy",
+   "total": 43,
+   "activeStart": 14,
+   "activeEnd": 16,
+   "damage": 92
+  },
+  "pLow": {
+   "name": "pLow",
+   "total": 26,
+   "activeStart": 8,
+   "activeEnd": 9,
+   "damage": 43
+  },
+  "up": {
+   "name": "up",
+   "total": 37,
+   "activeStart": 12,
+   "activeEnd": 14,
+   "damage": 71
+  },
+  "pPalm": {
+   "name": "pPalm",
+   "total": 32,
+   "activeStart": 10,
+   "activeEnd": 12,
+   "damage": 41
+  },
+  "pBow": {
+   "name": "pBow",
+   "total": 29,
+   "activeStart": 12,
+   "activeEnd": 12,
+   "damage": 40
+  },
+  "pCall": {
+   "name": "pCall",
+   "total": 27,
+   "activeStart": 14,
+   "activeEnd": 14,
+   "damage": 40
+  },
+  "pCrane": {
+   "name": "pCrane",
+   "total": 32,
+   "activeStart": 14,
+   "activeEnd": 14,
+   "damage": 40
+  },
+  "pUltOpen": {
+   "name": "pUltOpen",
+   "total": 91,
+   "activeStart": 30,
+   "activeEnd": 30,
+   "damage": 40
+  },
+  "lightDamage": 17,
+  "heavyDamage": 55,
+  "pLowDamage": 25,
+  "upDamage": 42,
+  "normalHeavyArrow": {
+   "label": "Light -> Heavy -> Quick Shot",
+   "kind": "combo",
+   "hits": [
+    17,
+    55,
+    28
+   ],
+   "stunBefore": [
+    0,
+    7,
+    23
+   ],
+   "hitFrames": [
+    5,
+    25,
+    51
+   ],
+   "blockedEvents": 0,
+   "damage": 100,
+   "energySpent": 8.32,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  }
+ },
+ "bow": {
+  "quickFirstArrowFrame": 12,
+  "quickBusyAfterPress": 27,
+  "quickTravelPx": 442,
+  "quickLifetime": 34,
+  "drawnArmFrame": 24,
+  "capFireFrame": 45
+ },
+ "spotter": {
+  "created": {
+   "x": 1520,
+   "y": 417,
+   "t": 90
+  }
+ },
+ "assists": {
+  "profiles": {
+   "thunderLine": {
+    "id": "thunderLine",
+    "contacts": [
+     {
+      "from": 20,
+      "to": 24,
+      "raw": 48,
+      "hitstun": 24,
+      "blockstun": 14,
+      "knockbackX": 7,
+      "knockbackY": 0,
+      "box": {
+       "w": 150,
+       "h": 64,
+       "dx": 150,
+       "dy": -45
+      }
+     }
+    ],
+    "shots": null,
+    "name": "Thunder Line",
+    "move": "thunder_line",
+    "cost": 15,
+    "origin": "target",
+    "warn": 20,
+    "life": 46,
+    "keys": [
+     [
+      0,
+      -215,
+      0,
+      "step"
+     ],
+     [
+      12,
+      -150,
+      0,
+      "hwind"
+     ],
+     [
+      20,
+      -150,
+      0,
+      "hslash"
+     ],
+     [
+      32,
+      -150,
+      0,
+      "hslash"
+     ],
+     [
+      46,
+      -200,
+      0,
+      "exit"
+     ]
+    ]
+   },
+   "skySplitter": {
+    "id": "skySplitter",
+    "contacts": [
+     {
+      "from": 16,
+      "to": 19,
+      "raw": 18,
+      "hitstun": 26,
+      "blockstun": 10,
+      "knockbackX": 1,
+      "knockbackY": 0,
+      "box": {
+       "w": 110,
+       "h": 70,
+       "dx": 120,
+       "dy": -40
+      }
+     },
+     {
+      "from": 30,
+      "to": 33,
+      "raw": 30,
+      "hitstun": 30,
+      "blockstun": 12,
+      "knockbackX": 2,
+      "knockbackY": -4,
+      "launchVy": -22,
+      "launch": true,
+      "box": {
+       "w": 110,
+       "h": 130,
+       "dx": 118,
+       "dy": -70
+      }
+     }
+    ],
+    "shots": null,
+    "name": "Sky Splitter",
+    "move": "sky_splitter",
+    "cost": 18,
+    "origin": "target",
+    "warn": 16,
+    "life": 48,
+    "keys": [
+     [
+      0,
+      -165,
+      0,
+      "uwind"
+     ],
+     [
+      16,
+      -120,
+      0,
+      "uslash"
+     ],
+     [
+      36,
+      -120,
+      0,
+      "uslash"
+     ],
+     [
+      48,
+      -170,
+      0,
+      "exit"
+     ]
+    ]
+   },
+   "returningEdge": {
+    "id": "returningEdge",
+    "contacts": [
+     {
+      "from": 28,
+      "to": 32,
+      "raw": 50,
+      "hitstun": 26,
+      "blockstun": 16,
+      "knockbackX": 5,
+      "knockbackY": 0,
+      "box": {
+       "w": 120,
+       "h": 90,
+       "dx": 112,
+       "dy": -46
+      }
+     }
+    ],
+    "shots": null,
+    "name": "Returning Edge",
+    "move": "returning_edge",
+    "cost": 15,
+    "origin": "target",
+    "warn": 28,
+    "life": 56,
+    "keys": [
+     [
+      0,
+      -150,
+      0,
+      "dwind"
+     ],
+     [
+      20,
+      -112,
+      0,
+      "dtop"
+     ],
+     [
+      28,
+      -112,
+      0,
+      "dslash"
+     ],
+     [
+      42,
+      -112,
+      0,
+      "dslash"
+     ],
+     [
+      56,
+      -160,
+      0,
+      "exit"
+     ]
+    ]
+   }
+  },
+  "thunderLine": {
+   "label": "Thunder Line at the default point",
+   "kind": "combo",
+   "hits": [
+    49
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 11.4,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {
+    "commit": 15
+   },
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  "skySplitter": {
+   "label": "Sky Splitter at the default point",
+   "kind": "combo",
+   "hits": [
+    18,
+    30
+   ],
+   "stunBefore": [
+    0,
+    18
+   ],
+   "hitFrames": [
+    32,
+    46
+   ],
+   "blockedEvents": 0,
+   "damage": 48,
+   "energySpent": 14.28,
+   "pipsSpent": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {
+    "x": 4
+   },
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  },
+  "returningEdge": {
+   "label": "Returning Edge at the default point",
+   "kind": "combo",
+   "hits": [
+    51
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    44
+   ],
+   "blockedEvents": 0,
+   "damage": 51,
+   "energySpent": 10.8,
+   "pipsSpent": 1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 150,
+   "flip": false,
+   "note": ""
+  }
+ },
+ "resources": {
+  "sequentialRefill": [
+   134,
+   344
+  ]
+ },
+ "thread": {
+  "availability": [
+   {
+    "delay": 0,
+    "granted": false,
+    "cancelWindowReached": false
+   },
+   {
+    "delay": 1,
+    "granted": false,
+    "cancelWindowReached": false
+   },
+   {
+    "delay": 2,
+    "granted": false,
+    "cancelWindowReached": false
+   },
+   {
+    "delay": 3,
+    "granted": true,
+    "cancelWindowReached": true
+   },
+   {
+    "delay": 4,
+    "granted": true,
+    "cancelWindowReached": true
+   },
+   {
+    "delay": 5,
+    "granted": true,
+    "cancelWindowReached": true
+   },
+   {
+    "delay": 6,
+    "granted": true,
+    "cancelWindowReached": true
+   },
+   {
+    "delay": 7,
+    "granted": true,
+    "cancelWindowReached": true
+   },
+   {
+    "delay": 8,
+    "granted": false,
+    "cancelWindowReached": false
+   },
+   {
+    "delay": 9,
+    "granted": false,
+    "cancelWindowReached": false
+   },
+   {
+    "delay": 10,
+    "granted": false,
+    "cancelWindowReached": false
+   }
+  ],
+  "workingDelays": [
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "cancel": {
+   "delay": 3,
+   "granted": 17,
+   "opened": 22,
+   "crane": true,
+   "spent": 11.94,
+   "stats": {
+    "quick": 1,
+    "drawn": 0,
+    "armed": 0,
+    "armFail": 0,
+    "bowInterrupted": 0,
+    "spots": 1,
+    "spotsUsed": 0,
+    "calls": 1,
+    "rejects": 0,
+    "threads": 1,
+    "threadCancels": 1,
+    "cranes": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0
+   }
+  }
+ },
+ "teleport": {
+  "profile": {
+   "distPct": 0.22,
+   "startup": 3,
+   "travel": 5,
+   "recovery": 3,
+   "charges": 2,
+   "recharge": 90,
+   "crossup": false,
+   "air": true,
+   "vertical": false,
+   "verticalPct": 0.25,
+   "tapWindow": 12,
+   "gap": 6,
+   "faceLockOnCross": 0,
+   "run": null,
+   "dodge": null,
+   "airMomentumMax": 14
+  },
+  "distance": 282
+ },
+ "ultimate": {
+  "route": {
+   "label": "Light -> Heavy -> Ultimate (close confirm)",
+   "kind": "combo",
+   "hits": [
+    17,
+    55,
+    28,
+    38,
+    30,
+    34,
+    102
+   ],
+   "stunBefore": [
+    0,
+    7,
+    5,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    5,
+    25,
+    69,
+    89,
+    125,
+    171,
+    193
+   ],
+   "blockedEvents": 0,
+   "damage": 304,
+   "energySpent": 98.14,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {
+    "ult": 70
+   },
+   "gap": 72,
+   "flip": false,
+   "note": ""
+  },
+  "raw": {
+   "label": "Ultimate raw (point blank)",
+   "kind": "combo",
+   "hits": [
+    30,
+    46,
+    36,
+    40,
+    122
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    33,
+    53,
+    89,
+    135,
+    157
+   ],
+   "blockedEvents": 0,
+   "damage": 274,
+   "energySpent": 98.02,
+   "pipsSpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "marks": {},
+   "gap": 120,
+   "flip": false,
+   "note": ""
+  },
+  "rawSum": 274
+ },
+ "crane": {
+  "distance": 90,
+  "total": 31,
+  "spent": 9
+ },
+ "engineDamageScale": 0.586,
+ "pressureReturningEdge": {
+  "label": "Returning Edge area denial -> bow pressure",
+  "kind": "pressure",
+  "hits": [
+   30
+  ],
+  "stunBefore": [
+   0
+  ],
+  "hitFrames": [
+   48
+  ],
+  "blockedEvents": 1,
+  "damage": 36,
+  "energySpent": 20.8,
+  "pipsSpent": 1,
+  "trueCombo": false,
+  "dropAfterHit": -1,
+  "marks": {},
+  "gap": 170,
+  "flip": false,
+  "note": "held guard: the descending slash is blocked; an arrow that arrives inside its 16 f blockstun connects because this engine drops isBlocking during blockstun (pre-existing engine rule, also noted by the Black build). Recorded as measured."
+ },
+ "errors": []
+}

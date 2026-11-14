@@ -560,6 +560,27 @@
    },
    "maskSha256": "774f76632c85ca73a7736f94d5f910cb8d45f771c94fc682829fd2a67b7db3e3"
   },
+  "gAirShot.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 51,
+    "suit: helmet + green cloth": 448,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 94,
+    "grey: floor shadow + Deltamax body (kept)": 38,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 69
+   },
+   "maskSha256": "1cc86d25e6167381a8cfdfd91f748b19ebb55d177e29cb3a25ce6113b39a2cc7"
+  },
+  "gArc.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 132,
+    "suit: helmet + green cloth": 1675,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 225,
+    "grey: floor shadow + Deltamax body (kept)": 125,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 77,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "f6cf499702e4bf7c32e34d552992e2c0589466715df9276455160fff0b69f0ea"
+  },
   "gAway.png": {
    "regions": {
     "black: outlines + visor + black side panels (kept)": 176,
@@ -579,6 +600,17 @@
     "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 103
    },
    "maskSha256": "0ba7119a8acf3dd6e6946bad7d313db5fdddfebdc7c4cd25c95e8cdaf46c9c4c"
+  },
+  "gEvade.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 127,
+    "suit: helmet + green cloth": 857,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 84,
+    "grey: floor shadow + Deltamax body (kept)": 52,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 58,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "f673a34097281df4119206610baf1ae5a2394bb032c0998944aa312b71cc9d84"
   },
   "gFollow.png": {
    "regions": {
@@ -651,6 +683,36 @@
    },
    "maskSha256": "690bdb503f21df7312a20bc99c3c52033d87c9e7ae0e8bcc86051eff2900d8b7"
   },
+  "gRush1.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 109,
+    "suit: helmet + green cloth": 455,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 77,
+    "grey: floor shadow + Deltamax body (kept)": 43,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 41
+   },
+   "maskSha256": "98833c93960dcd8de6a785ada10a38735a0beffebeb65c595cfc3965bb6d235c"
+  },
+  "gRush2.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 136,
+    "suit: helmet + green cloth": 861,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 132,
+    "grey: floor shadow + Deltamax body (kept)": 80,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 56
+   },
+   "maskSha256": "08351d16640147a2b2ac8b87a6d323edc2ad325a5630027475c55f83bc8f097f"
+  },
+  "gRush3.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 120,
+    "suit: helmet + green cloth": 371,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 38,
+    "grey: floor shadow + Deltamax body (kept)": 55,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 37
+   },
+   "maskSha256": "774f76632c85ca73a7736f94d5f910cb8d45f771c94fc682829fd2a67b7db3e3"
+  },
   "gScan.png": {
    "regions": {
     "black: outlines + visor + black side panels (kept)": 102,
@@ -670,6 +732,26 @@
     "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 180
    },
    "maskSha256": "fb4f841dcd972dcdbf1b5cbae602c06e3ef24eeec4a5758ddca7e3fde8e39835"
+  },
+  "gSomer.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 207,
+    "suit: helmet + green cloth": 694,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 145,
+    "grey: floor shadow + Deltamax body (kept)": 92,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 40
+   },
+   "maskSha256": "072bf7e49706d616a51a2836b4da782b28cfce7caea32111615493b8a35aab71"
+  },
+  "gSweep.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 228,
+    "suit: helmet + green cloth": 679,
+    "trim: gloves / belt / chest+leg stripes / boot trim": 171,
+    "grey: floor shadow + Deltamax body (kept)": 85,
+    "weapon/effect light: barrel highlights, muzzle star, beam core, fist-at-arm's-end (kept)": 20
+   },
+   "maskSha256": "b77b7fbb50b0eee75b1cafbed36d0067f5f39d64ecaf80693196782b6d02d303"
   },
   "getup.png": {
    "regions": {

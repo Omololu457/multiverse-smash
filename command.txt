@@ -1,9 +1,180 @@
-   89  git status
-   90  git status 
-   91  git add .
-   92  git commit
-   93  git commit -m revisions
-   94  ggit push
-   95  g
-   96  history
-git
+MULTIVERSE SMASH: PS5 CONTROLLER AND LOCAL MULTIPLAYER PLAN
+Reviewed against the current workspace on 2026-11-13.
+Implementation brief only: these improvements have not been implemented yet.
+
+RECOMMENDATION
+Optimize keyboard P1 + DualSense P2 and two-controller play first. Standardize
+input handling and character help, then measure performance. Prototype two
+displays afterward; independent physical keyboards are a separate native feature.
+Preserve existing character mechanics, costs, move timing and competitive rules.
+
+CURRENT FOUNDATION
+- input.js already has four player slots, distinct controller assignment by
+  gamepad.index, buffers, controller glyphs and menu navigation.
+- game.js chooseMode('pvp') defaults P2 to controller and restores P1 to keyboard
+  when fewer than two pads are connected. Two-pad play is already supported.
+- Actual pollGamepad layout: Square=light, Triangle=heavy, Cross=jump,
+  Circle=guard, R1=special, R2=ultimate, L1=grab, L2=hold charge/tap toggle.
+  Up alone also jumps. The PS5_MAP header comment disagrees with this layout.
+- updateGamepadEdges handles direction history, double-tap dash, L2 tap/release,
+  and several character-specific special/ultimate press/release handlers.
+- Replay/LAN systems, controller harnesses, a debug profiler and Electron exist.
+  Extend these rather than making a second controller-only combat engine.
+
+PHASE 1: RELIABLE INPUT AND PLAYER OWNERSHIP (HIGHEST PRIORITY)
+1. Sample pads once per simulation tick and produce one snapshot per player:
+   held actions, pressed/released edges, directions and device assignment.
+   Share this snapshot across combat, motion parsing, HUD, replay and LAN.
+   Keep raw physical state separate from buffered requests; reads must not
+   consume inputs or advance buffers. Audit synthetic-key dependencies before
+   replacing the existing keyboard bridges.
+
+2. Audit press versus hold behavior. pollGamepad currently refreshes attack,
+   jump, special and ultimate buffers every tick while held. That can keep
+   requesting actions after recovery. Buffer discrete presses once and consume
+   them when accepted; preserve intentional hold-repeat and charge/release moves.
+   Retaps need distinct edges. Keep the shared 10-tick buffer and verify recovery
+   timing rather than shortening it to make controls appear more responsive.
+
+3. Unify raw input for the whole roster. readRawControls directly samples pads
+   only for a character allowlist including Luffy, Sanji, Zoro, Buggy, SPD Red,
+   SPD Blue and Krybot; other characters fall through to keyboard state.
+   Audit existing synthetic-key coverage, then make the same raw controller
+   snapshot available to every character. Record resolved actions before combat
+   buffering. Preserve the replay/LAN schema or version recordings explicitly.
+
+4. Add a local device lobby: choose P1/P2 devices, press Options to join, show
+   device name and ready state, and allow deliberate reassignment. Preserve the
+   keyboard-P1/controller-P2 default. New pads must not steal occupied slots.
+   Bind by runtime index, not array position. Browser indices and identical
+   device-name strings are not persistent hardware identities.
+   On disconnect, neutralize held inputs and clear edges, buffers and motion
+   history; pause local play and offer reassignment. Require neutral/released
+   controls before resuming after reconnect, focus loss or a round transition.
+
+PHASE 2: COMFORTABLE CONTROLS FOR DIFFERENT CHARACTERS
+5. Keep the current layout as the default preset. Add complete per-player
+   rebinding, saved presets and reset-to-default. Offer a dedicated dash binding
+   as an alternative to double-tap; avoid mandatory stick clicks for frequent
+   actions. Correct the stale mapping comment and generate help from bindings.
+
+6. Describe character commands in shared data: action, neutral/forward/back/up/
+   down direction, tap/hold/release/sequence behavior, air/ground availability,
+   active form, resource requirement and precedence. Use this for help and
+   dispatch; keep execution and balance in existing character systems.
+   Define when facing is sampled for forward/back commands and cross-ups.
+   Prefer capability descriptors to new roster-name checks in input.js.
+
+7. Audit every playable character, migrating by mechanic family:
+   - Directional specials/launchers: prevent up-special from accidentally jumping.
+   - Tap/hold specials and ultimates: preserve release timing for Saitama, Genos,
+     Iron Man, Vilgax and other characters with charge tiers or staged actions.
+   - Transformations, charging and flight: show tap/hold behavior, current form
+     and resource gates. Match each character's existing rules.
+   - Selectors such as Ben 10's Omnitrix: show navigation, commit and cancel;
+     prevent selector input from also moving or attacking when it owns controls.
+   - Clones/summons/body swaps: make create, dismiss and swap reachable on pads,
+     auditing auxiliary keyboard shortcuts as well as normal combat actions.
+   - Motions and re-tap chains: verify Gojo, Naruto-family moves, Luffy, Sanji,
+     Zoro and Buggy using real press/release sequences on both sides.
+   Give uncommon actions rebindable shortcuts or a contextual command panel.
+   A live local-match panel must not slow time. Define chord precedence and
+   suppress component actions when a chord consumes them.
+
+8. Add per-player stick deadzone and up-to-jump settings. The current fixed
+   deadzone is 0.4; prototype adjustable thresholds with hysteresis to reduce
+   drift/chatter. Keep Cross jump available, with optional stick-up jump off.
+   Show live stick/trigger values; define D-pad/stick conflict and simultaneous
+   opposite-direction rules. Give triggers clear press/release thresholds.
+   Use standard mapping when reported; offer calibration for unknown mappings.
+
+9. Show glyphs for each player's assigned controller instead of the first pad
+   found. Add character command cards at selection/pause with actual bindings,
+   directional variants, charge tiers, form actions and resource requirements.
+   Offer training input history showing raw and accepted actions plus rejection
+   reasons: resource, cooldown, form, direction or state. Support the full menu,
+   selection, match and rematch flow without a mouse. Feature-detect optional
+   vibration with per-player intensity; advanced DualSense effects can wait.
+
+PHASE 3: PERFORMANCE AND QUALITY OF LIFE
+10. Profile repeatable matches with summons, projectiles, transformations and
+    heavy effects using the existing debug profiler. Compare average and p95/p99
+    frame times, update/render cost, allocations and input-to-action ticks.
+    Target stable 60Hz (16.67ms budget); report measured gains, not estimates.
+    Candidates after measurement: cache static/scaled art, remove repeated asset
+    scans, reduce hot-path allocations and cap cosmetic particles.
+    Add visual quality presets, a render-resolution cap and independent shake/
+    flash controls. Preserve readable HUD, hit cues and gameplay collisions.
+    Quality settings must not change simulation objects or gameplay outcomes.
+
+11. Preserve simulation speed. game.js currently gates both update and drawing
+    at 60Hz, with sprite advancement coupled to drawing. Removing the gate or
+    drawing a second view can accelerate animation/gameplay. Before independent
+    second views or higher-refresh rendering, move draw-time state mutation into
+    simulation updates and make rendering read-only. Verify animation events,
+    timers, hitstop, replay hashes and LAN before adding interpolation/catch-up.
+
+12. Save controls/accessibility preferences, add a simultaneous input check,
+    visible ready/disconnect status and quick rematch/change-character actions.
+    Keep any input assistance explicit, symmetric and consistent with mode rules.
+
+PHASE 4: TWO SCREENS ON THE SAME COMPUTER
+13. Same view on both monitors: start with OS display mirroring. It needs no
+    second simulation; input ownership stays the same. Test actual refresh modes
+    and latency on the intended monitors.
+    Dedicated view per player: prototype opt-in Electron dual-display mode using
+    screen.getAllDisplays() and display bounds to position the second window.
+    Keep ONE authoritative simulation and ONE input owner; send presentation
+    snapshots to a view-only renderer. Do not start two independent matches or
+    let both windows claim controllers. Initially preserve equal stage visibility;
+    independent cameras need a separate gameplay/fairness review.
+    Rendering must be read-only so animations, audio, timers and effects cannot
+    advance twice. Give snapshots tick IDs and bound the queue; drop stale view
+    frames instead of delaying the simulation.
+    Keep keyboard focus in the owner window. Handle focus changes, monitor
+    removal, renderer failure, mixed scaling and refresh rates; fall back to one
+    screen. Configure/test background scheduling: backgroundThrottling=false
+    alone does not solve input focus. Profile the added rendering cost.
+    Existing LAN code may inform a localhost experiment, but two browser windows
+    do not automatically provide multiseat input or reliable background polling.
+    This is a later feature with extra GPU cost, not an FPS optimization.
+
+PHASE 5: TWO PHYSICAL KEYBOARDS
+14. Different P1/P2 key layouts: two keyboards can feed the focused page's
+    combined browser key stream. Check overlapping binds and simultaneous-key
+    rollover. Separate keyboards may reduce hardware rollover pressure but do
+    not guarantee every combination works or identify the player sending a key.
+    Identical layouts, such as independent WASD on both keyboards, require more:
+    standard KeyboardEvent has no physical keyboard device ID. A second monitor,
+    KeyboardEvent.code or second browser window does not provide that separation.
+    Investigate an optional native Electron input bridge with per-device events.
+    Windows Raw Input is a documented starting point; macOS/Linux need separate
+    backend, permissions and packaging research. Normal Electron keyboard events
+    alone are insufficient. Route validated device events through a narrow
+    preload/IPC interface into the shared action layer, prevent duplicate native/
+    DOM events and keep page Node access disabled. Treat this as platform-specific
+    R&D. Keyboard+controller and two controllers remain the recommended first path.
+
+VALIDATION / DEFINITION OF DONE
+- Test keyboard P1 + DualSense P2, two pads, reversed connection order, sparse
+  indices, mixed pad brands, hotplug, focus loss and round/character changes.
+- Test real DualSense USB and Bluetooth on target OS/browser/Electron builds.
+  Synthetic pads verify wiring, not physical latency or wireless stability.
+- Audit every roster command for keyboard/pad parity: both facing directions,
+  air/ground variants, forms, low resources, retaps and tap/hold/release mechanics.
+- Reuse applicable harnesses: gamepad_ingame.test.mjs, sanji_gamepad.test.mjs,
+  zoro_buggy_gamepad.test.mjs, input_buffer_recovery.test.mjs,
+  controls_help.test.mjs, determinism.test.mjs, replay_playback.test.mjs and
+  net_online.test.mjs. Add targeted regressions for uncovered P2/roster cases.
+- Compare accepted action sequences from equivalent keyboard/controller inputs.
+  Require no stuck controls, accidental repeats, lost releases, pad theft,
+  replay divergence or speed changes across 60/120/144Hz displays.
+- Profile one/two displays separately. Dual display/native keyboards remain
+  optional until focus, disconnect and frame-time behavior pass on hardware.
+
+PRIMARY PLATFORM REFERENCES
+Gamepad mapping: https://www.w3.org/TR/gamepad/
+KeyboardEvent fields: https://www.w3.org/TR/uievents/
+Electron displays: https://www.electronjs.org/docs/latest/api/screen
+Electron windows: https://www.electronjs.org/docs/latest/api/browser-window
+Windows per-device input: https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input

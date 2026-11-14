@@ -1583,6 +1583,37 @@
     "intro": [
       "arc7",
       "arc6"
+    ],
+    "gSweep": [
+      "ground0",
+      "ground1"
+    ],
+    "gEvade": [
+      "fall3",
+      "fall4"
+    ],
+    "gAirShot": [
+      "airAim0"
+    ],
+    "gSomer": [
+      "ground0",
+      "acro1"
+    ],
+    "gRush1": [
+      "acro0"
+    ],
+    "gRush2": [
+      "kick0",
+      "kick1"
+    ],
+    "gRush3": [
+      "flyKick0"
+    ],
+    "gArc": [
+      "crouchReady0",
+      "arc1",
+      "arc2",
+      "arc3"
     ]
   }
 }

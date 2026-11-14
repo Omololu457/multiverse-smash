@@ -31,7 +31,7 @@ test('supplied source dimensions, alpha metadata and SHA-256 are preserved',()=>
  for(const seq of Object.values(m.animations))for(const id of seq)assert(ids.has(id))
 })
 test('unique actual roster identity, One Piece and default-only skin',()=>{
- assert.equal(characters.luffy,luffy);assert.equal(luffy.universe,'one_piece');assert.equal(luffy.stats.maxHealth,1000)
+ assert.equal(characters.luffy,luffy);assert.equal(luffy.universe,'one_piece');assert.equal(luffy.stats.maxHealth,1150)   // roster-parity pass 2026-11-13 (was 1000; owner request)
  assert.deepEqual(getSkins('luffy').map(s=>s.id),['default'])
 })
 test('grounded unblocked normal instance awards one pip and exactly three Stamina',()=>{

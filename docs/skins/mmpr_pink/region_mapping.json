@@ -1,0 +1,989 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "outline / seams (kept)",
+  "2": "visor",
+  "3": "helmet shell (cloth ramp near the visor)",
+  "4": "pink cloth (suit)",
+  "5": "trim: white diamonds, gloves, boots, belt (one shared light ramp)",
+  "6": "FX: supplied kick / hand trails",
+  "7": "Power Bow (limbs + string)",
+  "8": "other (none expected)",
+  "9": "arrow (supplied yellow arrow)"
+ },
+ "outline": [
+  [
+   32,
+   0,
+   32
+  ],
+  [
+   32,
+   32,
+   32
+  ],
+  [
+   0,
+   0,
+   32
+  ]
+ ],
+ "visor": [
+  [
+   0,
+   0,
+   0
+  ]
+ ],
+ "clothRamp": [
+  [
+   128,
+   64,
+   64
+  ],
+  [
+   224,
+   64,
+   160
+  ],
+  [
+   224,
+   160,
+   160
+  ]
+ ],
+ "lightRamp": [
+  [
+   96,
+   96,
+   96
+  ],
+  [
+   160,
+   160,
+   160
+  ],
+  [
+   224,
+   224,
+   224
+  ]
+ ],
+ "arrow": [
+  [
+   192,
+   192,
+   0
+  ]
+ ],
+ "fxRule": "light blob whose 1-px rim is >=45% transparent",
+ "helmetRule": "cloth pixels within 9 px of the visor centroid, per strip cell",
+ "bowRule": "light pixels in the bow strips farther than 3 px from cloth / pink outline",
+ "classification": "Crossover Inspired Palette",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "mmprPinkAlienX",
+   "ref": "https://ben10.fandom.com/wiki/Alien_X",
+   "cloth": [
+    [
+     8,
+     9,
+     11
+    ],
+    [
+     24,
+     26,
+     30
+    ],
+    [
+     70,
+     150,
+     92
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     156,
+     160
+    ],
+    [
+     206,
+     212,
+     214
+    ],
+    [
+     246,
+     250,
+     250
+    ]
+   ],
+   "visor": [
+    0,
+    0,
+    0
+   ],
+   "bow": [
+    [
+     60,
+     130,
+     80
+    ],
+    [
+     150,
+     220,
+     170
+    ],
+    [
+     226,
+     255,
+     234
+    ]
+   ],
+   "fxr": [
+    [
+     120,
+     200,
+     140
+    ],
+    [
+     186,
+     240,
+     204
+    ],
+    [
+     236,
+     255,
+     242
+    ]
+   ],
+   "arrow": [
+    110,
+    236,
+    140
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Alien X (Celestialsapien) \u2014 black body, white markings, green accents",
+   "notes": "Charcoal/black cloth, pale existing trim, green only on the top cloth highlight, bow and trails. The project's existing Alien X starfield overlay (ids ending \"AlienX\") draws on top; no stars painted into pixels."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "mmpr_pink_inspired_upgrade",
+   "ref": "https://ben10.fandom.com/wiki/Upgrade",
+   "cloth": [
+    [
+     5,
+     7,
+     5
+    ],
+    [
+     14,
+     20,
+     14
+    ],
+    [
+     32,
+     42,
+     32
+    ]
+   ],
+   "trim": [
+    [
+     16,
+     120,
+     48
+    ],
+    [
+     36,
+     186,
+     76
+    ],
+    [
+     150,
+     255,
+     170
+    ]
+   ],
+   "visor": [
+    60,
+    224,
+    96
+   ],
+   "bow": [
+    [
+     16,
+     120,
+     48
+    ],
+    [
+     36,
+     186,
+     76
+    ],
+    [
+     150,
+     255,
+     170
+    ]
+   ],
+   "fxr": [
+    [
+     40,
+     170,
+     80
+    ],
+    [
+     90,
+     226,
+     120
+    ],
+    [
+     186,
+     255,
+     200
+    ]
+   ],
+   "arrow": [
+    60,
+    255,
+    110
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Upgrade (Galvanic Mechamorph) \u2014 black body with green lines and a green eye",
+   "notes": "Dark body; the existing trim, visor, bow and arrow turn vivid green (Alien X keeps pale trim, so the two dark skins stay distinct). No circuitry pattern."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "mmpr_pink_inspired_diamondhead",
+   "ref": "https://ben10.fandom.com/wiki/Diamondhead",
+   "cloth": [
+    [
+     16,
+     86,
+     98
+    ],
+    [
+     48,
+     170,
+     178
+    ],
+    [
+     170,
+     240,
+     236
+    ]
+   ],
+   "trim": [
+    [
+     84,
+     110,
+     130
+    ],
+    [
+     170,
+     200,
+     214
+    ],
+    [
+     226,
+     244,
+     250
+    ]
+   ],
+   "visor": [
+    8,
+    22,
+    30
+   ],
+   "bow": [
+    [
+     60,
+     120,
+     140
+    ],
+    [
+     150,
+     214,
+     226
+    ],
+    [
+     226,
+     250,
+     255
+    ]
+   ],
+   "fxr": [
+    [
+     120,
+     210,
+     220
+    ],
+    [
+     180,
+     240,
+     244
+    ],
+    [
+     230,
+     255,
+     255
+    ]
+   ],
+   "arrow": [
+    150,
+    255,
+    246
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Diamondhead (Petrosapien) \u2014 teal crystal body",
+   "notes": "Cyan/teal cloth with pale cool highlights; trim becomes cool pale blue-grey. No crystal shards or facets."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "mmpr_pink_inspired_heatblast",
+   "ref": "https://ben10.fandom.com/wiki/Heatblast",
+   "cloth": [
+    [
+     26,
+     20,
+     18
+    ],
+    [
+     52,
+     38,
+     30
+    ],
+    [
+     96,
+     62,
+     40
+    ]
+   ],
+   "trim": [
+    [
+     170,
+     40,
+     10
+    ],
+    [
+     236,
+     110,
+     24
+    ],
+    [
+     255,
+     206,
+     84
+    ]
+   ],
+   "visor": [
+    60,
+    10,
+    4
+   ],
+   "bow": [
+    [
+     170,
+     40,
+     10
+    ],
+    [
+     236,
+     110,
+     24
+    ],
+    [
+     255,
+     206,
+     84
+    ]
+   ],
+   "fxr": [
+    [
+     220,
+     90,
+     30
+    ],
+    [
+     255,
+     150,
+     60
+    ],
+    [
+     255,
+     230,
+     150
+    ]
+   ],
+   "arrow": [
+    255,
+    170,
+    40
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Heatblast (Pyronite) \u2014 charcoal rock with orange / yellow fire",
+   "notes": "Volcanic dark cloth; orange/red/gold on the existing trim, bow and trails. No flames or rock texture."
+  },
+  "chromastone": {
+   "name": "Chromastone \u2014 Inspired",
+   "id": "mmpr_pink_inspired_chromastone",
+   "ref": "https://ben10.fandom.com/wiki/Chromastone",
+   "cloth": [
+    [
+     58,
+     18,
+     108
+    ],
+    [
+     128,
+     44,
+     196
+    ],
+    [
+     204,
+     140,
+     240
+    ]
+   ],
+   "trim": [
+    [
+     120,
+     112,
+     150
+    ],
+    [
+     198,
+     188,
+     230
+    ],
+    [
+     246,
+     240,
+     255
+    ]
+   ],
+   "visor": [
+    20,
+    4,
+    30
+   ],
+   "bow": [
+    [
+     120,
+     112,
+     150
+    ],
+    [
+     198,
+     188,
+     230
+    ],
+    [
+     246,
+     240,
+     255
+    ]
+   ],
+   "fxr": [
+    [
+     190,
+     120,
+     240
+    ],
+    [
+     220,
+     170,
+     255
+    ],
+    [
+     250,
+     232,
+     255
+    ]
+   ],
+   "arrow": [
+    236,
+    120,
+    255
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Chromastone (Crystalsapien) \u2014 purple/violet crystal body with magenta accents",
+   "notes": "Purple-to-magenta cloth with contrasting pale lavender trim. No crystal protrusions or prism FX."
+  },
+  "ghostfreak": {
+   "name": "Ghostfreak \u2014 Inspired",
+   "id": "mmpr_pink_inspired_ghostfreak",
+   "ref": "https://ben10.fandom.com/wiki/Ghostfreak",
+   "cloth": [
+    [
+     180,
+     180,
+     192
+    ],
+    [
+     222,
+     222,
+     230
+    ],
+    [
+     246,
+     246,
+     250
+    ]
+   ],
+   "trim": [
+    [
+     24,
+     20,
+     30
+    ],
+    [
+     46,
+     40,
+     54
+    ],
+    [
+     84,
+     76,
+     96
+    ]
+   ],
+   "visor": [
+    76,
+    26,
+    100
+   ],
+   "bow": [
+    [
+     46,
+     40,
+     54
+    ],
+    [
+     84,
+     76,
+     96
+    ],
+    [
+     140,
+     128,
+     160
+    ]
+   ],
+   "fxr": [
+    [
+     170,
+     160,
+     200
+    ],
+    [
+     200,
+     192,
+     222
+    ],
+    [
+     244,
+     240,
+     255
+    ]
+   ],
+   "arrow": [
+    176,
+    120,
+    230
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Ghostfreak (Ectonurite) \u2014 pale grey-white body, dark lines, purple eye",
+   "notes": "Pale spectral cloth; the existing trim becomes dark seams, violet visor. Outlines kept. No tentacles, no transparency effect."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "outline / seams (kept)": 636,
+    "visor": 17,
+    "helmet shell (cloth ramp near the visor)": 138,
+    "pink cloth (suit)": 746,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 536
+   },
+   "maskSha256": "12d49848f034f492a1c31cbb3960d0d7414480e2305ce136857af2685267e3fa"
+  },
+  "arrow.png": {
+   "regions": {
+    "arrow (supplied yellow arrow)": 269
+   },
+   "maskSha256": "326589f247b30707bd1e848015b206033918fd2f83e4b160a3e9c06ddaaeb0a2"
+  },
+  "blink.png": {
+   "regions": {
+    "outline / seams (kept)": 332,
+    "visor": 6,
+    "helmet shell (cloth ramp near the visor)": 31,
+    "pink cloth (suit)": 469,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 389
+   },
+   "maskSha256": "45e01d13f3f03ba5e005d67a56e85b6379dbac0c20f45665a63f250f36c86055"
+  },
+  "bow.png": {
+   "regions": {
+    "outline / seams (kept)": 1886,
+    "visor": 29,
+    "helmet shell (cloth ramp near the visor)": 192,
+    "pink cloth (suit)": 2145,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1493,
+    "FX: supplied kick / hand trails": 147,
+    "Power Bow (limbs + string)": 998
+   },
+   "maskSha256": "22020bcaafba455ce1acada4de97c1e5197e8255783010e060bba6330f196a4a"
+  },
+  "crouch.png": {
+   "regions": {
+    "outline / seams (kept)": 313,
+    "visor": 6,
+    "helmet shell (cloth ramp near the visor)": 54,
+    "pink cloth (suit)": 355,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 292
+   },
+   "maskSha256": "02e02f400d666aaf73c0c6944e999b1c25f80e491fc6e592c07a57d4381aa630"
+  },
+  "dash.png": {
+   "regions": {
+    "outline / seams (kept)": 386,
+    "visor": 6,
+    "helmet shell (cloth ramp near the visor)": 43,
+    "pink cloth (suit)": 392,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 394
+   },
+   "maskSha256": "f0ca9c414238d557900bb2970c835d9f4e28c7b157c94d9782960bbfcfc37acc"
+  },
+  "down_air.png": {
+   "regions": {
+    "outline / seams (kept)": 393,
+    "visor": 6,
+    "helmet shell (cloth ramp near the visor)": 71,
+    "pink cloth (suit)": 489,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 333
+   },
+   "maskSha256": "7c010a750ae1cb80a1253dd7fd04d0cd57fcfe9ecdcb1ec93acb82cf27dcdc7e"
+  },
+  "fall.png": {
+   "regions": {
+    "outline / seams (kept)": 278,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 39,
+    "pink cloth (suit)": 358,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 297
+   },
+   "maskSha256": "aa0660e82b625ad4ec3fc2a7374fe20903407b4113061ae0fed3d3cd5c9b9898"
+  },
+  "getup.png": {
+   "regions": {
+    "outline / seams (kept)": 1043,
+    "visor": 35,
+    "helmet shell (cloth ramp near the visor)": 148,
+    "pink cloth (suit)": 1284,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1012
+   },
+   "maskSha256": "368fad9bec95d78014a70a46593e83a4d01c4c6fa99cc8785467fe78dbf831a6"
+  },
+  "guard.png": {
+   "regions": {
+    "outline / seams (kept)": 385,
+    "visor": 6,
+    "helmet shell (cloth ramp near the visor)": 55,
+    "pink cloth (suit)": 420,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 400,
+    "FX: supplied kick / hand trails": 1
+   },
+   "maskSha256": "660d050d0645320f4bde1dd545c6984797bc6e971706df5998ee04745e14ca94"
+  },
+  "heavy.png": {
+   "regions": {
+    "outline / seams (kept)": 1124,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 137,
+    "pink cloth (suit)": 1365,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 890,
+    "FX: supplied kick / hand trails": 523
+   },
+   "maskSha256": "d667102e051a3772515a9d499be2761f217ffd2b7cb74a29ad752ab4895a2760"
+  },
+  "hurt.png": {
+   "regions": {
+    "outline / seams (kept)": 391,
+    "visor": 4,
+    "helmet shell (cloth ramp near the visor)": 37,
+    "pink cloth (suit)": 428,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 425
+   },
+   "maskSha256": "20c602860a2d462930f3e5eaa98d297e4cf09409118e7c21da2055b2a4572b88"
+  },
+  "hurt2.png": {
+   "regions": {
+    "outline / seams (kept)": 409,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 66,
+    "pink cloth (suit)": 390,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 395
+   },
+   "maskSha256": "19b16973744826649f623e167572379e5c71662f77dc98862fabcede7077e48d"
+  },
+  "idle.png": {
+   "regions": {
+    "outline / seams (kept)": 1599,
+    "visor": 44,
+    "helmet shell (cloth ramp near the visor)": 175,
+    "pink cloth (suit)": 1905,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1396
+   },
+   "maskSha256": "0a62fc6028dc9f2f22466f84a2653a33aa1637a36f16957f64369a59eba149e6"
+  },
+  "intro.png": {
+   "regions": {
+    "outline / seams (kept)": 1557,
+    "visor": 47,
+    "helmet shell (cloth ramp near the visor)": 243,
+    "pink cloth (suit)": 1757,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1105,
+    "FX: supplied kick / hand trails": 147,
+    "Power Bow (limbs + string)": 649
+   },
+   "maskSha256": "76a3fbf7a47c2dfe2084e8973ee2ad8f532322519128a59a56c01e82aa2e4252"
+  },
+  "jump.png": {
+   "regions": {
+    "outline / seams (kept)": 1318,
+    "visor": 37,
+    "helmet shell (cloth ramp near the visor)": 333,
+    "pink cloth (suit)": 1537,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1350
+   },
+   "maskSha256": "2c660a968c0f3e47acb733a37d8755bafbd909ec4a35b06d47cc6c65c2b319a3"
+  },
+  "knockdown.png": {
+   "regions": {
+    "outline / seams (kept)": 1009,
+    "visor": 19,
+    "helmet shell (cloth ramp near the visor)": 103,
+    "pink cloth (suit)": 1245,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1059
+   },
+   "maskSha256": "1d3a69dbd6caf064b0b0f5cbf06bea88f57bae38674a1b9c82c0c4ddec9819bb"
+  },
+  "launched.png": {
+   "regions": {
+    "outline / seams (kept)": 328,
+    "visor": 8,
+    "helmet shell (cloth ramp near the visor)": 34,
+    "pink cloth (suit)": 338,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 305
+   },
+   "maskSha256": "15558cbdac35e65b0541307a90a824b89c3efb96a1380476c650362a72037996"
+  },
+  "light.png": {
+   "regions": {
+    "outline / seams (kept)": 803,
+    "visor": 15,
+    "helmet shell (cloth ramp near the visor)": 123,
+    "pink cloth (suit)": 1094,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 841
+   },
+   "maskSha256": "ed3d79a5e2730acec919a368d850bf16c22365d06f12191f8d7941e2df3f0ff9"
+  },
+  "lose.png": {
+   "regions": {
+    "outline / seams (kept)": 1420,
+    "visor": 29,
+    "helmet shell (cloth ramp near the visor)": 151,
+    "pink cloth (suit)": 1634,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1396
+   },
+   "maskSha256": "84c1c8670830a75eee4aa67a750572e32401a2113d6ab4c7d81086269f75be7a"
+  },
+  "pAway.png": {
+   "regions": {
+    "outline / seams (kept)": 775,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 96,
+    "pink cloth (suit)": 846,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 631,
+    "FX: supplied kick / hand trails": 146
+   },
+   "maskSha256": "2b0f2c897ca6cd28dcb77f88e1b855a3e0b13bfd7f59582cf7cff6e4d5b6b628"
+  },
+  "pCall.png": {
+   "regions": {
+    "outline / seams (kept)": 1051,
+    "visor": 35,
+    "helmet shell (cloth ramp near the visor)": 209,
+    "pink cloth (suit)": 1300,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1096
+   },
+   "maskSha256": "ff9f5f19ae427c08f13508246e63bb544014f932d785b9e2307e580158475701"
+  },
+  "pCrane.png": {
+   "regions": {
+    "outline / seams (kept)": 948,
+    "visor": 28,
+    "helmet shell (cloth ramp near the visor)": 159,
+    "pink cloth (suit)": 1270,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 904,
+    "FX: supplied kick / hand trails": 757
+   },
+   "maskSha256": "580048e298dd3fa5fd0fee502d802a35053c3fe8ea9183c2f2110aff09263b90"
+  },
+  "pJ2.png": {
+   "regions": {
+    "outline / seams (kept)": 782,
+    "visor": 10,
+    "helmet shell (cloth ramp near the visor)": 115,
+    "pink cloth (suit)": 1032,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 869
+   },
+   "maskSha256": "c6a88f97fdb53ea58ed4fccbeffc0eafad995ef96fb94ccb4d776657d042cea0"
+  },
+  "pJ3.png": {
+   "regions": {
+    "outline / seams (kept)": 1058,
+    "visor": 17,
+    "helmet shell (cloth ramp near the visor)": 191,
+    "pink cloth (suit)": 1335,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 993,
+    "FX: supplied kick / hand trails": 259
+   },
+   "maskSha256": "bc3dafd8e28de615dda58ffd66bcf645d2209cd11dc561dc6c02e584f67e4982"
+  },
+  "pKick.png": {
+   "regions": {
+    "outline / seams (kept)": 726,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 70,
+    "pink cloth (suit)": 856,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 590,
+    "FX: supplied kick / hand trails": 418
+   },
+   "maskSha256": "11fa7d3a1c5f89321de9cb73da041f3bb22db9c71d948a821d2a07bc56928425"
+  },
+  "pLow.png": {
+   "regions": {
+    "outline / seams (kept)": 592,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 110,
+    "pink cloth (suit)": 728,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 556,
+    "FX: supplied kick / hand trails": 247
+   },
+   "maskSha256": "132ec9050cc278dffab9fbe0a848b73bcc10b16dcc99dc7d674ebce40281cffa"
+  },
+  "pPalm.png": {
+   "regions": {
+    "outline / seams (kept)": 768,
+    "visor": 12,
+    "helmet shell (cloth ramp near the visor)": 105,
+    "pink cloth (suit)": 1010,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 768
+   },
+   "maskSha256": "657980bd01061e9d383f604d072a2b220705e40205872537bdb3450fe70e032d"
+  },
+  "portrait.png": {
+   "regions": {
+    "outline / seams (kept)": 2720,
+    "visor": 176,
+    "helmet shell (cloth ramp near the visor)": 79,
+    "pink cloth (suit)": 3137,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 3088
+   },
+   "maskSha256": "2dae80eee63f53eab66973a3d901894c15a770a00a214f6dbb1e7fca3c91ba79"
+  },
+  "run.png": {
+   "regions": {
+    "outline / seams (kept)": 2166,
+    "visor": 36,
+    "helmet shell (cloth ramp near the visor)": 291,
+    "pink cloth (suit)": 2487,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 2188
+   },
+   "maskSha256": "0afb970f4d5518ca1f276b135faa8c8a81f42bf6439e0089d1473110ecbfcd7a"
+  },
+  "stagger.png": {
+   "regions": {
+    "outline / seams (kept)": 411,
+    "visor": 10,
+    "helmet shell (cloth ramp near the visor)": 48,
+    "pink cloth (suit)": 389,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 337
+   },
+   "maskSha256": "49efed68fbab60f85feddefa6e8d6cfe8a204fc950746e8bfc328fd37866cbf0"
+  },
+  "ultKick.png": {
+   "regions": {
+    "outline / seams (kept)": 1131,
+    "visor": 27,
+    "helmet shell (cloth ramp near the visor)": 180,
+    "pink cloth (suit)": 1151,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 888,
+    "FX: supplied kick / hand trails": 244
+   },
+   "maskSha256": "d8725fbe267b4522b5b032ab64fd30391493588c3054363f9060145d2be188f6"
+  },
+  "ultLand.png": {
+   "regions": {
+    "outline / seams (kept)": 740,
+    "visor": 23,
+    "helmet shell (cloth ramp near the visor)": 113,
+    "pink cloth (suit)": 879,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 716
+   },
+   "maskSha256": "76dd321c54527a00a28a07ab3660992ccc1b9cc2fd7cb9a79a90c184b55d976f"
+  },
+  "ultOpen.png": {
+   "regions": {
+    "outline / seams (kept)": 1886,
+    "visor": 29,
+    "helmet shell (cloth ramp near the visor)": 192,
+    "pink cloth (suit)": 2145,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 1493,
+    "FX: supplied kick / hand trails": 147,
+    "Power Bow (limbs + string)": 998
+   },
+   "maskSha256": "22020bcaafba455ce1acada4de97c1e5197e8255783010e060bba6330f196a4a"
+  },
+  "up.png": {
+   "regions": {
+    "outline / seams (kept)": 1087,
+    "visor": 24,
+    "helmet shell (cloth ramp near the visor)": 192,
+    "pink cloth (suit)": 1147,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 946,
+    "FX: supplied kick / hand trails": 119
+   },
+   "maskSha256": "5fe3d1f4563cae20149fbfd437cc306b9bec6c1e4104476565875eadb56cd7af"
+  },
+  "walk.png": {
+   "regions": {
+    "outline / seams (kept)": 1997,
+    "visor": 37,
+    "helmet shell (cloth ramp near the visor)": 317,
+    "pink cloth (suit)": 2476,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 2115
+   },
+   "maskSha256": "f4d959003af3d5bf3c66983cf4ded8f28a7e3fe6b4884e1a5fb5ec5521952e38"
+  },
+  "walk_back.png": {
+   "regions": {
+    "outline / seams (kept)": 1997,
+    "visor": 37,
+    "helmet shell (cloth ramp near the visor)": 317,
+    "pink cloth (suit)": 2476,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 2115
+   },
+   "maskSha256": "097ca85ada5656f56c6b1e5024beceabab24e47221abd66bbb3f05a422f8a383"
+  },
+  "win.png": {
+   "regions": {
+    "outline / seams (kept)": 780,
+    "visor": 18,
+    "helmet shell (cloth ramp near the visor)": 149,
+    "pink cloth (suit)": 1019,
+    "trim: white diamonds, gloves, boots, belt (one shared light ramp)": 759,
+    "Power Bow (limbs + string)": 334
+   },
+   "maskSha256": "bcb99865a0c7388e7f9ac365dcaa7e97b39177ab2f0639ddb1ec38f35fb042c4"
+  }
+ }
+}

@@ -129,6 +129,9 @@ def main():
         'gRise': ['jump0', 'airKick1'], 'gRetreat': ['arc1', 'arc2', 'arc3'], 'gHeel': ['airKick0'],
         'ultimate': ['fire0', 'fire1', 'fire2'], 'grab': ['strike0', 'strike1'],
         'win': ['arc6', 'ready0'], 'intro': ['arc7', 'arc6'],
+        # variety pass (Red-style command moves; all supplied cells, see MOVE_FRAME_MAP.md)
+        'gSweep': ['ground0', 'ground1'], 'gEvade': ['fall3', 'fall4'], 'gAirShot': ['airAim0'], 'gSomer': ['ground0', 'acro1'],
+        'gRush1': ['acro0'], 'gRush2': ['kick0', 'kick1'], 'gRush3': ['flyKick0'], 'gArc': ['crouchReady0', 'arc1', 'arc2', 'arc3'],
     }
     anim = {}; by = {c['name']: c for c in cells}
     for action, names in seq.items():

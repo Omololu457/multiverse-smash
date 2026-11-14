@@ -117,7 +117,7 @@ export function ensureRangerState(f) {
     events: [],                    // this tick's events for the character module ({type, …}); cleared each tick
   }
 }
-export function clearRanger(f) { if (f?._ranger) delete f._ranger }
+export function clearRanger(f) { if (f?._ranger) { if (f._ranger.blink) f._rooted = false; delete f._ranger } }   // a live blink owns _rooted: release it, or a reset mid-blink leaves the fighter unable to walk/jump
 const ev = (r, type, o = {}) => r.events.push({ type, ...o })
 
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2

@@ -1,0 +1,881 @@
+{
+ "source": "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Ninja Megazord.gif",
+ "sha256": "80a82b068706eadb362e483850e8586ec244cedb20be2a35a10e5daf888f8be2",
+ "size": [
+  410,
+  787
+ ],
+ "mode": "P",
+ "transparencyIndex": 74,
+ "keyPolicy": "GIF transparency index 74 only",
+ "credit": "Sprites ripped by Belial",
+ "creditPanel": [
+  233,
+  729,
+  177,
+  58
+ ],
+ "cells": [
+  {
+   "name": "ready0",
+   "rect": [
+    4,
+    3,
+    56,
+    88
+   ],
+   "parts": [
+    [
+     4,
+     3
+    ]
+   ],
+   "anchor": [
+    26,
+    88
+   ],
+   "opaquePixels": 2934,
+   "kind": "body",
+   "usedIn": [
+    "ready"
+   ]
+  },
+  {
+   "name": "ready1",
+   "rect": [
+    69,
+    3,
+    56,
+    87
+   ],
+   "parts": [
+    [
+     69,
+     3
+    ]
+   ],
+   "anchor": [
+    26,
+    87
+   ],
+   "opaquePixels": 2912,
+   "kind": "body",
+   "usedIn": [
+    "ready"
+   ]
+  },
+  {
+   "name": "guard0",
+   "rect": [
+    134,
+    4,
+    65,
+    86
+   ],
+   "parts": [
+    [
+     134,
+     4
+    ]
+   ],
+   "anchor": [
+    30,
+    86
+   ],
+   "opaquePixels": 2791,
+   "kind": "body",
+   "usedIn": [
+    "guard"
+   ]
+  },
+  {
+   "name": "walk0",
+   "rect": [
+    2,
+    99,
+    52,
+    86
+   ],
+   "parts": [
+    [
+     2,
+     99
+    ]
+   ],
+   "anchor": [
+    24,
+    86
+   ],
+   "opaquePixels": 2534,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk1",
+   "rect": [
+    56,
+    100,
+    42,
+    87
+   ],
+   "parts": [
+    [
+     56,
+     100
+    ]
+   ],
+   "anchor": [
+    19,
+    87
+   ],
+   "opaquePixels": 2033,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk2",
+   "rect": [
+    104,
+    100,
+    38,
+    88
+   ],
+   "parts": [
+    [
+     104,
+     100
+    ]
+   ],
+   "anchor": [
+    15,
+    88
+   ],
+   "opaquePixels": 1985,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk3",
+   "rect": [
+    146,
+    101,
+    35,
+    87
+   ],
+   "parts": [
+    [
+     146,
+     101
+    ]
+   ],
+   "anchor": [
+    13,
+    87
+   ],
+   "opaquePixels": 1932,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk4",
+   "rect": [
+    186,
+    104,
+    42,
+    87
+   ],
+   "parts": [
+    [
+     186,
+     104
+    ]
+   ],
+   "anchor": [
+    18,
+    87
+   ],
+   "opaquePixels": 1978,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "walk5",
+   "rect": [
+    233,
+    103,
+    53,
+    86
+   ],
+   "parts": [
+    [
+     233,
+     103
+    ]
+   ],
+   "anchor": [
+    23,
+    86
+   ],
+   "opaquePixels": 2429,
+   "kind": "body",
+   "usedIn": [
+    "step"
+   ]
+  },
+  {
+   "name": "jab0",
+   "rect": [
+    3,
+    197,
+    57,
+    87
+   ],
+   "parts": [
+    [
+     3,
+     197
+    ]
+   ],
+   "anchor": [
+    25,
+    87
+   ],
+   "opaquePixels": 2395,
+   "kind": "body",
+   "usedIn": [
+    "jab"
+   ]
+  },
+  {
+   "name": "punch0",
+   "rect": [
+    65,
+    195,
+    89,
+    88
+   ],
+   "parts": [
+    [
+     65,
+     195
+    ]
+   ],
+   "anchor": [
+    31,
+    88
+   ],
+   "opaquePixels": 2864,
+   "kind": "body",
+   "usedIn": [
+    "punch"
+   ]
+  },
+  {
+   "name": "turn0",
+   "rect": [
+    160,
+    198,
+    66,
+    83
+   ],
+   "parts": [
+    [
+     160,
+     198
+    ]
+   ],
+   "anchor": [
+    29,
+    83
+   ],
+   "opaquePixels": 2653,
+   "kind": "body",
+   "usedIn": [
+    "turn"
+   ]
+  },
+  {
+   "name": "punch1",
+   "rect": [
+    235,
+    200,
+    89,
+    82
+   ],
+   "parts": [
+    [
+     235,
+     200
+    ]
+   ],
+   "anchor": [
+    32,
+    82
+   ],
+   "opaquePixels": 2773,
+   "kind": "body",
+   "usedIn": [
+    "punch2"
+   ]
+  },
+  {
+   "name": "step0",
+   "rect": [
+    1,
+    297,
+    56,
+    86
+   ],
+   "parts": [
+    [
+     1,
+     297
+    ]
+   ],
+   "anchor": [
+    33,
+    86
+   ],
+   "opaquePixels": 2338,
+   "kind": "body",
+   "usedIn": [
+    "stepIn"
+   ]
+  },
+  {
+   "name": "crane0",
+   "rect": [
+    65,
+    292,
+    70,
+    86
+   ],
+   "parts": [
+    [
+     65,
+     292
+    ]
+   ],
+   "anchor": [
+    9,
+    86
+   ],
+   "opaquePixels": 2476,
+   "kind": "body",
+   "usedIn": [
+    "crane"
+   ]
+  },
+  {
+   "name": "knee0",
+   "rect": [
+    143,
+    295,
+    54,
+    86
+   ],
+   "parts": [
+    [
+     143,
+     295
+    ]
+   ],
+   "anchor": [
+    10,
+    86
+   ],
+   "opaquePixels": 2281,
+   "kind": "body",
+   "usedIn": [
+    "knee"
+   ]
+  },
+  {
+   "name": "recover0",
+   "rect": [
+    204,
+    292,
+    69,
+    87
+   ],
+   "parts": [
+    [
+     204,
+     292
+    ]
+   ],
+   "anchor": [
+    33,
+    87
+   ],
+   "opaquePixels": 2904,
+   "kind": "body",
+   "usedIn": [
+    "recover"
+   ]
+  },
+  {
+   "name": "chamber0",
+   "rect": [
+    2,
+    393,
+    58,
+    88
+   ],
+   "parts": [
+    [
+     2,
+     393
+    ]
+   ],
+   "anchor": [
+    32,
+    88
+   ],
+   "opaquePixels": 2133,
+   "kind": "body",
+   "usedIn": [
+    "chamber"
+   ]
+  },
+  {
+   "name": "rearKick0",
+   "rect": [
+    66,
+    394,
+    76,
+    88
+   ],
+   "parts": [
+    [
+     66,
+     394
+    ]
+   ],
+   "anchor": [
+    47,
+    88
+   ],
+   "opaquePixels": 2356,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "rear0",
+   "rect": [
+    147,
+    393,
+    56,
+    85
+   ],
+   "parts": [
+    [
+     147,
+     393
+    ]
+   ],
+   "anchor": [
+    27,
+    85
+   ],
+   "opaquePixels": 2052,
+   "kind": "body",
+   "usedIn": [
+    "rear"
+   ]
+  },
+  {
+   "name": "push0",
+   "rect": [
+    212,
+    392,
+    78,
+    87
+   ],
+   "parts": [
+    [
+     212,
+     392
+    ]
+   ],
+   "anchor": [
+    28,
+    87
+   ],
+   "opaquePixels": 2549,
+   "kind": "body",
+   "usedIn": [
+    "push"
+   ]
+  },
+  {
+   "name": "draw0",
+   "rect": [
+    3,
+    491,
+    66,
+    97
+   ],
+   "parts": [
+    [
+     3,
+     491
+    ]
+   ],
+   "anchor": [
+    34,
+    97
+   ],
+   "opaquePixels": 3023,
+   "kind": "body",
+   "usedIn": [
+    "draw"
+   ]
+  },
+  {
+   "name": "wind0",
+   "rect": [
+    73,
+    491,
+    77,
+    101
+   ],
+   "parts": [
+    [
+     73,
+     491
+    ]
+   ],
+   "anchor": [
+    37,
+    101
+   ],
+   "opaquePixels": 2756,
+   "kind": "body",
+   "usedIn": [
+    "wind"
+   ]
+  },
+  {
+   "name": "cut0",
+   "rect": [
+    158,
+    507,
+    65,
+    85
+   ],
+   "parts": [
+    [
+     158,
+     507
+    ]
+   ],
+   "anchor": [
+    39,
+    85
+   ],
+   "opaquePixels": 2535,
+   "kind": "body",
+   "usedIn": [
+    "cut"
+   ]
+  },
+  {
+   "name": "arc0",
+   "rect": [
+    230,
+    504,
+    69,
+    67
+   ],
+   "parts": [
+    [
+     230,
+     504
+    ]
+   ],
+   "anchor": [
+    0,
+    33
+   ],
+   "opaquePixels": 781,
+   "kind": "fx",
+   "usedIn": [
+    "arc"
+   ]
+  },
+  {
+   "name": "finish0",
+   "rect": [
+    325,
+    502,
+    64,
+    84
+   ],
+   "parts": [
+    [
+     325,
+     502
+    ]
+   ],
+   "anchor": [
+    35,
+    84
+   ],
+   "opaquePixels": 2510,
+   "kind": "body",
+   "usedIn": [
+    "finish"
+   ]
+  },
+  {
+   "name": "stagger0",
+   "rect": [
+    4,
+    603,
+    51,
+    86
+   ],
+   "parts": [
+    [
+     4,
+     603
+    ]
+   ],
+   "anchor": [
+    30,
+    86
+   ],
+   "opaquePixels": 2361,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "fall0",
+   "rect": [
+    66,
+    610,
+    82,
+    73
+   ],
+   "parts": [
+    [
+     66,
+     610
+    ]
+   ],
+   "anchor": [
+    51,
+    73
+   ],
+   "opaquePixels": 2484,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "prone0",
+   "rect": [
+    153,
+    625,
+    96,
+    34
+   ],
+   "parts": [
+    [
+     153,
+     625
+    ]
+   ],
+   "anchor": [
+    43,
+    34
+   ],
+   "opaquePixels": 2026,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "prone1",
+   "rect": [
+    260,
+    625,
+    96,
+    39
+   ],
+   "parts": [
+    [
+     260,
+     625
+    ]
+   ],
+   "anchor": [
+    79,
+    39
+   ],
+   "opaquePixels": 2166,
+   "kind": "body",
+   "usedIn": []
+  },
+  {
+   "name": "kneel0",
+   "rect": [
+    6,
+    725,
+    72,
+    53
+   ],
+   "parts": [
+    [
+     6,
+     725
+    ]
+   ],
+   "anchor": [
+    33,
+    53
+   ],
+   "opaquePixels": 1987,
+   "kind": "body",
+   "usedIn": [
+    "kneel"
+   ]
+  },
+  {
+   "name": "kneel1",
+   "rect": [
+    83,
+    710,
+    51,
+    69
+   ],
+   "parts": [
+    [
+     83,
+     710
+    ]
+   ],
+   "anchor": [
+    23,
+    69
+   ],
+   "opaquePixels": 2082,
+   "kind": "body",
+   "usedIn": [
+    "kneel"
+   ]
+  },
+  {
+   "name": "rise0",
+   "rect": [
+    140,
+    699,
+    41,
+    82
+   ],
+   "parts": [
+    [
+     140,
+     699
+    ]
+   ],
+   "anchor": [
+    16,
+    82
+   ],
+   "opaquePixels": 1984,
+   "kind": "body",
+   "usedIn": [
+    "rise"
+   ]
+  }
+ ],
+ "sequences": {
+  "ready": [
+   "ready0",
+   "ready1"
+  ],
+  "guard": [
+   "guard0"
+  ],
+  "step": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5"
+  ],
+  "jab": [
+   "jab0"
+  ],
+  "punch": [
+   "punch0"
+  ],
+  "punch2": [
+   "punch1"
+  ],
+  "turn": [
+   "turn0"
+  ],
+  "stepIn": [
+   "step0"
+  ],
+  "crane": [
+   "crane0"
+  ],
+  "knee": [
+   "knee0"
+  ],
+  "recover": [
+   "recover0"
+  ],
+  "chamber": [
+   "chamber0"
+  ],
+  "push": [
+   "push0"
+  ],
+  "rear": [
+   "rear0"
+  ],
+  "draw": [
+   "draw0"
+  ],
+  "wind": [
+   "wind0"
+  ],
+  "cut": [
+   "cut0"
+  ],
+  "arc": [
+   "arc0"
+  ],
+  "finish": [
+   "finish0"
+  ],
+  "kneel": [
+   "kneel0",
+   "kneel1"
+  ],
+  "rise": [
+   "rise0"
+  ]
+ },
+ "unusedCells": [
+  "rearKick0",
+  "stagger0",
+  "fall0",
+  "prone0",
+  "prone1"
+ ]
+}

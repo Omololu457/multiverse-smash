@@ -10,6 +10,8 @@ function fire(f,key) {
  if(md.isSpecial&&(disabled.includes(key)||disabled.includes('special')))return false
  if(key==='lfBrace'&&s.braceCd>0)return false
  if(key==='lfAnchor'&&(s.anchorUsed||f.onGround||f.grounded))return false
+ if(['lfMuchi','lfKane','lfHop','lfGatling','lfBazooka','lfOno','lfKaza'].includes(key)&&!(f.onGround||f.grounded))return false
+ if(key==='lfStamp'&&(f.onGround||f.grounded))return false
  if(!startMove(f,key,md))return false
  f.currentMove=key;f.currentAttack.lf={...md.lf};f.currentAttack.lfInstance=++s.serial
  f._rekkaNext=md.lf?.next||null;f._cmdHitLanded=false
@@ -17,6 +19,9 @@ function fire(f,key) {
  f.energy=Math.max(0,f.energy-(md.cost||0))
  if(key==='lfBrace')s.braceCd=180
  if(key==='lfAnchor')s.anchorUsed=true
+ if(md.invuln)f.invulnTimer=Math.max(f.invulnTimer||0,md.invuln)
+ if(md.armor)f._castArmor=Math.max(f._castArmor||0,md.armor)   // VARIETY L6: armored startup (engine castArmored: absorbs non-launcher hits, damage still taken; game.js ticks it down)
+ if(md.unblockable&&f.currentAttack)f.currentAttack.unblockable=true   // VARIETY L8: command throw beats guard (combat.js block branch skips unblockables; startMove does not copy the flag)
  if(md.isSpecial||md.isUltimate){f.vx=0;f.isBlocking=false;s.snapUntil=0;s.snapQueued=false}
  f._luffyCue=key==='lfBrace'?'inflate':key==='lfSnap'?'snap':key==='lfFinale'?'finale':md.isSpecial?'stretch':null
  return true
@@ -25,6 +30,9 @@ export function executeLuffySpecial(f) {
  if(!isLuffy(f))return false
  const dir=f._specialHeldDir||null
  if(!(f.onGround||f.grounded))return dir==='D'?fire(f,'lfAnchor'):false
+ const m=luffyState(f).motion;luffyState(f).motion=null
+ if(m==='qcf')return fire(f,'lfGatling')
+ if(m==='qcb')return fire(f,'lfBazooka')
  return fire(f,dir==='F'?'lfReel':dir==='D'?'lfPinwheel':dir==='B'?'lfBrace':'lfPiston')
 }
 export function executeLuffyUltimate(f) {
@@ -79,7 +87,8 @@ export function updateLuffyCommandCombat(fighter,inputState,opp,context={}) {
   context.special?context.special():executeLuffySpecial(fighter);return true
  }
  if(grounded&&s.buffer.upAttack>0){s.buffer.upAttack=0;fire(fighter,'up');return true}
- if(s.buffer.light>0){s.buffer.light=0;fire(fighter,grounded?(inputState.down?'lfLow':'light'):(inputState.down?'down_air':'air'));return true}
- if(s.buffer.heavy>0){s.buffer.heavy=0;fire(fighter,grounded?(inputState.up?'up':inputState.down?'lfLow':forward?'lfCmd1':'heavy'):(inputState.down?'down_air':'air'));return true}
+ const back=fighter.facing === 1 ? !!inputState.left : !!inputState.right
+ if(s.buffer.light>0){s.buffer.light=0;fire(fighter,grounded?(inputState.down?'lfLow':forward?'lfKane':back?'lfOno':'light'):(inputState.down?'down_air':'air'));return true}
+ if(s.buffer.heavy>0){s.buffer.heavy=0;fire(fighter,grounded?(s.hmotion==='qcb'?'lfKaza':inputState.up?'up':inputState.down?'lfMuchi':forward?'lfCmd1':back?'lfHop':'heavy'):(inputState.down?'down_air':'lfStamp'));return true}
  return false // generic grab/throw remains the shared engine contract
 }

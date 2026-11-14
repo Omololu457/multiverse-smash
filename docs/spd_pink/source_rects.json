@@ -1,0 +1,1716 @@
+{
+  "source": "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Pink Ranger.png",
+  "sha256": "cffc6031bbf8058032bae24848039bad41e690b3440983631239f658081c8b04",
+  "size": [
+    727,
+    1160
+  ],
+  "mode": "RGB",
+  "outerBackground": [
+    255,
+    91,
+    124
+  ],
+  "cellBackground": [
+    255,
+    154,
+    195
+  ],
+  "keyPolicy": "exact cell-fill RGB(255,154,195) only, inside verified cell rects; outer RGB(255,91,124) keyed only at the 12 listed notch pixels of punch1",
+  "notch": {
+    "punch1": [
+      [
+        0,
+        52
+      ],
+      [
+        0,
+        53
+      ],
+      [
+        0,
+        54
+      ],
+      [
+        0,
+        55
+      ],
+      [
+        1,
+        53
+      ],
+      [
+        1,
+        54
+      ],
+      [
+        1,
+        55
+      ],
+      [
+        2,
+        54
+      ],
+      [
+        2,
+        55
+      ],
+      [
+        3,
+        55
+      ],
+      [
+        4,
+        55
+      ],
+      [
+        5,
+        55
+      ]
+    ]
+  },
+  "credit": "ripped by the FRANKETE, for TSR (WANTED-poster credit panel, top right)",
+  "creditPanel": [
+    580,
+    15,
+    102,
+    118
+  ],
+  "inputIcons": [
+    [
+      8,
+      88,
+      16,
+      16
+    ],
+    [
+      8,
+      152,
+      16,
+      16
+    ],
+    [
+      8,
+      216,
+      16,
+      16
+    ],
+    [
+      8,
+      464,
+      16,
+      16
+    ],
+    [
+      0,
+      664,
+      16,
+      16
+    ],
+    [
+      24,
+      664,
+      16,
+      16
+    ],
+    [
+      0,
+      740,
+      45,
+      16
+    ],
+    [
+      0,
+      784,
+      40,
+      16
+    ],
+    [
+      0,
+      856,
+      40,
+      16
+    ],
+    [
+      0,
+      920,
+      40,
+      16
+    ],
+    [
+      0,
+      992,
+      40,
+      16
+    ],
+    [
+      1,
+      1056,
+      39,
+      16
+    ]
+  ],
+  "inputIconNote": "left-column controller glyphs (\u2192, \u2193, A, B, \u2191+B, A+B, \u2192+\u2192 \u2026) \u2014 labels, not body art",
+  "frame": {
+    "width": 144,
+    "height": 96,
+    "originX": 64,
+    "originY": 84
+  },
+  "frames": [
+    {
+      "name": "ready0",
+      "rect": [
+        48,
+        8,
+        32,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1055,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        1,
+        32,
+        56
+      ],
+      "opaquePixels": 737,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "getup",
+        "idle",
+        "intro",
+        "win"
+      ]
+    },
+    {
+      "name": "ready1",
+      "rect": [
+        88,
+        8,
+        32,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1065,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        2,
+        32,
+        56
+      ],
+      "opaquePixels": 727,
+      "anchor": [
+        15,
+        56
+      ],
+      "usedIn": [
+        "idle",
+        "light"
+      ]
+    },
+    {
+      "name": "run0",
+      "rect": [
+        48,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2058,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        9,
+        2,
+        39,
+        56
+      ],
+      "opaquePixels": 630,
+      "anchor": [
+        20,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run1",
+      "rect": [
+        104,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2040,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        2,
+        43,
+        56
+      ],
+      "opaquePixels": 648,
+      "anchor": [
+        22,
+        56
+      ],
+      "usedIn": [
+        "dash",
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run2",
+      "rect": [
+        160,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2100,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        7,
+        3,
+        35,
+        56
+      ],
+      "opaquePixels": 588,
+      "anchor": [
+        21,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run3",
+      "rect": [
+        216,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2072,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        12,
+        2,
+        40,
+        56
+      ],
+      "opaquePixels": 616,
+      "anchor": [
+        23,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run4",
+      "rect": [
+        272,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1996,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        11,
+        0,
+        43,
+        56
+      ],
+      "opaquePixels": 692,
+      "anchor": [
+        24,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run5",
+      "rect": [
+        328,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2007,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        2,
+        45,
+        56
+      ],
+      "opaquePixels": 681,
+      "anchor": [
+        25,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run6",
+      "rect": [
+        384,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2131,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        12,
+        1,
+        37,
+        56
+      ],
+      "opaquePixels": 557,
+      "anchor": [
+        23,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run7",
+      "rect": [
+        440,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2089,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        12,
+        4,
+        37,
+        56
+      ],
+      "opaquePixels": 599,
+      "anchor": [
+        21,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "crouch0",
+      "rect": [
+        48,
+        136,
+        32,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1158,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        4,
+        31,
+        56
+      ],
+      "opaquePixels": 634,
+      "anchor": [
+        14,
+        56
+      ],
+      "usedIn": [
+        "crouch",
+        "pPrep",
+        "pStance"
+      ]
+    },
+    {
+      "name": "jump0",
+      "rect": [
+        48,
+        200,
+        40,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1930,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        3,
+        2,
+        38,
+        64
+      ],
+      "opaquePixels": 630,
+      "anchor": [
+        6,
+        64
+      ],
+      "usedIn": [
+        "jump"
+      ]
+    },
+    {
+      "name": "jump1",
+      "rect": [
+        96,
+        200,
+        40,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1949,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        6,
+        2,
+        34,
+        54
+      ],
+      "opaquePixels": 611,
+      "anchor": [
+        25,
+        64
+      ],
+      "usedIn": [
+        "fall",
+        "pVault"
+      ]
+    },
+    {
+      "name": "guard0",
+      "rect": [
+        48,
+        272,
+        32,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 813,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        3,
+        31,
+        48
+      ],
+      "opaquePixels": 723,
+      "anchor": [
+        15,
+        48
+      ],
+      "usedIn": [
+        "guard",
+        "pStance"
+      ]
+    },
+    {
+      "name": "fall0",
+      "rect": [
+        48,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2051,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        9,
+        1,
+        48,
+        48
+      ],
+      "opaquePixels": 637,
+      "anchor": [
+        39,
+        48
+      ],
+      "usedIn": [
+        "hurt",
+        "knockdown"
+      ]
+    },
+    {
+      "name": "fall1",
+      "rect": [
+        112,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2095,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        3,
+        54,
+        40
+      ],
+      "opaquePixels": 593,
+      "anchor": [
+        16,
+        48
+      ],
+      "usedIn": [
+        "knockdown"
+      ]
+    },
+    {
+      "name": "fall2",
+      "rect": [
+        176,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2151,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        32,
+        56,
+        48
+      ],
+      "opaquePixels": 537,
+      "anchor": [
+        30,
+        48
+      ],
+      "usedIn": [
+        "knockdown"
+      ]
+    },
+    {
+      "name": "fall3",
+      "rect": [
+        240,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2140,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        11,
+        38,
+        48
+      ],
+      "opaquePixels": 548,
+      "anchor": [
+        18,
+        48
+      ],
+      "usedIn": [
+        "getup"
+      ]
+    },
+    {
+      "name": "fall4",
+      "rect": [
+        304,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2052,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        2,
+        45,
+        48
+      ],
+      "opaquePixels": 636,
+      "anchor": [
+        29,
+        48
+      ],
+      "usedIn": [
+        "getup",
+        "pEvade",
+        "pFlip"
+      ]
+    },
+    {
+      "name": "slash0",
+      "rect": [
+        48,
+        384,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1957,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        4,
+        40,
+        56
+      ],
+      "opaquePixels": 731,
+      "anchor": [
+        19,
+        56
+      ],
+      "usedIn": [
+        "light",
+        "pBar3",
+        "pJ2",
+        "pReprisal"
+      ]
+    },
+    {
+      "name": "slash1",
+      "rect": [
+        104,
+        384,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2002,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        8,
+        37,
+        56
+      ],
+      "opaquePixels": 686,
+      "anchor": [
+        19,
+        56
+      ],
+      "usedIn": [
+        "pCheck",
+        "pJ2"
+      ]
+    },
+    {
+      "name": "slash2",
+      "rect": [
+        160,
+        384,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1965,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        5,
+        43,
+        56
+      ],
+      "opaquePixels": 723,
+      "anchor": [
+        22,
+        56
+      ],
+      "usedIn": [
+        "pBar3",
+        "pCheck",
+        "pReprisal"
+      ]
+    },
+    {
+      "name": "acro0",
+      "rect": [
+        48,
+        448,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2410,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        8,
+        45,
+        56
+      ],
+      "opaquePixels": 726,
+      "anchor": [
+        17,
+        56
+      ],
+      "usedIn": [
+        "grab",
+        "pBar1",
+        "pJ3"
+      ]
+    },
+    {
+      "name": "acro1",
+      "rect": [
+        112,
+        448,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2580,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        7,
+        0,
+        38,
+        56
+      ],
+      "opaquePixels": 556,
+      "anchor": [
+        24,
+        56
+      ],
+      "usedIn": [
+        "pAway",
+        "pEvade",
+        "pFlip"
+      ]
+    },
+    {
+      "name": "acro2",
+      "rect": [
+        176,
+        448,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2514,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        9,
+        13,
+        55,
+        56
+      ],
+      "opaquePixels": 622,
+      "anchor": [
+        31,
+        56
+      ],
+      "usedIn": [
+        "pAway",
+        "pSweep"
+      ]
+    },
+    {
+      "name": "acro3",
+      "rect": [
+        240,
+        448,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2506,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        8,
+        20,
+        56,
+        56
+      ],
+      "opaquePixels": 630,
+      "anchor": [
+        30,
+        56
+      ],
+      "usedIn": [
+        "pLow",
+        "pSweep"
+      ]
+    },
+    {
+      "name": "raise0",
+      "rect": [
+        48,
+        512,
+        48,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2346,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        3,
+        16,
+        47,
+        64
+      ],
+      "opaquePixels": 726,
+      "anchor": [
+        19,
+        64
+      ],
+      "usedIn": [
+        "pPrep"
+      ]
+    },
+    {
+      "name": "raise1",
+      "rect": [
+        104,
+        512,
+        48,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2366,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        9,
+        0,
+        36,
+        64
+      ],
+      "opaquePixels": 706,
+      "anchor": [
+        22,
+        64
+      ],
+      "usedIn": [
+        "intro",
+        "pRise"
+      ]
+    },
+    {
+      "name": "punch0",
+      "rect": [
+        48,
+        584,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2147,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        10,
+        18,
+        36,
+        56
+      ],
+      "opaquePixels": 541,
+      "anchor": [
+        22,
+        56
+      ],
+      "usedIn": [
+        "pBreaker"
+      ]
+    },
+    {
+      "name": "punch1",
+      "rect": [
+        104,
+        584,
+        48,
+        56
+      ],
+      "kind": "body",
+      "fullRect": false,
+      "keyedPixels": 1960,
+      "notchPixelsKeyed": 12,
+      "bbox": [
+        0,
+        3,
+        48,
+        56
+      ],
+      "opaquePixels": 716,
+      "anchor": [
+        19,
+        56
+      ],
+      "usedIn": [
+        "grab",
+        "pBar2",
+        "pBreaker",
+        "pJ3"
+      ]
+    },
+    {
+      "name": "airKick0",
+      "rect": [
+        48,
+        648,
+        64,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3522,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        12,
+        2,
+        39,
+        49
+      ],
+      "opaquePixels": 574,
+      "anchor": [
+        21,
+        64
+      ],
+      "usedIn": [
+        "air",
+        "pRose"
+      ]
+    },
+    {
+      "name": "airKick1",
+      "rect": [
+        120,
+        648,
+        64,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3490,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        9,
+        2,
+        59,
+        41
+      ],
+      "opaquePixels": 606,
+      "anchor": [
+        43,
+        64
+      ],
+      "usedIn": [
+        "air",
+        "down_air"
+      ]
+    },
+    {
+      "name": "flip0",
+      "rect": [
+        48,
+        720,
+        48,
+        48
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 1683,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        5,
+        46,
+        48
+      ],
+      "opaquePixels": 621,
+      "anchor": [
+        22,
+        48
+      ],
+      "usedIn": [
+        "pRose",
+        "pVault"
+      ]
+    },
+    {
+      "name": "kick0",
+      "rect": [
+        48,
+        776,
+        64,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3087,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        12,
+        12,
+        53,
+        56
+      ],
+      "opaquePixels": 497,
+      "anchor": [
+        34,
+        56
+      ],
+      "usedIn": [
+        "heavy",
+        "pKick"
+      ]
+    },
+    {
+      "name": "kick1",
+      "rect": [
+        120,
+        776,
+        64,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2917,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        12,
+        63,
+        56
+      ],
+      "opaquePixels": 667,
+      "anchor": [
+        35,
+        56
+      ],
+      "usedIn": [
+        "heavy",
+        "pKick"
+      ]
+    },
+    {
+      "name": "kick2",
+      "rect": [
+        192,
+        776,
+        64,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2985,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        20,
+        4,
+        45,
+        56
+      ],
+      "opaquePixels": 599,
+      "anchor": [
+        29,
+        56
+      ],
+      "usedIn": [
+        "pRise",
+        "up"
+      ]
+    },
+    {
+      "name": "kick3",
+      "rect": [
+        264,
+        776,
+        64,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2885,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        19,
+        3,
+        49,
+        56
+      ],
+      "opaquePixels": 699,
+      "anchor": [
+        33,
+        56
+      ],
+      "usedIn": [
+        "up",
+        "win"
+      ]
+    },
+    {
+      "name": "aim0",
+      "rect": [
+        48,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2419,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        4,
+        34,
+        56
+      ],
+      "opaquePixels": 717,
+      "anchor": [
+        18,
+        56
+      ],
+      "usedIn": [
+        "pShot"
+      ]
+    },
+    {
+      "name": "aim1",
+      "rect": [
+        112,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2340,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        3,
+        50,
+        56
+      ],
+      "opaquePixels": 796,
+      "anchor": [
+        18,
+        56
+      ],
+      "usedIn": [
+        "pFlip",
+        "pShot"
+      ]
+    },
+    {
+      "name": "aim2",
+      "rect": [
+        176,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2339,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        2,
+        3,
+        47,
+        56
+      ],
+      "opaquePixels": 797,
+      "anchor": [
+        18,
+        56
+      ],
+      "usedIn": [
+        "pShot"
+      ]
+    },
+    {
+      "name": "airAim0",
+      "rect": [
+        48,
+        904,
+        48,
+        64
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2372,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        3,
+        48,
+        64
+      ],
+      "opaquePixels": 700,
+      "anchor": [
+        5,
+        64
+      ],
+      "usedIn": [
+        "pAirShot"
+      ]
+    },
+    {
+      "name": "fire0",
+      "rect": [
+        47,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 3092,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        0,
+        64,
+        56
+      ],
+      "opaquePixels": 940,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "ultimate"
+      ]
+    },
+    {
+      "name": "fire1",
+      "rect": [
+        127,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2869,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1163,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "ultimate"
+      ]
+    },
+    {
+      "name": "fire2",
+      "rect": [
+        207,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "fullRect": true,
+      "keyedPixels": 2937,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1095,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "ultimate"
+      ]
+    },
+    {
+      "name": "streak0",
+      "rect": [
+        48,
+        1040,
+        40,
+        56
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1515,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        1,
+        1,
+        39,
+        56
+      ],
+      "opaquePixels": 725,
+      "anchor": [
+        20,
+        56
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "streak1",
+      "rect": [
+        96,
+        1040,
+        48,
+        64
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 2243,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        3,
+        4,
+        46,
+        64
+      ],
+      "opaquePixels": 829,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam0",
+      "rect": [
+        48,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1607,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        3,
+        16,
+        23
+      ],
+      "opaquePixels": 121,
+      "anchor": [
+        0,
+        12
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam1",
+      "rect": [
+        128,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1507,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        11,
+        64,
+        15
+      ],
+      "opaquePixels": 221,
+      "anchor": [
+        0,
+        12
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam2",
+      "rect": [
+        208,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "fullRect": true,
+      "keyedPixels": 1534,
+      "notchPixelsKeyed": 0,
+      "bbox": [
+        0,
+        12,
+        66,
+        15
+      ],
+      "opaquePixels": 194,
+      "anchor": [
+        0,
+        12
+      ],
+      "usedIn": []
+    }
+  ],
+  "sequences": {
+    "idle": [
+      "ready0",
+      "ready1"
+    ],
+    "walk": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "run": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "walk_back": [
+      "run7",
+      "run6",
+      "run5",
+      "run4",
+      "run3",
+      "run2",
+      "run1",
+      "run0"
+    ],
+    "dash": [
+      "run1"
+    ],
+    "jump": [
+      "jump0"
+    ],
+    "fall": [
+      "jump1"
+    ],
+    "crouch": [
+      "crouch0"
+    ],
+    "guard": [
+      "guard0"
+    ],
+    "hurt": [
+      "fall0"
+    ],
+    "knockdown": [
+      "fall0",
+      "fall1",
+      "fall2"
+    ],
+    "getup": [
+      "fall3",
+      "fall4",
+      "ready0"
+    ],
+    "light": [
+      "ready1",
+      "slash0"
+    ],
+    "pJ2": [
+      "slash0",
+      "slash1"
+    ],
+    "pJ3": [
+      "acro0",
+      "punch1"
+    ],
+    "heavy": [
+      "kick0",
+      "kick1"
+    ],
+    "pLow": [
+      "acro3"
+    ],
+    "up": [
+      "kick2",
+      "kick3"
+    ],
+    "air": [
+      "airKick0",
+      "airKick1"
+    ],
+    "down_air": [
+      "airKick1"
+    ],
+    "pCheck": [
+      "slash1",
+      "slash2"
+    ],
+    "pKick": [
+      "kick0",
+      "kick1"
+    ],
+    "pAway": [
+      "acro1",
+      "acro2"
+    ],
+    "pPrep": [
+      "crouch0",
+      "raise0"
+    ],
+    "pShot": [
+      "aim0",
+      "aim1",
+      "aim2"
+    ],
+    "pBreaker": [
+      "punch0",
+      "punch1"
+    ],
+    "pRise": [
+      "kick2",
+      "raise1"
+    ],
+    "pStance": [
+      "guard0",
+      "crouch0"
+    ],
+    "pReprisal": [
+      "slash0",
+      "slash2"
+    ],
+    "pRose": [
+      "airKick0",
+      "flip0"
+    ],
+    "ultimate": [
+      "fire0",
+      "fire1",
+      "fire2"
+    ],
+    "grab": [
+      "acro0",
+      "punch1"
+    ],
+    "win": [
+      "kick3",
+      "ready0"
+    ],
+    "intro": [
+      "raise1",
+      "ready0"
+    ],
+    "pSweep": [
+      "acro2",
+      "acro3"
+    ],
+    "pEvade": [
+      "acro1",
+      "fall4"
+    ],
+    "pAirShot": [
+      "airAim0"
+    ],
+    "pVault": [
+      "jump1",
+      "flip0"
+    ],
+    "pBar1": [
+      "acro0"
+    ],
+    "pBar2": [
+      "punch1"
+    ],
+    "pBar3": [
+      "slash0",
+      "slash2"
+    ],
+    "pFlip": [
+      "acro1",
+      "fall4",
+      "aim1"
+    ]
+  },
+  "unusedCells": [
+    "streak0",
+    "streak1",
+    "beam0",
+    "beam1",
+    "beam2"
+  ]
+}

@@ -86,13 +86,13 @@ function pressDir(s, b, inp, facing) {
   return { ...inp, down: t <= 3, up: t >= 7, [fk]: t % 3 === 0, [bk]: t % 3 === 1 }
 }
 function normalFor(f, inp, button, grounded) {
-  const fwd = f.facing === -1 ? inp.left : inp.right
-  if (!grounded) return inp.down ? 'down_air' : 'air'
+  const fwd = f.facing === -1 ? inp.left : inp.right, back = f.facing === -1 ? inp.right : inp.left
+  if (!grounded) return inp.down ? 'down_air' : button === 'heavy' ? 'bAirH' : 'air'
   if (button === 'upAttack') return 'up'
   if (button === 'light') return inp.down ? 'bLow' : fwd ? 'bSlash' : 'light'
   if (inp.up) return 'up'
   if (inp.down) return 'bKick'
-  return fwd ? 'bWake' : 'heavy'
+  return fwd ? 'bWake' : back ? 'bSplit' : 'heavy'
 }
 
 export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {

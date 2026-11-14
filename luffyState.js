@@ -21,6 +21,10 @@ export function tickLuffy(f,opp,raw={}) {
  const s=luffyState(f)
  if(f.health<=0){s.pips=0;luffyInterrupted(f);return}
  s.up = !!raw.up
+ // Variety pass: facing-relative raw direction history (16 ticks) → motion read latched at the Special press.
+ {const fw=!!(f.facing===-1?raw.left:raw.right),bk=!!(f.facing===-1?raw.right:raw.left);(s.hist ||= []).push([raw.down?1:0,fw?1:0,bk?1:0]);if(s.hist.length>16)s.hist.shift()}
+ if(raw.special&&!s.previous.special)s.motion=luffyMotion(s.hist)
+ if(raw.heavy&&!s.previous.heavy)s.hmotion=luffyMotion(s.hist)   // variety L8: motion read latched at the Heavy press (↓↙←+Heavy throw)
  // Input edges observe the raw controls every tick, even through stun/hitstop.
  for(const k of ['light','heavy','special','ultimate','upAttack']) {
   s.edges[k]=!!raw[k]&&!s.previous[k];s.previous[k]=!!raw[k]
@@ -49,6 +53,10 @@ export function tickLuffy(f,opp,raw={}) {
  }
  // A valid fresh retap may wait for the defined late recovery; its acceptance window is not extended.
 }
+// ↓↘→ = forward-without-down in the last 4 ticks after down-without-forward within 15 (↘ optional); ↓↙← mirrors it.
+export function luffyMotion(h){if(!h?.length)return null;const n=h.length
+ const read=c=>{let j=-1;for(let i=n-1;i>=Math.max(0,n-4);i--)if(h[i][c]&&!h[i][0]){j=i;break}if(j<0)return false;for(let i=j-1;i>=Math.max(0,n-15);i--)if(h[i][0]&&!h[i][c])return true;return false}
+ return read(1)?'qcf':read(2)?'qcb':null}
 export function luffyRegen(f) {
  if(!isLuffy(f))return false
  const s=luffyState(f)
@@ -60,6 +68,7 @@ export function luffyRegen(f) {
 export function luffyHit(attacker,defender,atk,{blocked=false,armored=false,stageWidth=3200}={}) {
  if(!isLuffy(attacker)||!atk?.lf||blocked||armored||!(defender.health>0))return
  const s=luffyState(attacker)
+ if(atk.lf.knockdown&&defender.health>0){defender.knockdownState=true;defender.knockdownTimer=Math.max(defender.knockdownTimer||0,44);defender.vy=Math.min(defender.vy||0,-6)}   // Muchi: same knockdown contract as S.P.D. Red
  atk.lfConfirmed=true;attacker._cmdHitLanded=true
  if(atk.lf.normal&&!atk.lfRewarded){
   atk.lfRewarded=true;attacker.energy=Math.min(attacker.maxEnergy,attacker.energy+3)
@@ -93,6 +102,7 @@ export function prepareLuffyAttack(f,opp) {
   a.lf={kind:'finaleMiss',noHit:true};a.name='lfFinaleMiss';f.currentMove='lfFinaleMiss'
   a.timer=60;a.total=60;a.activeStart=0;a.activeEnd=0;a.hasHit=true;return
  }
+ if(lf.kind==='hop'){a.hasHit=true;f.vx=0;if(t>=a.activeStart&&t<=a.activeEnd)f.x=Math.max(0,f.x+(f.facing||1)*lf.advance);return}   // ≈90px straight back; stage bounds re-clamp in physics
  if(lf.noHit){a.hasHit=true;return}
  if(lf.advance&&t<a.activeStart)f.vx=(f.facing||1)*lf.advance
  if(lf.kind==='anchor') {

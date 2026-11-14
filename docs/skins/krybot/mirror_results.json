@@ -1,0 +1,20 @@
+{
+  "readabilityStages": [
+    "World Tournament Arena",
+    "Null Void"
+  ],
+  "skins": [
+    "default",
+    "krybot_tv",
+    "krybot_super_legends_ds",
+    "krybot_super_legends_ds_red"
+  ],
+  "simultaneousHelpers": [
+    "krybot/skins/tv/kBlaster.png",
+    "krybot/skins/ds_red/kBlaster.png"
+  ],
+  "cinematicsBothOwners": true,
+  "missingSkinFallback": true,
+  "noNewResourcesDuring50Draws": true,
+  "errors": []
+}

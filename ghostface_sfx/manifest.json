@@ -1,0 +1,982 @@
+{
+  "source": "MK1 Ghostface Voice Lines & SFX",
+  "note": "May contain background music. Agent must analyze waveforms.",
+  "folders": {
+    "voice_lines_a": [
+      {
+        "file": "voice_lines_a/voice_lines_a_001.ogg",
+        "size_kb": 21
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_002.ogg",
+        "size_kb": 38
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_003.ogg",
+        "size_kb": 50
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_004.ogg",
+        "size_kb": 59
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_005.ogg",
+        "size_kb": 50
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_006.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_007.ogg",
+        "size_kb": 47
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_008.ogg",
+        "size_kb": 51
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_009.ogg",
+        "size_kb": 33
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_010.ogg",
+        "size_kb": 50
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_011.ogg",
+        "size_kb": 52
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_012.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_013.ogg",
+        "size_kb": 32
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_014.ogg",
+        "size_kb": 56
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_015.ogg",
+        "size_kb": 45
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_016.ogg",
+        "size_kb": 33
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_017.ogg",
+        "size_kb": 35
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_018.ogg",
+        "size_kb": 44
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_019.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_020.ogg",
+        "size_kb": 41
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_021.ogg",
+        "size_kb": 26
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_022.ogg",
+        "size_kb": 22
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_023.ogg",
+        "size_kb": 49
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_024.ogg",
+        "size_kb": 18
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_025.ogg",
+        "size_kb": 40
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_026.ogg",
+        "size_kb": 46
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_027.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_028.ogg",
+        "size_kb": 38
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_029.ogg",
+        "size_kb": 56
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_030.ogg",
+        "size_kb": 20
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_031.ogg",
+        "size_kb": 42
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_032.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_033.ogg",
+        "size_kb": 43
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_034.ogg",
+        "size_kb": 50
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_035.ogg",
+        "size_kb": 45
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_036.ogg",
+        "size_kb": 43
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_037.ogg",
+        "size_kb": 33
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_038.ogg",
+        "size_kb": 32
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_039.ogg",
+        "size_kb": 37
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_040.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_041.ogg",
+        "size_kb": 56
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_042.ogg",
+        "size_kb": 61
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_043.ogg",
+        "size_kb": 48
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_044.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_045.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_046.ogg",
+        "size_kb": 95
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_047.ogg",
+        "size_kb": 60
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_048.ogg",
+        "size_kb": 53
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_049.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_050.ogg",
+        "size_kb": 59
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_051.ogg",
+        "size_kb": 84
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_052.ogg",
+        "size_kb": 65
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_053.ogg",
+        "size_kb": 61
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_054.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_055.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_056.ogg",
+        "size_kb": 78
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_057.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_058.ogg",
+        "size_kb": 94
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_059.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_060.ogg",
+        "size_kb": 33
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_061.ogg",
+        "size_kb": 27
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_062.ogg",
+        "size_kb": 60
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_063.ogg",
+        "size_kb": 83
+      },
+      {
+        "file": "voice_lines_a/voice_lines_a_064.ogg",
+        "size_kb": 59
+      }
+    ],
+    "voice_lines_b": [
+      {
+        "file": "voice_lines_b/voice_lines_b_001.ogg",
+        "size_kb": 39
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_002.ogg",
+        "size_kb": 77
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_003.ogg",
+        "size_kb": 65
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_004.ogg",
+        "size_kb": 75
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_005.ogg",
+        "size_kb": 70
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_006.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_007.ogg",
+        "size_kb": 80
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_008.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_009.ogg",
+        "size_kb": 86
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_010.ogg",
+        "size_kb": 37
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_011.ogg",
+        "size_kb": 38
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_012.ogg",
+        "size_kb": 68
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_013.ogg",
+        "size_kb": 81
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_014.ogg",
+        "size_kb": 61
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_015.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_016.ogg",
+        "size_kb": 68
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_017.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_018.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_019.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_020.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_021.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_022.ogg",
+        "size_kb": 78
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_023.ogg",
+        "size_kb": 76
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_024.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_025.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_026.ogg",
+        "size_kb": 32
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_027.ogg",
+        "size_kb": 35
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_028.ogg",
+        "size_kb": 57
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_029.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_030.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_031.ogg",
+        "size_kb": 48
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_032.ogg",
+        "size_kb": 74
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_033.ogg",
+        "size_kb": 56
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_034.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_035.ogg",
+        "size_kb": 72
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_036.ogg",
+        "size_kb": 57
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_037.ogg",
+        "size_kb": 81
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_038.ogg",
+        "size_kb": 61
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_039.ogg",
+        "size_kb": 70
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_040.ogg",
+        "size_kb": 70
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_041.ogg",
+        "size_kb": 82
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_042.ogg",
+        "size_kb": 68
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_043.ogg",
+        "size_kb": 42
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_044.ogg",
+        "size_kb": 42
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_045.ogg",
+        "size_kb": 25
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_046.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_047.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_048.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_049.ogg",
+        "size_kb": 73
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_050.ogg",
+        "size_kb": 68
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_051.ogg",
+        "size_kb": 57
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_052.ogg",
+        "size_kb": 59
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_053.ogg",
+        "size_kb": 67
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_054.ogg",
+        "size_kb": 89
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_055.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_056.ogg",
+        "size_kb": 85
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_057.ogg",
+        "size_kb": 96
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_058.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_059.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_060.ogg",
+        "size_kb": 78
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_061.ogg",
+        "size_kb": 88
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_062.ogg",
+        "size_kb": 15
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_063.ogg",
+        "size_kb": 45
+      },
+      {
+        "file": "voice_lines_b/voice_lines_b_064.ogg",
+        "size_kb": 69
+      }
+    ],
+    "voice_lines_c": [
+      {
+        "file": "voice_lines_c/voice_lines_c_001.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_002.ogg",
+        "size_kb": 27
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_003.ogg",
+        "size_kb": 40
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_004.ogg",
+        "size_kb": 76
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_005.ogg",
+        "size_kb": 65
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_006.ogg",
+        "size_kb": 55
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_007.ogg",
+        "size_kb": 49
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_008.ogg",
+        "size_kb": 84
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_009.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_010.ogg",
+        "size_kb": 62
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_011.ogg",
+        "size_kb": 52
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_012.ogg",
+        "size_kb": 46
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_013.ogg",
+        "size_kb": 49
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_014.ogg",
+        "size_kb": 82
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_015.ogg",
+        "size_kb": 88
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_016.ogg",
+        "size_kb": 73
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_017.ogg",
+        "size_kb": 52
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_018.ogg",
+        "size_kb": 71
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_019.ogg",
+        "size_kb": 91
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_020.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_021.ogg",
+        "size_kb": 50
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_022.ogg",
+        "size_kb": 65
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_023.ogg",
+        "size_kb": 85
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_024.ogg",
+        "size_kb": 65
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_025.ogg",
+        "size_kb": 16
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_026.ogg",
+        "size_kb": 23
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_027.ogg",
+        "size_kb": 20
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_028.ogg",
+        "size_kb": 76
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_029.ogg",
+        "size_kb": 66
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_030.ogg",
+        "size_kb": 100
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_031.ogg",
+        "size_kb": 43
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_032.ogg",
+        "size_kb": 48
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_033.ogg",
+        "size_kb": 67
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_034.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_035.ogg",
+        "size_kb": 89
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_036.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_037.ogg",
+        "size_kb": 70
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_038.ogg",
+        "size_kb": 96
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_039.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_040.ogg",
+        "size_kb": 37
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_041.ogg",
+        "size_kb": 76
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_042.ogg",
+        "size_kb": 21
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_043.ogg",
+        "size_kb": 41
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_044.ogg",
+        "size_kb": 76
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_045.ogg",
+        "size_kb": 68
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_046.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_047.ogg",
+        "size_kb": 83
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_048.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_049.ogg",
+        "size_kb": 69
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_050.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_051.ogg",
+        "size_kb": 62
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_052.ogg",
+        "size_kb": 16
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_053.ogg",
+        "size_kb": 40
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_054.ogg",
+        "size_kb": 113
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_055.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "voice_lines_c/voice_lines_c_056.ogg",
+        "size_kb": 58
+      }
+    ],
+    "sfx_short": [
+      {
+        "file": "sfx_short/sfx_short_001.ogg",
+        "size_kb": 58
+      },
+      {
+        "file": "sfx_short/sfx_short_002.ogg",
+        "size_kb": 310
+      },
+      {
+        "file": "sfx_short/sfx_short_003.ogg",
+        "size_kb": 302
+      },
+      {
+        "file": "sfx_short/sfx_short_004.ogg",
+        "size_kb": 158
+      },
+      {
+        "file": "sfx_short/sfx_short_005.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "sfx_short/sfx_short_006.ogg",
+        "size_kb": 26
+      },
+      {
+        "file": "sfx_short/sfx_short_007.ogg",
+        "size_kb": 62
+      },
+      {
+        "file": "sfx_short/sfx_short_008.ogg",
+        "size_kb": 120
+      },
+      {
+        "file": "sfx_short/sfx_short_009.ogg",
+        "size_kb": 134
+      },
+      {
+        "file": "sfx_short/sfx_short_010.ogg",
+        "size_kb": 279
+      },
+      {
+        "file": "sfx_short/sfx_short_011.ogg",
+        "size_kb": 63
+      },
+      {
+        "file": "sfx_short/sfx_short_012.ogg",
+        "size_kb": 11
+      },
+      {
+        "file": "sfx_short/sfx_short_013.ogg",
+        "size_kb": 145
+      },
+      {
+        "file": "sfx_short/sfx_short_014.ogg",
+        "size_kb": 155
+      },
+      {
+        "file": "sfx_short/sfx_short_015.ogg",
+        "size_kb": 181
+      },
+      {
+        "file": "sfx_short/sfx_short_016.ogg",
+        "size_kb": 8
+      },
+      {
+        "file": "sfx_short/sfx_short_017.ogg",
+        "size_kb": 103
+      },
+      {
+        "file": "sfx_short/sfx_short_018.ogg",
+        "size_kb": 56
+      },
+      {
+        "file": "sfx_short/sfx_short_019.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "sfx_short/sfx_short_020.ogg",
+        "size_kb": 114
+      },
+      {
+        "file": "sfx_short/sfx_short_021.ogg",
+        "size_kb": 206
+      },
+      {
+        "file": "sfx_short/sfx_short_022.ogg",
+        "size_kb": 206
+      },
+      {
+        "file": "sfx_short/sfx_short_023.ogg",
+        "size_kb": 22
+      },
+      {
+        "file": "sfx_short/sfx_short_024.ogg",
+        "size_kb": 74
+      },
+      {
+        "file": "sfx_short/sfx_short_025.ogg",
+        "size_kb": 33
+      },
+      {
+        "file": "sfx_short/sfx_short_026.ogg",
+        "size_kb": 64
+      },
+      {
+        "file": "sfx_short/sfx_short_027.ogg",
+        "size_kb": 44
+      },
+      {
+        "file": "sfx_short/sfx_short_028.ogg",
+        "size_kb": 57
+      },
+      {
+        "file": "sfx_short/sfx_short_029.ogg",
+        "size_kb": 48
+      },
+      {
+        "file": "sfx_short/sfx_short_030.ogg",
+        "size_kb": 177
+      },
+      {
+        "file": "sfx_short/sfx_short_031.ogg",
+        "size_kb": 179
+      },
+      {
+        "file": "sfx_short/sfx_short_032.ogg",
+        "size_kb": 37
+      },
+      {
+        "file": "sfx_short/sfx_short_033.ogg",
+        "size_kb": 61
+      },
+      {
+        "file": "sfx_short/sfx_short_034.ogg",
+        "size_kb": 67
+      },
+      {
+        "file": "sfx_short/sfx_short_035.ogg",
+        "size_kb": 177
+      },
+      {
+        "file": "sfx_short/sfx_short_036.ogg",
+        "size_kb": 246
+      },
+      {
+        "file": "sfx_short/sfx_short_037.ogg",
+        "size_kb": 14
+      },
+      {
+        "file": "sfx_short/sfx_short_038.ogg",
+        "size_kb": 25
+      },
+      {
+        "file": "sfx_short/sfx_short_039.ogg",
+        "size_kb": 212
+      },
+      {
+        "file": "sfx_short/sfx_short_040.ogg",
+        "size_kb": 31
+      },
+      {
+        "file": "sfx_short/sfx_short_041.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "sfx_short/sfx_short_042.ogg",
+        "size_kb": 91
+      },
+      {
+        "file": "sfx_short/sfx_short_043.ogg",
+        "size_kb": 575
+      },
+      {
+        "file": "sfx_short/sfx_short_044.ogg",
+        "size_kb": 51
+      },
+      {
+        "file": "sfx_short/sfx_short_045.ogg",
+        "size_kb": 59
+      },
+      {
+        "file": "sfx_short/sfx_short_046.ogg",
+        "size_kb": 635
+      },
+      {
+        "file": "sfx_short/sfx_short_047.ogg",
+        "size_kb": 36
+      },
+      {
+        "file": "sfx_short/sfx_short_048.ogg",
+        "size_kb": 41
+      },
+      {
+        "file": "sfx_short/sfx_short_049.ogg",
+        "size_kb": 101
+      },
+      {
+        "file": "sfx_short/sfx_short_050.ogg",
+        "size_kb": 46
+      },
+      {
+        "file": "sfx_short/sfx_short_051.ogg",
+        "size_kb": 46
+      },
+      {
+        "file": "sfx_short/sfx_short_052.ogg",
+        "size_kb": 136
+      },
+      {
+        "file": "sfx_short/sfx_short_053.ogg",
+        "size_kb": 47
+      },
+      {
+        "file": "sfx_short/sfx_short_054.ogg",
+        "size_kb": 30
+      },
+      {
+        "file": "sfx_short/sfx_short_055.ogg",
+        "size_kb": 18
+      },
+      {
+        "file": "sfx_short/sfx_short_056.ogg",
+        "size_kb": 190
+      },
+      {
+        "file": "sfx_short/sfx_short_057.ogg",
+        "size_kb": 41
+      },
+      {
+        "file": "sfx_short/sfx_short_058.ogg",
+        "size_kb": 55
+      }
+    ]
+  }
+}

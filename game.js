@@ -1,8 +1,35 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { updateKrybotCommandCombat } from './krybot.js'
+import { updateSpdBlueCommandCombat } from './spdBlue.js'
+import { tickSpdBlue,isSpdBlue,clearSpdBlue,spdBlueLocked,spdBlueCanStep,spdBlueStepSpent } from './spdBlueState.js'
+import { tickGroundTeleport,groundTeleportProfile } from './groundTeleport.js'
+import { drawSpdBlueFx,playSpdBlueCues } from './spdBlueFx.js'
+import { spdBlueHarnessApi } from './spdBlueHarness.js'
+import { updateSpdGreenCommandCombat } from './spdGreen.js'   // S.P.D. Green Ranger (Bridge Carson) — spd_green-gated
+import { tickSpdGreen,isSpdGreen,clearSpdGreen,spdGreenLocked } from './spdGreenState.js'
+import { drawSpdGreenFx,playSpdGreenCues } from './spdGreenFx.js'
+import { spdGreenHarnessApi } from './spdGreenHarness.js'
+import { updateSpdPinkCommandCombat } from './spdPink.js'   // S.P.D. Pink Ranger (Syd Drew) — spd_pink-gated
+import { tickSpdPink,isSpdPink,clearSpdPink,spdPinkLocked } from './spdPinkState.js'
+import { drawSpdPinkFx,playSpdPinkCues } from './spdPinkFx.js'
+import { spdPinkHarnessApi } from './spdPinkHarness.js'
 import { updateMmprBlackCommandCombat } from './mmprBlack.js'   // Black Ranger (Adam Park, MMPR) — mmpr_black-gated command layer
 import { tickMmprBlack, isMmprBlack, clearMmprBlack, mmprBlackLocked, isMmprBlackUltActive, updateMmprBlackUlt, clearMmprBlackUlt } from './mmprBlackState.js'
 import { drawMmprBlackFx, playMmprBlackCues } from './mmprBlackFx.js'
 import { mmprBlackHarnessApi } from './mmprBlackHarness.js'
+import { updateMmprWhiteCommandCombat } from './mmprWhite.js'   // White Ranger (Tommy Oliver, MMPR) — mmpr_white-gated command layer
+import { tickMmprWhite, isMmprWhite, clearMmprWhite, mmprWhiteLocked, isMmprWhiteUltActive, updateMmprWhiteUlt, clearMmprWhiteUlt } from './mmprWhiteState.js'
+import { drawMmprWhiteFx, playMmprWhiteCues } from './mmprWhiteFx.js'
+import { mmprWhiteHarnessApi } from './mmprWhiteHarness.js'
+import { updateMmprPinkCommandCombat } from './mmprPink.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmpr_pink-gated command layer
+import { tickMmprPink, isMmprPink, clearMmprPink, mmprPinkLocked, isMmprPinkUltActive, updateMmprPinkUlt, clearMmprPinkUlt } from './mmprPinkState.js'
+import { drawMmprPinkFx, playMmprPinkCues } from './mmprPinkFx.js'
+import { mmprPinkHarnessApi } from './mmprPinkHarness.js'
+import { drawBarrierRing } from './barrierRingFx.js'
+import { tickKrybot, isKrybot, clearKrybot, krybotRoundReset, krybotLocked } from './krybotState.js'
+import { drawKrybotFx } from './krybotFx.js'
+import { krybotHarnessApi } from './krybotHarness.js'
+import { playKrybotCues } from './krybotAudio.js'
 import { tickLuffy, luffyState, isLuffy, clearLuffy } from './luffyState.js'
 import { tickZoro, isZoro, clearZoro, zoroState, zoroRoundReset, zoroQueueTeleport } from './zoroState.js'   // Roronoa Zoro (zoro-gated)
 import { zoroHarnessApi } from './zoroHarness.js'   // Roronoa Zoro test API (window.__harness.zoroTest)
@@ -37,9 +64,16 @@ const SPD_RED_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => glo
 const ARLONG_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Arlong world accessors (sim reads stage width / frame / the damage choke-point)
 const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
+const KRYBOT_WORLD = { projectiles: activeProjectiles, spawn: (f,t,d) => spawnProjectile(f,t,d),
+  stageWidth: () => getStageWorldWidth(), fighters: () => gameState === GAME_STATES.FFA_BATTLE ? ffaState.fighters : [p1,p2],
+  active: attackIsActive, hitbox: getAttackHitbox }
+const SPD_BLUE_WORLD = { ...KRYBOT_WORLD, solids: () => getPlatforms().filter(p=>p.height>0).map(p=>({x:p.x,y:p.topY,w:p.w,h:p.height})),
+  cinematic: f => !!(f._cinematic || f._ultHeld || f._ranger?.sealed) }
 // Black Ranger world (self-contained: built only from SPD_RED_WORLD + engine functions). Falconzord sorties read fighters / spawn / damage.
 const MMPR_BLACK_WORLD = { ...SPD_RED_WORLD, projectiles: activeProjectiles, projectileRects: SPD_RED_WORLD.projectiles, spawn: (f, t, d) => spawnProjectile(f, t, d),
   fighters: () => gameState === GAME_STATES.FFA_BATTLE ? ffaState.fighters : [p1, p2] }
+const MMPR_WHITE_WORLD = MMPR_BLACK_WORLD   // White Ranger: the same self-contained world (Ninja Megazord orders read fighters / damage)
+const MMPR_PINK_WORLD = MMPR_BLACK_WORLD   // Pink Ranger: the same self-contained world (Thunder Megazord strikes + arrows read fighters / spawn / damage)
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -1300,7 +1334,7 @@ function _rewindUnsafeNow() {
   if (activeDomains.length > 0) return true
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
-  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
+  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
 }
 
 function _rewindFighterSnap(f) {
@@ -1363,10 +1397,17 @@ function _rewindTeardown() {
   clearSasukeCinematic(); clearSSJRoseCinematic(); clearFormActivationCinematic()
   clearGokuBlackSwordCinematic(); clearRedRangerPowerSwordCinematic(); clearSamuraiFlameSmasherCinematic()
   clearMmprBlackUlt()   // Black Ranger Falcon Formation (freeze contract)
+  clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
+  clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
+  for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
+  for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
@@ -4047,9 +4088,21 @@ function updateFFAAIInputs(live) {
 function updateFFACombat(fighter, others, opts) {
   const nearest = ffaNearest(fighter, others)
   if (!nearest) return
+  tickSpdBlue(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdBlueCues(fighter)
+  tickSpdGreen(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdGreenCues(fighter)
+  tickSpdPink(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdPinkCues(fighter)
   tickMmprBlack(fighter,nearest,readRawControls(fighter)||{},MMPR_BLACK_WORLD)
   playMmprBlackCues(fighter)
+  tickMmprWhite(fighter,nearest,readRawControls(fighter)||{},MMPR_WHITE_WORLD)
+  playMmprWhiteCues(fighter)
+  tickMmprPink(fighter,nearest,readRawControls(fighter)||{},MMPR_PINK_WORLD)
+  playMmprPinkCues(fighter)
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
+  tickKrybot(fighter, nearest, readRawControls(fighter) || {}, KRYBOT_WORLD)
+  playKrybotCues(fighter)
   tickZoro(fighter, nearest, readRawControls(fighter) || {}, ZORO_WORLD)
   tickBuggy(fighter, nearest, readRawControls(fighter) || {}, BUGGY_WORLD)
   tickArlong(fighter, nearest, readRawControls(fighter) || {}, ARLONG_WORLD)
@@ -4066,7 +4119,16 @@ function updateFFACombat(fighter, others, opts) {
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   let ctrlState  = buildNormalControlState(fighter, vKeys)
+  if (isSpdBlue(fighter)) { const bc=updateSpdBlueCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=bc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isSpdGreen(fighter)) { const gc=updateSpdGreenCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=gc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isSpdPink(fighter)) { const pc=updateSpdPinkCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=pc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprBlack(fighter)) { const mc=updateMmprBlackCommandCombat(fighter,inputState,nearest,MMPR_BLACK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isMmprWhite(fighter)) { const mc=updateMmprWhiteCommandCombat(fighter,inputState,nearest,MMPR_WHITE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isMmprPink(fighter)) { const mc=updateMmprPinkCommandCombat(fighter,inputState,nearest,MMPR_PINK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isKrybot(fighter)) {
+    const kc = updateKrybotCommandCombat(fighter, inputState, nearest, KRYBOT_WORLD)
+    ctrlState = kc === 'grab' ? { grab: !!inputState.grab } : {}
+  }
   if (isLuffy(fighter)) {
     const consumed = updateLuffyCommandCombat(fighter, inputState, nearest, {special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     ctrlState = consumed ? {} : { grab: !!inputState.grab }
@@ -4970,6 +5032,8 @@ function resetRound() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
+  clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
@@ -4977,7 +5041,12 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
+  for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
+  for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -5698,7 +5767,14 @@ function _replaySnap(f) {
   if (isArlong(f)) snap.push(JSON.stringify(f._arlong || null), JSON.stringify(f.currentAttack || null))
   if (isSpdRed(f) || f._ranger) snap.push(JSON.stringify(f._spdRed || null), JSON.stringify(f._ranger || null), JSON.stringify(f.currentAttack || null))   // S.P.D. Red + Ranger framework GAME_STATE
   if (isSanji(f)) snap.push(JSON.stringify(f._sanji || null), JSON.stringify(f.currentAttack || null))
+  if (isKrybot(f)) snap.push(JSON.stringify(f._krybot || null), JSON.stringify(f.currentAttack || null))
+  if (groundTeleportProfile(f)) snap.push(JSON.stringify(f._groundTeleport || null))
+  if (isSpdBlue(f)) snap.push(JSON.stringify(f._spdBlue || null),JSON.stringify(f.currentAttack || null))
+  if (isSpdGreen(f)) snap.push(JSON.stringify(f._spdGreen || null),JSON.stringify(f.currentAttack || null))
+  if (isSpdPink(f)) snap.push(JSON.stringify(f._spdPink || null),JSON.stringify(f.currentAttack || null))
   if (isMmprBlack(f) || f._falcon) snap.push(JSON.stringify(f._mmprBlack || null),JSON.stringify(f._falcon || null),JSON.stringify(f.currentAttack || null))   // Black Ranger + Falconzord sortie GAME_STATE
+  if (isMmprWhite(f)) snap.push(JSON.stringify(f._mmprWhite || null))   // White Ranger disciplines / token / Formation GAME_STATE (Ninja Megazord order: the _falcon line above)
+  if (isMmprPink(f)) snap.push(JSON.stringify(f._mmprPink || null))   // Pink Ranger GAME_STATE (bow draw, Spotter Link, call location, Thread); _falcon/currentAttack pushed above
   return snap
 }
 
@@ -5975,7 +6051,12 @@ function drawSkinSelectScreen() {
     // so the portrait shows through until hovered.
     drawSelectCardFrame(ctx, r, { accent, hover: a.hover, confirm: a.confirm, locked: !unlocked, cut: 12, baseFill: "rgba(0,0,0,0)" })
     ctx.textAlign = "center"; ctx.fillStyle = "#e6edf7"; ctx.font = "700 16px Arial"
-    ctx.fillText(skin.name, cx, r.y + r.h - 22)
+    if (ctx.measureText(skin.name).width <= r.w - 8) ctx.fillText(skin.name, cx, r.y + r.h - 22)
+    else {   // long names (e.g. "… — Inspired" crossover skins on a 20+ card grid): two lines split at " — ", shrunk to the card width
+      const k = skin.name.lastIndexOf(" — "), lines = k > 0 ? [skin.name.slice(0, k), skin.name.slice(k + 1)] : [skin.name]
+      let px = 16; while (px > 8 && lines.some(l => (ctx.font = `700 ${px}px Arial`, ctx.measureText(l).width > r.w - 8))) px--
+      ctx.font = `700 ${px}px Arial`; lines.forEach((l, i) => ctx.fillText(l, cx, r.y + r.h - 22 - (lines.length - 1 - i) * (px + 2)))
+    }
     if (!unlocked) {
       ctx.save(); _bevelPath(ctx, r.x, r.y, r.w, r.h, 12); ctx.clip()
       ctx.fillStyle = "rgba(8,12,24,0.66)"; ctx.fillRect(r.x, r.y, r.w, r.h)
@@ -6021,6 +6102,8 @@ function resetToStart() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
+  clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
@@ -6028,7 +6111,12 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
+  for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
+  for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -9888,7 +9976,11 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
-  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD)
+  clearKrybot(p1, KRYBOT_WORLD); clearKrybot(p2, KRYBOT_WORLD)
+  clearSpdBlue(p1,SPD_BLUE_WORLD);clearSpdBlue(p2,SPD_BLUE_WORLD)
+  clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
+  clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
+  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD)
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
@@ -9915,6 +10007,8 @@ function _doRematch() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
+  clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
@@ -9922,7 +10016,12 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
+  for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
+  for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -10744,6 +10843,7 @@ function drawOmoluDrones(fighter) {
 // attack. Toji & Sukuna also land their quick follow-up strike; Gojo just
 // repositions. Everyone else (and away-taps) gets a normal ground dash.
 function detectDoubleTapDashTeleport(fighter, key) {
+  if (groundTeleportProfile(fighter)) return // opt-in sim press/release edges own this input
   if (!fighter || fighter.hitstun > 0 || fighter.blockstun > 0) return
   const now = performance.now()
   const c   = fighter.controls
@@ -11193,10 +11293,14 @@ function updateTauntState(fighter, downHeld) {
 
 function updateMovementInput(fighter) {
   if (!fighter) return
+  const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
-  if (mmprBlackLocked(fighter, readRawControls(fighter))) {   // Black Ranger: committed moves / landing / blink / Up grace / Falcon Formation
+  if (isKrybot(fighter) && fighter.attacking) inputState.block = false
+  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
-    physics.moveFighter(fighter, {}, fighter.controls)   // no steering/jump/guard; shared physics still integrates velocity
+    // No steering/jump/guard during committed attacks. Shared physics still
+    // integrates velocity and bounds; the character timeline owns that velocity.
+    physics.moveFighter(fighter, {}, fighter.controls)
     return
   }
 
@@ -11425,8 +11529,20 @@ function updatePlayerCombat(fighter) {
 }
 function _updatePlayerCombatBody(fighter) {
   if (!fighter) return
+  tickSpdBlue(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdBlueCues(fighter)
+  tickSpdGreen(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdGreenCues(fighter)
+  tickSpdPink(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  playSpdPinkCues(fighter)
   tickMmprBlack(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_BLACK_WORLD)
   playMmprBlackCues(fighter)
+  tickMmprWhite(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_WHITE_WORLD)
+  playMmprWhiteCues(fighter)
+  tickMmprPink(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_PINK_WORLD)
+  playMmprPinkCues(fighter)
+  tickKrybot(fighter, getOpponent(fighter), readRawControls(fighter) || {}, KRYBOT_WORLD)
+  playKrybotCues(fighter)
   tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})
   tickZoro(fighter, getOpponent(fighter), readRawControls(fighter) || {}, ZORO_WORLD)
   tickBuggy(fighter, getOpponent(fighter), readRawControls(fighter) || {}, BUGGY_WORLD)
@@ -11608,8 +11724,32 @@ function _updatePlayerCombatBody(fighter) {
     const zc = updateZoroCommandCombat(fighter, inputState, getOpponent(fighter), {world:ZORO_WORLD,special:()=>triggerSpecial(fighter,getAbilityContext()),ultimate:()=>triggerUltimate(fighter,getAbilityContext())})
     if (zc) { updateCombat(fighter, getOpponent(fighter), zc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
+  if (isKrybot(fighter)) {
+    const kc = updateKrybotCommandCombat(fighter, inputState, getOpponent(fighter), KRYBOT_WORLD)
+    updateCombat(fighter, getOpponent(fighter), kc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return
+  }
+  if (isSpdBlue(fighter)) {
+    const bc=updateSpdBlueCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),bc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isSpdGreen(fighter)) {
+    const gc=updateSpdGreenCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),gc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isSpdPink(fighter)) {
+    const pc=updateSpdPinkCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),pc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
   if (isMmprBlack(fighter)) {   // Black Ranger command layer: 'consumed' | 'grab'
     const mc=updateMmprBlackCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_BLACK_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isMmprWhite(fighter)) {   // White Ranger command layer: 'consumed' | 'grab'
+    const mc=updateMmprWhiteCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_WHITE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isMmprPink(fighter)) {   // Pink Ranger command layer: 'consumed' | 'grab'
+    const mc=updateMmprPinkCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_PINK_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isBuggy(fighter)) {   // Buggy the Clown command layer: 'consumed' | 'grab' | false
@@ -19857,7 +19997,13 @@ function resetTraining() {
     clearBuggy(f)
     clearArlong(f)
     clearSanji(f)
+    clearKrybot(f, KRYBOT_WORLD)
+    clearSpdBlue(f,SPD_BLUE_WORLD)
+    clearSpdGreen(f,SPD_BLUE_WORLD)
+    clearSpdPink(f,SPD_BLUE_WORLD)
     clearMmprBlack(f,MMPR_BLACK_WORLD)
+    clearMmprWhite(f,MMPR_WHITE_WORLD)
+    clearMmprPink(f,MMPR_PINK_WORLD)
     clearSpdRed(f)
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
@@ -19993,7 +20139,10 @@ function checkRoundEnd() {
   // combat audio can't bleed past the fight. Fires BEFORE the round-end / win barks below (which start
   // AFTER this), and win-lines are marked persistent, so intentional post-match audio is preserved.
   const _roundOver = roundTimer <= 0 || p1.health <= 0 || p2.health <= 0
-  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD) }
+  if (_roundOver) { clearKrybot(p1, KRYBOT_WORLD); clearKrybot(p2, KRYBOT_WORLD);clearSpdBlue(p1,SPD_BLUE_WORLD);clearSpdBlue(p2,SPD_BLUE_WORLD) }
+  if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
+  if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
+  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
@@ -20350,7 +20499,15 @@ function updateBattle() {
 
   updateDebugInputToggles()
   updateTrainingMode()
-  for (const f of [p1, p2]) if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()   // Black Ranger: replay/LAN-driven input skips the local pad
+  for (const f of [p1, p2]) {
+    if (isKrybot(f)) f._krybotRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isSpdBlue(f)) f._spdBlueRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isSpdGreen(f)) f._spdGreenRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isSpdPink(f)) f._spdPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isMmprWhite(f)) f._mmprWhiteRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isMmprPink(f)) f._mmprPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
+  }
   academyTick()        // CHARACTER ACADEMY drill timing + READ-ONLY success detection (no-op unless academySession)
   updateCPUInput()
   updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
@@ -20496,6 +20653,18 @@ function updateBattle() {
   // sequence's authored contacts land through applyScaledDamage, then combat resumes (mmprBlackState.js).
   if (isMmprBlackUltActive()) {
     updateMmprBlackUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // WHITE RANGER "WHITE LIGHT — NINJA GRAND FORMATION": the same freeze contract (mmprWhiteState.js).
+  if (isMmprWhiteUltActive()) {
+    updateMmprWhiteUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // PINK RANGER "THUNDERSTRING: HEAVEN'S FINAL ARROW": the same freeze contract (mmprPinkState.js).
+  if (isMmprPinkUltActive()) {
+    updateMmprPinkUlt()
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -21174,7 +21343,13 @@ function renderHybridFighter(fighter) {
     drawKakashiAnbuFx(c, fighter)           // Kakashi (ANBU) — Sharingan red eye-glint + afterimage aura + Raikiri crackle (code-drawn, no eye art on sheet; kakashi_anbu only)
     drawKakashiWarFx(c, fighter)            // Kakashi (Kamui) — Kawarimi substitution log + smoke + Strong-Down ground-dog (code-drawn/sprite blits; kakashi_war only)
     drawShizukuFx(c, fighter)               // Shizuku — belly pips + "...I forgot." / "DISARMED" pops + suction/impact FX puffs + gulp tint (code-draw + sheet-FX blit; shizuku, DISARMED runs on the victim)
+    drawKrybotFx(c, fighter, getStageWorldWidth())
+    drawSpdBlueFx(c, fighter)
+    drawMmprPinkFx(c, fighter, getOpponent(fighter))   // Pink Ranger — Thunder Megazord strike / ultimate scene, Spotter reticle, call location, warnings, Command pips, Thread flash, blink ghost (render-only)
     drawMmprBlackFx(c, fighter, getOpponent(fighter))   // Black Ranger — Falconzord sortie / ultimate bird, lane + reticle markers, Sortie pips, Pincer ring, blink ghost (render-only)
+    drawMmprWhiteFx(c, fighter)             // White Ranger — Ninja Megazord order / ultimate Megazord, strike-zone warning, order pips, discipline symbols + Formation token, Leader cue, blink ghost (render-only)
+    drawSpdPinkFx(c, fighter)               // S.P.D. Pink — phase-step streaks, Iron Reserve steel ring/pip, Reprisal ring, muzzle star (render-only; spd_pink only)
+    drawSpdGreenFx(c, fighter)              // S.P.D. Green — phase-step streak ghosts, Aura Read pulse/mark ring, muzzle star (render-only; spd_green only)
     drawBuggyFx(c, fighter, globalFrameCount)   // Buggy the Clown — split flashes, orbiting pieces, cape sweep (render-only; buggy only)
     drawSanjiFx(c, fighter)                 // Sanji — flames, embers, afterimages, cigarette glow, callouts (render-only; sanji only)
     drawSpdRedFx(c, fighter, globalFrameCount)  // S.P.D. Red — impact sparks, bolts, beams, containment card (render-only; spd_red only)
@@ -21516,8 +21691,14 @@ function _drawProgressionBadge() {
 const MIRROR_TINT = "#e2493b"
 function applyMirrorTint(a, b) {
   if (!a || !b) return
-  const mirror = a.rosterKey && a.rosterKey === b.rosterKey
-    && !(a.rosterKey === "mmpr_black" && a.skinId !== b.skinId)   // Black Ranger: two different skins already tell P1/P2 apart — no wash over the chosen palette
+  // Krybot's precomputed palettes also dress its squad; keep both owners' art native.
+  const mirror = a.rosterKey && a.rosterKey === b.rosterKey && a.rosterKey !== "krybot"
+    && !(a.rosterKey === "spd_blue" && a.skinId !== b.skinId)   // S.P.D. Blue: two different appearance skins already tell P1/P2 apart — no wash over the chosen palette
+    && !(a.rosterKey === "mmpr_black" && a.skinId !== b.skinId)   // Black Ranger: same rule
+    && !(a.rosterKey === "mmpr_white" && a.skinId !== b.skinId)   // White Ranger: same rule
+    && !(a.rosterKey === "mmpr_pink" && a.skinId !== b.skinId)   // Pink Ranger: same rule
+    && !(a.rosterKey === "spd_pink" && a.skinId !== b.skinId)   // S.P.D. Pink: same rule as S.P.D. Blue/Green
+    && !(a.rosterKey === "spd_green" && a.skinId !== b.skinId)   // S.P.D. Green: same rule as S.P.D. Blue (different skins already distinguish P1/P2)
   // P1 keeps its native look; P2 gets the red wash only in a mirror match.
   a.tintColor = a.skinTint || null
   b.tintColor = b.skinTint || (mirror ? MIRROR_TINT : null)
@@ -21798,13 +21979,7 @@ function _drawAbsoluteDefenseAura(f) {
   // Subtle ring underlay — keeps a clear "barrier is up" read and doubles as the
   // fallback while the ribcage/aura sheet is still loading (first-ever activation).
   ctx.save()
-  ctx.strokeStyle = "#c4b5fd"
-  ctx.shadowBlur  = 16; ctx.shadowColor = "#8b5cf6"
-  ctx.lineWidth   = 3
-  ctx.globalAlpha = 0.30 + Math.sin(t) * 0.08
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
-  ctx.globalAlpha = 0.14
-  ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2); ctx.stroke()
+  drawBarrierRing(ctx,{cx,cy,r,t})
   ctx.restore()
 
   // Persistent ribcage/aura sheet — the actual Absolute Defense imagery, drawn every
@@ -26834,7 +27009,13 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     // ── FLOATING DAMAGE-NUMBER harness (render-only read window) ──
     dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
+    krybotTest: krybotHarnessApi({ p1: () => p1, p2: () => p2, world: KRYBOT_WORLD, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
+    spdBlueTest: spdBlueHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    spdGreenTest: spdGreenHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    mmprPinkTest: mmprPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_PINK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprBlackTest: mmprBlackHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_BLACK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    mmprWhiteTest: mmprWhiteHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_WHITE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    spdPinkTest: spdPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sanjiTest: sanjiHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     spdRedTest: spdRedHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     arlongTest: arlongHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),

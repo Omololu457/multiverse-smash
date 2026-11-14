@@ -3,11 +3,11 @@
     {
       "label": "J1 -> J2 -> J3",
       "hits": [
-        10,
-        12,
-        15
+        22,
+        26,
+        33
       ],
-      "damage": 37,
+      "damage": 81,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -20,11 +20,11 @@
     {
       "label": "J1 -> J2 -> J3 (mirrored)",
       "hits": [
-        10,
-        12,
-        15
+        22,
+        26,
+        33
       ],
-      "damage": 37,
+      "damage": 81,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -37,11 +37,11 @@
     {
       "label": "J1 -> Heavy -> Deltamax Check",
       "hits": [
-        10,
-        31,
-        19
+        22,
+        67,
+        43
       ],
-      "damage": 60,
+      "damage": 132,
       "energySpent": 11.159999999999968,
       "trueCombo": true,
       "stunAtRetap": [
@@ -54,11 +54,11 @@
     {
       "label": "Forward+Heavy -> Heavy -> Heavy",
       "hits": [
-        14,
-        17,
-        22
+        31,
+        37,
+        48
       ],
-      "damage": 53,
+      "damage": 116,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -70,27 +70,27 @@
     },
     {
       "label": "Launcher -> manual Jump -> Air",
-      "damage": 40,
+      "damage": 86,
       "hits": null,
       "trueCombo": true,
       "comboCounter": 2
     },
     {
       "label": "Aura Read -> Acrobat Step -> marked Heavy follow-up",
-      "hp0": 980,
+      "hp0": 1120,
       "stunAtRecovery": 31,
       "stunAtFollowStart": 30,
       "follows": 1,
-      "followHit": 11,
+      "followHit": 23,
       "followCost": 4.94,
-      "damage": 39,
+      "damage": 85,
       "mark": false,
       "combo": 3,
       "trueCombo": true
     },
     {
       "label": "Phase step (120px) -> Heavy punish",
-      "damage": 31,
+      "damage": 67,
       "energySpent": 6.379999999999939
     }
   ],
@@ -297,14 +297,14 @@
   "moves": {
     "acroUnmarked": {
       "contacts": [
-        "gAcro:20",
-        "gAcro2:28"
+        "gAcro:34",
+        "gAcro2:48"
       ],
-      "applied": 28,
+      "applied": 62,
       "cost": 18
     }
   },
-  "engineDamageScale": 0.588,
+  "engineDamageScale": 0.759,
   "passes": 60,
   "failures": 0,
   "errors": []

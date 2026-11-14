@@ -1,0 +1,1627 @@
+{
+  "source": "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Enemies and Bosses - Krybot.png",
+  "sha256": "f6f58db89dd5c19f62839ab89038c8ec1e8c21052c0468309c576cb609c78c14",
+  "size": [
+    655,
+    680
+  ],
+  "mode": "RGB",
+  "outer_background": [
+    89,
+    115,
+    123
+  ],
+  "cell_background": [
+    148,
+    192,
+    204
+  ],
+  "credit_panel": [
+    540,
+    15,
+    102,
+    119
+  ],
+  "excluded": "WANTED panel, ripper credit, outer separators; no labels used as animation",
+  "frames": [
+    {
+      "name": "idle0",
+      "rect": [
+        8,
+        8,
+        32,
+        56
+      ],
+      "anchor": [
+        16,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 798
+        },
+        {
+          "seed": [
+            16,
+            33
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 223
+        },
+        {
+          "seed": [
+            5,
+            54
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 39
+        }
+      ],
+      "alpha_bbox": [
+        0,
+        1,
+        32,
+        56
+      ],
+      "opaque_pixels": 732
+    },
+    {
+      "name": "idle1",
+      "rect": [
+        48,
+        8,
+        32,
+        56
+      ],
+      "anchor": [
+        16,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 814
+        },
+        {
+          "seed": [
+            15,
+            34
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 226
+        },
+        {
+          "seed": [
+            4,
+            54
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 37
+        },
+        {
+          "seed": [
+            31,
+            54
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2
+        }
+      ],
+      "alpha_bbox": [
+        0,
+        2,
+        32,
+        56
+      ],
+      "opaque_pixels": 713
+    },
+    {
+      "name": "run0",
+      "rect": [
+        8,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1009
+        },
+        {
+          "seed": [
+            32,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1072
+        },
+        {
+          "seed": [
+            21,
+            16
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2
+        },
+        {
+          "seed": [
+            26,
+            33
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            25,
+            34
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        9,
+        0,
+        39,
+        56
+      ],
+      "opaque_pixels": 603
+    },
+    {
+      "name": "run1",
+      "rect": [
+        64,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2028
+        }
+      ],
+      "alpha_bbox": [
+        1,
+        1,
+        44,
+        56
+      ],
+      "opaque_pixels": 660
+    },
+    {
+      "name": "run2",
+      "rect": [
+        120,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2161
+        }
+      ],
+      "alpha_bbox": [
+        8,
+        3,
+        34,
+        56
+      ],
+      "opaque_pixels": 527
+    },
+    {
+      "name": "run3",
+      "rect": [
+        176,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2109
+        }
+      ],
+      "alpha_bbox": [
+        10,
+        4,
+        36,
+        56
+      ],
+      "opaque_pixels": 579
+    },
+    {
+      "name": "run4",
+      "rect": [
+        232,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1017
+        },
+        {
+          "seed": [
+            33,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 979
+        },
+        {
+          "seed": [
+            21,
+            15
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 10
+        },
+        {
+          "seed": [
+            27,
+            33
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2
+        }
+      ],
+      "alpha_bbox": [
+        10,
+        0,
+        40,
+        56
+      ],
+      "opaque_pixels": 680
+    },
+    {
+      "name": "run5",
+      "rect": [
+        288,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1634
+        },
+        {
+          "seed": [
+            25,
+            33
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 377
+        }
+      ],
+      "alpha_bbox": [
+        2,
+        2,
+        47,
+        56
+      ],
+      "opaque_pixels": 677
+    },
+    {
+      "name": "run6",
+      "rect": [
+        344,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2129
+        }
+      ],
+      "alpha_bbox": [
+        12,
+        1,
+        35,
+        56
+      ],
+      "opaque_pixels": 559
+    },
+    {
+      "name": "run7",
+      "rect": [
+        400,
+        72,
+        48,
+        56
+      ],
+      "anchor": [
+        24,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2092
+        }
+      ],
+      "alpha_bbox": [
+        13,
+        3,
+        37,
+        56
+      ],
+      "opaque_pixels": 596
+    },
+    {
+      "name": "tumble0",
+      "rect": [
+        8,
+        136,
+        32,
+        32
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 614
+        }
+      ],
+      "alpha_bbox": [
+        2,
+        3,
+        30,
+        28
+      ],
+      "opaque_pixels": 410
+    },
+    {
+      "name": "tumble1",
+      "rect": [
+        52,
+        136,
+        32,
+        32
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 614
+        }
+      ],
+      "alpha_bbox": [
+        2,
+        3,
+        30,
+        28
+      ],
+      "opaque_pixels": 410
+    },
+    {
+      "name": "tumble2",
+      "rect": [
+        92,
+        136,
+        32,
+        32
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 614
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        2,
+        28,
+        30
+      ],
+      "opaque_pixels": 410
+    },
+    {
+      "name": "tumble3",
+      "rect": [
+        140,
+        136,
+        32,
+        32
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 614
+        }
+      ],
+      "alpha_bbox": [
+        4,
+        2,
+        29,
+        30
+      ],
+      "opaque_pixels": 410
+    },
+    {
+      "name": "jump",
+      "rect": [
+        8,
+        176,
+        40,
+        64
+      ],
+      "anchor": [
+        16,
+        64
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1949
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        3,
+        38,
+        61
+      ],
+      "opaque_pixels": 611
+    },
+    {
+      "name": "punchWind",
+      "rect": [
+        8,
+        248,
+        56,
+        57
+      ],
+      "anchor": [
+        22,
+        57
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2568
+        }
+      ],
+      "alpha_bbox": [
+        9,
+        2,
+        43,
+        53
+      ],
+      "opaque_pixels": 624
+    },
+    {
+      "name": "punch",
+      "rect": [
+        72,
+        248,
+        56,
+        57
+      ],
+      "anchor": [
+        22,
+        57
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2573
+        },
+        {
+          "seed": [
+            25,
+            16
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        4,
+        53,
+        53
+      ],
+      "opaque_pixels": 618
+    },
+    {
+      "name": "kickWind",
+      "rect": [
+        8,
+        312,
+        49,
+        56
+      ],
+      "anchor": [
+        22,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 738
+        },
+        {
+          "seed": [
+            20,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1281
+        },
+        {
+          "seed": [
+            12,
+            17
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 5
+        },
+        {
+          "seed": [
+            40,
+            53
+          ],
+          "color": [
+            89,
+            115,
+            123
+          ],
+          "pixels": 6
+        }
+      ],
+      "alpha_bbox": [
+        4,
+        0,
+        38,
+        56
+      ],
+      "opaque_pixels": 714
+    },
+    {
+      "name": "kick",
+      "rect": [
+        64,
+        312,
+        49,
+        56
+      ],
+      "anchor": [
+        22,
+        56
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1267
+        },
+        {
+          "seed": [
+            48,
+            30
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 763
+        }
+      ],
+      "alpha_bbox": [
+        2,
+        4,
+        49,
+        56
+      ],
+      "opaque_pixels": 714
+    },
+    {
+      "name": "ready",
+      "rect": [
+        8,
+        376,
+        48,
+        57
+      ],
+      "anchor": [
+        22,
+        57
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2048
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        4,
+        37,
+        57
+      ],
+      "opaque_pixels": 688
+    },
+    {
+      "name": "aim",
+      "rect": [
+        64,
+        376,
+        48,
+        57
+      ],
+      "anchor": [
+        22,
+        57
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1240
+        },
+        {
+          "seed": [
+            19,
+            23
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            37,
+            23
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 634
+        },
+        {
+          "seed": [
+            20,
+            38
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 203
+        }
+      ],
+      "alpha_bbox": [
+        0,
+        9,
+        48,
+        56
+      ],
+      "opaque_pixels": 658
+    },
+    {
+      "name": "lowerArm",
+      "rect": [
+        120,
+        376,
+        48,
+        57
+      ],
+      "anchor": [
+        22,
+        57
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1913
+        },
+        {
+          "seed": [
+            21,
+            23
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            22,
+            38
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 196
+        }
+      ],
+      "alpha_bbox": [
+        1,
+        10,
+        44,
+        56
+      ],
+      "opaque_pixels": 626
+    },
+    {
+      "name": "guard",
+      "rect": [
+        8,
+        440,
+        40,
+        48
+      ],
+      "anchor": [
+        20,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1138
+        },
+        {
+          "seed": [
+            17,
+            30
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 163
+        },
+        {
+          "seed": [
+            12,
+            46
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 14
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        6,
+        36,
+        48
+      ],
+      "opaque_pixels": 605
+    },
+    {
+      "name": "recoil",
+      "rect": [
+        8,
+        496,
+        32,
+        48
+      ],
+      "anchor": [
+        16,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1012
+        }
+      ],
+      "alpha_bbox": [
+        2,
+        1,
+        29,
+        48
+      ],
+      "opaque_pixels": 524
+    },
+    {
+      "name": "fall0",
+      "rect": [
+        8,
+        552,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2048
+        }
+      ],
+      "alpha_bbox": [
+        9,
+        1,
+        49,
+        48
+      ],
+      "opaque_pixels": 640
+    },
+    {
+      "name": "fall1",
+      "rect": [
+        72,
+        552,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2128
+        },
+        {
+          "seed": [
+            21,
+            24
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        3,
+        12,
+        54,
+        43
+      ],
+      "opaque_pixels": 559
+    },
+    {
+      "name": "fall2",
+      "rect": [
+        136,
+        552,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2135
+        },
+        {
+          "seed": [
+            27,
+            23
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 14
+        }
+      ],
+      "alpha_bbox": [
+        9,
+        7,
+        48,
+        43
+      ],
+      "opaque_pixels": 539
+    },
+    {
+      "name": "fall3",
+      "rect": [
+        200,
+        552,
+        56,
+        48
+      ],
+      "anchor": [
+        28,
+        48
+      ],
+      "kind": "body",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1993
+        },
+        {
+          "seed": [
+            20,
+            41
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 158
+        }
+      ],
+      "alpha_bbox": [
+        1,
+        32,
+        56,
+        48
+      ],
+      "opaque_pixels": 537
+    },
+    {
+      "name": "fx0",
+      "rect": [
+        8,
+        608,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "kind": "effect",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 4044
+        }
+      ],
+      "alpha_bbox": [
+        28,
+        27,
+        36,
+        35
+      ],
+      "opaque_pixels": 52
+    },
+    {
+      "name": "fx1",
+      "rect": [
+        80,
+        608,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "kind": "effect",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 3645
+        }
+      ],
+      "alpha_bbox": [
+        16,
+        18,
+        47,
+        42
+      ],
+      "opaque_pixels": 451
+    },
+    {
+      "name": "fx2",
+      "rect": [
+        152,
+        608,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "kind": "effect",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 2655
+        },
+        {
+          "seed": [
+            22,
+            42
+          ],
+          "color": [
+            89,
+            115,
+            123
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        8,
+        8,
+        56,
+        53
+      ],
+      "opaque_pixels": 1440
+    },
+    {
+      "name": "fx3",
+      "rect": [
+        224,
+        608,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "kind": "effect",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 820
+        },
+        {
+          "seed": [
+            61,
+            28
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 761
+        },
+        {
+          "seed": [
+            28,
+            52
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        0,
+        3,
+        64,
+        62
+      ],
+      "opaque_pixels": 2514
+    },
+    {
+      "name": "fx4",
+      "rect": [
+        296,
+        608,
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        32
+      ],
+      "kind": "effect",
+      "background_regions": [
+        {
+          "seed": [
+            0,
+            0
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 3503
+        },
+        {
+          "seed": [
+            5,
+            25
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            55,
+            39
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            15,
+            48
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            37,
+            52
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            38,
+            53
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        },
+        {
+          "seed": [
+            36,
+            54
+          ],
+          "color": [
+            148,
+            192,
+            204
+          ],
+          "pixels": 1
+        }
+      ],
+      "alpha_bbox": [
+        0,
+        0,
+        63,
+        62
+      ],
+      "opaque_pixels": 587
+    }
+  ]
+}

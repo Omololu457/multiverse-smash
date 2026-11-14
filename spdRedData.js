@@ -81,7 +81,8 @@ export const SPD_RED_TIMELINES = {
   sJudge: [[0, 0], [6, 1]],
   sStraight: [[0, 0], [8, 1]], sKick: [[0, 0], [9, 1]], heavy: [[0, 0], [12, 1], [15, 2]], sLow: [[0, 0], [7, 1], [10, 2]],
   up: [[0, 0], [9, 1], [13, 2]], sFlip: [[0, 0], [4, 1], [10, 2], [16, 3]], sWake: [[0, 0], [3, 1], [5, 2]],
-  sBlaster: [[0, 0], [5, 1], [10, 2]], sCharge: [[0, 0], [8, 1]], sPhase: [[0, 0], [12, 1]], sUpper: [[0, 0], [6, 1], [16, 2]],
+  sBlaster: [[0, 0], [5, 1], [12, 2]],   // aimed frame on screen when the bolt leaves the barrel (f10), muzzle kick after
+  sRapid: [[0, 0], [2, 0], [5, 1], [8, 0], [11, 1], [14, 0], [17, 1], [20, 0], [23, 1], [26, 0], [29, 1]],   // aimed on every shot (2/8/14/20/26), kick between sCharge: [[0, 0], [8, 1]], sPhase: [[0, 0], [12, 1]], sUpper: [[0, 0], [6, 1], [16, 2]],
   sDeltamax: [[0, 0], [18, 1], [21, 2]],
   // R9F2 pose → R17 blink → R11F2 front → R17 → R12F1 behind → R17 → R13F2 below → R17 back out → R16F3 brace → R16F1 → R16F2 beam
   sSuper: [[0, 0], [20, 1], [24, 2], [34, 3], [38, 4], [48, 5], [52, 6], [62, 5], [66, 7], [74, 8], [78, 9]],
@@ -110,7 +111,7 @@ export const spdRed = {
   //     double-tap dash is OFF for Rangers (noDash) — the double-tap is the blink. dashSpeed 15.3 (= 8.4 / 0.55) is
   //     kept for any engine path that still reads it.
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 31 · weight 0.9 → knockback taken ÷ 0.9 (spdRedKnockback)
-  stats: { maxHealth: 950, maxEnergy: 100, attack: 84, defense: 76, speed: 82.4, jumpPower: 31, maxJumps: 1, weight: 0.9,
+  stats: { maxHealth: 1120, maxEnergy: 100, attack: 84, defense: 76, speed: 82.4, jumpPower: 31, maxJumps: 1, weight: 0.9,
     dashSpeed: 15.3, dashDuration: 10, dashCooldownMax: 28 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

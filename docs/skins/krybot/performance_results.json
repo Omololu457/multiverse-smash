@@ -1,0 +1,33 @@
+{
+  "environment": "Headless Chromium, normal RAF, 1280x720; 90 samples after 500ms warmup per skin. Local machine smoke, not a cross-device guarantee.",
+  "results": [
+    {
+      "id": "default",
+      "preloadMs": 459,
+      "meanFrameMs": 30.55555555555556,
+      "p95FrameMs": 33.900000000000546,
+      "preloadFailures": []
+    },
+    {
+      "id": "krybot_tv",
+      "preloadMs": 513,
+      "meanFrameMs": 36.85333333333334,
+      "p95FrameMs": 50.100000000000364,
+      "preloadFailures": []
+    },
+    {
+      "id": "krybot_super_legends_ds",
+      "preloadMs": 594,
+      "meanFrameMs": 29.81555555555555,
+      "p95FrameMs": 33.5,
+      "preloadFailures": []
+    },
+    {
+      "id": "krybot_super_legends_ds_red",
+      "preloadMs": 500,
+      "meanFrameMs": 32.223333333333315,
+      "p95FrameMs": 50,
+      "preloadFailures": []
+    }
+  ]
+}

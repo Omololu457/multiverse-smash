@@ -1,0 +1,7 @@
+# SPD Blue ownership
+
+Codex owns spdBlue*.js, tools/spd_blue/, assets/spd_blue/, harness/spd_blue*, and docs/spd_blue/. Owns a narrowly scoped reusable groundTeleport.js capability and its tests/documentation. Shared edits limited to minimal registration and explicit opt-in hooks in characters.js, spritesheets.js, skins.js, credits.js, kits.js, input.js, combat.js, game.js and physics.js if required. Reread/diff immediately before contextual patches. No replacement shared files or formatting passes.
+
+Start: main at eba8b49eed763c98eb17b09e7e15fe530d721261. BASELINE.json records full status, existing staged paths and working hashes. Six shared paths are already staged by another process: characters.js, combat.js, credits.js, game.js, skins.js, spritesheets.js. Preserve index and concurrent Sanji/SPD Red/Krybot work. No staging, commit, push, checkout or branch operations by Codex. Protected Naruto image and unrelated music/ratings/MP3s excluded.
+
+PROJECT_HANDOFF.md and ancestor/project AGENTS.md are absent. Read updates.TXT and existing Krybot ownership notes. Existing rangers.js blink is charge-based, airborne and invulnerable; do not change its defaults or opt other Rangers into Blue's requested grounded energy teleport. No integrated shared Zord assault/Green Ranger implementation was found initially. Prepare opt-in configuration but keep ultimate honestly unavailable pending that dependency; do not reuse Ranger-only fallback ultimates or invent art.

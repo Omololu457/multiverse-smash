@@ -1,0 +1,57 @@
+from PIL import Image, ImageDraw
+import json
+STRIPS={'idle':2,'walk':3,'crouch':1,'light':2,'heavy':2,'uppercut':2,'air':2,'sweep':2,
+ 'flightdash':1,'jump':2,'fall':2,'flight':3,'flycruise':1,'flightrise':1,'flyturn':1,
+ 'land':2,'beam':2,'hurt':1,'guard':1,'cardboard':3}
+def is_skin(p): return p[3]>60 and p[0]>200 and p[1]>130 and p[2]>105 and p[0]>=p[1]-6 and p[1]>=p[2]-6 and 18<(p[0]-p[2])<120
+def is_hair(p): return p[3]>60 and max(p[0],p[1],p[2])<70   # dark hair/outline
+def is_fg(p): return p[3]>40
+def detect(cell):
+    w,h=cell.size; px=cell.load()
+    # find top of figure
+    top=None
+    for y in range(h):
+        if any(is_fg(px[x,y]) for x in range(w)): top=y; break
+    if top is None: return None
+    band=max(6,int(h*0.32)); hb=(top, min(h,top+band))
+    # skin pixels in head band
+    sx=[]; sy=[]
+    for y in range(hb[0],hb[1]):
+        for x in range(w):
+            if is_skin(px[x,y]): sx.append(x); sy.append(y)
+    if len(sx)>=4:
+        mnx,mxx=min(sx),max(sx); mny,mxy=min(sy),max(sy)
+        # eyes: facing RIGHT → toward right edge of face, at eye height (upper-mid of face skin)
+        ex=mxx-0.30*(mxx-mnx)
+        ey=mny+0.45*(mxy-mny)
+    else:
+        # head turned away / no visible face → use head-band center, front-right
+        cols=[x for x in range(w) for y in range(hb[0],hb[1]) if is_fg(px[x,y])]
+        if not cols: return None
+        ex=min(cols)+0.6*(max(cols)-min(cols)); ey=hb[0]+0.5*(hb[1]-hb[0])
+    return ex/w, ey/h
+out={}; dbg_cells=[]
+for name,n in STRIPS.items():
+    im=Image.open(f'superman_{name}_uniform.png').convert('RGBA'); W,H=im.size; cw=W//n
+    anchors=[]
+    for i in range(n):
+        cell=im.crop((i*cw,0,(i+1)*cw,H)); a=detect(cell)
+        if a is None: a=(0.62,0.16)
+        anchors.append([round(a[0],4),round(a[1],4)])
+        # debug marker
+        d=ImageDraw.Draw(cell); ex,ey=a[0]*cw,a[1]*H
+        d.ellipse([ex-3,ey-3,ex+3,ey+3],outline=(255,0,255,255),width=2)
+        d.point([ex,ey],fill=(255,255,0,255))
+        dbg_cells.append((f"{name}{i}",cell))
+    out[name]=anchors
+# montage of debug cells (scale 2x)
+pad=6; cols=6
+cellw=max(c.width for _,c in dbg_cells)*2+pad; cellh=max(c.height for _,c in dbg_cells)*2+18
+rows=(len(dbg_cells)+cols-1)//cols
+mon=Image.new('RGBA',(cellw*cols,cellh*rows),(60,60,72,255)); dd=ImageDraw.Draw(mon)
+for k,(lbl,c) in enumerate(dbg_cells):
+    c2=c.resize((c.width*2,c.height*2),Image.NEAREST); cx=(k%cols)*cellw; cy=(k//cols)*cellh
+    mon.paste(c2,(cx+2,cy+16),c2); dd.text((cx+2,cy+2),lbl,fill=(255,255,120,255))
+mon.save('superman_work/_eye_debug.png')
+json.dump(out,open('superman_work/eye_anchors.json','w'),indent=0)
+print('done', {k:len(v) for k,v in out.items()})

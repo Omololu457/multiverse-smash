@@ -1,0 +1,3 @@
+import {startMove,getAttackHitbox,getCancelWindow} from './combat.js'
+import {startSpdBlueMove,clearSpdBlue,ownBlueShots} from './spdBlueState.js'
+export function spdBlueHarnessApi(g){const raw=(w='p1')=>w==='p2'?g.p2():g.p1();return{raw,reset:()=>{g.reset();for(const f of [g.p1(),g.p2()])clearSpdBlue(f,g.world)},move:(k,w='p1')=>startSpdBlueMove(raw(w),k,startMove,g.world),state:(w='p1')=>{const f=raw(w);return{hp:f.health,energy:f.energy,x:f.x,y:f.y,vx:f.vx,vy:f.vy,grounded:f.onGround,attack:f.currentAttack,cancel:getCancelWindow(f),box:getAttackHitbox(f),s:f._spdBlue,teleport:f._groundTeleport,shots:ownBlueShots(f,g.world).map(p=>({x:p.x,y:p.y,damage:p.damage,lifetime:p.lifetime}))}}}}

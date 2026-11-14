@@ -112,7 +112,7 @@ try {
   for (let i = 0; i < 60; i++) { await step(1); const a = await ls(), b = await ls('p2'); if (a.x > b.x) { passed = true } }
   const hpO = (await ls('p2'))
   check('Oni Giri passes THROUGH and ends behind', passed && (await ls()).x > (await ls('p2')).x, `zoro ${x0}→${Math.round((await ls()).x)}, opp ${ox}→${Math.round((await ls('p2')).x)}`)
-  check('Oni Giri connected', hpO.health < 1000, hpO.health)
+  check('Oni Giri connected', hpO.health < (await zs('p2')).maxHealth, hpO.health)
 
   await reset({ gap: 260 })
   e0 = (await zs()).energy
@@ -135,7 +135,7 @@ try {
   await motion(QCB, 'l')
   check('Tora Gari (↓↙←+A)', (await zs()).move === 'zTora', (await zs()).move)
   await until(async () => !(await ls()).attack, 80)
-  check('Tora Gari connects (lunge)', (await ls('p2')).health < 1000, (await ls('p2')).health)
+  check('Tora Gari connects (lunge)', (await ls('p2')).health < (await zs('p2')).maxHealth, (await ls('p2')).health)
 
   // Shishi Sonson: stance, then the dummy's jab lands in the window → Zoro draws through.
   await reset({ gap: 50 })
@@ -156,7 +156,7 @@ try {
   const hit = await until(async () => (await zs()).move === 'zShishiStrike', 34)
   check('Shishi Sonson: a strike in the window → counter draw-through', hit >= 0, (await zs()).move)
   await until(async () => !(await ls()).attack, 60)
-  check('Shishi Sonson counter connects (110 raw), Zoro untouched', (await ls('p2')).health < 1000 && (await zs()).health === 1000, `opp ${(await ls('p2')).health}, zoro ${(await zs()).health}`)
+  check('Shishi Sonson counter connects (110 raw), Zoro untouched', (await ls('p2')).health < (await zs('p2')).maxHealth && (await zs()).health === (await zs()).maxHealth, `opp ${(await ls('p2')).health}, zoro ${(await zs()).health}`)
   await reset({ gap: 300 })
   await motion(DP_UP, 'l')
   const whiffLen = await until(async () => !(await ls()).attack, 120)

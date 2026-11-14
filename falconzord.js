@@ -65,12 +65,14 @@ export function falconCancelCall(f) { const s = f?._falcon; if (s?.pendingKind) 
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2
 const ctrY = f => (f.y || 0) + (f.h || 94) / 2
 // COMMIT: capture the path origin + direction + target region NOW. Nothing is re-read later.
-export function falconCommit(f, opp, W) {
+// `at` (optional, {x,y}): an explicit target LOCATION chosen by the owner module (e.g. MMPR Pink's Spotter Link) instead
+// of the opponent's centre. Omitted → identical to the original behaviour. Captured once, never re-read.
+export function falconCommit(f, opp, W, at = null) {
   const s = f._falcon, kind = s?.pendingKind, P = FALCON_SORTIES[kind]
   if (!P) return null
   s.pendingKind = null
   const dir = f.facing || 1, sw = W?.stageWidth?.() || 3200, feet = (f.y || 0) + (f.h || 94)
-  const tgt = opp && opp.health > 0 ? { x: ctrX(opp), y: ctrY(opp) } : { x: ctrX(f) + dir * 160, y: feet - 50 }
+  const tgt = at ? { x: at.x, y: at.y } : opp && opp.health > 0 ? { x: ctrX(opp), y: ctrY(opp) } : { x: ctrX(f) + dir * 160, y: feet - 50 }
   tgt.x = Math.round(Math.max(40, Math.min(sw - 40, tgt.x))); tgt.y = Math.round(tgt.y)
   const ox = P.origin === 'target' ? tgt.x : Math.round(ctrX(f)), oy = P.origin === 'target' ? tgt.y : Math.round(feet + (P.laneY || 0))
   s.sortie = { kind, age: 0, dir, ox, oy, tx: tgt.x, ty: tgt.y, hits: P.contacts.map(() => []), fired: 0, n: ++s.serial }
@@ -87,10 +89,11 @@ export function falconPos(so, age = so.age) {
   const u = Math.max(0, Math.min(1, (age - a0) / Math.max(1, a1 - a0)))
   return { x: so.ox + so.dir * (x0 + (x1 - x0) * u), y: so.oy + y0 + (y1 - y0) * u, pose: p0, vx: so.dir * (x1 - x0) / Math.max(1, a1 - a0) }
 }
-// Contact box (body + talons only — never the wing span). Pure.
+// Contact box (body + talons only — never the wing span). Pure. Optional `box.dx` shifts the box along the direction
+// captured at commit (a sword cut in front of a large assist); absent → 0 (original behaviour).
 export function falconContactBox(so, c, age = so.age) {
   const p = falconPos(so, age), b = c.box
-  return { x: p.x - b.w / 2, y: p.y - b.h / 2 + (b.dy || 0), w: b.w, h: b.h }
+  return { x: p.x + so.dir * (b.dx || 0) - b.w / 2, y: p.y - b.h / 2 + (b.dy || 0), w: b.w, h: b.h }
 }
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 const hurt = f => ({ x: f.x || 0, y: f.y || 0, w: f.w || 48, h: f.h || 94 })
@@ -102,11 +105,11 @@ function strike(f, t, c, so, W, scale, cb) {
   const raw = Math.round(c.raw * scale), dir = Math.sign(ctrX(t) - falconPos(so).x) || so.dir
   if (t.isBlocking) {   // ordinary block: special-tier chip (12%, the engine's special chip), authored blockstun, no tag
     t.blockstun = Math.max(t.blockstun || 0, c.blockstun || 12); t.vx = dir * 2
-    W.damage?.(t, raw * 0.12, { source: 'assist', attacker: f, move: 'falcon_' + so.kind })
+    W.damage?.(t, raw * 0.12, { source: 'assist', attacker: f, move: FALCON_SORTIES[so.kind].move || 'falcon_' + so.kind })
     f.comboCounter = 0
     return 'blocked'
   }
-  W.damage?.(t, raw * (W.comboScale?.(f) ?? 1), { source: 'assist', attacker: f, move: 'falcon_' + so.kind })
+  W.damage?.(t, raw * (W.comboScale?.(f) ?? 1), { source: 'assist', attacker: f, move: FALCON_SORTIES[so.kind].move || 'falcon_' + so.kind })
   if (!t.onGround && !t.grounded) t.juggleCount = (t.juggleCount || 0) + 1
   t.hitstun = Math.max(t.hitstun || 0, Math.round((c.hitstun || 18) * (W.hitstunScale?.(f) ?? 1)))
   t.vx = dir * (c.knockbackX || 0)
@@ -132,6 +135,7 @@ export function tickFalcon(f, W, R, scale = 1, cb = {}) {
   const foes = (W.fighters?.() || []).filter(t => t && t !== f)
   P.contacts.forEach((c, i) => {
     if (so.age < c.from || so.age > c.to) return
+    if (c.gate && !(so.gates || []).includes(c.gate)) return   // optional gated contact (e.g. MMPR White's accepted Formation follow-up); absent → always
     const box = falconContactBox(so, c)
     for (const t of foes) {
       if (so.hits[i].includes(t.side || t.playerNumber || 0)) continue          // per-target, per-contact hit tracking

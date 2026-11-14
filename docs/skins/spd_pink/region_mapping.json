@@ -1,0 +1,968 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "black: outlines + visor + black side panels (kept)",
+  "2": "suit: helmet + pink cloth (+ pink streak afterimage)",
+  "3": "trim: gloves / boot trim / belt / chest+leg stripes (white markings)",
+  "4": "grey: floor shadow + Deltamax body (kept)",
+  "5": "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)",
+  "6": "other stray pixels (kept)"
+ },
+ "suitRamp": [
+  [
+   255,
+   16,
+   107
+  ],
+  [
+   255,
+   41,
+   123
+  ],
+  [
+   255,
+   66,
+   140
+  ],
+  [
+   255,
+   85,
+   174
+  ],
+  [
+   255,
+   99,
+   156
+  ],
+  [
+   255,
+   107,
+   181
+  ],
+  [
+   255,
+   115,
+   206
+  ]
+ ],
+ "trimRamp": [
+  [
+   148,
+   148,
+   140
+  ],
+  [
+   198,
+   198,
+   181
+  ],
+  [
+   247,
+   255,
+   231
+  ]
+ ],
+ "black": [
+  [
+   0,
+   0,
+   0
+  ],
+  [
+   8,
+   8,
+   8
+  ]
+ ],
+ "grey": [
+  [
+   49,
+   49,
+   41
+  ],
+  [
+   99,
+   99,
+   90
+  ]
+ ],
+ "weaponRule": "light blob with >=45% transparent rim or >=160 px",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "spdPinkAlienX",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     6,
+     7,
+     8
+    ],
+    [
+     10,
+     11,
+     13
+    ],
+    [
+     15,
+     16,
+     19
+    ],
+    [
+     21,
+     23,
+     26
+    ],
+    [
+     28,
+     31,
+     34
+    ],
+    [
+     36,
+     40,
+     42
+    ],
+    [
+     46,
+     70,
+     54
+    ]
+   ],
+   "trim": [
+    [
+     160,
+     166,
+     168
+    ],
+    [
+     212,
+     216,
+     218
+    ],
+    [
+     242,
+     246,
+     246
+    ]
+   ],
+   "fx": [
+    "#d8ffe4",
+    "#3fae6a"
+   ],
+   "source": "Ben 10: Alien Force / Ultimate Alien \u2014 Alien X (Celestialsapien): black body, white markings, green accents; colour scheme only",
+   "notes": "Dark body panels, light trim, restrained green only on the top suit highlight. The project's existing Alien X starfield overlay (game.js drawAlienXStarfield, id ends \"AlienX\") draws on top. No stars or constellations painted into pixels."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "spd_pink_inspired_diamondhead",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     6,
+     40,
+     52
+    ],
+    [
+     10,
+     62,
+     76
+    ],
+    [
+     16,
+     90,
+     104
+    ],
+    [
+     30,
+     124,
+     136
+    ],
+    [
+     52,
+     160,
+     170
+    ],
+    [
+     86,
+     196,
+     200
+    ],
+    [
+     132,
+     230,
+     230
+    ]
+   ],
+   "trim": [
+    [
+     170,
+     196,
+     204
+    ],
+    [
+     214,
+     236,
+     240
+    ],
+    [
+     244,
+     255,
+     255
+    ]
+   ],
+   "fx": [
+    "#a8fff2",
+    "#2fb8b0"
+   ],
+   "source": "Ben 10 (2005) \u2014 Diamondhead (Petrosapien): teal/green crystal; colour scheme only",
+   "notes": "Cyan/teal panels, pale existing highlights, deep cool shadows. No crystal shards or facets added."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "spd_pink_inspired_upgrade",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     3,
+     5,
+     3
+    ],
+    [
+     6,
+     9,
+     6
+    ],
+    [
+     10,
+     14,
+     10
+    ],
+    [
+     14,
+     19,
+     14
+    ],
+    [
+     19,
+     25,
+     19
+    ],
+    [
+     24,
+     32,
+     24
+    ],
+    [
+     31,
+     40,
+     31
+    ]
+   ],
+   "trim": [
+    [
+     40,
+     170,
+     70
+    ],
+    [
+     80,
+     225,
+     110
+    ],
+    [
+     165,
+     255,
+     180
+    ]
+   ],
+   "fx": [
+    "#8dffad",
+    "#1fd060"
+   ],
+   "source": "Ben 10 (2005) \u2014 Upgrade (Galvanic Mechamorph): black body with green lines; colour scheme only",
+   "notes": "Black/dark panels; the EXISTING trim pixels turn green. No circuitry pattern added."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "spd_pink_inspired_heatblast",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     16,
+     14,
+     14
+    ],
+    [
+     26,
+     22,
+     21
+    ],
+    [
+     36,
+     30,
+     28
+    ],
+    [
+     46,
+     38,
+     34
+    ],
+    [
+     58,
+     48,
+     42
+    ],
+    [
+     72,
+     58,
+     50
+    ],
+    [
+     88,
+     70,
+     58
+    ]
+   ],
+   "trim": [
+    [
+     214,
+     60,
+     18
+    ],
+    [
+     250,
+     140,
+     30
+    ],
+    [
+     255,
+     210,
+     90
+    ]
+   ],
+   "fx": [
+    "#ffc070",
+    "#ff6a10"
+   ],
+   "source": "Ben 10 (2005) \u2014 Heatblast (Pyronite): charcoal rock with orange/yellow fire; colour scheme only",
+   "notes": "Charcoal body; orange/red/gold on the existing trim. No flames or rock texture."
+  },
+  "chromastone": {
+   "name": "Chromastone \u2014 Inspired",
+   "id": "spd_pink_inspired_chromastone",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     30,
+     10,
+     54
+    ],
+    [
+     46,
+     15,
+     80
+    ],
+    [
+     64,
+     21,
+     106
+    ],
+    [
+     84,
+     28,
+     134
+    ],
+    [
+     106,
+     38,
+     160
+    ],
+    [
+     136,
+     52,
+     186
+    ],
+    [
+     176,
+     76,
+     212
+    ]
+   ],
+   "trim": [
+    [
+     176,
+     160,
+     214
+    ],
+    [
+     214,
+     200,
+     244
+    ],
+    [
+     246,
+     238,
+     255
+    ]
+   ],
+   "fx": [
+    "#f0b8ff",
+    "#a43be0"
+   ],
+   "source": "Ben 10: Alien Force \u2014 Chromastone (Crystalsapien): violet/purple crystal body with magenta crystal accents (owner brief; wiki pages note magenta crystals); colour scheme only",
+   "notes": "Purple-to-magenta body with contrasting pale lavender trim. No crystal protrusions, facets or prism FX."
+  },
+  "shadow": {
+   "name": "SPD Shadow \u2014 Inspired Palette",
+   "id": "spd_pink_inspired_shadow",
+   "class": "Inspired Palette",
+   "suit": [
+    [
+     8,
+     10,
+     22
+    ],
+    [
+     13,
+     16,
+     32
+    ],
+    [
+     18,
+     22,
+     42
+    ],
+    [
+     25,
+     30,
+     54
+    ],
+    [
+     33,
+     39,
+     68
+    ],
+    [
+     42,
+     50,
+     84
+    ],
+    [
+     54,
+     63,
+     102
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     156,
+     168
+    ],
+    [
+     196,
+     202,
+     212
+    ],
+    [
+     236,
+     240,
+     246
+    ]
+   ],
+   "fx": [
+    "#d6e0f0",
+    "#5a6c98"
+   ],
+   "source": "Inspired by the S.P.D. Shadow Ranger colour scheme (Power Rangers S.P.D., 2005): navy/black with silver",
+   "notes": "Dark navy/charcoal suit with silver trim on existing regions only. Syd's own helmet, silhouette and identity; no number added, no canine features; not Doggie Cruger."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 103,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 791,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 186,
+    "grey: floor shadow + Deltamax body (kept)": 82,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 18
+   },
+   "maskSha256": "7f60a1939b7093d5c17188accf547a8dd828357e823bf0f7a512a98e122e5cce"
+  },
+  "crouch.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 57,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 453,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 48,
+    "grey: floor shadow + Deltamax body (kept)": 31,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 44,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "4ad015a4eca3a8d4552e97e5291615ec63d7c32c61fbbd0ba784487ae65f6d98"
+  },
+  "dash.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 88,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 438,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 70,
+    "grey: floor shadow + Deltamax body (kept)": 27,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 25
+   },
+   "maskSha256": "15772d0a3445721c7a7bd73e1ae797ce1bc85a96faee0414ef2912163157d5d0"
+  },
+  "down_air.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 69,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 391,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 109,
+    "grey: floor shadow + Deltamax body (kept)": 37
+   },
+   "maskSha256": "6e25da3ec7408f90e88eca7003bdd362f352af2a07e9a63c08d647f4f9e8cf0d"
+  },
+  "fall.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 29,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 421,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 80,
+    "grey: floor shadow + Deltamax body (kept)": 40,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 41
+   },
+   "maskSha256": "9edcb2f79095d736285f7d929ef05c7ef6e3f7d42f1606941e601bf728f901b5"
+  },
+  "fx_beam0.png": {
+   "regions": {
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 56,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 65
+   },
+   "maskSha256": "664cff8304f9e433d13aa2b499c3257b944670089481fe4270d3ca1702f72511"
+  },
+  "fx_beam1.png": {
+   "regions": {
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 125,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 96
+   },
+   "maskSha256": "320ab34afd67258faba38b6a010e3e0c7212c2281ffbba11aaa752908102bb49"
+  },
+  "fx_beam2.png": {
+   "regions": {
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 130,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 64
+   },
+   "maskSha256": "2aa69b41932e629cd4db54491d20d133f8d2c561bab28f162cd10d339e4d09df"
+  },
+  "fx_streak0.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 29,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 652,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 24,
+    "grey: floor shadow + Deltamax body (kept)": 16,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 3,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "8bd6368b75c5ab24af9592ab2df875ac6f3ec6f65299e35bc5535b3d74a472fd"
+  },
+  "fx_streak1.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 98,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 535,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 128,
+    "grey: floor shadow + Deltamax body (kept)": 27,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 37,
+    "other stray pixels (kept)": 4
+   },
+   "maskSha256": "f72be7281296946a3089fc0704e428465430454e3e62fe8b8b386b1e61bcb577"
+  },
+  "getup.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 217,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 1342,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 177,
+    "grey: floor shadow + Deltamax body (kept)": 95,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 84,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "34f5b118243cafdabc4ec39ee31a3d484b8ae0ec909f7d2159de613c64608f0b"
+  },
+  "grab.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 193,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 980,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 139,
+    "grey: floor shadow + Deltamax body (kept)": 65,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 65
+   },
+   "maskSha256": "28821a2e5f8acd94eccf7b662ac8e176cabc6aa9773619574a152ae980a8062c"
+  },
+  "guard.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 115,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 472,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 73,
+    "grey: floor shadow + Deltamax body (kept)": 22,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 41
+   },
+   "maskSha256": "ebdef627d7c23b7c2fb35ed443214baa9c4de7d32c596a3cf330c9ded36b737b"
+  },
+  "heavy.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 210,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 767,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 81,
+    "grey: floor shadow + Deltamax body (kept)": 51,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 55
+   },
+   "maskSha256": "002d89008d63ea8053c104d7b707634f4dc41fad08b5bbebb90129098d736789"
+  },
+  "hurt.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 35,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 476,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 57,
+    "grey: floor shadow + Deltamax body (kept)": 25,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 44
+   },
+   "maskSha256": "b86951e0f4708114d6181d2c04f727c09712ac40c1bc44eefa74fbec9be8b517"
+  },
+  "idle.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 173,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 963,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 187,
+    "grey: floor shadow + Deltamax body (kept)": 87,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 53,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "2fed084c11a3046d13f151134bc53021231dedf1dffafa15a2d9e1d79a5c13f4"
+  },
+  "intro.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 208,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 906,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 165,
+    "grey: floor shadow + Deltamax body (kept)": 103,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 61
+   },
+   "maskSha256": "51a05e9a4f814460f26abfcb1b8f91f7719099784d24eac8744faec6213d4f9c"
+  },
+  "jump.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 37,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 427,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 107,
+    "grey: floor shadow + Deltamax body (kept)": 33,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 25,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "e32c15f418e08e09ddc21618dd9e9b6c1a4adcb8ec8509a1badb6b4da17b9676"
+  },
+  "knockdown.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 84,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 1343,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 167,
+    "grey: floor shadow + Deltamax body (kept)": 72,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 99,
+    "other stray pixels (kept)": 2
+   },
+   "maskSha256": "970fab55e3e31106c641cc431023b0f007fe366b56e375683889a3e15bb8c9f2"
+  },
+  "light.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 253,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 870,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 211,
+    "grey: floor shadow + Deltamax body (kept)": 83,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 40,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "40b3078d1379d3f234a41de771c813f76fa76afc5281e1a669cd42ff69eaec53"
+  },
+  "pAirShot.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 51,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 448,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 94,
+    "grey: floor shadow + Deltamax body (kept)": 38,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 69
+   },
+   "maskSha256": "8830d6306a57afdf70f9f830914393a754c20729262a1d9ccafee7203ab1ed1a"
+  },
+  "pAway.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 212,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 729,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 62,
+    "grey: floor shadow + Deltamax body (kept)": 98,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 77
+   },
+   "maskSha256": "9629b6622045efb89181ac044ad0efb058da1fb3a6d6bf032f782183c0e64c59"
+  },
+  "pBar1.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 109,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 456,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 77,
+    "grey: floor shadow + Deltamax body (kept)": 43,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 41
+   },
+   "maskSha256": "b741666dfa0e4ac2caa562983c876d999fab312c1ea696d2c7566342f80b5595"
+  },
+  "pBar2.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 84,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 524,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 62,
+    "grey: floor shadow + Deltamax body (kept)": 22,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 24
+   },
+   "maskSha256": "a06e0b7996f56b18a350db29d4d7b4d4be24d1682c4ea1d400dac449887a89e8"
+  },
+  "pBar3.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 278,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 855,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 190,
+    "grey: floor shadow + Deltamax body (kept)": 63,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 68
+   },
+   "maskSha256": "28e146b1a8cd9d9f0abaab80e4024187320655f790d07c6cb3682c1700cad016"
+  },
+  "pBreaker.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 127,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 901,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 128,
+    "grey: floor shadow + Deltamax body (kept)": 49,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 52
+   },
+   "maskSha256": "952539c60c0041001eb0cb20836ccc84cffe157ddf874eff6ea8f565e1120793"
+  },
+  "pCheck.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 193,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 914,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 165,
+    "grey: floor shadow + Deltamax body (kept)": 49,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 88
+   },
+   "maskSha256": "92d285577962aa23a8d57e1d141db476031e17dd7855989a07f6f4e3eb463cbf"
+  },
+  "pEvade.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 157,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 808,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 69,
+    "grey: floor shadow + Deltamax body (kept)": 73,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 85
+   },
+   "maskSha256": "a2c80820911b189dd8a26cb9485e9b44aeec658bf63cf6a2f1aed719ea8f9b67"
+  },
+  "pFlip.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 260,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 1305,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 154,
+    "grey: floor shadow + Deltamax body (kept)": 108,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 161
+   },
+   "maskSha256": "b22ed585ce8dbbb98a429f8649c65d165db0d133047cec92754baa7762e017b7"
+  },
+  "pJ2.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 255,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 843,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 209,
+    "grey: floor shadow + Deltamax body (kept)": 64,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 46
+   },
+   "maskSha256": "030388d962d061b7c7c9dd3d0c264cd46f3b1a634211441e6a74fb905dd49f00"
+  },
+  "pJ3.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 193,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 980,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 139,
+    "grey: floor shadow + Deltamax body (kept)": 65,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 65
+   },
+   "maskSha256": "28821a2e5f8acd94eccf7b662ac8e176cabc6aa9773619574a152ae980a8062c"
+  },
+  "pKick.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 210,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 767,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 81,
+    "grey: floor shadow + Deltamax body (kept)": 51,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 55
+   },
+   "maskSha256": "002d89008d63ea8053c104d7b707634f4dc41fad08b5bbebb90129098d736789"
+  },
+  "pLow.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 131,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 383,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 52,
+    "grey: floor shadow + Deltamax body (kept)": 47,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 17
+   },
+   "maskSha256": "857177fb87e87b8b962f021795ae91bd56e686a277a33d025a112d55ea47752c"
+  },
+  "pPrep.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 166,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 909,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 125,
+    "grey: floor shadow + Deltamax body (kept)": 74,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 85,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "fee53592a70ab6f8808e50b48fb6f03dedcc45d176fb45898cf4ee2f5c12873c"
+  },
+  "pReprisal.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 278,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 855,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 190,
+    "grey: floor shadow + Deltamax body (kept)": 63,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 68
+   },
+   "maskSha256": "28e146b1a8cd9d9f0abaab80e4024187320655f790d07c6cb3682c1700cad016"
+  },
+  "pRise.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 185,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 833,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 144,
+    "grey: floor shadow + Deltamax body (kept)": 86,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 57
+   },
+   "maskSha256": "ea6ed9c06c48bf215cf2c40eabae662642fd96804b8386b58835119ac251e7a0"
+  },
+  "pRose.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 154,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 771,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 115,
+    "grey: floor shadow + Deltamax body (kept)": 100,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 55
+   },
+   "maskSha256": "e2309a2b0cd9458700a096eccc2964df2edbc515fd1d5e6cf4be4ee9264c3bc4"
+  },
+  "pShot.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 282,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 1481,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 254,
+    "grey: floor shadow + Deltamax body (kept)": 113,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 180
+   },
+   "maskSha256": "dd9d702c80c9baa1a1b8504a36bb378e7d2dfbd3fc2499da65e8d94c810dd922"
+  },
+  "pStance.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 172,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 925,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 121,
+    "grey: floor shadow + Deltamax body (kept)": 53,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 85,
+    "other stray pixels (kept)": 1
+   },
+   "maskSha256": "f117c68d9f39facbea1bdf2c9208039f9365e488a039e474918ef92e3d1d270b"
+  },
+  "pSweep.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 251,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 755,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 90,
+    "grey: floor shadow + Deltamax body (kept)": 102,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 54
+   },
+   "maskSha256": "6b4db1a9342e2feb9792d50b7d38e10896c7898112e792ef10ff9e7a214379e2"
+  },
+  "pVault.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 149,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 792,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 118,
+    "grey: floor shadow + Deltamax body (kept)": 95,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 78
+   },
+   "maskSha256": "06360181d62f159a355d29b83b2601076bb9b82ca5c631ab1658a68e22ffc794"
+  },
+  "portrait.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 275,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 2850,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 150,
+    "grey: floor shadow + Deltamax body (kept)": 450,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 1300
+   },
+   "maskSha256": "b7d9d8e3bc1351b9762905fb45902bede844133946fa884006e21ba45e8bc8dc"
+  },
+  "run.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 3464,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "a0d3250de9004b47103c66255290ffb9a65bc2ec8e65a5550d206ef9f6f637fb"
+  },
+  "ultimate.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 327,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 1359,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 135,
+    "grey: floor shadow + Deltamax body (kept)": 209,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 1163,
+    "other stray pixels (kept)": 5
+   },
+   "maskSha256": "74874fe06c6cc56416b035ffc5730e7f3ada79cc57acf2ece3a3871ede959f5c"
+  },
+  "up.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 187,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 820,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 152,
+    "grey: floor shadow + Deltamax body (kept)": 81,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 58
+   },
+   "maskSha256": "a1bbb5a2b0be9362b80064026f115c5c469726f12e00731aab04ce6cf19c3065"
+  },
+  "walk.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 3464,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "a0d3250de9004b47103c66255290ffb9a65bc2ec8e65a5550d206ef9f6f637fb"
+  },
+  "walk_back.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 605,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 3464,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 572,
+    "grey: floor shadow + Deltamax body (kept)": 175,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 189,
+    "other stray pixels (kept)": 6
+   },
+   "maskSha256": "a383d2f0e859faf85a7c931efe3288823a8af9136d5fe691b80203db9bbddc9a"
+  },
+  "win.png": {
+   "regions": {
+    "black: outlines + visor + black side panels (kept)": 210,
+    "suit: helmet + pink cloth (+ pink streak afterimage)": 893,
+    "trim: gloves / boot trim / belt / chest+leg stripes (white markings)": 173,
+    "grey: floor shadow + Deltamax body (kept)": 98,
+    "weapon/effect light: baton blade, barrel highlights, blast, muzzle star, beam core (kept)": 62
+   },
+   "maskSha256": "d6eb8d81ad6c47d382156b67da088ee0c1988ae9766a0b6ec4cc0fedb7ef52be"
+  }
+ }
+}

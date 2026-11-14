@@ -1,0 +1,81 @@
+{
+  "replay": {
+    "frames": 1800,
+    "identical": true,
+    "exercised": [
+      "light",
+      "pJ2",
+      "pJ3",
+      "pBow",
+      "arrow_quick",
+      "arrow_drawn",
+      "pCall",
+      "sortie_thunderLine",
+      "sortie_skySplitter",
+      "sortie_returningEdge",
+      "pCrane",
+      "blink",
+      "pPalm",
+      "pKick",
+      "pAway"
+    ]
+  },
+  "renderBatching": {
+    "samples": 450,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "mirrorIndependent": true,
+    "mirror": {
+      "p1Cancelled": true,
+      "p2Committed": true,
+      "p2Pips": 1,
+      "p1Pips": 1
+    }
+  },
+  "lan": {
+    "call": true,
+    "sortie": true,
+    "bow": true,
+    "blink": true,
+    "frame": 260,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "pCall",
+        "light",
+        "pJ2",
+        "pJ3",
+        "pBow"
+      ],
+      "kinds": [
+        "thunderLine",
+        "skySplitter"
+      ],
+      "hp": 765
+    },
+    "pad": {
+      "names": [
+        "pCall",
+        "light",
+        "pJ2",
+        "pJ3",
+        "pBow"
+      ],
+      "kinds": [
+        "thunderLine",
+        "skySplitter"
+      ],
+      "hp": 765
+    },
+    "same": true
+  },
+  "passes": 20,
+  "errors": []
+}

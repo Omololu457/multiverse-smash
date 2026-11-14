@@ -60,7 +60,7 @@ function pickSpecial(f, s, inputState, grounded, W) {
   }
   if (!grounded) return inputState.down ? 'zTatsu' : null
   const fwd = f.facing === -1 ? inputState.left : inputState.right, back = f.facing === -1 ? inputState.right : inputState.left
-  return inputState.down ? 'zTatsu' : fwd ? 'zOni' : back ? 'zTora' : 'zTaka'
+  return inputState.down ? 'zTatsu' : inputState.up ? 'zNigiri' : fwd ? 'zOni' : back ? 'zTora' : 'zTaka'
 }
 
 function fire(f, s, key, W) {
@@ -79,12 +79,13 @@ function fire(f, s, key, W) {
 
 function normalFor(f, inputState, button, grounded) {
   const fwd = f.facing === -1 ? inputState.left : inputState.right
-  if (!grounded) return inputState.down ? 'down_air' : 'air'
+  if (!grounded) return inputState.down ? 'down_air' : button === 'heavy' ? 'zAirH' : 'air'
   if (button === 'upAttack') return 'up'
-  if (button === 'light') return inputState.down ? 'zLow' : fwd ? 'zSlash' : 'light'
+  if (button === 'light') return inputState.down ? 'zLow' : fwd ? 'zSlash' : (f.facing === -1 ? inputState.right : inputState.left) ? 'zYakko' : 'light'
   if (inputState.up) return 'up'
   if (inputState.down) return null          // ↓+H is the NAP hold, not a normal
-  return fwd ? 'zWake' : 'heavy'
+  const back = f.facing === -1 ? inputState.right : inputState.left
+  return fwd ? 'zWake' : back ? 'zStep' : 'heavy'
 }
 
 export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {

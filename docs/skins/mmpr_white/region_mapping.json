@@ -1,0 +1,984 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "outline / seams (kept)",
+  "2": "visor",
+  "3": "black chest shield",
+  "4": "white cloth (helmet, body, gloves, boots)",
+  "5": "gold trim (shield edging, bands, belt)",
+  "6": "FX: supplied kick trails / Saba slash streak",
+  "7": "Saba blade (kept)",
+  "8": "other (one stray source pixel, kept)"
+ },
+ "dark": [
+  32,
+  32,
+  32
+ ],
+ "visor": [
+  0,
+  0,
+  0
+ ],
+ "clothRamp": [
+  [
+   96,
+   96,
+   96
+  ],
+  [
+   192,
+   192,
+   192
+  ],
+  [
+   224,
+   224,
+   224
+  ]
+ ],
+ "goldRamp": [
+  [
+   160,
+   128,
+   32
+  ],
+  [
+   224,
+   192,
+   32
+  ]
+ ],
+ "shieldRule": "DARK pixels inside a solid 3x3 DARK core, dilated 1 px within DARK",
+ "fxRule": "cloth/gold blob whose 1-px rim is >=45% transparent",
+ "sabaRule": "sabaWind0 cell rect (0, 0, 29, 16) wherever that cell is placed in a strip (kept)",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "mmprWhiteAlienX",
+   "ref": "https://ben10.fandom.com/wiki/Alien_X",
+   "cloth": [
+    [
+     10,
+     11,
+     13
+    ],
+    [
+     30,
+     33,
+     37
+    ],
+    [
+     52,
+     56,
+     62
+    ]
+   ],
+   "shield": [
+    226,
+    232,
+    230
+   ],
+   "trim": [
+    [
+     46,
+     150,
+     82
+    ],
+    [
+     110,
+     226,
+     140
+    ]
+   ],
+   "visor": [
+    0,
+    0,
+    0
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      60,
+      120,
+      80
+     ],
+     [
+      176,
+      236,
+      196
+     ],
+     [
+      236,
+      255,
+      242
+     ]
+    ],
+    "gold": [
+     [
+      60,
+      170,
+      100
+     ],
+     [
+      150,
+      240,
+      176
+     ]
+    ]
+   },
+   "fx": [
+    "#d8ffe4",
+    "#3fae6a"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Alien X (Celestialsapien) \u2014 black body, white markings, green accents",
+   "notes": "Charcoal suit, the EXISTING chest shield turns pale, existing gold trim becomes green accents. The project's existing Alien X starfield overlay (game.js, ids ending \"AlienX\") draws on top; no stars painted into pixels."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "mmpr_white_inspired_upgrade",
+   "ref": "https://ben10.fandom.com/wiki/Upgrade",
+   "cloth": [
+    [
+     6,
+     8,
+     6
+    ],
+    [
+     18,
+     24,
+     18
+    ],
+    [
+     34,
+     42,
+     34
+    ]
+   ],
+   "shield": [
+    24,
+    150,
+    62
+   ],
+   "trim": [
+    [
+     36,
+     186,
+     76
+    ],
+    [
+     150,
+     255,
+     170
+    ]
+   ],
+   "visor": [
+    60,
+    224,
+    96
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      30,
+      120,
+      60
+     ],
+     [
+      80,
+      226,
+      116
+     ],
+     [
+      186,
+      255,
+      200
+     ]
+    ],
+    "gold": [
+     [
+      40,
+      190,
+      80
+     ],
+     [
+      150,
+      255,
+      170
+     ]
+    ]
+   },
+   "fx": [
+    "#8dffad",
+    "#1fd060"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Upgrade (Galvanic Mechamorph) \u2014 black body with green lines and a green eye",
+   "notes": "Dark suit; the EXISTING shield, trim and visor pixels turn green. Saba keeps its silver blade. No circuitry pattern drawn."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "mmpr_white_inspired_diamondhead",
+   "ref": "https://ben10.fandom.com/wiki/Diamondhead",
+   "cloth": [
+    [
+     20,
+     96,
+     108
+    ],
+    [
+     82,
+     192,
+     196
+    ],
+    [
+     196,
+     246,
+     242
+    ]
+   ],
+   "shield": [
+    12,
+    46,
+    64
+   ],
+   "trim": [
+    [
+     118,
+     176,
+     204
+    ],
+    [
+     216,
+     246,
+     255
+    ]
+   ],
+   "visor": [
+    8,
+    22,
+    30
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      60,
+      160,
+      170
+     ],
+     [
+      150,
+      238,
+      238
+     ],
+     [
+      226,
+      255,
+      255
+     ]
+    ],
+    "gold": [
+     [
+      118,
+      200,
+      220
+     ],
+     [
+      216,
+      250,
+      255
+     ]
+    ]
+   },
+   "fx": [
+    "#a8fff2",
+    "#2fb8b0"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Diamondhead (Petrosapien) \u2014 teal crystal body",
+   "notes": "Cyan/teal suit with pale highlights, cool dark-blue shield, pale icy trim. No crystal shards or facets."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "mmpr_white_inspired_heatblast",
+   "ref": "https://ben10.fandom.com/wiki/Heatblast",
+   "cloth": [
+    [
+     34,
+     26,
+     22
+    ],
+    [
+     66,
+     50,
+     40
+    ],
+    [
+     98,
+     72,
+     54
+    ]
+   ],
+   "shield": [
+    110,
+    24,
+    10
+   ],
+   "trim": [
+    [
+     226,
+     92,
+     22
+    ],
+    [
+     255,
+     204,
+     84
+    ]
+   ],
+   "visor": [
+    60,
+    10,
+    4
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      200,
+      80,
+      20
+     ],
+     [
+      255,
+      150,
+      60
+     ],
+     [
+      255,
+      230,
+      150
+     ]
+    ],
+    "gold": [
+     [
+      226,
+      110,
+      30
+     ],
+     [
+      255,
+      210,
+      100
+     ]
+    ]
+   },
+   "fx": [
+    "#ffc070",
+    "#ff6a10"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Heatblast (Pyronite) \u2014 charcoal rock with orange / yellow fire",
+   "notes": "Volcanic charcoal suit, dark-red shield, the existing gold trim runs orange-to-gold. No flames or rock texture."
+  },
+  "chromastone": {
+   "name": "Chromastone \u2014 Inspired",
+   "id": "mmpr_white_inspired_chromastone",
+   "ref": "https://ben10.fandom.com/wiki/Chromastone",
+   "cloth": [
+    [
+     76,
+     22,
+     118
+    ],
+    [
+     150,
+     54,
+     186
+    ],
+    [
+     214,
+     104,
+     222
+    ]
+   ],
+   "shield": [
+    30,
+    8,
+    48
+   ],
+   "trim": [
+    [
+     198,
+     188,
+     230
+    ],
+    [
+     246,
+     240,
+     255
+    ]
+   ],
+   "visor": [
+    20,
+    4,
+    30
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      170,
+      90,
+      220
+     ],
+     [
+      220,
+      150,
+      255
+     ],
+     [
+      250,
+      232,
+      255
+     ]
+    ],
+    "gold": [
+     [
+      210,
+      170,
+      250
+     ],
+     [
+      250,
+      232,
+      255
+     ]
+    ]
+   },
+   "fx": [
+    "#f0b8ff",
+    "#a43be0"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Chromastone (Crystalsapien) \u2014 purple/violet crystal body with magenta accents",
+   "notes": "Purple-to-magenta suit, deep violet shield, contrasting pale lavender trim. No crystal protrusions or prism FX."
+  },
+  "ghostfreak": {
+   "name": "Ghostfreak \u2014 Inspired",
+   "id": "mmpr_white_inspired_ghostfreak",
+   "ref": "https://ben10.fandom.com/wiki/Ghostfreak",
+   "cloth": [
+    [
+     112,
+     104,
+     134
+    ],
+    [
+     184,
+     178,
+     204
+    ],
+    [
+     230,
+     226,
+     244
+    ]
+   ],
+   "shield": [
+    40,
+    32,
+    50
+   ],
+   "trim": [
+    [
+     52,
+     46,
+     60
+    ],
+    [
+     92,
+     84,
+     104
+    ]
+   ],
+   "visor": [
+    76,
+    26,
+    100
+   ],
+   "fxr": {
+    "cloth": [
+     [
+      150,
+      140,
+      180
+     ],
+     [
+      200,
+      192,
+      222
+     ],
+     [
+      244,
+      240,
+      255
+     ]
+    ],
+    "gold": [
+     [
+      120,
+      100,
+      150
+     ],
+     [
+      200,
+      190,
+      230
+     ]
+    ]
+   },
+   "fx": [
+    "#e6e0ff",
+    "#6b4a8c"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Ghostfreak (Ectonurite) \u2014 pale grey-white body, dark lines, purple eye",
+   "notes": "Pale spectral suit; the existing gold trim becomes dark seams, dark shield, violet visor. Outlines kept. No tentacles, no transparency effect."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "outline / seams (kept)": 647,
+    "visor": 26,
+    "black chest shield": 125,
+    "white cloth (helmet, body, gloves, boots)": 989,
+    "gold trim (shield edging, bands, belt)": 334,
+    "FX: supplied kick trails / Saba slash streak": 207
+   },
+   "maskSha256": "97abf1e352907a3a0858807307f1add125a5e645601581c9367a3785dc1d9608"
+  },
+  "blink.png": {
+   "regions": {
+    "outline / seams (kept)": 394,
+    "visor": 8,
+    "black chest shield": 32,
+    "white cloth (helmet, body, gloves, boots)": 639,
+    "gold trim (shield edging, bands, belt)": 162
+   },
+   "maskSha256": "0a4d022460e46f9f0e38adc8d968323a8a4f41fbbc5a257f4545b6ea55d53e73"
+  },
+  "crouch.png": {
+   "regions": {
+    "outline / seams (kept)": 406,
+    "visor": 11,
+    "black chest shield": 77,
+    "white cloth (helmet, body, gloves, boots)": 461,
+    "gold trim (shield edging, bands, belt)": 179
+   },
+   "maskSha256": "a0deb35707b282d79a0a9ed18514d3fe0f9676fdc519f858bc954e457e85d5ee"
+  },
+  "dash.png": {
+   "regions": {
+    "outline / seams (kept)": 475,
+    "visor": 12,
+    "black chest shield": 21,
+    "white cloth (helmet, body, gloves, boots)": 564,
+    "gold trim (shield edging, bands, belt)": 178
+   },
+   "maskSha256": "1824c49405afabd42f0c13029a9169559fdec3749dd10cf36be54660c2bd4955"
+  },
+  "down_air.png": {
+   "regions": {
+    "outline / seams (kept)": 384,
+    "visor": 18,
+    "black chest shield": 110,
+    "white cloth (helmet, body, gloves, boots)": 575,
+    "gold trim (shield edging, bands, belt)": 242,
+    "FX: supplied kick trails / Saba slash streak": 207
+   },
+   "maskSha256": "4c31e21cf8cf759a76c9e32d96a34166e03fabbe19b3cbd978e2c2003c71029f"
+  },
+  "fall.png": {
+   "regions": {
+    "outline / seams (kept)": 437,
+    "visor": 18,
+    "black chest shield": 65,
+    "white cloth (helmet, body, gloves, boots)": 582,
+    "gold trim (shield edging, bands, belt)": 212
+   },
+   "maskSha256": "7f8904b80f418d7b0c4e5dbaaf5adbb4c0bec0a195147d30abdcbacfb9566a0a"
+  },
+  "getup.png": {
+   "regions": {
+    "outline / seams (kept)": 1148,
+    "visor": 37,
+    "black chest shield": 165,
+    "white cloth (helmet, body, gloves, boots)": 1643,
+    "gold trim (shield edging, bands, belt)": 461
+   },
+   "maskSha256": "dace51bd0b8b841c1c7b3e8572f89149c6e03aeb7eda185eaf1a2c966b5e943b"
+  },
+  "grab.png": {
+   "regions": {
+    "outline / seams (kept)": 945,
+    "visor": 24,
+    "black chest shield": 170,
+    "white cloth (helmet, body, gloves, boots)": 1362,
+    "gold trim (shield edging, bands, belt)": 421
+   },
+   "maskSha256": "9087e522d1ad5d64a56fa21a144bf45dcb2bfd1ba869d035bbce4ed7b454fd1b"
+  },
+  "guard.png": {
+   "regions": {
+    "outline / seams (kept)": 402,
+    "visor": 11,
+    "black chest shield": 104,
+    "white cloth (helmet, body, gloves, boots)": 570,
+    "gold trim (shield edging, bands, belt)": 180,
+    "FX: supplied kick trails / Saba slash streak": 1,
+    "other (one stray source pixel, kept)": 1
+   },
+   "maskSha256": "061cb9c901f3015dfaf637224474d9ba9a6b0a2d1c0f04f1cad077ba4131cdd8"
+  },
+  "heavy.png": {
+   "regions": {
+    "outline / seams (kept)": 1272,
+    "visor": 54,
+    "black chest shield": 204,
+    "white cloth (helmet, body, gloves, boots)": 1746,
+    "gold trim (shield edging, bands, belt)": 572,
+    "FX: supplied kick trails / Saba slash streak": 123,
+    "Saba blade (kept)": 108
+   },
+   "maskSha256": "bc3ba1523d531e6f06cff86549eed3664c978c225c4a285c0ecc30cc15e0322a"
+  },
+  "hurt.png": {
+   "regions": {
+    "outline / seams (kept)": 361,
+    "visor": 11,
+    "black chest shield": 173,
+    "white cloth (helmet, body, gloves, boots)": 531,
+    "gold trim (shield edging, bands, belt)": 190
+   },
+   "maskSha256": "06047890d44d7f570e8a72af9527e6e202ea89d0e15099dfc975eb3b95a9037d"
+  },
+  "hurt2.png": {
+   "regions": {
+    "outline / seams (kept)": 361,
+    "visor": 5,
+    "black chest shield": 202,
+    "white cloth (helmet, body, gloves, boots)": 557,
+    "gold trim (shield edging, bands, belt)": 168
+   },
+   "maskSha256": "56de449fbabbdb2382a9bdcff583b1f4110dcbd6da6940d4458e2a4c3d598195"
+  },
+  "idle.png": {
+   "regions": {
+    "outline / seams (kept)": 1818,
+    "visor": 68,
+    "black chest shield": 178,
+    "white cloth (helmet, body, gloves, boots)": 2579,
+    "gold trim (shield edging, bands, belt)": 747
+   },
+   "maskSha256": "4e234f35c3d09adabd9325dbbd7c9bc4c843de741f53dd4078216c3a08715015"
+  },
+  "intro.png": {
+   "regions": {
+    "outline / seams (kept)": 1429,
+    "visor": 38,
+    "black chest shield": 123,
+    "white cloth (helmet, body, gloves, boots)": 2114,
+    "gold trim (shield edging, bands, belt)": 580,
+    "FX: supplied kick trails / Saba slash streak": 699
+   },
+   "maskSha256": "166f820155aa1ad991df78190feedb27c6d2b032e62d80598eff4b45ebc51dfc"
+  },
+  "jump.png": {
+   "regions": {
+    "outline / seams (kept)": 1135,
+    "visor": 47,
+    "black chest shield": 147,
+    "white cloth (helmet, body, gloves, boots)": 1657,
+    "gold trim (shield edging, bands, belt)": 481
+   },
+   "maskSha256": "80da53b608506460de87ba93edd9c1259a1eefec59ad6fea3c9ce4618395a3f3"
+  },
+  "knockdown.png": {
+   "regions": {
+    "outline / seams (kept)": 1033,
+    "visor": 31,
+    "black chest shield": 88,
+    "white cloth (helmet, body, gloves, boots)": 1474,
+    "gold trim (shield edging, bands, belt)": 461
+   },
+   "maskSha256": "9a9c32139814c5406ae325e40d144dfbc48fd2c37dbcc317f6176c2f01cf392c"
+  },
+  "launched.png": {
+   "regions": {
+    "outline / seams (kept)": 350,
+    "visor": 10,
+    "black chest shield": 30,
+    "white cloth (helmet, body, gloves, boots)": 503,
+    "gold trim (shield edging, bands, belt)": 122
+   },
+   "maskSha256": "1e6e94737e8178c370b263a8f7c8c5efb1fb5fa081cac036333e970734299dda"
+  },
+  "light.png": {
+   "regions": {
+    "outline / seams (kept)": 945,
+    "visor": 24,
+    "black chest shield": 170,
+    "white cloth (helmet, body, gloves, boots)": 1362,
+    "gold trim (shield edging, bands, belt)": 421
+   },
+   "maskSha256": "9087e522d1ad5d64a56fa21a144bf45dcb2bfd1ba869d035bbce4ed7b454fd1b"
+  },
+  "lose.png": {
+   "regions": {
+    "outline / seams (kept)": 1921,
+    "visor": 49,
+    "black chest shield": 222,
+    "white cloth (helmet, body, gloves, boots)": 2603,
+    "gold trim (shield edging, bands, belt)": 788
+   },
+   "maskSha256": "e471c5b236e9ed3f228f2ea225e5c52b4d5113ad4cba2e3a10ea51ccc9d6dedf"
+  },
+  "portrait.png": {
+   "regions": {
+    "outline / seams (kept)": 2800,
+    "visor": 272,
+    "white cloth (helmet, body, gloves, boots)": 3200,
+    "gold trim (shield edging, bands, belt)": 1808
+   },
+   "maskSha256": "fc0b936d2daad930faa47c2dc66d6891e1dc640d0d6a4e22095deb6145363fcd"
+  },
+  "run.png": {
+   "regions": {
+    "outline / seams (kept)": 2599,
+    "visor": 67,
+    "black chest shield": 248,
+    "white cloth (helmet, body, gloves, boots)": 3349,
+    "gold trim (shield edging, bands, belt)": 1049
+   },
+   "maskSha256": "dba7ed9d788abbef8f5db0d147bc14030e0be0a0dc170cef597860a513c478cc"
+  },
+  "stagger.png": {
+   "regions": {
+    "outline / seams (kept)": 408,
+    "visor": 18,
+    "black chest shield": 110,
+    "white cloth (helmet, body, gloves, boots)": 555,
+    "gold trim (shield edging, bands, belt)": 185
+   },
+   "maskSha256": "d66913d097485a6d40fc4c66a56c1db4cd1ff9969ddb1e39828a8ed5a01f2f3a"
+  },
+  "ultFinal.png": {
+   "regions": {
+    "outline / seams (kept)": 860,
+    "visor": 43,
+    "black chest shield": 78,
+    "white cloth (helmet, body, gloves, boots)": 1143,
+    "gold trim (shield edging, bands, belt)": 386,
+    "FX: supplied kick trails / Saba slash streak": 123,
+    "Saba blade (kept)": 108
+   },
+   "maskSha256": "4e8824f1d8599551a7f57f08be64a985f8e7aad5d92ed7b4065b0d5c9f08ce3f"
+  },
+  "ultKick.png": {
+   "regions": {
+    "outline / seams (kept)": 774,
+    "visor": 36,
+    "black chest shield": 175,
+    "white cloth (helmet, body, gloves, boots)": 1069,
+    "gold trim (shield edging, bands, belt)": 443,
+    "FX: supplied kick trails / Saba slash streak": 207
+   },
+   "maskSha256": "a9ea14acc407649597417967c50f07e8b67ca1ddd52fb274ebd6eeb2c9b6d4ac"
+  },
+  "ultLand.png": {
+   "regions": {
+    "outline / seams (kept)": 718,
+    "visor": 19,
+    "black chest shield": 69,
+    "white cloth (helmet, body, gloves, boots)": 1011,
+    "gold trim (shield edging, bands, belt)": 275
+   },
+   "maskSha256": "153b0f2a0fa6909adcf103fd90fac0b312cffb96b468a39a694272ef197ca82b"
+  },
+  "ultOpen.png": {
+   "regions": {
+    "outline / seams (kept)": 1272,
+    "visor": 54,
+    "black chest shield": 204,
+    "white cloth (helmet, body, gloves, boots)": 1746,
+    "gold trim (shield edging, bands, belt)": 572,
+    "FX: supplied kick trails / Saba slash streak": 123,
+    "Saba blade (kept)": 108
+   },
+   "maskSha256": "bc3ba1523d531e6f06cff86549eed3664c978c225c4a285c0ecc30cc15e0322a"
+  },
+  "up.png": {
+   "regions": {
+    "outline / seams (kept)": 1160,
+    "visor": 39,
+    "black chest shield": 286,
+    "white cloth (helmet, body, gloves, boots)": 1617,
+    "gold trim (shield edging, bands, belt)": 494,
+    "FX: supplied kick trails / Saba slash streak": 1
+   },
+   "maskSha256": "b2a7dbbec6b9f0ed23553a853442c275eaf6d13af584cb7e23d3973a214a0b75"
+  },
+  "wAdv.png": {
+   "regions": {
+    "outline / seams (kept)": 838,
+    "visor": 16,
+    "black chest shield": 140,
+    "white cloth (helmet, body, gloves, boots)": 1206,
+    "gold trim (shield edging, bands, belt)": 336
+   },
+   "maskSha256": "367a4fbd18eb5077047883eb3cb56e95d8915c5860e3a1764a8dccd46e5a3d4e"
+  },
+  "wAnswer.png": {
+   "regions": {
+    "outline / seams (kept)": 2117,
+    "visor": 76,
+    "black chest shield": 285,
+    "white cloth (helmet, body, gloves, boots)": 2869,
+    "gold trim (shield edging, bands, belt)": 935,
+    "FX: supplied kick trails / Saba slash streak": 123,
+    "Saba blade (kept)": 108
+   },
+   "maskSha256": "645c00da60a6bc2266f7f480e845a8a865a48dc2d6058ef0de02133f909cbada"
+  },
+  "wAscent.png": {
+   "regions": {
+    "outline / seams (kept)": 1215,
+    "visor": 45,
+    "black chest shield": 259,
+    "white cloth (helmet, body, gloves, boots)": 1636,
+    "gold trim (shield edging, bands, belt)": 560,
+    "FX: supplied kick trails / Saba slash streak": 1
+   },
+   "maskSha256": "a57597bc550e8aafb8f744e714a6c9ed6ee793a37a8383f5b0eb048cb2cd4e94"
+  },
+  "wCall.png": {
+   "regions": {
+    "outline / seams (kept)": 866,
+    "visor": 22,
+    "black chest shield": 131,
+    "white cloth (helmet, body, gloves, boots)": 1315,
+    "gold trim (shield edging, bands, belt)": 393
+   },
+   "maskSha256": "cb428e69e48aec0b4d5476c659e09782481a98b6248824b454200296f02b096f"
+  },
+  "wDescent.png": {
+   "regions": {
+    "outline / seams (kept)": 710,
+    "visor": 19,
+    "black chest shield": 71,
+    "white cloth (helmet, body, gloves, boots)": 1014,
+    "gold trim (shield edging, bands, belt)": 277
+   },
+   "maskSha256": "37c270274747878003e8935b90cb1b2cddc39da2a80a38ac4cd14b1a32824e09"
+  },
+  "wFeint.png": {
+   "regions": {
+    "outline / seams (kept)": 775,
+    "visor": 22,
+    "black chest shield": 158,
+    "white cloth (helmet, body, gloves, boots)": 1071,
+    "gold trim (shield edging, bands, belt)": 340
+   },
+   "maskSha256": "d544b82afc3683951c526fbf30bf75d348015e992b9eeed12d2c7adb75afcda2"
+  },
+  "wJ2.png": {
+   "regions": {
+    "outline / seams (kept)": 801,
+    "visor": 5,
+    "black chest shield": 131,
+    "white cloth (helmet, body, gloves, boots)": 1248,
+    "gold trim (shield edging, bands, belt)": 247
+   },
+   "maskSha256": "5372d24d06f25138fdef1252ddbf8a720f9087ef240a35b9f032023d9101d7b4"
+  },
+  "wJ3.png": {
+   "regions": {
+    "outline / seams (kept)": 765,
+    "visor": 22,
+    "black chest shield": 143,
+    "white cloth (helmet, body, gloves, boots)": 1076,
+    "gold trim (shield edging, bands, belt)": 301,
+    "FX: supplied kick trails / Saba slash streak": 292
+   },
+   "maskSha256": "748d250f84ed4d3c362c4c5a208abaec568deb10e5102fe39087d5402e45a13c"
+  },
+  "wKnock.png": {
+   "regions": {
+    "outline / seams (kept)": 847,
+    "visor": 20,
+    "black chest shield": 198,
+    "white cloth (helmet, body, gloves, boots)": 1190,
+    "gold trim (shield edging, bands, belt)": 380,
+    "FX: supplied kick trails / Saba slash streak": 277
+   },
+   "maskSha256": "b87f489f1dadeb8513ef58250090f4480801fbdce34e97e2f0b7ff1dbab5a069"
+  },
+  "wLow.png": {
+   "regions": {
+    "outline / seams (kept)": 766,
+    "visor": 22,
+    "black chest shield": 113,
+    "white cloth (helmet, body, gloves, boots)": 1078,
+    "gold trim (shield edging, bands, belt)": 388
+   },
+   "maskSha256": "98d2880691ba2bba58adeaa1c904c0cf29d14bbcfbd4056e82249469d8ec0108"
+  },
+  "wOrder.png": {
+   "regions": {
+    "outline / seams (kept)": 396,
+    "visor": 11,
+    "black chest shield": 58,
+    "white cloth (helmet, body, gloves, boots)": 619,
+    "gold trim (shield edging, bands, belt)": 152
+   },
+   "maskSha256": "662e837a274c0248e75a1b43e671d9ac45df6e2403b437a28d533e3a0f0a2a4a"
+  },
+  "wSaba.png": {
+   "regions": {
+    "outline / seams (kept)": 860,
+    "visor": 43,
+    "black chest shield": 78,
+    "white cloth (helmet, body, gloves, boots)": 1143,
+    "gold trim (shield edging, bands, belt)": 386,
+    "FX: supplied kick trails / Saba slash streak": 123,
+    "Saba blade (kept)": 108
+   },
+   "maskSha256": "4e8824f1d8599551a7f57f08be64a985f8e7aad5d92ed7b4065b0d5c9f08ce3f"
+  },
+  "walk.png": {
+   "regions": {
+    "outline / seams (kept)": 2328,
+    "visor": 66,
+    "black chest shield": 284,
+    "white cloth (helmet, body, gloves, boots)": 3361,
+    "gold trim (shield edging, bands, belt)": 982
+   },
+   "maskSha256": "81ec8fdff075a7f866c2c1542834ae704b4582eee3f9756ae6701c28a8c89a65"
+  },
+  "walk_back.png": {
+   "regions": {
+    "outline / seams (kept)": 2328,
+    "visor": 66,
+    "black chest shield": 284,
+    "white cloth (helmet, body, gloves, boots)": 3361,
+    "gold trim (shield edging, bands, belt)": 982
+   },
+   "maskSha256": "d09d3d58c01efcc5eefde10109fd45fd8f231bde3fc51fc508acbe57a7846fc2"
+  },
+  "win.png": {
+   "regions": {
+    "outline / seams (kept)": 412,
+    "visor": 11,
+    "black chest shield": 126,
+    "white cloth (helmet, body, gloves, boots)": 603,
+    "gold trim (shield edging, bands, belt)": 186
+   },
+   "maskSha256": "6439f88ba653d3ae7d64b31db472e9480ee50fe33b8406cf8ee5f550602111b9"
+  }
+ }
+}

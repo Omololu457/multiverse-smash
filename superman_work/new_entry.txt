@@ -1,0 +1,84 @@
+// SUPERMAN  (rosterKey "superman", universe "dc"). FULL REBUILD 2026-10-23
+// (feat/superman): art re-sliced from superman_jus_addons_by_planeptunearte_deaeqvi.png
+// (26 frames / 10 rows, grey #727272 chroma-key → superman_*_uniform.png; see
+// docs/superman/SPRITE_LEDGER.md). FLIGHT now runs on the reusable flight.js module
+// (traits.flightProfile:"superman" — the Homelander system, NOT the old canFly path):
+// double-tap / charge-tap to take off, directional steer, 3 air-dashes, 5 s flight
+// budget, hard-hit forces him down. Energy = "Solar Energy" (traits.energyType
+// "solar_energy" → ui.js label) fuels specials + ultimate; flight has its own budget
+// inside flight.js. Archetype: versatile all-rounder (difficulty 3). See
+// docs/superman/BALANCE_NOTES.md.
+// ─────────────────────────────────────────────────────────────────
+const superman = {
+  rosterKey: "superman", name: "Superman", displayName: "Superman", universe: "dc", color: "#1c4fd8",
+  portrait: "./superman_portrait.png",
+  tagline: "The Man of Steel",
+  difficulty: 3,            // out of 5 — versatile but Solar-Energy management matters
+  archetype: "All-Rounder",
+  bio: "Kal-El of Krypton. Raised in Smallville, he fights for truth and justice with power unmatched by any mortal. His restraint is his greatest strength.",
+  archetypes: ["flight", "melee"],
+  primary: "flight", secondary: ["melee"],
+  // ★ FLIGHT: traits.flightProfile wires the flight.js module (see flight.js FLIGHT_PROFILES.superman).
+  // NOT traits.canFly (that is the older simple Omni-Man flight — left byte-identical for Omni-Man).
+  traits: { hasEnergy: true, energyType: "solar_energy", energyName: "Solar Energy", mobility: "high", scaling: "damage", animeMovement: false, flightProfile: "superman" },
+  passive: { name: "Kryptonian Physiology", effect: "Yellow-sun-charged strength and durability — tough, fast, and free to take to the sky on a 5-second flight budget. X-Ray Vision: +8% damage while the opponent is below 25% health." },
+  // POWERHOUSE-but-fair: tougher + faster than Homelander (1050/99), far below the old apex (1450).
+  stats: { maxHealth: 1150, maxEnergy: 100, attack: 95, defense: 92, speed: 94, maxJumps: 2, jumpPower: 30, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 30 },
+  movement: { dashTeleport: true },
+  // ── NORMALS (Phase 4 brief). No energy cost. Diminishing-returns combo scaling is engine-global.
+  basic_attacks: {
+    light:    { damage: 45, startup: 4, active: 3, recovery: 8,  hitstun: 14, knockbackX: 4,  knockbackY: 0 },   // Light jab (+2 on block via low recovery)
+    heavy:    { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },   // Heavy straight (-3 on block) — Super Armor layered in Phase 6
+    upAttack: { type: "launcher", damage: 70, startup: 5, active: 4, recovery: 12, hitstun: 20, knockbackX: 2, knockbackY: -12, launch: 14, launchVy: -33, selfVy: -9, airOK: false },   // Crouch uppercut launcher
+    airAttack:{ damage: 50, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },   // Air punch
+    downAir:  { damage: 60, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },   // dive kick
+    grab:     { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 8, throwForceY: -3 }
+  },
+  // ── SPECIALS (metadata / move-list; handlers in abilities.js). Costs are Solar Energy.
+  specials: {
+    heatVision:    { cost: 15, damage: 60, effect: "Eye beam (↓↘→+Attack). Tap = 60 burst; hold = sustained 8/tick beam, angleable ±30°, extra 5 energy/sec." },
+    freezeBreath:  { cost: 20, damage: 30, effect: "Cone of frost (↓↓+Attack). FROZEN 1.2s, +15% follow-up damage. 8s cooldown, mashable break-out." },
+    speedRush:     { cost: 12, damage: 150, effect: "Super Speed Rush (→→+Attack / Fwd+Heavy rekka). Dash into a 5-hit auto-combo, launcher finish." },
+    groundPound:   { cost: 18, damage: 110, effect: "Ground Pound (↓↓+Special, air). Steep dive slam + 40 shockwave that trips." },
+    kryptonianGrab:{ cost: 10, damage: 130, effect: "Take You For A Ride (→+Grab, close). Fly up and slam down — untechable." },
+    solarFlare:    { cost: 35, damage: 120, effect: "Solar Flare (↓↘→↗+Special). 360° golden burst, knockback + 2s stun. 15s cooldown." }
+  },
+  ultimate: { name: "World of Cardboard", cost: 100, description: "Full-meter cinematic super. Superman lands the first strike, then a super-speed barrage → uppercut launch → fly up and catch → point-blank heat vision → final slam from orbit. ~380, costs all 100 Solar Energy, then a 4-second energy lock." },
+  hasSprites: true,
+  spriteScale: 2.0,
+  animationData: {
+    // ── MOVEMENT / STATE
+    idle:   { frames: 4, width: 57, height: 67, speed: 8, anchorY: 0, sheet: "./superman_idle_uniform.png" },
+    walk:   { frames: 4, width: 70, height: 64, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    run:    { frames: 4, width: 57, height: 75, speed: 4, anchorY: 0, sheet: "./superman_run_uniform.png" },
+    dash:   { frames: 4, width: 57, height: 75, speed: 4, anchorY: 0, sheet: "./superman_run_uniform.png" },
+    jump:   { frames: 2, width: 45, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    fall:   { frames: 2, width: 61, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_fall_uniform.png" },
+    crouch: { frames: 1, width: 52, height: 65, speed: 6, anchorY: 0, loop: true, sheet: "./superman_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 62, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hurt_uniform.png" },
+    block:  { frames: 1, width: 52, height: 56, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    guard:  { frames: 1, width: 52, height: 56, speed: 6, anchorY: 0, loop: true, sheet: "./superman_guard_uniform.png" },
+    charge: { frames: 3, width: 57, height: 75, speed: 6, anchorY: 0, loop: true, sheet: "./superman_beam_uniform.png" },
+    // ── NORMAL ATTACK POSES
+    light:     { frames: 2, width: 51, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
+    heavy:     { frames: 2, width: 68, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
+    up:        { frames: 2, width: 68, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_uppercut_uniform.png" },
+    air:       { frames: 2, width: 68, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
+    sweep:     { frames: 2, width: 68, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_sweep_uniform.png" },
+    down_air:  { frames: 1, width: 40, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    // ── SPECIAL / ULT POSES
+    heatCharge:{ frames: 3, width: 57, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    beam:      { frames: 3, width: 57, height: 75, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_beam_uniform.png" },
+    dive:      { frames: 1, width: 40, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    ultimate:  { frames: 3, width: 57, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_cardboard_uniform.png" },
+    // ── FLIGHT (flight.js module — required pose keys; selectFlightPose maps velocity → these)
+    flyHover:  { frames: 3, width: 45, height: 67, speed: 7, anchorY: 0, sheet: "./superman_flight_uniform.png" },
+    flyCruise: { frames: 4, width: 57, height: 75, speed: 6, anchorY: 0, sheet: "./superman_run_uniform.png" },
+    flyRise:   { frames: 3, width: 61, height: 65, speed: 5, anchorY: 0, sheet: "./superman_flightrise_uniform.png" },
+    flyDive:   { frames: 1, width: 40, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    flyTurn:   { frames: 3, width: 45, height: 67, speed: 5, anchorY: 0, sheet: "./superman_flight_uniform.png" },
+    flyDash:   { frames: 1, width: 40, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_flightdash_uniform.png" },
+    takeoff:   { frames: 2, width: 45, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_jump_uniform.png" },
+    land:      { frames: 2, width: 62, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_land_uniform.png" }
+  }
+}

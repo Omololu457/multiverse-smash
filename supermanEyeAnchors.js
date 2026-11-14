@@ -5,26 +5,26 @@
 // RIGHT). getSupermanEyeWorld() maps the current rendered frame's anchor to world space using the real
 // drawn rect (_lastDrawX/Y/W/H set by sprite.js), mirroring for facing. Reusable blueprint for Homelander.
 export const SUPERMAN_EYES = {
-  idle:       [[0.651, 0.235], [0.637, 0.180]],
-  walk:       [[0.783, 0.207], [0.706, 0.234], [0.661, 0.168]],
-  crouch:     [[0.783, 0.194]],
-  light:      [[0.550, 0.210], [0.700, 0.230]],   // fr1 jab windup (face), fr2 extended → keep eye near head height
+  idle:       [[0.588, 0.201], [0.693, 0.187]],
+  walk:       [[0.820, 0.214], [0.581, 0.198], [0.605, 0.175]],
+  crouch:     [[0.683, 0.202]],
+  light:      [[0.512, 0.198], [0.700, 0.230]],   // fr1 jab windup (face), fr2 extended → keep eye near head height
   heavy:      [[0.596, 0.227], [0.700, 0.233]],
-  uppercut:   [[0.657, 0.276], [0.552, 0.183]],
+  uppercut:   [[0.573, 0.283], [0.552, 0.183]],
   air:        [[0.596, 0.227], [0.700, 0.233]],
-  sweep:      [[0.581, 0.194], [0.593, 0.211]],
-  flightdash: [[0.567, 0.196]],
-  jump:       [[0.686, 0.198], [0.688, 0.139]],
-  fall:       [[0.560, 0.175], [0.560, 0.204]],
-  flight:     [[0.560, 0.175], [0.560, 0.204], [0.560, 0.218]],
-  flycruise:  [[0.800, 0.165]],
-  flightrise: [[0.770, 0.139]],
+  sweep:      [[0.507, 0.202], [0.507, 0.250]],
+  flightdash: [[0.560, 0.709]],
+  jump:       [[0.735, 0.204], [0.629, 0.176]],
+  fall:       [[0.628, 0.181], [0.628, 0.210]],
+  flight:     [[0.628, 0.181], [0.628, 0.210], [0.628, 0.225]],
+  flycruise:  [[0.839, 0.237]],
+  flightrise: [[0.703, 0.176]],
   flyturn:    [[0.633, 0.161]],
-  land:       [[0.583, 0.302], [0.720, 0.352]],
-  beam:       [[0.650, 0.235], [0.720, 0.224]],
-  hurt:       [[0.593, 0.184]],
-  guard:      [[0.635, 0.208]],
-  cardboard:  [[0.806, 0.333], [0.549, 0.302], [0.591, 0.268]],
+  land:       [[0.633, 0.331], [0.695, 0.305]],
+  beam:       [[0.742, 0.235], [0.695, 0.189]],
+  hurt:       [[0.507, 0.225]],
+  guard:      [[0.694, 0.216]],
+  cardboard:  [[0.699, 0.292], [0.596, 0.331], [0.591, 0.268]],
 }
 
 // current animation key → which strip's anchors to read (keys that share a sheet share anchors).

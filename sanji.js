@@ -91,11 +91,11 @@ const SPECIAL_CANCEL = { sAntiManner: ['sHachis', 'sPTKC'], sHachis: ['sMouton',
 const T = { fwd: d => d === 3 || d === 6 || d === 9, back: d => d === 1 || d === 4 || d === 7, down: d => d <= 3, up: d => d >= 7 }
 function normalFor(f, s, button, grounded) {
   const d = s.edgeDir?.[button] ?? 5
-  if (!grounded) return T.down(d) ? 'down_air' : 'air'
+  if (!grounded) return T.down(d) ? 'down_air' : button === 'heavy' ? 'sAirH' : 'air'
   if (button === 'upAttack') return 'up'
   if (button === 'light') {
     if (T.down(d)) return T.fwd(d) ? 'sGigot' : 'sCrouchKick'   // ↘+L = GIGOT (low kick) · ↓/↙+L = crouch kick
-    return T.fwd(d) ? 'sEpaule' : 'sCollier'
+    return T.fwd(d) ? 'sEpaule' : T.back(d) ? 'sFlanchet' : 'sCollier'
   }
   if (T.up(d)) return 'up'
   if (T.down(d)) return 'sHandstand'

@@ -28,6 +28,8 @@ export const SANJI_MOVES = {
   up:         n(75, 8, 4, 18,  { blockstun: adv(-7, 4, 18), hitstun: 26, rangeX: 70, rangeY: 150, launcher: true, launchVy: -20, selfVy: 0,   // anti-air knee
                sj: { boxY: -80 } }),
   air:        n(65, 6, 4, 12,  { blockstun: 12, hitstun: 20, rangeX: 78, rangeY: 60, knockbackX: 3, knockbackY: -2 }),   // air kick (jump-in)
+  sFlanchet:  n(70, 13, 3, 20, { blockstun: adv(-4, 3, 20), hitstun: 26, rangeX: 92, rangeY: 64, knockbackX: 16 }),   // VARIETY L6 Back+Light FLANCHET SHOT: turning back-kick that blasts the foe away
+  sAirH:      n(80, 9, 4, 16,  { blockstun: 12, hitstun: 24, rangeX: 90, rangeY: 76, knockbackX: 4, knockbackY: 3 }),   // VARIETY: air Heavy axe-heel stomp (slower, bigger)
   down_air:   n(55, 8, 4, 16,  { blockstun: 12, hitstun: 20, rangeX: 80, rangeY: 120, knockbackY: 8, sj: { boxY: 40, centered: true } }),
   sHandstand: n(70, 10, 6, 18, { blockstun: adv(-6, 6, 18), hitstun: 24, rangeX: 110, rangeY: 40, hitLevel: 'low', knockbackX: 4,     // handstand spin: ends facing the other way
                sj: { kind: 'handstand', boxY: 58, centered: true, slide: [4, 16, 9] } }),   // 108px slide: through a close foe
@@ -67,7 +69,7 @@ export const SANJI_MOVES = {
 // Source-frame index at exact elapsed sim frames (presentation follows the simulation, never drives it).
 export const SANJI_TIMELINES = {
   sCollier: [[0, 0], [6, 1]], sEpaule: [[0, 0], [9, 1]], sCotelette: [[0, 0], [10, 1]], sSelle: [[0, 0], [9, 1]],
-  sPoitrine: [[0, 0], [12, 1], [16, 2]], sGigot: [[0, 0], [7, 1]], sCrouchKick: [[0, 0], [6, 1]],
+  sPoitrine: [[0, 0], [12, 1], [16, 2]], sFlanchet: [[0, 0], [12, 1], [15, 2]], sGigot: [[0, 0], [7, 1]], sCrouchKick: [[0, 0], [6, 1]],
   up: [[0, 0], [8, 1]], air: [[0, 0], [6, 1]], down_air: [[0, 0]], sHandstand: [[0, 0], [10, 1], [16, 2]],
   sReversal: [[0, 0], [6, 1]],
   sMouton: [[0, 0], [6, 1], [12, 2]], sAntiManner: [[0, 0], [9, 1], [18, 2]], sConcasse: [[0, 0], [3, 1], [6, 2]],
@@ -79,6 +81,8 @@ export const SANJI_TIMELINES = {
 const withTimelines = src => Object.fromEntries(Object.entries(src).map(([k, a]) => [k, SANJI_TIMELINES[k] ? { ...a, frameTimeline: SANJI_TIMELINES[k] } : a]))
 const ANIM = withTimelines(SANJI_ANIM)
 ANIM.transform = ANIM.intro   // fallback intro action
+ANIM.sAirH = { ...SANJI_ANIM.down_air }   // variety pass: existing strip
+ANIM.sFlanchet = { ...SANJI_ANIM.sPoitrine, frameTimeline: SANJI_TIMELINES.sFlanchet }   // variety L6: existing strip
 ANIM.sPTKCMiss = { ...ANIM.fall, frameTimeline: [[0, 0]], loop: false }   // whiffed first cut: tumbles out of the spin
 export const SANJI_BASE_ANIM = ANIM
 // DIABLE JAMBE set (fighter._skinAnim while the leg is lit): every animation whose frames carry a blue kick arc
@@ -111,7 +115,7 @@ export const sanji = {
   // Brief: walk 5.9 · run 8.6 · jumpForce 12.5 · weight 0.85. Engine mapping: walk px/f = 4.5 + (speed−78)/4 →
   // speed 83.6; run = the ground dash = dashSpeed × 0.55 → dashSpeed 15.64; jumpPower = jumpForce × 2.667 (the
   // Zoro/Arlong ratio) → 33; weight 0.85 → knockback taken ÷ 0.85 (sanjiState.sanjiKnockback).
-  stats: { maxHealth: 940, maxEnergy: 100, attack: 84, defense: 80, speed: 83.6, jumpPower: 33, maxJumps: 1, weight: 0.85,
+  stats: { maxHealth: 1100, maxEnergy: 100, attack: 84, defense: 80, speed: 83.6, jumpPower: 33, maxJumps: 1, weight: 0.85,
     dashSpeed: 15.64, dashDuration: 9, dashCooldownMax: 24 },
   movement: { crouchIdle: true },
   introSequence: ['intro', 'sIntroLight'],

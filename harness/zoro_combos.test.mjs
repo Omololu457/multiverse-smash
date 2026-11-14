@@ -3,6 +3,10 @@
 // damage (the numbers in docs/zoro/COMBOS.md come from this run).   node harness/zoro_combos.test.mjs
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+import { ZORO_MOVES } from '../zoroData.js'
+import { ZORO_TUNING } from '../zoroState.js'
+const ZORO_BOOST = ROSTER_DAMAGE_BOOST.zoro || 1
 
 let PASS = 0, FAIL = 0
 const check = (n, c, d = '') => { (c ? PASS++ : FAIL++); console.log(`  ${c ? '✅' : '❌'} ${n}${d !== '' ? `  — ${d}` : ''}`) }
@@ -124,7 +128,9 @@ try {
 
   console.log('\n── scaling + reset ──')
   // Scaling: within one combo the n-th hit deals raw × 0.6 (global) × 0.85^(n−1).
-  const c1raw = [40, 65, 90, 55], exp = c1raw.map((r, i) => Math.floor(r * 0.6 * Math.pow(0.85, i)))
+  // Roster-parity pass (2026-11-13): the shared choke-point then multiplies by Zoro's ROSTER_DAMAGE_BOOST and floors again.
+  const c1raw = [ZORO_MOVES.light.damage, ZORO_MOVES.zSlash.damage, ZORO_MOVES.heavy.damage, ZORO_TUNING.taka.damage],   // Jab, Slash, Heavy, Taka Nami (derived from data)
+        exp = c1raw.map((r, i) => Math.floor(Math.floor(r * 0.6 * Math.pow(0.85, i)) * ZORO_BOOST))
   check('85% per hit (combo 1 matches raw × 0.6 × 0.85^(n−1))', JSON.stringify(report.c1.hits) === JSON.stringify(exp), `got ${report.c1.hits} want ${exp}`)
   await reset({ gap: 24 })
   await press('j'); await hitsDone('light'); await until(async () => !(await ls()).attack, 40)
@@ -132,7 +138,7 @@ try {
   await run(95)                                                       // 1.5 s idle
   check('combo counter resets after 1.5 s idle', (await zs()).combo === 0, `combo ${c1} → ${(await zs()).combo}`)
   await press('j'); await hitsDone('light'); await run(2)
-  check('…and the next hit starts a fresh, unscaled combo (40 raw → 24)', log[log.length - 1].dmg === 24, log[log.length - 1].dmg)
+  check(`…and the next hit starts a fresh, unscaled combo (40 raw → 24 × boost = ${Math.floor(24 * ZORO_BOOST)})`, log[log.length - 1].dmg === Math.floor(24 * ZORO_BOOST), log[log.length - 1].dmg)
 } catch (e) {
   check('combo test ran to completion', false, e.message.split('\n')[0])
 } finally {

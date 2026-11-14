@@ -1,6 +1,7 @@
 // spdRedFx.js — S.P.D. Red Ranger RENDER-ONLY presentation: HUD (gem-badged Delta bar, teleport pips, JUDGMENT meter),
 // the blink streak / dissolve / afterimages, hit sparks. Reads simulation state (fighter._spdRed, fighter._ranger)
 // and never writes it. Image objects are presentation caches. Any jitter is a pure hash of (frame, slot).
+import { spdRedMuzzleWorld } from './spdRedMuzzles.js'
 import { SPD_RED_FX } from './spdRedSprites.js'
 import { rangerHudState, rangerBodyAlpha, badgeRGBA, getRangerProfile } from './rangers.js'
 import { SPD_RED_WIN2_ANIM, SPD_RED_GLINT_ANIM } from './spdRedData.js'
@@ -178,10 +179,10 @@ export function drawSpdRedFx(c, f, frame = 0) {
 function drawJudgmentWorld(c, f, frame) {
   const j = f._ranger?.judg; if (!j) return
   if (j.phase === 'freeze') {
-    const t = j.t, x = (f.x || 0) + (f.w ?? 48) / 2 + (f.facing || 1) * 60
+    const t = j.t, mz = spdRedMuzzleWorld(f, 'judge'), x = mz.x   // from the morpher's tip (R14F2 aimed)
     c.save(); c.strokeStyle = 'rgba(54,214,230,0.8)'; c.lineWidth = 2
     for (let i = 0; i < 3; i++) {   // morpher scan beam fanning out
-      c.beginPath(); c.moveTo(x, (f.y || 0) + 40); c.lineTo(x + (f.facing || 1) * 900, (f.y || 0) + 40 + (i - 1) * (20 + t * 3)); c.stroke()
+      c.beginPath(); c.moveTo(x, mz.y); c.lineTo(x + (f.facing || 1) * 900, mz.y + (i - 1) * (20 + t * 3)); c.stroke()
     }
     c.restore()
   }
@@ -212,15 +213,17 @@ function drawBeams(c, f, frame) {
   if (on < 0 || on > life) return
   const im = img(spdRedRetag(SPD_RED_FX.beam.sheet, _tag)); if (!im) return
   const dir = f.facing || 1, sc = SCALE(f), fw = f.w ?? 48
-  const x0 = dir === 1 ? (f.x || 0) + fw : (f.x || 0), y = (f.y || 0) + 15   // hand height of R16F2 (the sim beam box: y + 0 … y + 34)
+  // from the Striker's MUZZLE (docs/spd_red/muzzle_anchors.png) out to the hitbox's far end (body front + reach)
+  const mz = spdRedMuzzleWorld(f, 'deltamax'), front = dir === 1 ? (f.x || 0) + fw : (f.x || 0)
+  const x0 = mz.x, y = mz.y, len = Math.max(0, BEAM_LEN - Math.abs(mz.x - front))
   const fade = on > life - 6 ? (life - on) / 6 : 1, grow = Math.min(1, (on + 1) / 3)
   const th = im.height * sc * (2.2 + 0.4 * Math.sin(frame / 2)) * grow, tile = im.width * sc
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= fade
   c.translate(x0, y); c.scale(dir, 1)
-  for (let x = 0; x < BEAM_LEN * grow; x += tile) c.drawImage(im, 0, 0, im.width, im.height, x, -th / 2, Math.min(tile, BEAM_LEN - x), th)
-  c.fillStyle = 'rgba(255,255,255,0.92)'; c.fillRect(0, -th * 0.22, BEAM_LEN * grow, th * 0.44)   // the white body between the red trim
+  for (let x = 0; x < len * grow; x += tile) c.drawImage(im, 0, 0, im.width, im.height, x, -th / 2, Math.min(tile, len - x), th)
+  c.fillStyle = 'rgba(255,255,255,0.92)'; c.fillRect(0, -th * 0.22, len * grow, th * 0.44)   // the white body between the red trim
   c.globalCompositeOperation = 'lighter'; c.globalAlpha *= 0.5
-  c.fillStyle = 'rgba(120,230,255,0.9)'; c.fillRect(0, -th * 0.1, BEAM_LEN * grow, th * 0.2)
+  c.fillStyle = 'rgba(120,230,255,0.9)'; c.fillRect(0, -th * 0.1, len * grow, th * 0.2)
   c.restore()
 }
 
@@ -287,7 +290,7 @@ function drawWin1(c, f, t) {
 }
 // WIN 2 — R16 braced pose: the Deltamax charge glows at the muzzle and the ground cracks with cyan light.
 function drawWin2(c, f, t, frame) {
-  const { fx, fy, d, top } = feet(f), mx = fx + d * 44, my = top + 20, pulse = 0.6 + 0.4 * Math.sin(frame / 5)
+  const { fx, fy, d } = feet(f), { x: mx, y: my } = spdRedMuzzleWorld(f, 'deltamax'), pulse = 0.6 + 0.4 * Math.sin(frame / 5)
   c.save(); c.globalCompositeOperation = 'lighter'
   const g = c.createRadialGradient ? c.createRadialGradient(mx, my, 1, mx, my, 26) : null
   if (g) { g.addColorStop(0, `rgba(255,255,255,${0.9 * pulse})`); g.addColorStop(0.4, `rgba(80,220,255,${0.6 * pulse})`); g.addColorStop(1, 'rgba(80,220,255,0)'); c.fillStyle = g; c.beginPath(); c.arc(mx, my, 26, 0, Math.PI * 2); c.fill() }

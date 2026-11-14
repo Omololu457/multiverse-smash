@@ -3,7 +3,13 @@
 // Merge of both character sources into one central roster.
 
 import { luffy } from './luffyData.js'
+import { krybot } from './krybotData.js'
+import { spd_blue } from './spdBlueData.js'
+import { spd_green } from './spdGreenData.js'   // S.P.D. Green Ranger (Bridge Carson) — spdGreen*.js
+import { spd_pink } from './spdPinkData.js'   // S.P.D. Pink Ranger (Syd Drew) — spdPink*.js
+import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmprPink*.js + shared falconzord.js (Thunder Megazord)
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
+import { mmpr_white } from './mmprWhiteData.js'   // White Ranger (Tommy Oliver, MMPR) — mmprWhite*.js + shared falconzord.js (Ninja Megazord orders)
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11486,7 +11492,13 @@ export const characters = {
   buggy,                             // Buggy the Clown (One Piece) — Chop-Chop part zoner; buggyData.js / buggy*.js
   sanji,                             // Sanji (One Piece) — Black Leg kicker: Diable Jambe + the Course; sanjiData.js / sanji*.js
   arlong,                            // Arlong (One Piece) — sawshark fishman, water-zone heavy bruiser; arlongData.js / arlong*.js
+  krybot,
+  spd_blue,
+  spd_green,                         // S.P.D. Green Ranger (Bridge Carson) — Acrobatic Read / Counterpressure; spdGreen*.js
+  spd_pink,                          // S.P.D. Pink Ranger (Syd Drew) — Precision Striker / Material Pressure; spdPink*.js
+  mmpr_pink,                         // Pink Ranger (Kimberly Hart, MMPR) — Acrobatic Archer / Precision Assist (Thunder Megazord strikes); mmprPink*.js
   mmpr_black,                        // Black Ranger (Adam Park, MMPR) — Martial Artist / Aerial Assist Commander (Falconzord sorties); mmprBlack*.js
+  mmpr_white,                        // White Ranger (Tommy Oliver, MMPR) — Saba Duelist / Formation Leader (Ninja Megazord orders); mmprWhite*.js
   luffy
 }
 

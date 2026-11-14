@@ -3,32 +3,32 @@
     "spdGreenAlienX": {
       "tag": "alienx",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     },
     "spd_green_inspired_upgrade": {
       "tag": "upgrade",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     },
     "spd_green_inspired_diamondhead": {
       "tag": "diamondhead",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     },
     "spd_green_inspired_heatblast": {
       "tag": "heatblast",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     },
     "spd_green_inspired_spd_blue": {
       "tag": "spd_blue",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     },
     "spd_green_inspired_shadow": {
       "tag": "shadow",
       "traceIdentical": true,
-      "actions": 35
+      "actions": 50
     }
   },
   "passes": 56,

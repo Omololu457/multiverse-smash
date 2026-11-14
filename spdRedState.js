@@ -6,6 +6,7 @@ import { spdRed as SPD_RED_CHAR, SPD_RED_MOVES, SPD_RED_PROFILE, SPD_SUPER } fro
 import { SPD_RED_FX } from './spdRedSprites.js'
 import { tickRanger, clearRanger, rangerWalkMul, ensureRangerState, judgmentAddHit, rangerSealAbsorb, isSealed, rangerHash, RANGER_SCREEN, getRangerProfile } from './rangers.js'
 import { meleeDamageType } from './damageTypes.js'
+import { spdRedMuzzleWorld } from './spdRedMuzzles.js'   // the barrel tip of the frame that fires (docs/spd_red/muzzle_anchors.png)
 export const isSpdRed = f => f?.rosterKey === 'spd_red'
 // Audio cue queue (presentation only — played + cleared by game.js right after tickSpdRed; never read by the sim).
 export function rcue(f, c) { (f._spdRedCues ||= []).push(c) }
@@ -142,7 +143,7 @@ export function spdRedHitbox(f) {
   const a = f.currentAttack, g = a?.sr
   if (!g || g.noHit) return null
   const fw = f.w || 48
-  if (g.beam) { const len = Math.round(RANGER_SCREEN * g.beam); return { x: f.facing === 1 ? f.x + fw : f.x - len, y: f.y + (g.boxY ?? 22), w: len, h: g.boxH || 34 } }
+  if (g.beam) { const len = Math.round(RANGER_SCREEN * g.beam), bh = g.boxH || 34; return { x: f.facing === 1 ? f.x + fw : f.x - len, y: Math.round(spdRedMuzzleWorld(f, 'deltamax').y - bh / 2), w: len, h: bh } }   // centred on the Striker's barrel axis
   const reach = (a.rangeX || 60) * (f._reachMult || 1), h = a.rangeY || 40
   if (g.centered) return { x: f.x + fw / 2 - reach / 2, y: f.y + (g.boxY ?? 20), w: reach, h }
   return { x: f.facing === 1 ? f.x + fw : f.x - reach, y: f.y + (g.boxY ?? 20), w: reach, h }
@@ -203,15 +204,20 @@ const clampX = (f, x) => Math.max(0, Math.min(stageW() - (f.w || 48), x))
 const elapsed = a => a.total - a.timer
 const due = (a, key, at) => { const t = elapsed(a); if (t < at || a[key]) return false; a[key] = true; return true }   // fire-once latch (survives a missed tick)
 
-function fireBolt(f, rapid, i) {
+function fireBolt(f, rapid, i, air = false) {
   if (!_proj) return null
   const spr = rapid ? SPD_RED_FX.tracer : SPD_RED_FX.bolt, sc = (SPD_RED_CHAR.spriteScale || 2) * 1.18
   const speed = rapid ? 22 : 16, dir = f.facing || 1
   // RAPID FIRE spread: deterministic hash of (match seed, frame, player index) — never Math.random / gameRng
   const h = rapid ? rangerHash(_W?.seed?.() || 1, (_W?.frame?.() || 0) + i * 7, pidx(f) * 31 + i) : 0.5
-  const md = { damage: rapid ? 25 : 50, speed, vx: dir * speed, vy: rapid ? (h - 0.5) * 2.4 : 0,
-    spawnX: f.x + (dir === 1 ? (f.w || 48) + 18 : -18), spawnY: f.y + (f.h || 94) * 0.36 + (rapid ? Math.round((h - 0.5) * 12) : 0),
-    w: rapid ? 44 : 30, h: rapid ? 10 : 22, radius: rapid ? 9 : 13, lifetime: Math.ceil(RANGER_SCREEN / speed) + 4,
+  // MUZZLE: the shot leaves the barrel tip of the frame on screen when it fires (aimed R14F2 / hopping R15F1), tail at
+  // the tip, flying level along the barrel (the trace). Rapid Fire fans from that same tip, biased slightly DOWN
+  // (the gun sits at shoulder height). The barrel is above the roster-standard hurtbox top (sprites draw taller than
+  // the 94 px body box), so the collision square is sized to reach from the barrel down into it: radius 32.
+  const mz = spdRedMuzzleWorld(f, air ? 'blasterAir' : rapid ? 'rapid' : 'blaster'), half = spr.w * sc * (rapid ? 0.8 : 1) / 2
+  const md = { damage: rapid ? 25 : 50, speed, vx: dir * speed, vy: rapid ? (h - 0.3) * 1.4 : 0,
+    spawnX: mz.x + dir * half, spawnY: mz.y,
+    w: rapid ? 44 : 30, h: rapid ? 10 : 22, radius: 32, lifetime: Math.ceil(RANGER_SCREEN / speed) + 4,
     hitstun: rapid ? 10 : 18, knockbackX: rapid ? 1 : 3, knockbackY: 0, color: '#36d6e6', isSpecial: true, category: 'special',
     hitFlag: '_srBoltHit', noHitstop: rapid, sheet: f._recolorTag ? spr.sheet.replace(/\.png$/i, `__${f._recolorTag}.png`) : spr.sheet, spriteFrames: 1, spriteW: spr.w, spriteH: spr.h, spriteScale: sc * (rapid ? 0.8 : 1) }
   const p = _proj.spawn(f, rapid ? 'srTracer' : 'srBolt', md)
@@ -250,7 +256,7 @@ export function tickSpdRedMove(f, opp, s, a, W) {
         a._rapidChecked = true
         if (s.prev.special && (f.energy || 0) >= SPD_RED_MOVES.sRapid.cost && !deltaBlocked(f) && spdRedStartMove(f, 'sRapid')) { rcue(f, 'rapidStart'); return }
       }
-      if (due(a, '_fired0', g.fire[0])) fireBolt(f, false, 0)
+      if (due(a, '_fired0', g.fire[0])) fireBolt(f, false, 0, !!g.air)
       if (g.air) { f.vy = Math.min(f.vy || 0, 1.5) }   // the hopping shot hangs a moment
       break
     }

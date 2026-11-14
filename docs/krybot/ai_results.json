@@ -1,0 +1,41 @@
+{
+  "moves": [
+    [
+      "air",
+      "kCover",
+      "kBreach",
+      "kBlaster",
+      "up",
+      "light",
+      "kJ2",
+      "kJ3",
+      "kAdvance",
+      "heavy",
+      "kChainKick",
+      "kAway"
+    ],
+    [
+      "kBlaster",
+      "kCover",
+      "heavy",
+      "kBreach",
+      "light",
+      "kAdvance",
+      "kChainKick",
+      "kAway",
+      "kJ2",
+      "kJ3"
+    ]
+  ],
+  "health": [
+    503,
+    533
+  ],
+  "helper": true,
+  "state": {
+    "gameState": "battle",
+    "countdown": 0,
+    "frame": 1803
+  },
+  "errors": []
+}

@@ -1,0 +1,146 @@
+========================================================================
+MULTIVERSE SMASH — ROSTER TRIAGE TRACKER
+Updated: 2026-10-24   (written by triage.html)
+========================================================================
+
+>> KEPT, NO BRUTALITY YET  — build brutalities for these next.
+>> DELETED (TEMP)          — NOT permanent. Pulled to redo their spritesheets (art not good enough).
+
+========================================================================
+KEPT — NO BRUTALITY YET (TO BUILD) (25)
+------------------------------------------------------------------------
+
+[ben_10]
+  Gwen                              gwen
+
+[bleach]
+  Ichigo Kurosaki                   ichigo
+
+[deathnote]
+  L                                 l_ryuuzaki
+  Light Yagami                      light
+
+[divine]
+  Jesus                             jesus
+
+[dragon_ball]
+  Dark Vegeta                       vegeta_dark
+  Goku Black                        goku_black
+
+[hajime_no_ippo]
+  Ippo Makunouchi                   ippo
+
+[hunter_x_hunter]
+  Chrollo Lucilfer                  chrollo
+  Isaac Netero                      netero
+
+[jujutsu_kaisen]
+  Aoi Todo                          aoi_todo
+  Kasumi Miwa                       miwa
+  Maki Zenin                        maki
+  Yuji Itadori                      yuji
+  Yuta Okkotsu                      yuta
+
+[naruto]
+  Six Paths of Pain                 six_paths_pain
+  Tobi                              tobi
+
+[one_punch_man]
+  Genos                             genos
+  Saitama                           saitama
+
+[original]
+  Omololu                           omololu
+
+[power_rangers]
+  Gold Samurai Ranger (Light)       gold_samurai_ranger
+  Green Samurai Ranger (Forest)     green_samurai_ranger
+  Red Ranger (Mighty Morphin)       red_ranger_mmpr
+  Samurai Red Ranger (Fire)         samurai_red_ranger
+
+[saiki_k]
+  Saiki Kusuo                       saiki
+
+========================================================================
+DELETED — REDO SPRITESHEETS (TEMPORARY) (19)
+------------------------------------------------------------------------
+
+[jujutsu_kaisen]
+  Toji Fushiguro                    toji
+
+[naruto]
+  Gaara                             gaara
+  Hashirama Senju                   hashirama
+  Hinata Hyuga                      hinata
+  Isshiki Otsutsuki                 isshiki
+  Itachi Uchiha                     itachi
+  Jiraiya                           jiraiya
+  Kakashi                           kakashi
+  Kakashi (ANBU)                    kakashi_anbu
+  Kakashi (Kamui)                   kakashi_war
+  Madara Uchiha                     madara
+  Minato Namikaze                   minato
+  Naruto                            naruto
+  Naruto (Seventh Hokage)           naruto_seventh
+  Obito Uchiha                      obito
+  Pain                              pain
+  Sakura Haruno                     sakura
+  Sasuke                            sasuke
+  Sasuke (Adult)                    sasuke_adult
+
+========================================================================
+KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (25)
+------------------------------------------------------------------------
+
+[baki]
+  Baki Hanma                        baki
+
+[bleach]
+  Byakuya Kuchiki                   byakuya
+  Mayuri Kurotsuchi                 mayuri
+  Zaraki Kenpachi                   zaraki
+  Zaraki Kenpachi (Shikai)          zaraki_shikai
+
+[dc]
+  The Flash                         flash
+
+[demon_slayer]
+  Inosuke Hashibira                 inosuke
+  Kyojuro Rengoku                   rengoku
+  Nezuko Kamado                     nezuko
+  Shinobu Kocho                     shinobu
+  Zenitsu Agatsuma                  zenitsu
+
+[dragon_ball]
+  Beerus                            beerus
+  Vegeta                            vegeta
+
+[horror]
+  Jason Voorhees                    jason
+
+[hunter_x_hunter]
+  Hisoka Morrow                     hisoka
+  Killua Zoldyck                    killua
+
+[jujutsu_kaisen]
+  Alternate Sukuna                  alt_sukuna
+  Gojo Satoru                       gojo
+  Sukuna                            sukuna
+
+[naruto]
+  Sasuke (Sensei)                   sasuke_sensei
+  Shisui (Fallen)                   shisui_fallen
+  Tobirama Senju                    tobirama
+
+[power_rangers]
+  Omega Ranger (White Ranger, S.P.D.)omega_ranger
+
+[rick_and_morty]
+  Rick Prime                        rickPrime
+  Rick Sanchez                      rick
+
+========================================================================
+NOT YET REVIEWED (0)
+------------------------------------------------------------------------
+  (none yet)
+

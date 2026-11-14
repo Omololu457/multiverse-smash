@@ -43,9 +43,9 @@ function pressDir(s, b, inp, facing) {
 export const BITE_RANGE = 120   // →+H within this centre-to-centre distance = Bite, else Lunge punch
 function normalFor(f, inp, button, grounded, opp) {
   const fwd = f.facing === -1 ? inp.left : inp.right, back = f.facing === -1 ? inp.right : inp.left
-  if (!grounded) return inp.down ? 'down_air' : 'air'
+  if (!grounded) return inp.down ? 'down_air' : button === 'heavy' ? 'aAirH' : 'air'
   if (button === 'upAttack') return 'up'
-  if (button === 'light') return inp.down ? 'aLow' : fwd ? 'aStraight' : 'light'
+  if (button === 'light') return inp.down ? 'aLow' : fwd ? 'aStraight' : back ? 'aTail' : 'light'
   if (inp.up) return 'up'
   if (inp.down) return 'heavy'
   if (back) return 'aWake'
@@ -150,6 +150,10 @@ export function updateArlongCommandCombat(f, inp, opp, ctx = {}) {
 
   if (f.attackCooldown > 0 || inp.block) return 'grab'
   if (trySpecial(f, s, inp, grounded, opp)) return 'consumed'
+  if (fresh(s, 'charge') && grounded && s.edgeDir.charge === 4) { use(s, 'charge'); if (W_START(f, 'aGrip')) { acue(f, 'biteHit'); return 'consumed' } }   // VARIETY L8: Charge+Back = Shark Grip command throw
+  if (fresh(s, 'charge') && grounded && s.edgeDir.charge === 6 && canDo(f, 'aRam')) {   // VARIETY L7: Charge+Forward = Tough Hide Ram (neutral Charge still reaches the engine)
+    use(s, 'charge'); if (W_START(f, 'aRam')) { acue(f, 'swing'); return 'consumed' }   // arlongStartMove pays md.cost
+  }
   if (fresh(s, 'upAttack') && grounded) { use(s, 'upAttack', 'light', 'heavy'); if (W_START(f, resolveKey(f, 'up'))) { acue(f, 'swingLight'); return 'consumed' } }
   for (const b of ['light', 'heavy']) {
     if (!fresh(s, b)) continue

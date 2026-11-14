@@ -1,0 +1,11 @@
+{
+  "exactMark": true,
+  "lifetime": true,
+  "cooldown": true,
+  "refreshed": true,
+  "mirrors": true,
+  "wall": true,
+  "finite": true,
+  "ultimateClears": true,
+  "errors": []
+}

@@ -1,0 +1,1143 @@
+{
+  "rosterFrameDataUnchanged": true,
+  "frameComparison": 520,
+  "errors": [],
+  "skins": [
+    {
+      "helper": true,
+      "ultimate": true,
+      "ms": 12089.099999999627,
+      "health": 724,
+      "draws": [
+        "krybot/walk.png",
+        "krybot/kBlaster.png",
+        "krybot/explosion.png"
+      ],
+      "id": "default",
+      "poses": [
+        {
+          "action": "idle",
+          "contentH": 119,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk_back",
+          "contentH": 117,
+          "contentW": 53,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "run",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "jump",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "fall",
+          "contentH": 55,
+          "contentW": 62,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "hurt",
+          "contentH": 103,
+          "contentW": 60,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "guard",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "crouch",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "dash",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "light",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ2",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ3",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "heavy",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLow",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "up",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "air",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "down_air",
+          "contentH": 114,
+          "contentW": 103,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAdvance",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kChainKick",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAway",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBlaster",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBreach",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLeap",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kCover",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "ultimate",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "grab",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "knockdown",
+          "contentH": 103,
+          "contentW": 88,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "getup",
+          "contentH": 79,
+          "contentW": 86,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "win",
+          "contentH": 121,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "helper": true,
+      "ultimate": true,
+      "ms": 9793.5,
+      "health": 724,
+      "draws": [
+        "krybot/skins/tv/walk.png",
+        "krybot/skins/tv/kBlaster.png",
+        "krybot/explosion.png"
+      ],
+      "id": "krybot_tv",
+      "poses": [
+        {
+          "action": "idle",
+          "contentH": 119,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk_back",
+          "contentH": 117,
+          "contentW": 53,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "run",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "jump",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "fall",
+          "contentH": 55,
+          "contentW": 62,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "hurt",
+          "contentH": 103,
+          "contentW": 60,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "guard",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "crouch",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "dash",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "light",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ2",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ3",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "heavy",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLow",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "up",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "air",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "down_air",
+          "contentH": 114,
+          "contentW": 103,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAdvance",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kChainKick",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAway",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBlaster",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBreach",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLeap",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kCover",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "ultimate",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "grab",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "knockdown",
+          "contentH": 103,
+          "contentW": 88,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "getup",
+          "contentH": 79,
+          "contentW": 86,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "win",
+          "contentH": 121,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "helper": true,
+      "ultimate": true,
+      "ms": 9761.5,
+      "health": 724,
+      "draws": [
+        "krybot/skins/ds/walk.png",
+        "krybot/skins/ds/kBlaster.png",
+        "krybot/explosion.png"
+      ],
+      "id": "krybot_super_legends_ds",
+      "poses": [
+        {
+          "action": "idle",
+          "contentH": 119,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk_back",
+          "contentH": 117,
+          "contentW": 53,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "run",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "jump",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "fall",
+          "contentH": 55,
+          "contentW": 62,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "hurt",
+          "contentH": 103,
+          "contentW": 60,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "guard",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "crouch",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "dash",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "light",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ2",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ3",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "heavy",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLow",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "up",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "air",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "down_air",
+          "contentH": 114,
+          "contentW": 103,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAdvance",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kChainKick",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAway",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBlaster",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBreach",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLeap",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kCover",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "ultimate",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "grab",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "knockdown",
+          "contentH": 103,
+          "contentW": 88,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "getup",
+          "contentH": 79,
+          "contentW": 86,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "win",
+          "contentH": 121,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        }
+      ]
+    },
+    {
+      "helper": true,
+      "ultimate": true,
+      "ms": 7511.800000000745,
+      "health": 724,
+      "draws": [
+        "krybot/skins/ds_red/walk.png",
+        "krybot/skins/ds_red/kBlaster.png",
+        "krybot/explosion.png"
+      ],
+      "id": "krybot_super_legends_ds_red",
+      "poses": [
+        {
+          "action": "idle",
+          "contentH": 119,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "walk_back",
+          "contentH": 117,
+          "contentW": 53,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "run",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "jump",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "fall",
+          "contentH": 55,
+          "contentW": 62,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "hurt",
+          "contentH": 103,
+          "contentW": 60,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "guard",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "crouch",
+          "contentH": 92,
+          "contentW": 72,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "dash",
+          "contentH": 123,
+          "contentW": 66,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "light",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ2",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kJ3",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "heavy",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLow",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "up",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "air",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "down_air",
+          "contentH": 114,
+          "contentW": 103,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAdvance",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kChainKick",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kAway",
+          "contentH": 123,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBlaster",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kBreach",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kLeap",
+          "contentH": 127,
+          "contentW": 77,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "kCover",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "ultimate",
+          "contentH": 117,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "grab",
+          "contentH": 112,
+          "contentW": 75,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "knockdown",
+          "contentH": 103,
+          "contentW": 88,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "getup",
+          "contentH": 79,
+          "contentW": 86,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        },
+        {
+          "action": "win",
+          "contentH": 121,
+          "contentW": 70,
+          "cellDstH": 193.60000000000002,
+          "scale": 1.864406779661017,
+          "globalScale": 1.18,
+          "clipped": false
+        }
+      ]
+    }
+  ]
+}

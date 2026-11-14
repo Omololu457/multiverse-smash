@@ -14,7 +14,13 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { KRYBOT_SKINS } from './krybotSkins.js'
+import { SPD_PINK_SKINS } from './spdPinkSkins.js'   // S.P.D. Pink default + 6 appearance skins (cosmetic, precomputed)
+import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { MMPR_BLACK_SKINS } from './mmprBlackSkins.js'   // Black Ranger default + 6 inspired palettes (cosmetic, precomputed)
+import { MMPR_WHITE_SKINS } from './mmprWhiteSkins.js'   // White Ranger default + 6 inspired palettes (cosmetic, precomputed)
+import { SPD_GREEN_SKINS } from './spdGreenSkins.js'   // S.P.D. Green default + 6 appearance skins (cosmetic, precomputed)
+import { SPD_BLUE_SKINS } from './spdBlueSkins.js'   // S.P.D. Blue default + 6 appearance skins (cosmetic)
 import { getLevel, isFullyUnlocked } from "./progression.js"
 import { isChallengeSkinUnlocked } from "./challenges.js"   // challenge-reward skins (guest-safe, persisted)
 import { ALT_SKINS } from "./harness/alt_skin_manifest.mjs"
@@ -128,7 +134,13 @@ function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", she
 function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
 
 export const SKINS = {
+  spd_blue: SPD_BLUE_SKINS,
+  spd_green: SPD_GREEN_SKINS,
+  spd_pink: SPD_PINK_SKINS,
   mmpr_black: MMPR_BLACK_SKINS,
+  mmpr_white: MMPR_WHITE_SKINS,
+  mmpr_pink: MMPR_PINK_SKINS,
+  krybot: KRYBOT_SKINS,
   // Luffy — 9 alt-colour skins (tools/luffy_skins/gen_luffy_skins.py: vest · hat band (red ringed by straw) · straw hat ·
   // vest buttons · shorts · skin regions over every assets/sprites/luffy strip). Alien X → generic starfield.
   luffy: [

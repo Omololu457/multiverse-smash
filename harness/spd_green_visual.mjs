@@ -5,6 +5,8 @@
 import fs from 'node:fs'
 import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
+import {spd_green as _DEF} from '../spdGreenData.js'
+const HP=_DEF.stats.maxHealth   // roster-parity pass (2026-11-13): derived, not literal
 const server=await serve(),browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[],log={};let pass=0,fail=0
 page.on('pageerror',e=>errors.push(e.message))
 const ck=(n,c,d='')=>{c?pass++:fail++;console.log(c?'PASS':'FAIL',n,d)}
@@ -29,7 +31,7 @@ try{
  await page.mouse.move(1100,580);await page.mouse.wheel(0,640);await page.waitForTimeout(350);await shot('02_universes');await page.mouse.click(960,454);await page.waitForTimeout(600)
  const g=await findChar('spd_green');log.roster=g.seen;ck('Power Rangers roster lists spd_green (MMPR Green/Tommy untouched)',!g.missing,JSON.stringify(g.seen));await page.waitForTimeout(250)
  log.detail=await page.evaluate(()=>__harness.selectDetail());await shot('03_select_spd_green')
- ck('select detail: S.P.D. Green Ranger, HP980, kit type',log.detail?.key==='spd_green'&&log.detail.stats.maxHealth===980&&/Acrobatic Read/.test(log.detail.kitType||''),JSON.stringify(log.detail))
+ ck(`select detail: S.P.D. Green Ranger, HP${HP}, kit type`,log.detail?.key==='spd_green'&&log.detail.stats.maxHealth===HP&&/Acrobatic Read/.test(log.detail.kitType||''),JSON.stringify(log.detail))
  // the hover already moved selection: click the card itself
  await page.mouse.click(g.cx,g.cy);await page.waitForTimeout(600)
  log.skinState=await page.evaluate(()=>__harness.padMenuState());await shot('04_skin_select')
@@ -49,13 +51,13 @@ try{
  await page.evaluate(()=>__harness.setDummyBehavior?.('stand'))
  const place=(gap,flip)=>page.evaluate(([gap,flip])=>{const a=__harness.spdGreenTest.raw(),b=__harness.spdGreenTest.raw('p2');a.x=1300;b.x=flip?1300-gap:1300+gap;a.energy=100;a.health=a.maxHealth;b.health=b.maxHealth;b.vx=0;a.attacking=false;a.currentAttack=null;a.attackCooldown=0;a.hitstun=0;b.hitstun=0},[gap,flip])
  for(const flip of [false,true]){const f=flip?'L':'R',fw=flip?'a':'d'
-  await place(260,flip);await page.waitForTimeout(250);await page.keyboard.press('p');await page.waitForTimeout(450);await shot(`08_${f}_aura_scan`);await page.waitForTimeout(500)
+  await place(260,flip);await page.waitForTimeout(250);await page.keyboard.press('p',{delay:80});await page.waitForTimeout(450);await shot(`08_${f}_aura_scan`);await page.waitForFunction(()=>!!__harness.spdGreenTest.raw()._spdGreen?.mark,null,{timeout:4000}).catch(()=>{})   // wait for the state, not a fixed sleep (headless load)
   s=await G();ck(`real-time scan marks the CPU (${f})`,s.a.marked,JSON.stringify(s.a.s?.mark));await shot(`09_${f}_marked`)
-  await place(80,flip);await page.waitForTimeout(150);await page.keyboard.down(fw);await page.keyboard.press('l');await page.keyboard.up(fw);await page.waitForTimeout(260);await shot(`10_${f}_acrobat_handstand`);await page.waitForTimeout(700)
-  await place(500,flip);await page.waitForTimeout(400);await page.keyboard.press('l');await page.waitForTimeout(290);await shot(`11_${f}_deltamax`);await page.waitForTimeout(700)
+  await place(80,flip);await page.waitForTimeout(150);await page.keyboard.down(fw);await page.keyboard.press('l',{delay:80});await page.keyboard.up(fw);await page.waitForTimeout(260);await shot(`10_${f}_acrobat_handstand`);await page.waitForTimeout(700)
+  await place(500,flip);await page.waitForTimeout(400);await page.keyboard.press('l',{delay:80});await page.waitForTimeout(290);await shot(`11_${f}_deltamax`);await page.waitForTimeout(700)
   await place(600,flip);await page.waitForTimeout(400);await page.keyboard.press(fw);await page.waitForTimeout(70);await page.keyboard.press(fw);await page.waitForTimeout(40);await shot(`12_${f}_phase_streak`);await page.waitForTimeout(600)
   s=await G();ck(`phase step fired in real time (${f})`,s.a.teleport?.count>=1,JSON.stringify(s.a.teleport))
-  await place(70,flip);await page.waitForTimeout(250);await page.keyboard.down('s');await page.keyboard.press('l');await page.keyboard.up('s');await page.waitForTimeout(260);await shot(`13_${f}_rising_arc`);await page.waitForTimeout(900)
+  await place(70,flip);await page.waitForTimeout(250);await page.keyboard.down('s');await page.keyboard.press('l',{delay:80});await page.keyboard.up('s');await page.waitForTimeout(260);await shot(`13_${f}_rising_arc`);await page.waitForTimeout(900)
  }
  log.fps=await page.evaluate(async()=>{let n=0;const t0=performance.now();await new Promise(r=>{const tick=()=>{n++;if(performance.now()-t0<2000)requestAnimationFrame(tick);else r()};requestAnimationFrame(tick)});return Math.round(n/((performance.now()-t0)/1000))})
  ck('page keeps animating (rAF fps sample, headless)',log.fps>=20,String(log.fps))
@@ -68,7 +70,7 @@ try{
   await page.waitForFunction(()=>__harness.state().gameState==='victory'||(__harness.state().gameState==='battle'&&__harness.spdGreenTest.raw('p2').health>1),null,{timeout:45000})
  }
  ck('victory screen reached',(await S()).gameState==='victory');await page.waitForTimeout(900);await shot('15_victory')
- await page.keyboard.press('r');await page.waitForFunction(()=>__harness.state().gameState==='battle'&&__harness.state().countdown<=0,null,{timeout:30000});await page.waitForTimeout(500)
- s=await G();await shot('16_rematch');ck('rematch: SPD Green, same skin, fresh state',s.a.key==='spd_green'&&s.a.tag==='upgrade'&&!s.a.s?.mark&&s.a.hp===980,JSON.stringify({tag:s.a.tag,hp:s.a.hp,mark:s.a.s?.mark}))
+ await page.keyboard.press('r',{delay:80});await page.waitForFunction(()=>__harness.state().gameState==='battle'&&__harness.state().countdown<=0,null,{timeout:30000});await page.waitForTimeout(500)
+ s=await G();await shot('16_rematch');ck('rematch: SPD Green, same skin, fresh state',s.a.key==='spd_green'&&s.a.tag==='upgrade'&&!s.a.s?.mark&&s.a.hp===HP,JSON.stringify({tag:s.a.tag,hp:s.a.hp,mark:s.a.s?.mark}))
  ck('no browser runtime errors',errors.length===0,JSON.stringify(errors))
 }finally{log.passes=pass;log.failures=fail;log.errors=errors;fs.writeFileSync('docs/spd_green/visual_results.json',JSON.stringify(log,null,2)+'\n');console.log(pass,'passed /',fail,'failed');if(fail)process.exitCode=1;await browser.close();server.close()}

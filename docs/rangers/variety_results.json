@@ -1,0 +1,124 @@
+{
+  "spd_blue": {
+    "sweep": 50,
+    "evade": {
+      "moved": 90,
+      "invuln": 5
+    },
+    "up": 58,
+    "motion": {
+      "hits": [
+        "bDrive1",
+        "bDrive2",
+        "bDrive3"
+      ],
+      "applied": 86,
+      "spent": 17.8
+    },
+    "blockedString": {
+      "chip": 2,
+      "stopFrames": 17
+    },
+    "qcb": {
+      "applied": 58,
+      "knockdown": false
+    },
+    "fwdLight": {
+      "applied": 0
+    },
+    "airHeavy": 52,
+    "backLight": {
+      "applied": 36,
+      "moved": 36
+    },
+    "armoredCharge": {
+      "applied": 79,
+      "advanced": 59
+    },
+    "counter": {
+      "applied": 72
+    },
+    "commandThrow": 94
+  },
+  "spd_green": {
+    "sweep": 50,
+    "evade": {
+      "moved": 100,
+      "invuln": 6
+    },
+    "up": 58,
+    "motion": {
+      "hits": [
+        "gRush1",
+        "gRush2",
+        "gRush3"
+      ],
+      "applied": 77,
+      "spent": 20.8
+    },
+    "blockedString": {
+      "chip": 2,
+      "stopFrames": 17
+    },
+    "qcb": {
+      "applied": 59,
+      "knockdown": true
+    },
+    "fwdLight": {
+      "applied": 0
+    },
+    "airHeavy": 52,
+    "backLight": {
+      "applied": 33,
+      "moved": 35
+    },
+    "armoredCharge": {
+      "applied": 74,
+      "advanced": 52.5
+    },
+    "counter": {
+      "applied": 66
+    },
+    "commandThrow": 87
+  },
+  "spd_pink": {
+    "sweep": 52,
+    "evade": {
+      "moved": 100,
+      "invuln": 6
+    },
+    "up": 52,
+    "motion": {
+      "hits": [
+        "pBar1",
+        "pBar2",
+        "pBar3"
+      ],
+      "applied": 97,
+      "spent": 15.8
+    },
+    "blockedString": {
+      "chip": 2,
+      "stopFrames": 17
+    },
+    "qcb": {
+      "applied": 39,
+      "knockdown": false
+    },
+    "fwdLight": {
+      "applied": 0
+    },
+    "airHeavy": 54,
+    "backLight": {
+      "applied": 33,
+      "moved": 35
+    },
+    "armoredCharge": {
+      "applied": 79,
+      "advanced": 56
+    },
+    "commandThrow": 92
+  },
+  "passes": 97,
+  "failures": 0
+}

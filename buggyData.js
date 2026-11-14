@@ -19,6 +19,8 @@ export const BUGGY_MOVES = {
   up:       n(75, 10, 4, 20, { blockstun: adv(-8, 4, 20), hitstun: 26, rangeX: 70, rangeY: 150, launcher: true,      // Acrobatic kick (anti-air)
              launchVy: -26, selfVy: 0, damageType: 'blunt', bx: { boxY: -78 } }),
   air:      n(55, 6, 4, 12,  { blockstun: 12, hitstun: 20, rangeX: 76, rangeY: 60, knockbackX: 3, knockbackY: -2 }),    // Air knife (jump-in)
+  bSplit:   n(60, 11, 4, 20, { blockstun: adv(-6, 4, 20), hitstun: 24, rangeX: 170, rangeY: 50, knockbackX: 6, bg: { kind: 'split', back: [1, 11, 6] } }),   // VARIETY L5 Back+Heavy BARA BARA SPLIT CUT: body splits ~60px back, knife hand lunges out
+  bAirH:    n(70, 9, 4, 16,  { blockstun: 12, hitstun: 24, rangeX: 112, rangeY: 64, knockbackX: 4, knockbackY: 3 }),   // VARIETY: air Heavy Bara Bara carve (longer reach)
   down_air: n(50, 8, 4, 16,  { blockstun: 12, hitstun: 20, rangeX: 84, rangeY: 150, knockbackY: 9, bx: { boxY: 40, centered: true } }),
   bWake:    n(70, 6, 4, 24,  { blockstun: adv(-12, 4, 24), hitstun: 24, rangeX: 96, knockbackX: 8, invuln: 6, bx: { centered: true, boxY: 10 } }),   // Wake-up reversal
 
@@ -43,7 +45,7 @@ export const BUGGY_MOVES = {
 
 // Source-frame index at exact elapsed sim frames (presentation follows the simulation, never drives it).
 export const BUGGY_TIMELINES = {
-  light: [[0, 0], [5, 1]], bSlash: [[0, 0], [8, 1]], heavy: [[0, 0], [12, 1]], bLow: [[0, 0], [7, 1], [10, 2]],
+  light: [[0, 0], [5, 1]], bSlash: [[0, 0], [8, 1]], bSplit: [[0, 0], [10, 1]], heavy: [[0, 0], [12, 1]], bLow: [[0, 0], [7, 1], [10, 2]],
   bKick: [[0, 0], [8, 1]], up: [[0, 0], [10, 1]], air: [[0, 0], [6, 1]], down_air: [[0, 0]],
   bWake: [[0, 0], [4, 1], [8, 2], [12, 0], [16, 1], [20, 2]],
   bCannon: [[0, 0], [9, 1], [14, 2]], bStab: [[0, 0]], bFestival: [[0, 0], [6, 1]], bBall: [[0, 0], [6, 1], [12, 2]],
@@ -54,6 +56,8 @@ export const BUGGY_TIMELINES = {
 
 const ANIM = Object.fromEntries(Object.entries(BUGGY_ANIM).map(([k, a]) => [k, BUGGY_TIMELINES[k] ? { ...a, frameTimeline: BUGGY_TIMELINES[k] } : a]))
 ANIM.transform = ANIM.intro
+ANIM.bAirH = { ...BUGGY_ANIM.air }   // variety pass: existing strip
+ANIM.bSplit = { ...BUGGY_ANIM.bSlash, frameTimeline: BUGGY_TIMELINES.bSplit }   // variety L5: existing strip
 // MASKED ANIM SETS — one per detached-part bitmask (1 head · 2 hand · 4 foot). Masked strips carry 7 rows; the
 // set for mask m points every masked action at row m (sourceY). fighter._skinAnim is switched by buggyState
 // (presentation only — the sheet path never changes, so the frame index does not reset on a swap).
@@ -89,7 +93,7 @@ export const buggy = {
   //   walk px/f = 4.5 + (speed − 78)/20 × 5  → speed 80 = 5.0 px/f
   //   ground dash = clamp(dashSpeed × 0.55, 8, 16) → the engine floor is 8 px/f (7.2 is below it; dashSpeed 13)
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 27 · weight 0.9 → knockback taken ÷ 0.9 (buggyKnockback)
-  stats: { maxHealth: 950, maxEnergy: 100, attack: 80, defense: 78, speed: 80, jumpPower: 27, maxJumps: 1, weight: 0.9,
+  stats: { maxHealth: 1100, maxEnergy: 100, attack: 80, defense: 78, speed: 80, jumpPower: 27, maxJumps: 1, weight: 0.9,
     dashSpeed: 13, dashDuration: 10, dashCooldownMax: 30 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

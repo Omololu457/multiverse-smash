@@ -48,6 +48,8 @@ try{
  const first=rec.traces.findIndex((s,i)=>s!==pb.t[i]);ok('replay matches every authoritative frame (1100)',first===-1,first===-1?'':`frame ${first}\n${rec.traces[first]}\n${pb.t[first]}`);ok('no replay checkpoint desync',!pb.st.desync,JSON.stringify(pb.st))
  out.replay={frames:1100,identical:true,exercised:rec.seen}
  // ── B. render batching: same inputs, step(1)+render each frame vs 4-frame batches with one render
+ // Playback of section A must be stopped first, or the scripted inputs below are ignored (remote-input flag).
+ await page.evaluate(()=>__harness.replay.stopPlayback?.())
  const r1=await page.evaluate(async src=>{const {writeRawControls}=await import('./input.js');const H=__harness.spdGreenTest,run=(stepper)=>{H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1560;a.facing=1;b.facing=-1
    for(const f of [a,b]){f.health=f.maxHealth;f.energy=100;f.vx=f.vy=0;f.hitstun=0;f.hitstop=0;f.comboCounter=0}const t=[]
    const SS=eval(src);for(let i=0;i<1100;i+=4){writeRawControls(a,SS(i,a,b));stepper();t.push(JSON.stringify([a.x,a.y,a.health,a.energy,b.x,b.health,a._spdGreen?.mark,a._spdGreen?.clock,a._groundTeleport?.count,a.currentAttack?.name]))}return t}
@@ -57,6 +59,7 @@ try{
   return {perFrame,batched,noRender}},SCRIPT)
  const d1=r1.perFrame.findIndex((s,i)=>s!==r1.batched[i]);ok('render batching (1 render/frame vs 1 render/4 frames) gives identical sim',d1===-1,d1===-1?'':`${r1.perFrame[d1]} vs ${r1.batched[d1]}`)
  ok('second identical run reproduces exactly',JSON.stringify(r1.perFrame)===JSON.stringify(r1.noRender))
+ ok('batching runs are live (inputs move the fighter and start moves)',new Set(r1.perFrame.map(x=>JSON.parse(x)[0])).size>5&&r1.perFrame.some(x=>JSON.parse(x)[9]),String(new Set(r1.perFrame.map(x=>JSON.parse(x)[0])).size))
  out.renderBatching={samples:r1.perFrame.length,identical:true}
  // ── C. lifecycle
  const L=await page.evaluate(()=>{const H=__harness.spdGreenTest,a=()=>H.raw(),b=()=>H.raw('p2'),step=n=>__harness.luffyTest.step(n)
@@ -75,7 +78,8 @@ try{
  await page.mouse.click(640,360);await page.evaluate(()=>{__harness.start({mode:'vs',difficulty:'dummy'});__harness.skipToBattle()})
  await page.waitForFunction(()=>__harness.state().gameState==='battle'&&__harness.state().countdown<=0,null,{timeout:45000})
  await page.evaluate(()=>{const H=__harness.spdGreenTest,A=H.raw(),B=H.raw('p2');A.energy=100;A._spdGreen=null;B.x=A.x+300;B.vx=0})
- await page.keyboard.press('p');await page.waitForTimeout(1200);const pre=await page.evaluate(()=>({mark:!!__harness.spdGreenTest.raw()._spdGreen?.mark}))
+ await page.keyboard.press('p',{delay:80});await page.waitForFunction(()=>!!__harness.spdGreenTest.raw()._spdGreen?.mark,null,{timeout:4000}).catch(()=>{});   // wall-clock: the prep/scan ends ~1.1-1.3s in under headless load; wait for the state, not a fixed sleep
+ const pre=await page.evaluate(()=>({mark:!!__harness.spdGreenTest.raw()._spdGreen?.mark}))
  await page.evaluate(()=>{const H=__harness.spdGreenTest,A=H.raw(),B=H.raw('p2');A.hitstun=0;A.attackCooldown=0;A.attacking=false;A.currentAttack=null;B.health=1;B.x=A.x+78;B.y=A.y;B.vx=0;B.vy=0;B.onGround=true;B.invulnTimer=0;B.hitstun=120;B.isBlocking=false})
  await page.keyboard.down('j');await page.waitForTimeout(180);await page.keyboard.up('j');await page.waitForTimeout(300)
  const ko=await page.evaluate(()=>({p2hp:__harness.spdGreenTest.raw('p2').health,a:__harness.spdGreenTest.raw()._spdGreen||null,b:__harness.spdGreenTest.raw('p2')._spdGreen||null}))

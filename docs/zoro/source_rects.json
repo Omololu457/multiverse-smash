@@ -1,0 +1,508 @@
+{
+ "source": "assets/incoming/zoro/zoro_sheet.png",
+ "sha256": "a8abf20e4ff5efbe07df0d5fbf6a63a4b39d7fee7a3ef14db9e5e08670ad0073",
+ "cell": [
+  320,
+  256
+ ],
+ "origin": [
+  160,
+  150
+ ],
+ "frames": {
+  "w0": {
+   "row": "R1",
+   "frame": 1,
+   "x": 15,
+   "y": 0,
+   "w": 32,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    16,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "w1": {
+   "row": "R1",
+   "frame": 2,
+   "x": 49,
+   "y": 0,
+   "w": 29,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    13,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "w2": {
+   "row": "R1",
+   "frame": 3,
+   "x": 84,
+   "y": 0,
+   "w": 29,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    13,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "w3": {
+   "row": "R1",
+   "frame": 4,
+   "x": 120,
+   "y": 0,
+   "w": 32,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    16,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "w4": {
+   "row": "R1",
+   "frame": 5,
+   "x": 159,
+   "y": 0,
+   "w": 32,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    16,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "w5": {
+   "row": "R1",
+   "frame": 6,
+   "x": 197,
+   "y": 0,
+   "w": 32,
+   "h": 56,
+   "mirrored": true,
+   "pivot": [
+    16,
+    54
+   ],
+   "desc": "walk cycle (mirrored to face right)"
+  },
+  "i0": {
+   "row": "R2",
+   "frame": 1,
+   "x": 19,
+   "y": 62,
+   "w": 32,
+   "h": 57,
+   "mirrored": true,
+   "pivot": [
+    14,
+    55
+   ],
+   "desc": "idle stance A (mirrored)"
+  },
+  "i1": {
+   "row": "R2",
+   "frame": 2,
+   "x": 59,
+   "y": 62,
+   "w": 32,
+   "h": 57,
+   "mirrored": true,
+   "pivot": [
+    14,
+    55
+   ],
+   "desc": "idle stance B (mirrored)"
+  },
+  "d0": {
+   "row": "R3",
+   "frame": 1,
+   "x": 0,
+   "y": 123,
+   "w": 51,
+   "h": 55,
+   "mirrored": false,
+   "pivot": [
+    29,
+    53
+   ],
+   "desc": "swords drawn wide - the draw/ready pose"
+  },
+  "h0": {
+   "row": "R3",
+   "frame": 2,
+   "x": 58,
+   "y": 123,
+   "w": 36,
+   "h": 55,
+   "mirrored": false,
+   "pivot": [
+    15,
+    53
+   ],
+   "desc": "reels back from a hit (head snapped up)"
+  },
+  "h1": {
+   "row": "R3",
+   "frame": 3,
+   "x": 99,
+   "y": 123,
+   "w": 47,
+   "h": 55,
+   "mirrored": false,
+   "pivot": [
+    18,
+    53
+   ],
+   "desc": "knocked back, impact stars"
+  },
+  "h2": {
+   "row": "R3",
+   "frame": 4,
+   "x": 146,
+   "y": 123,
+   "w": 55,
+   "h": 55,
+   "mirrored": false,
+   "pivot": [
+    29,
+    53
+   ],
+   "desc": "crumpling forward, impact stars"
+  },
+  "k0": {
+   "row": "R3",
+   "frame": 5,
+   "x": 205,
+   "y": 123,
+   "w": 72,
+   "h": 55,
+   "mirrored": false,
+   "pivot": [
+    38,
+    53
+   ],
+   "desc": "lying prone (knocked down)"
+  },
+  "n0": {
+   "row": "R4",
+   "frame": 1,
+   "x": 2,
+   "y": 187,
+   "w": 62,
+   "h": 52,
+   "mirrored": false,
+   "pivot": [
+    39,
+    50
+   ],
+   "desc": "one-arm extended slash, second blade cocked"
+  },
+  "n1": {
+   "row": "R4",
+   "frame": 2,
+   "x": 71,
+   "y": 187,
+   "w": 38,
+   "h": 52,
+   "mirrored": false,
+   "pivot": [
+    17,
+    50
+   ],
+   "desc": "two blades raised and crossed"
+  },
+  "n2": {
+   "row": "R4",
+   "frame": 3,
+   "x": 115,
+   "y": 187,
+   "w": 38,
+   "h": 52,
+   "mirrored": false,
+   "pivot": [
+    20,
+    50
+   ],
+   "desc": "low crouch, blades up - lunge set"
+  },
+  "n3": {
+   "row": "R4",
+   "frame": 4,
+   "x": 162,
+   "y": 187,
+   "w": 47,
+   "h": 52,
+   "mirrored": false,
+   "pivot": [
+    20,
+    50
+   ],
+   "desc": "lunging, three blades crossed"
+  },
+  "n4": {
+   "row": "R4",
+   "frame": 5,
+   "x": 217,
+   "y": 187,
+   "w": 70,
+   "h": 52,
+   "mirrored": false,
+   "pivot": [
+    42,
+    50
+   ],
+   "desc": "crouched follow-through under an X of yellow arcs"
+  },
+  "s0": {
+   "row": "R5",
+   "frame": 1,
+   "x": 0,
+   "y": 247,
+   "w": 101,
+   "h": 43,
+   "mirrored": false,
+   "pivot": [
+    55,
+    41
+   ],
+   "desc": "Santoryu wide slash, yellow arcs both sides"
+  },
+  "s1": {
+   "row": "R5",
+   "frame": 2,
+   "x": 109,
+   "y": 247,
+   "w": 62,
+   "h": 43,
+   "mirrored": false,
+   "pivot": [
+    34,
+    41
+   ],
+   "desc": "wide stance, blades swept out"
+  },
+  "s2": {
+   "row": "R5",
+   "frame": 3,
+   "x": 181,
+   "y": 247,
+   "w": 49,
+   "h": 43,
+   "mirrored": false,
+   "pivot": [
+    26,
+    41
+   ],
+   "desc": "deep crouch, blades low"
+  },
+  "l0": {
+   "row": "R6",
+   "frame": 1,
+   "x": 3,
+   "y": 293,
+   "w": 62,
+   "h": 54,
+   "mirrored": false,
+   "pivot": [
+    39,
+    52
+   ],
+   "desc": "knee-up rising slash"
+  },
+  "l1": {
+   "row": "R6",
+   "frame": 2,
+   "x": 75,
+   "y": 293,
+   "w": 48,
+   "h": 54,
+   "mirrored": false,
+   "pivot": [
+    16,
+    52
+   ],
+   "desc": "bent forward, blade swung overhead"
+  },
+  "l2": {
+   "row": "R6",
+   "frame": 3,
+   "x": 128,
+   "y": 293,
+   "w": 50,
+   "h": 54,
+   "mirrored": false,
+   "pivot": [
+    19,
+    52
+   ],
+   "desc": "tucked low crouch, head down"
+  },
+  "l3": {
+   "row": "R6",
+   "frame": 4,
+   "x": 184,
+   "y": 293,
+   "w": 67,
+   "h": 54,
+   "mirrored": false,
+   "pivot": [
+    39,
+    52
+   ],
+   "desc": "standing double thrust, both arms out"
+  },
+  "t0": {
+   "row": "R7",
+   "frame": 1,
+   "x": 11,
+   "y": 359,
+   "w": 53,
+   "h": 53,
+   "mirrored": false,
+   "pivot": [
+    23,
+    51
+   ],
+   "desc": "mouth-sword stance with yellow draw burst"
+  },
+  "t1": {
+   "row": "R7",
+   "frame": 2,
+   "x": 66,
+   "y": 359,
+   "w": 68,
+   "h": 53,
+   "mirrored": false,
+   "pivot": [
+    42,
+    51
+   ],
+   "desc": "long forward thrust"
+  },
+  "t2": {
+   "row": "R7",
+   "frame": 3,
+   "x": 143,
+   "y": 359,
+   "w": 50,
+   "h": 53,
+   "mirrored": false,
+   "pivot": [
+    28,
+    51
+   ],
+   "desc": "crouched spin-cut, yellow arc"
+  },
+  "t3": {
+   "row": "R7",
+   "frame": 4,
+   "x": 207,
+   "y": 359,
+   "w": 49,
+   "h": 53,
+   "mirrored": false,
+   "pivot": [
+    30,
+    51
+   ],
+   "desc": "blade raised overhead, yellow arc above"
+  },
+  "p0": {
+   "row": "R9",
+   "frame": 1,
+   "x": 12,
+   "y": 489,
+   "w": 36,
+   "h": 60,
+   "mirrored": false,
+   "pivot": [
+    17,
+    59
+   ],
+   "desc": "tied to the wooden execution stake (Shells Town)"
+  },
+  "p1": {
+   "row": "R9",
+   "frame": 2,
+   "x": 60,
+   "y": 489,
+   "w": 36,
+   "h": 60,
+   "mirrored": false,
+   "pivot": [
+    18,
+    58
+   ],
+   "desc": "free of the stake - rope coil slipping off, cut ends falling"
+  },
+  "tornado0": {
+   "row": "R8",
+   "frame": 1,
+   "x": 13,
+   "y": 426,
+   "w": 42,
+   "h": 56,
+   "mirrored": false,
+   "desc": "tornado / whirlwind effect"
+  },
+  "tornado1": {
+   "row": "R8",
+   "frame": 2,
+   "x": 62,
+   "y": 426,
+   "w": 42,
+   "h": 56,
+   "mirrored": false,
+   "desc": "tornado / whirlwind effect"
+  },
+  "tornado2": {
+   "row": "R8",
+   "frame": 3,
+   "x": 114,
+   "y": 426,
+   "w": 42,
+   "h": 56,
+   "mirrored": false,
+   "desc": "tornado / whirlwind effect"
+  },
+  "tornado3": {
+   "row": "R8",
+   "frame": 4,
+   "x": 163,
+   "y": 426,
+   "w": 41,
+   "h": 56,
+   "mirrored": false,
+   "desc": "tornado / whirlwind effect"
+  },
+  "merry": {
+   "row": "R9",
+   "frame": 3,
+   "x": 110,
+   "y": 489,
+   "w": 166,
+   "h": 61,
+   "mirrored": false,
+   "desc": "Going Merry ram figurehead + bow"
+  },
+  "credit": {
+   "row": "R9",
+   "frame": null,
+   "x": 167,
+   "y": 515,
+   "w": 109,
+   "h": 35,
+   "mirrored": false,
+   "desc": "EXCLUDED - ripper credit text"
+  }
+ }
+}

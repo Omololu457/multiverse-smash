@@ -1,0 +1,152 @@
+[
+  {
+    "label": "J1 -> J2 -> J3",
+    "cost": 0,
+    "total": 76,
+    "contacts": [
+      {
+        "frame": 5,
+        "damage": 20,
+        "gap": 72,
+        "escapeFrames": null
+      },
+      {
+        "frame": 17,
+        "damage": 23,
+        "gap": 72,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 33,
+        "damage": 33,
+        "gap": 72,
+        "escapeFrames": 0
+      }
+    ]
+  },
+  {
+    "label": "J1 -> Heavy -> Arm Blaster",
+    "cost": 12,
+    "total": 129,
+    "contacts": [
+      {
+        "frame": 5,
+        "damage": 20,
+        "gap": 72,
+        "escapeFrames": null
+      },
+      {
+        "frame": 25,
+        "damage": 66,
+        "gap": 72,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 53,
+        "damage": 43,
+        "gap": 72,
+        "escapeFrames": 0
+      }
+    ]
+  },
+  {
+    "label": "Command -> knock-away",
+    "cost": 0,
+    "total": 116,
+    "contacts": [
+      {
+        "frame": 10,
+        "damage": 31,
+        "gap": 54.09375,
+        "escapeFrames": null
+      },
+      {
+        "frame": 34,
+        "damage": 37,
+        "gap": 60,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 60,
+        "damage": 48,
+        "gap": 60,
+        "escapeFrames": 0
+      }
+    ]
+  },
+  {
+    "label": "Launcher -> manual jump -> Air",
+    "cost": 0,
+    "total": 83,
+    "contacts": [
+      {
+        "frame": 12,
+        "damage": 52,
+        "gap": 72,
+        "escapeFrames": null
+      },
+      {
+        "frame": 40,
+        "damage": 31,
+        "gap": 72,
+        "escapeFrames": 0
+      }
+    ]
+  },
+  {
+    "label": "Heavy -> Covering Unit (pressure)",
+    "cost": 25,
+    "total": 95,
+    "contacts": [
+      {
+        "frame": 14,
+        "damage": 66,
+        "gap": 72,
+        "escapeFrames": null
+      },
+      {
+        "frame": 73,
+        "damage": 29,
+        "gap": 79.50633846469509,
+        "escapeFrames": 11
+      }
+    ]
+  },
+  {
+    "label": "Heavy -> ultimate",
+    "cost": 100,
+    "total": 268,
+    "contacts": [
+      {
+        "frame": 14,
+        "damage": 66,
+        "gap": 72,
+        "escapeFrames": null
+      },
+      {
+        "frame": 57,
+        "damage": 36,
+        "gap": 72,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 71,
+        "damage": 39,
+        "gap": 72,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 81,
+        "damage": 35,
+        "gap": 72,
+        "escapeFrames": 0
+      },
+      {
+        "frame": 93,
+        "damage": 92,
+        "gap": 72,
+        "escapeFrames": 0
+      }
+    ]
+  }
+]

@@ -235,6 +235,7 @@ function tickMove(f, opp, s, a, W) {
         }
       }
       break
+    case 'split': { const [t0, t1, v] = g.back; if (g.origin == null) g.origin = f.x || 0; if (t >= t0 && t < t1) { f.x = Math.max(0, Math.min(sw - (f.w || 48), (f.x || 0) - dir * v)); f.vx = 0 } break }   // VARIETY L5: body retreats while the hand lunges
     case 'cape': if (t === 0 || t === 1) s.capeUsed = false; break
     case 'super': tickSuper(f, opp, s, a, g, t, W); break
   }

@@ -23,7 +23,7 @@
     "key": "spd_green",
     "name": "S.P.D. Green Ranger",
     "stats": {
-      "maxHealth": 980,
+      "maxHealth": 1120,
       "maxEnergy": 100,
       "attack": 80,
       "defense": 78,
@@ -50,7 +50,7 @@
   "afterP1": {
     "gameState": "selectUniverse",
     "countdown": 180,
-    "frame": 392
+    "frame": 359
   },
   "preStage": {
     "gameState": "selectStage",
@@ -66,8 +66,8 @@
     "tag": "upgrade",
     "p2": "krybot"
   },
-  "fps": 54,
-  "passes": 12,
-  "failures": 0,
+  "fps": 32,
+  "passes": 10,
+  "failures": 2,
   "errors": []
 }

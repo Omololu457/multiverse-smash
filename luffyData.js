@@ -1,5 +1,10 @@
 import { LUFFY_ANIM } from './luffyAssets.js'
-const n = (damage, startup, active, recovery, extra={}) => ({ damage, startup, active, recovery,
+// ROSTER-PARITY PASS (2026-11-13, owner request): this kit was authored on a much lower damage scale than the roster
+// (light ≈17 vs roster median 42, heavy ≈56 vs 80). One per-character lever multiplies every authored damage value;
+// frame data, ratios between moves and the shared 0.60 global scale are untouched.
+export const LUFFY_DAMAGE_SCALE = 1.7
+const dmg = v => Math.round(v * LUFFY_DAMAGE_SCALE)
+const n = (damage, startup, active, recovery, extra={}) => ({ damage: dmg(damage), startup, active, recovery,
   hitstun:22, blockstun:10, knockbackX:1, knockbackY:0, rangeX:64, rangeY:48,
   frameExact:true, lf:{normal:true}, ...extra })
 export const LUFFY_MOVES = {
@@ -19,13 +24,29 @@ export const LUFFY_MOVES = {
  lfReel:n(24,18,3,30,{cost:18,rangeX:270,hitstun:42,knockbackX:1,isSpecial:true,
    lf:{kind:'reel',snapLate:40}}),
  lfPinwheel:n(12,11,20,24,{cost:20,rangeX:106,rangeY:78,isSpecial:true,hitstun:16,
-   lf:{kind:'pinwheel',contacts:[[11,2,12],[20,2,12],[29,2,22]]}}),
+   lf:{kind:'pinwheel',contacts:[[11,2,dmg(12)],[20,2,dmg(12)],[29,2,dmg(22)]]}}),
  lfBrace:n(0,10,24,22,{cost:18,isSpecial:true,lf:{kind:'brace',noHit:true}}),
  lfAnchor:n(46,12,32,18,{cost:15,rangeX:90,rangeY:220,hitstun:26,knockbackX:5,knockbackY:10,isSpecial:true,
    lf:{kind:'anchor',boxY:50,centered:true}}),
  lfFinale:n(30,28,31,45,{cost:100,rangeX:260,hitstun:22,knockbackX:1,isUltimate:true,
-   lf:{kind:'finale',contacts:[[28,3,30,160],[36,2,30,160],[44,2,40,180],[56,3,120,230]]}}),
- lfSnap:n(0,0,1,5,{lf:{kind:'snap',noHit:true}})
+   lf:{kind:'finale',contacts:[[28,3,dmg(30),160],[36,2,dmg(30),160],[44,2,dmg(40),180],[56,3,dmg(120),230]]}}),
+ lfSnap:n(0,0,1,5,{lf:{kind:'snap',noHit:true}}),
+ // ── VARIETY PASS (2026-11-13; S.P.D. Red's layer template, canon Gomu Gomu techniques) ──
+ // Down+Heavy GOMU GOMU NO MUCHI (Whip): long sweeping leg whip, hits low, knocks down. Down+Light keeps the quick Rubber Sweep.
+ lfMuchi:n(40,13,4,26,{hitLevel:'low',rangeX:170,rangeY:34,hitstun:30,blockstun:12,knockbackX:4,lf:{normal:true,boxY:62,knockdown:true}}),
+ // Forward+Light GOMU GOMU NO KANE (Bell): stretched-neck headbutt, mid range, heavy hitstun. Committed; no chain.
+ lfOno:n(52,18,3,24,{category:'heavy',armor:17,rangeX:96,rangeY:70,hitstun:30,blockstun:14,knockbackX:4,lf:{normal:true,knockdown:true}}),   // VARIETY L6 Back+Light GOMU GOMU NO ONO: rubber body armors f1-17, axe kick knocks down
+ lfKane:n(40,14,3,24,{rangeX:120,rangeY:44,hitstun:32,blockstun:12,knockbackX:5,lf:{normal:true}}),
+ // Back+Heavy RUBBER HOP: bounce away (≈90px), invulnerable frames 1-6, no hitbox.
+ lfKaza:n(70,7,2,32,{category:'heavy',damageType:'grab',unblockable:true,rangeX:56,rangeY:44,hitstun:40,blockstun:0,knockbackX:8,lf:{normal:true,knockdown:true,boxY:40}}),   // VARIETY L8 ↓↙←+Heavy GOMU GOMU NO KAZAGURUMA: windmill leg-grab throw (unblockable), knockdown
+ lfHop:n(0,1,12,16,{invuln:6,lf:{kind:'hop',noHit:true,advance:-7.5}}),
+ // air Heavy GOMU GOMU NO STAMP: stretched sole, long downward aerial (air Light keeps Air Heel).
+ lfStamp:n(38,11,4,18,{rangeX:130,rangeY:60,hitstun:26,knockbackX:4,knockbackY:3,lf:{normal:true}}),
+ // ↓↘→+Special GOMU GOMU NO GATLING: five rapid stretched punches, then a stronger last fist. Committed.
+ lfGatling:n(10,12,30,24,{cost:22,rangeX:150,rangeY:56,isSpecial:true,hitstun:16,blockstun:10,
+   lf:{kind:'gatling',contacts:[[12,2,dmg(10)],[17,2,dmg(10)],[22,2,dmg(10)],[27,2,dmg(10)],[32,2,dmg(10)],[38,3,dmg(22)]]}}),
+ // ↓↙←+Special GOMU GOMU NO BAZOOKA: two-palm stretched shove, slow, huge knockback.
+ lfBazooka:n(70,20,4,30,{cost:25,rangeX:180,rangeY:60,isSpecial:true,hitstun:32,blockstun:16,knockbackX:16,lf:{kind:'bazooka'}})
 }
 // Source frame indices at exact simulation elapsed frames. Presentation never drives collision.
 const timelines={
@@ -55,12 +76,17 @@ export const luffy = {
  spriteSheet:LUFFY_ANIM.idle.sheet,primary:'melee',secondary:[],archetypes:['melee'],
  traits:{hasEnergy:true,energyType:'stamina',energyName:'Stamina',mobility:'high',scaling:'combo',animeMovement:false},
  energyConfig:{label:'Stamina',color:'#f1b83b'},
- stats:{maxHealth:1000,maxEnergy:100,attack:85,defense:85,speed:85,jumpPower:31,maxJumps:1,weight:1,dashSpeed:18,dashDuration:8},
+ stats:{maxHealth:1150,maxEnergy:100,attack:85,defense:85,speed:85,jumpPower:31,maxJumps:1,weight:1,dashSpeed:18,dashDuration:8},
  movement:{crouchIdle:true,runWhenAdvancing:true},
  basic_attacks:{light:LUFFY_MOVES.light,heavy:LUFFY_MOVES.heavy,crouchLight:LUFFY_MOVES.lfLow,
    upAttack:LUFFY_MOVES.up,airAttack:LUFFY_MOVES.air,downAir:LUFFY_MOVES.down_air,
-   grab:{damage:30,startup:6,active:3,recovery:18,hitstun:20,throwForceX:6,throwForceY:-4}},
- specials:{stretch_piston:{name:'Stretch Piston',cost:12},reel_in:{name:'Reel-In',cost:18},rubber_pinwheel:{name:'Rubber Pinwheel',cost:20},balloon_brace:{name:'Balloon Brace',cost:18},anchor_heel:{name:'Anchor Heel',cost:15}},
+   grab:{damage:dmg(30),startup:6,active:3,recovery:18,hitstun:20,throwForceX:6,throwForceY:-4}},
+ specials:{gatling:{name:'Gomu Gomu no Gatling (↓↘→)',cost:22},bazooka:{name:'Gomu Gomu no Bazooka (↓↙←)',cost:25},stretch_piston:{name:'Stretch Piston',cost:12},reel_in:{name:'Reel-In',cost:18},rubber_pinwheel:{name:'Rubber Pinwheel',cost:20},balloon_brace:{name:'Balloon Brace',cost:18},anchor_heel:{name:'Anchor Heel',cost:15}},
  ultimate:{name:'Full-Stretch Finale',cost:100},
- animationData:{lfFinaleMiss:{...LUFFY_ANIM.lfSnap,frameTimeline:[[0,0],[20,1],[35,2],[50,3]]},...Object.fromEntries(Object.entries(LUFFY_ANIM).map(([k,a])=>[k,{...a,frameTimeline:timelines[k]}]))}
+ animationData:{lfFinaleMiss:{...LUFFY_ANIM.lfSnap,frameTimeline:[[0,0],[20,1],[35,2],[50,3]]},
+  // variety pass: existing Luffy strips, re-timed (no new art)
+  lfMuchi:{...LUFFY_ANIM.lfLow,frameTimeline:[[0,0],[8,1],[12,2],[17,3],[30,4]]},lfKane:{...LUFFY_ANIM.lfJ3,frameTimeline:[[0,0],[7,1],[13,2],[17,3],[30,4]]},
+  lfKaza:{...LUFFY_ANIM.lfSnap,frameTimeline:[[0,0],[5,1],[10,2],[20,3]]},lfOno:{...LUFFY_ANIM.down_air,frameTimeline:[[0,0],[6,1],[12,2],[18,3],[26,4]]},lfHop:{...LUFFY_ANIM.dash,frameTimeline:[[0,0],[3,1],[6,2],[9,3],[13,4],[20,5]]},lfStamp:{...LUFFY_ANIM.down_air,frameTimeline:[[0,0],[5,1],[10,2],[15,3],[22,4]]},
+  lfGatling:{...LUFFY_ANIM.lfPiston,frameTimeline:[[0,0],[6,1],[11,3],[14,4],[16,3],[19,4],[21,3],[24,4],[26,3],[29,4],[31,3],[34,4],[37,3],[40,4],[45,5],[55,6]]},
+  lfBazooka:{...LUFFY_ANIM.heavy,frameTimeline:[[0,0],[6,1],[12,2],[19,3],[22,4],[34,5],[48,6]]},...Object.fromEntries(Object.entries(LUFFY_ANIM).map(([k,a])=>[k,{...a,frameTimeline:timelines[k]}]))}
 }

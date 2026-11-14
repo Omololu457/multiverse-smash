@@ -15,7 +15,7 @@ export const SCREEN = 1280
 // +2/s extra while standing in his own water (Phase 3).
 export const ARLONG_TIDE = { perKarateHit: 5, perBladeHit: 3, passiveEvery: 60, waterEvery: 30 }
 export const ARLONG_SUPER_LOCKOUT = 180
-const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
+const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down', 'charge']   // variety L7: charge edge (Charge+Forward ram)
 
 export function arlongState(f) {
   if (!isArlong(f)) return null
@@ -266,6 +266,8 @@ export function arlongStartMove(f, key, startMove = _startMove) {
   a.al = { kind: g.kind || 'normal', ...g, blockstun: md.blockstun, dir: f.facing || 1 }
   if (g.noHit) a.hasHit = true
   if (md.invuln) f.invulnTimer = Math.max(f.invulnTimer || 0, md.invuln)
+  if (md.armor) f._castArmor = Math.max(f._castArmor || 0, md.armor)   // VARIETY L7: armored startup (engine castArmored)
+  if (md.unblockable) a.unblockable = true   // VARIETY L8: command throw beats guard (startMove does not copy the flag)
   if (md.isSpecial || md.isUltimate) { f.vx = 0; f.isBlocking = false }
   if (key === 'aSuper') { const s = arlongState(f); s.inSuper = true }
   if (g.tooth) { const s = arlongState(f); s.teeth = Math.max(0, s.teeth - 1); s.bites++ }   // a bite spends a tooth on commit

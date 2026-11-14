@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ghostface SFX Audition — MK1 Voice Lines & SFX</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui;background:#111;color:#eee;padding:20px}
+h1{text-align:center;margin-bottom:8px;font-size:1.4em}
+.note{text-align:center;color:#999;font-size:.85em;margin-bottom:20px}
+.folder{margin-bottom:24px}
+.folder h2{font-size:1.1em;color:#e44;border-bottom:1px solid #333;padding-bottom:4px;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
+.clip{display:flex;align-items:center;gap:8px;background:#1a1a1a;padding:6px 10px;border-radius:6px;font-size:.8em}
+.clip audio{height:28px;flex-shrink:0}
+.clip .name{color:#ccc;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip .sz{color:#666;font-size:.75em;flex-shrink:0}
+</style>
+</head>
+<body>
+<h1>Ghostface — MK1 Voice Lines & SFX</h1>
+<p class="note">242 clips · Source may contain background music · Listen and categorize</p>
+<div id="app"></div>
+<script>
+fetch('manifest.json').then(r=>r.json()).then(m=>{
+  const app=document.getElementById('app');
+  for(const[folder,clips] of Object.entries(m.folders)){
+    const div=document.createElement('div');
+    div.className='folder';
+    div.innerHTML=`<h2>${folder} (${clips.length} clips)</h2><div class="grid"></div>`;
+    const grid=div.querySelector('.grid');
+    for(const c of clips){
+      const d=document.createElement('div');
+      d.className='clip';
+      d.innerHTML=`<audio controls preload="none"><source src="${c.file}" type="audio/ogg"></audio><span class="name">${c.file.split('/').pop()}</span><span class="sz">${c.size_kb}KB</span>`;
+      grid.appendChild(d);
+    }
+    app.appendChild(div);
+  }
+});
+</script>
+</body>
+</html>

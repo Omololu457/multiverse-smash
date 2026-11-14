@@ -2,7 +2,13 @@ import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, l
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
 import { zoroHitbox } from './zoroState.js'
+import { krybotHitbox, krybotBlockstun, krybotHit, krybotProjectileHit, krybotProjectileChip } from './krybotState.js'
+import { spdBlueHitbox, spdBlueBlock, spdBlueHit, absorbSpdBlue } from './spdBlueState.js'
+import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js'   // S.P.D. Green hooks (spd_green-gated)
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
+import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
+import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
+import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
@@ -87,6 +93,7 @@ import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / gr
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
 import { playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface" only; Billy/.exe keep the old pools)
 import { playHomelanderSfx } from "./homelander_sfx_map.js"   // Homelander MK1 voice/SFX pools (audio-only; gated on rosterKey)
+import { rosterDamageBoost } from "./rosterParity.js"   // roster-parity outgoing-damage boost (listed recent fighters only; 1 for everyone else)
 import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort / hit-react (light/heavy) / knockdown / offense-quip voice pools (audio-only, EN Marvel-Rivals pack)
 
 // ========================
@@ -188,6 +195,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
   if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
   rawDamage = spdRedDamageMods(target, rawDamage, opts)   // S.P.D. Red — containment card absorb / post-dodge buff (returns rawDamage untouched unless a Ranger is involved)
+  rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
@@ -686,7 +694,14 @@ export function getAttackHitbox(fighter) {
   if (a?.sj && fighter.rosterKey === 'sanji') return sanjiHitbox(fighter)   // Sanji: his own box descriptor (sanji-gated)
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
   if (a?.sr && fighter.rosterKey === 'spd_red') return spdRedHitbox(fighter)   // S.P.D. Red: his own box descriptor (spd_red-gated)
+
+  if (a?.krybot && fighter.rosterKey === 'krybot') return krybotHitbox(fighter)
+  if (a?.blue && fighter.rosterKey === 'spd_blue') return spdBlueHitbox(fighter)
+  if (a?.green && fighter.rosterKey === 'spd_green') return spdGreenHitbox(fighter)
+  if (a?.pink && fighter.rosterKey === 'spd_pink') return spdPinkHitbox(fighter)
+  if (a?.mb && fighter.rosterKey === 'mmpr_pink') return mmprPinkHitbox(fighter)   // Pink Ranger: per-move box; body-less bow / call / Crane Escape have none
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
+  if (a?.mw && fighter.rosterKey === 'mmpr_white') return mmprWhiteHitbox(fighter)   // White Ranger: per-move box; body-less order / signal / feint have none
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -2985,7 +3000,7 @@ export function updateGrab(attacker, defender) {
       defender.vx = 0
       defender.vy = 0
       const dmg = pull.dmg || 0                        // pull is the payload → only light chip, not a throw
-      if (dmg > 0) applyScaledDamage(defender, dmg, { source: "grab-pull" })
+      if (dmg > 0) applyScaledDamage(defender, dmg, { source: "grab-pull", boostFrom: attacker })
       defender.hitstun    = pull.hitstun || 18         // left briefly stunned in the attacker's face (mixup setup)
       defender.colorFlash = 8
       try { sound?.play?.(SFX?.HIT_LIGHT) } catch (_) {}
@@ -3032,7 +3047,7 @@ export function updateGrab(attacker, defender) {
     // Susanoo grab) can stamp `_grabThrowDmg` on the attacker to deal its own tuned amount. Cleared
     // right after so a custom value never leaks into the attacker's next (generic) grab.
     const throwDmg = (attacker && attacker._grabThrowDmg) || 90
-    applyScaledDamage(defender, throwDmg, { source: "grab-throw" })
+    applyScaledDamage(defender, throwDmg, { source: "grab-throw", boostFrom: attacker })
     if (attacker) attacker._grabThrowDmg = 0
     defender.hitstun = 20
     defender.colorFlash = 8
@@ -3186,6 +3201,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
   if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) return
+  // S.P.D. PINK — Baton Reprisal: same top-priority negate contract as the counters below, but NO riposte damage/stun
+  // here — Syd answers next tick with one ordinary blockable strike. spd_pink-gated (see spdPinkCounter).
+  if (spdPinkCounter(defender, attacker)) { try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {} ; return }
 
   // NEZUKO — Counter Stance (Down+Special) takes priority over EVERYTHING (block/crouch/invuln): a hit that
   // overlaps her during the window is negated + riposted. Checked here at the top so the down-hold that arms
@@ -3245,6 +3263,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   // LUFFY — Gum-Gum guard absorb: when his defensive window holds, the incoming strike is absorbed
   // outright. luffy-gated → a strict no-op for every other fighter.
+  if (absorbSpdBlue(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }
   if (absorbLuffyStrike(defender, attacker)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3389,9 +3408,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = flawless ? 0 : Math.floor(dmg * (chip ? 0.12 : 0.20))
 
-    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
+    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip", boostFrom: attacker })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (!flawless) krybotBlockstun(attacker, defender, atk)
+    if (!flawless) spdBlueBlock(attacker, defender, atk)
+    if (!flawless) spdGreenBlock(attacker, defender, atk)
+    if (!flawless) spdPinkBlock(attacker, defender, atk)
+    if (!flawless) mmprPinkBlock(attacker, defender, atk)   // Pink Ranger: authored blockstun; mmpr_pink-gated
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
+    if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
@@ -3443,7 +3468,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     buggyHit(attacker, defender, atk)
     sanjiHit(attacker, defender, atk)
     arlongHit(attacker, defender, atk)
+    krybotHit(attacker, defender, atk)
+    spdBlueHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
+    spdGreenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
+    spdPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
+    mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
     mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
+    mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
     spdRedHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
@@ -4273,6 +4304,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (_bgCape === 'block') { projectiles.splice(i, 1); break }
       // BUGGY — Bara Bara no Mi: a SLASH projectile (kunai, knives, cards, cutting waves) passes through and is spent.
       if (buggyNullifyProjectile(fighter, proj)) { projectiles.splice(i, 1); break }
+      if (absorbSpdBlue(fighter, proj.owner, proj, true)) { projectiles.splice(i, 1); break }
 
       // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
@@ -4324,6 +4356,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (fighter._supArmorCd || 0) <= 0 && !proj.isUltimate
       if (fighter.isBlocking) {
         dmg *= 0.15
+        dmg = krybotProjectileChip(proj, dmg)
         fighter.blockstun = 12
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else if (supArmoredProj) {
@@ -4356,6 +4389,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         if (fighter.isBlocking) proj.owner.comboCounter = 0
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
+      krybotProjectileHit(proj, fighter)
+      mmprPinkProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Pink Ranger arrows: Spotter Link / Thread the Needle / ultimate confirm; mmpr_pink-gated
       mmprBlackProjectileHit(proj, fighter)   // Falconzord Covering Volley shot (Pincer consume); mmpr_black-gated
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
       buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)

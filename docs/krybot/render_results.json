@@ -1,0 +1,23 @@
+{
+  "size": [
+    {
+      "contentH": 104,
+      "contentW": 105,
+      "cellDstH": 193.60000000000002,
+      "scale": 1.864406779661017,
+      "globalScale": 1.18,
+      "action": "ultimate",
+      "clipped": false
+    },
+    {
+      "contentH": 119,
+      "contentW": 70,
+      "cellDstH": 193.60000000000002,
+      "scale": 1.864406779661017,
+      "globalScale": 1.18,
+      "action": "idle",
+      "clipped": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,37 @@
+{
+  "skins": {
+    "spdPinkAlienX": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 49
+    },
+    "spd_pink_inspired_diamondhead": {
+      "tag": "diamondhead",
+      "traceIdentical": true,
+      "actions": 49
+    },
+    "spd_pink_inspired_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 49
+    },
+    "spd_pink_inspired_heatblast": {
+      "tag": "heatblast",
+      "traceIdentical": true,
+      "actions": 49
+    },
+    "spd_pink_inspired_chromastone": {
+      "tag": "chromastone",
+      "traceIdentical": true,
+      "actions": 49
+    },
+    "spd_pink_inspired_shadow": {
+      "tag": "shadow",
+      "traceIdentical": true,
+      "actions": 49
+    }
+  },
+  "indicator": "[\"#11141a\",\"#eef2f8\"]",
+  "passes": 62,
+  "failures": 0
+}

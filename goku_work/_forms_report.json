@@ -1,0 +1,56 @@
+{
+ "ssj": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 739,
+  "brow_px": 0
+ },
+ "ssj2": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 660,
+  "brow_px": 0
+ },
+ "ssj3": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 739,
+  "brow_px": 480
+ },
+ "god": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 758,
+  "brow_px": 0
+ },
+ "blue": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 741,
+  "brow_px": 0
+ },
+ "ui": {
+  "stats": {
+   "frames": 395,
+   "confident": 358,
+   "fallback": 37
+  },
+  "eyes_px": 660,
+  "brow_px": 0
+ }
+}

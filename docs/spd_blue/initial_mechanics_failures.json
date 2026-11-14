@@ -1,0 +1,220 @@
+{
+  "routes": [
+    {
+      "label": "J1 -> J2 -> J3",
+      "hits": [
+        10,
+        12,
+        16
+      ],
+      "damage": 38,
+      "cost": 0,
+      "spacing": 72,
+      "remainingStunAtRetaps": [
+        15,
+        18
+      ]
+    },
+    {
+      "label": "J1 -> Heavy -> Deltamax Shot",
+      "hits": [
+        10,
+        33,
+        20
+      ],
+      "damage": 63,
+      "cost": 11.159999999999968,
+      "spacing": 72,
+      "remainingStunAtRetaps": [
+        15,
+        36
+      ]
+    },
+    {
+      "label": "Command -> baton -> knock-away",
+      "hits": [
+        14,
+        18,
+        23
+      ],
+      "damage": 55,
+      "cost": 0,
+      "spacing": 61,
+      "remainingStunAtRetaps": [
+        29,
+        33
+      ]
+    },
+    {
+      "label": "Launcher -> manual Jump -> Air -> Air Recoil Shot",
+      "damage": 40,
+      "energy": 86.80000000000007,
+      "spacing": 103.85075343936364
+    },
+    {
+      "label": "Heavy -> paid Intercept Step -> Heavy pressure",
+      "damage": 63,
+      "spacing": 65.62699704549391,
+      "energy": 96.50000000000017
+    }
+  ],
+  "advantages": [
+    {
+      "key": "light",
+      "guard": false,
+      "attackerReady": 16,
+      "defenderReady": 21,
+      "advantage": 5
+    },
+    {
+      "key": "bJ2",
+      "guard": false,
+      "attackerReady": 18,
+      "defenderReady": 24,
+      "advantage": 6
+    },
+    {
+      "key": "bJ3",
+      "guard": false,
+      "attackerReady": 25,
+      "defenderReady": 32,
+      "advantage": 7
+    },
+    {
+      "key": "heavy",
+      "guard": false,
+      "attackerReady": 38,
+      "defenderReady": 49,
+      "advantage": 11
+    },
+    {
+      "key": "bLow",
+      "guard": false,
+      "attackerReady": 22,
+      "defenderReady": 28,
+      "advantage": 6
+    },
+    {
+      "key": "up",
+      "guard": false,
+      "attackerReady": 37,
+      "defenderReady": 46,
+      "advantage": 9
+    },
+    {
+      "key": "air",
+      "guard": false,
+      "attackerReady": 24,
+      "defenderReady": 36,
+      "advantage": 12
+    },
+    {
+      "key": "bAdvance",
+      "guard": false,
+      "attackerReady": 32,
+      "defenderReady": 42,
+      "advantage": 10
+    },
+    {
+      "key": "bChain",
+      "guard": false,
+      "attackerReady": 34,
+      "defenderReady": 46,
+      "advantage": 12
+    },
+    {
+      "key": "bAway",
+      "guard": false,
+      "attackerReady": 39,
+      "defenderReady": 44,
+      "advantage": 5
+    },
+    {
+      "key": "bPursuitFinish",
+      "guard": false,
+      "attackerReady": 44,
+      "defenderReady": 45,
+      "advantage": 1
+    },
+    {
+      "key": "light",
+      "guard": true,
+      "attackerReady": 12,
+      "defenderReady": 11,
+      "advantage": -1
+    },
+    {
+      "key": "bJ2",
+      "guard": true,
+      "attackerReady": 14,
+      "defenderReady": 11,
+      "advantage": -3
+    },
+    {
+      "key": "bJ3",
+      "guard": true,
+      "attackerReady": 21,
+      "defenderReady": 11,
+      "advantage": -10
+    },
+    {
+      "key": "heavy",
+      "guard": true,
+      "attackerReady": 28,
+      "defenderReady": 13,
+      "advantage": -15
+    },
+    {
+      "key": "bLow",
+      "guard": true,
+      "attackerReady": 18,
+      "defenderReady": 11,
+      "advantage": -7
+    },
+    {
+      "key": "up",
+      "guard": true,
+      "attackerReady": 25,
+      "defenderReady": 11,
+      "advantage": -14
+    },
+    {
+      "key": "air",
+      "guard": true,
+      "attackerReady": 20,
+      "defenderReady": 11,
+      "advantage": -9
+    },
+    {
+      "key": "bAdvance",
+      "guard": true,
+      "attackerReady": 22,
+      "defenderReady": 11,
+      "advantage": -11
+    },
+    {
+      "key": "bChain",
+      "guard": true,
+      "attackerReady": 24,
+      "defenderReady": 11,
+      "advantage": -13
+    },
+    {
+      "key": "bAway",
+      "guard": true,
+      "attackerReady": 29,
+      "defenderReady": 11,
+      "advantage": -18
+    },
+    {
+      "key": "bPursuitFinish",
+      "guard": true,
+      "attackerReady": 28,
+      "defenderReady": 11,
+      "advantage": -17
+    }
+  ],
+  "passes": 52,
+  "failures": 2,
+  "errors": []
+}

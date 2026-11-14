@@ -1,0 +1,7 @@
+2026-11-14 - Black Ranger (mmpr_black, Adam Park) + shared Falconzord sorties (Claude)
+- New fighter mmpr_black "Black Ranger" in Power Rangers: Martial Artist / Aerial Assist Commander, HP 1000, 100 Morph Energy, one jump. Supplied Genesis movie sheets (sprites ripped by Belial the Hedgehog), originals preserved.
+- Kit: J1/J2/J3 (5/7/10f), Heavy 14f, Ankle Sweep, launcher (jump-cancel), Forward+Heavy palm chain, Crescent Break (2 contacts), Rising Mastodon, Falcon Sweep / Talon Lift / Covering Volley sorties (2 pips, 180f sequential refill, 60f lockout, 12f call = commit boundary), Pincer Confirm, rangers.js blink, ultimate Falcon Formation: Blackout Descent (freeze cinematic, 30f opener, 260 raw).
+- New shared module falconzord.js (data-profile sorties: no HP, no homing, no body-block, per-target hit tracking, replay-safe JSON state).
+- 6 Inspired Palette skins (Alien X, Upgrade, Diamondhead, Heatblast, Chromastone, Ghostfreak); Falconzord never recoloured.
+- Tests: mmpr_black 85/0, determinism/replay/LAN/pad 20/0, skins 64/0, real-menu visual 20/0; frame-data diff zero for all 137 other fighters; det 14/0, combo-standard 231/9 and up-attack-roster 77/2 unchanged (pre-existing).
+- Docs: docs/mmpr_black/ (START_STATE, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/falconzord/.

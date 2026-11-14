@@ -3,6 +3,7 @@
 // Merge of both character sources into one central roster.
 
 import { luffy } from './luffyData.js'
+import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11485,6 +11486,7 @@ export const characters = {
   buggy,                             // Buggy the Clown (One Piece) — Chop-Chop part zoner; buggyData.js / buggy*.js
   sanji,                             // Sanji (One Piece) — Black Leg kicker: Diable Jambe + the Course; sanjiData.js / sanji*.js
   arlong,                            // Arlong (One Piece) — sawshark fishman, water-zone heavy bruiser; arlongData.js / arlong*.js
+  mmpr_black,                        // Black Ranger (Adam Park, MMPR) — Martial Artist / Aerial Assist Commander (Falconzord sorties); mmprBlack*.js
   luffy
 }
 

@@ -1,0 +1,780 @@
+{
+ "source": "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Zords - Falconzord.gif",
+ "sha256": "f7bf588277c2f4ddffaa483e127d2791b55e83d69e7c08abdb6b01b3d8d1d24b",
+ "size": [
+  410,
+  532
+ ],
+ "mode": "P",
+ "transparencyIndex": 76,
+ "keyPolicy": "GIF transparency index 76 only",
+ "credit": "Sprites ripped by Belial the Hedgehog.",
+ "creditPanel": [
+  305,
+  463,
+  105,
+  69
+ ],
+ "cells": [
+  {
+   "name": "fly0",
+   "rect": [
+    4,
+    3,
+    69,
+    68
+   ],
+   "parts": [
+    [
+     4,
+     3
+    ]
+   ],
+   "anchor": [
+    44,
+    38
+   ],
+   "opaquePixels": 1749,
+   "kind": "body",
+   "usedIn": [
+    "approach"
+   ]
+  },
+  {
+   "name": "fly1",
+   "rect": [
+    80,
+    6,
+    74,
+    58
+   ],
+   "parts": [
+    [
+     80,
+     6
+    ]
+   ],
+   "anchor": [
+    48,
+    34
+   ],
+   "opaquePixels": 1644,
+   "kind": "body",
+   "usedIn": [
+    "approach"
+   ]
+  },
+  {
+   "name": "bank0",
+   "rect": [
+    160,
+    4,
+    90,
+    61
+   ],
+   "parts": [
+    [
+     160,
+     4
+    ]
+   ],
+   "anchor": [
+    40,
+    30
+   ],
+   "opaquePixels": 1782,
+   "kind": "body",
+   "usedIn": [
+    "turn"
+   ]
+  },
+  {
+   "name": "bank1",
+   "rect": [
+    262,
+    7,
+    81,
+    50
+   ],
+   "parts": [
+    [
+     262,
+     7
+    ]
+   ],
+   "anchor": [
+    32,
+    26
+   ],
+   "opaquePixels": 1600,
+   "kind": "body",
+   "usedIn": [
+    "turn"
+   ]
+  },
+  {
+   "name": "front0",
+   "rect": [
+    7,
+    88,
+    55,
+    59
+   ],
+   "parts": [
+    [
+     7,
+     88
+    ]
+   ],
+   "anchor": [
+    26,
+    30
+   ],
+   "opaquePixels": 1680,
+   "kind": "body",
+   "usedIn": [
+    "front"
+   ]
+  },
+  {
+   "name": "zap0",
+   "rect": [
+    67,
+    83,
+    98,
+    64
+   ],
+   "parts": [
+    [
+     67,
+     83
+    ]
+   ],
+   "anchor": [
+    56,
+    34
+   ],
+   "opaquePixels": 1870,
+   "kind": "body",
+   "usedIn": [
+    "zap"
+   ]
+  },
+  {
+   "name": "zap1",
+   "rect": [
+    166,
+    81,
+    96,
+    64
+   ],
+   "parts": [
+    [
+     166,
+     81
+    ]
+   ],
+   "anchor": [
+    52,
+    32
+   ],
+   "opaquePixels": 1821,
+   "kind": "body",
+   "usedIn": [
+    "zap"
+   ]
+  },
+  {
+   "name": "talon0",
+   "rect": [
+    7,
+    158,
+    58,
+    71
+   ],
+   "parts": [
+    [
+     7,
+     158
+    ]
+   ],
+   "anchor": [
+    34,
+    34
+   ],
+   "opaquePixels": 1680,
+   "kind": "body",
+   "usedIn": [
+    "talon"
+   ]
+  },
+  {
+   "name": "energy0",
+   "rect": [
+    73,
+    156,
+    64,
+    78
+   ],
+   "parts": [
+    [
+     73,
+     156
+    ]
+   ],
+   "anchor": [
+    38,
+    40
+   ],
+   "opaquePixels": 3040,
+   "kind": "body",
+   "usedIn": [
+    "energy"
+   ]
+  },
+  {
+   "name": "thrust0",
+   "rect": [
+    144,
+    171,
+    76,
+    54
+   ],
+   "parts": [
+    [
+     144,
+     171
+    ]
+   ],
+   "anchor": [
+    34,
+    22
+   ],
+   "opaquePixels": 1534,
+   "kind": "body",
+   "usedIn": [
+    "thrust"
+   ]
+  },
+  {
+   "name": "thrust1",
+   "rect": [
+    230,
+    168,
+    66,
+    58
+   ],
+   "parts": [
+    [
+     230,
+     168
+    ]
+   ],
+   "anchor": [
+    24,
+    26
+   ],
+   "opaquePixels": 1810,
+   "kind": "body",
+   "usedIn": [
+    "thrust"
+   ]
+  },
+  {
+   "name": "thrust2",
+   "rect": [
+    312,
+    166,
+    68,
+    58
+   ],
+   "parts": [
+    [
+     312,
+     166
+    ]
+   ],
+   "anchor": [
+    22,
+    26
+   ],
+   "opaquePixels": 1858,
+   "kind": "body",
+   "usedIn": [
+    "thrust"
+   ]
+  },
+  {
+   "name": "shot0",
+   "rect": [
+    395,
+    198,
+    8,
+    6
+   ],
+   "parts": [
+    [
+     395,
+     198
+    ]
+   ],
+   "anchor": [
+    4,
+    3
+   ],
+   "opaquePixels": 28,
+   "kind": "fx",
+   "usedIn": [
+    "shot"
+   ]
+  },
+  {
+   "name": "shot1",
+   "rect": [
+    391,
+    202,
+    8,
+    6
+   ],
+   "parts": [
+    [
+     391,
+     202
+    ]
+   ],
+   "anchor": [
+    4,
+    3
+   ],
+   "opaquePixels": 28,
+   "kind": "fx",
+   "usedIn": [
+    "shot"
+   ]
+  },
+  {
+   "name": "jet0",
+   "rect": [
+    10,
+    242,
+    76,
+    89
+   ],
+   "parts": [
+    [
+     10,
+     242
+    ]
+   ],
+   "anchor": [
+    36,
+    30
+   ],
+   "opaquePixels": 2020,
+   "kind": "body",
+   "usedIn": [
+    "rise"
+   ]
+  },
+  {
+   "name": "dive0",
+   "rect": [
+    100,
+    254,
+    71,
+    58
+   ],
+   "parts": [
+    [
+     100,
+     254
+    ]
+   ],
+   "anchor": [
+    30,
+    26
+   ],
+   "opaquePixels": 1868,
+   "kind": "body",
+   "usedIn": [
+    "dive"
+   ]
+  },
+  {
+   "name": "impact0",
+   "rect": [
+    185,
+    276,
+    45,
+    23
+   ],
+   "parts": [
+    [
+     185,
+     276
+    ]
+   ],
+   "anchor": [
+    22,
+    11
+   ],
+   "opaquePixels": 353,
+   "kind": "fx",
+   "usedIn": [
+    "impact"
+   ]
+  },
+  {
+   "name": "sweep0",
+   "rect": [
+    9,
+    347,
+    65,
+    31
+   ],
+   "parts": [
+    [
+     9,
+     347
+    ]
+   ],
+   "anchor": [
+    36,
+    18
+   ],
+   "opaquePixels": 1086,
+   "kind": "body",
+   "usedIn": [
+    "sweep"
+   ]
+  },
+  {
+   "name": "sweep1",
+   "rect": [
+    81,
+    341,
+    65,
+    37
+   ],
+   "parts": [
+    [
+     81,
+     341
+    ]
+   ],
+   "anchor": [
+    36,
+    18
+   ],
+   "opaquePixels": 1356,
+   "kind": "body",
+   "usedIn": [
+    "sweep"
+   ]
+  },
+  {
+   "name": "sweep2",
+   "rect": [
+    156,
+    342,
+    64,
+    35
+   ],
+   "parts": [
+    [
+     156,
+     342
+    ]
+   ],
+   "anchor": [
+    36,
+    18
+   ],
+   "opaquePixels": 1304,
+   "kind": "body",
+   "usedIn": [
+    "sweep"
+   ]
+  },
+  {
+   "name": "sweep3",
+   "rect": [
+    228,
+    346,
+    65,
+    32
+   ],
+   "parts": [
+    [
+     228,
+     346
+    ]
+   ],
+   "anchor": [
+    36,
+    18
+   ],
+   "opaquePixels": 1379,
+   "kind": "body",
+   "usedIn": [
+    "sweep"
+   ]
+  },
+  {
+   "name": "sweep4",
+   "rect": [
+    312,
+    346,
+    66,
+    37
+   ],
+   "parts": [
+    [
+     312,
+     346
+    ]
+   ],
+   "anchor": [
+    34,
+    18
+   ],
+   "opaquePixels": 1237,
+   "kind": "body",
+   "usedIn": [
+    "sweep"
+   ]
+  },
+  {
+   "name": "glide0",
+   "rect": [
+    5,
+    390,
+    65,
+    58
+   ],
+   "parts": [
+    [
+     5,
+     390
+    ]
+   ],
+   "anchor": [
+    32,
+    30
+   ],
+   "opaquePixels": 1732,
+   "kind": "body",
+   "usedIn": [
+    "glide"
+   ]
+  },
+  {
+   "name": "streak0",
+   "rect": [
+    81,
+    399,
+    123,
+    50
+   ],
+   "parts": [
+    [
+     81,
+     399
+    ]
+   ],
+   "anchor": [
+    88,
+    26
+   ],
+   "opaquePixels": 3166,
+   "kind": "body",
+   "usedIn": [
+    "streak"
+   ]
+  },
+  {
+   "name": "goldFly0",
+   "rect": [
+    215,
+    402,
+    72,
+    42
+   ],
+   "parts": [
+    [
+     215,
+     402
+    ]
+   ],
+   "anchor": [
+    36,
+    20
+   ],
+   "opaquePixels": 1382,
+   "kind": "body",
+   "usedIn": [
+    "goldFly"
+   ]
+  },
+  {
+   "name": "front1",
+   "rect": [
+    9,
+    460,
+    63,
+    64
+   ],
+   "parts": [
+    [
+     9,
+     460
+    ]
+   ],
+   "anchor": [
+    32,
+    34
+   ],
+   "opaquePixels": 1789,
+   "kind": "body",
+   "usedIn": [
+    "front"
+   ]
+  },
+  {
+   "name": "tuck0",
+   "rect": [
+    86,
+    482,
+    63,
+    22
+   ],
+   "parts": [
+    [
+     86,
+     482
+    ]
+   ],
+   "anchor": [
+    32,
+    12
+   ],
+   "opaquePixels": 841,
+   "kind": "body",
+   "usedIn": [
+    "tuck"
+   ]
+  },
+  {
+   "name": "tuck1",
+   "rect": [
+    157,
+    476,
+    64,
+    25
+   ],
+   "parts": [
+    [
+     157,
+     476
+    ]
+   ],
+   "anchor": [
+    32,
+    14
+   ],
+   "opaquePixels": 1011,
+   "kind": "body",
+   "usedIn": [
+    "tuck"
+   ]
+  },
+  {
+   "name": "tuck2",
+   "rect": [
+    233,
+    469,
+    65,
+    36
+   ],
+   "parts": [
+    [
+     233,
+     469
+    ]
+   ],
+   "anchor": [
+    32,
+    16
+   ],
+   "opaquePixels": 1109,
+   "kind": "body",
+   "usedIn": [
+    "tuck"
+   ]
+  }
+ ],
+ "sequences": {
+  "approach": [
+   "fly0",
+   "fly1"
+  ],
+  "turn": [
+   "bank0",
+   "bank1"
+  ],
+  "sweep": [
+   "sweep0",
+   "sweep1",
+   "sweep2",
+   "sweep3",
+   "sweep4"
+  ],
+  "zap": [
+   "zap0",
+   "zap1"
+  ],
+  "talon": [
+   "talon0"
+  ],
+  "dive": [
+   "dive0"
+  ],
+  "rise": [
+   "jet0"
+  ],
+  "thrust": [
+   "thrust0",
+   "thrust1",
+   "thrust2"
+  ],
+  "energy": [
+   "energy0"
+  ],
+  "streak": [
+   "streak0"
+  ],
+  "goldFly": [
+   "goldFly0"
+  ],
+  "glide": [
+   "glide0"
+  ],
+  "shot": [
+   "shot0",
+   "shot1"
+  ],
+  "impact": [
+   "impact0"
+  ],
+  "front": [
+   "front0",
+   "front1"
+  ],
+  "tuck": [
+   "tuck0",
+   "tuck1",
+   "tuck2"
+  ]
+ },
+ "unusedCells": []
+}

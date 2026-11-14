@@ -1,0 +1,840 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "outline / seams (kept)",
+  "2": "visor",
+  "3": "helmet shell (suit ramp near the visor)",
+  "4": "suit (body cloth)",
+  "5": "trim: chest diamonds, gloves, boots, belt (one shared light ramp)",
+  "6": "FX: supplied kick/strike trails",
+  "7": "weapon: Power Axe head (unused cells only)",
+  "8": "other (none expected)"
+ },
+ "outline": [
+  [
+   32,
+   32,
+   0
+  ]
+ ],
+ "visor": [
+  [
+   0,
+   0,
+   0
+  ]
+ ],
+ "suitRamp": [
+  [
+   32,
+   32,
+   32
+  ],
+  [
+   64,
+   64,
+   64
+  ],
+  [
+   96,
+   96,
+   96
+  ],
+  [
+   128,
+   128,
+   128
+  ]
+ ],
+ "lightRamp": [
+  [
+   160,
+   160,
+   160
+  ],
+  [
+   224,
+   224,
+   224
+  ]
+ ],
+ "fxRule": "light blob whose 1-px rim is >=45% transparent",
+ "helmetRule": "suit pixels within 11 px of the visor centroid, per strip cell",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "mmprBlackAlienX",
+   "ref": "https://ben10.fandom.com/wiki/Alien_X",
+   "suit": [
+    [
+     6,
+     7,
+     9
+    ],
+    [
+     14,
+     16,
+     19
+    ],
+    [
+     26,
+     29,
+     33
+    ],
+    [
+     52,
+     92,
+     64
+    ]
+   ],
+   "trim": [
+    [
+     200,
+     206,
+     208
+    ],
+    [
+     244,
+     248,
+     248
+    ]
+   ],
+   "visor": [
+    0,
+    0,
+    0
+   ],
+   "fxr": [
+    [
+     176,
+     236,
+     196
+    ],
+    [
+     236,
+     255,
+     242
+    ]
+   ],
+   "fx": [
+    "#d8ffe4",
+    "#3fae6a"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Alien X (Celestialsapien) \u2014 black body, white markings, green accents",
+   "notes": "Deep charcoal/black suit, pale existing trim, green only on the top suit highlight. The project's existing Alien X starfield overlay (game.js, ids ending \"AlienX\") draws on top; no stars painted into pixels."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "mmpr_black_inspired_upgrade",
+   "ref": "https://ben10.fandom.com/wiki/Upgrade",
+   "suit": [
+    [
+     4,
+     6,
+     4
+    ],
+    [
+     10,
+     14,
+     10
+    ],
+    [
+     18,
+     24,
+     18
+    ],
+    [
+     30,
+     38,
+     30
+    ]
+   ],
+   "trim": [
+    [
+     36,
+     186,
+     76
+    ],
+    [
+     150,
+     255,
+     170
+    ]
+   ],
+   "visor": [
+    60,
+    224,
+    96
+   ],
+   "fxr": [
+    [
+     80,
+     226,
+     116
+    ],
+    [
+     186,
+     255,
+     200
+    ]
+   ],
+   "fx": [
+    "#8dffad",
+    "#1fd060"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Upgrade (Galvanic Mechamorph) \u2014 black body with green lines and a green eye",
+   "notes": "Dark body; the EXISTING trim, visor and trail pixels turn vivid green (Alien X keeps pale trim, so the two dark skins stay distinct). No circuitry pattern."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "mmpr_black_inspired_diamondhead",
+   "ref": "https://ben10.fandom.com/wiki/Diamondhead",
+   "suit": [
+    [
+     10,
+     58,
+     72
+    ],
+    [
+     26,
+     110,
+     122
+    ],
+    [
+     70,
+     178,
+     184
+    ],
+    [
+     186,
+     242,
+     238
+    ]
+   ],
+   "trim": [
+    [
+     28,
+     46,
+     64
+    ],
+    [
+     66,
+     94,
+     116
+    ]
+   ],
+   "visor": [
+    8,
+    22,
+    30
+   ],
+   "fxr": [
+    [
+     150,
+     238,
+     238
+    ],
+    [
+     226,
+     255,
+     255
+    ]
+   ],
+   "fx": [
+    "#a8fff2",
+    "#2fb8b0"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Diamondhead (Petrosapien) \u2014 teal crystal body",
+   "notes": "Cyan/teal body with pale highlights; the existing trim becomes cool dark blue. No crystal shards or facets."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "mmpr_black_inspired_heatblast",
+   "ref": "https://ben10.fandom.com/wiki/Heatblast",
+   "suit": [
+    [
+     22,
+     18,
+     16
+    ],
+    [
+     40,
+     32,
+     28
+    ],
+    [
+     60,
+     46,
+     38
+    ],
+    [
+     88,
+     64,
+     48
+    ]
+   ],
+   "trim": [
+    [
+     226,
+     92,
+     22
+    ],
+    [
+     255,
+     204,
+     84
+    ]
+   ],
+   "visor": [
+    60,
+    10,
+    4
+   ],
+   "fxr": [
+    [
+     255,
+     150,
+     60
+    ],
+    [
+     255,
+     230,
+     150
+    ]
+   ],
+   "fx": [
+    "#ffc070",
+    "#ff6a10"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Heatblast (Pyronite) \u2014 charcoal rock with orange / yellow fire",
+   "notes": "Volcanic charcoal suit; orange/red/gold on the existing trim and trails. No flames or rock texture."
+  },
+  "chromastone": {
+   "name": "Chromastone \u2014 Inspired",
+   "id": "mmpr_black_inspired_chromastone",
+   "ref": "https://ben10.fandom.com/wiki/Chromastone",
+   "suit": [
+    [
+     40,
+     12,
+     66
+    ],
+    [
+     76,
+     22,
+     118
+    ],
+    [
+     124,
+     40,
+     170
+    ],
+    [
+     198,
+     82,
+     212
+    ]
+   ],
+   "trim": [
+    [
+     198,
+     188,
+     230
+    ],
+    [
+     246,
+     240,
+     255
+    ]
+   ],
+   "visor": [
+    20,
+    4,
+    30
+   ],
+   "fxr": [
+    [
+     220,
+     150,
+     255
+    ],
+    [
+     250,
+     232,
+     255
+    ]
+   ],
+   "fx": [
+    "#f0b8ff",
+    "#a43be0"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Chromastone (Crystalsapien) \u2014 purple/violet crystal body with magenta accents",
+   "notes": "Purple-to-magenta suit with contrasting pale lavender trim. No crystal protrusions or prism FX."
+  },
+  "ghostfreak": {
+   "name": "Ghostfreak \u2014 Inspired",
+   "id": "mmpr_black_inspired_ghostfreak",
+   "ref": "https://ben10.fandom.com/wiki/Ghostfreak",
+   "suit": [
+    [
+     150,
+     150,
+     160
+    ],
+    [
+     188,
+     188,
+     198
+    ],
+    [
+     220,
+     220,
+     228
+    ],
+    [
+     246,
+     246,
+     250
+    ]
+   ],
+   "trim": [
+    [
+     38,
+     34,
+     44
+    ],
+    [
+     76,
+     70,
+     86
+    ]
+   ],
+   "visor": [
+    76,
+    26,
+    100
+   ],
+   "fxr": [
+    [
+     200,
+     192,
+     222
+    ],
+    [
+     244,
+     240,
+     255
+    ]
+   ],
+   "fx": [
+    "#e6e0ff",
+    "#6b4a8c"
+   ],
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 alien colour scheme only: Ghostfreak (Ectonurite) \u2014 pale grey-white body, dark lines, purple eye",
+   "notes": "Pale spectral suit; the existing trim turns into dark seams, violet visor. Outlines kept. No tentacles, no transparency effect."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "outline / seams (kept)": 403,
+    "visor": 21,
+    "helmet shell (suit ramp near the visor)": 256,
+    "suit (body cloth)": 1332,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 344
+   },
+   "maskSha256": "a3fc479864dec12d11a0ab9c5b4822f929473b5d164f81fa97dbdf44ad1414ef"
+  },
+  "bAway.png": {
+   "regions": {
+    "outline / seams (kept)": 353,
+    "visor": 19,
+    "helmet shell (suit ramp near the visor)": 269,
+    "suit (body cloth)": 1164,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 276,
+    "FX: supplied kick/strike trails": 144
+   },
+   "maskSha256": "9b49c408e2d2e161d266fe51ddf85ea1cc8f993443a4212bc18dca48346a5104"
+  },
+  "bCall.png": {
+   "regions": {
+    "outline / seams (kept)": 406,
+    "visor": 37,
+    "helmet shell (suit ramp near the visor)": 259,
+    "suit (body cloth)": 1465,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 383
+   },
+   "maskSha256": "ff676511c5bc531eddce908ec89ff97013fc667bb999d40dc6059658575aa3e7"
+  },
+  "bCrescent.png": {
+   "regions": {
+    "outline / seams (kept)": 1073,
+    "visor": 55,
+    "helmet shell (suit ramp near the visor)": 438,
+    "suit (body cloth)": 3237,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 714,
+    "FX: supplied kick/strike trails": 1071
+   },
+   "maskSha256": "f319488aea0396aa0ebbf491c1e2f846d76a7df922e2b84d965b1f10b6486c6f"
+  },
+  "bJ2.png": {
+   "regions": {
+    "outline / seams (kept)": 692,
+    "visor": 27,
+    "helmet shell (suit ramp near the visor)": 217,
+    "suit (body cloth)": 2418,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 635
+   },
+   "maskSha256": "2cf3863037e5fa8c5e0bba945ea15cb0611d556bc95dc9ce7947fd3621e71edd"
+  },
+  "bJ3.png": {
+   "regions": {
+    "outline / seams (kept)": 420,
+    "visor": 15,
+    "helmet shell (suit ramp near the visor)": 104,
+    "suit (body cloth)": 1500,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 283,
+    "FX: supplied kick/strike trails": 175
+   },
+   "maskSha256": "d7ac6a1eca9bcf99f8f4f6e99346d1915689bbf67f75119e9c8d7e9b905a4204"
+  },
+  "bLow.png": {
+   "regions": {
+    "outline / seams (kept)": 516,
+    "visor": 31,
+    "helmet shell (suit ramp near the visor)": 206,
+    "suit (body cloth)": 1186,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 324,
+    "FX: supplied kick/strike trails": 370
+   },
+   "maskSha256": "d5f66809041873fbdec26bb6073e62c0665b947ea8be669707dd9ee23e89e5af"
+  },
+  "bPalm.png": {
+   "regions": {
+    "outline / seams (kept)": 455,
+    "visor": 15,
+    "helmet shell (suit ramp near the visor)": 96,
+    "suit (body cloth)": 1546,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 399
+   },
+   "maskSha256": "041ba3d883609585b544efee6450fa2a83ccda76c53b8d34380fb532cd55fa56"
+  },
+  "bRising.png": {
+   "regions": {
+    "outline / seams (kept)": 799,
+    "visor": 38,
+    "helmet shell (suit ramp near the visor)": 336,
+    "suit (body cloth)": 1584,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 477,
+    "FX: supplied kick/strike trails": 328
+   },
+   "maskSha256": "e1b0f0b222b7e8f000c3f72a43dde9e96ca9ef4ea638093ae2db03d11b32e3ef"
+  },
+  "bTurn.png": {
+   "regions": {
+    "outline / seams (kept)": 382,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 115,
+    "suit (body cloth)": 1316,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 265,
+    "FX: supplied kick/strike trails": 240
+   },
+   "maskSha256": "4b8740fe875db46d6d234a39a19f7c3c4baacd0f728b0f9c4956b40eaf20b790"
+  },
+  "blink.png": {
+   "regions": {
+    "outline / seams (kept)": 170,
+    "visor": 9,
+    "helmet shell (suit ramp near the visor)": 98,
+    "suit (body cloth)": 759,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 191
+   },
+   "maskSha256": "c4f6c7ced87d0aed46df7f4a7636a654396f166d0058903f36baedbe947068ac"
+  },
+  "crouch.png": {
+   "regions": {
+    "outline / seams (kept)": 203,
+    "visor": 17,
+    "helmet shell (suit ramp near the visor)": 104,
+    "suit (body cloth)": 728,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 137
+   },
+   "maskSha256": "daa64dce0d4260114a3db3a055f06b02c85ce8df210befeed6ea1b68d7bce96c"
+  },
+  "dash.png": {
+   "regions": {
+    "outline / seams (kept)": 219,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 83,
+    "suit (body cloth)": 673,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 234
+   },
+   "maskSha256": "66504b48cdd01ae72d81a85bd7db2c297b3dee51997752a3acb519618094f032"
+  },
+  "down_air.png": {
+   "regions": {
+    "outline / seams (kept)": 239,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 130,
+    "suit (body cloth)": 730,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 181
+   },
+   "maskSha256": "6e939e10ba3ec74f525e827f249c16c5c97f570263ccb33c4355bbe65e916ac7"
+  },
+  "fall.png": {
+   "regions": {
+    "outline / seams (kept)": 201,
+    "visor": 19,
+    "helmet shell (suit ramp near the visor)": 144,
+    "suit (body cloth)": 793,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 131
+   },
+   "maskSha256": "0a6e5454974b69c603a1fa0489bbf867e13d3e7017fb3c8e783bb8708376afc2"
+  },
+  "getup.png": {
+   "regions": {
+    "outline / seams (kept)": 694,
+    "visor": 42,
+    "helmet shell (suit ramp near the visor)": 301,
+    "suit (body cloth)": 1903,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 535
+   },
+   "maskSha256": "dccc6f8a8dcb3074a88ee6f414eb6d2aadf35c6ea84c3b097e290d27f7d1e547"
+  },
+  "grab.png": {
+   "regions": {
+    "outline / seams (kept)": 479,
+    "visor": 18,
+    "helmet shell (suit ramp near the visor)": 120,
+    "suit (body cloth)": 1624,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 440
+   },
+   "maskSha256": "cd8405680316545771e2b25d6f1f9c805f4b7aa55903ca2b7fe96010f27aa293"
+  },
+  "guard.png": {
+   "regions": {
+    "outline / seams (kept)": 253,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 174,
+    "suit (body cloth)": 577,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 244
+   },
+   "maskSha256": "e05be9b7b8af6d9a81333f51fe8f638ac45a2042038c66547a2e27cef2883413"
+  },
+  "heavy.png": {
+   "regions": {
+    "outline / seams (kept)": 660,
+    "visor": 28,
+    "helmet shell (suit ramp near the visor)": 238,
+    "suit (body cloth)": 2244,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 442,
+    "FX: supplied kick/strike trails": 240
+   },
+   "maskSha256": "149e88e8d8086e963f34b23a2dacc0666a362975338cbfc4e43024ebb6ef4e4e"
+  },
+  "hurt.png": {
+   "regions": {
+    "outline / seams (kept)": 240,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 106,
+    "suit (body cloth)": 684,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 200
+   },
+   "maskSha256": "32beb8cc8c7c1be1c88f8831335afbeaf5e6e082fa9915c7951d2551bdd11362"
+  },
+  "hurt2.png": {
+   "regions": {
+    "outline / seams (kept)": 220,
+    "visor": 19,
+    "helmet shell (suit ramp near the visor)": 117,
+    "suit (body cloth)": 695,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 220
+   },
+   "maskSha256": "818a626170da110cb10ab1eb3fcbc1372ac6a8de7c461f6217b293216393d331"
+  },
+  "idle.png": {
+   "regions": {
+    "outline / seams (kept)": 1048,
+    "visor": 72,
+    "helmet shell (suit ramp near the visor)": 441,
+    "suit (body cloth)": 2950,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 742
+   },
+   "maskSha256": "2b36486c8aad711e0cc77f5d6e8ac7529b6fedb64c8a34bcc64c6011a1927e43"
+  },
+  "intro.png": {
+   "regions": {
+    "outline / seams (kept)": 894,
+    "visor": 52,
+    "helmet shell (suit ramp near the visor)": 426,
+    "suit (body cloth)": 2685,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 586,
+    "FX: supplied kick/strike trails": 657
+   },
+   "maskSha256": "56a4a9f93be161cafdd73cc120e83065550b996678596acbd3e26111e03d17b2"
+  },
+  "jump.png": {
+   "regions": {
+    "outline / seams (kept)": 785,
+    "visor": 56,
+    "helmet shell (suit ramp near the visor)": 705,
+    "suit (body cloth)": 2455,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 573
+   },
+   "maskSha256": "7b5172733d5d2d284a5bd9f6079635024be678fa5360dd32eb0b9469c8e30013"
+  },
+  "knockdown.png": {
+   "regions": {
+    "outline / seams (kept)": 502,
+    "visor": 36,
+    "helmet shell (suit ramp near the visor)": 270,
+    "suit (body cloth)": 1715,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 545
+   },
+   "maskSha256": "c4110c69d477e303a185e8ed25774c5ef9331bd595fec029aef9d34bdc66c5cf"
+  },
+  "launched.png": {
+   "regions": {
+    "outline / seams (kept)": 193,
+    "visor": 12,
+    "helmet shell (suit ramp near the visor)": 85,
+    "suit (body cloth)": 554,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 170
+   },
+   "maskSha256": "870e06e921e88894be98743cd852342bda0dd1d448309add05c8dd02fc4b631b"
+  },
+  "light.png": {
+   "regions": {
+    "outline / seams (kept)": 451,
+    "visor": 27,
+    "helmet shell (suit ramp near the visor)": 236,
+    "suit (body cloth)": 1697,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 461
+   },
+   "maskSha256": "3aec7143f0443933f9f118413fee97678e784e29abb03b373afb80169006c288"
+  },
+  "lose.png": {
+   "regions": {
+    "outline / seams (kept)": 502,
+    "visor": 36,
+    "helmet shell (suit ramp near the visor)": 270,
+    "suit (body cloth)": 1715,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 545
+   },
+   "maskSha256": "c4110c69d477e303a185e8ed25774c5ef9331bd595fec029aef9d34bdc66c5cf"
+  },
+  "portrait.png": {
+   "regions": {
+    "outline / seams (kept)": 1824,
+    "visor": 288,
+    "helmet shell (suit ramp near the visor)": 135,
+    "suit (body cloth)": 5353,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 1568
+   },
+   "maskSha256": "8fa488129d645e137da24f56294382baddf552ce921b8dc237dca230434bd69d"
+  },
+  "run.png": {
+   "regions": {
+    "outline / seams (kept)": 1334,
+    "visor": 72,
+    "helmet shell (suit ramp near the visor)": 574,
+    "suit (body cloth)": 3915,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 1271
+   },
+   "maskSha256": "c896df4afa96f5f17a44e96abb232d2780ae30ff7c15abdaf004145d9a4766c7"
+  },
+  "stagger.png": {
+   "regions": {
+    "outline / seams (kept)": 224,
+    "visor": 8,
+    "helmet shell (suit ramp near the visor)": 89,
+    "suit (body cloth)": 733,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 232
+   },
+   "maskSha256": "9cf7c507d2edf74971c2bc7471d11f2528f05572d28761ad73785a957c289c72"
+  },
+  "ultLand.png": {
+   "regions": {
+    "outline / seams (kept)": 425,
+    "visor": 31,
+    "helmet shell (suit ramp near the visor)": 251,
+    "suit (body cloth)": 1414,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 332,
+    "FX: supplied kick/strike trails": 286
+   },
+   "maskSha256": "9ab84e83db127ce748408e81d351587eef025557906cfae9ba3c5f524374780e"
+  },
+  "ultLow.png": {
+   "regions": {
+    "outline / seams (kept)": 437,
+    "visor": 21,
+    "helmet shell (suit ramp near the visor)": 189,
+    "suit (body cloth)": 1335,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 355
+   },
+   "maskSha256": "c0dfcbbd6494f44e6d0ec42e608c77afcc537a49f3bf6656d521f5a07e2f6342"
+  },
+  "ultOpen.png": {
+   "regions": {
+    "outline / seams (kept)": 464,
+    "visor": 15,
+    "helmet shell (suit ramp near the visor)": 83,
+    "suit (body cloth)": 1527,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 458
+   },
+   "maskSha256": "bba68af581836ddba14b8912904fd13576f2b810cc88be448e155b59318a734e"
+  },
+  "ultRise.png": {
+   "regions": {
+    "outline / seams (kept)": 609,
+    "visor": 25,
+    "helmet shell (suit ramp near the visor)": 239,
+    "suit (body cloth)": 1021,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 450,
+    "FX: supplied kick/strike trails": 427
+   },
+   "maskSha256": "7f3efeba703a4659cc630b4ff30719c60ff6a134edf4d2413718c8995788f999"
+  },
+  "up.png": {
+   "regions": {
+    "outline / seams (kept)": 867,
+    "visor": 34,
+    "helmet shell (suit ramp near the visor)": 315,
+    "suit (body cloth)": 1800,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 616,
+    "FX: supplied kick/strike trails": 494
+   },
+   "maskSha256": "1436d625b5ad5d3c0e2df20d0d4916e439f5b3fecfc33c70bb229721c5dcedd7"
+  },
+  "walk.png": {
+   "regions": {
+    "outline / seams (kept)": 1143,
+    "visor": 72,
+    "helmet shell (suit ramp near the visor)": 558,
+    "suit (body cloth)": 3946,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 1213
+   },
+   "maskSha256": "23213787730ba794a58dfea312a78d157e50a36e10fbcadb0b1f950a4ca79063"
+  },
+  "walk_back.png": {
+   "regions": {
+    "outline / seams (kept)": 1143,
+    "visor": 72,
+    "helmet shell (suit ramp near the visor)": 558,
+    "suit (body cloth)": 3946,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 1213
+   },
+   "maskSha256": "318421aff5ebbc682d1cade47d1ffa9a21fecb365062e9bf5d6e1166e2164512"
+  },
+  "win.png": {
+   "regions": {
+    "outline / seams (kept)": 152,
+    "visor": 19,
+    "helmet shell (suit ramp near the visor)": 147,
+    "suit (body cloth)": 725,
+    "trim: chest diamonds, gloves, boots, belt (one shared light ramp)": 186
+   },
+   "maskSha256": "015014f522d0e54aaab2eb0aee9ce3af0e44e5c298b15ca46d5b09286f58ec34"
+  }
+ }
+}

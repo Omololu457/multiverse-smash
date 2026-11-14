@@ -14,6 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { MMPR_BLACK_SKINS } from './mmprBlackSkins.js'   // Black Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { getLevel, isFullyUnlocked } from "./progression.js"
 import { isChallengeSkinUnlocked } from "./challenges.js"   // challenge-reward skins (guest-safe, persisted)
 import { ALT_SKINS } from "./harness/alt_skin_manifest.mjs"
@@ -127,6 +128,7 @@ function _roseSkin(sheet, frames, w, h)   { return _altBodySkin("goku_rose", she
 function _gogetaSkin(sheet, frames, w, h) { return _altBodySkin("gogeta", sheet, frames, w, h) }
 
 export const SKINS = {
+  mmpr_black: MMPR_BLACK_SKINS,
   // Luffy — 9 alt-colour skins (tools/luffy_skins/gen_luffy_skins.py: vest · hat band (red ringed by straw) · straw hat ·
   // vest buttons · shorts · skin regions over every assets/sprites/luffy strip). Alien X → generic starfield.
   luffy: [

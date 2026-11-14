@@ -1,0 +1,79 @@
+{
+  "replay": {
+    "frames": 1800,
+    "identical": true,
+    "exercised": [
+      "light",
+      "bJ2",
+      "bJ3",
+      "bCall",
+      "sortie_sweep",
+      "heavy",
+      "sortie_talon",
+      "bRising",
+      "bCrescent",
+      "sortie_volley",
+      "shot",
+      "blink",
+      "bPalm",
+      "bTurn",
+      "bAway"
+    ]
+  },
+  "renderBatching": {
+    "samples": 450,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "mirrorIndependent": true,
+    "mirror": {
+      "p1Cancelled": true,
+      "p2Committed": true,
+      "p2Pips": 1,
+      "p1Pips": 1
+    }
+  },
+  "lan": {
+    "call": true,
+    "sortie": true,
+    "cres": true,
+    "blink": true,
+    "frame": 260,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "bCall",
+        "light",
+        "bJ2",
+        "bJ3"
+      ],
+      "kinds": [
+        "sweep",
+        "talon"
+      ],
+      "hp": 850
+    },
+    "pad": {
+      "names": [
+        "bCall",
+        "light",
+        "bJ2",
+        "bJ3"
+      ],
+      "kinds": [
+        "sweep",
+        "talon"
+      ],
+      "hp": 850
+    },
+    "same": true
+  },
+  "passes": 20,
+  "errors": []
+}

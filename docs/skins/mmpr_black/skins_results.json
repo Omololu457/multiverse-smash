@@ -1,0 +1,42 @@
+{
+  "skins": {
+    "mmprBlackAlienX": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    },
+    "mmpr_black_inspired_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    },
+    "mmpr_black_inspired_diamondhead": {
+      "tag": "diamondhead",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    },
+    "mmpr_black_inspired_heatblast": {
+      "tag": "heatblast",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    },
+    "mmpr_black_inspired_chromastone": {
+      "tag": "chromastone",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    },
+    "mmpr_black_inspired_ghostfreak": {
+      "tag": "ghostfreak",
+      "traceIdentical": true,
+      "actions": 39,
+      "falconCells": 2
+    }
+  },
+  "passes": 64,
+  "failures": 0
+}

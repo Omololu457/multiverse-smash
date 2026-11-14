@@ -51,6 +51,7 @@
 // (gojo_win.png is a single still, not an animation strip.)
 // ═══════════════════════════════════════════════════════════════════
 export const SPRITE_MANIFEST = {
+  mmpr_black: { actions: { idle: './assets/mmpr_black/idle.png' } },
   luffy: { actions: { idle: './assets/sprites/luffy/idle.png' } },
   zoro: { actions: { idle: './assets/zoro/idle.png' } },
   buggy: { actions: { idle: './assets/buggy/idle.png' } },

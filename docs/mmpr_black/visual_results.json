@@ -1,0 +1,116 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink",
+    "mmpr_black"
+  ],
+  "detail": {
+    "key": "mmpr_black",
+    "name": "Black Ranger",
+    "stats": {
+      "maxHealth": 1000,
+      "maxEnergy": 100,
+      "attack": 80,
+      "defense": 78,
+      "speed": 95,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Martial Artist / Aerial Assist Commander",
+    "difficulty": "Medium-Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 7,
+    "selId": null,
+    "mouseX": 759,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 373
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "mmpr_black",
+    "skin": "mmpr_black_inspired_upgrade",
+    "tag": "upgrade",
+    "p2": "krybot"
+  },
+  "profile": {
+    "msPerFrameIdle": 0.093,
+    "msPerFrameSorties": 0.105,
+    "msPerFrameUlt": 0.134,
+    "calls": 52,
+    "fxCacheBefore": 14,
+    "fxCacheAfter": 14,
+    "projectilesLeft": 0,
+    "rejected": 8,
+    "unexplained": 0,
+    "rejectSample": [
+      {
+        "k": "sweep",
+        "hs": 0,
+        "g": true,
+        "land": 0,
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      },
+      {
+        "k": "talon",
+        "hs": 0,
+        "g": true,
+        "land": 0,
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      },
+      {
+        "k": "volley",
+        "hs": 0,
+        "g": true,
+        "land": 0,
+        "e": 100,
+        "kd": false,
+        "hp": 1000
+      }
+    ]
+  },
+  "fps": 40,
+  "passes": 20,
+  "failures": 0,
+  "errors": []
+}

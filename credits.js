@@ -18,6 +18,9 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  mmpr_black: { work: 'Black Ranger + Falconzord — Mighty Morphin Power Rangers: The Movie (Sega Genesis)', artists: ['Belial the Hedgehog (ripper)'],
+    source: 'Supplied sheets; visible credit panel on both: "Sprites ripped by Belial the Hedgehog." (excluded from animation). Original pixels; GIF transparency only. SHA-256 + rects in docs/mmpr_black/source_rects.json and docs/power_rangers/falconzord/source_rects.json',
+    files: ['assets/mmpr_black/**', 'assets/power_rangers/falconzord/**'] },
   zoro: { work: 'Roronoa Zoro — One Piece (Game Boy Advance)', artists: ['Paddy (ripper)'],
     source: 'Supplied sheet; visible credit: Ripped by Paddy / No credit needed (credit text excluded from the game, see docs/zoro/CREDITS.md). Original pixels retained.',
     files: ['assets/zoro/*.png'] },

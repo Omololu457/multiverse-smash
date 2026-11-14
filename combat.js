@@ -2,6 +2,7 @@ import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, l
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
 import { zoroHitbox } from './zoroState.js'
+import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
 import { buggyHit, buggyKnockback } from './buggyState.js'   // Buggy the Clown hooks (buggy-gated no-ops for everyone else)   // Roronoa Zoro hitbox geometry (zoro-gated)
 import { buggyHitbox, buggyBlockstun, buggyComboScale, buggyNoGrab, buggyCape, buggyProjectileHit } from './buggyState.js'   // Buggy the Clown moveset hooks (buggy-gated)
@@ -685,6 +686,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sj && fighter.rosterKey === 'sanji') return sanjiHitbox(fighter)   // Sanji: his own box descriptor (sanji-gated)
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
   if (a?.sr && fighter.rosterKey === 'spd_red') return spdRedHitbox(fighter)   // S.P.D. Red: his own box descriptor (spd_red-gated)
+  if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -3389,6 +3391,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
@@ -3440,6 +3443,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     buggyHit(attacker, defender, atk)
     sanjiHit(attacker, defender, atk)
     arlongHit(attacker, defender, atk)
+    mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
     spdRedHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
@@ -4352,6 +4356,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         if (fighter.isBlocking) proj.owner.comboCounter = 0
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
+      mmprBlackProjectileHit(proj, fighter)   // Falconzord Covering Volley shot (Pincer consume); mmpr_black-gated
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
       buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)
       sanjiProjectileHit(proj, fighter)  // Sanji: volleyed plate = a kick (+4 Heat, burn when lit) (sanji-gated)

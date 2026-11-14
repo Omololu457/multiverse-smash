@@ -1,3 +1,4 @@
+import { MMPR_BLACK_KIT } from './mmprBlackKit.js'   // Black Ranger (mmpr_black) Move List
 // kits.js
 // ─────────────────────────────────────────────────────────────────
 // MOVE LIST / KIT PROFILES — human-readable per-character data shown on the
@@ -81,6 +82,7 @@ export const CONTROL_REFERENCE = {
 }
 
 export const KITS = {
+  mmpr_black: MMPR_BLACK_KIT,
   zoro: {
     type:'Swordsman / Stance Fighter', energy:'Spirit', difficulty:'3',
     summary:'Nothing happened. The Three-Sword Style swordsman: heavy blades, slow feet. Spirit builds from every sword hit (+5), every hit taken (+3) and +1/s; spend it on iai techniques, the Santoryu stance and ASHURA.',

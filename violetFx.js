@@ -56,6 +56,8 @@ export function drawVioletFx(c, f) {
     if (k === 'vPush' && e < md.startup) ring(c, ctrX(f) + dir * 34, f.y + (f.h || 94) * 0.45, 6 + e * 2, ringCol(f), 0.7 * inv)
     if (k === 'vUlt' && e < md.startup) ring(c, ctrX(f), ctrY(f), 70 - e * 4, ringCol(f), 0.8, null, 4)
   }
+  // BLOCK: no guard pose on the sheet → R6 f1 held (sprite) + the R13 f3 ring in front of her (ledger)
+  if (f.isBlocking && !a) strip(c, f, 'hit', 2, ctrX(f) + (f.facing || 1) * ((f.w || 48) / 2 + 10), f.y + (f.h || 94) * 0.4, SCALE * 0.55, (f.facing || 1) < 0, 0.75 * inv)
   if (s.pshield > 0) strip(c, f, 'dome', Math.min(5, 30 - s.pshield), ctrX(f), ctrY(f), SCALE, false, Math.min(1, s.pshield / 8) * 0.9 * inv)   // Protective Instinct
   if (s.push) strip(c, f, 'push', Math.floor(s.push.trav / 26), s.push.x, s.push.y, SCALE * 0.8, s.push.dir < 0, 0.95)
   const T = s.trap

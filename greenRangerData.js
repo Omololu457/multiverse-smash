@@ -80,7 +80,7 @@ export const green_ranger = {
   primary: 'balanced', secondary: ['rushdown'], archetypes: ['balanced', 'rushdown'],
   traits: { hasEnergy: true, energyType: 'energy', energyName: 'Morph Energy', mobility: 'normal', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Morph Energy', color: '#5fd35f' },
-  stats: { maxHealth: 1000, maxEnergy: 100, attack: 82, defense: 78, speed: 96, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
+  stats: { maxHealth: 1200, maxEnergy: 100, attack: 82, defense: 78, speed: 96, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
   hasSprites: true, spriteScale: 1.85, spriteSheet: GREEN_RANGER_ANIM.idle.sheet, portrait: GREEN_RANGER_PORTRAIT,
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: GREEN_MOVES.light, heavy: GREEN_MOVES.heavy, crouchLight: GREEN_MOVES.gLow, upAttack: GREEN_MOVES.up,

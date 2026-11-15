@@ -5,6 +5,10 @@ import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { comboDriver } from './elastigirl_combo_lib.mjs'
+import { EG_STATS } from '../elastigirlData.js'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+// ROSTER PARITY outgoing-damage boost (rosterParity.js), applied at combat.applyScaledDamage on top of the floored scaled hit.
+const BOOST = ROSTER_DAMAGE_BOOST.elastigirl || 1
 const ONLY = (process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : '').split(',').filter(Boolean)
 const want = s => !ONLY.length || ONLY.includes(s)
 const server = await serve(), browser = await chromium.launch({ headless: true }), errors = [], results = {}
@@ -43,9 +47,10 @@ try {
     const d = await G(page, async () => { const { characters } = await import('./characters.js'); const c = characters.elastigirl
       const L = __harness.luffyTest, s = L.state('p1')
       return { stats: c.stats, traits: c.traits, energyConfig: c.energyConfig, hp: s.health, maxE: c.stats.maxEnergy, live: s } })
-    ok('P2 health 980 (roster stat + live fighter)', d.stats.maxHealth === 980 && d.hp === 980, JSON.stringify({ stat: d.stats.maxHealth, live: d.hp }))
+    ok(`P2 health ${EG_STATS.maxHealth} (elastigirlData stat → roster stat + live fighter)`, d.stats.maxHealth === EG_STATS.maxHealth && d.hp === EG_STATS.maxHealth, JSON.stringify({ stat: d.stats.maxHealth, live: d.hp }))
     const walk = Math.max(4.5, Math.min(9.5, 4.5 + (d.stats.speed - 78) / 20 * 5)), run = Math.max(8, Math.min(16, d.stats.dashSpeed * 0.55))
-    ok('P2 walkSpeed 5.0 px/f (engine walk formula on stats.speed)', Math.abs(walk - 5.0) < 1e-9, `speed ${d.stats.speed} → ${walk}`)
+    const WALK_DATA = Math.max(4.5, Math.min(9.5, 4.5 + (EG_STATS.speed - 78) / 20 * 5))
+    ok(`P2 walkSpeed ${WALK_DATA} px/f (engine walk formula on elastigirlData speed ${EG_STATS.speed})`, d.stats.speed === EG_STATS.speed && Math.abs(walk - WALK_DATA) < 1e-9, `speed ${d.stats.speed} → ${walk}`)
     ok('P2 runSpeed 7.6 → engine run floor 8 px/f (closest legal; documented)', run === 8, `dashSpeed ${d.stats.dashSpeed} → ${run}`)
     ok('P2 jumpForce 11.5 → jumpPower 25 (×2.2 engine scale), weight 0.95', d.stats.jumpPower === 25 && d.stats.weight === 0.95, JSON.stringify({ jp: d.stats.jumpPower, w: d.stats.weight }))
     ok('P2 hasEnergy, maxEnergy 100, energyName "Elasticity"', d.traits.hasEnergy === true && d.maxE === 100 && d.traits.energyName === 'Elasticity' && d.energyConfig.label === 'Elasticity', JSON.stringify(d.traits))
@@ -159,7 +164,7 @@ try {
     const R = {}
     for (const [k, [su, reach, ob, dmg]] of Object.entries(SPEC)) {
       const h = await measure(k, Math.min(reach - 20, 100), false), b = await measure(k, Math.min(reach - 20, 100), true); R[k] = { hit: h, block: b }
-      ok(`P4 ${k}: ${su}f startup, ${reach} px reach, ${dmg} stored dmg`, h.first === su && h.reach === reach && h.hits[0]?.[2] === dmg && h.hits[0]?.[1] === Math.floor(dmg * 0.6), JSON.stringify({ first: h.first, reach: h.reach, hit: h.hits[0] }))
+      ok(`P4 ${k}: ${su}f startup, ${reach} px reach, ${dmg} stored dmg`, h.first === su && h.reach === reach && h.hits[0]?.[2] === dmg && h.hits[0]?.[1] === Math.floor(Math.floor(dmg * 0.6) * BOOST), JSON.stringify({ first: h.first, reach: h.reach, hit: h.hits[0] }))
       ok(`P4 ${k}: ${ob >= 0 ? '+' : ''}${ob} on block`, b.adv === ob, `measured ${b.adv}`)
       ok(`P4 ${k}: stretched limb is hittable while active (hurtbox reaches ${reach} px)`, h.hurtReach >= reach - 1, `hurt reach ${h.hurtReach}`)
     }
@@ -232,10 +237,11 @@ try {
     // brief model: 85 % per hit after the first (reported beside the engine curve)
     const model = arr => Math.round(arr.reduce((n, d, i) => n + d * Math.pow(0.85, i), 0))
     const check = (name, moves, target, raw) => {
-      const got = c.log.map(h => h.move), tot = stored(), dev = (tot - target) / target
+      // target = brief number (pre-boost); the roster boost multiplies every hit, so the band is around target × boost
+      const got = c.log.map(h => h.move), tot = stored(), dev = (tot - target * BOOST) / (target * BOOST)
       R[name] = { hits: c.log.map(h => [h.move, h.d, h.stored]), dealt: sum(), storedScale: tot, brief: target, briefModel85: model(raw), deviation: +(dev * 100).toFixed(1) + '%' }
       ok(`P5 ${name}: every hit lands as a true combo`, got.join() === moves.join() && allTrue(), JSON.stringify(R[name].hits))
-      ok(`P5 ${name}: ≈${target} (±20 %, engine curve) — got ${tot}`, Math.abs(dev) <= 0.20, `dealt ${sum()} → stored-scale ${tot} (${R[name].deviation}); 85 % model ${model(raw)}`)
+      ok(`P5 ${name}: ≈${target}×${BOOST} (±20 %, engine curve) — got ${tot}`, Math.abs(dev) <= 0.20, `dealt ${sum()} → stored-scale ${tot} (${R[name].deviation}); 85 % model ${model(raw)}`)
     }
     // 1) Jab, Jab, Heavy, Long Arm ≈106
     await c.begin(40); await c.press(['j']); await c.cancelOpen(); await c.press(['j']); await c.cancelOpen(); await c.press(['k']); await c.cancelOpen(); await c.motion('236'); await c.tick(90)
@@ -356,7 +362,7 @@ try {
         out[k.id] = st
       }
       return out })
-    ok('P7 three skins: Supersuit (default), Elastigirl 2, Retro', r.skins.map(s => s[1]).join() === 'Supersuit,Elastigirl 2,Retro', JSON.stringify(r.skins))
+    ok('P7 base skins first: Supersuit (default), Elastigirl 2, Retro (+10 Ranger-style crossovers)', r.skins.slice(0, 3).map(s => s[1]).join() === 'Supersuit,Elastigirl 2,Retro' && r.skins.length === 13 && !r.skins.some(s => s[0].endsWith('AlienX')), JSON.stringify(r.skins))
     const e2 = r.eg_incredibles2, rt = r.eg_retro
     ok('P7 Elastigirl 2: red suit → charcoal (no suit red left outside the raft passengers)', e2.changed > 10000 && e2.redKept === e2.raftKidsRed, JSON.stringify(e2))
     ok('P7 Retro: red stays (only black trim / sheen recoloured)', rt.changed > 5000 && rt.raftChanged === 0 || (rt.changed > 5000 && rt.raftChangedNonTube === 0), JSON.stringify(rt))

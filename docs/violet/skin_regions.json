@@ -5,7 +5,8 @@
   "pixels": {
    "suit": 10028,
    "trim": 7033,
-   "inv": 10562
+   "inv": 10562,
+   "stars": 0
   }
  },
  "midnight": {
@@ -14,7 +15,108 @@
   "pixels": {
    "suit": 10028,
    "trim": 7033,
-   "inv": 10562
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "alienx": {
+  "ring": "#c79bff",
+  "flash": "#f5edff",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 1078
+  }
+ },
+ "upgrade": {
+  "ring": "#3ce05c",
+  "flash": "#dcf9e2",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "diamondhead": {
+  "ring": "#5ce8e0",
+  "flash": "#e2fbf9",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "heatblast": {
+  "ring": "#ff7a18",
+  "flash": "#ffe7d5",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "chromastone": {
+  "ring": "#e070ff",
+  "flash": "#f9e5ff",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "ghostfreak": {
+  "ring": "#9a62d0",
+  "flash": "#ede3f7",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "bigchill": {
+  "ring": "#8ce6ff",
+  "flash": "#eafaff",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "shadow": {
+  "ring": "#c0c8dc",
+  "flash": "#f4f5f9",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "dragon": {
+  "ring": "#e8be28",
+  "flash": "#fbf3d8",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 0
+  }
+ },
+ "glitter": {
+  "ring": "#ff70c0",
+  "flash": "#ffe5f4",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562,
+   "stars": 918
   }
  }
 }

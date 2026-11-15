@@ -43,7 +43,7 @@ export const krybot = {
   primary:'zoner', secondary:['rushdown'], archetypes:['zoner','rushdown'],
   traits:{hasEnergy:true,energyType:'energy',energyName:'Energy',mobility:'normal',scaling:'combo',animeMovement:false},
   energyConfig:{label:'Energy',color:'#e0a44e'},
-  stats:{maxHealth:1080,maxEnergy:100,attack:80,defense:80,speed:80,jumpPower:26,maxJumps:1,weight:1,
+  stats:{maxHealth:1180,maxEnergy:100,attack:80,defense:80,speed:80,jumpPower:26,maxJumps:1,weight:1,
     dashSpeed:14,dashDuration:10,dashCooldownMax:36},
   hasSprites:true,spriteScale:2.2/1.18,spriteSheet:KRYBOT_ANIM.idle.sheet,portrait:'./assets/krybot/portrait.png',
   movement:{crouchIdle:true},fatalityVictimArt:false,

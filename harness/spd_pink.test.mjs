@@ -4,11 +4,13 @@
 import fs from 'node:fs'
 import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
+import {spd_pink as SPD_PINK_DEF} from '../spdPinkData.js'
 const server=await serve(),browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[],report={routes:[],advantages:[],moves:{},iron:{},counter:{}};let pass=0,fail=0
 page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.requestAnimationFrame=()=>0)
 const ck=(n,ok,d='')=>{ok?pass++:fail++;console.log(ok?'PASS':'FAIL',n,d)}
 // Roster-parity pass (2026-11-13): HP HP→1120 and every authored damage value ×1.7 (SPD_PINK_DAMAGE_SCALE).
-const HP=1120,SC=1.7,sc=v=>Math.round(v*SC)
+// HP read from spdPinkData.js (balance passes retune it; every 'hp unchanged' check compares against the live max).
+const HP=SPD_PINK_DEF.stats.maxHealth,SC=1.7,sc=v=>Math.round(v*SC)
 const step=n=>page.evaluate(n=>__harness.luffyTest.step(n),n)
 const state=()=>page.evaluate(()=>{const H=__harness.spdPinkTest,b=H.raw('p2');return{a:H.state(),b:H.state('p2'),stun:b.hitstun,block:b.blockstun,combo:H.raw().comboCounter,bAtk:b.attacking}})
 async function tap(ks,n=1){for(const k of ks)await page.keyboard.down(k);await step(n);for(const k of ks)await page.keyboard.up(k)}

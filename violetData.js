@@ -10,7 +10,7 @@ export const SCALE = 2                       // 1x GBA cell → world px (55 px 
 // runSpeed 8.0 px/f → RUN_SPEED_STAT 92 (same formula = 8.0): a double-tap dash with forward still held becomes a run.
 // jumpForce 12 → stats.jumpPower 29 (engine jump units; the brief's 12 is the ~×2.4 smaller unit, as for Superman / Green Arrow).
 // weight 0.8 → knockback she TAKES is divided by 0.8 (violetKnockback, combat.js hook; the engine has no weight field).
-export const WALK_SPEED_STAT = 81.6, RUN_SPEED_STAT = 92
+export const WALK_SPEED_STAT = 86, RUN_SPEED_STAT = 92
 export const ENERGY = { max: 100, regenPerSec: 5, onHitLanded: 4, onHitTaken: 3 }
 
 // ── PHASE 3: VANISH (↓↓ + Special toggles). Frames are sim ticks (60 / s). ──
@@ -83,7 +83,7 @@ export const violet = {
   traits: { hasEnergy: true, energyType: 'forcefield', energyName: 'Force Field', mobility: 'medium', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Force Field', color: '#b77cff' },
   // HP 900 (low band). speed 81.6 = walk 5.4 px/f. attack / defense are roster metadata (the live damage path does not read them).
-  stats: { maxHealth: 900, maxEnergy: ENERGY.max, attack: 80, defense: 70, speed: WALK_SPEED_STAT, jumpPower: 29, maxJumps: 2, weight: 0.8,
+  stats: { maxHealth: 1100, maxEnergy: ENERGY.max, attack: 80, defense: 70, speed: WALK_SPEED_STAT, jumpPower: 29, maxJumps: 2, weight: 0.8,
     dashSpeed: 18, dashDuration: 10, dashCooldownMax: 24 },
   hasSprites: true, spriteScale: SCALE, spriteSheet: VIOLET_ANIM.idle.sheet, portrait: VIOLET_PORTRAIT,
   movement: { crouchIdle: true }, fatalityVictimArt: false,

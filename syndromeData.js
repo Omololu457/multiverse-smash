@@ -128,7 +128,7 @@ export const syndrome = {
   traits: { hasEnergy: true, energyType: 'tech', energyName: 'Power', mobility: 'medium', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Power', color: '#5fd0ff' },
   // speed 92 (< the 98 teleport tier → an ordinary double-tap dash). maxJumps 2 = the SHARED double jump.
-  stats: { maxHealth: 1100, maxEnergy: 100, attack: 82, defense: 70, speed: 92, jumpPower: 25, maxJumps: 2, weight: 1,
+  stats: { maxHealth: 1180, maxEnergy: 100, attack: 82, defense: 70, speed: 92, jumpPower: 25, maxJumps: 2, weight: 1,
     dashSpeed: 19, dashDuration: 10, dashCooldownMax: 26 },
   hasSprites: true, spriteScale: SYNDROME_SCALE, spriteSheet: SYNDROME_ANIM.idle.sheet, portrait: './assets/syndrome/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,

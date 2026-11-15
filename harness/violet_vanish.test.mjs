@@ -1,5 +1,7 @@
 // harness/violet_vanish.test.mjs — PHASE 3: VANISH through the real game and real keys (↓↓ + Special = S, S+L).
 import { boot, ck, summary } from './violet_lib.mjs'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+const BOOST = ROSTER_DAMAGE_BOOST.violet || 1
 const B = await boot('violet', 'violet')
 const { step, st, S, reset, tap, down, up, page, wait } = B
 const vanish = async () => { await tap(['s'], 2); await step(2); await down(['s']); await step(1); await tap(['l'], 1); await up(['s']); await step(1) }
@@ -31,7 +33,9 @@ try {
   const amb = b0 - b1
   await reset(70, false, { energy: 60 }); b0 = (await st('p2')).hp; await tap(['k'], 1); a = await wait(s => !s.attack, 60); b1 = (await st('p2')).hp
   const plain = b0 - b1
-  ck('ambush Heavy deals +20 % (62 vs 52) and ends Vanish', amb === Math.floor(87 * 0.6 * 1.2) && plain === Math.floor(87 * 0.6), { amb, plain })
+  // combo-scaled melee dmg is floored upstream, then the roster boost is applied at the choke-point and floored again
+  const PLAIN = Math.floor(Math.floor(87 * 0.6) * BOOST), AMB = Math.floor(Math.floor(87 * 0.6 * 1.2) * BOOST)
+  ck(`ambush Heavy deals +20 % (${AMB} vs ${PLAIN}, roster boost x${BOOST}) and ends Vanish`, amb === AMB && plain === PLAIN, { amb, plain })
   await reset(70, false, { energy: 60 }); await vanish(); await step(4); await tap(['k'], 1); a = await wait(s => !s.attack, 60)
   ck('…the ambush hit ends Vanish (counted once)', !a.inv && a.s.stats.ambushHits === 1 && a.s.stats.vanishEnds.ambush === 1 && a.dmgMul === 1, { inv: a.inv, s: a.s.stats })
   // facing: the opponent does not auto-turn toward invisible Violet

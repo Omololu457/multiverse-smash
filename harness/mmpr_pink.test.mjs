@@ -4,11 +4,13 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { mmpr_pink as CHAR_DEF } from '../mmprPinkData.js'
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, bow: {}, spotter: {}, assists: {}, resources: {}, thread: {}, teleport: {}, ultimate: {}, crane: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = 950, SC = 1.7, sc = v => Math.round(v * SC)
+// HP from the live data file (balance passes retune it; 'hp unchanged' checks compare against it)
+const HP = CHAR_DEF.stats.maxHealth, SC = 1.7, sc = v => Math.round(v * SC)
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.mmprPinkTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, combo: H.raw().comboCounter, ult: H.ult() } })
 const ev = (fn, arg) => page.evaluate(fn, arg)
@@ -51,7 +53,7 @@ try {
   await page.goto(server.base + '/index.html?harness=1&p1=mmpr_pink&p2=mmpr_pink&seed=550101'); await page.waitForFunction(() => window.__harness?.mmprPinkTest)
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(4) }); await page.evaluate(() => __harness.preloadDone()); await step(3); await page.waitForFunction(() => __harness.spriteReady().ready)
   let s = await state()
-  ck('both slots mmpr_pink, HP 950, ordinary start Energy (<60), 2 Command pips full', s.a.key === 'mmpr_pink' && s.a.hp === HP && s.b.hp === HP && s.a.energy < 60 && s.a.hud.pips === 2, JSON.stringify({ e: s.a.energy, hud: s.a.hud }))
+  ck(`both slots mmpr_pink, HP ${HP}, ordinary start Energy (<60), 2 Command pips full`, s.a.key === 'mmpr_pink' && s.a.hp === HP && s.b.hp === HP && s.a.energy < 60 && s.a.hud.pips === 2, JSON.stringify({ e: s.a.energy, hud: s.a.hud }))
   ck('rangers.js profile ticking (2 blink charges, engine dash off)', s.a.ranger?.charges === 2 && s.a.noDash)
   const prof = await ev(() => import('./rangers.js').then(m => ({ p: m.RANGER_PROFILES?.mmpr_pink?.blink, d: m.BLINK_DEFAULTS })))
   report.teleport.profile = prof.p

@@ -96,7 +96,7 @@ export const spd_pink={rosterKey:'spd_pink',name:'S.P.D. Pink Ranger',civilianId
  bio:'Syd Drew: B-Squad Pink, whose genetic power turns her hand into the material she touches. Iron Reserve (using it while morphed) and the ground phase step are deliberate gameplay adaptations; no full-body metal armor. Shared Zord ultimate pending integration.',
  primary:'balanced',secondary:['rushdown'],archetypes:['balanced','rushdown'],
  traits:{hasEnergy:true,energyType:'energy',energyName:'Energy',mobility:'normal',scaling:'combo',animeMovement:false},energyConfig:{label:'Energy',color:'#ff5fae'},
- stats:{maxHealth:1120,maxEnergy:100,attack:82,defense:76,speed:92,jumpPower:26,maxJumps:1,weight:1,dashSpeed:14,dashDuration:10,dashCooldownMax:36},
+ stats:{maxHealth:1220,maxEnergy:100,attack:82,defense:76,speed:92,jumpPower:26,maxJumps:1,weight:1,dashSpeed:14,dashDuration:10,dashCooldownMax:36},
  hasSprites:true,spriteScale:2.2/1.18,spriteSheet:anim.idle.sheet,portrait:'./assets/spd_pink/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
  basic_attacks:{light:SPD_PINK_MOVES.light,heavy:SPD_PINK_MOVES.heavy,crouchLight:SPD_PINK_MOVES.pLow,upAttack:SPD_PINK_MOVES.up,airAttack:SPD_PINK_MOVES.air,downAir:SPD_PINK_MOVES.down_air,
   grab:{damage:dmg(26),startup:8,active:3,recovery:24,hitstun:20,throwForceX:5,throwForceY:-3,damageType:'grab'}},

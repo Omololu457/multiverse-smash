@@ -4,11 +4,13 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { mmpr_white as CHAR_DEF } from '../mmprWhiteData.js'
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, orders: {}, disciplines: {}, formation: {}, leader: {}, specials: {}, teleport: {}, ultimate: {}, resources: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = 1000, SC = 1.7, sc = v => Math.round(v * SC)
+// HP from the live data file (balance passes retune it; 'hp unchanged' checks compare against it)
+const HP = CHAR_DEF.stats.maxHealth, SC = 1.7, sc = v => Math.round(v * SC)
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.mmprWhiteTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, combo: H.raw().comboCounter, ult: H.ult() } })
 async function tap(ks, n = 1) { for (const k of ks) await page.keyboard.down(k); await step(n); for (const k of ks) await page.keyboard.up(k) }
@@ -35,7 +37,7 @@ async function measure(label, script, { gap = 72, flip = false, dummy = 'stand',
   s = await state()
   const hitLog = log.filter(x => !x.blocked)
   const firstDrop = hitLog.findIndex((x, i) => i > 0 && !(x.stunBefore > 0))
-  const r = { label, kind, hits: hitLog.map(x => x.d), stunBefore: hitLog.map(x => x.stunBefore), hitFrames: hitLog.map(x => x.f), gapAtHit: hitLog.map(x => x.gap), blockedEvents: blk, damage: 1000 - s.b.hp,
+  const r = { label, kind, hits: hitLog.map(x => x.d), stunBefore: hitLog.map(x => x.stunBefore), hitFrames: hitLog.map(x => x.f), gapAtHit: hitLog.map(x => x.gap), blockedEvents: blk, damage: HP - s.b.hp,
     energySpent: +(e0 - s.a.energy).toFixed(2), pipsSpent: p0 - s.a.hud.pips, trueCombo: hitLog.length > 1 && firstDrop < 0, dropAfterHit: firstDrop, marks,
     stats: s.a.s?.stats, gap, flip, note }
   r.verdict = kind === 'pressure' ? 'pressure (not a combo)' : r.trueCombo ? 'true combo' : hitLog.length > 1 ? `RESET at hit ${firstDrop + 1} (defender free before it; escape window measured)` : 'single hit'
@@ -48,7 +50,7 @@ try {
   await page.goto(server.base + '/index.html?harness=1&p1=mmpr_white&p2=mmpr_white&seed=550202'); await page.waitForFunction(() => window.__harness?.mmprWhiteTest)
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(4) }); await page.evaluate(() => __harness.preloadDone()); await step(3); await page.waitForFunction(() => __harness.spriteReady().ready)
   let s = await state(), r
-  ck('both slots mmpr_white, HP 1000, max 100 Energy, ordinary start (<60), 2 Command pips full', s.a.key === 'mmpr_white' && s.a.hp === HP && s.b.hp === HP && s.a.energy < 60 && s.a.hud.pips === 2, JSON.stringify({ e: s.a.energy, hud: s.a.hud }))
+  ck(`both slots mmpr_white, HP ${HP}, max 100 Energy, ordinary start (<60), 2 Command pips full`, s.a.key === 'mmpr_white' && s.a.hp === HP && s.b.hp === HP && s.a.energy < 60 && s.a.hud.pips === 2, JSON.stringify({ e: s.a.energy, hud: s.a.hud }))
   ck('rangers.js profile ticking (2 blink charges, engine dash off)', s.a.ranger?.charges === 2 && s.a.noDash)
   // movement: measured in engine units
   await reset(600); const x0 = (await state()).a.x; await page.keyboard.down('d'); await step(60); await page.keyboard.up('d'); report.resources.walk60f = Math.round((await state()).a.x - x0)

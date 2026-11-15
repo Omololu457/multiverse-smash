@@ -3,11 +3,11 @@
     {
       "label": "J1 -> J2 -> J3",
       "hits": [
-        22,
-        26,
-        33
+        25,
+        30,
+        39
       ],
-      "damage": 81,
+      "damage": 94,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -20,11 +20,11 @@
     {
       "label": "J1 -> J2 -> J3 (mirrored)",
       "hits": [
-        22,
-        26,
-        33
+        25,
+        30,
+        39
       ],
-      "damage": 81,
+      "damage": 94,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -37,11 +37,11 @@
     {
       "label": "J1 -> Heavy -> Deltamax Check",
       "hits": [
-        22,
-        67,
-        43
+        25,
+        78,
+        50
       ],
-      "damage": 132,
+      "damage": 153,
       "energySpent": 11.159999999999968,
       "trueCombo": true,
       "stunAtRetap": [
@@ -54,11 +54,11 @@
     {
       "label": "Forward+Heavy -> Heavy -> Heavy",
       "hits": [
-        31,
-        37,
-        48
+        36,
+        43,
+        55
       ],
-      "damage": 116,
+      "damage": 134,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -70,27 +70,27 @@
     },
     {
       "label": "Launcher -> manual Jump -> Air",
-      "damage": 86,
+      "damage": 100,
       "hits": null,
       "trueCombo": true,
       "comboCounter": 2
     },
     {
       "label": "Aura Read -> Acrobat Step -> marked Heavy follow-up",
-      "hp0": 1120,
+      "hp0": 1150,
       "stunAtRecovery": 31,
       "stunAtFollowStart": 30,
       "follows": 1,
-      "followHit": 23,
+      "followHit": 27,
       "followCost": 4.94,
-      "damage": 85,
+      "damage": 99,
       "mark": false,
       "combo": 3,
       "trueCombo": true
     },
     {
       "label": "Phase step (120px) -> Heavy punish",
-      "damage": 67,
+      "damage": 78,
       "energySpent": 6.379999999999939
     }
   ],
@@ -300,11 +300,11 @@
         "gAcro:34",
         "gAcro2:48"
       ],
-      "applied": 62,
+      "applied": 72,
       "cost": 18
     }
   },
-  "engineDamageScale": 0.759,
+  "engineDamageScale": 0.862,
   "passes": 60,
   "failures": 0,
   "errors": []

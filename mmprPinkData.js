@@ -112,7 +112,7 @@ export const mmpr_pink = {
   primary: 'zoner', secondary: ['summoner'], archetypes: ['zoner', 'summoner'],
   traits: { hasEnergy: true, energyType: 'energy', energyName: 'Morph Energy', mobility: 'normal', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Morph Energy', color: '#ff9bd2' },
-  stats: { maxHealth: 950, maxEnergy: 100, attack: 76, defense: 74, speed: 100, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 34 },
+  stats: { maxHealth: 1100, maxEnergy: 100, attack: 76, defense: 74, speed: 100, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 34 },
   hasSprites: true, spriteScale: 1.85, spriteSheet: MMPR_PINK_ANIM.idle.sheet, portrait: './assets/mmpr_pink/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: MMPR_PINK_MOVES.light, heavy: MMPR_PINK_MOVES.heavy, crouchLight: MMPR_PINK_MOVES.pLow, upAttack: MMPR_PINK_MOVES.up,

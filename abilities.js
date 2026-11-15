@@ -15998,10 +15998,11 @@ function fireOmniManMeteor(fighter, context) {
 // All state is deterministic (no Math.random) → LAN/replay-safe.
 // ─────────────────────────────────────────────────────────────────────────
 export const HV_HEAT_MAX  = 72     // ~1.2s of sustained beam (also the HUD gauge max)
-const HV_OVERHEAT = 90             // lockout frames once heat hits 0 (dim-eye cooldown)
+const HV_OVERHEAT = 150            // lockout frames once heat hits 0 (dim-eye cooldown) — 2026-11-15 nerf 90→150
+export const HV_COOLDOWN = 60      // 2026-11-15 nerf: every beam (tap or hold) is followed by a 1s re-fire cooldown (own bar, no energy)
 const HV_MIN_BURST = 12            // a tap still fires a visible burst this many frames
 const HV_DRAIN = 1                 // heat spent per active frame
-const HV_REFILL = 0.8              // heat regained per idle frame
+const HV_REFILL = 0.5              // heat regained per idle frame (2026-11-15 nerf 0.8→0.5)
 const HV_SWEEP = 0.026             // radians/frame (~1.5°) stick sweep rate
 const HV_SWEEP_CAP = 0.62          // ~35° max off the firing axis
 const HV_TICK = 4                  // apply damage every N active frames
@@ -16084,7 +16085,7 @@ function fireHomelanderBarrage(fighter, context) {
 }
 
 function startHomelanderHeatVision(fighter, dir) {
-  if ((fighter._hvOverheat || 0) > 0) return false
+  if ((fighter._hvOverheat || 0) > 0 || (fighter._hvCooldown || 0) > 0) return false
   if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
   if (fighter._laserHeat <= 1) return false
   const airborne = isHomelanderAirborne(fighter)
@@ -16104,15 +16105,17 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
   if (fighter._hlClapFx > 0) fighter._hlClapFx--
   if (fighter._hlBarrageFx > 0) fighter._hlBarrageFx--
   if (fighter._laserHeat == null) fighter._laserHeat = HV_HEAT_MAX
+  if ((fighter._hvCooldown || 0) > 0 && !fighter._hvActive) fighter._hvCooldown--
   if ((fighter._hvOverheat || 0) > 0) { fighter._hvOverheat--; fighter._hvActive = false; fighter._hv = null; stopHomelanderLaser(fighter); return }
   // a hard hit / knockdown kills the beam
-  if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { fighter._hvActive = false; fighter._hv = null }
+  if (((fighter.hitstun || 0) > 0 || fighter.knockdownState) && fighter._hvActive) { fighter._hvActive = false; fighter._hv = null; fighter._hvCooldown = HV_COOLDOWN }
 
   if (fighter._hvActive) {
     const held = !!raw.special
     if (fighter._hvMinBurst > 0) fighter._hvMinBurst--
     if ((!held && fighter._hvMinBurst <= 0) || fighter._laserHeat <= 0) {
       fighter._hvActive = false; fighter._hv = null
+      fighter._hvCooldown = HV_COOLDOWN                                  // re-fire cooldown after every beam
       if (fighter._laserHeat <= 0) { fighter._hvOverheat = HV_OVERHEAT; fighter._laserHeat = 0 }   // overheat lockout
       stopHomelanderLaser(fighter)                                       // release → fade out the beam loop
       return
@@ -16162,7 +16165,7 @@ export function applyHomelanderHeatVision(fighter, raw = {}, context = {}) {
 // Round/match reset — clear Heat-Vision state so heat/overheat never leak across rounds.
 export function resetHomelanderKit(fighter) {
   if (!fighter) return
-  fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0
+  fighter._hvActive = false; fighter._hv = null; fighter._hvOverheat = 0; fighter._laserHeat = HV_HEAT_MAX; fighter._hvTick = 0; fighter._hvCooldown = 0
   fighter._hlBoomFx = 0; fighter._hlClapFx = 0; fighter._hlBarrageFx = 0
   fighter._f37 = null; fighter._f37slam = 0
   stopHomelanderLaser(fighter, 0)   // kill the beam loop instantly on round reset (no leak across rounds)
@@ -17804,7 +17807,7 @@ export function updateSupermanCommandCombat(fighter, inputState, context, getPha
 //   Neutral/Down = HEAT VISION — twin eye-beam PROJECTILE fired from eye height with INDEPENDENT
 //             collision (procedural drawKind "heatvision"; no dedicated sprite → braced cast pose). 22.
 // ─────────────────────────────────────────────────────────────────────────────
-const SUPERMAN_HEATVISION_COST = 22
+const SUPERMAN_HEATVISION_COST = 0   // 2026-11-15: Heat Vision runs on its own laser gauge (SUP_LASER_*), not Solar Energy
 const SUPERMAN_FLYINGPUNCH_COST = 30
 // Power-flavored cast bark for any Superman special / mode-activation / flight-toggle / ultimate.
 // Cooldown-gated (700ms) so rapid re-presses can't spam it. Audio-only; no gameplay effect.
@@ -17815,9 +17818,29 @@ function supermanCastBark(fighter) {
   fighter._castVoiceAt = now
   try { sound?.playSfxFile?.(pickSupermanVoice("cast"), null) } catch (_) {}
 }
+// 2026-11-15 nerf: Heat Vision no longer spends Solar Energy — it runs on its OWN laser gauge (HUD bar under
+// his health) with a re-fire cooldown after every beam and an overheat lockout if the gauge is emptied.
+export const SUP_LASER_MAX = 100
+const SUP_LASER_TAP = 34          // gauge spent by the tap shot
+const SUP_LASER_DRAIN = 0.9       // gauge per frame while the sustained beam is held (~1.1s from full after a tap)
+const SUP_LASER_REFILL = 0.45     // gauge regained per frame while not firing (~3.7s empty→full)
+const SUP_LASER_CD = 60           // re-fire cooldown after each beam ends (1s)
+const SUP_LASER_OVERHEAT = 150    // lockout once the gauge hits 0 (2.5s)
+export function supermanLaserState(f) {
+  return { gauge: f._supLaser ?? SUP_LASER_MAX, max: SUP_LASER_MAX, cd: f._supLaserCd || 0, cdMax: SUP_LASER_CD, over: f._supLaserOver || 0, overMax: SUP_LASER_OVERHEAT, firing: !!f._supHvHold }
+}
+export function resetSupermanLaser(f) { if (!f) return; f._supLaser = SUP_LASER_MAX; f._supLaserCd = 0; f._supLaserOver = 0; f._supHvHold = null; f._supHvBeam = null; f._supHvTick = 0 }
+function endSupermanBeam(f) {
+  f._supHvHold = null; f._supHvBeam = null; f._supHvTick = 0
+  if ((f._supLaser ?? SUP_LASER_MAX) <= 0) { f._supLaser = 0; f._supLaserOver = SUP_LASER_OVERHEAT }
+  else f._supLaserCd = SUP_LASER_CD
+}
 function fireSupermanHeatVision(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, SUPERMAN_HEATVISION_COST)) return false
+  if (fighter._supHvHold || (fighter._supLaserCd || 0) > 0 || (fighter._supLaserOver || 0) > 0) return false
+  if (fighter._supLaser == null) fighter._supLaser = SUP_LASER_MAX
+  if (fighter._supLaser < SUP_LASER_TAP) return false
+  fighter._supLaser -= SUP_LASER_TAP
   // Braced firing pose (reuse the charge stance — no dedicated eye-beam art); the beam sells it.
   fighter._spriteCastMove  = "charge"
   fighter._spriteCastTimer = 20
@@ -17847,19 +17870,24 @@ function fireSupermanHeatVision(fighter, context) {
 const SUP_HV_HOLD_THRESHOLD = 9   // frames the Special must stay held before the sustained beam begins
 const SUP_HV_TICK = 6             // damage every N active frames
 const SUP_HV_TICK_DMG = 8         // raw per tick (scaled on the write)
-const SUP_HV_DRAIN = 0.35         // Solar Energy per frame while sustaining
 export function applySupermanHeatVision(fighter, raw = {}, context = {}) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  if (fighter._supLaser == null) fighter._supLaser = SUP_LASER_MAX
+  if (!fighter._supHvHold) {   // not firing: cooldown / overheat tick down, the gauge refills
+    if ((fighter._supLaserCd || 0) > 0) fighter._supLaserCd--
+    if ((fighter._supLaserOver || 0) > 0) fighter._supLaserOver--
+    fighter._supLaser = Math.min(SUP_LASER_MAX, fighter._supLaser + SUP_LASER_REFILL)
+  }
   if (fighter._supWoC) return   // the ultimate owns the beam render (its approach laser) — don't clear it
   const h = fighter._supHvHold
   if (!h) { if (fighter._supHvBeam) fighter._supHvBeam = null; return }
-  if (!raw.special) { fighter._supHvHold = null; fighter._supHvBeam = null; fighter._supHvTick = 0; return }   // released
+  if (!raw.special || (fighter.hitstun || 0) > 0 || fighter.knockdownState) { endSupermanBeam(fighter); return }   // released / hit
   h.t++
   if (h.t < SUP_HV_HOLD_THRESHOLD) return   // still the tap window (the single shot already fired)
   // mid-ult / other scripted move → suppress the sustained beam
   if (fighter._supWoC || fighter._supGPound || fighter._supKGrab) { fighter._supHvBeam = null; return }
-  if ((fighter.energy || 0) <= 0) { fighter._supHvHold = null; fighter._supHvBeam = null; return }   // out of Solar Energy
-  fighter.energy = Math.max(0, fighter.energy - SUP_HV_DRAIN)
+  if (fighter._supLaser <= 0) { endSupermanBeam(fighter); return }   // gauge empty → overheat lockout
+  fighter._supLaser = Math.max(0, fighter._supLaser - SUP_LASER_DRAIN)
   const opp = (context.getOpponent ? context.getOpponent(fighter) : getTargetResolver(context)(fighter)) || null
   if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1   // AUTO-AIM: turn to the target
   const face = fighter.facing || 1
@@ -17986,7 +18014,7 @@ function enterSupermanOverload(fighter, context) {
   return true
 }
 // Round/menu-reset reverts (mirror forceRevertHisokaOverdrive's role).
-export function forceRevertSupermanModes(fighter) { revertSupermanSolarFlare(fighter); revertSupermanOverload(fighter) }
+export function forceRevertSupermanModes(fighter) { revertSupermanSolarFlare(fighter); revertSupermanOverload(fighter); if (fighter && (fighter.rosterKey || "").toLowerCase() === "superman") resetSupermanLaser(fighter) }
 // Per-frame drain + auto-revert for BOTH modes (called from updateFighterState).
 export function applySupermanModeSystem(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return

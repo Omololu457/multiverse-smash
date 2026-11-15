@@ -4,6 +4,11 @@
 import fs from 'node:fs'
 import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
+import {dash_parr as DASH_DEF,DASH_STATS,INCREDI_RUSH} from '../dashParrData.js'
+import {ROSTER_DAMAGE_BOOST} from '../rosterParity.js'
+// ROSTER PARITY boost (rosterParity.js), applied at combat.applyScaledDamage on top of the floored per-hit damage:
+// dealt = floor(brief hit × boost). Design-tolerance targets (±20 %) are scaled by the same boost.
+const BOOST=ROSTER_DAMAGE_BOOST.dash_parr||1,mel=x=>Math.floor(x*BOOST)
 const server=await serve(),browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[]
 const report={moves:{},routes:[],momentum:{},defense:{},ultimate:{}};let pass=0,fail=0
 page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.requestAnimationFrame=()=>0)
@@ -47,14 +52,15 @@ try{
  const meta=await ev(async()=>{const {characters}=await import('./characters.js');const c=characters.dash_parr;return {name:c.name,displayName:c.displayName,universe:c.universe,diff:c.difficulty,arch:c.archetype,tag:c.tagline,hp:c.stats.maxHealth,w:c.stats.weight,e:c.stats.maxEnergy,st:c.stats,k:characters.killua.stats,en:c.traits.energyName,has:c.traits.hasEnergy,bio:c.bio}})
  ck('registered: name/displayName Dash, archetype, tagline, difficulty 4',meta.name==='Dash'&&meta.displayName==='Dash'&&meta.arch==='Speedster / Rushdown'&&meta.tag==='Ready, set, already gone.'&&meta.diff===4,JSON.stringify(meta))
  ck('bio is two sentences',meta.bio.split(/(?<=\.)\s/).length===2)
- // Stats = Killua Zoldyck's (owner request 2026-11-15, replaces the brief's 860 HP / 6.4 / 11.0 / 12.5 / 0.7 numbers).
- ck('stats: identical to Killua Zoldyck (HP 1030, energy 180 "Super Speed", speed 95, jump 33, 2 jumps, dash 19)',s.a.maxHp===1030&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...meta.k}).every(k=>meta.st[k]===meta.k[k]),JSON.stringify({st:meta.st,k:meta.k}))
+ // Stats: started as Killua Zoldyck's (owner request 2026-11-15), then the 2026-11-15 roster-parity balance pass gave Dash his
+// own numbers (HP / speed / dashSpeed). Assert the live fighter matches dashParrData.js, not Killua.
+ ck(`stats: dashParrData.js (HP ${DASH_DEF.stats.maxHealth}, energy 180 "Super Speed", speed ${DASH_STATS.speed}, jump 33, 2 jumps, dash ${DASH_STATS.dashSpeed})`,s.a.maxHp===DASH_DEF.stats.maxHealth&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...DASH_DEF.stats}).every(k=>meta.st[k]===DASH_DEF.stats[k])&&meta.st.speed===DASH_STATS.speed&&meta.st.dashSpeed===DASH_STATS.dashSpeed,JSON.stringify({st:meta.st,data:DASH_DEF.stats}))
  // walk / run speed
  await reset(600);await page.keyboard.down('d');await step(12);s=await state();await page.keyboard.up('d');const walk=Math.abs(s.a.vx)
- const WALK=4.5+(95-78)/4   // physics.js walk map for Killua's speed 95 = 8.75 px/f
- ck('walk speed 8.75 px/f at Jog (Killua speed 95)',near(walk,WALK,0.05),String(walk))
+ const WALK=Math.min(9.5,Math.max(4.5,4.5+(DASH_STATS.speed-78)/20*5))   // physics.js walk map on Dash's speed stat
+ ck(`walk speed ${WALK} px/f at Jog (speed ${DASH_STATS.speed})`,near(walk,WALK,0.05),String(walk))
  await reset(900);await tap(['d']);await step(2);await tap(['d']);await step(3);s=await state();const run=Math.abs(s.a.vx)
- ck('run (double-tap dash) speed 10.45 px/f (Killua dash 19 × 0.55)',near(run,19*0.55,0.05),String(run));report.stats={walk,run}
+ ck(`run (double-tap dash) speed ${DASH_STATS.dashSpeed*0.55} px/f (dash ${DASH_STATS.dashSpeed} × 0.55)`,near(run,DASH_STATS.dashSpeed*0.55,0.05),String(run));report.stats={walk,run}
  // energy: regen 4/s, +4 landed, +3 taken
  await reset(600,{energy:10});await step(60);s=await state();ck('Super Speed recharges 4/s',near(s.a.energy-10,4,0.15),String(s.a.energy-10))
  // ── PHASE 3: MOMENTUM
@@ -79,24 +85,24 @@ try{
  for(const [k,[st,dm,ob]] of Object.entries(BRIEF)){
   const h=await measure(k,{air:k==='air'}),b=await measure(k,{block:true,air:k==='air'})
   report.moves[k]={startup:h.first,damage:h.total,onBlock:b.adv,brief:{startup:st,damage:dm,onBlock:ob}}
-  ck(`${k}: ${st}f startup, ${dm} dmg`,h.first===st+1-1||h.first===st,JSON.stringify({first:h.first,total:h.total}));ck(`${k}: damage ${dm}`,h.total===dm,String(h.total))
+  ck(`${k}: ${st}f startup, ${dm} dmg`,h.first===st+1-1||h.first===st,JSON.stringify({first:h.first,total:h.total}));ck(`${k}: damage ${dm} ×${BOOST} = ${mel(dm)}`,h.total===mel(dm),String(h.total))
   ck(`${k}: ${ob>0?'+':''}${ob} on block`,b.adv===ob,JSON.stringify({adv:b.adv,aFree:b.aFree,bFree:b.bFree,flawless:b.flawless}))
  }
  // Sprint −1f startup on Jab / Heavy
  for(const k of ['jab','heavy']){const h=await measure(k,{momentum:60});ck(`Sprint: ${k} startup −1f`,h.first===report.moves[k].startup-1,String(h.first))}
  // Specials
  let f=await measure('flurry');report.moves.flurry={startup:f.first,hits:f.hits.length,damage:f.total}
- ck('Flurry: 8 hits = 56 (unscaled sum of 7s; engine 85%/step keeps one step)',f.hits.length===8&&near(f.total,56,2),JSON.stringify(f.hits))
+ ck(`Flurry: 8 hits = ${8*mel(7)} (unscaled sum of 7s ×${BOOST}; engine 85%/step keeps one step)`,f.hits.length===8&&near(f.total,8*mel(7),2),JSON.stringify(f.hits))
  f=await measure('flurry',{block:true});report.moves.flurry.onBlock=f.adv;ck('Flurry −6 on block',f.adv===-6,String(f.adv))
- f=await measure('blurDash',{gap:120});report.moves.blurDash={damage:f.total,startup:f.first};ck('Blur Dash: 44 dmg',near(f.total,44,1),String(f.total))
+ f=await measure('blurDash',{gap:120});report.moves.blurDash={damage:f.total,startup:f.first};ck(`Blur Dash: ${mel(44)} dmg (44 ×${BOOST})`,near(f.total,mel(44),1),String(f.total))
  ck('Blur Dash passes THROUGH the opponent (cross-up: ends on the far side)',f.x>f.bx,JSON.stringify({x:f.x,bx:f.bx}))
  const bdTravel=await ev(()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1000;b.x=1700;a.facing=1;b.facing=-1;a.energy=100;__harness.luffyTest.step(1);const x0=a.x;H.move('blurDash');for(let i=0;i<40;i++)__harness.luffyTest.step(1);return a.x-x0})
  ck('Blur Dash lunges 400px',near(bdTravel,400,2),String(bdTravel))
  f=await measure('blurDash',{block:true,gap:120});report.moves.blurDash.onBlock=f.adv;ck('Blur Dash −10 on block',f.adv===-10,String(f.adv))
- f=await measure('laps',{gap:150});report.moves.laps={hits:f.hits.length,damage:f.total};ck('Laps: 4 hits = 64',f.hits.length===4&&near(f.total,64,4),JSON.stringify(f.hits))
+ f=await measure('laps',{gap:150});report.moves.laps={hits:f.hits.length,damage:f.total};ck(`Laps: 4 hits = ${4*mel(16)} (4×16 ×${BOOST})`,f.hits.length===4&&near(f.total,4*mel(16),4),JSON.stringify(f.hits))
  ck('Laps ends BEHIND the opponent',f.x>f.bx,JSON.stringify({x:f.x,bx:f.bx}))
  s=await state();ck('Laps grants +20 Momentum (plus +6 per hit)',s.a.s.momentum>=20,String(s.a.s.momentum))
- f=await measure('hydro',{gap:200});report.moves.hydro={damage:f.total,startup:f.first};ck('Hydroplane: 36 dmg',near(f.total,36,1),String(f.total))
+ f=await measure('hydro',{gap:200});report.moves.hydro={damage:f.total,startup:f.first};ck(`Hydroplane: ${mel(36)} dmg (36 ×${BOOST})`,near(f.total,mel(36),1),String(f.total))
  const lp=await ev(()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=600;b.x=1800;a.energy=100;H.move('hydro');const prof=[];for(let i=1;i<=40;i++){__harness.luffyTest.step(1);const s=H.state();prof.push(!!a._dashParr.lowProfile&&s.hurt.h<a.h*0.5)}return prof})
  const lpOn=lp.map((v,i)=>v?i+1:0).filter(Boolean);report.moves.hydro.lowProfile=[lpOn[0],lpOn[lpOn.length-1]]
  ck('Hydroplane low profile ≈ f10–30 (shrunken hurtbox)',lpOn[0]===10&&lpOn[lpOn.length-1]===30,JSON.stringify(report.moves.hydro.lowProfile))
@@ -110,7 +116,8 @@ try{
   for(let i=1;i<=320;i++){__harness.luffyTest.step(1);if(a._dashParr?.ult&&lockedAt<0)lockedAt=i;if(b.health<last){hits++;lastHit=i;last=b.health;mx.push(Math.round(b.x-bx))}if(freeAt<0&&!a.attacking&&i>5)freeAt=i}
   return {ok,energy:a.energy,dmg:hp0-b.health,hits,lockedAt,lastHit,freeAt,bMoved:mx}})
  report.ultimate=ult
- ck('INCREDI-RUSH: 12 hits = 200 unscaled',ult.hits===12&&ult.dmg===200,JSON.stringify(ult))
+ const RUSH_DMG=INCREDI_RUSH.damage.reduce((t,d)=>t+mel(d),0)
+ ck(`INCREDI-RUSH: 12 hits = ${RUSH_DMG} (200 unscaled, each hit ×${BOOST})`,ult.hits===12&&ult.dmg===RUSH_DMG,JSON.stringify(ult))
  ck('INCREDI-RUSH lasts 3 s (180f storm) then 90f recovery lockout',near(ult.lastHit-ult.lockedAt,180,16)&&near(ult.freeAt-ult.lastHit,90,4),JSON.stringify(ult))
  ck('opponent is held in place during the storm',ult.bMoved.slice(0,11).every(v=>v===0),JSON.stringify(ult.bMoved))
  const rushDet=await ev(()=>{const run=()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1460;a.energy=100;H.move('rush');const p=[];for(let i=0;i<200;i++){__harness.luffyTest.step(1);const u=a._dashParr?.ult;if(u?.pos)p.push(JSON.stringify(u.pos))}return [...new Set(p)]};return [run(),run()]})
@@ -158,7 +165,10 @@ try{
  ck('Panic Run needs 3+ hits taken',s.a.attack?.name!=='panic')
  // ── PHASE 5: COMBOS (real input, cancels on contact)
  const HP=await HP2()
- async function route(label,target,fn,{gap=60}={}){await reset(gap,{energy:100});await fn();await step(60);s=await state();const r={label,target,damage:HP-s.b.hp,ratio:+((HP-s.b.hp)/target).toFixed(3)};report.routes.push(r);ck(`${label} ≈ ${target} (±20%) → ${r.damage}`,r.ratio>=0.8&&r.ratio<=1.2,JSON.stringify(r));return r}
+ async function route(label,target,fn,{gap=60}={}){await reset(gap,{energy:100});await fn();await step(60);s=await state();const hits=await ev(()=>__harness.dashParrTest.raw().comboCounter||0)
+  // target is the pre-boost design number: scale it by the roster boost. The boost is applied (and floored) per hit at the
+  // choke-point, so each landed hit can lose < 1 HP to flooring vs target×boost — the lower bound allows 1 HP per hit for that.
+  const r={label,target,boosted:+(target*BOOST).toFixed(1),damage:HP-s.b.hp,hits,ratio:+((HP-s.b.hp)/(target*BOOST)).toFixed(3)};report.routes.push(r);ck(`${label} ≈ ${target}×${BOOST} (±20%, −1/hit floor) → ${r.damage}`,r.damage>=target*BOOST*0.8-hits&&r.ratio<=1.2,JSON.stringify(r));return r}
  const until=async(name,pred=s=>s.a.attack?.dp?.clean&&s.a.attack?.name===name&&s.a.attack.total-s.a.attack.timer>s.a.attack.activeEnd,max=80)=>wait(pred,max)
  await route('Jab, Jab, Heavy, Blur Dash',97,async()=>{await tap(['j']);await until('jab');await tap(['j']);await until('jab');await tap(['k']);await until('heavy');await tap(['d']);await tap([]);await tap(['d','l'])})
  await route('Low, Launcher, Air, Flurry',112,async()=>{await tap(['s','j']);await until('low');await tap(['w','k']);await until('launcher',s=>s.a.attack?.name==='launcher'&&s.a.attack.dp.clean);await step(2);await tap(['w']);await step(6);await tap(['j']);await until('air');await tap(['l'])})

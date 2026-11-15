@@ -23,7 +23,7 @@ export const mr_incredible={rosterKey:MR_KEY,name:'Mr. Incredible',displayName:'
  tagline:'Experience hits hard. Prime hits harder.',introTitle:'MR. INCREDIBLE',archetype:'Heavyweight / Pressure Brawler',primary:'bruiser',secondary:['grappler'],archetypes:['bruiser','grappler'],
  bio:'Bob Parr: an experienced powerhouse. Back in My Prime is an original timed game adaptation, not a canonical de-aging ability.',
  traits:{hasEnergy:true,energyType:'power',energyName:'Power',mobility:'medium',animeMovement:false},energyConfig:{label:'Power',color:'#e95753'},
- stats:{maxHealth:1250,maxEnergy:100,attack:96,defense:94,speed:90,jumpPower:26,maxJumps:2,weight:1.2,dashSpeed:22,dashDuration:10,dashCooldownMax:24},
+ stats:{maxHealth:1380,maxEnergy:100,attack:96,defense:94,speed:94,jumpPower:26,maxJumps:2,weight:1.2,dashSpeed:22,dashDuration:10,dashCooldownMax:24},
  hasSprites:true,spriteScale:MR_SCALE,spriteSheet:MR_ANIM.veteran.idle.sheet,portrait:'./assets/mr_incredible/default/veteran/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
  introSequence:['intro'],introPool:['intro'],animationData:MR_ANIM.veteran,
  basic_attacks:{light:MR_MOVES.light,heavy:MR_MOVES.heavy,crouchLight:MR_MOVES.miLow,upAttack:MR_MOVES.up,airAttack:MR_MOVES.air,downAir:MR_MOVES.down_air,grab:{damage:55,startup:6,active:1,recovery:24,damageType:'grab'}},

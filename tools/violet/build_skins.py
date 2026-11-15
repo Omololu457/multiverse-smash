@@ -14,6 +14,8 @@ the skin's ring colours.
 Usage: build_skins.py [--root DIR]   (writes docs/violet/skins_contact.png for review)"""
 import os, sys, json, colorsys
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from incredibles_skin_sets import SETS, bake_stars, hexc, lerp
 
 ROOT = sys.argv[sys.argv.index('--root') + 1] if '--root' in sys.argv else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 A = os.path.join(ROOT, 'assets', 'violet')
@@ -38,6 +40,17 @@ SKINS = {
                (200, 80, 200): (96, 40, 168), (144, 144, 168): (110, 96, 140), (136, 136, 144): (100, 88, 130)},
                'ring': '#9a5cff', 'flash': '#e6d8ff'},
 }
+
+# Ranger-style crossover palettes (shared with Dash / Elastigirl): tools/incredibles_skin_sets.py.
+# FX strips follow the skin's ring colour (light → white-ish, dark → deep); invisible frames tint toward the suit.
+def _fx_map(ring):
+    r = tuple(int(ring[i:i + 2], 16) for i in (1, 3, 5))
+    return {(248, 248, 248): lerp(r, (255, 255, 255), 0.88), (184, 208, 248): lerp(r, (255, 255, 255), 0.5), (120, 160, 248): r,
+            (200, 80, 200): lerp(r, (0, 0, 0), 0.4), (144, 144, 168): lerp(r, (128, 128, 128), 0.6), (136, 136, 144): lerp(r, (120, 120, 120), 0.65)}
+for _s in SETS:
+    SKINS[_s['tag']] = {'suit': _s['suit'], 'trim': _s['trim'], 'rim': _s['trimHi'], 'inv_key': _s['suit'][1] if sum(_s['suit'][1]) > 120 else tuple(int(_s['ring'][i:i + 2], 16) for i in (1, 3, 5)),
+                        'fx': _fx_map(_s['ring']), 'ring': _s['ring'], 'flash': hexc(lerp(tuple(int(_s['ring'][i:i + 2], 16) for i in (1, 3, 5)), (255, 255, 255), 0.82)),
+                        'stars': _s.get('stars'), 'density': _s.get('density', 0.06) * 1.6}
 
 def tint_inv(c, key):
     """Keep the source luminance, take the hue / saturation of the skin's key colour (invisible frames)."""
@@ -79,6 +92,7 @@ def recolor_body(name, im, sk, audit):
                                    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
                     if interior:
                         po[x, y] = (sk['trim'] if c == BLACK else sk['rim']) + (p[3],); audit['trim'] += 1
+    audit['stars'] = audit.get('stars', 0) + bake_stars(out, sk, fw)
     return out
 
 def recolor_map(im, m):

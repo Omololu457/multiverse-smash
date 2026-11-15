@@ -7,6 +7,11 @@
 //   3  Field Trap, Heavy, Launcher, Force Ball (2 hits)       ≈ 124
 //   4  Vanish → Heavy (ambush +20 %) → Force Push            ambush bonus once, Vanish ends
 import { boot, ck, summary } from './violet_lib.mjs'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+// ROSTER PARITY boost (rosterParity.js) applied at combat.applyScaledDamage: melee dmg arrives pre-scaled + floored, so
+// dealt = floor(old * boost); kit hits pass raw + scale, so dealt = floor(raw * boost * scale).
+const BOOST = ROSTER_DAMAGE_BOOST.violet || 1
+const mel = x => Math.floor(x * BOOST), kit = (raw, scale = 1) => Math.floor(raw * BOOST * scale)
 const B = await boot('violet', 'violet'), { page, step, st, down, up, reset, wait } = B
 const p2 = () => st('p2'), k = page.keyboard
 const FW = 'd', BK = 'a', DN = 's'
@@ -27,23 +32,24 @@ async function route(steps, tail = 90) {
   for (let i = 0; i < tail; i++) { await step(1); await sample() }
   return { drops, total: h0 - last, broke }
 }
-const within = (v, want) => v >= want * 0.8 && v <= want * 1.2
+// design targets are pre-boost; scale them by the roster boost before the ±20 % tolerance
+const within = (v, want) => v >= want * BOOST * 0.8 && v <= want * BOOST * 1.2
 try {
   // 1 — Jab, Jab, Launcher, jump-cancel, Air
   await reset(56, false, { energy: 50 })
   // jump-cancel: hold Up through the Launcher's recovery until the hop happens, then Light on the way up
   const hop = async smp => { await down(['w']); for (let i = 0; i < 30 && !(await st()).s.stats.jumpCancels; i++) { await step(1); await smp() } await up(['w']) }
   let r = await route([[0, 0, () => press(['j'])], [1, 2, () => press(['j'])], [2, 2, () => press(['i'])], [3, 2, hop], [3, 1, () => press(['j'])]])
-  ck(`Route 1 Jab Jab Launcher Air: 4 hits [${r.drops.join('+')}] = ${r.total} ≈ 93 ±20%`, r.drops.length === 4 && within(r.total, 93), r)
+  ck(`Route 1 Jab Jab Launcher Air: 4 hits [${r.drops.join('+')}] = ${r.total} ≈ 93×${BOOST} ±20%`, r.drops.length === 4 && within(r.total, 93), r)
   ck('Route 1: one unbroken combo (defender never free between hits)', !r.broke, r)
-  ck('Route 1: per-hit 85% scaling (18, 15, 33, 18)', r.drops.join(',') === '18,15,33,18', r.drops)
+  ck(`Route 1: per-hit 85% scaling (18, 15, 33, 18) x${BOOST} roster boost`, r.drops.join(',') === [18, 15, 33, 18].map(mel).join(','), r.drops)
   let a = await st(); ck('Route 1: Launcher jump-cancel used', a.s.stats.jumpCancels === 1, a.s.stats)
 
   // 2 — Low, Heavy, Force Push
   await reset(56, false, { energy: 50 })
   r = await route([[0, 0, async () => { await down([DN]); await step(1); await press(['j']); await up([DN]) }], [1, 2, () => press(['k'])],
     [2, 2, () => motion([[DN], [DN, FW], [FW]], 'l')]])
-  ck(`Route 2 Low Heavy Force Push: 3 hits [${r.drops.join('+')}] = ${r.total} ≈ 106 ±20%`, r.drops.length === 3 && within(r.total, 106), r)
+  ck(`Route 2 Low Heavy Force Push: 3 hits [${r.drops.join('+')}] = ${r.total} ≈ 106×${BOOST} ±20%`, r.drops.length === 3 && within(r.total, 106), r)
   ck('Route 2: one unbroken combo', !r.broke, r)
 
   // 3 — Field Trap, Heavy, Launcher, Force Ball
@@ -52,7 +58,7 @@ try {
   r = await route([[0, 0, () => motion([[DN], [DN, BK], [BK]], 'l')], [0, 0, untilTrap], [1, 2, () => press(['i'])],
     [2, 2, async () => { await press([FW]); await step(1); await press([FW]); await press(['l']) }]])
   a = await st()
-  ck(`Route 3 Trap Heavy Launcher Force Ball: 4 hits [${r.drops.join('+')}] = ${r.total} ≈ 124 ±20%`, r.drops.length === 4 && within(r.total, 124), r)
+  ck(`Route 3 Trap Heavy Launcher Force Ball: 4 hits [${r.drops.join('+')}] = ${r.total} ≈ 124×${BOOST} ±20%`, r.drops.length === 4 && within(r.total, 124), r)
   ck('Route 3: the trap held the foe and the route never let them go', a.s.stats.traps === 1 && !r.broke, { traps: a.s.stats.traps, broke: r.broke })
   ck('Route 3: Force Ball connects twice on the launched foe', a.s.stats.ballHits === 2, a.s.stats)
 
@@ -62,7 +68,7 @@ try {
   a = await st(); ck('Route 4: Vanish active before the ambush', a.inv && a.dmgMul === 1.2, { inv: a.inv, mul: a.dmgMul })
   r = await route([[0, 0, () => press(['k'])], [1, 2, () => motion([[DN], [DN, FW], [FW]], 'l')]])
   a = await st()
-  ck(`Route 4: Heavy ambush 52×1.2 = 62, then Force Push scaled [${r.drops.join('+')}]`, r.drops.length === 2 && r.drops[0] === 62 && r.drops[1] === 42, r)
+  ck(`Route 4: Heavy ambush 52×1.2 = 62 (x${BOOST} = ${mel(62)}), then Force Push scaled ${kit(84, 0.6 * 0.85)} [${r.drops.join('+')}]`, r.drops.length === 2 && r.drops[0] === mel(62) && r.drops[1] === kit(84, 0.6 * 0.85), r)
   ck('Route 4: the bonus applies once and Vanish ends (ambush)', !a.inv && a.dmgMul === 1 && a.s.stats.ambushHits === 1 && a.s.stats.vanishEnds.ambush === 1, { inv: a.inv, mul: a.dmgMul, s: a.s.stats.vanishEnds })
   ck('Route 4: one unbroken combo', !r.broke, r)
 
@@ -70,7 +76,7 @@ try {
   await reset(56, false, { energy: 50 }); await press(['j']); await step(30); a = await st()
   const c1 = a.combo; await step(95); a = await st()
   ck('combo resets after 90 frames (counter 0)', c1 === 1 && a.combo === 0, { c1, after: a.combo })
-  { const h0 = (await p2()).hp; await press(['j']); await step(8); ck('fresh hit after the reset deals full 18', h0 - (await p2()).hp === 18) }
+  { const h0 = (await p2()).hp; await press(['j']); await step(8); ck(`fresh hit after the reset deals full ${mel(18)} (18 x boost)`, h0 - (await p2()).hp === mel(18)) }
   // no jab loop: Jab → Jab → Jab only chains once
   await reset(56, false, { energy: 50 })
   r = await route([[0, 0, () => press(['j'])], [1, 2, () => press(['j'])], [2, 2, () => press(['j'])]], 40)

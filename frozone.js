@@ -15,7 +15,7 @@ const fresh = (s, k, win = 8) => s.edges[k] && s.used[k] !== s.edges[k].tick && 
 const use = (s, k) => { if (s.edges[k]) s.used[k] = s.edges[k].tick }
 // Pad trap: the shared pad reader reports Up+△ as Heavy AND Up-Attack on the same tick → that pair is Up+Heavy.
 const upHeavy = s => fresh(s, 'heavy') && s.edges.heavy.tick === s.edges.upAttack?.tick
-const COMMITTED = new Set(['fLance', 'fRush', 'fRise', 'fBlackIce', 'fBreaker', 'ultOpen'])
+const COMMITTED = new Set(['fLance', 'fRush', 'fRise', 'fBlackIce', 'fWall', 'fBreaker', 'ultOpen'])
 export const specialDir = e => e.up ? 'up' : e.fwd ? 'fwd' : e.back ? 'back' : e.down ? 'down' : 'neutral'
 export const SPECIAL = { neutral: 'fLance', fwd: 'fRush', up: 'fRise', down: 'fBlackIce', back: 'fBreaker' }
 
@@ -66,7 +66,7 @@ export function updateFrozoneCommandCombat(f, inp, opp, W) {
   }
   if (fresh(s, 'heavy')) {
     const e = s.edges.heavy; use(s, 'heavy')
-    if (!a) fire(!g ? 'fDownAir' : e.up ? 'fLaunch' : 'heavy')
+    if (!a) fire(!g ? 'fDownAir' : e.up ? 'fLaunch' : e.down ? 'fWall' : 'heavy')   // Down + Triangle (ground) = ICE WALL
     return 'consumed'
   }
   return a ? 'consumed' : 'grab'

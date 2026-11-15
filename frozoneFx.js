@@ -10,7 +10,7 @@
 import { sound } from './sound.js'
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
-import { frozone as FZ, FROZONE_MOVES as MV, HAND, LANCE, BLACK_ICE, CHILL, FREEZE, ULT } from './frozoneData.js'
+import { frozone as FZ, FROZONE_MOVES as MV, HAND, LANCE, BLACK_ICE, CHILL, FREEZE, ULT, RAIL, TRAIL, WALL } from './frozoneData.js'
 import { FROZONE_PARTS as PA } from './frozoneSprites.js'
 import { frozoneUltView, ultRoute, INTRO } from './frozoneState.js'
 import { FROZONE_FX_COLORS } from './frozoneSkins.js'
@@ -152,6 +152,53 @@ function drawTrail(c, f, s, P) {
     seg(c, a.x, a.y + 1, b.x, b.y + 1, P.accent || P.ice[0], 2, al)
   }
 }
+// ── 2026-11-15 mobility kit: persistent ice (Ice Flash trails / Ice Rails), Ice Wall, Ice Glider board, flash streak ──
+const fadeOf = (q, warn) => { const left = q.life - q.t; if (q.t < 4) return q.t / 4; if (left < warn) return calm() ? 0.6 : ((q.t >> 2) & 1 ? 0.35 : 0.85); return 0.92 }
+function drawIceObjects(c, f, s, P) {
+  for (const q of (s.ice || [])) {
+    if (q.kind === 'trail') {
+      const al = fadeOf(q, TRAIL.warn)
+      poly(c, [[q.x0, q.y0 + 1], [q.x0 + q.dir * 8, q.y0 - 5], [q.x1 - q.dir * 8, q.y1 - 5], [q.x1, q.y1 + 1], [q.x1 - q.dir * 6, q.y1 + 4], [q.x0 + q.dir * 6, q.y0 + 4]], P.ice[0], P.ice[2], al * 0.85, 2)
+      const n = Math.max(1, Math.floor(Math.abs(q.x1 - q.x0) / 40))
+      for (let i = 0; i < n; i++) { const x = q.x0 + (q.x1 - q.x0) * (i + 0.5) / n; seg(c, x - 8, q.y0 - 3, x + 6, q.y0, P.ice[3], 2, al) }
+    } else if (q.kind === 'rail') {
+      const al = fadeOf(q, RAIL.warn), L = Math.hypot(q.x1 - q.x0, q.y1 - q.y0) || 1, nx = -(q.y1 - q.y0) / L, ny = (q.x1 - q.x0) / L
+      const s1 = ny < 0 ? -1 : 1   // underside normal points down
+      poly(c, [[q.x0, q.y0 - 3], [q.x1, q.y1 - 3], [q.x1 + nx * 9 * s1, q.y1 + ny * 9 * s1], [q.x0 + nx * 9 * s1, q.y0 + ny * 9 * s1]], P.ice[1], P.ice[0], al, 2)
+      seg(c, q.x0, q.y0 - 3, q.x1, q.y1 - 3, P.ice[3], 2, al)
+      const n = Math.max(2, Math.floor(L / 46))   // hanging crystal teeth under the rail
+      for (let i = 1; i < n; i++) { const k = i / n, x = q.x0 + (q.x1 - q.x0) * k, y = q.y0 + (q.y1 - q.y0) * k; spike(c, P, x, y + 6, Math.PI / 2, 14, 4, al * 0.8) }
+    }
+  }
+  const w = s.wall
+  if (w) {
+    const h = WALL.h * Math.min(1, (w.t + 1) / WALL.rise), x0 = w.x - WALL.w / 2, x1 = w.x + WALL.w / 2, y1 = w.floor, y0 = y1 - h
+    const left = WALL.life - w.t, al = left < 40 && !calm() ? ((w.t >> 2) & 1 ? 0.5 : 0.9) : 0.92
+    poly(c, [[x0 - 6, y1], [x0, y0 + 18], [w.x - 4, y0], [x1 + 2, y0 + 10], [x1 + 6, y1]], P.ice[1], P.ice[0], al, 3)
+    poly(c, [[x0 + 4, y1 - 4], [x0 + 6, y0 + 26], [w.x, y0 + 12], [w.x + 2, y1 - 4]], P.ice[2], null, al * 0.5)
+    seg(c, w.x - 2, y0 + 8, w.x - 6, y1 - 6, P.ice[3], 2, al)
+    for (let i = 0; i < WALL.hp - w.hp; i++) seg(c, x0 + 4, y0 + 30 + i * 28, x1 - 2, y0 + 44 + i * 30, P.ice[3], 2, al)   // cracks per blocked shot
+  }
+}
+function drawBoard(c, f, s, P) {
+  if (!(s.glide || s.ride || s.stream)) return
+  const feet = f.y + f.h, x = ctrX(f), d = f.facing || 1
+  let ang = 0
+  const rn = s.ride?.n ?? s.stream?.seg
+  if (rn != null) { const q = s.ice.find(i => i.n === rn); if (q && (q.x1 !== q.x0 || q.y1 !== q.y0)) ang = Math.atan2(q.y1 - q.y0, q.x1 - q.x0) - (q.dir === -1 ? Math.PI : 0) }
+  c.save(); c.translate(R(x), R(feet)); c.rotate(ang)
+  poly(c, [[-38, 2], [-30, -4], [30, -4], [42, 0], [30, 7], [-30, 7]], P.ice[1], P.ice[0], 0.95, 2)
+  seg(c, -26, -1, 26, -1, P.ice[3], 2, 0.9)
+  c.restore()
+  if (!calm() && (s.tick & 3) === 0) part(c, f, 'splash', x - d * 34, feet + 4, { flip: -d, alpha: 0.6, scale: 1 })
+}
+function drawFlash(c, f, s, P) {
+  const z = s.flashFx; if (!z) return
+  const al = 1 - z.t / 14, d = z.dir
+  for (const [dy, lw] of [[-18, 5], [-48, 7], [-80, 4]]) seg(c, z.x0, z.y + dy, z.x1 - d * 20, z.y + dy, P.ice[(dy === -48) ? 3 : 1], lw, al * 0.85)
+  for (let i = 0; i < 4; i++) { const k = (i + 1) / 5, x = z.x0 + (z.x1 - z.x0) * k; spike(c, P, x, z.y - 50, d === 1 ? Math.PI : 0, 26 * al + 6, 5, al * (1 - k * 0.5)) }
+}
+
 // FREEZE SHELL: translucent faceted crystal around the opponent's DRAWN body; the silhouette stays visible inside it
 function shellRect(t) {
   const x = t._lastDrawX ?? t.x - 20, y = t._lastDrawY ?? t.y - 20, w = t._lastDrawW ?? (t.w || 48) + 40, h = t._lastDrawH ?? (t.h || 94) + 30
@@ -203,6 +250,11 @@ function drawEvents(c, f, s, P) {
     else if (e.kind === 'switch') { ring(c, P, e.x, e.y, 30 + t * 5, 1 - t / 14); if (t < 10) part(c, f, 'arc', e.x, e.y, { flip: e.dir, alpha: 1 - t / 10 }) }
     else if (e.kind === 'melt') { if (t < 16) seg(c, e.x - 40 + t * 2, e.y, e.x + 40 - t * 2, e.y, P.ice[1], 3, 1 - t / 16) }
     else if (e.kind === 'spray') { if (t < 12) { part(c, f, 'arc', e.x, e.y, { flip: e.dir, alpha: 1 - t / 12 }); part(c, f, 'spray', e.x + e.dir * 18, e.y, { flip: e.dir, alpha: 1 - t / 12, scale: 1 }) } }
+    else if (e.kind === 'slice') {
+      const L = Math.min(1, t / 4) * 70, al = t < 16 ? 1 - t / 16 : 0
+      if (al > 0) { seg(c, e.x - e.dir * L, e.y - L * 0.7, e.x + e.dir * L, e.y + L * 0.7, P.ice[3], 5, al); seg(c, e.x - e.dir * L * 0.8, e.y + L * 0.5, e.x + e.dir * L * 0.8, e.y - L * 0.5, P.ice[1], 4, al * 0.9) }
+      shards(c, P, e.x, e.y, t, 10, 1, 24)
+    }
     else if (e.kind === 'puff') { if (t < 10) part(c, f, 'splash', e.x, e.y + 6, { alpha: 1 - t / 10 }) }
     else if (e.kind === 'riseBurst') { if (t < 10) part(c, f, 'burst2', e.x, e.y, { flip: e.dir, alpha: 1 - t / 10 }) }
     else if (e.kind === 'landBurst') { ring(c, P, e.x, e.y, 18 + t * 4, 1 - t / 12); if (t < 8) part(c, f, 'spray', e.x, e.y, { flip: e.dir, alpha: 1 - t / 8 }) }
@@ -268,7 +320,7 @@ export function drawFrozoneUnder(c, p1, p2, W) {
     if (f._introPlaying) { drawIntro(c, f, P); continue }
     const s = f._frozone; if (!s) continue
     const v = frozoneUltView(f); if (v) { drawUlt(c, f, { ...v, target: f === p1 ? p2 : p1 }, P, 'under') }
-    drawPatch(c, f, s, P); drawTrail(c, f, s, P)
+    drawPatch(c, f, s, P); drawIceObjects(c, f, s, P); drawTrail(c, f, s, P); drawFlash(c, f, s, P)
   }
 }
 export function drawFrozoneOver(c, p1, p2, W) {
@@ -277,14 +329,15 @@ export function drawFrozoneOver(c, p1, p2, W) {
     const s = f._frozone; if (!s || f._introPlaying) continue
     const P = colsOf(f), v = frozoneUltView(f)
     if (v) drawUlt(c, f, { ...v, target: f === p1 ? p2 : p1 }, P, 'over')
-    else { drawMoveIce(c, f, P); drawGuard(c, f, P); drawShots(c, f, P, W); drawChill(c, f, s, P, W, p1, p2) }
+    else { drawBoard(c, f, s, P); drawMoveIce(c, f, P); drawGuard(c, f, P); drawShots(c, f, P, W); drawChill(c, f, s, P, W, p1, p2) }
     drawEvents(c, f, s, P)
   }
 }
 export function frozoneHudLabel(f) {
   const s = f?._frozone
   return { patch: s?.patch ? { x: s.patch.x, left: BLACK_ICE.life - s.patch.t } : null, freeze: s?.freeze ? { side: s.freeze.side, left: s.freeze.until - s.clock } : null,
-    chill: s ? Object.fromEntries(Object.entries(s.chill).map(([k, v]) => [k, v.n])) : {}, airSkate: !(f?.airDashCount > 0), rise: !s?.riseUsed }
+    chill: s ? Object.fromEntries(Object.entries(s.chill).map(([k, v]) => [k, v.n])) : {}, airSkate: !(f?.airDashCount > 0), rise: !s?.riseUsed,
+    flash: !((f?.dashCooldown || 0) > 0), streaming: !!s?.stream, wall: s?.wall ? { left: WALL.life - s.wall.t, hp: s.wall.hp } : null, rails: (s?.ice || []).filter(q => q.kind === 'rail').length }
 }
 export function drawFrozoneHud(c, cv, p1, p2) {
   const cw = cv?.width || 1280, ch = cv?.height || 720
@@ -295,7 +348,8 @@ export function drawFrozoneHud(c, cv, p1, p2) {
     c.save(); c.font = 'bold 9px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'
     const tx = flip ? x0 + barW : x0
     const rows = [[L.patch ? `BLACK ICE SET ${Math.ceil(L.patch.left / 60)}s` : 'BLACK ICE READY', !L.patch], [L.freeze ? `FREEZE ${L.freeze.left}` : 'FREEZE —', !L.freeze],
-      [`AIR SKATE ${L.airSkate ? 'READY' : 'USED'} · RISE ${L.rise ? 'READY' : 'USED'}`, L.airSkate && L.rise]]
+      [`ICE FLASH ${L.flash ? 'READY' : '…'} · ICE RAIL ${L.airSkate ? 'READY' : 'USED'} · RISE ${L.rise ? 'READY' : 'USED'}`, L.flash && L.airSkate && L.rise],
+      [L.wall ? `ICE WALL ${Math.ceil(L.wall.left / 60)}s · ${L.wall.hp} HP` : 'ICE WALL READY', !L.wall]]
     rows.forEach(([txt, ok], i) => { c.fillStyle = ok ? P.hud[0] : 'rgba(255,255,255,0.6)'; c.fillText(txt, tx, y0 + i * 11) })
     c.restore()
   }

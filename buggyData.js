@@ -93,7 +93,7 @@ export const buggy = {
   //   walk px/f = 4.5 + (speed − 78)/20 × 5  → speed 80 = 5.0 px/f
   //   ground dash = clamp(dashSpeed × 0.55, 8, 16) → the engine floor is 8 px/f (7.2 is below it; dashSpeed 13)
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 27 · weight 0.9 → knockback taken ÷ 0.9 (buggyKnockback)
-  stats: { maxHealth: 1100, maxEnergy: 100, attack: 80, defense: 78, speed: 80, jumpPower: 27, maxJumps: 1, weight: 0.9,
+  stats: { maxHealth: 1180, maxEnergy: 100, attack: 80, defense: 78, speed: 80, jumpPower: 27, maxJumps: 1, weight: 0.9,
     dashSpeed: 13, dashDuration: 10, dashCooldownMax: 30 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

@@ -115,7 +115,7 @@ export const sanji = {
   // Brief: walk 5.9 · run 8.6 · jumpForce 12.5 · weight 0.85. Engine mapping: walk px/f = 4.5 + (speed−78)/4 →
   // speed 83.6; run = the ground dash = dashSpeed × 0.55 → dashSpeed 15.64; jumpPower = jumpForce × 2.667 (the
   // Zoro/Arlong ratio) → 33; weight 0.85 → knockback taken ÷ 0.85 (sanjiState.sanjiKnockback).
-  stats: { maxHealth: 1100, maxEnergy: 100, attack: 84, defense: 80, speed: 83.6, jumpPower: 33, maxJumps: 1, weight: 0.85,
+  stats: { maxHealth: 1180, maxEnergy: 100, attack: 84, defense: 80, speed: 94, jumpPower: 33, maxJumps: 1, weight: 0.85,
     dashSpeed: 15.64, dashDuration: 9, dashCooldownMax: 24 },
   movement: { crouchIdle: true },
   introSequence: ['intro', 'sIntroLight'],

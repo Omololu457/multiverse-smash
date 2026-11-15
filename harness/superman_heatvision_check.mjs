@@ -68,8 +68,21 @@ try {
   const afterRelease = await p1p()
   ok(midBeam.hvBeam, `HOLD did not start the sustained beam (hvBeam=${midBeam.hvBeam})`)
   ok(hpMid < hpBefore, `sustained beam dealt no damage from range (far=${Math.round(far)}px, hp ${hpBefore}→${hpMid})`)
-  ok(eMid < eBefore, `sustained beam did not drain Solar Energy (${eBefore}→${eMid})`)
+  ok(eMid === eBefore, `Heat Vision must NOT spend Solar Energy any more (${eBefore}→${eMid})`)
   ok(!afterRelease.hvBeam, `beam did not stop on release (hvBeam=${afterRelease.hvBeam})`)
+  // ─────────── own LASER bar + cooldown (2026-11-15) ───────────
+  const L1 = await page.evaluate(() => window.__harness.laserProbe("p1"))
+  ok(L1.sup.gauge < L1.sup.max * 0.5, `the tap + hold should drain the laser bar (${L1.sup.gauge})`)
+  ok(L1.sup.cd > 0, `releasing the beam should start the laser cooldown (cd=${L1.sup.cd})`)
+  const pc0 = await projCount()
+  await page.keyboard.down("l"); await frames(3); await page.keyboard.up("l"); await frames(6)
+  ok((await projCount()) === pc0 && !(await p1p()).hvBeam, `re-firing during the cooldown must do nothing`)
+  // empty the bar → OVERHEAT lockout
+  await frames(240)
+  await page.keyboard.down("l"); await frames(150); await page.keyboard.up("l"); await frames(3)
+  const L2 = await page.evaluate(() => window.__harness.laserProbe("p1"))
+  ok(L2.sup.over > 0 && L2.sup.gauge < L2.sup.max * 0.6, `holding until the bar empties should overheat (over=${L2.sup.over} gauge=${L2.sup.gauge})`)
+  console.log(`  LASER: after hold gauge=${Math.round(L1.sup.gauge)} cd=${L1.sup.cd} · overheat=${L2.sup.over}`)
 
   ok(jsErrors.length === 0, `JS exceptions: ${jsErrors.slice(0, 3).join(" | ")}`)
 

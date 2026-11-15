@@ -86,7 +86,7 @@ export const spd_green={rosterKey:'spd_green',name:'S.P.D. Green Ranger',civilia
  bio:'Bridge Carson: B-Squad Green, an unorthodox thinker and mechanic with a psychic sense for auras. Aura Read and the ground phase step are deliberate gameplay adaptations (no mind reading). Shared Zord ultimate pending integration.',
  primary:'balanced',secondary:['rushdown'],archetypes:['balanced','rushdown'],
  traits:{hasEnergy:true,energyType:'energy',energyName:'Energy',mobility:'normal',scaling:'combo',animeMovement:false},energyConfig:{label:'Energy',color:'#2fd36b'},
- stats:{maxHealth:1120,maxEnergy:100,attack:80,defense:78,speed:92,jumpPower:26,maxJumps:1,weight:1,dashSpeed:14,dashDuration:10,dashCooldownMax:36},
+ stats:{maxHealth:1150,maxEnergy:100,attack:80,defense:78,speed:96,jumpPower:26,maxJumps:1,weight:1,dashSpeed:14,dashDuration:10,dashCooldownMax:36},
  hasSprites:true,spriteScale:2.2/1.18,spriteSheet:anim.idle.sheet,portrait:'./assets/spd_green/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
  basic_attacks:{light:SPD_GREEN_MOVES.light,heavy:SPD_GREEN_MOVES.heavy,crouchLight:SPD_GREEN_MOVES.gLow,upAttack:SPD_GREEN_MOVES.up,airAttack:SPD_GREEN_MOVES.air,downAir:SPD_GREEN_MOVES.down_air,
   grab:{damage:dmg(26),startup:8,active:3,recovery:24,hitstun:20,throwForceX:5,throwForceY:-3,damageType:'grab'}},

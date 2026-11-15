@@ -1,12 +1,246 @@
 {
  "routes": [
   {
+   "label": "Ice Flash slice (through the foe)",
+   "kind": "combo",
+   "hits": [
+    36
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    5
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 36,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "flashes": 1,
+    "slices": 1,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
+    "lance": 0,
+    "frost": 0,
+    "rush": 0,
+    "rise": 0,
+    "blackIce": 0,
+    "breaker": 0,
+    "chill": 1,
+    "freezes": 0,
+    "shatters": 0,
+    "thaw": {},
+    "patchHits": 0,
+    "skateSwitch": 0,
+    "patchMelt": 0,
+    "skates": 0,
+    "airSkates": 0,
+    "brakes": 0,
+    "dj": 0,
+    "clean": 0,
+    "blocked": 0,
+    "rejects": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "immuneSkips": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Ice Flash slice vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "chip": 5,
+   "damage": 5,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "flashes": 1,
+    "slices": 1,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
+    "lance": 0,
+    "frost": 0,
+    "rush": 0,
+    "rise": 0,
+    "blackIce": 0,
+    "breaker": 0,
+    "chill": 0,
+    "freezes": 0,
+    "shatters": 0,
+    "thaw": {},
+    "patchHits": 0,
+    "skateSwitch": 0,
+    "patchMelt": 0,
+    "skates": 0,
+    "airSkates": 0,
+    "brakes": 0,
+    "dj": 0,
+    "clean": 0,
+    "blocked": 1,
+    "rejects": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "immuneSkips": 0
+   },
+   "verdict": "no hit"
+  },
+  {
+   "label": "Ice Rail grind through foe",
+   "kind": "combo",
+   "hits": [
+    26
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    36
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 26,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 1,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 1,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
+    "lance": 0,
+    "frost": 0,
+    "rush": 0,
+    "rise": 0,
+    "blackIce": 0,
+    "breaker": 0,
+    "chill": 1,
+    "freezes": 0,
+    "shatters": 0,
+    "thaw": {},
+    "patchHits": 0,
+    "skateSwitch": 0,
+    "patchMelt": 0,
+    "skates": 0,
+    "airSkates": 0,
+    "brakes": 0,
+    "dj": 0,
+    "clean": 0,
+    "blocked": 0,
+    "rejects": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "immuneSkips": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Ice Wall eruption under the foe",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    14
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 39,
+   "energySpent": 11.7,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 72,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 1,
+    "wallBlocks": 0,
+    "wallLaunch": 1,
+    "lance": 0,
+    "frost": 0,
+    "rush": 0,
+    "rise": 0,
+    "blackIce": 0,
+    "breaker": 0,
+    "chill": 1,
+    "freezes": 0,
+    "shatters": 0,
+    "thaw": {},
+    "patchHits": 0,
+    "skateSwitch": 0,
+    "patchMelt": 0,
+    "skates": 0,
+    "airSkates": 0,
+    "brakes": 0,
+    "dj": 0,
+    "clean": 0,
+    "blocked": 0,
+    "rejects": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "immuneSkips": 0
+   },
+   "verdict": "single hit"
+  },
+  {
    "label": "Light ×3 chain",
    "kind": "combo",
    "hits": [
-    27,
-    27,
-    33
+    29,
+    29,
+    36
    ],
    "stunBefore": [
     0,
@@ -20,7 +254,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 87,
+   "damage": 94,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -28,6 +262,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -72,6 +316,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -104,7 +358,7 @@
    "label": "Heavy",
    "kind": "combo",
    "hits": [
-    54
+    59
    ],
    "stunBefore": [
     0
@@ -114,7 +368,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 54,
+   "damage": 59,
    "energySpent": 0,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -122,6 +376,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -154,7 +418,7 @@
    "label": "Low",
    "kind": "combo",
    "hits": [
-    27
+    29
    ],
    "stunBefore": [
     0
@@ -164,7 +428,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 27,
+   "damage": 29,
    "energySpent": 0,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -172,6 +436,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -204,8 +478,8 @@
    "label": "Light → Heavy",
    "kind": "combo",
    "hits": [
-    27,
-    54
+    29,
+    59
    ],
    "stunBefore": [
     0,
@@ -217,7 +491,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 81,
+   "damage": 88,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -225,6 +499,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -257,7 +541,7 @@
    "label": "Launcher",
    "kind": "combo",
    "hits": [
-    45
+    49
    ],
    "stunBefore": [
     0
@@ -267,7 +551,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 45,
+   "damage": 49,
    "energySpent": 0,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -275,6 +559,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -307,8 +601,8 @@
    "label": "Launcher → jump cancel → air Light",
    "kind": "combo",
    "hits": [
-    45,
-    32
+    49,
+    35
    ],
    "stunBefore": [
     0,
@@ -320,7 +614,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 77,
+   "damage": 84,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -328,6 +622,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -360,7 +664,7 @@
    "label": "Ice Lance",
    "kind": "combo",
    "hits": [
-    54
+    59
    ],
    "stunBefore": [
     0
@@ -370,7 +674,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 54,
+   "damage": 59,
    "energySpent": 11.22,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -378,6 +682,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -410,7 +724,7 @@
    "label": "Ice Lance (mirror)",
    "kind": "combo",
    "hits": [
-    54
+    59
    ],
    "stunBefore": [
     0
@@ -420,7 +734,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 54,
+   "damage": 59,
    "energySpent": 11.22,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -428,6 +742,16 @@
    "flip": true,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -472,6 +796,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -516,6 +850,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -548,7 +892,7 @@
    "label": "Glacier Rush",
    "kind": "combo",
    "hits": [
-    72
+    79
    ],
    "stunBefore": [
     0
@@ -558,7 +902,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 72,
+   "damage": 79,
    "energySpent": 15.92,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -566,6 +910,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 1,
@@ -598,7 +952,7 @@
    "label": "Glacier Rush point blank",
    "kind": "combo",
    "hits": [
-    72
+    79
    ],
    "stunBefore": [
     0
@@ -608,7 +962,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 72,
+   "damage": 79,
    "energySpent": 15.92,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -616,6 +970,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 1,
@@ -648,7 +1012,7 @@
    "label": "Rising Glacier",
    "kind": "combo",
    "hits": [
-    66
+    73
    ],
    "stunBefore": [
     0
@@ -658,7 +1022,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 66,
+   "damage": 73,
    "energySpent": 16.76,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -666,6 +1030,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -698,7 +1072,7 @@
    "label": "Icebreaker",
    "kind": "combo",
    "hits": [
-    87
+    96
    ],
    "stunBefore": [
     0
@@ -708,7 +1082,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 87,
+   "damage": 96,
    "energySpent": 20.98,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -716,6 +1090,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -751,8 +1135,8 @@
    "stunBefore": [],
    "hitFrames": [],
    "blockedEvents": 1,
-   "chip": 10,
-   "damage": 10,
+   "chip": 11,
+   "damage": 11,
    "energySpent": 22.06,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -760,6 +1144,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -792,7 +1186,7 @@
    "label": "Black Ice contact",
    "kind": "combo",
    "hits": [
-    18
+    19
    ],
    "stunBefore": [
     0
@@ -802,7 +1196,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 18,
+   "damage": 19,
    "energySpent": 14.82,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -810,6 +1204,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -854,6 +1258,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -886,7 +1300,7 @@
    "label": "Frost Lance (Lance through own patch)",
    "kind": "combo",
    "hits": [
-    63
+    69
    ],
    "stunBefore": [
     0
@@ -896,7 +1310,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 63,
+   "damage": 69,
    "energySpent": 27.06,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -904,6 +1318,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 1,
     "rush": 0,
@@ -936,8 +1360,8 @@
    "label": "patch race (Lance + foe same frame)",
    "kind": "combo",
    "hits": [
-    18,
-    54
+    19,
+    59
    ],
    "stunBefore": [
     0,
@@ -949,7 +1373,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 72,
+   "damage": 78,
    "energySpent": 28.2,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -957,6 +1381,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -989,7 +1423,7 @@
    "label": "Freeze (3rd pip)",
    "kind": "combo",
    "hits": [
-    54
+    59
    ],
    "stunBefore": [
     0
@@ -999,7 +1433,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 54,
+   "damage": 59,
    "energySpent": 11.1,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -1007,6 +1441,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1041,8 +1485,8 @@
    "label": "Freeze → Heavy SHATTER",
    "kind": "combo",
    "hits": [
-    54,
-    69
+    59,
+    75
    ],
    "stunBefore": [
     0,
@@ -1054,7 +1498,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 123,
+   "damage": 134,
    "energySpent": 10.26,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1062,6 +1506,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1096,8 +1550,8 @@
    "label": "Freeze → Icebreaker SHATTER",
    "kind": "combo",
    "hits": [
-    54,
-    102
+    59,
+    112
    ],
    "stunBefore": [
     0,
@@ -1109,7 +1563,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 156,
+   "damage": 171,
    "energySpent": 34.3,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1117,6 +1571,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1151,8 +1615,8 @@
    "label": "Freeze → Light (other damage thaws, no bonus)",
    "kind": "combo",
    "hits": [
-    54,
-    27
+    59,
+    29
    ],
    "stunBefore": [
     0,
@@ -1164,7 +1628,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 81,
+   "damage": 88,
    "energySpent": 11.1,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1172,6 +1636,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1206,8 +1680,8 @@
    "label": "Shatter twice?",
    "kind": "combo",
    "hits": [
-    54,
-    102
+    59,
+    112
    ],
    "stunBefore": [
     0,
@@ -1219,7 +1693,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 156,
+   "damage": 171,
    "energySpent": 34.3,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1227,6 +1701,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1261,8 +1745,8 @@
    "label": "no refreeze in one combo",
    "kind": "pressure",
    "hits": [
-    54,
-    54
+    59,
+    59
    ],
    "stunBefore": [
     175,
@@ -1274,7 +1758,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 108,
+   "damage": 118,
    "energySpent": 11.22,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1282,6 +1766,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 2,
     "frost": 0,
     "rush": 0,
@@ -1328,6 +1822,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -1360,11 +1864,11 @@
    "label": "ABSOLUTE ZERO: CITY ON ICE",
    "kind": "combo",
    "hits": [
-    24,
-    24,
-    24,
-    24,
-    150
+    26,
+    26,
+    26,
+    26,
+    166
    ],
    "stunBefore": [
     0,
@@ -1375,14 +1879,14 @@
    ],
    "hitFrames": [
     14,
-    126,
-    153,
-    180,
-    243
+    117,
+    144,
+    171,
+    234
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 246,
+   "damage": 270,
    "energySpent": 97.48,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1390,6 +1894,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -1422,12 +1936,12 @@
    "label": "Heavy → Ultimate",
    "kind": "combo",
    "hits": [
-    54,
+    59,
+    24,
     22,
-    20,
-    20,
-    20,
-    126
+    22,
+    22,
+    139
    ],
    "stunBefore": [
     0,
@@ -1447,7 +1961,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 262,
+   "damage": 288,
    "energySpent": 97.48,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1455,6 +1969,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -1487,12 +2011,12 @@
    "label": "ultimate on a frozen foe (no Shatter bonus)",
    "kind": "combo",
    "hits": [
-    54,
+    59,
+    26,
     24,
-    22,
-    22,
-    22,
-    138
+    24,
+    24,
+    153
    ],
    "stunBefore": [
     0,
@@ -1512,7 +2036,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 282,
+   "damage": 310,
    "energySpent": 97.48,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1520,6 +2044,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1554,11 +2088,11 @@
    "label": "ultimate mirrored",
    "kind": "combo",
    "hits": [
-    24,
-    24,
-    24,
-    24,
-    150
+    26,
+    26,
+    26,
+    26,
+    166
    ],
    "stunBefore": [
     0,
@@ -1576,7 +2110,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 246,
+   "damage": 270,
    "energySpent": 97.48,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1584,6 +2118,16 @@
    "flip": true,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 0,
     "frost": 0,
     "rush": 0,
@@ -1648,116 +2192,8 @@
   "walkVx": 6,
   "liveSpeedStat": 84,
   "formula": 6,
-  "skate": [
-   {
-    "vx": 8.5,
-    "dt": 15,
-    "x": 1322
-   },
-   {
-    "vx": 11,
-    "dt": 14,
-    "x": 1333
-   },
-   {
-    "vx": 13.5,
-    "dt": 13,
-    "x": 1346
-   },
-   {
-    "vx": 15,
-    "dt": 12,
-    "x": 1361
-   },
-   {
-    "vx": 15,
-    "dt": 11,
-    "x": 1376
-   },
-   {
-    "vx": 15,
-    "dt": 10,
-    "x": 1391
-   },
-   {
-    "vx": 15,
-    "dt": 9,
-    "x": 1406
-   },
-   {
-    "vx": 15,
-    "dt": 8,
-    "x": 1421
-   },
-   {
-    "vx": 15,
-    "dt": 7,
-    "x": 1436
-   },
-   {
-    "vx": 14.5,
-    "dt": 6,
-    "x": 1451
-   },
-   {
-    "vx": 13.5,
-    "dt": 5,
-    "x": 1464
-   },
-   {
-    "vx": 12,
-    "dt": 4,
-    "x": 1476
-   },
-   {
-    "vx": 11,
-    "dt": 3,
-    "x": 1487
-   },
-   {
-    "vx": 10,
-    "dt": 2,
-    "x": 1497
-   },
-   {
-    "vx": 9,
-    "dt": 1,
-    "x": 1506
-   },
-   {
-    "vx": 8.5,
-    "dt": 0,
-    "x": 1515
-   },
-   {
-    "vx": 6,
-    "dt": 0,
-    "x": 1521
-   },
-   {
-    "vx": 6,
-    "dt": 0,
-    "x": 1527
-   }
-  ],
-  "afterSkateVx": 0.43332248178524146,
-  "airSkate": {
-   "y0": 230.60000000000005,
-   "yP": 166.3000000000001,
-   "ys": [
-    153.2,
-    154.9,
-    157.5,
-    160.9,
-    165.1,
-    170.2,
-    176.2,
-    183,
-    190.6,
-    199.1
-   ],
-   "as1": 1,
-   "as2": 1
+  "flash": {
+   "dist": 250
   },
   "riseAir": {
    "g": false,
@@ -1765,15 +2201,17 @@
   }
  },
  "ice": {
-  "skateSwitchVx": [
-   8.5,
-   16,
-   16,
-   16,
-   16,
-   16
-  ],
   "race": {
+   "flashes": 0,
+   "slices": 0,
+   "rails": 0,
+   "reRides": 0,
+   "railHops": 0,
+   "railHits": 0,
+   "glides": 0,
+   "walls": 0,
+   "wallBlocks": 0,
+   "wallLaunch": 0,
    "lance": 1,
    "frost": 0,
    "rush": 0,
@@ -1805,7 +2243,7 @@
    "t0": 27,
    "until": 51,
    "x": 1580,
-   "hp": 1050,
+   "hp": 1150,
    "air": false,
    "sync": true
   },
@@ -1814,8 +2252,8 @@
    "label": "Freeze → Heavy SHATTER",
    "kind": "combo",
    "hits": [
-    54,
-    69
+    59,
+    75
    ],
    "stunBefore": [
     0,
@@ -1827,7 +2265,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 123,
+   "damage": 134,
    "energySpent": 10.26,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1835,6 +2273,16 @@
    "flip": false,
    "note": "",
    "stats": {
+    "flashes": 0,
+    "slices": 0,
+    "rails": 0,
+    "reRides": 0,
+    "railHops": 0,
+    "railHits": 0,
+    "glides": 0,
+    "walls": 0,
+    "wallBlocks": 0,
+    "wallLaunch": 0,
     "lance": 1,
     "frost": 0,
     "rush": 0,
@@ -1864,17 +2312,18 @@
     "immuneSkips": 0
    },
    "verdict": "true combo"
-  }
+  },
+  "shatterBonus": 16
  },
  "ultimate": {
   "label": "ABSOLUTE ZERO: CITY ON ICE",
   "kind": "combo",
   "hits": [
-   24,
-   24,
-   24,
-   24,
-   150
+   26,
+   26,
+   26,
+   26,
+   166
   ],
   "stunBefore": [
    0,
@@ -1885,14 +2334,14 @@
   ],
   "hitFrames": [
    14,
-   126,
-   153,
-   180,
-   243
+   117,
+   144,
+   171,
+   234
   ],
   "blockedEvents": 0,
   "chip": 0,
-  "damage": 246,
+  "damage": 270,
   "energySpent": 97.48,
   "trueCombo": true,
   "dropAfterHit": -1,
@@ -1900,6 +2349,16 @@
   "flip": false,
   "note": "",
   "stats": {
+   "flashes": 0,
+   "slices": 0,
+   "rails": 0,
+   "reRides": 0,
+   "railHops": 0,
+   "railHits": 0,
+   "glides": 0,
+   "walls": 0,
+   "wallBlocks": 0,
+   "wallLaunch": 0,
    "lance": 0,
    "frost": 0,
    "rush": 0,

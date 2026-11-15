@@ -21,6 +21,8 @@ raft's dark hull, the kids and Helen's head are left as supplied.
 import json, os, re, sys
 from collections import Counter
 from PIL import Image, ImageDraw
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from incredibles_skin_sets import SETS, bake_stars, hexc
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SRC = os.path.join(ROOT, 'assets', 'elastigirl')
@@ -45,6 +47,14 @@ SKINS = [
      'red': None, 'fill': '#2848c8', 'sheen': '#7898ff', 'gold': None,
      'arm': ['#d81038', '#2848c8']},
 ]
+
+# Ranger-style crossover palettes (shared with Violet / Dash): tools/incredibles_skin_sets.py
+for _s in SETS:
+    SKINS.append({'tag': _s['tag'], 'id': 'eg_' + _s['tag'], 'name': _s['name'], 'desc': _s['insp'] + '; mask stays black.',
+                  'red': dict(zip(('light', 'mid', 'shade'), map(hexc, _s['suit']))), 'fill': hexc(_s['trim']), 'sheen': hexc(_s['trimHi']),
+                  'gold': dict(zip(('light', 'mid', 'shade'), map(hexc, _s['accent']))) if _s.get('accent') else None,
+                  'arm': [hexc(_s['suit'][1]), hexc(_s['trim'])],
+                  'stars': _s.get('stars'), 'density': _s.get('density', 0.06), 'suit': _s['suit']})
 
 def frames_of(name):
     js = open(os.path.join(ROOT, 'elastigirlSprites.js')).read()
@@ -119,6 +129,7 @@ def main():
             cls = classify(im, raft=(nm == 'eRaft'), fw=fw)
             if nm == 'eRaft': masks[nm] = (im, cls, fw)
             out, cnt = apply(im, cls, sk)
+            if sk.get('stars'): cnt['stars'] += bake_stars(out, sk, fw)
             out.save(os.path.join(d, nm + '.png'))
             tot.update(cnt)
         report['skins'][sk['id']] = {'tag': sk['tag'], 'name': sk['name'], 'desc': sk['desc'], 'pixels': dict(tot)}

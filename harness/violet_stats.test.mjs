@@ -1,18 +1,21 @@
 // harness/violet_stats.test.mjs — PHASE 2: base stats + Force Field economy, through the real game and real keys.
 import { boot, ck, summary } from './violet_lib.mjs'
+import { violet as VDEF, WALK_SPEED_STAT } from '../violetData.js'
+// walk px/f = physics.js tier formula on the stat (kept in sync with physics.js init)
+const WALK_PX = Math.min(9.5, Math.max(4.5, 4.5 + (WALK_SPEED_STAT - 78) / 20 * 5))
 const B = await boot('violet', 'violet')
 const { step, st, S, reset, tap, down, up, page } = B
 try {
   const d = await S('H.data()'); let a = await st()
-  ck('health 900 / maxEnergy 100 / energy name "Force Field"', a.maxHp === 900 && a.maxEnergy === 100 && d.traits.energyName === 'Force Field' && d.traits.hasEnergy === true, { maxHp: a.maxHp, maxE: a.maxEnergy, t: d.traits })
+  ck(`health ${VDEF.stats.maxHealth} (violetData) / maxEnergy 100 / energy name "Force Field"`, a.maxHp === VDEF.stats.maxHealth && a.maxEnergy === 100 && d.traits.energyName === 'Force Field' && d.traits.hasEnergy === true, { maxHp: a.maxHp, maxE: a.maxEnergy, t: d.traits })
   ck('jumpPower 29 (brief jumpForce 12) → jumpForce −29', a.jumpForce === -29, a.jumpForce)
-  // walk 5.4 px/f
+  // walk speed = tier formula on WALK_SPEED_STAT
   await reset(600); await down(['d']); await step(12); a = await st(); await up(['d'])
-  ck('walk speed 5.4 px/f', Math.abs(Math.abs(a.vx) - 5.4) < 1e-9 && !a.run, { vx: a.vx, run: a.run })
+  ck(`walk speed ${WALK_PX} px/f (stat ${WALK_SPEED_STAT})`, Math.abs(Math.abs(a.vx) - WALK_PX) < 1e-9 && !a.run, { vx: a.vx, run: a.run })
   // run 8.0 px/f: double tap forward, keep holding
   await reset(900); await tap(['d'], 2); await step(2); await down(['d']); await step(30); a = await st()
   ck('run speed 8.0 px/f after a dash with forward held (run anim)', Math.abs(Math.abs(a.vx) - 8) < 1e-9 && a.run && a.action === 'run', { vx: a.vx, run: a.run, act: a.action })
-  await up(['d']); await step(3); a = await st(); ck('run ends when forward is released (back to walk speed stat)', !a.run && a.baseSpeed === 81.6, { run: a.run, bs: a.baseSpeed })
+  await up(['d']); await step(3); a = await st(); ck('run ends when forward is released (back to walk speed stat)', !a.run && a.baseSpeed === WALK_SPEED_STAT, { run: a.run, bs: a.baseSpeed })
   // regen 5/s
   await reset(600, false, { energy: 0 }); await step(60); a = await st()
   ck('Force Field recharges 5 / s', Math.abs(a.energy - 5) < 0.2, a.energy)

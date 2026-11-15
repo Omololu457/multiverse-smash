@@ -76,7 +76,7 @@ export const luffy = {
  spriteSheet:LUFFY_ANIM.idle.sheet,primary:'melee',secondary:[],archetypes:['melee'],
  traits:{hasEnergy:true,energyType:'stamina',energyName:'Stamina',mobility:'high',scaling:'combo',animeMovement:false},
  energyConfig:{label:'Stamina',color:'#f1b83b'},
- stats:{maxHealth:1150,maxEnergy:100,attack:85,defense:85,speed:85,jumpPower:31,maxJumps:1,weight:1,dashSpeed:18,dashDuration:8},
+ stats:{maxHealth:1250,maxEnergy:100,attack:85,defense:85,speed:85,jumpPower:31,maxJumps:1,weight:1,dashSpeed:18,dashDuration:8},
  movement:{crouchIdle:true,runWhenAdvancing:true},
  basic_attacks:{light:LUFFY_MOVES.light,heavy:LUFFY_MOVES.heavy,crouchLight:LUFFY_MOVES.lfLow,
    upAttack:LUFFY_MOVES.up,airAttack:LUFFY_MOVES.air,downAir:LUFFY_MOVES.down_air,

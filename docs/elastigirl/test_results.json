@@ -66,14 +66,14 @@
      "hits": [
       [
        5,
-       12,
+       25,
        20
       ]
      ],
      "aFree": 24,
      "dFree": 28,
      "adv": 4,
-     "dmg": 12,
+     "dmg": 25,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -90,14 +90,14 @@
      "hits": [
       [
        5,
-       2,
+       4,
        20
       ]
      ],
      "aFree": 20,
      "dFree": 20,
      "adv": 0,
-     "dmg": 2,
+     "dmg": 4,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -116,14 +116,14 @@
      "hits": [
       [
        13,
-       32,
+       67,
        54
       ]
      ],
      "aFree": 49,
      "dFree": 52,
      "adv": 3,
-     "dmg": 32,
+     "dmg": 67,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -140,14 +140,14 @@
      "hits": [
       [
        13,
-       6,
+       12,
        54
       ]
      ],
      "aFree": 39,
      "dFree": 34,
      "adv": -5,
-     "dmg": 6,
+     "dmg": 12,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -166,14 +166,14 @@
      "hits": [
       [
        7,
-       16,
+       33,
        28
       ]
      ],
      "aFree": 32,
      "dFree": 33,
      "adv": 1,
-     "dmg": 16,
+     "dmg": 33,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -190,14 +190,14 @@
      "hits": [
       [
        7,
-       3,
+       6,
        28
       ]
      ],
      "aFree": 28,
      "dFree": 24,
      "adv": -4,
-     "dmg": 3,
+     "dmg": 6,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -216,14 +216,14 @@
      "hits": [
       [
        11,
-       28,
+       58,
        48
       ]
      ],
      "aFree": 51,
      "dFree": 69,
      "adv": 18,
-     "dmg": 28,
+     "dmg": 58,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -240,14 +240,14 @@
      "hits": [
       [
        11,
-       5,
+       10,
        48
       ]
      ],
      "aFree": 39,
      "dFree": 30,
      "adv": -9,
-     "dmg": 5,
+     "dmg": 10,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -266,14 +266,14 @@
      "hits": [
       [
        13,
-       24,
+       50,
        40
       ]
      ],
      "aFree": 57,
      "dFree": 75,
      "adv": 18,
-     "dmg": 24,
+     "dmg": 50,
      "invuln": [],
      "bounceVy": null,
      "near": 16
@@ -290,14 +290,14 @@
      "hits": [
       [
        13,
-       2,
+       4,
        40
       ]
      ],
      "aFree": 54,
      "dFree": 38,
      "adv": -16,
-     "dmg": 2,
+     "dmg": 4,
      "invuln": [],
      "bounceVy": null,
      "near": null
@@ -334,24 +334,24 @@
      "hits": [
       [
        8,
-       13,
+       27,
        22
       ],
       [
        29,
-       13,
+       27,
        22
       ],
       [
        51,
-       15,
+       31,
        28
       ]
      ],
      "aFree": 87,
      "dFree": 96,
      "adv": 9,
-     "dmg": 41,
+     "dmg": 85,
      "invuln": [
       [
        0,
@@ -721,24 +721,24 @@
      "hits": [
       [
        8,
-       1,
+       2,
        22
       ],
       [
        13,
-       1,
+       2,
        22
       ],
       [
        19,
-       1,
+       2,
        28
       ]
      ],
      "aFree": 39,
      "dFree": 31,
      "adv": -8,
-     "dmg": 3,
+     "dmg": 6,
      "invuln": [
       [
        0,
@@ -917,14 +917,14 @@
     "hits": [
      [
       23,
-      42,
+      88,
       70
      ]
     ],
     "aFree": 62,
     "dFree": 73,
     "adv": 11,
-    "dmg": 42,
+    "dmg": 88,
     "invuln": [],
     "bounceVy": null,
     "near": null
@@ -941,14 +941,14 @@
     "hits": [
      [
       17,
-      36,
+      75,
       60
      ]
     ],
     "aFree": 61,
     "dFree": 71,
     "adv": 10,
-    "dmg": 36,
+    "dmg": 75,
     "invuln": [],
     "bounceVy": -12,
     "near": null
@@ -991,110 +991,110 @@
     "hits": [
      [
       "light",
-      12,
+      25,
       20
      ],
      [
       "light",
-      12,
+      25,
       20
      ],
      [
       "heavy",
-      29,
+      60,
       54
      ],
      [
       "eLongArm",
-      20,
+      42,
       40
      ]
     ],
-    "dealt": 73,
-    "storedScale": 122,
+    "dealt": 152,
+    "storedScale": 253,
     "brief": 106,
     "briefModel85": 101,
-    "deviation": "15.1%"
+    "deviation": "13.7%"
    },
    "whirlContactsInJuggle": 2,
    "Low, Launcher, Air, Whirl": {
     "hits": [
      [
       "eLow",
-      16,
+      33,
       28
      ],
      [
       "up",
-      28,
+      58,
       48
      ],
      [
       "air",
-      16,
+      33,
       30
      ],
      [
       "eWhirl",
-      11,
+      23,
       22
      ],
      [
       "eWhirl",
-      10,
+      21,
       22
      ]
     ],
-    "dealt": 81,
-    "storedScale": 135,
+    "dealt": 168,
+    "storedScale": 280,
     "brief": 125,
     "briefModel85": 128,
-    "deviation": "8%"
+    "deviation": "6.7%"
    },
    "Long Arm, Heavy, Whip": {
     "hits": [
      [
       "eLongArm",
-      24,
+      50,
       40
      ],
      [
       "heavy",
-      32,
+      67,
       54
      ],
      [
       "eWhip",
-      33,
+      69,
       60
      ]
     ],
-    "dealt": 89,
-    "storedScale": 148,
+    "dealt": 186,
+    "storedScale": 310,
     "brief": 133,
     "briefModel85": 129,
-    "deviation": "11.3%"
+    "deviation": "11%"
    },
    "c4": {
     "hits": [
      [
       "up",
-      28,
+      58,
       48
      ],
      [
       "air",
-      15,
+      31,
       30
      ],
      [
       "eDomeSlam",
-      31,
+      65,
       70
      ]
     ],
-    "dealt": 74,
-    "storedScale": 123
+    "dealt": 154,
+    "storedScale": 257
    }
   },
   "P6": {
@@ -1231,7 +1231,7 @@
       false
      ]
     ],
-    "travel": -117
+    "travel": -118
    },
    "bounceVsJab": {
     "2": 23,
@@ -1262,6 +1262,46 @@
     [
      "eg_retro",
      "Retro"
+    ],
+    [
+     "eg_alienx",
+     "Alien X — Cosmic"
+    ],
+    [
+     "eg_upgrade",
+     "Upgrade — Circuit"
+    ],
+    [
+     "eg_diamondhead",
+     "Diamondhead — Crystal"
+    ],
+    [
+     "eg_heatblast",
+     "Heatblast — Magma"
+    ],
+    [
+     "eg_chromastone",
+     "Chromastone — Prism"
+    ],
+    [
+     "eg_ghostfreak",
+     "Ghostfreak — Phantom"
+    ],
+    [
+     "eg_bigchill",
+     "Big Chill — Frost"
+    ],
+    [
+     "eg_shadow",
+     "S.P.D. Shadow — Inspired"
+    ],
+    [
+     "eg_dragon",
+     "Dragon Shield — Inspired"
+    ],
+    [
+     "eg_glitter",
+     "Starlight Glitter"
     ]
    ],
    "skinsJs": true,
@@ -1282,6 +1322,106 @@
     "raftKidsRed": 5513,
     "raftChanged": 0,
     "sheetsDiffer": 42,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_alienx": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_upgrade": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_diamondhead": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_heatblast": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_chromastone": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_ghostfreak": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_bigchill": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_shadow": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_dragon": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_glitter": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
     "sheets": 43,
     "portrait": "./assets/elastigirl/portrait.png"
    }

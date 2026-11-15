@@ -4,9 +4,9 @@
    "label": "Spinner Snap → Drone Cross → Spinner Pass (Light ×3)",
    "kind": "combo",
    "hits": [
-    27,
-    27,
-    35
+    29,
+    29,
+    38
    ],
    "stunBefore": [
     0,
@@ -20,7 +20,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 89,
+   "damage": 96,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -104,7 +104,7 @@
    "label": "Claw Drive",
    "kind": "combo",
    "hits": [
-    57
+    63
    ],
    "stunBefore": [
     0
@@ -114,7 +114,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 57,
+   "damage": 63,
    "energySpent": 0,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -154,8 +154,8 @@
    "label": "Spinner Snap → Claw Drive",
    "kind": "combo",
    "hits": [
-    27,
-    57
+    29,
+    63
    ],
    "stunBefore": [
     0,
@@ -167,7 +167,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 84,
+   "damage": 92,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -207,7 +207,7 @@
    "label": "Rising Claw",
    "kind": "combo",
    "hits": [
-    45
+    49
    ],
    "stunBefore": [
     0
@@ -217,7 +217,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 45,
+   "damage": 49,
    "energySpent": 0,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -257,8 +257,8 @@
    "label": "Rising Claw → jump cancel → Drone Strafe",
    "kind": "combo",
    "hits": [
-    45,
-    32
+    49,
+    35
    ],
    "stunBefore": [
     0,
@@ -270,7 +270,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 77,
+   "damage": 84,
    "energySpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -310,12 +310,12 @@
    "label": "Hunter Duet (6 shots)",
    "kind": "pressure",
    "hits": [
-    15,
+    16,
+    16,
     15,
     13,
     12,
-    11,
-    10
+    11
    ],
    "stunBefore": [
     0,
@@ -335,7 +335,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 76,
+   "damage": 83,
    "energySpent": 10,
    "trueCombo": false,
    "dropAfterHit": 2,
@@ -377,8 +377,8 @@
    "label": "Spin Cycle (out + back)",
    "kind": "pressure",
    "hits": [
-    36,
-    30
+    39,
+    33
    ],
    "stunBefore": [
     0,
@@ -390,7 +390,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 66,
+   "damage": 72,
    "energySpent": 12.9,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -433,7 +433,7 @@
    "label": "Velocipod Intercept",
    "kind": "combo",
    "hits": [
-    90
+    99
    ],
    "stunBefore": [
     0
@@ -443,7 +443,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 90,
+   "damage": 99,
    "energySpent": 19.6,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -485,15 +485,15 @@
    "label": "Gun Turret volley",
    "kind": "pressure",
    "hits": [
-    12,
+    13,
+    13,
     12,
     11,
     10,
     9,
     8,
-    7,
-    7,
-    7
+    8,
+    8
    ],
    "stunBefore": [
     0,
@@ -519,7 +519,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 83,
+   "damage": 92,
    "energySpent": 11.22,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -561,7 +561,7 @@
    "label": "Hammerfall",
    "kind": "combo",
    "hits": [
-    102
+    113
    ],
    "stunBefore": [
     0
@@ -571,7 +571,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 102,
+   "damage": 113,
    "energySpent": 23.76,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -616,8 +616,8 @@
    "stunBefore": [],
    "hitFrames": [],
    "blockedEvents": 1,
-   "chip": 15,
-   "damage": 15,
+   "chip": 16,
+   "damage": 16,
    "energySpent": 23.76,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -659,7 +659,7 @@
    "label": "Omnidroid Sweep",
    "kind": "combo",
    "hits": [
-    72
+    79
    ],
    "stunBefore": [
     0
@@ -669,7 +669,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 72,
+   "damage": 79,
    "energySpent": 20.32,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -711,7 +711,7 @@
    "label": "Rising Interception",
    "kind": "combo",
    "hits": [
-    78
+    86
    ],
    "stunBefore": [
     0
@@ -721,7 +721,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 78,
+   "damage": 86,
    "energySpent": 20.08,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -763,9 +763,9 @@
    "label": "Missile Turret",
    "kind": "pressure",
    "hits": [
-    36,
-    36,
-    33
+    39,
+    39,
+    36
    ],
    "stunBefore": [
     0,
@@ -779,7 +779,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 105,
+   "damage": 114,
    "energySpent": 12.54,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -821,10 +821,10 @@
    "label": "Mortar Turret",
    "kind": "pressure",
    "hits": [
+    29,
+    29,
     27,
-    27,
-    24,
-    22
+    25
    ],
    "stunBefore": [
     0,
@@ -840,7 +840,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 100,
+   "damage": 110,
    "energySpent": 11.7,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -882,8 +882,8 @@
    "label": "Zero-Point Hold → Claw Drive",
    "kind": "combo",
    "hits": [
-    12,
-    57
+    13,
+    63
    ],
    "stunBefore": [
     0,
@@ -895,7 +895,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 69,
+   "damage": 76,
    "energySpent": 13.94,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -935,14 +935,14 @@
    "label": "Duet → Spin Cycle → CONVERGENCE",
    "kind": "pressure",
    "hits": [
-    36,
+    39,
+    16,
     15,
     13,
     12,
     11,
     10,
-    9,
-    19
+    21
    ],
    "stunBefore": [
     0,
@@ -966,7 +966,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 125,
+   "damage": 137,
    "energySpent": 28,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1054,15 +1054,15 @@
    "label": "OPERATION KRONOS: FINAL DEMONSTRATION",
    "kind": "combo",
    "hits": [
-    18,
+    19,
     9,
     9,
-    12,
-    15,
+    13,
+    16,
     9,
-    24,
-    18,
-    138
+    26,
+    19,
+    153
    ],
    "stunBefore": [
     0,
@@ -1088,7 +1088,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 252,
+   "damage": 273,
    "energySpent": 97.36,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1128,16 +1128,16 @@
    "label": "Claw Drive → Ultimate",
    "kind": "combo",
    "hits": [
-    57,
+    63,
+    17,
+    8,
+    8,
+    11,
+    13,
+    8,
+    22,
     16,
-    7,
-    7,
-    10,
-    12,
-    7,
-    20,
-    15,
-    115
+    128
    ],
    "stunBefore": [
     0,
@@ -1165,7 +1165,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 266,
+   "damage": 294,
    "energySpent": 97.36,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1242,12 +1242,12 @@
    "label": "Hunter Duet (6 shots)",
    "kind": "pressure",
    "hits": [
-    15,
+    16,
+    16,
     15,
     13,
     12,
-    11,
-    10
+    11
    ],
    "stunBefore": [
     0,
@@ -1267,7 +1267,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 76,
+   "damage": 83,
    "energySpent": 10,
    "trueCombo": false,
    "dropAfterHit": 2,
@@ -1309,8 +1309,8 @@
    "label": "Spin Cycle (out + back)",
    "kind": "pressure",
    "hits": [
-    36,
-    30
+    39,
+    33
    ],
    "stunBefore": [
     0,
@@ -1322,7 +1322,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 66,
+   "damage": 72,
    "energySpent": 12.9,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -1365,7 +1365,7 @@
    "label": "Velocipod Intercept",
    "kind": "combo",
    "hits": [
-    90
+    99
    ],
    "stunBefore": [
     0
@@ -1375,7 +1375,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 90,
+   "damage": 99,
    "energySpent": 19.6,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -1417,15 +1417,15 @@
    "label": "Gun Turret volley",
    "kind": "pressure",
    "hits": [
-    12,
+    13,
+    13,
     12,
     11,
     10,
     9,
     8,
-    7,
-    7,
-    7
+    8,
+    8
    ],
    "stunBefore": [
     0,
@@ -1451,7 +1451,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 83,
+   "damage": 92,
    "energySpent": 11.22,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1493,7 +1493,7 @@
    "label": "Hammerfall",
    "kind": "combo",
    "hits": [
-    102
+    113
    ],
    "stunBefore": [
     0
@@ -1503,7 +1503,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 102,
+   "damage": 113,
    "energySpent": 23.76,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -1545,7 +1545,7 @@
    "label": "Omnidroid Sweep",
    "kind": "combo",
    "hits": [
-    72
+    79
    ],
    "stunBefore": [
     0
@@ -1555,7 +1555,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 72,
+   "damage": 79,
    "energySpent": 20.32,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -1597,7 +1597,7 @@
    "label": "Rising Interception",
    "kind": "combo",
    "hits": [
-    78
+    86
    ],
    "stunBefore": [
     0
@@ -1607,7 +1607,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 78,
+   "damage": 86,
    "energySpent": 20.08,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -1649,9 +1649,9 @@
    "label": "Missile Turret",
    "kind": "pressure",
    "hits": [
-    36,
-    36,
-    33
+    39,
+    39,
+    36
    ],
    "stunBefore": [
     0,
@@ -1665,7 +1665,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 105,
+   "damage": 114,
    "energySpent": 12.54,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -1707,10 +1707,10 @@
    "label": "Mortar Turret",
    "kind": "pressure",
    "hits": [
+    29,
+    29,
     27,
-    27,
-    24,
-    22
+    25
    ],
    "stunBefore": [
     0,
@@ -1726,7 +1726,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 100,
+   "damage": 110,
    "energySpent": 11.7,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -1768,14 +1768,14 @@
    "label": "Duet → Spin Cycle → CONVERGENCE",
    "kind": "pressure",
    "hits": [
-    36,
+    39,
+    16,
     15,
     13,
     12,
     11,
     10,
-    9,
-    19
+    21
    ],
    "stunBefore": [
     0,
@@ -1799,7 +1799,7 @@
    ],
    "blockedEvents": 0,
    "chip": 0,
-   "damage": 125,
+   "damage": 137,
    "energySpent": 28,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -1844,15 +1844,15 @@
   "label": "OPERATION KRONOS: FINAL DEMONSTRATION",
   "kind": "combo",
   "hits": [
-   18,
+   19,
    9,
    9,
-   12,
-   15,
+   13,
+   16,
    9,
-   24,
-   18,
-   138
+   26,
+   19,
+   153
   ],
   "stunBefore": [
    0,
@@ -1878,7 +1878,7 @@
   ],
   "blockedEvents": 0,
   "chip": 0,
-  "damage": 252,
+  "damage": 273,
   "energySpent": 97.36,
   "trueCombo": true,
   "dropAfterHit": -1,

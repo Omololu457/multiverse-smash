@@ -8,9 +8,9 @@
         "label": "J1 -> J2 -> J3",
         "kind": "combo",
         "hits": [
-          17,
-          21,
-          26
+          23,
+          28,
+          35
         ],
         "stunBefore": [
           0,
@@ -23,7 +23,7 @@
           32
         ],
         "blockedEvents": 0,
-        "damage": 64,
+        "damage": 86,
         "energySpent": 0,
         "coinsSpent": -1,
         "trueCombo": true,
@@ -37,9 +37,9 @@
         "label": "J1 -> J2 -> J3 (mirrored)",
         "kind": "combo",
         "hits": [
-          17,
-          21,
-          26
+          23,
+          28,
+          35
         ],
         "stunBefore": [
           0,
@@ -52,7 +52,7 @@
           32
         ],
         "blockedEvents": 0,
-        "damage": 64,
+        "damage": 86,
         "energySpent": 0,
         "coinsSpent": -1,
         "trueCombo": true,
@@ -66,7 +66,7 @@
         "label": "Pistol (close)",
         "kind": "combo",
         "hits": [
-          28
+          39
         ],
         "stunBefore": [
           0
@@ -75,7 +75,7 @@
           17
         ],
         "blockedEvents": 0,
-        "damage": 28,
+        "damage": 39,
         "energySpent": 10,
         "coinsSpent": -1,
         "trueCombo": false,
@@ -89,7 +89,7 @@
         "label": "Long gun (held 30 f)",
         "kind": "combo",
         "hits": [
-          63
+          86
         ],
         "stunBefore": [
           0
@@ -98,7 +98,7 @@
           34
         ],
         "blockedEvents": 0,
-        "damage": 63,
+        "damage": 86,
         "energySpent": 25,
         "coinsSpent": -1,
         "trueCombo": false,
@@ -112,7 +112,7 @@
         "label": "Duplicate -> stance COVER ME",
         "kind": "combo",
         "hits": [
-          18
+          25
         ],
         "stunBefore": [
           0
@@ -121,7 +121,7 @@
           58
         ],
         "blockedEvents": 0,
-        "damage": 18,
+        "damage": 25,
         "energySpent": 28,
         "coinsSpent": 1,
         "trueCombo": false,
@@ -135,7 +135,7 @@
         "label": "Ninja Intercept",
         "kind": "combo",
         "hits": [
-          36
+          50
         ],
         "stunBefore": [
           0
@@ -144,7 +144,7 @@
           32
         ],
         "blockedEvents": 0,
-        "damage": 36,
+        "damage": 50,
         "energySpent": 15,
         "coinsSpent": 0,
         "trueCombo": false,
@@ -158,10 +158,10 @@
         "label": "J1 -> J2 -> J3 -> pistol (Special cancel)",
         "kind": "combo",
         "hits": [
-          17,
-          21,
-          26,
-          24
+          23,
+          28,
+          35,
+          33
         ],
         "stunBefore": [
           0,
@@ -176,7 +176,7 @@
           52
         ],
         "blockedEvents": 0,
-        "damage": 88,
+        "damage": 119,
         "energySpent": 10,
         "coinsSpent": -2,
         "trueCombo": true,
@@ -190,8 +190,8 @@
         "label": "Low Draw -> Cross Cut",
         "kind": "combo",
         "hits": [
-          24,
-          52
+          33,
+          71
         ],
         "stunBefore": [
           0,
@@ -202,7 +202,7 @@
           27
         ],
         "blockedEvents": 0,
-        "damage": 76,
+        "damage": 104,
         "energySpent": 0,
         "coinsSpent": -1,
         "trueCombo": true,
@@ -216,15 +216,15 @@
         "label": "Cross Cut -> Ultimate (recovery cancel)",
         "kind": "combo",
         "hits": [
-          52,
-          18,
+          71,
           25,
-          25,
-          30,
-          25,
-          25,
-          38,
-          42
+          35,
+          35,
+          41,
+          35,
+          35,
+          53,
+          59
         ],
         "stunBefore": [
           0,
@@ -249,7 +249,7 @@
           215
         ],
         "blockedEvents": 0,
-        "damage": 280,
+        "damage": 389,
         "energySpent": 100,
         "coinsSpent": -1,
         "trueCombo": true,
@@ -263,9 +263,9 @@
         "label": "J1 -> Echo (Back+Special) -> Partner Break",
         "kind": "combo",
         "hits": [
-          17,
-          10,
-          37
+          23,
+          14,
+          51
         ],
         "stunBefore": [
           0,
@@ -278,7 +278,7 @@
           33
         ],
         "blockedEvents": 0,
-        "damage": 64,
+        "damage": 88,
         "energySpent": 8,
         "coinsSpent": -2,
         "trueCombo": true,
@@ -292,9 +292,9 @@
         "label": "J1 -> Echo -> Relay (Forward+Special swap cancel) -> J1",
         "kind": "combo",
         "hits": [
-          17,
-          10,
-          16
+          23,
+          14,
+          22
         ],
         "stunBefore": [
           0,
@@ -307,7 +307,7 @@
           30
         ],
         "blockedEvents": 0,
-        "damage": 43,
+        "damage": 59,
         "energySpent": 8,
         "coinsSpent": -2,
         "trueCombo": true,
@@ -321,8 +321,8 @@
         "label": "BREACH: long gun -> Sword Finish (Up+Special)",
         "kind": "combo",
         "hits": [
-          63,
-          51
+          86,
+          70
         ],
         "stunBefore": [
           0,
@@ -333,7 +333,7 @@
           85
         ],
         "blockedEvents": 0,
-        "damage": 114,
+        "damage": 156,
         "energySpent": 55,
         "coinsSpent": 2,
         "trueCombo": true,
@@ -347,8 +347,8 @@
         "label": "RISING KICK order -> jump -> Air Flying Kick",
         "kind": "combo",
         "hits": [
-          40,
-          30
+          56,
+          41
         ],
         "stunBefore": [
           0,
@@ -359,7 +359,7 @@
           61
         ],
         "blockedEvents": 0,
-        "damage": 70,
+        "damage": 97,
         "energySpent": 18,
         "coinsSpent": -1,
         "trueCombo": true,
@@ -373,14 +373,14 @@
         "label": "Ultimate (clean opener)",
         "kind": "combo",
         "hits": [
-          20,
-          30,
-          30,
-          36,
-          30,
-          30,
-          46,
-          51
+          28,
+          42,
+          42,
+          49,
+          42,
+          42,
+          63,
+          70
         ],
         "stunBefore": [
           0,
@@ -403,7 +403,7 @@
           195
         ],
         "blockedEvents": 0,
-        "damage": 273,
+        "damage": 378,
         "energySpent": 100,
         "coinsSpent": 0,
         "trueCombo": true,
@@ -417,14 +417,14 @@
         "label": "Ultimate SHOWCASE",
         "kind": "combo",
         "hits": [
-          20,
-          30,
-          30,
-          36,
-          30,
-          30,
-          46,
-          51
+          28,
+          42,
+          42,
+          49,
+          42,
+          42,
+          63,
+          70
         ],
         "stunBefore": [
           0,
@@ -447,7 +447,7 @@
           195
         ],
         "blockedEvents": 0,
-        "damage": 273,
+        "damage": 378,
         "energySpent": 100,
         "coinsSpent": 3,
         "trueCombo": true,
@@ -525,15 +525,15 @@
     },
     "gun": {
       "pistolFrame": 12,
-      "pistolDamage": 28,
+      "pistolDamage": 39,
       "longReleaseDelay": 5,
-      "longDamage": 63
+      "longDamage": 86
     },
     "coins": {
       "echo": {
         "hits": 1,
         "c": 1,
-        "hp": 1090
+        "hp": 1136
       }
     },
     "clone": {
@@ -544,7 +544,7 @@
         "label": "Duplicate -> stance COVER ME",
         "kind": "combo",
         "hits": [
-          18
+          25
         ],
         "stunBefore": [
           0
@@ -553,7 +553,7 @@
           58
         ],
         "blockedEvents": 0,
-        "damage": 18,
+        "damage": 25,
         "energySpent": 28,
         "coinsSpent": 1,
         "trueCombo": false,
@@ -620,7 +620,7 @@
         "label": "Ninja Intercept",
         "kind": "combo",
         "hits": [
-          36
+          50
         ],
         "stunBefore": [
           0
@@ -629,7 +629,7 @@
           32
         ],
         "blockedEvents": 0,
-        "damage": 36,
+        "damage": 50,
         "energySpent": 15,
         "coinsSpent": 0,
         "trueCombo": false,
@@ -640,7 +640,7 @@
         "verdict": "single hit"
       },
       "rising": {
-        "hp": 40,
+        "hp": 56,
         "st": 1
       }
     },
@@ -649,14 +649,14 @@
         "label": "Ultimate (clean opener)",
         "kind": "combo",
         "hits": [
-          20,
-          30,
-          30,
-          36,
-          30,
-          30,
-          46,
-          51
+          28,
+          42,
+          42,
+          49,
+          42,
+          42,
+          63,
+          70
         ],
         "stunBefore": [
           0,
@@ -679,7 +679,7 @@
           195
         ],
         "blockedEvents": 0,
-        "damage": 273,
+        "damage": 378,
         "energySpent": 100,
         "coinsSpent": 0,
         "trueCombo": true,
@@ -694,7 +694,7 @@
       "recoveryPose": true
     },
     "resources": {
-      "damageScale": 0.586
+      "damageScale": 0.793
     }
   }
 }

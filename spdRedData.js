@@ -111,7 +111,7 @@ export const spdRed = {
   //     double-tap dash is OFF for Rangers (noDash) — the double-tap is the blink. dashSpeed 15.3 (= 8.4 / 0.55) is
   //     kept for any engine path that still reads it.
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 31 · weight 0.9 → knockback taken ÷ 0.9 (spdRedKnockback)
-  stats: { maxHealth: 1120, maxEnergy: 100, attack: 84, defense: 76, speed: 82.4, jumpPower: 31, maxJumps: 1, weight: 0.9,
+  stats: { maxHealth: 1200, maxEnergy: 100, attack: 84, defense: 76, speed: 88, jumpPower: 31, maxJumps: 1, weight: 0.9,
     dashSpeed: 15.3, dashDuration: 10, dashCooldownMax: 28 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

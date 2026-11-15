@@ -3,11 +3,11 @@
     {
       "label": "J1 -> J2 -> J3",
       "hits": [
-        22,
-        27,
-        35
+        24,
+        30,
+        38
       ],
-      "damage": 84,
+      "damage": 92,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -20,11 +20,11 @@
     {
       "label": "J1 -> J2 -> J3 (mirrored)",
       "hits": [
-        22,
-        27,
-        35
+        24,
+        30,
+        38
       ],
-      "damage": 84,
+      "damage": 92,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -37,11 +37,11 @@
     {
       "label": "J1 -> Heavy -> Deltamax Shot",
       "hits": [
-        22,
-        76,
-        46
+        24,
+        84,
+        51
       ],
-      "damage": 144,
+      "damage": 159,
       "energySpentNet": 11.1,
       "trueCombo": true,
       "stunAtRetap": [
@@ -54,11 +54,11 @@
     {
       "label": "Forward+Heavy -> Heavy -> Heavy",
       "hits": [
-        31,
-        37,
-        48
+        34,
+        41,
+        52
       ],
-      "damage": 116,
+      "damage": 127,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -70,24 +70,24 @@
     },
     {
       "label": "Launcher -> manual Jump -> Air",
-      "damage": 86,
+      "damage": 95,
       "hits": null,
       "trueCombo": true,
       "comboCounter": 2
     },
     {
       "label": "Iron Reserve -> charged Heavy punish (opponent Heavy whiffed at 100px edge gap; Syd walks in)",
-      "damage": 92,
+      "damage": 101,
       "defenderStillRecovering": true
     },
     {
       "label": "J1 -> J2 -> Iron Breaker (confirm)",
       "hits": [
-        22,
-        27,
-        67
+        24,
+        30,
+        74
       ],
-      "damage": 116,
+      "damage": 128,
       "energySpentNet": 19.04,
       "trueCombo": true,
       "stunAtRetap": [
@@ -100,11 +100,11 @@
     {
       "label": "Iron Reserve, then J1 -> J2 -> charged Iron Breaker",
       "hits": [
-        22,
-        27,
-        87
+        24,
+        30,
+        95
       ],
-      "damage": 136,
+      "damage": 149,
       "energySpentNet": 18.86,
       "trueCombo": true,
       "stunAtRetap": [
@@ -116,13 +116,13 @@
     },
     {
       "label": "Baton Reprisal counter -> response",
-      "damage": 52,
+      "damage": 57,
       "trueCombo": null,
       "note": "one response; not a stun riposte"
     },
     {
       "label": "Phase step (120px) -> Heavy punish",
-      "damage": 76,
+      "damage": 84,
       "energySpentNet": 6.26
     }
   ],
@@ -382,22 +382,22 @@
   ],
   "moves": {},
   "iron": {
-    "chargedHeavyApplied": 92
+    "chargedHeavyApplied": 101
   },
   "counter": {
     "success": {
       "start": "pStance",
       "spent": 18,
-      "hpA": 1120,
-      "hpB": 1068,
+      "hpA": 1220,
+      "hpB": 1163,
       "counters": 1,
       "responseAt": 16,
-      "responseHit": 52,
+      "responseHit": 57,
       "blockedResponse": false,
       "cd": 126
     }
   },
-  "engineDamageScale": 0.759,
+  "engineDamageScale": 0.828,
   "passes": 78,
   "failures": 0,
   "errors": []

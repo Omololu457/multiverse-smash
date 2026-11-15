@@ -13,14 +13,15 @@
 // Hit volumes (Lance, Black Ice) are ENGINE projectiles (W.spawn, tagged _fz) so guard, chip, combo scaling and the shared
 // projectile rules apply; each volume connects once. Ultimate damage = W.damage per scheduled contact with the combo scale
 // captured at the capture. Nothing grants invulnerability or refunds jumps.
-import { FROZONE_MOVES, CHILL, FREEZE, SHATTER, LANCE, BLACK_ICE, SKATE, ULT, dmg } from './frozoneData.js'
+import { FROZONE_MOVES, CHILL, FREEZE, SHATTER, LANCE, BLACK_ICE, SKATE, ULT, GLIDE, FLASH, RAIL, TRAIL, WALL, dmg } from './frozoneData.js'
 
 export const FROZONE_KEY = 'frozone'
 export const isFrozone = f => f?.rosterKey === FROZONE_KEY
 export const fzState = f => f._frozone ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, serial: 0, nEnt: 0,
   floor: null, upAge: 0, riseUsed: false, patch: null, chill: {}, freeze: null, immune: {}, frozeCombo: {}, chilled: [],
   skateK: -1, boost: 0, bright: 0, brakeT: 0, prevAirDash: false, trail: [], fx: [],
-  stats: { lance: 0, frost: 0, rush: 0, rise: 0, blackIce: 0, breaker: 0, chill: 0, freezes: 0, shatters: 0, thaw: {}, patchHits: 0,
+  ice: [], ride: null, stream: null, glide: false, flashLag: 0, slice: null, wall: null, prevFeet: null, flashFx: null,
+  stats: { flashes: 0, slices: 0, rails: 0, reRides: 0, railHops: 0, railHits: 0, glides: 0, walls: 0, wallBlocks: 0, wallLaunch: 0, lance: 0, frost: 0, rush: 0, rise: 0, blackIce: 0, breaker: 0, chill: 0, freezes: 0, shatters: 0, thaw: {}, patchHits: 0,
     skateSwitch: 0, patchMelt: 0, skates: 0, airSkates: 0, brakes: 0, dj: 0, clean: 0, blocked: 0, rejects: 0, spawns: 0,
     ultStarts: 0, ultWhiffs: 0, ultDone: 0, immuneSkips: 0 },
   cues: [] }
@@ -66,10 +67,54 @@ export function frozoneLocked(f, raw = null) {
   if (!isFrozone(f)) return false
   if (isFrozoneUltActive()) return true
   const s = fzState(f), g = grounded(f), r = raw || {}
+  const free = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isGrabbed && !f.knockdownState && f.health > 0
+  const feet = (f.y || 0) + (f.h || 94)
+  // ── ICE STREAM in progress: ice pours out ahead and he grinds it (position set directly)
+  if (s.stream) {
+    if (!free || g) endStream(f, s, false)
+    else return streamStep(f, s, r)
+  }
+  // ── ICE RAIL ride in progress: he is carried along the rail (position set directly; physics only sees a still body)
+  if (s.ride) {
+    if (!free || g) endRide(f, s, false)
+    else return rideStep(f, s, r)
+  }
+  // ── ICE FLASH recovery: locked, gliding to a stop on the fresh trail
+  if (s.flashLag > 0) { s.flashLag--; f.vx = (f.facing || 1) * FLASH.slideVx * (s.flashLag / FLASH.lag); f._dashTap = false; return true }
+  // ── ICE FLASH (ground double-tap)
+  if (g && f._dashTap && free && (f.dashCooldown || 0) <= 0) { f._dashTap = false; iceFlash(f, s, WREF.W); return true }
+  // ── ICE STREAM (air double-tap): one per airtime
+  if (!g && f._dashTap && free && (f.airDashCount || 0) < 1) {
+    f._dashTap = false; f.airDashCount = (f.airDashCount || 0) + 1
+    s.stream = { k: 0, dir: f.facing || 1, tilt: null, seg: null, hit: false, px: ctrX(f), py: feet, jc: f.jumpCount || 0 }
+    s.rideJumpHeld = !!(r.jump || r.up); s.glide = false; f.airDashing = false; s.stats.rails++; cue(f, 'lance')
+    s.prevFeet = feet; return streamStep(f, s, r)
+  }
+  // ── re-ride: falling onto a live rail from above catches it
+  if (!g && free && (f.vy || 0) >= 0 && s.prevFeet != null) {
+    const cx = ctrX(f)
+    for (const q of s.ice) {
+      if (q.kind !== 'rail') continue
+      const lo = Math.min(q.x0, q.x1), hi = Math.max(q.x0, q.x1); if (cx < lo || cx > hi || q.x1 === q.x0) continue
+      const ry = q.y0 + (q.y1 - q.y0) * (cx - q.x0) / (q.x1 - q.x0)
+      if (s.prevFeet <= ry + RAIL.catchTol && feet >= ry - 2) {
+        const u = Math.hypot(cx - q.x0, ry - q.y0); startRide(f, s, q, u, r); s.stats.reRides++; cue(f, 'skateSwitch'); pushFx(s, 'switch', cx, ry, q.dir)
+        s.prevFeet = feet; return rideStep(f, s, r)
+      }
+    }
+  }
+  s.prevFeet = feet
+  // ── ICE GLIDER: holding Jump / Up while falling
+  const wantGlide = !g && free && !f.airDashing && (r.jump || r.up) && (f.vy || 0) > GLIDE.enterVy
+  if (wantGlide) {
+    if (!s.glide) { s.glide = true; s.stats.glides++; cue(f, 'skate') }
+    f.vy = Math.min(f.vy, GLIDE.fall)
+    const hx = (r.right ? 1 : 0) - (r.left ? 1 : 0)
+    if (hx) f.vx = hx * GLIDE.drift
+    if ((s.tick & 1) === 0) { s.trail.push({ x: Math.round(ctrX(f)), y: Math.round(feet), t: 0, b: 0, d: f.facing || 1 }); if (s.trail.length > 30) s.trail.shift() }
+  } else s.glide = false
   if (g) {
-    const starting = !!f._dashTap && !(f.dashTimer > 0) && (f.dashCooldown || 0) <= 0 && !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0)
-    if (starting) { s.skateK = 0; s.stats.skates++; cue(f, 'skate') }
-    else if (f.dashTimer > 0 && s.skateK >= 0) s.skateK++
+    if (f.dashTimer > 0 && s.skateK >= 0) s.skateK++   // (legacy skate profile: only a Skate Switch boost can drive it now)
     else s.skateK = -1
     if (s.skateK >= 0) {
       const sp = s.boost > 0 ? SKATE.boostSpeed : SKATE.profile[Math.min(s.skateK, SKATE.profile.length - 1)]
@@ -88,6 +133,151 @@ export function frozoneLocked(f, raw = null) {
   if (a && a.fz && !FROZONE_MOVES[a.fz.key]?.air && !(a.launcher && a.hasHit)) { f._dashTap = false; return true }
   if (r.special && r.up && g) return true   // Up + R1 = Rising Glacier, never a jump
   return !!(r.up && !f.attacking && g && (s.upAge || 0) < 3 && !(f.hitstun > 0))   // 3-frame Up grace (Up + R1 read on the next tick)
+}
+
+// ── 2026-11-15 mobility kit helpers ──
+function iceFlash(f, s, W) {
+  const d = f.facing || 1, x0 = f.x, feet = f.y + f.h, maxX = sw(W) - f.w
+  let x1 = Math.max(0, Math.min(maxX, x0 + d * FLASH.dist))
+  const opp = foesOf(f, W, null).find(o => o.y < feet && o.y + o.h > f.y)   // body-height overlap
+  let cut = null
+  if (opp) {
+    const lo = Math.min(x0, x1), hi = Math.max(x0, x1) + f.w
+    if (opp.x < hi && opp.x + opp.w > lo) {
+      cut = opp
+      const over = x1 < opp.x + opp.w && x1 + f.w > opp.x   // never end inside the body: clear past it, or stop short at a wall
+      if (over) { const past = d === 1 ? opp.x + opp.w + 6 : opp.x - f.w - 6; x1 = (past >= 0 && past <= maxX) ? past : (d === 1 ? opp.x - f.w - 2 : opp.x + opp.w + 2) }
+    }
+  }
+  f.x = x1; f.vx = d * FLASH.slideVx; f.dashTimer = 0; f.dashCooldown = FLASH.cooldown || 0; s.flashLag = FLASH.lag; s.skateK = -1
+  // SKATE SWITCH: flashing across his own Black Ice consumes it (atomic) and refunds the Ice Flash cooldown → a chained second flash
+  const p = s.patch, c0 = x0 + f.w / 2, c1 = x1 + f.w / 2
+  if (p && p.x >= Math.min(c0, c1) - p.w / 2 && p.x <= Math.max(c0, c1) + p.w / 2 && Math.abs(p.floor - feet) < 8) {
+    s.patch = null; f.dashCooldown = 0; s.bright = 40; s.stats.skateSwitch++; cue(f, 'skateSwitch'); pushFx(s, 'switch', p.x, p.floor, d)
+  }
+  s.stats.flashes++; cue(f, 'skateSwitch')
+  addIce(s, { kind: 'trail', x0: Math.round(x0 + f.w / 2), y0: Math.round(feet), x1: Math.round(x1 + f.w / 2), y1: Math.round(feet), dir: d, life: TRAIL.life })
+  s.flashFx = { x0: Math.round(x0 + f.w / 2), x1: Math.round(x1 + f.w / 2), y: Math.round(feet), t: 0, dir: d }
+  if (cut && (cut.x + cut.w / 2 - (x0 + f.w / 2)) * d > -cut.w) { s.slice = { side: sideOf(cut), at: s.clock + FLASH.sliceDelay, serial: ++s.serial, dir: d } }
+}
+function addIce(s, q) { q.n = ++s.nEnt; q.t = 0; s.ice.push(q); let rails = 0; for (let i = s.ice.length - 1; i >= 0; i--) if (s.ice[i].kind === q.kind && ++rails > RAIL.max) s.ice.splice(i, 1) }
+const railLen = q => Math.hypot(q.x1 - q.x0, q.y1 - q.y0)
+function startRide(f, s, q, u, r = null) { s.rideJumpHeld = !!(r && (r.jump || r.up)); s.ride = { n: q.n, u, dir: q.dir }; s.glide = false; f.airDashing = false; f.facing = q.dir; f.vx = 0; f.vy = 0 }
+function endRide(f, s, hop) {
+  const q = s.ice.find(i => i.n === s.ride?.n); s.ride = null
+  // Jump on a rail = jump off it: the SHARED jump fires if he still has an air jump; out of jumps → a free (smaller) rail hop
+  const outOfJumps = (f.jumpCount || 0) >= (f.maxJumps || 2)
+  if (q) { const L = railLen(q) || 1; f.vx = (q.x1 - q.x0) / L * RAIL.speed * RAIL.carry; f.vy = hop ? (outOfJumps ? RAIL.hopVy : Math.min(f.vy || 0, RAIL.hopVy)) : (q.y1 - q.y0) / L * RAIL.speed * RAIL.carry }
+  if (hop) { s.stats.railHops++; cue(f, 'jump'); pushFx(s, 'puff', ctrX(f), f.y + f.h, f.facing || 1) }
+}
+function rideStep(f, s, r) {
+  const q = s.ice.find(i => i.n === s.ride.n)
+  if (!q) { s.ride = null; return false }
+  const hopEdge = (r.jump || r.up) && !s.rideJumpHeld
+  s.rideJumpHeld = !!(r.jump || r.up)
+  if (hopEdge && s.ride.u > 8) { endRide(f, s, true); return true }
+  const L = railLen(q); s.ride.u = Math.min(L, s.ride.u + RAIL.speed)
+  const k = L ? s.ride.u / L : 1, px = q.x0 + (q.x1 - q.x0) * k, py = q.y0 + (q.y1 - q.y0) * k
+  f.x = Math.max(0, Math.min(sw(WREF.W) - f.w, px - f.w / 2)); f.y = py - f.h; f.vx = 0; f.vy = 0; f.facing = q.dir
+  if ((s.tick & 1) === 0) { s.trail.push({ x: Math.round(px), y: Math.round(py), t: 0, b: 1, d: q.dir }); if (s.trail.length > 30) s.trail.shift() }
+  // grinding THROUGH the opponent slices them once per rail
+  if (!q.hit) for (const o of foesOf(f, WREF.W, null)) {
+    if (o.x < f.x + f.w && o.x + o.w > f.x && o.y < f.y + f.h && o.y + o.h > f.y) {
+      q.hit = true; s.stats.railHits++
+      vol(f, s, WREF.W, 'rail', ++s.serial, ctrX(o), ctrY(o), 60, 70, { raw: RAIL.raw, hitstun: RAIL.hitstun, kbx: RAIL.kbx, kby: RAIL.kby, life: 3, dir: q.dir, radius: 30 })
+      pushFx(s, 'slice', ctrX(o), ctrY(o), q.dir); cue(f, 'shatter'); break
+    }
+  }
+  if (s.ride.u >= L) { endRide(f, s, false); s.prevFeet = f.y + f.h }
+  return true
+}
+function streamStep(f, s, r) {
+  const z = s.stream, W = WREF.W, d = z.dir
+  // Up / Down STEER while the ice pours (Up shares the Jump key on keyboard → no hop here, and the shared jump that the
+  // press would fire is undone so steering never burns his air jump). Releasing Forward ends the stream.
+  f.jumpCount = z.jc
+  const fwdHeld = d === 1 ? r.right : r.left, backHeld = d === 1 ? r.left : r.right
+  if (z.k >= RAIL.stream || (z.k >= RAIL.minStream && (!fwdHeld || backHeld))) { endStream(f, s, false); return false }
+  z.k++
+  const tilt = r.up ? -1 : r.down ? 1 : 0, a = tilt * RAIL.angle
+  let nx = z.px + d * Math.cos(a) * RAIL.speed, ny = z.py + Math.sin(a) * RAIL.speed
+  const floor = s.floor ?? f.groundY ?? (ny + 400), minX = f.w / 2, maxX = sw(W) - f.w / 2
+  let stop = false
+  if (ny >= floor) { ny = floor; stop = true }                       // poured into the floor → he lands
+  if (nx <= minX || nx >= maxX) { nx = Math.max(minX, Math.min(maxX, nx)); stop = true }
+  // each straight stretch is its own rail segment (a new one whenever the steering changes)
+  let q = z.seg != null ? s.ice.find(i => i.n === z.seg) : null
+  if (!q || z.tilt !== tilt) { q = { kind: 'rail', x0: Math.round(z.px), y0: Math.round(z.py), x1: Math.round(nx), y1: Math.round(ny), dir: d, life: RAIL.life, hit: false }; addIce(s, q); z.seg = q.n; z.tilt = tilt }
+  else { q.x1 = Math.round(nx); q.y1 = Math.round(ny); q.t = 0 }   // still being laid: its lifetime starts when he leaves it
+  z.px = nx; z.py = ny
+  f.x = Math.max(0, Math.min(sw(W) - f.w, nx - f.w / 2)); f.y = ny - f.h; f.vx = 0; f.vy = 0; f.facing = d
+  if ((s.tick & 1) === 0) { s.trail.push({ x: Math.round(nx), y: Math.round(ny), t: 0, b: 1, d }); if (s.trail.length > 30) s.trail.shift() }
+  if (!z.hit) for (const o of foesOf(f, W, null)) {                  // pouring THROUGH the opponent slices once per stream
+    if (o.x < f.x + f.w && o.x + o.w > f.x && o.y < f.y + f.h && o.y + o.h > f.y) {
+      z.hit = true; s.stats.railHits++
+      vol(f, s, W, 'rail', ++s.serial, ctrX(o), ctrY(o), 60, 70, { raw: RAIL.raw, hitstun: RAIL.hitstun, kbx: RAIL.kbx, kby: RAIL.kby, life: 3, dir: d, radius: 30 })
+      pushFx(s, 'slice', ctrX(o), ctrY(o), d); cue(f, 'shatter'); break
+    }
+  }
+  if (stop) endStream(f, s, false)
+  return true
+}
+function endStream(f, s, hop) {
+  const z = s.stream; s.stream = null; if (!z) return
+  for (const q of s.ice) if (q.kind === 'rail' && z.hit) q.hit = true   // the stream's slice is spent on every segment it laid
+  const a = (z.tilt || 0) * RAIL.angle, outOfJumps = (f.jumpCount || 0) >= (f.maxJumps || 2)
+  f.vx = z.dir * Math.cos(a) * RAIL.speed * RAIL.carry
+  f.vy = hop ? (outOfJumps ? RAIL.hopVy : Math.min(f.vy || 0, RAIL.hopVy)) : Math.sin(a) * RAIL.speed * RAIL.carry
+  s.prevFeet = f.y + f.h
+  if (hop) { s.stats.railHops++; cue(f, 'jump'); pushFx(s, 'puff', ctrX(f), f.y + f.h, f.facing || 1) }
+}
+function releaseWall(f, s, W, m) {
+  const d = m.dir, floor = floorOf(f, s), x = Math.max(WALL.w, Math.min(sw(W) - WALL.w, ctrX(f) + d * WALL.ahead))
+  s.wall = { n: ++s.nEnt, x: Math.round(x), floor: Math.round(floor), t: 0, hp: WALL.hp, dir: d, launched: false }
+  s.stats.walls++; cue(f, 'rise'); pushFx(s, 'riseBurst', x, floor, d)
+}
+const wallRect = w => { const h = WALL.h * Math.min(1, (w.t + 1) / WALL.rise); return { x: w.x - WALL.w / 2, y: w.floor - h, w: WALL.w, h } }
+const hitRect = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+function updateWall(f, s, W, opp) {
+  const w = s.wall; if (!w) return
+  w.t++
+  const R = wallRect(w)
+  for (const o of foesOf(f, W, opp)) {
+    const ob = { x: o.x, y: o.y, w: o.w || 48, h: o.h || 94 }
+    if (!hitRect(ob, R)) continue
+    if (!w.launched && w.t <= WALL.rise + 2 && grounded(o)) {   // erupting under them: one launching hit
+      w.launched = true; s.stats.wallLaunch++
+      vol(f, s, W, 'wall', ++s.serial, ctrX(o), ctrY(o), 60, 90, { raw: WALL.raw, hitstun: WALL.hitstun, kbx: WALL.kbx, kby: WALL.kby, life: 3, dir: w.dir, radius: 30 })
+      pushFx(s, 'crack', ctrX(o), ctrY(o), w.dir); continue
+    }
+    if (o.y + o.h <= R.y + 6) continue                            // standing on / clearing the top
+    if (ctrX(o) < w.x) o.x = R.x - ob.w; else o.x = R.x + R.w
+    if ((o.vx || 0) * (ctrX(o) < w.x ? 1 : -1) > 0) o.vx = 0
+  }
+  const P = W?.projectiles
+  if (P) for (let i = P.length - 1; i >= 0; i--) {
+    const q = P[i]; if (!q || q.owner === f) continue
+    const qw = q.w || q.width || 20, qh = q.h || q.height || 20
+    if (!hitRect({ x: q.x - qw / 2, y: q.y - qh / 2, w: qw, h: qh }, R)) continue
+    P.splice(i, 1); w.hp--; s.stats.wallBlocks++; cue(f, 'thaw'); pushFx(s, 'chip', q.x, q.y, -w.dir)
+    if (w.hp <= 0) break
+  }
+  if (w.hp <= 0) { s.wall = null; cue(f, 'shatter'); pushFx(s, 'shatter', w.x, w.floor - WALL.h / 2, w.dir); return }
+  if (w.t >= WALL.life) { s.wall = null; pushFx(s, 'melt', w.x, w.floor, w.dir) }
+}
+function updateIceObjects(f, s, W) {
+  for (let i = s.ice.length - 1; i >= 0; i--) if (++s.ice[i].t >= s.ice[i].life && s.ride?.n !== s.ice[i].n && s.stream?.seg !== s.ice[i].n) s.ice.splice(i, 1)
+  if (s.flashFx && ++s.flashFx.t > 14) s.flashFx = null
+  const z = s.slice
+  if (z && s.clock >= z.at) {
+    s.slice = null
+    const t = bySide(W, z.side)
+    if (t && t.health > 0) {
+      s.stats.slices++
+      vol(f, s, W, 'slice', z.serial, ctrX(t), ctrY(t), FLASH.w, FLASH.h, { raw: FLASH.raw, hitstun: FLASH.hitstun, kbx: FLASH.kbx, kby: FLASH.kby, life: 3, dir: z.dir, radius: 34 })
+      pushFx(s, 'slice', ctrX(t), ctrY(t), z.dir); cue(f, 'shatter')
+    }
+  }
 }
 
 function reject(f, why) { const s = fzState(f); s.stats.rejects++; s.lastReject = why || 'reject'; cue(f, 'reject') }
@@ -307,6 +497,7 @@ export function tickFrozone(f, opp, raw, W) {
   if (s.boost > 0 && !(f.dashTimer > 0)) s.boost = 0
   if (f.health <= 0) {                                                   // nothing of his outlives his KO
     if (s.patch || s.freeze) { if (s.freeze) thaw(f, s, 'ownerKo'); s.patch = null }
+    s.wall = null; s.ride = null; s.stream = null; s.slice = null; s.ice.length = 0
     killProj(f, W); return
   }
   if (f.hitstop > 0) return
@@ -316,12 +507,14 @@ export function tickFrozone(f, opp, raw, W) {
   if (a && (f.hitstun > 0 || f.isGrabbed || f.knockdownState)) endAttack(f)   // interruption: an unreleased cast spawns nothing
   updateIce(f, s, W, opp)
   updatePatch(f, s, W, opp)
+  updateIceObjects(f, s, W)
+  updateWall(f, s, W, opp)
   const A = live(f), m = A?.fz
   if (!m || f.hitstun > 0 || f.isGrabbed) return
   const t = elapsed(A), md = FROZONE_MOVES[m.key]
   f.facing = m.dir
   if (g && !md.air && !md.travel) f.vx = 0
-  if (md.releaseAt != null && t === md.releaseAt && !m.released) { m.released = true; if (m.key === 'fLance') releaseLance(f, s, W, m); else releasePatch(f, s, W, m) }
+  if (md.releaseAt != null && t === md.releaseAt && !m.released) { m.released = true; if (m.key === 'fLance') releaseLance(f, s, W, m); else if (m.key === 'fWall') releaseWall(f, s, W, m); else releasePatch(f, s, W, m) }
   if (md.travel && t >= md.travel[0] && t < md.travel[1] && !m.stopped) {   // GLACIER RUSH: physical surf, never through the body
     const clampX = x => Math.max(0, Math.min(sw(W) - f.w, x)), o = opp && opp.health > 0 ? opp : null
     let nx = clampX(f.x + m.dir * md.travel[2])
@@ -376,7 +569,7 @@ export function activateFrozoneUlt(f, target, W) {
   if (cine.active || !f || !target) return false
   const s = fzState(f)
   if (s.freeze) endFreeze(f, s, 'ult')
-  killProj(f, W); s.patch = null
+  killProj(f, W); s.patch = null; s.wall = null; s.ride = null; s.stream = null; s.slice = null; s.glide = false
   const d = f.facing || 1, R = ULT.ramp.r, tw = target.w || 48
   // the captive stands a fixed distance ahead, clamped so the whole skate route stays inside the stage
   const tc = Math.max(R + 80, Math.min(sw(W) - R - 80, ctrX(f) + d * R))

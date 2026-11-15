@@ -38,6 +38,118 @@
     "sheen": 3951,
     "fill": 14072
    }
+  },
+  "eg_alienx": {
+   "tag": "alienx",
+   "name": "Alien X \u2014 Cosmic",
+   "desc": "Ben 10 Alien X / S.P.D. Green \"Alien X \u2014 Inspired\": charcoal suit, white trim, baked galaxy; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286,
+    "stars": 3709
+   }
+  },
+  "eg_upgrade": {
+   "tag": "upgrade",
+   "name": "Upgrade \u2014 Circuit",
+   "desc": "Ben 10 Upgrade: black suit, glowing green trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_diamondhead": {
+   "tag": "diamondhead",
+   "name": "Diamondhead \u2014 Crystal",
+   "desc": "Ben 10 Diamondhead: teal crystal suit, pale trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_heatblast": {
+   "tag": "heatblast",
+   "name": "Heatblast \u2014 Magma",
+   "desc": "Ben 10 Heatblast: volcanic rock suit, molten orange trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_chromastone": {
+   "tag": "chromastone",
+   "name": "Chromastone \u2014 Prism",
+   "desc": "Ben 10 Chromastone: violet crystal suit, prism-pink trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_ghostfreak": {
+   "tag": "ghostfreak",
+   "name": "Ghostfreak \u2014 Phantom",
+   "desc": "Ben 10 Ghostfreak: pale spectral suit, dark violet trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_bigchill": {
+   "tag": "bigchill",
+   "name": "Big Chill \u2014 Frost",
+   "desc": "Ben 10 Big Chill: deep-blue suit, icy cyan trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_shadow": {
+   "tag": "shadow",
+   "name": "S.P.D. Shadow \u2014 Inspired",
+   "desc": "Power Rangers S.P.D. Shadow Ranger colour scheme: navy suit, silver trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_dragon": {
+   "tag": "dragon",
+   "name": "Dragon Shield \u2014 Inspired",
+   "desc": "Mighty Morphin Green Ranger colour scheme: green suit, gold trim; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_glitter": {
+   "tag": "glitter",
+   "name": "Starlight Glitter",
+   "desc": "S.P.D. Yellow \"Starlight Glitter\": hot-pink suit, gold trim, baked sparkles; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286,
+    "stars": 3155
+   }
   }
  }
 }

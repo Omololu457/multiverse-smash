@@ -6,11 +6,13 @@
 // Ids are prefixed "eg_" (never end in "AlienX", never contain "cyborg" — shared overlays key off those).
 import { elastigirl } from './elastigirlData.js'
 import { setElastigirlArmColors } from './elastigirlFx.js'
+import { INCREDIBLES_SKIN_SETS } from './incrediblesSkinSets.js'
 const SHEET = 'Game Boy Advance — The Incredibles — Elastigirl sheet (ripped by redblueyellow), original pixels'
 const common = { unlockLevel: 0, spriteScale: elastigirl.spriteScale, portrait: elastigirl.portrait, regionMapping: './docs/elastigirl/skin_regions.json',
   effectsPolicy: 'Body sheets and the drawn Slingshot arm follow the skin. Portrait (face + mask only), splash / shadow FX and the raft passengers keep the supplied colours.' }
 // Slingshot arm line colours [suit, glove] per skin (render-only, read by elastigirlFx.js)
-setElastigirlArmColors({ default: ['#d81038', '#101010'], eg_incredibles2: ['#383840', '#aeb4be'], eg_retro: ['#d81038', '#2848c8'] })
+setElastigirlArmColors({ default: ['#d81038', '#101010'], eg_incredibles2: ['#383840', '#aeb4be'], eg_retro: ['#d81038', '#2848c8'],
+  ...Object.fromEntries(INCREDIBLES_SKIN_SETS.map(r => [`eg_${r.tag}`, r.arm])) })
 const retag = tag => Object.fromEntries(Object.entries(elastigirl.animationData).map(([k, d]) =>
   [k, d?.sheet ? { ...d, sheet: d.sheet.replace('./assets/elastigirl/', `./assets/elastigirl/skins/${tag}/`) } : d]))
 const skin = (id, name, tag, notes) => ({ ...common, id, name, recolorTag: tag, classification: 'Palette Swap',
@@ -20,4 +22,5 @@ export const ELASTIGIRL_SKINS = [
   { ...common, id: 'default', name: 'Supersuit', classification: 'Default', animationData: null, source: { version: SHEET } },
   skin('eg_incredibles2', 'Elastigirl 2', 'incredibles2', 'Red suit → charcoal black, trim (gloves / boots / briefs) → silver, accent lines (belt / emblem) → blue; mask stays black.'),
   skin('eg_retro', 'Retro', 'retro', 'Red stays; black gloves / boots / trim → royal blue; mask stays black.'),
+  ...INCREDIBLES_SKIN_SETS.map(r => skin(`eg_${r.tag}`, r.name, r.tag, `${r.insp}; mask stays black.`)),
 ]

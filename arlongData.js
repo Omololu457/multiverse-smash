@@ -116,7 +116,7 @@ export const arlong = {
   //   ground dash = clamp(dashSpeed × 0.55, 8, 16) → the engine floor is 8 px/f (6.8 is below it; dashSpeed 13);
   //     ×1.25 in water (arlongDashMul) = 10 px/f swim-dash
   //   jumpPower ≈ jumpForce × 2.667 (Zoro: 10.5 → 28) → 25 · weight 1.3 → knockback taken ÷ 1.3 (arlongKnockback)
-  stats: { maxHealth: 1220, maxEnergy: 100, attack: 82, defense: 84, speed: 78, jumpPower: 25, maxJumps: 1, weight: 1.3,
+  stats: { maxHealth: 1320, maxEnergy: 100, attack: 82, defense: 84, speed: 86, jumpPower: 25, maxJumps: 1, weight: 1.3,
     dashSpeed: 13, dashDuration: 10, dashCooldownMax: 34 },
   movement: { crouchIdle: true },
   introSequence: ['intro'],

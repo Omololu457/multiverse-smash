@@ -4,6 +4,9 @@
 //   node harness/green_ranger.test.mjs
 import fs from 'node:fs'
 import { boot } from './green_ranger_common.mjs'
+import { green_ranger as GREEN_DEF } from '../greenRangerData.js'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+const HP = GREEN_DEF.stats.maxHealth, BOOST = ROSTER_DAMAGE_BOOST.green_ranger || 1   // live data (balance passes retune these)
 const G = await boot(), { page } = G
 const R = { frameData: {}, routes: [], call: {}, notes: {}, specials: {}, ultimate: {}, exploits: {}, movement: {}, meta: {} }
 let pass = 0, fail = 0
@@ -17,7 +20,7 @@ const meta = await page.evaluate(() => { const c = __harness.characters?.green_r
   return { name: f.name, key: f.rosterKey, universe: f.universe, hp: f.maxHealth, maxEnergy: f.maxEnergy, energy: f.energy, label: f.energyConfig?.label || f.traits?.energyName, maxJumps: f.maxJumps, speed: f.stats?.speed, portrait: f.portrait, tagline: f.tagline } })
 R.meta = meta
 ck('identity green_ranger / Green Ranger / power_rangers', meta.key === 'green_ranger' && meta.name === 'Green Ranger' && meta.universe === 'power_rangers', meta)
-ck('HP 1000, Morph Energy max 100', meta.hp === 1000 && meta.maxEnergy === 100 && /Morph Energy/.test(meta.label), meta)
+ck(`HP ${HP}, Morph Energy max 100`, meta.hp === HP && meta.maxEnergy === 100 && /Morph Energy/.test(meta.label), meta)
 ck('one jump (roster does not grant every fighter a double jump)', meta.maxJumps === 1, meta)
 const portraitOk = await page.evaluate(async src => { const im = new Image(); im.src = src; await im.decode().catch(() => {}); return im.naturalWidth }, meta.portrait)
 ck('portrait loads', portraitOk > 0, portraitOk)
@@ -75,7 +78,7 @@ async function route(label, script, { gap = 70, energy = 100, notes = 0, note = 
   await script(M)
   for (let j = 0; j < 300 && ((await G.both()).a.attack || (await G.both()).ult.active || (await G.both()).a.zord); j++) await watch(1)
   s = await G.both()
-  const r = { label, hits: log.map(x => x.d), stunBefore: log.map(x => x.stunBefore), damage: 1000 - s.b.hp, energySpent: +(e0 - s.a.energy).toFixed(2), notesSpent: n0 - s.a.s.notes,
+  const r = { label, hits: log.map(x => x.d), stunBefore: log.map(x => x.stunBefore), damage: HP - s.b.hp, energySpent: +(e0 - s.a.energy).toFixed(2), notesSpent: n0 - s.a.s.notes,
     trueCombo: log.length > 1 && log.slice(1).every(x => x.stunBefore > 0), gap, note }
   R.routes.push(r); console.log('  route', label, JSON.stringify({ dmg: r.damage, hits: r.hits, true: r.trueCombo, e: r.energySpent, notes: r.notesSpent })); return r
 }
@@ -161,7 +164,7 @@ let minX = 1e9; for (let i = 0; i < 60; i++) { await G.step(1); minX = Math.min(
 await G.reset(200); const hpU = (await G.both()).b.hp; await G.tap(['u'])
 let u = { active: false }, seenActive = false, ultFrames = 0; for (let i = 0; i < 260; i++) { await G.step(1); const s = await G.both(); if (s.ult.active) { seenActive = true; ultFrames++ } if (seenActive && !s.ult.active && !s.a.attack) break }
 let s2 = await G.both(); R.ultimate.confirm = { damage: hpU - s2.b.hp, cineFrames: ultFrames, energyAfter: s2.a.energy }
-ck('ULT confirm: opener + 3 beats land (≈240 after the shared global scale), cinematic ends, control restored', seenActive && hpU - s2.b.hp >= 220 && hpU - s2.b.hp <= 270 && !s2.a.attack && s2.b.knockdown, R.ultimate.confirm)
+ck(`ULT confirm: opener + 3 beats land (≈240 after the shared global scale, × roster boost ${BOOST}), cinematic ends, control restored`, seenActive && hpU - s2.b.hp >= 220 * BOOST && hpU - s2.b.hp <= 270 * BOOST && !s2.a.attack && s2.b.knockdown, R.ultimate.confirm)
 await G.reset(900); await G.tap(['u']); const eAfterStart = (await G.st()).energy; await page.evaluate(() => { const b = __harness.greenRangerTest.raw('p2'); b.x = 2800 })
 let missed = 0; for (let i = 0; i < 120; i++) { await G.step(1); const s = await G.st(); missed = Math.max(missed, s.s.missed); if (!s.attack && i > 40) break }
 s2 = await G.both(); R.ultimate.whiff = { missed, ultActive: s2.ult.active, energyAfterStart: eAfterStart }

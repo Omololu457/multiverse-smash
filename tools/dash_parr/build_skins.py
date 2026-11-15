@@ -13,8 +13,10 @@ Shadow grey, skin, hair and emblem gold are never touched. The portrait (a separ
 Usage: python3 tools/dash_parr/build_skins.py   (run after extract.py)
 """
 from pathlib import Path
-import json
+import json, sys
 from PIL import Image
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from incredibles_skin_sets import SETS, bake_stars
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / 'assets/dash_parr'
@@ -28,6 +30,11 @@ SKINS = {
     'incredibles2': {'name': 'Incredibles 2', 'suit': [(72, 68, 80), (50, 47, 57), (32, 30, 37)], 'trim': (200, 22, 46), 'gloveHi': (238, 74, 92)},
     'trackstar': {'name': 'Track Star', 'suit': [(44, 104, 224), (30, 76, 176), (20, 52, 126)], 'trim': (236, 186, 42), 'gloveHi': (255, 226, 120)},
 }
+# Ranger-style crossover palettes (shared with Violet / Elastigirl): tools/incredibles_skin_sets.py
+for _s in SETS:
+    SKINS[_s['tag']] = {'name': _s['name'], 'suit': _s['suit'], 'trim': _s['trim'], 'gloveHi': _s['trimHi'],
+                        'stars': _s.get('stars'), 'density': _s.get('density', 0.06) * 2.2}   # tiny GBA suit → denser sparkle
+FRAME_W = 112
 
 
 def classify(im):
@@ -69,6 +76,7 @@ def recolor(im, spec):
                 p[x, y] = spec['gloveHi'] + (a,)
     for x, y in trim:
         p[x, y] = spec['trim'] + (p[x, y][3],)
+    counts['stars'] = bake_stars(out, spec, FRAME_W)
     return out, counts
 
 
@@ -77,7 +85,7 @@ def main():
     audit = {}
     for tag, spec in SKINS.items():
         d = ASSETS / 'skins' / tag; d.mkdir(parents=True, exist_ok=True)
-        tot = {'mask': 0, 'logo': 0, 'trim': 0}
+        tot = {'mask': 0, 'logo': 0, 'trim': 0, 'stars': 0}
         for q in strips:
             im = Image.open(q).convert('RGBA'); out, c = recolor(im, spec)
             out.save(d / q.name)

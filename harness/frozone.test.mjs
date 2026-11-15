@@ -7,11 +7,13 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { frozone as FZD, FLASH, RAIL, TRAIL, WALL, GLIDE } from '../frozoneData.js'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, movement: {}, ice: {}, ultimate: {}, misc: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = 1050
+const HP = FZD.stats.maxHealth, BOOST = ROSTER_DAMAGE_BOOST.frozone || 1   // roster-parity pass 2026-11-15 (was 1050 / no boost)
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.frozoneTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, ult: H.ult(), proj: H.projectiles(), hud: H.hud() } })
 const S = (expr, arg) => page.evaluate(([e, a]) => { const H = __harness.frozoneTest; return (new Function('H', 'a', 'return ' + e))(H, a) }, [expr, arg])
@@ -46,7 +48,7 @@ async function measure(label, script, { gap = 90, flip = false, dummy = 'stand',
   report.routes.push(r); return r
 }
 const clean = q => q.a.attack?.fz?.clean
-const live = st => Math.floor(st * 0.6)   // shared GLOBAL_DAMAGE_SCALE on an unscaled first hit (defence multiplier 1 in a mirror)
+const live = st => Math.floor(Math.floor(st * 0.6) * BOOST)   // shared GLOBAL_DAMAGE_SCALE on an unscaled first hit, then the roster-parity boost
 
 try {
   await page.goto(server.base + '/index.html?harness=1&p1=frozone&p2=frozone&seed=880311'); await page.waitForFunction(() => window.__harness?.frozoneTest)
@@ -54,40 +56,99 @@ try {
   let s = await state(), r, m
   const D = await S('H.data()')
   // ── identity ──
-  ck('both slots frozone, HP 1050, energy max 100', s.a.key === 'frozone' && s.a.maxHp === HP && s.b.maxHp === HP && await S('H.raw().maxEnergy') === 100, JSON.stringify([s.a.key, s.a.maxHp]))
+  ck(`both slots frozone, HP ${HP}, energy max 100`, s.a.key === 'frozone' && s.a.maxHp === HP && s.b.maxHp === HP && await S('H.raw().maxEnergy') === 100, JSON.stringify([s.a.key, s.a.maxHp]))
   ck('maxJumps 2 (the shared double jump)', s.a.maxJumps === 2, `${s.a.maxJumps}`)
   ck('universe the_incredibles', await S("H.raw().universe || H.raw().characterData?.universe || null") === 'the_incredibles', await S("H.raw().universe || H.raw().characterData?.universe || null"))
   // ── walk ──
   await reset(400); await page.keyboard.down('d'); await step(12); const vxw = (await state()).a.vx; await page.keyboard.up('d'); await step(10)
   const rawSp = await S('H.raw().speed'), formula = Math.min(9.5, Math.max(4.5, 4.5 + (rawSp - 78) / 20 * 5)); report.movement = { walkVx: vxw, liveSpeedStat: rawSp, formula }
   ck('walk = the shared physics formula', Math.abs(vxw - formula) < 0.01, `${vxw} vs ${formula}`)
-  // ── ICE SKATE (double-tap) ──
-  await reset(600); await tap(['d'], 1); await step(2); await page.keyboard.down('d'); await step(1)
-  const prof = []; for (let i = 0; i < 18; i++) { const q = await state(); prof.push({ vx: +q.a.vx.toFixed(2), dt: q.a.dashTimer, x: Math.round(q.a.x) }); await step(1) }
-  await page.keyboard.up('d'); s = await state(); report.movement.skate = prof
-  const vxs = prof.map(p => p.vx), peak = Math.max(...vxs)
-  ck('skate starts (shared dash) with a ramp: first frame slower than cruise', s.a.s.stats.skates === 1 && vxs[0] < peak && peak >= 14.9, JSON.stringify(vxs))
-  ck('skate distance is bounded (< 260 px)', prof[prof.length - 1].x - prof[0].x < 260 && prof[prof.length - 1].x - prof[0].x > 120, `${prof[prof.length - 1].x - prof[0].x}`)
-  ck('skate never grants invulnerability', prof.every(() => true) && (await S('H.raw().invulnTimer || 0')) === 0)
-  s = await wait(q => q.a.dashTimer === 0, 40); await step(8); s = await state(); report.movement.afterSkateVx = s.a.vx
-  ck('release: no uncontrolled slide (|vx| < 1 eight frames after the skate)', Math.abs(s.a.vx) < 1, `${s.a.vx}`)
-  // brake with the opposite direction
-  await reset(600); await tap(['d'], 1); await step(2); await tap(['d'], 1); await step(5); const xb = (await state()).a.x
-  await tap(['a'], 1); s = await state(); const br = s.a.s.stats.brakes; await step(10); const xa = (await state()).a.x
-  ck('opposite direction brakes the skate (stats.brakes 1, short stop)', br === 1 && xa - xb < 70, JSON.stringify({ br, d: xa - xb }))
-  // brake with guard
-  await reset(600); await tap(['d'], 1); await step(2); await tap(['d'], 1); await step(5); await tap([';'], 2); s = await state()
-  ck('Guard brakes the skate', s.a.s.stats.brakes === 1 && s.a.dashTimer === 0, JSON.stringify({ b: s.a.s.stats.brakes, dt: s.a.dashTimer }))
-  await page.keyboard.up(';'); await step(4)
-  // air skate: once per airtime, no altitude gain, no jump reset
-  await reset(600); await tap(['w'], 2); await step(8); const y0 = (await state()).a.y, jc0 = (await state()).a.jumpCount
-  await tap(['d'], 1); await step(2); const yP = (await state()).a.y; await tap(['d'], 1); const ys = []; for (let i = 0; i < 10; i++) { const q = await state(); ys.push(+q.a.y.toFixed(1)); await step(1) }
-  s = await state(); const as1 = s.a.s.stats.airSkates
-  await tap(['d'], 1); await step(2); await tap(['d'], 1); await step(3); s = await state()
-  report.movement.airSkate = { y0, yP, ys, as1, as2: s.a.s.stats.airSkates }
-  ck('air skate fires once (shared air dash)', as1 === 1 && s.a.s.stats.airSkates === 1, JSON.stringify(report.movement.airSkate))
-  ck('air skate gains no altitude (from its first frame he never rises)', ys.every((v, i) => i === 0 || v >= ys[i - 1] - 0.01), JSON.stringify({ yP, ys }))
-  ck('air skate never resets jumps', s.a.jumpCount >= jc0, `${jc0}→${s.a.jumpCount}`)
+  // ── ICE FLASH (ground double-tap): instant teleport + persistent trail + slice (2026-11-15) ──
+  const dtap = async k => { await tap([k], 1); await step(2); await tap([k], 1) }
+  await reset(600); s = await state(); const flX0 = s.a.x
+  await dtap('d'); s = await state()
+  ck('Ice Flash: one double-tap teleports ~FLASH.dist in a single frame', s.a.s.stats.flashes === 1 && Math.abs(s.a.x - flX0 - FLASH.dist) < 30, JSON.stringify({ d: s.a.x - flX0, n: s.a.s.stats.flashes }))
+  ck('Ice Flash leaves an ice trail on the floor', s.a.s.ice.some(q => q.kind === 'trail' && Math.abs(q.x1 - q.x0) > 200), JSON.stringify(s.a.s.ice))
+  ck('Ice Flash has NO cooldown (owner request)', s.a.dashCooldown === 0, `${s.a.dashCooldown}`)
+  await step(FLASH.lag + 1); await dtap('d'); s = await state(); ck('he can flash again as soon as the arrival slide ends', s.a.s.stats.flashes === 2, `${s.a.s.stats.flashes}`)
+  await step(TRAIL.life - 30); s = await state(); ck('the trail is still there ~1.2 s later (skill window)', s.a.s.ice.some(q => q.kind === 'trail'))
+  await step(40); s = await state(); ck('…and melts after TRAIL.life', !s.a.s.ice.some(q => q.kind === 'trail'), JSON.stringify(s.a.s.ice))
+  report.movement.flash = { dist: FLASH.dist }
+  r = await measure('Ice Flash slice (through the foe)', async M => { await dtap('d'); await M.watch(20) }, { gap: 120 })
+  s = await state()
+  ck('Ice Flash passes THROUGH the opponent and ends clear of their body', s.a.x > s.b.x + s.b.w - 1, JSON.stringify({ a: s.a.x, b: s.b.x }))
+  ck(`the slice lands a beat later: one hit = ${live(FLASH.raw)}`, r.hits.length === 1 && r.hits[0] === live(FLASH.raw) && r.stats.slices === 1, JSON.stringify(r))
+  ck('the slice is a Frozone ice hit (adds one Chill pip)', r.stats.chill === 1, JSON.stringify(r.stats))
+  r = await measure('Ice Flash slice vs guard', async M => { await dtap('d'); await M.watch(20) }, { gap: 120, dummy: 'block' })
+  ck('a guarding opponent blocks the slice (no clean damage)', r.hits.length === 0, JSON.stringify(r))
+  await allIdle()
+  // ── ICE RAIL (air double-tap) ──
+  await reset(700); await page.keyboard.down('w'); await step(2); await page.keyboard.up('w'); await step(6)
+  s = await state(); const ry0 = s.a.y, rx0 = s.a.x
+  await dtap('d'); const rys = [], rxs = []; for (let i = 0; i < 8; i++) { const q = await state(); rys.push(+q.a.y.toFixed(1)); rxs.push(Math.round(q.a.x)); await step(1) }
+  s = await state()
+  ck('Ice Rail: an air double-tap builds a rail and he grinds it', s.a.s.stats.rails === 1 && rxs[7] - rxs[0] > 70, JSON.stringify({ rails: s.a.s.stats.rails, rxs }))
+  ck('a level rail holds his height while grinding', Math.max(...rys) - Math.min(...rys) < 3, JSON.stringify(rys))
+  s = await wait(q => !q.a.s.ride && !q.a.s.stream, 40); ck('released Forward: the stream stops after its minimum and he carries momentum', !s.a.s.stream && Math.abs(s.a.vx) > 3, JSON.stringify({ vx: s.a.vx }))
+  ck('the rail stays after the ride', s.a.s.ice.some(q => q.kind === 'rail'))
+  await dtap('d'); s = await state(); ck('one NEW rail per airtime', s.a.s.stats.rails === 1, `${s.a.s.stats.rails}`)
+  // re-ride: drop him back onto the live rail from above
+  const rl = s.a.s.ice.find(q => q.kind === 'rail')
+  await S(`(H.raw().x = ${(rl.x0 + rl.x1) / 2} - H.raw().w / 2, H.raw().y = ${rl.y0} - H.raw().h - 30, H.raw().vy = 2, H.raw().vx = 0, H.raw().onGround = false, H.raw().grounded = false, H.raw()._frozone.prevFeet = null)`)
+  s = await wait(q => !!q.a.s.ride, 20); ck('landing on a live rail from above catches it (re-ride)', s.a.s.stats.reRides === 1 && !!s.a.s.ride, JSON.stringify(s.a.s.stats))
+  await allIdle(); s = await state()
+  await step(RAIL.life + 10); s = await state(); ck('rails melt after RAIL.life', !s.a.s.ice.some(q => q.kind === 'rail'), JSON.stringify(s.a.s.ice))
+  // rising rail (Up held) and diving rail (Down held)
+  await reset(700); await page.keyboard.down('w'); await step(8); const yr0 = (await state()).a.y; await dtap('d'); await step(8); s = await state(); await page.keyboard.up('w')
+  ck('Up held: the rail RISES (he climbs while grinding)', s.a.y < yr0 - 40 && s.a.s.ice.some(q => q.kind === 'rail' && q.y1 < q.y0), JSON.stringify({ yr0, y: s.a.y }))
+  await allIdle()
+  await reset(700); await tap(['w'], 2); await step(10); await page.keyboard.down('s'); await dtap('d'); await page.keyboard.up('s'); s = await state()
+  ck('Down held: the rail DIVES (ends on the floor)', s.a.s.ice.some(q => q.kind === 'rail' && q.y1 > q.y0), JSON.stringify(s.a.s.ice))
+  await allIdle()
+  // during a stream Up STEERS (keyboard Up = Jump): no hop, and the air jump is NOT burned
+  await reset(700); await tap(['w'], 2); await step(6); const jcS = (await state()).a.jumpCount; await dtap('d'); await page.keyboard.down('d'); await step(4); await tap(['w'], 6); await step(1); s = await state(); await page.keyboard.up('d')
+  ck('mid-stream Up steers the ice upward and never spends the air jump', !!s.a.s.stream && s.a.jumpCount === jcS && s.a.s.ice.some(q => q.kind === 'rail' && q.y1 < q.y0 - 10), JSON.stringify({ st: !!s.a.s.stream, jc: [jcS, s.a.jumpCount] }))
+  await allIdle()
+  // rail hop on a RE-RIDE: Jump pops him off
+  await reset(700); await tap(['w'], 2); await step(6); await dtap('d'); s = await wait(q => !q.a.s.stream, 30); const rh = s.a.s.ice.find(q => q.kind === 'rail')
+  await S(`(H.raw().x = ${(rh.x0 + rh.x1) / 2 - 40} - H.raw().w / 2, H.raw().y = ${rh.y0} - H.raw().h - 20, H.raw().vy = 2, H.raw().vx = 0, H.raw().onGround = false, H.raw().grounded = false, H.raw()._frozone.prevFeet = null)`)
+  s = await wait(q => !!q.a.s.ride, 20); await step(2); await tap(['w'], 1); await step(1); s = await state()
+  ck('Jump while re-riding a rail hops him off upward', s.a.s.stats.railHops === 1 && !s.a.s.ride && s.a.vy < 0, JSON.stringify({ hops: s.a.s.stats.railHops, vy: s.a.vy }))
+  await allIdle()
+  // CONTINUOUS ICE STREAM: holding Forward keeps the ice pouring (up to RAIL.stream ticks), steerable mid-air
+  await reset(1200); await page.keyboard.down('w'); await step(2); await page.keyboard.up('w'); await step(6); const sx0 = (await state()).a.x
+  await dtap('d'); await page.keyboard.down('d'); let sk = 0; for (; sk < 140; sk++) { await step(1); if (!(await state()).a.s.stream) break }
+  await page.keyboard.up('d'); s = await state()
+  ck('holding Forward keeps the ice pouring for a while (stream ≫ a single rail)', sk > 40 && sk <= RAIL.stream + 2 && s.a.x - sx0 > 500, JSON.stringify({ frames: sk, dist: Math.round(s.a.x - sx0) }))
+  ck('a stream is still ONE per airtime', s.a.s.stats.rails === 1, `${s.a.s.stats.rails}`)
+  await allIdle()
+  await reset(1200); await page.keyboard.down('w'); await step(2); await page.keyboard.up('w'); await step(6)
+  await dtap('d'); await page.keyboard.down('d'); await step(10); await page.keyboard.down('w'); await step(10); await page.keyboard.up('w'); await step(4); await page.keyboard.down('s'); await step(8); await page.keyboard.up('s'); await page.keyboard.up('d'); s = await state()
+  const segs = s.a.s.ice.filter(q => q.kind === 'rail')
+  ck('steering mid-stream with Up / Down lays new rising / diving stretches', segs.length >= 3 && segs.some(q => q.y1 < q.y0 - 10) && segs.some(q => q.y1 > q.y0 + 10), JSON.stringify(segs.map(q => [q.x0, q.y0, q.x1, q.y1])))
+  await allIdle()
+  // grinding through the opponent slices once per rail
+  // place the foe once he is airborne (the arena re-centres the pair on the first frames after a reset)
+  r = await measure('Ice Rail grind through foe', async M => { await tap(['w'], 2); await M.watch(10); await S('(H.raw("p2").x = H.raw().x + 330, H.raw("p2").vx = 0)'); await page.keyboard.down('s'); await M.press(['d']); await M.watch(2); await page.keyboard.down('d'); await M.watch(45); await page.keyboard.up('d'); await page.keyboard.up('s'); await M.watch(20) })
+  ck(`a diving rail through the foe slices once (${live(RAIL.raw)})`, r.stats.railHits === 1 && r.hits.length >= 1 && r.hits[0] === live(RAIL.raw), JSON.stringify(r))
+  await allIdle()
+  // ── ICE GLIDER (hold Jump while falling) ──
+  const fallTime = async hold => { await reset(600); await page.keyboard.down('w'); await step(2); if (!hold) await page.keyboard.up('w'); let n = 0; for (; n < 300; n++) { await step(1); if ((await state()).a.grounded && n > 4) break } await page.keyboard.up('w'); return n }
+  const tDrop = await fallTime(false), tGlide = await fallTime(true); s = await state()
+  ck('Ice Glider: holding Jump while falling floats him (much longer airtime)', tGlide > tDrop * 1.6 && s.a.s.stats.glides >= 1, JSON.stringify({ tDrop, tGlide, glides: s.a.s.stats.glides }))
+  await reset(600); await page.keyboard.down('w'); await step(30); const gv = []; for (let i = 0; i < 6; i++) { gv.push(+(await state()).a.vy.toFixed(2)); await step(1) } await page.keyboard.up('w')
+  ck('gliding fall speed is capped', gv.every(v => v <= GLIDE.fall + 1.5), JSON.stringify(gv))
+  await allIdle()
+  // ── ICE WALL (Down + Heavy) ──
+  await reset(400); await tap(['s', 'k'], 1); s = await wait(q => !!q.a.s?.wall, 30)
+  ck('Down + Heavy raises an Ice Wall ahead (15 Frost)', !!s.a.s.wall && Math.abs(s.a.s.wall.x - (s.a.x + s.a.w / 2 + WALL.ahead)) < 4 && 100 - s.a.energy >= 13 && 100 - s.a.energy <= 15.01, JSON.stringify({ w: s.a.s.wall, e: s.a.energy }))
+  await step(WALL.rise + 4); await S(`(H.raw('p2').x = ${s.a.s.wall.x} - 10)`); await step(1); s = await state()
+  ck('the wall pushes the opponent out (no walking through it)', s.b.x >= s.a.s.wall.x + WALL.w / 2 - 1 || s.b.x + s.b.w <= s.a.s.wall.x - WALL.w / 2 + 1, JSON.stringify({ b: s.b.x, w: s.a.s.wall.x }))
+  const hpW = s.a.hp; await S("(H.raw('p2').facing = -1, H.raw('p2').energy = 100)"); await S("H.move('fLance', 'p2')"); await step(40); s = await state()
+  ck("the wall eats the opponent's projectile (wall HP −1, Frozone untouched)", s.a.s.stats.wallBlocks === 1 && s.a.hp === hpW && s.a.s.wall?.hp === WALL.hp - 1, JSON.stringify({ blocks: s.a.s.stats.wallBlocks, hp: [hpW, s.a.hp], wall: s.a.s.wall }))
+  await step(WALL.life); s = await state(); ck('the wall melts after WALL.life', !s.a.s.wall)
+  r = await measure('Ice Wall eruption under the foe', async M => { await M.press(['s', 'k']); await M.watch(30) }, { gap: WALL.ahead - 24 })
+  ck(`the wall erupting under the opponent launches them (${live(WALL.raw)})`, r.hits.length === 1 && r.hits[0] === live(WALL.raw) && r.stats.wallLaunch === 1, JSON.stringify(r))
   await allIdle()
   // double jump: exactly 2
   await reset(400); await tap(['w'], 2); await step(10); const j1 = (await state()).a.jumpCount
@@ -183,12 +244,11 @@ try {
   r = await measure('Black Ice vs jumping foe', async M => { await M.press(['s', 'l']); await M.until(q => !!q.a.s?.patch, 30); const p = (await state()).a.s.patch; await S(`(H.raw('p2').x = ${p.x} - 30, H.raw('p2').y -= 150, H.raw('p2').onGround = false, H.raw('p2').grounded = false, H.raw('p2').vy = -2)`); await M.watch(6) }, { gap: 400 })
   s = await state(); ck('an airborne foe does not trigger the patch', r.stats.patchHits === 0 && !!s.a.s.patch || r.stats.patchHits === 0, JSON.stringify(r.stats))
   await allIdle()
-  // Skate Switch
+  // Skate Switch (2026-11-15: now on Ice Flash) — flashing across his own patch consumes it and refunds the flash cooldown
   await reset(600); await S("(H.raw('p2').x = 2400)"); await tap(['s', 'l'], 1); await wait(q => !!q.a.s?.patch && !q.a.attack, 60); await step(4)
-  await tap(['d'], 1); await step(2); await tap(['d'], 1); s = await wait(q => q.a.s.stats.skateSwitch > 0 || q.a.dashTimer === 0, 40)
-  ck('Skate Switch: skating over own patch = one speed burst, patch consumed', s.a.s.stats.skateSwitch === 1 && !s.a.s.patch, JSON.stringify({ ss: s.a.s.stats.skateSwitch, p: s.a.s.patch }))
-  const vxB = []; for (let i = 0; i < 6; i++) { vxB.push(+(await state()).a.vx.toFixed(1)); await step(1) }
-  ck('the burst is 16 px/f (bounded)', Math.max(...vxB) <= 16.01 && Math.max(...vxB) >= 15.9, JSON.stringify(vxB)); report.ice.skateSwitchVx = vxB
+  await tap(['d'], 1); await step(2); await tap(['d'], 1); s = await state()
+  ck('Skate Switch: an Ice Flash across own patch consumes it once', s.a.s.stats.skateSwitch === 1 && !s.a.s.patch, JSON.stringify({ ss: s.a.s.stats.skateSwitch, fl: s.a.s.stats.flashes, x: s.a.x, cd: s.a.dashCooldown, p: s.a.s.patch, atk: s.a.attack?.name }))
+  await step(FLASH.lag + 2); await tap(['d'], 1); await step(2); await tap(['d'], 1); s = await state(); ck('the chained second flash fires', s.a.s.stats.flashes === 2, `${s.a.s.stats.flashes}`)
   await allIdle()
   // Frost Lance
   r = await measure('Frost Lance (Lance through own patch)', async M => { await M.press(['s', 'l']); await M.until(q => !!q.a.s?.patch && !q.a.attack, 60); await M.watch(2); await M.press(['l']); await M.until(q => !q.proj.length && !q.a.attack, 120) }, { gap: 330 })

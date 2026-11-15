@@ -3,13 +3,13 @@
   "J1 Straight Punch": {
    "hit": {
     "contactFrame": 5,
-    "damage": 18,
+    "damage": 26,
     "advantage": 11,
     "blocked": false
    },
    "block": {
     "contactFrame": 5,
-    "damage": 3,
+    "damage": 4,
     "advantage": -2,
     "blocked": true
    }
@@ -17,13 +17,13 @@
   "Heavy Turning Kick": {
    "hit": {
     "contactFrame": 13,
-    "damage": 55,
+    "damage": 81,
     "advantage": 9,
     "blocked": false
    },
    "block": {
     "contactFrame": 13,
-    "damage": 11,
+    "damage": 16,
     "advantage": -16,
     "blocked": true
    }
@@ -31,13 +31,13 @@
   "Low Leg Sweep": {
    "hit": {
     "contactFrame": 8,
-    "damage": 26,
+    "damage": 38,
     "advantage": 6,
     "blocked": false
    },
    "block": {
     "contactFrame": 8,
-    "damage": 5,
+    "damage": 7,
     "advantage": -7,
     "blocked": true
    }
@@ -45,13 +45,13 @@
   "Launcher Rising Heel": {
    "hit": {
     "contactFrame": 12,
-    "damage": 45,
+    "damage": 67,
     "advantage": 9,
     "blocked": false
    },
    "block": {
     "contactFrame": 12,
-    "damage": 9,
+    "damage": 13,
     "advantage": -13,
     "blocked": true
    }
@@ -59,13 +59,13 @@
   "Dragon Edge": {
    "hit": {
     "contactFrame": 14,
-    "damage": 46,
+    "damage": 68,
     "advantage": -2,
     "blocked": false
    },
    "block": {
     "contactFrame": 14,
-    "damage": 5,
+    "damage": 7,
     "advantage": -20,
     "blocked": true
    }
@@ -73,13 +73,13 @@
   "Emerald Advance": {
    "hit": {
     "contactFrame": 16,
-    "damage": 63,
+    "damage": 93,
     "advantage": 0,
     "blocked": false
    },
    "block": {
     "contactFrame": 16,
-    "damage": 7,
+    "damage": 10,
     "advantage": -21,
     "blocked": true
    }
@@ -89,16 +89,16 @@
   {
    "label": "J1 > J2 > J3",
    "hits": [
-    18,
-    22,
-    28
+    26,
+    32,
+    41
    ],
    "stunBefore": [
     0,
     16,
     11
    ],
-   "damage": 68,
+   "damage": 49,
    "energySpent": 0,
    "notesSpent": 0,
    "trueCombo": true,
@@ -108,16 +108,16 @@
   {
    "label": "J1 > Heavy > Dragon Edge",
    "hits": [
-    18,
-    55,
-    43
+    26,
+    81,
+    64
    ],
    "stunBefore": [
     0,
     9,
     22
    ],
-   "damage": 116,
+   "damage": 121,
    "energySpent": 8.28,
    "notesSpent": 0,
    "trueCombo": true,
@@ -127,16 +127,16 @@
   {
    "label": "Command chain > knock-away",
    "hits": [
-    24,
-    32,
-    39
+    35,
+    47,
+    58
    ],
    "stunBefore": [
     0,
     20,
     20
    ],
-   "damage": 95,
+   "damage": 90,
    "energySpent": 0,
    "notesSpent": 0,
    "trueCombo": true,
@@ -146,16 +146,16 @@
   {
    "label": "Command chain > launcher branch",
    "hits": [
-    24,
-    32,
-    37
+    35,
+    47,
+    55
    ],
    "stunBefore": [
     0,
     20,
     22
    ],
-   "damage": 93,
+   "damage": 87,
    "energySpent": 0,
    "notesSpent": 0,
    "trueCombo": true,
@@ -165,16 +165,16 @@
   {
    "label": "Command launcher branch > Rising Talon",
    "hits": [
-    24,
-    32,
-    37
+    35,
+    47,
+    55
    ],
    "stunBefore": [
     0,
     20,
     22
    ],
-   "damage": 93,
+   "damage": 87,
    "energySpent": 0,
    "notesSpent": 0,
    "trueCombo": true,
@@ -184,14 +184,14 @@
   {
    "label": "Launcher > jump cancel > Air > Descending Fang",
    "hits": [
-    45,
-    27
+    67,
+    40
    ],
    "stunBefore": [
     0,
     18
    ],
-   "damage": 72,
+   "damage": 57,
    "energySpent": 12.66,
    "notesSpent": 0,
    "trueCombo": true,
@@ -201,14 +201,14 @@
   {
    "label": "Launcher > jump cancel > Air",
    "hits": [
-    45,
-    27
+    67,
+    40
    ],
    "stunBefore": [
     0,
     18
    ],
-   "damage": 72,
+   "damage": 57,
    "energySpent": 0,
    "notesSpent": 0,
    "trueCombo": true,
@@ -218,12 +218,12 @@
   {
    "label": "Note Emerald Advance > air conversion",
    "hits": [
-    63
+    93
    ],
    "stunBefore": [
     0
    ],
-   "damage": 63,
+   "damage": 43,
    "energySpent": 13.8,
    "notesSpent": 1,
    "trueCombo": false,
@@ -233,11 +233,11 @@
   {
    "label": "Heavy > Zord ultimate",
    "hits": [
+    81,
     55,
-    37,
-    42,
-    42,
-    85
+    63,
+    63,
+    127
    ],
    "stunBefore": [
     0,
@@ -246,7 +246,7 @@
     9998,
     9998
    ],
-   "damage": 261,
+   "damage": 339,
    "energySpent": 98.14,
    "notesSpent": 0,
    "trueCombo": true,
@@ -256,14 +256,14 @@
   {
    "label": "Rising Talon",
    "hits": [
-    18,
-    34
+    26,
+    50
    ],
    "stunBefore": [
     0,
     17
    ],
-   "damage": 52,
+   "damage": 26,
    "energySpent": 16.1,
    "notesSpent": 0,
    "trueCombo": true,
@@ -297,7 +297,7 @@
  },
  "ultimate": {
   "confirm": {
-   "damage": 244,
+   "damage": 361,
    "cineFrames": 150,
    "energyAfter": 1.8600000000000012
   },
@@ -307,7 +307,7 @@
    "energyAfterStart": 0
   },
   "block": {
-   "chip": 4,
+   "chip": 7,
    "ultActive": false
   },
   "blockedRecoveryTotal": 94,
@@ -335,7 +335,7 @@
   "name": "Green Ranger",
   "key": "green_ranger",
   "universe": "power_rangers",
-  "hp": 1000,
+  "hp": 1200,
   "maxEnergy": 100,
   "energy": 50.120000000000005,
   "label": "Morph Energy",

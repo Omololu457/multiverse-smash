@@ -10,7 +10,8 @@ const server = await serve(), browser = await chromium.launch({ headless: true }
 await page.goto(server.base + '/index.html?harness=1', { waitUntil: 'load' }); await page.waitForFunction(() => window.__harness?.violetTest)
 try {
   const skins = await page.evaluate(() => __harness.violetTest.skins())
-  ck('three skins: Supersuit (default), Incredibles 2, Midnight', skins.map(s => s.name).join('|') === 'Supersuit|Incredibles 2|Midnight', skins)
+  ck('base skins first: Supersuit (default), Incredibles 2, Midnight', skins.slice(0, 3).map(s => s.name).join('|') === 'Supersuit|Incredibles 2|Midnight', skins)
+  ck('+10 Ranger-style crossover skins (Alien X … Starlight Glitter), none ending "AlienX"', skins.length === 13 && skins.some(s => s.id === 'vi_alienx') && !skins.some(s => s.id.endsWith('AlienX')), skins.map(s => s.id))
   const res = await page.evaluate(async () => {
     const { VIOLET_SKINS, VIOLET_SKIN_FX } = await import('./violetSkins.js'), { violet } = await import('./violetData.js'), { VIOLET_FX } = await import('./violetSprites.js')
     const load = u => new Promise(r => { const im = new Image(); im.onload = () => r(im); im.onerror = () => r(null); im.src = u })

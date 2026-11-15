@@ -2,6 +2,11 @@
 // Measures startup (press → first hit frame), on-hit damage, on-block frame advantage, every special's contract and the
 // ultimate. Keys (P1, facing right): J Light · K Heavy · I Up-Attack · L Special (= P) · U Ultimate · A/D back/forward · S down.
 import { boot, ck, summary } from './violet_lib.mjs'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+// ROSTER PARITY boost (rosterParity.js) applied at combat.applyScaledDamage: melee dmg arrives pre-scaled + floored, so
+// dealt = floor(old * boost); kit hits pass raw + scale, so dealt = floor(raw * boost * scale).
+const BOOST = ROSTER_DAMAGE_BOOST.violet || 1
+const mel = x => Math.floor(x * BOOST), kit = (raw, scale = 1) => Math.floor(raw * BOOST * scale)
 const B = await boot('violet', 'violet'), { page, step, st, tap, down, up, reset, wait, guard, S } = B
 const V = await S('H.data()')
 const M = V.moves
@@ -42,10 +47,10 @@ async function onBlock(keys, opts = {}) {
   return tD - tA
 }
 const NORMALS = [
-  { n: 'Jab', keys: ['j'], startup: 5, dmg: 18, block: 0 },
-  { n: 'Heavy', keys: ['k'], startup: 13, dmg: 52, block: -6 },
-  { n: 'Low', keys: [DN, 'j'], startup: 7, dmg: 24, block: -4 },
-  { n: 'Launcher', keys: ['i'], startup: 11, dmg: 46, block: -9 },
+  { n: 'Jab', keys: ['j'], startup: 5, dmg: mel(18), block: 0 },
+  { n: 'Heavy', keys: ['k'], startup: 13, dmg: mel(52), block: -6 },
+  { n: 'Low', keys: [DN, 'j'], startup: 7, dmg: mel(24), block: -4 },
+  { n: 'Launcher', keys: ['i'], startup: 11, dmg: mel(46), block: -9 },
 ]
 try {
   // ── normals: startup / damage / on-block ──
@@ -65,7 +70,7 @@ try {
   async function jumpIn() { const y0 = (await st()).y; await tap(['w'], 1); await wait(s => s.vy > 0 && y0 - s.y <= AIR_PRESS, 90) }
   await reset(70, false, { energy: 50 }); await jumpIn()
   { const h0 = (await p2()).hp; let fr = null; await down(['j']); for (let i = 1; i <= 30 && fr == null; i++) { await step(1); if (i === 1) await up(['j']); const b = await p2(); if (b.hitstun > 0) fr = i }
-    ck('Air: startup 7f (hits on frame 7)', fr === 7, { fr }); ck('Air: 30 damage', h0 - (await p2()).hp === 30, h0 - (await p2()).hp) }
+    ck('Air: startup 7f (hits on frame 7)', fr === 7, { fr }); ck(`Air: ${mel(30)} damage`, h0 - (await p2()).hp === mel(30), h0 - (await p2()).hp) }
   await reset(70, false, { energy: 50 }); await guard(true); await jumpIn()
   { await down(['j']); let hitAt = null; for (let i = 1; i <= 30 && hitAt == null; i++) { await step(1); if (i === 1) await up(['j']); if ((await p2()).blockstun > 0) hitAt = i }
     let tA = null, tD = null
@@ -80,7 +85,7 @@ try {
     ck('Force Push: ↓↘→+P starts vPush, costs 12', a.attack?.name === 'vPush' && Math.abs(e0 - a.energy - 12) < 1, { at: a.attack?.name, e0, e: a.energy })
     const h0 = (await p2()).hp; let maxTrav = 0, hit = null
     for (let i = 0; i < 70 && !hit; i++) { await step(1); a = await st(); if (a.s.push) maxTrav = Math.max(maxTrav, a.s.push.trav); const b = await p2(); if (b.hitstun > 0) hit = { b, i } }
-    ck('Force Push: ring hits at 420 px for 50', hit && h0 - hit.b.hp === 50, { dmg: hit && h0 - hit.b.hp })
+    ck(`Force Push: ring hits at 420 px for ${kit(84, 0.6)}`, hit && h0 - hit.b.hp === kit(84, 0.6), { dmg: hit && h0 - hit.b.hp })
     ck('Force Push: push-back on hit', hit && hit.b.vx > 6, { vx: hit?.b.vx }) }
   await reset(900, false, { energy: 60 })
   { await motion([[DN], [DN, FW], [FW]], 'l'); let a = await wait(s => !!s.s.push, 30); let maxTrav = 0
@@ -118,7 +123,7 @@ try {
     await tap([FW], 1); await step(1); await tap([FW], 1); await tap(['l'], 1)
     let a = await st(); ck('Force Ball: →→+P starts vBall, costs 15', a.attack?.name === 'vBall' && Math.abs(e0 - a.energy - 15) < 1, { at: a.attack?.name, e: a.energy })
     a = await wait(s => !s.attack, 60); const b = await p2()
-    ck('Force Ball: two hits, 30 + 30', a.s.stats.ballHits === 2 && h0 - b.hp === 30 + Math.floor(50 * 0.85 * 0.6), { hits: a.s.stats.ballHits, dmg: h0 - b.hp }) }
+    ck(`Force Ball: two hits, ${kit(50, 0.6)} + ${kit(50, 0.85 * 0.6)}`, a.s.stats.ballHits === 2 && h0 - b.hp === kit(50, 0.6) + kit(50, 0.85 * 0.6), { hits: a.s.stats.ballHits, dmg: h0 - b.hp }) }
   await reset(1200, false, { energy: 50 })
   { const x0 = (await st()).x; await tap([FW], 1); await step(1); await tap([FW], 1); await tap(['l'], 1); const a = await wait(s => !s.attack, 60)
     ck('Force Ball: rolling lunge travels 320 px', Math.abs((a.x - x0) - 320) <= 24, { dx: a.x - x0 }) }
@@ -152,7 +157,7 @@ try {
     ck('FULL FORCE: ↓↘→↓↘→+P starts vUlt, costs 100', a.attack?.name === 'vUlt' && a.energy < 1, { at: a.attack?.name, e: a.energy })
     const dm = []; let last = h0, tEnd = null, tBlast = null
     for (let i = 1; i < 260; i++) { await step(1); a = await st(); const b = await p2(); if (b.hp < last) { dm.push(last - b.hp); last = b.hp; if (dm.length === 3) tBlast = i } if (tBlast && !a.attack && tEnd == null) tEnd = i }
-    ck('FULL FORCE: trap 30 + squeeze 40 + detonate 150 = 220 (unscaled)', dm.join('+') === '30+40+150', dm)
+    ck(`FULL FORCE: trap 30 + squeeze 40 + detonate 150 (unscaled, x${BOOST} roster boost) = ${kit(30)}+${kit(40)}+${kit(150)}`, dm.join('+') === [kit(30), kit(40), kit(150)].join('+'), dm)
     ck('FULL FORCE: 90f recovery lockout after the detonation', tEnd != null && tEnd - tBlast >= 89 && tEnd - tBlast <= 91, { tEnd, tBlast }) }
   await reset(240, false, { energy: 100 })
   { const h0 = (await p2()).hp; await tap(['u'], 1); const a = await st(); ck('FULL FORCE: Ultimate button also fires it', a.attack?.name === 'vUlt') ; await wait(s => !s.attack, 260) }

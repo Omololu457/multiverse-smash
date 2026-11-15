@@ -5,12 +5,16 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { spd_yellow as SPD_YELLOW_DEF } from '../spdYellowData.js'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, gun: {}, coins: {}, clone: {}, orders: {}, zord: {}, ult: {}, blink: {}, resources: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const near = (v, w, t = 4) => Math.abs(v - w) <= t
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = 1100
+// HP from spdYellowData.js; damage targets below are the authored post-parity numbers × the ROSTER PARITY boost
+// (rosterParity.js, applied once at combat.applyScaledDamage).
+const HP = SPD_YELLOW_DEF.stats.maxHealth, BOOST = ROSTER_DAMAGE_BOOST.spd_yellow || 1, xB = v => v * BOOST
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.spdYellowTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, combo: H.raw().comboCounter, ult: H.ult(), shots: H.shots() } })
 const S = (expr, arg) => page.evaluate(([e, a]) => { const H = __harness.spdYellowTest; return (new Function('H', 'a', 'return ' + e))(H, a) }, [expr, arg])
@@ -51,7 +55,7 @@ try {
   await page.goto(server.base + '/index.html?harness=1&p1=spd_yellow&p2=spd_yellow&seed=771101'); await page.waitForFunction(() => window.__harness?.spdYellowTest)
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(4) }); await page.evaluate(() => __harness.preloadDone()); await step(3); await page.waitForFunction(() => __harness.spriteReady().ready)
   let s = await state(), r
-  ck('both slots spd_yellow (mirror), HP 1100, 0 coins at round start, 2 Zord pips', s.a.key === 'spd_yellow' && s.b.key === 'spd_yellow' && s.a.hp === HP && (s.a.s?.coins ?? 0) === 0 && s.a.hud.pips === 2, JSON.stringify({ hp: s.a.hp, c: s.a.s?.coins, hud: s.a.hud }))
+  ck(`both slots spd_yellow (mirror), HP ${HP}, 0 coins at round start, 2 Zord pips`, s.a.key === 'spd_yellow' && s.b.key === 'spd_yellow' && s.a.hp === HP && (s.a.s?.coins ?? 0) === 0 && s.a.hud.pips === 2, JSON.stringify({ hp: s.a.hp, c: s.a.s?.coins, hud: s.a.hud }))
   ck('rangers.js profile ticking (2 blink charges, engine dash off)', s.a.ranger?.charges === 2 && s.a.noDash)
   const D = await S('H.data()')
 
@@ -77,7 +81,7 @@ try {
   await reset(1100); await tap(['l']); await wait(q => q.shots.length, 20); await wait(q => !q.a.attack, 30); await tap(['l']); await step(14); s = await state(); const twoShots = s.shots.length
   ck('one ordinary pistol shot on screen per owner (second press rejected while the first flies)', twoShots === 1 && (s.a.s.stats.rejects >= 1 || !s.a.attack), JSON.stringify({ twoShots, st: s.a.s.stats.rejects }))
   r = await measure('Pistol (close)', async M => { await M.press(['l']) }, { gap: 160 }); report.gun.pistolDamage = r.hits[0]
-  ck('pistol hit = raw 28 (the Ranger x1.7 parity lever cancels the engine scale)', near(r.hits[0], 28, 1), JSON.stringify(r.hits))
+  ck(`pistol hit = raw 28 (the Ranger x1.7 parity lever cancels the engine scale) × boost ${BOOST}`, near(r.hits[0], xB(28), 1), JSON.stringify(r.hits))
 
   // ── LONG GUN ──
   await reset(1100); await hold(['l'], 23); s = await state(); ck('held 23 f: still the compact pistol, nothing extra spent', near(s.a.energy, 90) && s.a.move === 'yPistol' && !s.shots.length, JSON.stringify({ e: s.a.energy, m: s.a.move }))
@@ -92,7 +96,7 @@ try {
   await reset(300); await hold(['l'], 26); await S('(()=>{const a=H.raw(); a.hitstun=20; a.attacking=false; a.currentAttack=null})()'); await step(2); await release(['l']); await step(30); s = await state()
   ck('interrupted committed hold: 25 spent, nothing fires', near(s.a.energy, 75) && !s.shots.length && s.a.s.stats.gunInterrupted === 1 && s.a.s.stats.long === 0, JSON.stringify({ e: s.a.energy, st: s.a.s.stats }))
   r = await measure('Long gun (held 30 f)', async M => { await M.press(['l'], 30) }, { gap: 200 }); report.gun.longDamage = r.hits[0]
-  ck('long-gun hit = raw 62, total spend 10 + 15', near(r.hits[0], 62, 1) && r.energySpent === 25, JSON.stringify(r))
+  ck(`long-gun hit = raw 62 × boost ${BOOST}, total spend 10 + 15`, near(r.hits[0], xB(62), 1) && r.energySpent === 25, JSON.stringify(r))
   await reset(300); await tap(['w']); await step(6); await tap(['l']); await step(14); s = await state()
   ck('air Special: air pistol (yAirShot), once per airtime', s.a.s.stats.air === 1 && s.shots.some(x => x.kind === 'air'), JSON.stringify(s.a.s.stats)); await wait(q => q.a.grounded, 120)
 
@@ -106,7 +110,7 @@ try {
   await reset(600); await tap(['j']); await idle(); await tap(['s', 'l']); await wait(q => q.a.s?.clone?.ready && !q.a.attack, 60)
   await S('(()=>{const s=H.raw()._spdYellow, b=H.raw("p2"); s.clone.x=Math.round(b.x - 40); s.clone.dir=1})()'); await tap(['a', 'l']); await step(24); s = await state()
   report.coins.echo = { hits: s.a.s.stats.echoHits, c: s.a.s.coins, hp: s.b.hp }
-  ck('ordered ordinary echo hit -> clone coin; echo at 60 % of J1 raw', s.a.s.stats.echoHits === 1 && s.a.s.cycle.clone && s.a.s.coins === 1 && near(HP - s.b.hp, Math.round(17 * 0.6), 1), JSON.stringify(report.coins.echo))
+  ck(`ordered ordinary echo hit -> clone coin; echo at 60 % of J1 raw (× boost ${BOOST})`, s.a.s.stats.echoHits === 1 && s.a.s.cycle.clone && s.a.s.coins === 1 && near(HP - s.b.hp, xB(Math.round(17 * 0.6)), 1), JSON.stringify(report.coins.echo))
   await reset(200); await S('(()=>{const s=H.raw()._spdYellow; s.cycle={melee:true,gun:true,clone:false}})()'); await S('H.award("clone")'); s = await state()
   ck('all three paid -> reset scheduled 90 f later', s.a.s.cycleReset === 90 && s.a.s.coins === 1); await step(91); s = await state()
   ck('cycle eligibility resets after 90 f (coins kept)', !s.a.s.cycle.melee && !s.a.s.cycle.gun && !s.a.s.cycle.clone && s.a.s.coins === 1 && s.a.s.stats.cycleResets === 1, JSON.stringify(s.a.s.cycle))
@@ -133,7 +137,7 @@ try {
   await tap([';']); await step(2); s = await state(); ck('Guard cancels the stance (nothing spent)', !s.a.s.stance && s.a.energy === 100 && s.a.s.stats.stanceCancels === 1)
   // COVER ME
   r = await measure('Duplicate -> stance COVER ME', async M => { await M.press(['s', 'l']); await M.until(q => !q.a.attack, 40); await M.press(['p', 'l']); await M.watch(2); await M.press(['l']); await M.watch(40) }, { gap: 180, coins: 1 })
-  report.orders.cover = r; ck('COVER ME: 1 coin + 8 Energy, the duplicate fires one raw-18 shot (no coin back)', r.coinsSpent === 1 && r.energySpent === 28 && r.hits.length === 1 && near(r.hits[0], 18, 1), JSON.stringify(r))
+  report.orders.cover = r; ck(`COVER ME: 1 coin + 8 Energy, the duplicate fires one raw-18 shot (× boost ${BOOST}, no coin back)`, r.coinsSpent === 1 && r.energySpent === 28 && r.hits.length === 1 && near(r.hits[0], xB(18), 1), JSON.stringify(r))
   // CROSSWIRE
   await reset(400, false, { coins: 1 }); await tap(['j']); await idle(); await tap(['s', 'l']); await idle(); const e1 = (await state()).a.energy
   await tap(['p', 'l']); await step(2); await tap(['d']); await step(1); await tap(['l']); await step(30); s = await state()
@@ -154,9 +158,9 @@ try {
 
   // ── NINJA MEGAZORD ──
   r = await measure('Ninja Intercept', async M => { await M.press(['w', 'l']) }, { gap: 120 }); report.zord.intercept = r
-  ck('Up Special: Megazord Intercept punch raw 36, 15 Energy + 1 pip, no coin', r.hits.length === 1 && near(r.hits[0], 36, 1) && r.energySpent === 15, JSON.stringify(r))
+  ck(`Up Special: Megazord Intercept punch raw 36 (× boost ${BOOST}), 15 Energy + 1 pip, no coin`, r.hits.length === 1 && near(r.hits[0], xB(36), 1) && r.energySpent === 15, JSON.stringify(r))
   await reset(120); await tap(['p', 'l']); await step(2); await sel(3); await tap(['l']); for (let i = 0; i < 60; i++) await step(1); s = await state()
-  report.zord.rising = { hp: HP - s.b.hp, st: s.a.s.stats.orders.rising }; ck('RISING KICK order: raw 40, ordinary 18 Energy + 1 pip, launches', s.a.s.stats.orders.rising === 1 && near(HP - s.b.hp, 40, 1) && near(s.a.energy, 82), JSON.stringify(report.zord.rising))
+  report.zord.rising = { hp: HP - s.b.hp, st: s.a.s.stats.orders.rising }; ck(`RISING KICK order: raw 40 (× boost ${BOOST}), ordinary 18 Energy + 1 pip, launches`, s.a.s.stats.orders.rising === 1 && near(HP - s.b.hp, xB(40), 1) && near(s.a.energy, 82), JSON.stringify(report.zord.rising))
 
   // ── MEASURED ROUTES (true-combo check = every later hit lands while the defender is still in hitstun) ──
   const putClone = () => S('(()=>{const s=H.raw()._spdYellow, b=H.raw("p2"); s.clone.x=Math.round(b.x - 30); s.clone.dir=1})()')
@@ -181,7 +185,7 @@ try {
 
   // ── ULTIMATE ──
   r = await measure('Ultimate (clean opener)', async M => { await M.press(['u']); await M.until(q => q.ult.active, 60); await M.until(q => !q.ult.active, 260) }, { gap: 200 })
-  report.ult.clean = r; ck('ultimate: opener + 7 raid contacts, 270 raw before shared scaling, 100 Energy', r.hits.length === 8 && r.energySpent === 100 && near(r.damage, 270, 8), JSON.stringify(r))
+  report.ult.clean = r; ck(`ultimate: opener + 7 raid contacts, 270 raw before shared scaling (× boost ${BOOST}), 100 Energy`, r.hits.length === 8 && r.energySpent === 100 && near(r.damage, xB(270), 8), JSON.stringify(r))
   await reset(200, false, { dummy: 'block' }); await step(8); await tap(['u']); await step(60); s = await state(); ck('blocked opener: no raid', !s.ult.active && s.a.s.stats.ultStarts === 1 && (await page.evaluate(() => __harness.spdYellowTest.raw('p2').health)) >= HP - 10)
   await reset(200, false, { coins: 3 }); await S('H.raw()._spdYellow.showcase=true'); r = await measure('Ultimate SHOWCASE', async M => { await M.press(['u']); await M.until(q => q.ult.active, 60); await M.until(q => !q.ult.active, 260) }, { gap: 200, coins: 3, pre: () => S('H.raw()._spdYellow.showcase=true') })
   ck('Showcase spends 3 coins and changes no damage', r.coinsSpent === 3 && r.damage === report.ult.clean.damage, JSON.stringify({ c: r.coinsSpent, d: r.damage, d0: report.ult.clean.damage }))

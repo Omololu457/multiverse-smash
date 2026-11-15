@@ -158,7 +158,7 @@ export const spd_yellow = {
   primary: 'zoner', secondary: ['summoner'], archetypes: ['zoner', 'summoner'],
   traits: { hasEnergy: true, energyType: 'energy', energyName: 'Delta Energy', mobility: 'normal', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Delta Energy', color: '#f2d81c' },
-  stats: { maxHealth: 1100, maxEnergy: 100, attack: 78, defense: 76, speed: 98, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
+  stats: { maxHealth: 1150, maxEnergy: 100, attack: 78, defense: 76, speed: 98, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
   hasSprites: true, spriteScale: 2.05, spriteSheet: SPD_YELLOW_ANIM.idle.sheet, portrait: './assets/spd_yellow/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: SPD_YELLOW_MOVES.light, heavy: SPD_YELLOW_MOVES.heavy, crouchLight: SPD_YELLOW_MOVES.yLow, upAttack: SPD_YELLOW_MOVES.up,

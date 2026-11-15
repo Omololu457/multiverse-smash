@@ -4688,7 +4688,7 @@ const superman = {
   },
   // ── SPECIALS (metadata / move-list; handlers in abilities.js). Costs are Solar Energy.
   specials: {
-    heatVision:    { cost: 15, damage: 60, effect: "Eye beam (↓↘→+Attack). Tap = 60 burst; hold = sustained 8/tick beam, angleable ±30°, extra 5 energy/sec." },
+    heatVision:    { cost: 0, damage: 60, effect: "Eye beam (neutral Special). Runs on its own LASER bar, not Solar Energy: tap = burst, hold = sustained auto-aim beam that drains the bar; 1s cooldown after every beam, 2.5s overheat if the bar empties." },
     freezeBreath:  { cost: 20, damage: 30, effect: "Cone of frost (↓↓+Attack). FROZEN 1.2s, +15% follow-up damage. 8s cooldown, mashable break-out." },
     speedRush:     { cost: 12, damage: 150, effect: "Super Speed Rush (→→+Attack / Fwd+Heavy rekka). Dash into a 5-hit auto-combo, launcher finish." },
     groundPound:   { cost: 18, damage: 110, effect: "Ground Pound (↓↓+Special, air). Steep dive slam + 40 shockwave that trips." },

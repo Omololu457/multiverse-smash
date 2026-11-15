@@ -8,11 +8,14 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { syndrome as SYNDROME_DEF } from '../syndromeData.js'
+import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, movement: {}, ops: {}, ultimate: {}, misc: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = 1100
+const HP = SYNDROME_DEF.stats.maxHealth   // from syndromeData.js (balance passes retune it)
+const BOOST = ROSTER_DAMAGE_BOOST.syndrome || 1
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.syndromeTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, ult: H.ult(), proj: H.projectiles(), hud: H.hud() } })
 const S = (expr, arg) => page.evaluate(([e, a]) => { const H = __harness.syndromeTest; return (new Function('H', 'a', 'return ' + e))(H, a) }, [expr, arg])
@@ -47,7 +50,9 @@ async function measure(label, script, { gap = 90, flip = false, dummy = 'stand',
   report.routes.push(r); return r
 }
 const clean = q => q.a.attack?.sy?.clean
-const live = st => Math.floor(st * 0.6)   // shared GLOBAL_DAMAGE_SCALE on an unscaled first hit (defence multiplier 1 in a mirror)
+// shared GLOBAL_DAMAGE_SCALE on an unscaled first hit (defence multiplier 1 in a mirror), floored, then the ROSTER PARITY
+// boost (rosterParity.js) applied at combat.applyScaledDamage and floored again
+const live = st => Math.floor(Math.floor(st * 0.6) * BOOST)
 
 try {
   await page.goto(server.base + '/index.html?harness=1&p1=syndrome&p2=syndrome&seed=880311'); await page.waitForFunction(() => window.__harness?.syndromeTest)
@@ -55,7 +60,7 @@ try {
   let s = await state(), r, m
   const D = await S('H.data()')
   // ── identity + movement ──
-  ck('both slots syndrome, HP 1100, Power max 100', s.a.key === 'syndrome' && s.a.maxHp === HP && s.b.maxHp === HP && await S('H.raw().maxEnergy') === 100)
+  ck(`both slots syndrome, HP ${HP}, Power max 100`, s.a.key === 'syndrome' && s.a.maxHp === HP && s.b.maxHp === HP && await S('H.raw().maxEnergy') === 100)
   ck('maxJumps 2 (the shared double jump)', s.a.maxJumps === 2, `${s.a.maxJumps}`)
   ck('universe the_incredibles', await S("H.raw().universe || H.raw().characterData?.universe || null") !== 'dc')
   await reset(400); await page.keyboard.down('d'); await step(12); const vxw = (await state()).a.vx; await page.keyboard.up('d'); await step(10)
@@ -84,7 +89,7 @@ try {
   ck('Light = Spinner Snap, activeStart 5', m?.name === 'light' && m.activeStart === 5, JSON.stringify(m)); await idle()
   r = await measure('Spinner Snap → Drone Cross → Spinner Pass (Light ×3)', async M => { await M.press(['j']); await M.until(clean, 30); await M.press(['j']); await M.until(q => q.a.attack?.name === 'sL2' && clean(q), 40); await M.press(['j']) })
   ck('command chain: 3 hits, true combo', r.hits.length === 3 && r.trueCombo, JSON.stringify(r))
-  ck(`first hit measured = floor(45 × 0.6) = ${live(45)}`, r.hits[0] === live(45), JSON.stringify(r.hits))
+  ck(`first hit measured = floor(floor(45 × 0.6) × ${BOOST}) = ${live(45)}`, r.hits[0] === live(45), JSON.stringify(r.hits))
   r = await measure('Light retap without a hit', async M => { await M.press(['j']); await M.watch(4); await M.press(['j']) }, { gap: 500 })
   s = await state(); ck('chain needs a clean hit (whiffed snap is not cancelled)', r.hits.length === 0 && (s.a.attack?.name || 'light') !== 'sL2', JSON.stringify(r))
   await allIdle(); await reset(90); await tap(['s', 'j'], 1); m = await moveInfo(); ck('Down+Light = Low Spinner Skim (hits low)', m?.name === 'sLow' && D.moves.sLow.hitLevel === 'low', JSON.stringify(m)); await idle()

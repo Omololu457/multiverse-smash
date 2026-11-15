@@ -103,7 +103,7 @@ export const mmpr_black = {
   primary: 'balanced', secondary: ['summoner'], archetypes: ['balanced', 'summoner'],
   traits: { hasEnergy: true, energyType: 'energy', energyName: 'Morph Energy', mobility: 'normal', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Morph Energy', color: '#c9d1dc' },
-  stats: { maxHealth: 1000, maxEnergy: 100, attack: 80, defense: 78, speed: 95, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
+  stats: { maxHealth: 1250, maxEnergy: 100, attack: 80, defense: 78, speed: 95, jumpPower: 26, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 },
   hasSprites: true, spriteScale: 1.85, spriteSheet: MMPR_BLACK_ANIM.idle.sheet, portrait: './assets/mmpr_black/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: MMPR_BLACK_MOVES.light, heavy: MMPR_BLACK_MOVES.heavy, crouchLight: MMPR_BLACK_MOVES.bLow, upAttack: MMPR_BLACK_MOVES.up,

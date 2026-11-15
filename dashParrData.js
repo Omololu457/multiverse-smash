@@ -12,7 +12,7 @@ const dmg=v=>Math.ceil(v*DASH_PARR_DAMAGE_SCALE-1e-9)   // ceil: floor(raw×0.6)
 
 // MOMENTUM (unique mechanic) — all values in sim frames / gauge points. State lives on f._dashParr (GAME_STATE).
 // Movement stats = Killua Zoldyck's (`killua`): speed 95, dash 19/10/34 (owner request 2026-11-15).
-export const DASH_STATS={speed:95,dashSpeed:19,dashDuration:10,dashCooldownMax:34}
+export const DASH_STATS={speed:97,dashSpeed:22,dashDuration:10,dashCooldownMax:34}
 export const MOMENTUM={max:100,runFill:1.5,hitGain:6,lapsGain:20,stillFrames:30,sprintAt:50,blurAt:100,
  speedMul:{jog:1,sprint:1.1,blur:1.2},startupBonus:{sprint:1},runMinSpeed:4.5}
 // Energy ("Super Speed"): 4/s passive, +4 per damaging hit landed, +3 per damaging hit taken.
@@ -71,7 +71,7 @@ export const dash_parr={rosterKey:DASH_PARR_KEY,name:'Dash',displayName:'Dash',c
  // Stats = Killua Zoldyck's (owner request): HP 1030, energy 180, atk 84, def 78, speed 95, jump 33, 2 jumps, dash 19.
  // spriteScale 2.5/1.18: sprite.js multiplies by GLOBAL_SPRITE_SCALE (1.18) → a ×2.5 render (~70% of Violet, ~80% of Elastigirl,
  // kid-sized vs the adults). jumpPower 33 (Killua; was 25 from the brief).
- stats:{maxHealth:1030,maxEnergy:180,attack:84,defense:78,jumpPower:33,maxJumps:2,...DASH_STATS},
+ stats:{maxHealth:1100,maxEnergy:180,attack:84,defense:78,jumpPower:33,maxJumps:2,...DASH_STATS},
  hasSprites:true,spriteScale:2.5/1.18,spriteSheet:anim.idle.sheet,portrait:'./assets/dash_parr/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
  basic_attacks:{light:DASH_PARR_MOVES.jab,heavy:DASH_PARR_MOVES.heavy,crouchLight:DASH_PARR_MOVES.low,upAttack:DASH_PARR_MOVES.launcher,airAttack:DASH_PARR_MOVES.air,downAir:DASH_PARR_MOVES.air,
   grab:{damage:dmg(18),startup:6,active:3,recovery:22,hitstun:20,throwForceX:6,throwForceY:-3,damageType:'grab'}},

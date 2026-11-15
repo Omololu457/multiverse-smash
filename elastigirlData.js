@@ -15,7 +15,7 @@ export const EG_KEY = 'elastigirl'
 //                                          under the shared 8 px/f floor, so she gets the floor — the slowest legal run)
 //   jumpForce 11.5     → jumpPower 25     (spec units ×2.2 = the engine's launch velocity scale; gravity 0.85)
 //   weight 0.95        → stats.weight 0.95
-export const EG_STATS = { maxHealth: 980, maxEnergy: 100, attack: 82, defense: 80, speed: 80, jumpPower: 25, maxJumps: 2,
+export const EG_STATS = { maxHealth: 1150, maxEnergy: 100, attack: 82, defense: 80, speed: 86, jumpPower: 25, maxJumps: 2,
   weight: 0.95, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36,
   spec: { health: 980, walkSpeed: 5.0, runSpeed: 7.6, jumpForce: 11.5, weight: 0.95 } }
 export const EG_ENERGY = { name: 'Elasticity', max: 100, rechargePerSec: 5, onHitLanded: 4, onHitTaken: 3 }

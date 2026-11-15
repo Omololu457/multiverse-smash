@@ -11,6 +11,7 @@ import { drawSpdGreenFx,playSpdGreenCues } from './spdGreenFx.js'
 import { spdGreenHarnessApi } from './spdGreenHarness.js'
 import { updateDashParrCommandCombat } from './dashParr.js'   // Dash (Dash Parr, The Incredibles) — dash_parr-gated
 import { tickDashParr,isDashParr,clearDashParr,dashParrLocked } from './dashParrState.js'
+import { dashParrOppTimeScale } from './dashParrState.js'   // Dash: Flash Time (Back + Special) feeds the shared per-opponent time-slow
 import { drawDashParrFx,drawDashParrUnder,dashParrBodyAlpha,playDashParrCues,drawDashParrHud } from './dashParrFx.js'
 import { dashParrHarnessApi } from './dashParrHarness.js'
 import { updateSpdPinkCommandCombat } from './spdPink.js'   // S.P.D. Pink Ranger (Syd Drew) — spd_pink-gated
@@ -345,7 +346,8 @@ import {
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
-  applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX,   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
+  applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX, HV_COOLDOWN, supermanLaserState, resetSupermanLaser,   // (+ laser cooldown / Superman laser bar, 2026-11-15)
+  // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
   applyHomelanderKit,   // Homelander secondary: Take A Ride (Fwd+Grab air-throw) + Flex Parry (tap Block) + Super Hearing (passive ping)
   applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
@@ -20415,8 +20417,9 @@ function updateTrainingMode() {
       // flight and Heat Vision can be practiced without the gauges depleting. Gated → no-op otherwise.
       if ((f.rosterKey || "").toLowerCase() === "homelander") {
         if (f._flightCtl) f._flightCtl.energy = getFlightProfile(f)?.energyMax ?? 240
-        f._laserHeat = HV_HEAT_MAX; f._hvOverheat = 0
+        f._laserHeat = HV_HEAT_MAX; f._hvOverheat = 0; f._hvCooldown = 0
       }
+      if ((f.rosterKey || "").toLowerCase() === "superman" && !f._supHvHold) resetSupermanLaser(f)   // Superman laser bar pinned full
     }
   }
 
@@ -20637,6 +20640,7 @@ function _oppTimeScaleOf(user) {
   if (user._flashTimeActive) return user._ftOppTimeScale || 0.34
   if (user._omoFlashActive) return user._omoOppTimeScale || 0.35   // OMOLOLU "Flash Time" — reuses this exact slow-time engine (no aura)
   if (user._shiFlickerActive) return user._shiOppTimeScale || 0.36 // SHISUI (FALLEN) "Flicker Time" — same slow-time engine, own emerald aura
+  { const _dpTs = dashParrOppTimeScale(user); if (_dpTs > 0) return _dpTs }   // DASH "Flash Time" — same slow-time engine (0 for everyone else)
   return 0
 }
 function _updateGodspeedTimeSlow() {
@@ -23706,12 +23710,29 @@ function drawHomelanderGauges(c, cv) {
     const over = (f._hvOverheat || 0) > 0
     const heat = f._laserHeat != null ? f._laserHeat : HV_HEAT_MAX
     gauge(y0 + h + gap, over ? 1 : heat / HV_HEAT_MAX, over ? "#ff3b30" : (heat / HV_HEAT_MAX < 0.33 ? "#ff7a1a" : "#ffd24a"))
-    if (over) {
-      c.save(); c.font = "bold 8px Arial"; c.fillStyle = "#ff6a60"
-      c.textAlign = flip ? "right" : "left"; c.fillText("OVERHEAT", flip ? x + w : x, y0 + h + gap + h + 8); c.restore()
+    const cd = f._hvCooldown || 0
+    if (over || cd > 0) {
+      c.save(); c.font = "bold 8px Arial"; c.fillStyle = over ? "#ff6a60" : "#c9d2e0"
+      c.textAlign = flip ? "right" : "left"; c.fillText(over ? "OVERHEAT" : "LASER COOLDOWN", flip ? x + w : x, y0 + h + gap + h + 8); c.restore()
+      if (!over) { c.save(); c.fillStyle = "rgba(255,255,255,0.75)"; c.fillRect(x, y0 + h + gap + h + 1, (1 - cd / HV_COOLDOWN) * w, 2); c.restore() }   // cooldown refill sliver
     }
   }
-  draw(p1, false); draw(p2, true)
+  // SUPERMAN — Heat Vision LASER bar (its own resource, not Solar Energy): red gauge, cooldown sliver, OVERHEAT lock.
+  const drawSup = (f, flip) => {
+    if (!f || (f.rosterKey || "").toLowerCase() !== "superman") return
+    const L = supermanLaserState(f), w = barW, h = 6, x = (flip ? cw - pad - barW - 20 : pad) + 8, y = 74
+    c.save()
+    c.fillStyle = "rgba(0,0,0,0.55)"; c.fillRect(x, y, w, h)
+    c.fillStyle = L.over > 0 ? "#ff3b30" : L.cd > 0 ? "#8f96a3" : (L.gauge / L.max < 0.34 ? "#ff7a1a" : "#ff4a2e")
+    c.fillRect(x, y, (L.over > 0 ? 1 - L.over / L.overMax : L.gauge / L.max) * w, h)
+    c.strokeStyle = "rgba(255,255,255,0.22)"; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
+    if (L.cd > 0 && !L.over) { c.fillStyle = "rgba(255,255,255,0.75)"; c.fillRect(x, y + h + 1, (1 - L.cd / L.cdMax) * w, 2) }
+    c.font = "bold 8px Arial"; c.textAlign = flip ? "right" : "left"
+    c.fillStyle = L.over > 0 ? "#ff6a60" : "#ffb4a6"
+    c.fillText(L.over > 0 ? "OVERHEAT" : L.cd > 0 ? "LASER COOLDOWN" : "HEAT VISION", flip ? x + w : x, y + h + 11)
+    c.restore()
+  }
+  draw(p1, false); draw(p2, true); drawSup(p1, false); drawSup(p2, true)
 }
 
 // FLIGHT 37 "screen goes dark" — a screen-space wash during the ult's dark-silhouette startup so
@@ -29247,6 +29268,7 @@ gameLoop()
     attackHitLevel: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f?.currentAttack) return null; return { level: getHitLevel(f, f.currentAttack), overhead: isOverheadAttack(f, f.currentAttack), airborne: !f.onGround && !f.grounded, tag: f.currentAttack.hitLevel || null, move: f.currentAttack.name || null } },
     setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
+    laserProbe: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { sup: supermanLaserState(f), hl: { heat: f._laserHeat, cd: f._hvCooldown || 0, over: f._hvOverheat || 0, active: !!f._hvActive }, energy: f.energy } },   // Heat Vision laser bars (Superman / Homelander)
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2Energy: (v = 0) => { if (p2) p2.energy = Math.max(0, v) },   // force P2 meter (Rick Prime Energy Siphon "target drained" case)
     fillP2Energy: () => { if (p2) p2.energy = p2.maxEnergy },

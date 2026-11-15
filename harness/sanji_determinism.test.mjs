@@ -29,7 +29,10 @@ try {
     const seq = [], seen = { lit: 0, course: 0, burn: 0, both: 0 }
     for (let fr = 0; fr < 1500; fr++) {
       if (fr === 240) {   // the same deterministic intervention in every run: ignite for real + a Course in progress
-        const s = H.sanjiTest.raw('p1'); s.energy = 100; s.hitstun = 0; s.isGrabbed = false
+        // 99 Heat (≥ the 50 ignite minimum, one short of a full bar): at exactly 100 the adaptive CPU can spend the full
+        // bar before the 34 f ignite reaches its lit frame (seed-dependent since the 2026-11-15 Sanji speed buff), so the
+        // leg would never light. 99 keeps the same deterministic intervention lit on every seed tried.
+        const s = H.sanjiTest.raw('p1'); s.energy = 99; s.hitstun = 0; s.isGrabbed = false
         S.sanjiStartMove(s, 'sIgnite', startMove); H.sanjiTest.set('p1', { course: 3, courseIdle: 0 })
       }
       if (fr === 300) H.sanjiTest.set('p1', { course: Math.max(3, H.sanjiTest.raw('p1')._sanji.course), courseIdle: 0 })

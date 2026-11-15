@@ -1,0 +1,30 @@
+{
+  "shots": [
+    "docs/dash/visual_01_match_supersuit.png",
+    "docs/dash/visual_02_blur_supersuit.png",
+    "docs/dash/visual_03_blurdash_supersuit.png",
+    "docs/dash/visual_01_match_incredibles2.png",
+    "docs/dash/visual_02_blur_incredibles2.png",
+    "docs/dash/visual_03_blurdash_incredibles2.png",
+    "docs/dash/visual_01_match_trackstar.png",
+    "docs/dash/visual_02_blur_trackstar.png",
+    "docs/dash/visual_03_blurdash_trackstar.png",
+    "docs/dash/visual_04_flurry_R.png",
+    "docs/dash/visual_05_laps_R.png",
+    "docs/dash/visual_06_hydro_R.png",
+    "docs/dash/visual_07_jab_R.png",
+    "docs/dash/visual_08_launcher_R.png",
+    "docs/dash/visual_09_sidestep_R.png",
+    "docs/dash/visual_04_flurry_L.png",
+    "docs/dash/visual_05_laps_L.png",
+    "docs/dash/visual_06_hydro_L.png",
+    "docs/dash/visual_07_jab_L.png",
+    "docs/dash/visual_08_launcher_L.png",
+    "docs/dash/visual_09_sidestep_L.png",
+    "docs/dash/visual_10_rush_storm.png",
+    "docs/dash/visual_11_rush_after.png"
+  ],
+  "pass": 11,
+  "fail": 0,
+  "errors": []
+}

@@ -1,0 +1,30 @@
+{
+  "replay": {
+    "frames": 1500,
+    "identical": true,
+    "exercised": [
+      "freebie",
+      "laps",
+      "jab",
+      "flurry",
+      "blurDash",
+      "hydro",
+      "sidestep",
+      "rush",
+      "ultLock"
+    ]
+  },
+  "rushPositions": 12,
+  "lan": {
+    "flurry": true,
+    "laps": true,
+    "mom": 100,
+    "frame": 220,
+    "remote": true
+  },
+  "gamepad": {
+    "atk": "flurry"
+  },
+  "passes": 15,
+  "errors": []
+}

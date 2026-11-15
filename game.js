@@ -11135,6 +11135,11 @@ function detectDoubleTapDashTeleport(fighter, key) {
     // FLIGHT MODULE: while flying (Homelander), a double-tap is the flight AIR-DASH (handled in
     // physics.stepFlight via _dashTap), NEVER the ground speed-tier teleport — which, now that he's
     // speed-tier, would hijack the air-dash and yank him across the screen ("got stuck after dashing").
+    // DSEYL: in flight a double-tap TOWARD the foe blinks right beside them at his own altitude (he keeps flying); away stays the air dash.
+    if (fighter.rosterKey === "dseyl" && isToward && fighter._flightCtl && isFlightModuleFlying(fighter) && (fighter.dashTeleportCooldown || 0) <= 0) {
+      const _dsY = fighter.y; teleportBehindTarget(fighter); fighter.y = _dsY
+      fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14; fighter.dashTeleportCooldown = 48; return
+    }
     if (fighter._flightCtl && isFlightModuleFlying(fighter)) { fighter._dashTap = true; return }
     if ((fighter.dashTeleport || isSpeedTierTeleport(fighter)) && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
       if (zoroQueueTeleport(fighter)) return   // ZORO: blink deferred a few sim ticks so 66+A (Oni Giri) / ↓-motions don't teleport

@@ -6,8 +6,10 @@ const TAIL = r => r[0].startsWith('Charge (L2 alone)') || r[0] === 'Pause'
 export const DSEYL_CONTROLS = {
   rows: [
     ...SYNDROME_CONTROLS.rows.filter(r => !TAIL(r)),
+    ['Dash (away) / Teleport to the foe (toward)', 'double-tap A or D', 'double-tap ← or →', 'double-tap the stick'],
     ['Flight: take off / come down', 'tap P', 'tap 7', 'tap L2'],
-    ['Flight: steer / air dash (×2)', 'W A S D / double-tap', '↑ ← ↓ → / double-tap', 'Left stick / double-tap'],
+    ['Flight: steer', 'W A S D', '↑ ← ↓ → ', 'Left stick'],
+    ['Flight: air dash (×2) away / teleport to the foe toward', 'double-tap', 'double-tap', 'double-tap'],
     ['Flash Time', '; + L', '/ + 4', '○ Circle + R1'],
     ...SYNDROME_CONTROLS.rows.filter(TAIL),
   ],
@@ -18,7 +20,8 @@ export const DSEYL_KIT = { ...SYNDROME_KIT,
   summary: 'Syndrome\'s whole arsenal — drones, Spinners, turrets, the Velocipod and the Omnidroid — on a builder in a grey hoodie, plus rocket-boot flight and a short Flash Time. Drones and Flash Time draw from the same Power bar.',
   specials: [
     ...SYNDROME_KIT.specials,
-    { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff (2 air dashes; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },
+    { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff at twice Superman\'s speed (2 air dashes away, teleport to the foe toward; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },
+    { name: 'Speed-Force Feet', input: 'double-tap toward', cost: 0, desc: 'The Flash\'s ground speed and dash. Double-tap toward the opponent to teleport right beside them (on the ground or in flight); double-tap away to dash.' },
     { name: 'Flash Time', input: 'Guard + Special', cost: DSEYL_FLASH.cost, desc: `The opponent runs at ${DSEYL_FLASH.oppSlow * 100}% speed for ${DSEYL_FLASH.frames} frames (3 s); Dseyl is not sped up. ${DSEYL_FLASH.cooldown / 60} s cooldown after it ends. Not during the ultimate or while the opponent is already slowed. Same Power bar as the drones.` },
   ],
   controls: DSEYL_CONTROLS }

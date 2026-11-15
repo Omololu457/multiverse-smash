@@ -4,7 +4,7 @@ line's behaviour changes for any other character. Each op asserts its anchor cou
 
   python3 tools/dseyl/apply_hooks.py --src .              apply in place to the working tree files
   python3 tools/dseyl/apply_hooks.py --head REV --out D   build hooked copies of REV:<file> into D (private-index commits)
-  --phase N   only the hooks of phases <= N (1 copy, 3 flight, 4 Flash Time, 6 metadata / credits)
+  --phase N   only the hooks of phases <= N (1 copy, 3 flight, 4 Flash Time, 6 metadata / credits, 7 speed + teleport)
 """
 import argparse, subprocess, sys
 from pathlib import Path
@@ -89,7 +89,7 @@ OPS = [
      "    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 14, dashFrames: 12, maxAirDash: 2,\n"
      "    dashCost: 30, energyMax: 210, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,\n"
      "    takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 90,\n"
-     "    landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,\n  },", 1),
+     "    landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,\n  },", 1, "\n  dseyl: {\n"),
     # ── PHASE 4: Flash Time → shared time-slow engine ──
     (4, 'game.js', 'after', "import { dseylHarnessApi } from './dseylHarness.js'",
      "import { dseylOppTimeScale } from './dseylFlashTime.js'   // DSEYL Flash Time → the shared _oppTimeScaleOf time-slow engine", 1),
@@ -99,12 +99,34 @@ OPS = [
     (6, 'credits.js', 'replace', '      { work: "Multiverse Smash — game engine, movesets, tools & harness", artists: ["Omololu Adaramola"] }\n',
      '      { work: "Multiverse Smash — game engine, movesets, tools & harness", artists: ["Omololu Adaramola"] },\n'
      '      { work: "Contributor — helped build Multiverse Smash (playable as Dseyl)", artists: ["Dseyl"] }\n', 1),
+    # ── PHASE 7: twice Superman's flight, the Flash's feet, double-tap dash / teleport on the ground AND in flight ──
+    (7, 'flight.js', 'replace',
+     "  // DSEYL (tribute fighter, rocket boots) — WIRED (traits.flightProfile:\"dseyl\"). A lighter flyer than the Supermen.\n"
+     "  //   accel 0.50 · cruiseH 6.0 · cruiseV 5.0 · drag 0.86 · 2 air-dashes\n"
+     "  //   3.5 s flight = energyMax 210 / drainPerFrame 1 · groundedAfterHardHit 1.5 s = groundedLock 90\n"
+     "  //   (dashSpeed 14 / dashFrames 12 scaled to his cruise speed; the rest = Homelander's defaults)\n"
+     "  dseyl: {\n    accel: 0.50, maxH: 6.0, maxV: 5.0, drag: 0.86, reverseBrake: 0.64,\n"
+     "    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 14, dashFrames: 12, maxAirDash: 2,\n",
+     "  // DSEYL (tribute fighter, rocket boots) — WIRED (traits.flightProfile:\"dseyl\"). TWICE Superman's flight speed:\n"
+     "  //   accel 4.4 · cruiseH 44 · cruiseV 36 · air-dash 68 (Superman 2.2 / 22 / 18 / 34) · drag 0.84 (Superman's) · 2 air-dashes\n"
+     "  //   3.5 s flight = energyMax 210 / drainPerFrame 1 · groundedAfterHardHit 1.5 s = groundedLock 90\n"
+     "  //   double-tap away = air dash; double-tap TOWARD the foe = teleport right beside them (game.js detectDoubleTapDashTeleport)\n"
+     "  dseyl: {\n    accel: 4.4, maxH: 44.0, maxV: 36.0, drag: 0.84, reverseBrake: 0.64,\n"
+     "    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 68, dashFrames: 12, maxAirDash: 2,\n", 1),
+    (7, 'game.js', 'before', '    if (fighter._flightCtl && isFlightModuleFlying(fighter)) { fighter._dashTap = true; return }',
+     '    // DSEYL: in flight a double-tap TOWARD the foe blinks right beside them at his own altitude (he keeps flying); away stays the air dash.\n'
+     '    if (fighter.rosterKey === "dseyl" && isToward && fighter._flightCtl && isFlightModuleFlying(fighter) && (fighter.dashTeleportCooldown || 0) <= 0) {\n'
+     '      const _dsY = fighter.y; teleportBehindTarget(fighter); fighter.y = _dsY\n'
+     '      fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14; fighter.dashTeleportCooldown = 48; return\n'
+     '    }', 1),
 ]
 
 
 def apply(text, ops, fname):
-    for ph, f, kind, anchor, payload, count in ops:
+    for op in ops:
+        ph, f, kind, anchor, payload, count = op[:6]
         if f != fname: continue
+        if len(op) > 6 and op[6] in text: continue   # skip marker present (a later phase rewrote this block)
         if kind == 'replace':
             if text.count(payload) >= count: continue   # already applied
             n = text.count(anchor)

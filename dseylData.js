@@ -13,6 +13,9 @@ export const DSEYL_FLIGHT_TAP = { maxHold: 12, modWindow: 4 }
 // Flash Time (the shared game.js _oppTimeScaleOf time-slow engine, as the Flash / Dash Parr). Weaker than the Flash's:
 // fixed 180-frame window, opponent at 50 %, Dseyl NOT sped up, 600-frame (10 s) cooldown after it ends.
 export const DSEYL_FLASH = { cost: 40, oppSlow: 0.5, frames: 180, cooldown: 600 }
+// Ground speed = the Flash's (speed 99 / dash 26-12-24). speed >= 98 puts him in the engine's speed tier: a double-tap
+// TOWARD the foe teleports behind them (game.js detectDoubleTapDashTeleport), a double-tap away is a normal dash.
+export const DSEYL_FLASH_FEET = { speed: 99, dashSpeed: 26, dashDuration: 12, dashCooldownMax: 24 }
 // Balance guard: Syndrome + two powers → 6 % less health (docs/dseyl/BALANCE_NOTES.md). Drones + Flash Time share Power.
 export const DSEYL_HP_FACTOR = 0.94
 const even = (n, total) => Array.from({ length: n }, (_, i) => [Math.round(i * total / n), i])
@@ -24,7 +27,7 @@ export const dseyl = {
   bio: 'One of the people who helped build Multiverse Smash. He took Syndrome\'s tech, kept the drones, ditched the cape, and added a couple of tricks of his own.',
   traits: { ...SY.traits, flightProfile: DSEYL_KEY },
   energyConfig: { ...SY.energyConfig },
-  stats: { ...SY.stats, maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR) },
+  stats: { ...SY.stats, maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR), ...DSEYL_FLASH_FEET },
   spriteSheet: DSEYL_ANIM.idle.sheet, portrait: './assets/dseyl/portrait.png',
   specials: { ...SY.specials, flashTime: { name: 'Flash Time', cost: DSEYL_FLASH.cost } },
   animationData: {

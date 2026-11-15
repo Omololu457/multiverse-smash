@@ -54,13 +54,13 @@ export const FLIGHT_PROFILES = {
   },
 
 
-  // DSEYL (tribute fighter, rocket boots) — WIRED (traits.flightProfile:"dseyl"). A lighter flyer than the Supermen.
-  //   accel 0.50 · cruiseH 6.0 · cruiseV 5.0 · drag 0.86 · 2 air-dashes
+  // DSEYL (tribute fighter, rocket boots) — WIRED (traits.flightProfile:"dseyl"). TWICE Superman's flight speed:
+  //   accel 4.4 · cruiseH 44 · cruiseV 36 · air-dash 68 (Superman 2.2 / 22 / 18 / 34) · drag 0.84 (Superman's) · 2 air-dashes
   //   3.5 s flight = energyMax 210 / drainPerFrame 1 · groundedAfterHardHit 1.5 s = groundedLock 90
-  //   (dashSpeed 14 / dashFrames 12 scaled to his cruise speed; the rest = Homelander's defaults)
+  //   double-tap away = air dash; double-tap TOWARD the foe = teleport right beside them (game.js detectDoubleTapDashTeleport)
   dseyl: {
-    accel: 0.50, maxH: 6.0, maxV: 5.0, drag: 0.86, reverseBrake: 0.64,
-    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 14, dashFrames: 12, maxAirDash: 2,
+    accel: 4.4, maxH: 44.0, maxV: 36.0, drag: 0.84, reverseBrake: 0.64,
+    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 68, dashFrames: 12, maxAirDash: 2,
     dashCost: 30, energyMax: 210, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,
     takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 90,
     landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,

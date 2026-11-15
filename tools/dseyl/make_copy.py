@@ -48,6 +48,12 @@ INSERT = {
         (4, "import { SYNDROME_MOVES,", "import { tickDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Flash Time window / cooldown\nimport { SYNDROME_MOVES,"),
         (4, "  tickDseylFlight(f, raw)   // DSEYL: Charge-tap takeoff / come-down (every sim frame)\n",
             "  tickDseylFlight(f, raw)   // DSEYL: Charge-tap takeoff / come-down (every sim frame)\n  tickDseylFlashTime(f, opp)   // DSEYL: Flash Time 180-frame window + cooldown (before the hitstop return → real frames)\n"),
+        (7, "import { SYNDROME_MOVES,", "import { DSEYL_FLASH_FEET } from './dseylData.js'   // DSEYL: the Flash's feet\nimport { SYNDROME_MOVES,"),
+        (7, "  const s = dsState(f); s.tick++\n",
+            "  // DSEYL: the shared fighter factory / round revert stamps the generic speed 84 / dash 16 → re-apply the Flash's feet\n"
+            "  // (same contract as dashParrState / batmanState; any other value = a speed modifier, kept)\n"
+            "  if (f.baseSpeed === 84 && f.dashSpeed === 16) { const st = DSEYL_FLASH_FEET; f.baseSpeed = f.speed = st.speed; f.dashSpeed = st.dashSpeed; f.dashDuration = st.dashDuration; f.dashCooldownMax = st.dashCooldownMax }\n"
+            "  const s = dsState(f); s.tick++\n"),
     ],
     'dseyl.js': [
         (4, "import { CHAIN,", "import { tryDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Guard + Special = Flash Time\nimport { CHAIN,"),
@@ -112,6 +118,7 @@ def data_js(ph):
     consts = []
     if ph >= 3: consts.append("// Flight takeoff = a Charge (L2 / P) TAP — Homelander's control — measured on the SIM clock (deterministic): released\n// within maxHold frames, no Special while held and none within modWindow frames after (that is Syndrome's L2 + R1 table).\nexport const DSEYL_FLIGHT_TAP = { maxHold: 12, modWindow: 4 }")
     if ph >= 4: consts.append("// Flash Time (the shared game.js _oppTimeScaleOf time-slow engine, as the Flash / Dash Parr). Weaker than the Flash's:\n// fixed 180-frame window, opponent at 50 %, Dseyl NOT sped up, 600-frame (10 s) cooldown after it ends.\nexport const DSEYL_FLASH = { cost: 40, oppSlow: 0.5, frames: 180, cooldown: 600 }")
+    if ph >= 7: consts.append("// Ground speed = the Flash's (speed 99 / dash 26-12-24). speed >= 98 puts him in the engine's speed tier: a double-tap\n// TOWARD the foe teleports behind them (game.js detectDoubleTapDashTeleport), a double-tap away is a normal dash.\nexport const DSEYL_FLASH_FEET = { speed: 99, dashSpeed: 26, dashDuration: 12, dashCooldownMax: 24 }")
     if ph >= 5: consts.append("// Balance guard: Syndrome + two powers → 6 % less health (docs/dseyl/BALANCE_NOTES.md). Drones + Flash Time share Power.\nexport const DSEYL_HP_FACTOR = 0.94")
     meta = ("  color: '#8a8a8e', series: 'Multiverse Smash', era: 'Tribute fighter — an edited copy of Syndrome (GBA \"The Incredibles\" sheets, recoloured and trimmed)',\n"
             "  tagline: 'I helped build this.', introTitle: 'DSEYL — THE BUILDER', archetype: 'Inventor / Drone Commander',\n"
@@ -120,14 +127,21 @@ def data_js(ph):
     return (s.replace('@CONSTS@', '\n'.join(consts)).replace('@META@', meta)
              .replace('@FLIGHT_IMPORT@', ', DSEYL_FLIGHT_ANIM' if ph >= 3 else '')
              .replace('@TRAITS@', ', flightProfile: DSEYL_KEY' if ph >= 3 else '')
-             .replace('@STATS@', ', maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR)' if ph >= 5 else '')
+             .replace('@STATS@', (', maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR)' if ph >= 5 else '') + (', ...DSEYL_FLASH_FEET' if ph >= 7 else ''))
              .replace('@SPECIALS@', ', flashTime: { name: \'Flash Time\', cost: DSEYL_FLASH.cost }' if ph >= 4 else '')
              .replace('@FLIGHT_ANIM@', '\n    ...DSEYL_FLIGHT_ANIM,   // flight.js poses on existing airborne strips' if ph >= 3 else ''))
 
 
 def kit_js(ph):
     rows, specials, extra_imp = [], [], ''
-    if ph >= 3:
+    if ph >= 7:
+        rows += ["    ['Dash (away) / Teleport to the foe (toward)', 'double-tap A or D', 'double-tap ← or →', 'double-tap the stick'],",
+                 "    ['Flight: take off / come down', 'tap P', 'tap 7', 'tap L2'],",
+                 "    ['Flight: steer', 'W A S D', '↑ ← ↓ → ', 'Left stick'],",
+                 "    ['Flight: air dash (×2) away / teleport to the foe toward', 'double-tap', 'double-tap', 'double-tap'],"]
+        specials.append("    { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff at twice Superman\\'s speed (2 air dashes away, teleport to the foe toward; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },")
+        specials.append("    { name: 'Speed-Force Feet', input: 'double-tap toward', cost: 0, desc: 'The Flash\\'s ground speed and dash. Double-tap toward the opponent to teleport right beside them (on the ground or in flight); double-tap away to dash.' },")
+    elif ph >= 3:
         rows += ["    ['Flight: take off / come down', 'tap P', 'tap 7', 'tap L2'],",
                  "    ['Flight: steer / air dash (×2)', 'W A S D / double-tap', '↑ ← ↓ → / double-tap', 'Left stick / double-tap'],"]
         specials.append("    { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff (2 air dashes; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },")

@@ -41,6 +41,32 @@ try {
   ok('health = 94 % of Syndrome (1109 vs 1180)', A.a.maxHp === Math.round(A.bMax * 0.94) && A.a.maxHp === 1109, `${A.a.maxHp} vs ${A.bMax}`)
   const sheets = await page.evaluate(() => [...document.querySelectorAll('img')].length)
   out.render = A
+
+  // ── G. THE FLASH'S FEET + DOUBLE-TAP DASH / TELEPORT (ground AND flight) — real key events (the double-tap is wall-clock) ──
+  const st = await page.evaluate(async () => { const { characters: C } = await import('./characters.js'); const k = ['speed', 'dashSpeed', 'dashDuration', 'dashCooldownMax']
+    return { ds: k.map(x => C.dseyl.stats[x]), fl: k.map(x => C.flash.stats[x]), hp: C.dseyl.stats.maxHealth } })
+  ok('ground speed + dash = the Flash\'s (speed / dashSpeed / dashDuration / dashCooldownMax)', JSON.stringify(st.ds) === JSON.stringify(st.fl) && st.hp === 1109, JSON.stringify(st))
+  const sl = ms => new Promise(r => setTimeout(r, ms))
+  // the double-tap window is wall-clock (240 ms): dispatch both taps in ONE page task so machine load can't stretch the gap
+  const tap2 = k => page.evaluate(k => { for (let i = 0; i < 2; i++) for (const t of ['keydown', 'keyup']) document.dispatchEvent(new KeyboardEvent(t, { key: k, bubbles: true })) }, k)
+  const place = (ax, bx) => page.evaluate(([ax, bx]) => { const H = __harness.dseylTest, a = H.raw(), b = H.raw('p2'); a.x = ax; b.x = bx; a.vx = 0; b.vx = 0; a.dashTeleportCooldown = 0; b.invulnTimer = 99999 }, [ax, bx])
+  const snap = () => page.evaluate(() => { const H = __harness.dseylTest, a = H.raw(), b = H.raw('p2'); return { ax: a.x, ay: a.y, bx: b.x, tf: a.teleportFlash || 0, cd: a.dashTeleportCooldown || 0, fl: H.flight()?.phase, ad: H.flight()?.airDashCount || 0, dt: a.dashTimer || 0 } })
+  const watch = async (n = 20) => { let m = await snap(), tf = 0; for (let i = 0; i < n; i++) { const q = await snap(); tf = Math.max(tf, q.tf); m = q; if (tf > 0) break; await sl(16) } return { ...m, tfMax: tf } }
+  await place(900, 1300); await sl(120); const g0 = await snap(); await tap2('d'); const gT = await watch()
+  ok('ground: double-tap TOWARD = teleport (blinks from 400 px away to right beside the foe)', gT.tfMax > 0 && gT.cd > 0 && Math.abs(gT.bx - gT.ax) < 120, JSON.stringify({ g0, gT }))
+  await sl(900); await place(1300, 1700); await sl(120); const a0 = await snap(); await tap2('a'); let aD = await snap(), dtMax = 0
+  for (let i = 0; i < 12; i++) { aD = await snap(); dtMax = Math.max(dtMax, aD.dt); if (dtMax) break; await sl(16) }
+  ok('ground: double-tap AWAY = a dash (the engine dash, no teleport)', dtMax > 0 && aD.cd === 0 && aD.tf === 0, JSON.stringify({ a0, aD, dtMax }))
+  await sl(900); await place(900, 1500); await sl(100)
+  await page.keyboard.down('w'); await sl(30); await page.keyboard.up('w'); await sl(300)                 // hop
+  await page.keyboard.down('p'); await sl(30); await page.keyboard.up('p')                                // Charge TAP → take off
+  for (let i = 0; i < 40 && (await snap()).fl !== 'flying'; i++) await sl(25)
+  await page.keyboard.down('w'); await sl(160); await page.keyboard.up('w'); await sl(80)
+  const f0 = await snap(); await tap2('d'); const fT = await watch()
+  ok('flight: double-tap TOWARD = teleport beside the foe and stays flying (altitude kept, not dropped to the ground)', f0.fl === 'flying' && fT.tfMax > 0 && Math.abs(fT.bx - fT.ax) < 120 && Math.abs(fT.bx - f0.ax) > 300 && fT.ay < 300 && ['flying', 'airdash'].includes(fT.fl), JSON.stringify({ f0, fT }))
+  await sl(900); await place(800, 1500); await sl(60); const f1 = await snap(); await tap2('a'); await sl(120); const fD = await snap()   // foe to his right: 'a' = away
+  ok('flight: double-tap AWAY = flight air dash (no teleport)', f1.fl === 'flying' && fD.ad >= 1 && fD.tf === 0, JSON.stringify({ f1, fD }))
+  out.speedTeleport = { st, g0, gT, a0, aD, f0, fT, f1, fD }
   await page.close()
 
   // ── B. copied kit on Dseyl's own state ──
@@ -58,9 +84,9 @@ try {
     H.reset(); const a = H.raw(), b = H.raw('p2'); a.x = 1200; b.x = 1700; a.facing = 1; b.facing = -1; a.energy = 100; b.invulnTimer = 9999; step(20)
     const tap = () => { writeRawControls(a, { charge: true }); step(3); writeRawControls(a, {}); step(6) }
     const g0 = H.flight(); tap(); const f1 = H.flight(), y1 = a.y
-    writeRawControls(a, { up: true, jump: true, right: true }); step(30);   // keyboard W = up AND jump (shared key)
-    writeRawControls(a, {}); const f2 = H.flight(), y2 = a.y, peakV = Math.abs(a.vx)
-    let frames = 0; while (H.flight().phase !== 'grounded' && H.flight().phase !== 'landing' && frames < 600) { step(1); frames++ }
+    let peakV = 0; writeRawControls(a, { up: true, jump: true, right: true }); for (let i = 0; i < 30; i++) { step(1); peakV = Math.max(peakV, Math.abs(a.vx)) }   // keyboard W = up AND jump (shared key)
+    writeRawControls(a, {}); const f2 = H.flight(), y2 = a.y
+    let frames = 0, zeroAt = -1; while (H.flight().phase !== 'grounded' && H.flight().phase !== 'landing' && frames < 900) { step(1); frames++; if (zeroAt < 0 && H.flight().energy <= 0) zeroAt = 30 + frames }   // +30 = the climb above
     const land = H.flight(); step(30); const after = H.flight(), grounded = !!(a.onGround || a.grounded)
     // L2 + R1 = Syndrome's modifier (Zero-Point) → no takeoff
     H.reset(); a.x = 1300; b.x = 1400; a.energy = 100; step(5)
@@ -70,10 +96,10 @@ try {
     H.reset(); a.x = 1200; b.x = 1800; a.energy = 100; step(5); tap(); step(10)
     const dash = () => { writeRawControls(a, { dash: true, right: true }); step(1); writeRawControls(a, {}); step(16) }
     dash(); dash(); dash(); const dashes = H.flight().airDashCount
-    return { g0, f1, f2, y1, y2, peakV, frames, land, after, grounded, mod, atk, dashes } })
+    return { g0, f1, f2, y1, y2, peakV, frames, zeroAt, land, after, grounded, mod, atk, dashes } })
   ok('flight: Charge tap takes off (takeoff/flying) and Up rises', ['takeoff', 'flying'].includes(C.f1.phase) && C.y2 < C.y1 - 40, JSON.stringify({ f1: C.f1, y1: C.y1, y2: C.y2 }))
-  ok('flight: cruise speed capped by the dseyl profile (≤ 6.0 px/f horizontal)', C.peakV <= 6.01 && C.peakV > 3, 'vx ' + C.peakV)
-  ok('flight: 3.5 s budget (210) drains and EXPIRES → he comes down and lands', C.frames > 120 && C.frames < 420 && C.grounded && C.after.phase === 'grounded', JSON.stringify({ frames: C.frames, land: C.land, after: C.after }))
+  ok('flight: twice Superman\'s speed (faster than his 22 px/f cap, ≤ 44 px/f horizontal)', C.peakV <= 44.01 && C.peakV > 22, 'vx ' + C.peakV)
+  ok('flight: 3.5 s budget (210) drains and EXPIRES → he comes down and lands', C.zeroAt > 150 && C.zeroAt <= 216 && C.grounded && C.after.phase === 'grounded', JSON.stringify({ zeroAt: C.zeroAt, frames: C.frames, land: C.land, after: C.after }))
   ok('flight: L2 + R1 stays Syndrome\'s modifier (Zero-Point) and never takes off', C.atk === 'sZero' && C.mod.phase === 'grounded', JSON.stringify({ atk: C.atk, mod: C.mod }))
   ok('flight: 2 air dashes per flight (third refused)', C.dashes === 2, 'dashes ' + C.dashes)
   out.flight = C
@@ -141,9 +167,10 @@ try {
   ok(`replay matches every frame (${N}) with drones + flight + Flash Time`, first === -1, first === -1 ? '' : `frame ${first}\n${rec.traces[first]}\n${pb.t[first]}`)
   ok('no replay checkpoint desync; playback marks Dseyl remote-driven', !pb.st.desync && pb.remote, JSON.stringify(pb.st))
   await page.evaluate(() => __harness.replay.stopPlayback?.())
-  const r1 = await page.evaluate(async src => { const { writeRawControls } = await import('./input.js'); const H = __harness.dseylTest
-    const run = stepper => { H.reset(); const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1560; a.facing = 1; b.facing = -1
-      for (const f of [a, b]) { f.health = f.maxHealth; f.energy = 100; f.vx = f.vy = 0; f.hitstun = 0; f.hitstop = 0 } const t = [], SS = eval(src)
+  const r1 = await page.evaluate(async src => { const { writeRawControls } = await import('./input.js'); const { resetFlight } = await import('./flight.js'); const { camera } = await import('./camera.js'); const H = __harness.dseylTest
+    const run = stepper => { H.reset(); camera.reset(); const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1560; a.facing = 1; b.facing = -1
+      for (const f of [a, b]) { f.health = f.maxHealth; f.energy = 100; f.vx = f.vy = 0; f.hitstun = 0; f.hitstop = 0   // resetTraining keeps dash / flight state → clear it so each run starts identical
+        f.dashTimer = 0; f.dashCooldown = 0; f.airDashing = false; f.airDashTimer = 0; f.airDashCount = 0; f.dashTeleportCooldown = 0; f.teleportFlash = 0; if (f._flightCtl) resetFlight(f) } const t = [], SS = eval(src)
       for (let i = 0; i < 1800; i += 4) { if (i % 300 === 0) a.energy = 100; writeRawControls(a, SS(i, a, b)); stepper(); t.push(JSON.stringify([a.x, a.y, a.health, a.energy, b.x, b.health, a._flightCtl?.phase, a._dseyl?.ft, a._dseyl?.mobile, a.currentAttack?.name])) } return t }
     run(() => __harness.luffyTest.step(4))
     return { perFrame: run(() => { for (let k = 0; k < 4; k++) __harness.luffyTest.step(1) }), batched: run(() => __harness.luffyTest.step(4)), again: run(() => { for (let k = 0; k < 4; k++) __harness.luffyTest.step(1) }) } }, SCRIPT)

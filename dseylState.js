@@ -17,6 +17,7 @@
 // scheduled contact with the combo scale captured at the capture. Nothing grants invulnerability or refunds jumps.
 import { tickDseylFlight } from './dseylFlight.js'   // DSEYL: Charge-tap flight (sim clock)
 import { tickDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Flash Time window / cooldown
+import { DSEYL_FLASH_FEET } from './dseylData.js'   // DSEYL: the Flash's feet
 import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, ULT, NORMAL_KEYS, SPINNER_NORMALS, dmg } from './dseylData.js'
 
 export const DSEYL_STATE_KEY = 'dseyl'
@@ -373,6 +374,9 @@ function updateHold(f, s, W) {
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer) ──
 export function tickDseyl(f, opp, raw, W) {
   if (!isDseyl(f)) { if (f?._dseyl) clearDseyl(f, W); return }
+  // DSEYL: the shared fighter factory / round revert stamps the generic speed 84 / dash 16 → re-apply the Flash's feet
+  // (same contract as dashParrState / batmanState; any other value = a speed modifier, kept)
+  if (f.baseSpeed === 84 && f.dashSpeed === 16) { const st = DSEYL_FLASH_FEET; f.baseSpeed = f.speed = st.speed; f.dashSpeed = st.dashSpeed; f.dashDuration = st.dashDuration; f.dashCooldownMax = st.dashCooldownMax }
   const s = dsState(f); s.tick++
   tickDseylFlight(f, raw)   // DSEYL: Charge-tap takeoff / come-down (every sim frame)
   tickDseylFlashTime(f, opp)   // DSEYL: Flash Time 180-frame window + cooldown (before the hitstop return → real frames)

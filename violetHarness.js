@@ -1,9 +1,9 @@
 // Test-only accessor for harness/violet*.mjs (exposed as __harness.violetTest; harness URLs only). Read-mostly: the only
 // writers are reset / setEnergy (scenario setup before driving real inputs).
 import { getAttackHitbox } from './combat.js'
-import { violet, MOVES, TIMELINE, SCALE, ENERGY, VANISH, PUSH, SHIELD, BALL, TRAP, ULT, MOTION } from './violetData.js'
+import { violet, MOVES, TIMELINE, SCALE, ENERGY, VANISH, PUSH, SHIELD, BALL, TRAP, ULT, MOTION, DEFENSE } from './violetData.js'
 import { violetAlpha } from './violetView.js'
-import { clearViolet, vState, shieldUp, startVMove } from './violetState.js'
+import { clearViolet, vState, shieldUp, startVMove, phaseInvuln } from './violetState.js'
 import { VIOLET_ANIM } from './violetSprites.js'
 import { VIOLET_SKINS } from './violetSkins.js'
 export function violetHarnessApi(g) {
@@ -20,8 +20,10 @@ export function violetHarnessApi(g) {
       g.projectiles?.().push(p); return true },
     projs: () => (g.projectiles?.() || []).map(p => ({ x: p.x, vx: p.vx, owner: p.owner === g.p1() ? 'p1' : p.owner === g.p2() ? 'p2' : '?', refl: p._violetReflected || 0, name: p.name })),
     shieldUp: (w = 'p1') => shieldUp(raw(w)),
+    phaseInvuln: (w = 'p1') => phaseInvuln(raw(w)),
+    setHp: (hp, w = 'p1') => { raw(w).health = hp },
     skins: () => VIOLET_SKINS.map(s => ({ id: s.id, name: s.name })),
-    data: () => clone({ moves: MOVES, timeline: TIMELINE, scale: SCALE, stats: violet.stats, energy: ENERGY, traits: violet.traits, vanish: VANISH, push: PUSH, shield: SHIELD, ball: BALL, trap: TRAP, ult: ULT, motion: MOTION }),
+    data: () => clone({ moves: MOVES, timeline: TIMELINE, scale: SCALE, stats: violet.stats, energy: ENERGY, traits: violet.traits, vanish: VANISH, push: PUSH, shield: SHIELD, ball: BALL, trap: TRAP, ult: ULT, motion: MOTION, defense: DEFENSE }),
     state: (w = 'p1') => { const f = raw(w), a = f.currentAttack, act = f._lastSpriteAction || null
       return { key: f.rosterKey, hp: f.health, maxHp: f.maxHealth, energy: f.energy, maxEnergy: f.maxEnergy, x: f.x, y: f.y, w: f.w, h: f.h, vx: f.vx, vy: f.vy, facing: f.facing,
         grounded: !!(f.onGround || f.grounded), jumpCount: f.jumpCount || 0, blocking: !!f.isBlocking,

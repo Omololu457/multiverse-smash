@@ -2,7 +2,8 @@
 // (vanish) → R11 invisible stance / walk → R9 invisible crouch, all drawn at 35 % alpha; on exit R12 fades her back in.
 // Attacks / jumps / hurt keep their own strips (at 35 % while invisible).
 import { VANISH } from './violetData.js'
-export const violetAlpha = f => (f?.rosterKey === 'violet' && f._violet?.inv) ? VANISH.alpha : 1
+// Vanish 35 %; Phase Step i-frames 55 % (she half-phases out of sight); render-only reads of sim flags
+export const violetAlpha = f => f?.rosterKey !== 'violet' || !f._violet ? 1 : f._violet.inv ? VANISH.alpha : f._violet.phaseInv ? 0.55 : 1
 export function violetSpriteAction(f, act) {
   if (f?.rosterKey !== 'violet' || !f._violet) return act
   const s = f._violet

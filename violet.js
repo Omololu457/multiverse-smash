@@ -5,14 +5,17 @@
 //   ↓↘→ + P      FORCE PUSH (12)        ←↙↓ + P   BUBBLE SHIELD (20)      → → + P   FORCE BALL (15)
 //   ↓↙← + P      FIELD TRAP (22)        ↓↓ + P    VANISH toggle (15)       P alone   FORCE PUSH
 //   ↓↘→↓↘→ + P or Ultimate             FULL FORCE (100)
+//   ← ← + Light   PHASE STEP (free; i-frames 3–12; 5 s cooldown)    Bubble Shield: 6 s cooldown
 // Cancels (clean hit, recovery): Jab → Jab (once) / Low / Heavy / Launcher · Low → Heavy / Launcher · Heavy → Launcher ·
 // any grounded normal → specials / FULL FORCE · a clean Launcher can be jump-cancelled (violetState.violetLocked).
 import { startMove, cancelWindowOpen, getComboScale, getComboHitstunScale } from './combat.js'
 import { isViolet, vState, freshEdge, useEdge, doubleDownSpecial, enterVanish, endVanish, registerVioletEngine, startVMove, rejectV } from './violetState.js'
-import { CHAIN, SPECIAL_FROM } from './violetData.js'
+import { CHAIN, SPECIAL_FROM, DEFENSE, MOTION } from './violetData.js'
 
 registerVioletEngine({ startMove, comboScale: getComboScale, hitstunScale: typeof getComboHitstunScale === 'function' ? getComboHitstunScale : null })
 
+const phaseStepInput = s => { const [a, b] = s.backTaps || [], e = s.edges.light
+  return (s.backTaps || []).length === 2 && b - a <= DEFENSE.phaseTap && e.tick >= b && e.tick - b <= MOTION.press }
 const COMMITTED = new Set(['vPush', 'vShield', 'vBall', 'vTrap', 'vUlt', 'vPhase', 'air'])
 const SPECIAL_OF = { push: 'vPush', shield: 'vShield', ball: 'vBall', trap: 'vTrap', ult: 'vUlt' }
 
@@ -64,6 +67,8 @@ export function updateVioletCommandCombat(f, inp, opp, W) {
   if (f.attackCooldown > 0 || inp.block) return 'grab'
   if (freshEdge(s, 'ultimate')) { useEdge(s, 'ultimate'); startVMove(f, 'vUlt', W, opp); return 'consumed' }
   if (freshEdge(s, 'special')) { doSpecial(f, s, W, opp, false); return 'consumed' }
+  // PHASE STEP ←←+Light (back-step, i-frames 3–12, 5 s cooldown) — takes the Light press when the double-back is fresh
+  if (freshEdge(s, 'light') && phaseStepInput(s)) { useEdge(s, 'light'); startVMove(f, 'vPhase', W, opp); return 'consumed' }
   for (const k of ['upAttack', 'light', 'heavy']) {
     if (!freshEdge(s, k)) continue
     useEdge(s, k)

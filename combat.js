@@ -8,7 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
-import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile } from './violetState.js'   // Violet Parr hooks (violet-gated)
+import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'   // Violet Parr hooks (violet-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -706,6 +706,7 @@ export function getAttackHitbox(fighter) {
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
   if (a?.mw && fighter.rosterKey === 'mmpr_white') return mmprWhiteHitbox(fighter)   // White Ranger: per-move box; body-less order / signal / feint have none
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
+  if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults

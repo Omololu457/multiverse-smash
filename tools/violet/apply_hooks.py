@@ -97,6 +97,11 @@ HOOKS = [
    "  drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)", "drawVioletScreen(ctx, canvas"),
   (4, 'game.js', "    violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,reset:", 'replace',
    "    violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:()=>activeProjectiles,reset:", "violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:"),
+  # ── phase 6: DEFENSE (body-less moves have no strike box → no clash) ──
+  (6, 'combat.js', "import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile } from './violetState.js'", 'replace',
+   "import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'", "violetProjectile, violetNoBox }"),
+  (6, 'combat.js', "  if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)", 'after_line',
+   "  if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated", "violetNoBox(fighter, a)) return null"),
 ]
 
 def main():

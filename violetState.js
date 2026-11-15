@@ -2,14 +2,14 @@
 // no Math.random, no gameRng, no wall clock; any variation comes from vhash(match seed, frame, player index).
 // Every export is a strict no-op for any other rosterKey. Render-only presentation (alpha, flashes, shake, particles)
 // never lives here — violetFx.js reads this state.
-import { violet as V_CHAR, ENERGY, WALK_SPEED_STAT, RUN_SPEED_STAT, VANISH, vhash, MOVES, PUSH, SHIELD, BALL, TRAP, ULT, MOTION } from './violetData.js'
+import { violet as V_CHAR, ENERGY, WALK_SPEED_STAT, RUN_SPEED_STAT, VANISH, vhash, MOVES, PUSH, SHIELD, BALL, TRAP, ULT, MOTION, DEFENSE } from './violetData.js'
 
 export const isViolet = f => f?.rosterKey === 'violet'
 const fresh0 = () => ({ tick: 0, clock: 0, hp: null, run: false, prev: {}, edges: {}, used: {}, downTaps: [], dir: 5, toks: [], fwdTaps: [],
   inv: null, vanishCd: 0, reappear: 0, ambushArmed: false,
-  push: null, trap: null, ult: null, lastHit: null, serial: 0,
+  push: null, trap: null, ult: null, lastHit: null, serial: 0, cd: { shield: 0, phase: 0 }, pshield: 0, instinct: null,
   stats: { hitsLanded: 0, hitsTaken: 0, energyFromHits: 0, runs: 0, vanishes: 0, vanishEnds: {}, ambushHits: 0, rejects: 0,
-    moves: {}, pushHits: 0, pushBlocked: 0, shieldBlocks: 0, reflects: 0, ballHits: 0, ballAbsorbs: 0, traps: 0, trapFizzles: 0, ultHits: 0, chains: 0, jumpCancels: 0 }, cues: [] })
+    moves: {}, pushHits: 0, pushBlocked: 0, shieldBlocks: 0, reflects: 0, ballHits: 0, ballAbsorbs: 0, traps: 0, trapFizzles: 0, ultHits: 0, chains: 0, jumpCancels: 0, phaseSteps: 0, phaseDodges: 0, instincts: 0 }, cues: [] })
 export const vState = f => f._violet ||= fresh0()
 const grounded = f => !!(f.onGround || f.grounded)
 const addEnergy = (f, n) => { f.energy = Math.min(f.maxEnergy || ENERGY.max, (f.energy || 0) + n) }
@@ -189,7 +189,7 @@ export function vStrike(f, t, P, W) {
 }
 
 // ── move start (command layer → here). Specials are grounded; normals follow the air / ground split. ──
-const AIR_ONLY = ['air'], GROUND = ['light', 'heavy', 'vLow', 'up', 'vPush', 'vShield', 'vBall', 'vTrap', 'vUlt']
+const AIR_ONLY = ['air'], GROUND = ['light', 'heavy', 'vLow', 'up', 'vPush', 'vShield', 'vBall', 'vTrap', 'vUlt', 'vPhase']
 export function startVMove(f, key, W, opp, { cancel = false, chain = 0 } = {}) {
   if (!isViolet(f)) return false
   const s = vState(f), md = MOVES[key], g = grounded(f)
@@ -199,6 +199,8 @@ export function startVMove(f, key, W, opp, { cancel = false, chain = 0 } = {}) {
   if (GROUND.includes(key) && !g) return md.isSpecial ? rejectV(f, W) : false
   if (key === 'vPush' && s.push) return rejectV(f, W)                 // one ring on screen
   if (key === 'vTrap' && s.trap) return rejectV(f, W)                 // one trap at a time
+  if (key === 'vShield' && s.cd.shield > 0) return rejectV(f, W)      // 6 s cooldown (nothing spent)
+  if (key === 'vPhase' && s.cd.phase > 0) return rejectV(f, W)        // 5 s cooldown
   if ((md.cost || 0) > (f.energy || 0)) return rejectV(f, W)
   if (cancel) endAttack(f)
   if (!E.startMove || !E.startMove(f, key, md)) return false
@@ -209,7 +211,9 @@ export function startVMove(f, key, W, opp, { cancel = false, chain = 0 } = {}) {
   a.hasHit = !!md.noBody
   f.isBlocking = false; f.isCharging = false
   if (g) f.vx = 0
-  if (key === 'vBall') { f.dashTimer = 0; f.isDashing = false }
+  if (key === 'vBall' || key === 'vPhase') { f.dashTimer = 0; f.isDashing = false }
+  if (key === 'vShield') s.cd.shield = DEFENSE.shieldCooldown
+  if (key === 'vPhase') { s.cd.phase = DEFENSE.phaseCooldown; s.stats.phaseSteps++ }
   if (key === 'vTrap') {
     const t = nearestFoe(f, W, opp)
     const x = t ? ctrX(t) : ctrX(f) + (f.facing || 1) * 220, y = t ? ctrY(t) : ctrY(f)
@@ -222,6 +226,7 @@ export function startVMove(f, key, W, opp, { cancel = false, chain = 0 } = {}) {
 
 // ── defensive states read by combat.js (violet-gated) ──
 export function shieldUp(f) {
+  if (isViolet(f) && f._violet?.pshield > 0) return true            // Protective Instinct dome
   const a = isViolet(f) && vLive(f); if (!a || a.vi.key !== 'vShield') return false
   const e = elapsed(a), md = MOVES.vShield
   return e >= md.startup && e < md.startup + md.active
@@ -230,10 +235,14 @@ export function ballArmored(f) {
   const a = isViolet(f) && vLive(f); if (!a || a.vi.key !== 'vBall') return false
   return elapsed(a) < MOVES.vBall.startup + MOVES.vBall.active
 }
+// combat.getAttackHitbox hook: body-less moves (specials, Phase Step) have NO strike box — without this the shared
+// default (rangeX 0 → 50 px) would give them a box that clashes with incoming strikes.
+export const violetNoBox = (f, a) => isViolet(f) && !!a?.vi && !!MOVES[a.vi.key]?.noBody
 // Melee absorb (combat.js, beside absorbBatman): the dome stops every non-grab strike while it is up.
 export function absorbViolet(f, source, attack) {
-  if (!isViolet(f) || !attack || !shieldUp(f)) return false
+  if (!isViolet(f) || !attack) return false
   if (attack.damageType === 'grab' || attack.category === 'grab' || attack.isGrab) return false
+  if (!shieldUp(f) && !instinct(f)) return false
   const s = vState(f); s.stats.shieldBlocks++; cue(f, 'shieldBlock')
   if (source) source.vx = (Math.sign(ctrX(source) - ctrX(f)) || 1) * 4
   return true
@@ -243,7 +252,7 @@ export function absorbViolet(f, source, attack) {
 export function violetProjectile(f, proj) {
   if (!isViolet(f) || !proj || proj.owner === f) return false
   const s = vState(f)
-  if (shieldUp(f)) {
+  if (shieldUp(f) || instinct(f)) {
     const k = SHIELD.reflect
     proj.vx = -(proj.vx || 0) * k; if (proj.vy) proj.vy *= k
     if (proj.dir != null) proj.dir = -proj.dir
@@ -256,6 +265,20 @@ export function violetProjectile(f, proj) {
   }
   if (ballArmored(f)) { s.stats.ballAbsorbs++; cue(f, 'shieldBlock'); return 'absorb' }
   return false
+}
+// ── PHASE 6: DEFENSE ──
+// Protective Instinct: once per round, below 20 % health, the NEXT incoming strike / projectile pops a free 30f dome
+// that catches it (returns true = this hit is absorbed). Armed state, use and timer live in f._violet (GAME_STATE).
+export function instinct(f) {
+  const s = vState(f)
+  if (s.instinct === 'used' || f.health <= 0 || f.health >= (f.maxHealth || 900) * DEFENSE.instinctBelow) return false
+  s.instinct = 'used'; s.pshield = DEFENSE.instinctFrames; s.stats.instincts++; cue(f, 'instinct')
+  return true
+}
+export function phaseInvuln(f) {
+  const a = isViolet(f) && vLive(f); if (!a || a.vi.key !== 'vPhase') return false
+  const fr = elapsed(a) + 1                                              // press frame = frame 1
+  return fr >= DEFENSE.phaseIframes[0] && fr <= DEFENSE.phaseIframes[1]
 }
 // 85 % per hit (combat._comboScale hook, the Zoro / Buggy precedent): hit n of a combo deals 0.85^(n−1).
 export const violetComboScale = f => Math.pow(0.85, Math.max(0, f.comboCounter || 0))
@@ -297,6 +320,9 @@ function tickMove(f, s, W, opp) {
         }
       }
     } else if (e === md.startup + md.active) f.vx = 0
+  }
+  if (k === 'vPhase') {
+    if (e < md.startup + md.active) f.vx = -dir * DEFENSE.phaseSpeed; else if (e === md.startup + md.active) f.vx = 0
   }
   if (k === 'vUlt' && e === md.startup && !s.ult) {
     const t = nearestFoe(f, W, opp)
@@ -387,8 +413,16 @@ export function tickViolet(f, opp, raw, W) {
     else if (s.inv.t >= VANISH.maxFrames) endVanish(f, 'timeout', W)
     else if ((f.energy || 0) <= 0) endVanish(f, 'empty', W)
   }
+  // ── PHASE 6: cooldowns, instinct dome, Phase Step i-frames ──
+  if (s.cd.shield > 0) s.cd.shield--
+  if (s.cd.phase > 0) s.cd.phase--
+  if (s.pshield > 0) s.pshield--
   // ── PHASE 4: moves / payloads / trap / ultimate ──
   tickMove(f, s, W, opp); tickPush(f, s, W, opp); tickTrap(f, s, W, opp); tickUlt(f, s, W, opp, tookHit)
+  // i-frames: 2 because her own combat update decrements invulnTimer before the foe's strike resolves this frame;
+  // cleared on the first frame after the window so frame 13 is hittable again
+  if (phaseInvuln(f)) { f.invulnTimer = Math.max(f.invulnTimer || 0, 2); s.phaseInv = true }
+  else { if (s.phaseInv && (f.invulnTimer || 0) <= 1) f.invulnTimer = 0; s.phaseInv = false }
   // RUN: a double-tap dash that ends with forward still held keeps going at runSpeed 8.0 until forward is released,
   // she attacks, leaves the ground or is hit. Walking speed is 5.4.
   const fw = !!(f.facing === -1 ? raw.left : raw.right)

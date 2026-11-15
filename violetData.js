@@ -45,8 +45,15 @@ export const MOVES = {
   vShield: sp(4, 40, 10, { cost: 20 }),                      // BUBBLE SHIELD ←↙↓+P: R15 dome 40f, blocks all strikes, reflects ×1.2, 10f recovery
   vBall: sp(8, 20, 14, { cost: 15 }),                        // FORCE BALL →→+P: 320 px rolling lunge, 30 + 30, projectile armour
   vTrap: sp(6, 2, 14, { cost: 22 }),                         // FIELD TRAP ↓↙←+P: bubble at the foe's cast position after 18f, traps 45f, 0 dmg
+  vPhase: sp(1, 11, 6, { isSpecial: false, category: 'movement' }),   // PHASE STEP ←←+Light: back-step, i-frames 3–12, no cost
   vUlt: sp(12, 70, 90, { cost: 100, category: 'ultimate', isUltimate: true }),   // FULL FORCE ↓↘→↓↘→+P: 30 + 40 + 150 = 220 unscaled, 90f lockout
 }
+// ── PHASE 6: DEFENSE ──
+// Bubble Shield: 6 s cooldown (from the cast) on top of its 20 cost. Phase Step ←←+Light: R7 strip, back-step with
+// i-frames on frames 3–12 (press frame = 1), 5 s cooldown. Protective Instinct: once per round, below 20 % health, the
+// next incoming strike / projectile pops a FREE 30f dome (the triggering hit is caught by it; no cost, no cooldown).
+export const DEFENSE = { shieldCooldown: 360, phaseCooldown: 300, phaseIframes: [3, 12], phaseSpeed: 7, phaseTap: 14,
+  instinctBelow: 0.20, instinctFrames: 30 }
 // Payload tuning (sim px / frames). raw = authored on-hit damage / 0.60 (the strike path applies the shared 0.60 scale).
 export const PUSH = { speed: 13, range: 520, raw: 84, hitstun: 22, blockstun: 14, kb: [11, -3], r: 30 }
 export const SHIELD = { reflect: 1.2, r: 64 }
@@ -64,7 +71,7 @@ export const TIMELINE = {
   light: [[0, 0], [3, 1], [7, 2]], heavy: [[0, 0], [5, 1], [10, 2], [13, 3], [20, 4]], vLow: [[0, 0], [7, 1]],
   up: [[0, 0], [11, 1]], air: [[0, 0], [4, 1], [7, 2]],
   vPush: [[0, 0], [4, 1], [8, 2], [10, 3], [16, 4]], vShield: [[0, 0], [2, 1], [4, 2]], vBall: [[0, 0], [4, 1], [8, 2], [12, 3]],
-  vTrap: [[0, 0]], vUlt: [[0, 0], [12, 1], [30, 2], [50, 3], [70, 4], [100, 5]],
+  vTrap: [[0, 0]], vPhase: [[0, 0], [3, 1], [6, 2], [9, 3], [12, 4], [15, 5]], vUlt: [[0, 0], [12, 1], [30, 2], [50, 3], [70, 4], [100, 5]],
 }
 
 export const violet = {

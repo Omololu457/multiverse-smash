@@ -487,7 +487,7 @@ import { startChoreo as startCloneChoreo, startFormation as startCloneFormation,
          isChoreoActiveFor, isFormationActiveFor as isCloneFormationActiveFor, clearChoreoFor, clearAllChoreo,
          holdChoreoAt as holdCloneChoreoAt, holdFormation as holdCloneFormation, getChoreoState as getCloneChoreoState,
          isChoreoSupported, choreoRoster, choreoKit, SELECT_MAP as CLONE_SELECT_MAP } from "./cloneChoreography.js"
-import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
+import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha, controlsOverlayPadRows } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
@@ -563,6 +563,7 @@ import * as challenges from "./challenges.js"               // skill-based chall
 import * as comboTrials from "./comboTrials.js"             // Combo Trials mission mode: scripted combo challenges (observer over Training)
 import * as tutorial from "./tutorial.js"                   // first-boot guided interactive tutorial (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
+import { PAD_BUTTON, PAD_DPAD, PAD_AXES, padHelpRows } from "./padLayout.js"   // the ONE controller layout table
 import * as academy from "./academy.js"   // CHARACTER ACADEMY — lesson generation, device labels, SHOW-ME scripts, read-only detection, local progress (additive, isolated)
 import { academyTagsFor, scenarioFromTags } from "./academyTags.js"   // CHARACTER ACADEMY — per-move scenario tags → dummy behaviour + state setup (separate data file, no kit edits)
 import { curatedFor, curatedFighters } from "./academyCurated.js"   // CHARACTER ACADEMY — hand-tuned multi-step lessons for complex fighters (separate data file)
@@ -11204,10 +11205,10 @@ function updateGamepadEdges(fighter) {
   const dz   = STICK_DEADZONE
 
   const dirs = [
-    ["left",  c.left,  btn(PS5_MAP.LEFT)  || (ax[0] || 0) < -dz],
-    ["right", c.right, btn(PS5_MAP.RIGHT) || (ax[0] || 0) >  dz],
-    ["up",    c.up,    btn(PS5_MAP.UP)    || (ax[1] || 0) < -dz],
-    ["down",  c.down,  btn(PS5_MAP.DOWN)  || (ax[1] || 0) >  dz]
+    ["left",  c.left,  btn(PAD_DPAD.left)  || (ax[PAD_AXES.leftX] || 0) < -dz],
+    ["right", c.right, btn(PAD_DPAD.right) || (ax[PAD_AXES.leftX] || 0) >  dz],
+    ["up",    c.up,    btn(PAD_DPAD.up)    || (ax[PAD_AXES.leftY] || 0) < -dz],
+    ["down",  c.down,  btn(PAD_DPAD.down)  || (ax[PAD_AXES.leftY] || 0) >  dz]
   ]
   for (const [name, key, held] of dirs) {
     if (held && !prev[name]) {                  // PRESS edge
@@ -11218,8 +11219,8 @@ function updateGamepadEdges(fighter) {
     prev[name] = held
   }
 
-  // L2 = charge (hold) / per-character toggle (tap) — reuse the keyboard handlers.
-  const l2 = btn(PS5_MAP.L2)
+  // Charge button (padLayout.js) = charge (hold) / per-character toggle (tap) — reuse the keyboard handlers.
+  const l2 = btn(PAD_BUTTON.charge)
   if (l2 && !prev.l2) handleToggleInputs(fighter, c.charge)    // press → record charge-down time
   if (!l2 && prev.l2) handleChargeRelease(fighter, c.charge)   // release → toggle if it was a quick tap
   prev.l2 = l2
@@ -11228,12 +11229,12 @@ function updateGamepadEdges(fighter) {
   // the tap-vs-hold SPECIAL/ULTIMATE characters (Saitama / Genos / Iron Man / Vilgax / Madara) behave
   // identically on a pad. Every handler is a no-op unless the fighter is that character, so this is safe for
   // all others — it just closes the parity gap where pad players couldn't get those tiered specials/ults.
-  const r1 = btn(PS5_MAP.R1)
+  const r1 = btn(PAD_BUTTON.special)
   if (r1 && !prev.r1) { handleSaitamaSpecialDown(fighter, c.special); handleGenosSpecialDown(fighter, c.special); handleIronMan2SpecialDown(fighter, c.special); handleIronMan3SpecialDown(fighter, c.special); handleVilgaxSpecialDown(fighter, c.special) }
   if (!r1 && prev.r1) { handleSaitamaSpecialRelease(fighter, c.special); handleGenosSpecialRelease(fighter, c.special); handleIronMan2SpecialRelease(fighter, c.special); handleIronMan3SpecialRelease(fighter, c.special); handleVilgaxSpecialRelease(fighter, c.special) }
   prev.r1 = r1
 
-  const r2 = btn(PS5_MAP.R2)
+  const r2 = btn(PAD_BUTTON.ultimate)
   if (r2 && !prev.r2) handleUltimateDown(fighter, c.ultimate)
   if (!r2 && prev.r2) { fighter._ultReleasedSinceStage1 = true; handleUltimateRelease(fighter, c.ultimate) }
   prev.r2 = r2
@@ -22048,23 +22049,10 @@ function _drawOnlinePlaceholder() {
 }
 
 // Progression badge (Task 3): level + XP bar + the explicit non-persistence notice.
-// Controller-aware CONTROL_REFERENCE (Part 3 #26): clone the static reference but rebuild its
-// `controller` rows from the connected pad's glyph set so the MOVE LIST controls match the real device.
+// Controller-aware CONTROL_REFERENCE (Part 3 #26): the `controller` rows are GENERATED from padLayout.js
+// (the single layout table) with the connected pad's glyph set, so the MOVE LIST shows the real bindings.
 function _controlRefForPad() {
-  const G = padGlyphs()
-  return {
-    ...CONTROL_REFERENCE,
-    controller: [
-      ["Move / Jump",      "L-Stick / D-Pad"],
-      ["Light",            G.down],
-      ["Heavy",            G.left],
-      ["Special",          G.up],
-      ["Dash",             G.right],
-      ["Ultimate",         `${G.l2} / ${G.r2}`],
-      ["Grab",             G.l1],
-      ["Charge / Omnitrix", G.r1]
-    ]
-  }
+  return { ...CONTROL_REFERENCE, controller: padHelpRows(padGlyphs()) }
 }
 
 // ── UNLOCK TOASTS (Part 3 #17) — slide-in notifications for newly unlocked content. A small queue of
@@ -28074,6 +28062,12 @@ gameLoop()
       charUnlockToasts: (from = 0, to = 200) => charactersUnlockedBetween(from, to, characters).map(_charUnlockToastText),
       padType: () => padGlyphs().label,
       padGlyphs: () => padGlyphs(),
+      // Every controller HELP surface's rows (controls_help.test.mjs proves each glyph equals the live mapping).
+      helpSurfaces: () => { const G = padGlyphs(); const lbl = t => academy.inputLabelForDevice(t, "pad", G)
+        return { glyphs: G, moveList: _controlRefForPad().controller, staticRef: CONTROL_REFERENCE.controller, overlay: controlsOverlayPadRows(G),
+          academy: { light: lbl("Light"), heavy: lbl("Heavy"), special: lbl("Special"), ultimate: lbl("Ultimate"), grab: lbl("Grab"), charge: lbl("Charge"), block: lbl("Block") } } },
+      // Non-consuming read of a fighter's resolved input this frame (input.js peekFighterInput).
+      inputSnapshot: (who = "p1") => peekFighterInput(who === "p2" ? p2 : p1),
       getUiScale: () => uiScale,
       setUiScale: (v) => { setUiScale(v); return { uiScale, canvasW: canvas.width, canvasH: canvas.height, cssW: window.innerWidth } },
       // Force the on-screen combo display to a count (for screenshotting the escalation + rank callout).

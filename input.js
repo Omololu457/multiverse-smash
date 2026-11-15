@@ -9,6 +9,9 @@
  * - endInputFrame() is the single end-of-frame safety net for mouse clicks.
  */
 
+import { PAD_BUTTON, PAD_DPAD, PAD_AXES, PAD_MENU, PAD_GLYPHS } from "./padLayout.js"
+export { PAD_LAYOUT, PAD_BUTTON, PAD_GLYPH_POS, padGlyphFor, padHelpRows } from "./padLayout.js"
+
 export const keys = {}
 
 // ─────────────────────────────────────────────────────────────────
@@ -62,11 +65,10 @@ const PLAYER_TYPES = { 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }
 // ─────────────────────────────────────────────────────────────────
 // GAMEPAD MAPPING
 // ─────────────────────────────────────────────────────────────────
-// Standard-gamepad / PS5 button indices.
-//   X (0)        → light          Square (2)  → heavy
-//   Triangle (3) → special        Circle (1)  → BLOCK (dedicated guard button — MK-feel Stage 1c)
-//   L1 (4)       → grab           R1 (5)      → charge / Omnitrix switch
-//   L2 (6)       → ultimate       R2 (7)      → ultimate (alt)
+// PHYSICAL standard-gamepad indices by PlayStation button NAME (Cross = 0, Circle = 1, Square = 2,
+// Triangle = 3, L1 = 4, R1 = 5, L2 = 6, R2 = 7, D-pad 12-15). This is NOT the action layout: which button
+// does what (Square = Light, Triangle = Heavy, Cross = Jump, Circle = Block, R1 = Special, R2 = Ultimate,
+// L1 = Grab, L2 = Charge) lives ONLY in padLayout.js PAD_LAYOUT, and every reader + help screen uses that.
 export const PS5_MAP = {
   X: 0,
   CIRCLE: 1,
@@ -105,12 +107,7 @@ export function getPadType() {
   // A pad is connected but unrecognized → most PC pads present as XInput/Xbox.
   return gps.some(Boolean) ? "xbox" : "generic"
 }
-export const PAD_GLYPHS = {
-  xbox:        { down: "Ⓐ A", right: "Ⓑ B", left: "Ⓧ X", up: "Ⓨ Y", l1: "LB", r1: "RB", l2: "LT", r2: "RT", label: "Xbox" },
-  playstation: { down: "✕ Cross", right: "○ Circle", left: "□ Square", up: "△ Triangle", l1: "L1", r1: "R1", l2: "L2", r2: "R2", label: "PlayStation" },
-  nintendo:    { down: "Ⓑ B", right: "Ⓐ A", left: "Ⓨ Y", up: "Ⓧ X", l1: "L", r1: "R", l2: "ZL", r2: "ZR", label: "Switch" },
-  generic:     { down: "✕ Cross", right: "○ Circle", left: "□ Square", up: "△ Triangle", l1: "L1", r1: "R1", l2: "L2", r2: "R2", label: "Controller" }
-}
+export { PAD_GLYPHS }   // glyph sets live in padLayout.js beside the layout they label
 export function padGlyphs(type = getPadType()) { return PAD_GLYPHS[type] || PAD_GLYPHS.generic }
 
 // ─────────────────────────────────────────────────────────────────
@@ -404,13 +401,13 @@ export function pollMenuGamepad() {
   const gp = firstConnectedPad()
   if (!gp) return null
   const btn = (i) => !!gp.buttons[i]?.pressed
-  const axX = gp.axes[PS5_MAP.ANALOG_L_X] || 0
-  const axY = gp.axes[PS5_MAP.ANALOG_L_Y] || 0
+  const axX = gp.axes[PAD_AXES.leftX] || 0
+  const axY = gp.axes[PAD_AXES.leftY] || 0
 
-  const up    = btn(PS5_MAP.UP)    || axY < -STICK_DEADZONE
-  const down  = btn(PS5_MAP.DOWN)  || axY >  STICK_DEADZONE
-  const left  = btn(PS5_MAP.LEFT)  || axX < -STICK_DEADZONE
-  const right = btn(PS5_MAP.RIGHT) || axX >  STICK_DEADZONE
+  const up    = btn(PAD_DPAD.up)    || axY < -STICK_DEADZONE
+  const down  = btn(PAD_DPAD.down)  || axY >  STICK_DEADZONE
+  const left  = btn(PAD_DPAD.left)  || axX < -STICK_DEADZONE
+  const right = btn(PAD_DPAD.right) || axX >  STICK_DEADZONE
 
   // ONE active direction (up beats down beats left beats right). Fires on the initial press,
   // then again on a slow auto-repeat cadence while held — so a held stick scrolls a long list.
@@ -424,9 +421,9 @@ export function pollMenuGamepad() {
   // Face/menu buttons are pure EDGE triggers (fire once per press). PlayStation convention:
   // Cross (0) = confirm, Circle (1) = back/cancel, Options (9) = start/pause.
   const edge = (name, idx) => { const now = btn(idx); const was = _menuNav.btnPrev[name]; _menuNav.btnPrev[name] = now; return now && !was }
-  const confirm = edge("confirm", PS5_MAP.X)
-  const back    = edge("back",    PS5_MAP.CIRCLE)
-  const start   = edge("start",   9)
+  const confirm = edge("confirm", PAD_MENU.confirm)
+  const back    = edge("back",    PAD_MENU.back)
+  const start   = edge("start",   PAD_MENU.start)
 
   return {
     up: dir === "up", down: dir === "down", left: dir === "left", right: dir === "right",
@@ -440,25 +437,23 @@ function pollGamepad(playerNum, buffer) {
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed
-  const axisX = gp.axes[PS5_MAP.ANALOG_L_X] || 0
-  const axisY = gp.axes[PS5_MAP.ANALOG_L_Y] || 0
+  const axisX = gp.axes[PAD_AXES.leftX] || 0
+  const axisY = gp.axes[PAD_AXES.leftY] || 0
 
-  const upHeld    = btn(PS5_MAP.UP)    || axisY < -STICK_DEADZONE
-  const downHeld  = btn(PS5_MAP.DOWN)  || axisY >  STICK_DEADZONE
-  const leftHeld  = btn(PS5_MAP.LEFT)  || axisX < -STICK_DEADZONE
-  const rightHeld = btn(PS5_MAP.RIGHT) || axisX >  STICK_DEADZONE
+  const upHeld    = btn(PAD_DPAD.up)    || axisY < -STICK_DEADZONE
+  const downHeld  = btn(PAD_DPAD.down)  || axisY >  STICK_DEADZONE
+  const leftHeld  = btn(PAD_DPAD.left)  || axisX < -STICK_DEADZONE
+  const rightHeld = btn(PAD_DPAD.right) || axisX >  STICK_DEADZONE
 
-  // DualSense → canonical actions (full keyboard parity):
-  //   Square=light(J)  Triangle=heavy(K)  X=jump(W)  R1=special(L)  R2=ultimate(U)
-  //   L1=grab(O, held)  L2=charge/toggle(P, held; tap handled in updateGamepadEdges)
-  //   Up + attack = grounded up-attack/launcher (X alone stays jump → no collision).
-  // Dash (double-tap d-pad) + the L2 tap-toggle are edge-detected in
+  // Pad → canonical actions, from padLayout.js PAD_LAYOUT (the single source of truth; full keyboard parity).
+  //   Up + attack = grounded up-attack/launcher (the Jump button alone stays jump → no collision).
+  // Dash (double-tap d-pad) + the Charge tap-toggle are edge-detected in
   // game.js updateGamepadEdges; here we only read held/buffered state.
-  const lightBtn = btn(PS5_MAP.SQUARE)
-  const heavyBtn = btn(PS5_MAP.TRIANGLE)
+  const lightBtn = btn(PAD_BUTTON.light)
+  const heavyBtn = btn(PAD_BUTTON.heavy)
   const doingUpAttack = upHeld && (lightBtn || heavyBtn)
 
-  if (btn(PS5_MAP.X))   buffer.jump = BUFFER_WINDOW        // X always jumps
+  if (btn(PAD_BUTTON.jump)) buffer.jump = BUFFER_WINDOW    // the Jump button always jumps
   if (doingUpAttack) {
     buffer.upAttack = BUFFER_WINDOW                        // up + attack = launcher (the up does NOT jump)
   } else {
@@ -466,8 +461,8 @@ function pollGamepad(playerNum, buffer) {
     if (heavyBtn) buffer.heavy = BUFFER_WINDOW
     if (upHeld)   buffer.jump  = BUFFER_WINDOW             // up alone = jump
   }
-  if (btn(PS5_MAP.R1)) buffer.special  = BUFFER_WINDOW
-  if (btn(PS5_MAP.R2)) buffer.ultimate = BUFFER_WINDOW
+  if (btn(PAD_BUTTON.special))  buffer.special  = BUFFER_WINDOW
+  if (btn(PAD_BUTTON.ultimate)) buffer.ultimate = BUFFER_WINDOW
 
   return {
     left:     leftHeld,
@@ -481,9 +476,9 @@ function pollGamepad(playerNum, buffer) {
     special:  buffer.special  > 0,
     ultimate: buffer.ultimate > 0,
     dash:     buffer.dash     > 0,        // set by updateGamepadEdges on double-tap
-    grab:     btn(PS5_MAP.L1),
-    charge:   btn(PS5_MAP.L2),
-    block:    btn(PS5_MAP.CIRCLE)         // Circle = dedicated guard (MK-feel Stage 1c; no longer on Down)
+    grab:     btn(PAD_BUTTON.grab),
+    charge:   btn(PAD_BUTTON.charge),
+    block:    btn(PAD_BUTTON.block)       // dedicated guard button (MK-feel Stage 1c; no longer on Down)
   }
 }
 
@@ -646,14 +641,14 @@ export function readRawControls(fighter) {
     const gp = getPlayerGamepad(pn)
     if (gp) {
       const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []
-      const up = b(PS5_MAP.UP) || (ax[1] || 0) < -STICK_DEADZONE
-      const light = b(PS5_MAP.SQUARE), heavy = b(PS5_MAP.TRIANGLE)
-      return { left:b(PS5_MAP.LEFT)||(ax[0]||0)<-STICK_DEADZONE,
-        right:b(PS5_MAP.RIGHT)||(ax[0]||0)>STICK_DEADZONE,
-        down:b(PS5_MAP.DOWN)||(ax[1]||0)>STICK_DEADZONE, up,
-        jump:b(PS5_MAP.X), light, heavy, upAttack:up&&(light||heavy),
-        special:b(PS5_MAP.R1), ultimate:b(PS5_MAP.R2), grab:b(PS5_MAP.L1),
-        charge:b(PS5_MAP.L2), block:b(PS5_MAP.CIRCLE), dash:!!fighter._dashTap }
+      const up = b(PAD_DPAD.up) || (ax[PAD_AXES.leftY] || 0) < -STICK_DEADZONE
+      const light = b(PAD_BUTTON.light), heavy = b(PAD_BUTTON.heavy)
+      return { left:b(PAD_DPAD.left)||(ax[PAD_AXES.leftX]||0)<-STICK_DEADZONE,
+        right:b(PAD_DPAD.right)||(ax[PAD_AXES.leftX]||0)>STICK_DEADZONE,
+        down:b(PAD_DPAD.down)||(ax[PAD_AXES.leftY]||0)>STICK_DEADZONE, up,
+        jump:b(PAD_BUTTON.jump), light, heavy, upAttack:up&&(light||heavy),
+        special:b(PAD_BUTTON.special), ultimate:b(PAD_BUTTON.ultimate), grab:b(PAD_BUTTON.grab),
+        charge:b(PAD_BUTTON.charge), block:b(PAD_BUTTON.block), dash:!!fighter._dashTap }
     }
   }
   const c = fighter.controls, out = {}

@@ -4,6 +4,7 @@
 // detector, and persists progress to localStorage (guest-safe). It NEVER touches combat.js, kits or balance —
 // game.js owns the match instance and feeds this module plain snapshots. The Academy never auto-launches.
 import { getKit } from "./kits.js"
+import { padGlyphFor } from "./padLayout.js"   // pad prompts generated from the one controller layout table
 
 // ──────────────────────────────────────────────────────────────────────────────
 // PROGRESS (localStorage, guest-safe — every access wrapped; failure is a no-op, never blocks)
@@ -96,7 +97,9 @@ export function inputLabelForDevice(input, device, glyphs) {
   if (!input) return ""
   if (device === "pad" && glyphs) {
     // map the notation tokens to pad glyphs
-    const pad = { light: glyphs.down, heavy: glyphs.left, special: glyphs.up, ultimate: `${glyphs.l2}/${glyphs.r2}`, grab: glyphs.l1, charge: glyphs.r1, upAttack: "D-Pad↑ + " + glyphs.down, block: glyphs.r1, jump: "Up" }
+    // Generated from padLayout.js PAD_LAYOUT (the single layout table) — never hand-written.
+    const g = a => padGlyphFor(a, glyphs)
+    const pad = { light: g("light"), heavy: g("heavy"), special: g("special"), ultimate: g("ultimate"), grab: g("grab"), charge: g("charge"), upAttack: `Up + ${g("light")}`, block: g("block"), jump: g("jump") }
     return _retokenize(input, (tok) => pad[tok] || null, "D-Pad")
   }
   if (device === "touch") return input   // touch shows the on-screen button names as written

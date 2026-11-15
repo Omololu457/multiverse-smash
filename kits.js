@@ -51,6 +51,7 @@ import { ELASTIGIRL_KIT } from './elastigirlKit.js'   // Elastigirl (elastigirl)
 // The fallback kit (getKit) synthesizes the right one automatically so every kit-less char is accurate.
 // ─────────────────────────────────────────────────────────────────
 import { classify } from "./comboStandard.js"
+import { padHelpRows, PAD_GLYPHS } from "./padLayout.js"   // controller help is GENERATED from the one layout table
 
 // Global control reference (shown on the Move List "Controls" panel).
 export const CONTROL_REFERENCE = {
@@ -81,16 +82,9 @@ export const CONTROL_REFERENCE = {
     ["Dash",            "double-tap ← →"],
     ["Clone Summon",    "↓↓↑ + Special"]
   ],
-  controller: [
-    ["Move / Jump",     "L-Stick / D-Pad"],
-    ["Light",           "✕ (Cross)"],
-    ["Heavy",           "□ (Square)"],
-    ["Special",         "△ (Triangle)"],
-    ["Dash",            "○ (Circle)"],
-    ["Ultimate",        "L2 / R2"],
-    ["Grab",            "L1"],
-    ["Charge / Omnitrix","R1"]
-  ],
+  // Generated from padLayout.js PAD_LAYOUT (generic PlayStation glyphs; game.js _controlRefForPad swaps in
+  // the connected pad's family). Never hand-write controller rows here — that is how they drifted before.
+  controller: padHelpRows(PAD_GLYPHS.generic),
   howToSpecials: [
     "Special button = the character's 1st special.",
     "Hold ↓ + Special = 2nd special.",

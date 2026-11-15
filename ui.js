@@ -14,7 +14,7 @@ import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
-import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controller glyphs (Xbox/PS/Switch)
+import { padGlyphs, padHelpRows } from "./input.js"   // Part 3 #26: connected-controller glyphs + rows generated from padLayout.js
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
@@ -1247,16 +1247,7 @@ export function drawStartInfoPanel(ctx, canvas, data = {}) {
   // Controller glyphs match the actually-connected pad (Part 3 #26) — Xbox A/B/X/Y + LB/RB/LT/RT,
   // PlayStation ✕/○/□/△ + L1/R1/L2/R2, Switch, or a generic fallback when no pad is present.
   const G = padGlyphs()
-  const padRows = [
-    ["Move / Jump", "L-Stick / D-Pad"],
-    ["Light",       G.down],
-    ["Heavy",       G.left],
-    ["Special",     G.up],
-    ["Dash",        G.right],
-    ["Ultimate",    `${G.l2} / ${G.r2}`],
-    ["Grab",        G.l1],
-    ["Omnitrix",    `${G.r1}  (+ ← / →)`]
-  ]
+  const padRows = controlsOverlayPadRows(G)   // generated from padLayout.js PAD_LAYOUT — never hand-written
   const kbH = 52 + kbRows.length * 21 + 10
   const padH = 52 + padRows.length * 21 + 10
   const totalH = kbH + padH + 14
@@ -1265,6 +1256,10 @@ export function drawStartInfoPanel(ctx, canvas, data = {}) {
   drawControlList(ctx, cx, cy + kbH + 14, cw, padH, `PLAYER 2 — ${G.label.toUpperCase()}`, "#ff9f9f", padRows)
   drawCenteredText(ctx, "Toggle keyboard/controller in SETTINGS", cx + cw / 2, cy + totalH + 6, { font: "12px Arial", fill: "rgba(220,230,255,0.6)" })
 }
+
+// Controller rows of the controls overlay above — exported so controls_help.test.mjs can prove they match
+// the live pad mapping. Generated from padLayout.js; there is no hand-written copy.
+export function controlsOverlayPadRows(G = padGlyphs()) { return padHelpRows(G) }
 
 // ─────────────────────────────────────────────
 // BEN 10 — OMNITRIX LOADOUT SELECT (pick 5 aliens)

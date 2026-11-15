@@ -1,0 +1,4555 @@
+{
+ "sources": {
+  "body": {
+   "file": "SNES - Batman Returns - Playable Characters - Batman.png",
+   "sha256": "12f83f426fef6e6318dd1b5de6f1086b6ccde5bcc28a2810595586c078cafc36"
+  },
+  "d2": {
+   "file": "Free-Drones-Pack-Pixel-Art2.webp",
+   "sha256": "d06fe1402f66d56e0eb3fa8837e6d955e0843b29b2a430c897060d2ea3312c43"
+  },
+  "d3": {
+   "file": "Free-Drones-Pack-Pixel-Art3.webp",
+   "sha256": "4055f8fb58e64b00549d6154ef0d3af6047509a39e055dad93e4b7d008dc615e"
+  },
+  "d4": {
+   "file": "Free-Drones-Pack-Pixel-Art4.webp",
+   "sha256": "c484204b5add8fa84ba68097bfb631b637755e49168eb0d2fcf1ad9961f3b4f3"
+  },
+  "d6": {
+   "file": "Free-Drones-Pack-Pixel-Art6.webp",
+   "sha256": "7177a4d4cdad2c25b3afbea55684c0abbcd679af4e4b05582a9229ef2c44f70b"
+  },
+  "dt": {
+   "file": "drones_test002.webp",
+   "sha256": "ba7268ebe903b380ebf2c86b3beb900a6dd072d7b2b3ca869287470efcae8ba8"
+  },
+  "rb": {
+   "file": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "sha256": "ac5ae72caca202da218c53f84624cc2ec470be20ebabf0465916698045157a39"
+  }
+ },
+ "body": {
+  "cells": {
+   "bat_0": {
+    "rect": [
+     377,
+     613,
+     15,
+     9
+    ],
+    "anchor": [
+     384.5,
+     622
+    ],
+    "components": 1
+   },
+   "bat_1": {
+    "rect": [
+     411,
+     612,
+     14,
+     14
+    ],
+    "anchor": [
+     418.0,
+     626
+    ],
+    "components": 1
+   },
+   "bat_2": {
+    "rect": [
+     435,
+     612,
+     14,
+     14
+    ],
+    "anchor": [
+     442.0,
+     626
+    ],
+    "components": 1
+   },
+   "bat_3": {
+    "rect": [
+     454,
+     611,
+     14,
+     14
+    ],
+    "anchor": [
+     461.0,
+     625
+    ],
+    "components": 1
+   },
+   "bat_4": {
+    "rect": [
+     472,
+     611,
+     14,
+     14
+    ],
+    "anchor": [
+     479.0,
+     625
+    ],
+    "components": 1
+   },
+   "line_d": {
+    "rect": [
+     282,
+     1278,
+     32,
+     33
+    ],
+    "anchor": [
+     298.0,
+     1311
+    ],
+    "components": 1
+   },
+   "line_h": {
+    "rect": [
+     272,
+     1252,
+     45,
+     6
+    ],
+    "anchor": [
+     294.5,
+     1258
+    ],
+    "components": 1
+   },
+   "r0_0": {
+    "rect": [
+     15,
+     14,
+     62,
+     89
+    ],
+    "anchor": [
+     50.3,
+     103
+    ],
+    "components": 1
+   },
+   "r0_1": {
+    "rect": [
+     103,
+     14,
+     62,
+     89
+    ],
+    "anchor": [
+     138.3,
+     103
+    ],
+    "components": 1
+   },
+   "r0_2": {
+    "rect": [
+     177,
+     13,
+     66,
+     89
+    ],
+    "anchor": [
+     216.3,
+     102
+    ],
+    "components": 1
+   },
+   "r0_3": {
+    "rect": [
+     254,
+     15,
+     62,
+     89
+    ],
+    "anchor": [
+     289.3,
+     104
+    ],
+    "components": 1
+   },
+   "r10_0": {
+    "rect": [
+     17,
+     1160,
+     75,
+     76
+    ],
+    "anchor": [
+     65.2,
+     1236
+    ],
+    "components": 1
+   },
+   "r10_1": {
+    "rect": [
+     102,
+     1157,
+     78,
+     79
+    ],
+    "anchor": [
+     152.6,
+     1236
+    ],
+    "components": 1
+   },
+   "r10_2": {
+    "rect": [
+     191,
+     1156,
+     93,
+     79
+    ],
+    "anchor": [
+     241.5,
+     1235
+    ],
+    "components": 1
+   },
+   "r10_3": {
+    "rect": [
+     328,
+     1157,
+     64,
+     75
+    ],
+    "anchor": [
+     362.8,
+     1232
+    ],
+    "components": 1
+   },
+   "r10_4": {
+    "rect": [
+     419,
+     1162,
+     77,
+     71
+    ],
+    "anchor": [
+     469.7,
+     1233
+    ],
+    "components": 1
+   },
+   "r10_5": {
+    "rect": [
+     529,
+     1166,
+     82,
+     69
+    ],
+    "anchor": [
+     570.0,
+     1235
+    ],
+    "components": 1
+   },
+   "r11_0": {
+    "rect": [
+     23,
+     1252,
+     68,
+     91
+    ],
+    "anchor": [
+     57.0,
+     1343
+    ],
+    "components": 1
+   },
+   "r11_1": {
+    "rect": [
+     109,
+     1255,
+     79,
+     91
+    ],
+    "anchor": [
+     148.5,
+     1346
+    ],
+    "components": 1
+   },
+   "r11_2": {
+    "rect": [
+     196,
+     1257,
+     63,
+     91
+    ],
+    "anchor": [
+     227.5,
+     1348
+    ],
+    "components": 1
+   },
+   "r11_3": {
+    "rect": [
+     430,
+     1248,
+     56,
+     100
+    ],
+    "anchor": [
+     460.0,
+     1348
+    ],
+    "components": 1
+   },
+   "r11_4": {
+    "rect": [
+     520,
+     1264,
+     60,
+     84
+    ],
+    "anchor": [
+     556.7,
+     1348
+    ],
+    "components": 1
+   },
+   "r11_5": {
+    "rect": [
+     609,
+     1262,
+     61,
+     84
+    ],
+    "anchor": [
+     651.0,
+     1346
+    ],
+    "components": 3
+   },
+   "r11_6": {
+    "rect": [
+     703,
+     1265,
+     61,
+     84
+    ],
+    "anchor": [
+     730,
+     1349
+    ],
+    "components": 15
+   },
+   "r12_0": {
+    "rect": [
+     15,
+     1366,
+     59,
+     106
+    ],
+    "anchor": [
+     44.5,
+     1472
+    ],
+    "components": 1
+   },
+   "r12_1": {
+    "rect": [
+     102,
+     1373,
+     52,
+     97
+    ],
+    "anchor": [
+     128.0,
+     1470
+    ],
+    "components": 1
+   },
+   "r12_2": {
+    "rect": [
+     196,
+     1377,
+     57,
+     82
+    ],
+    "anchor": [
+     226.6,
+     1459
+    ],
+    "components": 1
+   },
+   "r12_3": {
+    "rect": [
+     278,
+     1367,
+     81,
+     82
+    ],
+    "anchor": [
+     332.6,
+     1449
+    ],
+    "components": 1
+   },
+   "r13_0": {
+    "rect": [
+     18,
+     1508,
+     64,
+     79
+    ],
+    "anchor": [
+     48.6,
+     1587
+    ],
+    "components": 1
+   },
+   "r13_1": {
+    "rect": [
+     120,
+     1503,
+     78,
+     84
+    ],
+    "anchor": [
+     152,
+     1587
+    ],
+    "components": 1
+   },
+   "r13_2": {
+    "rect": [
+     221,
+     1506,
+     120,
+     86
+    ],
+    "anchor": [
+     281,
+     1592
+    ],
+    "components": 1
+   },
+   "r13_3": {
+    "rect": [
+     371,
+     1510,
+     89,
+     88
+    ],
+    "anchor": [
+     424,
+     1598
+    ],
+    "components": 1
+   },
+   "r13_4": {
+    "rect": [
+     495,
+     1498,
+     97,
+     103
+    ],
+    "anchor": [
+     545,
+     1601
+    ],
+    "components": 1
+   },
+   "r13_5": {
+    "rect": [
+     623,
+     1536,
+     93,
+     68
+    ],
+    "anchor": [
+     668.2,
+     1604
+    ],
+    "components": 1
+   },
+   "r13_6": {
+    "rect": [
+     738,
+     1539,
+     89,
+     68
+    ],
+    "anchor": [
+     781.2,
+     1607
+    ],
+    "components": 1
+   },
+   "r1_0": {
+    "rect": [
+     15,
+     116,
+     45,
+     90
+    ],
+    "anchor": [
+     41.5,
+     206
+    ],
+    "components": 1
+   },
+   "r1_1": {
+    "rect": [
+     77,
+     116,
+     50,
+     91
+    ],
+    "anchor": [
+     106.5,
+     207
+    ],
+    "components": 1
+   },
+   "r1_2": {
+    "rect": [
+     144,
+     116,
+     63,
+     89
+    ],
+    "anchor": [
+     175.8,
+     205
+    ],
+    "components": 1
+   },
+   "r1_3": {
+    "rect": [
+     216,
+     120,
+     50,
+     90
+    ],
+    "anchor": [
+     245.5,
+     210
+    ],
+    "components": 1
+   },
+   "r1_4": {
+    "rect": [
+     294,
+     120,
+     46,
+     91
+    ],
+    "anchor": [
+     320.5,
+     211
+    ],
+    "components": 1
+   },
+   "r1_5": {
+    "rect": [
+     368,
+     119,
+     61,
+     89
+    ],
+    "anchor": [
+     402.5,
+     208
+    ],
+    "components": 1
+   },
+   "r2_0": {
+    "rect": [
+     30,
+     231,
+     68,
+     90
+    ],
+    "anchor": [
+     66.8,
+     321
+    ],
+    "components": 1
+   },
+   "r2_1": {
+    "rect": [
+     113,
+     230,
+     81,
+     91
+    ],
+    "anchor": [
+     150.3,
+     321
+    ],
+    "components": 1
+   },
+   "r2_2": {
+    "rect": [
+     211,
+     231,
+     68,
+     90
+    ],
+    "anchor": [
+     247.8,
+     321
+    ],
+    "components": 1
+   },
+   "r2_3": {
+    "rect": [
+     299,
+     233,
+     56,
+     84
+    ],
+    "anchor": [
+     329.8,
+     317
+    ],
+    "components": 1
+   },
+   "r2_4": {
+    "rect": [
+     382,
+     238,
+     61,
+     80
+    ],
+    "anchor": [
+     412,
+     318
+    ],
+    "components": 1
+   },
+   "r2_5": {
+    "rect": [
+     460,
+     238,
+     61,
+     80
+    ],
+    "anchor": [
+     490,
+     318
+    ],
+    "components": 1
+   },
+   "r2_6": {
+    "rect": [
+     537,
+     238,
+     49,
+     82
+    ],
+    "anchor": [
+     566.0,
+     320
+    ],
+    "components": 1
+   },
+   "r2_7": {
+    "rect": [
+     599,
+     239,
+     83,
+     81
+    ],
+    "anchor": [
+     635.7,
+     320
+    ],
+    "components": 1
+   },
+   "r2_8": {
+    "rect": [
+     695,
+     236,
+     71,
+     87
+    ],
+    "anchor": [
+     726.7,
+     323
+    ],
+    "components": 1
+   },
+   "r3_0": {
+    "rect": [
+     39,
+     373,
+     52,
+     78
+    ],
+    "anchor": [
+     66.3,
+     451
+    ],
+    "components": 1
+   },
+   "r3_1": {
+    "rect": [
+     106,
+     350,
+     50,
+     93
+    ],
+    "anchor": [
+     133.3,
+     443
+    ],
+    "components": 1
+   },
+   "r3_2": {
+    "rect": [
+     180,
+     341,
+     71,
+     93
+    ],
+    "anchor": [
+     220.3,
+     434
+    ],
+    "components": 1
+   },
+   "r3_3": {
+    "rect": [
+     265,
+     348,
+     69,
+     93
+    ],
+    "anchor": [
+     304.3,
+     441
+    ],
+    "components": 1
+   },
+   "r3_4": {
+    "rect": [
+     357,
+     353,
+     50,
+     93
+    ],
+    "anchor": [
+     384.3,
+     446
+    ],
+    "components": 1
+   },
+   "r3_5": {
+    "rect": [
+     450,
+     356,
+     76,
+     87
+    ],
+    "anchor": [
+     486.9,
+     443
+    ],
+    "components": 1
+   },
+   "r3_6": {
+    "rect": [
+     540,
+     353,
+     74,
+     87
+    ],
+    "anchor": [
+     578.5,
+     440
+    ],
+    "components": 1
+   },
+   "r3_7": {
+    "rect": [
+     675,
+     360,
+     64,
+     87
+    ],
+    "anchor": [
+     711.7,
+     447
+    ],
+    "components": 1
+   },
+   "r3_8": {
+    "rect": [
+     756,
+     361,
+     82,
+     85
+    ],
+    "anchor": [
+     790,
+     446
+    ],
+    "components": 1
+   },
+   "r4_0": {
+    "rect": [
+     37,
+     478,
+     72,
+     88
+    ],
+    "anchor": [
+     82.2,
+     566
+    ],
+    "components": 1
+   },
+   "r4_1": {
+    "rect": [
+     138,
+     483,
+     71,
+     80
+    ],
+    "anchor": [
+     181.6,
+     563
+    ],
+    "components": 1
+   },
+   "r4_2": {
+    "rect": [
+     223,
+     486,
+     102,
+     68
+    ],
+    "anchor": [
+     272.4,
+     554
+    ],
+    "components": 1
+   },
+   "r4_3": {
+    "rect": [
+     342,
+     481,
+     71,
+     80
+    ],
+    "anchor": [
+     385.6,
+     561
+    ],
+    "components": 1
+   },
+   "r4_4": {
+    "rect": [
+     451,
+     488,
+     98,
+     67
+    ],
+    "anchor": [
+     500,
+     555
+    ],
+    "components": 1
+   },
+   "r5_0": {
+    "rect": [
+     51,
+     588,
+     58,
+     83
+    ],
+    "anchor": [
+     82.7,
+     671
+    ],
+    "components": 1
+   },
+   "r5_1": {
+    "rect": [
+     127,
+     579,
+     66,
+     94
+    ],
+    "anchor": [
+     161.8,
+     673
+    ],
+    "components": 1
+   },
+   "r5_2": {
+    "rect": [
+     205,
+     588,
+     58,
+     83
+    ],
+    "anchor": [
+     236.7,
+     671
+    ],
+    "components": 1
+   },
+   "r5_3": {
+    "rect": [
+     279,
+     596,
+     79,
+     75
+    ],
+    "anchor": [
+     318.5,
+     671
+    ],
+    "components": 1
+   },
+   "r6_0": {
+    "rect": [
+     46,
+     709,
+     104,
+     74
+    ],
+    "anchor": [
+     94.6,
+     783
+    ],
+    "components": 1
+   },
+   "r6_1": {
+    "rect": [
+     166,
+     709,
+     104,
+     74
+    ],
+    "anchor": [
+     214.6,
+     783
+    ],
+    "components": 1
+   },
+   "r6_2": {
+    "rect": [
+     289,
+     687,
+     104,
+     103
+    ],
+    "anchor": [
+     337.6,
+     790
+    ],
+    "components": 2
+   },
+   "r6_3": {
+    "rect": [
+     421,
+     659,
+     104,
+     134
+    ],
+    "anchor": [
+     469.6,
+     793
+    ],
+    "components": 2
+   },
+   "r6_4": {
+    "rect": [
+     551,
+     659,
+     104,
+     141
+    ],
+    "anchor": [
+     599.6,
+     800
+    ],
+    "components": 1
+   },
+   "r6_5": {
+    "rect": [
+     670,
+     658,
+     104,
+     139
+    ],
+    "anchor": [
+     718.6,
+     797
+    ],
+    "components": 2
+   },
+   "r6_6": {
+    "rect": [
+     787,
+     696,
+     71,
+     93
+    ],
+    "anchor": [
+     827.3,
+     789
+    ],
+    "components": 1
+   },
+   "r7_0": {
+    "rect": [
+     40,
+     823,
+     66,
+     89
+    ],
+    "anchor": [
+     75.3,
+     912
+    ],
+    "components": 1
+   },
+   "r7_1": {
+    "rect": [
+     120,
+     824,
+     58,
+     82
+    ],
+    "anchor": [
+     151.9,
+     906
+    ],
+    "components": 1
+   },
+   "r7_2": {
+    "rect": [
+     204,
+     824,
+     55,
+     84
+    ],
+    "anchor": [
+     234.8,
+     908
+    ],
+    "components": 1
+   },
+   "r7_3": {
+    "rect": [
+     392,
+     817,
+     58,
+     95
+    ],
+    "anchor": [
+     425.0,
+     912
+    ],
+    "components": 1
+   },
+   "r7_4": {
+    "rect": [
+     476,
+     823,
+     66,
+     89
+    ],
+    "anchor": [
+     511.3,
+     912
+    ],
+    "components": 1
+   },
+   "r7_5": {
+    "rect": [
+     573,
+     844,
+     65,
+     69
+    ],
+    "anchor": [
+     606.5,
+     913
+    ],
+    "components": 1
+   },
+   "r7_6": {
+    "rect": [
+     722,
+     841,
+     61,
+     91
+    ],
+    "anchor": [
+     752.5,
+     932
+    ],
+    "components": 1
+   },
+   "r7_7": {
+    "rect": [
+     804,
+     842,
+     61,
+     91
+    ],
+    "anchor": [
+     834.5,
+     933
+    ],
+    "components": 1
+   },
+   "r8_0": {
+    "rect": [
+     47,
+     934,
+     63,
+     85
+    ],
+    "anchor": [
+     76.8,
+     1019
+    ],
+    "components": 1
+   },
+   "r8_1": {
+    "rect": [
+     132,
+     936,
+     73,
+     72
+    ],
+    "anchor": [
+     168,
+     1008
+    ],
+    "components": 1
+   },
+   "r8_2": {
+    "rect": [
+     228,
+     982,
+     92,
+     33
+    ],
+    "anchor": [
+     268,
+     1015
+    ],
+    "components": 1
+   },
+   "r8_3": {
+    "rect": [
+     343,
+     958,
+     78,
+     52
+    ],
+    "anchor": [
+     365.4,
+     1010
+    ],
+    "components": 1
+   },
+   "r8_4": {
+    "rect": [
+     429,
+     952,
+     63,
+     61
+    ],
+    "anchor": [
+     469.3,
+     1013
+    ],
+    "components": 1
+   },
+   "r8_5": {
+    "rect": [
+     520,
+     936,
+     66,
+     84
+    ],
+    "anchor": [
+     553.0,
+     1020
+    ],
+    "components": 1
+   },
+   "r8_6": {
+    "rect": [
+     592,
+     937,
+     48,
+     83
+    ],
+    "anchor": [
+     616.0,
+     1020
+    ],
+    "components": 1
+   },
+   "r9_0": {
+    "rect": [
+     46,
+     1042,
+     54,
+     89
+    ],
+    "anchor": [
+     76.9,
+     1131
+    ],
+    "components": 1
+   },
+   "r9_1": {
+    "rect": [
+     122,
+     1045,
+     60,
+     88
+    ],
+    "anchor": [
+     151.3,
+     1133
+    ],
+    "components": 1
+   },
+   "r9_2": {
+    "rect": [
+     212,
+     1048,
+     62,
+     86
+    ],
+    "anchor": [
+     243.3,
+     1134
+    ],
+    "components": 1
+   },
+   "r9_3": {
+    "rect": [
+     312,
+     1048,
+     59,
+     87
+    ],
+    "anchor": [
+     340.3,
+     1135
+    ],
+    "components": 1
+   },
+   "r9_4": {
+    "rect": [
+     407,
+     1048,
+     54,
+     90
+    ],
+    "anchor": [
+     437.9,
+     1138
+    ],
+    "components": 1
+   },
+   "r9_5": {
+    "rect": [
+     494,
+     1050,
+     58,
+     88
+    ],
+    "anchor": [
+     528.9,
+     1138
+    ],
+    "components": 1
+   },
+   "r9_6": {
+    "rect": [
+     604,
+     1052,
+     62,
+     90
+    ],
+    "anchor": [
+     641.9,
+     1142
+    ],
+    "components": 1
+   },
+   "r9_7": {
+    "rect": [
+     681,
+     1047,
+     58,
+     95
+    ],
+    "anchor": [
+     714.0,
+     1142
+    ],
+    "components": 1
+   },
+   "r9_8": {
+    "rect": [
+     752,
+     1046,
+     57,
+     90
+    ],
+    "anchor": [
+     784,
+     1136
+    ],
+    "components": 1
+   }
+  },
+  "excluded": [
+   "credit_text",
+   "hud_icon"
+  ],
+  "exclude_rects": {
+   "hud_icon": [
+    780,
+    10,
+    890,
+    72
+   ],
+   "credit_text": [
+    596,
+    470,
+    900,
+    540
+   ]
+  },
+  "actions": {
+   "idle": {
+    "cells": [
+     "r0_0",
+     "r0_1",
+     "r0_2",
+     "r0_3"
+    ],
+    "ticksPerFrame": 9,
+    "loop": true
+   },
+   "walk": {
+    "cells": [
+     "r1_0",
+     "r1_1",
+     "r1_2",
+     "r1_3",
+     "r1_4",
+     "r1_5"
+    ],
+    "ticksPerFrame": 6,
+    "loop": true
+   },
+   "walk_back": {
+    "cells": [
+     "r1_5",
+     "r1_4",
+     "r1_3",
+     "r1_2",
+     "r1_1",
+     "r1_0"
+    ],
+    "ticksPerFrame": 7,
+    "loop": true
+   },
+   "run": {
+    "cells": [
+     "r1_0",
+     "r1_1",
+     "r1_2",
+     "r1_3",
+     "r1_4",
+     "r1_5"
+    ],
+    "ticksPerFrame": 4,
+    "loop": true
+   },
+   "dash": {
+    "cells": [
+     "r3_8",
+     "r4_0"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "jump": {
+    "cells": [
+     "r3_0",
+     "r3_1",
+     "r3_2"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "doubleJump": {
+    "cells": [
+     "r4_1",
+     "r3_3",
+     "r4_3"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "fall": {
+    "cells": [
+     "r3_4",
+     "r4_0"
+    ],
+    "ticksPerFrame": 9,
+    "loop": false
+   },
+   "land": {
+    "cells": [
+     "r3_0",
+     "r13_6"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "crouch": {
+    "cells": [
+     "r10_0"
+    ],
+    "ticksPerFrame": 8,
+    "loop": true
+   },
+   "guard": {
+    "cells": [
+     "r8_5",
+     "r8_6"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "hurt": {
+    "cells": [
+     "r8_0"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "knockdown": {
+    "cells": [
+     "r8_1",
+     "r8_2"
+    ],
+    "ticksPerFrame": 7,
+    "loop": false
+   },
+   "getup": {
+    "cells": [
+     "r8_3",
+     "r8_4"
+    ],
+    "ticksPerFrame": 9,
+    "loop": false
+   },
+   "lose": {
+    "cells": [
+     "r8_1",
+     "r8_2"
+    ],
+    "ticksPerFrame": 8,
+    "loop": false
+   },
+   "win": {
+    "cells": [
+     "r11_3",
+     "r7_6",
+     "r7_7"
+    ],
+    "ticksPerFrame": 14,
+    "loop": false
+   },
+   "intro": {
+    "cells": [
+     "r13_0",
+     "r13_1",
+     "r13_2",
+     "r13_3",
+     "r13_4",
+     "r13_5",
+     "r13_6"
+    ],
+    "ticksPerFrame": 7,
+    "loop": false
+   },
+   "introSettle": {
+    "cells": [
+     "r7_6",
+     "r7_7",
+     "r0_0"
+    ],
+    "ticksPerFrame": 12,
+    "loop": false
+   },
+   "grab": {
+    "cells": [
+     "r7_0",
+     "r7_1",
+     "r7_5"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "light": {
+    "cells": [
+     "r2_0",
+     "r2_1",
+     "r2_2"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bL2": {
+    "cells": [
+     "r7_3",
+     "r7_4"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bL3": {
+    "cells": [
+     "r7_2",
+     "r2_3"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "heavy": {
+    "cells": [
+     "r2_6",
+     "r2_7",
+     "r2_8"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "bSpin": {
+    "cells": [
+     "r2_3",
+     "r2_4",
+     "r2_5",
+     "r2_6",
+     "r2_7",
+     "r2_8"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "up": {
+    "cells": [
+     "r10_0",
+     "r10_3",
+     "r3_1"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "bLow": {
+    "cells": [
+     "r10_0",
+     "r10_1",
+     "r10_2"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bSweep": {
+    "cells": [
+     "r10_4",
+     "r10_5"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "air": {
+    "cells": [
+     "r3_5",
+     "r3_6"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bAirK": {
+    "cells": [
+     "r3_7",
+     "r4_2"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "bDive": {
+    "cells": [
+     "r4_4"
+    ],
+    "ticksPerFrame": 6,
+    "loop": true
+   },
+   "bDiveLand": {
+    "cells": [
+     "r13_5",
+     "r13_6"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "bCounter": {
+    "cells": [
+     "r8_5"
+    ],
+    "ticksPerFrame": 8,
+    "loop": false
+   },
+   "bCounterHit": {
+    "cells": [
+     "r13_1",
+     "r13_2",
+     "r2_7",
+     "r2_8"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bBatarang": {
+    "cells": [
+     "r5_0",
+     "r5_1",
+     "r5_2",
+     "r5_3"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bGrapnel": {
+    "cells": [
+     "r11_0",
+     "r11_1",
+     "r11_2"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "bRopeKick": {
+    "cells": [
+     "r6_0",
+     "r6_1",
+     "r6_2",
+     "r6_3",
+     "r6_4",
+     "r6_5"
+    ],
+    "ticksPerFrame": 4,
+    "loop": false
+   },
+   "bRopeLand": {
+    "cells": [
+     "r6_6"
+    ],
+    "ticksPerFrame": 8,
+    "loop": false
+   },
+   "bRooftop": {
+    "cells": [
+     "r12_0",
+     "r12_1",
+     "r12_2",
+     "r12_3",
+     "r13_4"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "bSmoke": {
+    "cells": [
+     "r11_4",
+     "r11_5",
+     "r11_6"
+    ],
+    "ticksPerFrame": 6,
+    "loop": false
+   },
+   "cmdSky": {
+    "cells": [
+     "r11_3",
+     "r7_3"
+    ],
+    "ticksPerFrame": 10,
+    "loop": false
+   },
+   "cmdPoint": {
+    "cells": [
+     "r11_0",
+     "r11_2"
+    ],
+    "ticksPerFrame": 8,
+    "loop": false
+   },
+   "cmdCarrier": {
+    "cells": [
+     "r7_3",
+     "r7_4",
+     "r0_0"
+    ],
+    "ticksPerFrame": 9,
+    "loop": false
+   },
+   "cmdSkyhook": {
+    "cells": [
+     "r12_0",
+     "r12_1"
+    ],
+    "ticksPerFrame": 9,
+    "loop": false
+   },
+   "cmdCover": {
+    "cells": [
+     "r9_6",
+     "r9_7",
+     "r9_8"
+    ],
+    "ticksPerFrame": 7,
+    "loop": false
+   },
+   "cmdAuto": {
+    "cells": [
+     "r9_0",
+     "r9_1",
+     "r9_2",
+     "r9_3",
+     "r9_4",
+     "r9_5"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "ultOpen": {
+    "cells": [
+     "r11_0",
+     "r11_1",
+     "r11_2"
+    ],
+    "ticksPerFrame": 5,
+    "loop": false
+   },
+   "ultWatch": {
+    "cells": [
+     "r12_1"
+    ],
+    "ticksPerFrame": 8,
+    "loop": true
+   },
+   "ultSalute": {
+    "cells": [
+     "r11_3"
+    ],
+    "ticksPerFrame": 8,
+    "loop": true
+   }
+  },
+  "tool_anchors_source": {
+   "r11_0": [
+    "muzzle",
+    85,
+    1263
+   ],
+   "r11_1": [
+    "muzzle",
+    180,
+    1266
+   ],
+   "r11_2": [
+    "muzzle",
+    258,
+    1267
+   ],
+   "r12_0": [
+    "muzzle",
+    72,
+    1366
+   ],
+   "r12_1": [
+    "muzzle",
+    150,
+    1373
+   ],
+   "r5_3": [
+    "hand",
+    357,
+    613
+   ],
+   "r6_2": [
+    "ropeTop",
+    354,
+    687
+   ],
+   "r6_3": [
+    "ropeTop",
+    494,
+    659
+   ],
+   "r6_4": [
+    "ropeTop",
+    623,
+    659
+   ],
+   "r6_5": [
+    "ropeTop",
+    713,
+    658
+   ]
+  }
+ },
+ "fleet": {
+  "scout_death": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "DEATH",
+   "note": "disc scanner destroyed: rotor bends, sparks, sinks",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     628,
+     106,
+     100,
+     73
+    ],
+    [
+     747,
+     120,
+     100,
+     76
+    ],
+    [
+     865,
+     144,
+     101,
+     59
+    ],
+    [
+     985,
+     151,
+     95,
+     52
+    ],
+    [
+     1115,
+     150,
+     85,
+     54
+    ],
+    [
+     1233,
+     150,
+     84,
+     53
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     106
+    ],
+    [
+     799.0,
+     106
+    ],
+    [
+     920.0,
+     106
+    ],
+    [
+     1041.0,
+     106
+    ],
+    [
+     1162.0,
+     106
+    ],
+    [
+     1283.0,
+     106
+    ]
+   ]
+  },
+  "scout_idle": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "IDLE",
+   "note": "hover bob (airborne deployment hover)",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     628,
+     227,
+     100,
+     70
+    ],
+    [
+     748,
+     224,
+     99,
+     76
+    ],
+    [
+     866,
+     224,
+     101,
+     72
+    ],
+    [
+     984,
+     225,
+     104,
+     73
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     224
+    ],
+    [
+     797.5,
+     224
+    ],
+    [
+     916.5,
+     224
+    ],
+    [
+     1034.0,
+     224
+    ]
+   ]
+  },
+  "scout_scan": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "SCAN",
+   "note": "scanner eye sweep (target acquisition)",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     627,
+     345,
+     101,
+     71
+    ],
+    [
+     747,
+     344,
+     100,
+     69
+    ],
+    [
+     866,
+     344,
+     101,
+     71
+    ],
+    [
+     984,
+     345,
+     101,
+     71
+    ],
+    [
+     1104,
+     345,
+     101,
+     71
+    ],
+    [
+     1222,
+     344,
+     101,
+     70
+    ],
+    [
+     1342,
+     344,
+     99,
+     69
+    ],
+    [
+     1459,
+     344,
+     101,
+     72
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     344
+    ],
+    [
+     797.0,
+     344
+    ],
+    [
+     916.5,
+     344
+    ],
+    [
+     1034.5,
+     344
+    ],
+    [
+     1154.5,
+     344
+    ],
+    [
+     1272.5,
+     344
+    ],
+    [
+     1391.5,
+     344
+    ],
+    [
+     1510.0,
+     344
+    ]
+   ]
+  },
+  "scout_walk": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "WALK",
+   "note": "banked patrol flight",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     628,
+     467,
+     100,
+     73
+    ],
+    [
+     747,
+     465,
+     100,
+     75
+    ],
+    [
+     866,
+     465,
+     101,
+     73
+    ],
+    [
+     984,
+     465,
+     101,
+     75
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     465
+    ],
+    [
+     797.0,
+     465
+    ],
+    [
+     916.5,
+     465
+    ],
+    [
+     1034.5,
+     465
+    ]
+   ]
+  },
+  "scout_walkscan": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "WALK_SCAN",
+   "note": "moving scan (patrol while scanning)",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     628,
+     585,
+     100,
+     71
+    ],
+    [
+     744,
+     584,
+     103,
+     70
+    ],
+    [
+     866,
+     584,
+     101,
+     72
+    ],
+    [
+     984,
+     587,
+     103,
+     69
+    ],
+    [
+     1104,
+     585,
+     101,
+     71
+    ],
+    [
+     1222,
+     584,
+     101,
+     70
+    ],
+    [
+     1342,
+     584,
+     99,
+     71
+    ],
+    [
+     1460,
+     586,
+     100,
+     70
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     584
+    ],
+    [
+     797.0,
+     584
+    ],
+    [
+     916.5,
+     584
+    ],
+    [
+     1034.5,
+     584
+    ],
+    [
+     1154.5,
+     584
+    ],
+    [
+     1272.5,
+     584
+    ],
+    [
+     1391.5,
+     584
+    ],
+    [
+     1510.0,
+     584
+    ]
+   ]
+  },
+  "capsule": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "CAPSULE",
+   "note": "capsule vents (sparks), collapses \u2014 smoke/cover payload",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     660,
+     736,
+     39,
+     63
+    ],
+    [
+     779,
+     730,
+     38,
+     68
+    ],
+    [
+     894,
+     725,
+     45,
+     73
+    ],
+    [
+     1008,
+     721,
+     51,
+     77
+    ],
+    [
+     1133,
+     757,
+     43,
+     43
+    ],
+    [
+     1253,
+     761,
+     43,
+     36
+    ]
+   ],
+   "anchors": [
+    [
+     679.5,
+     799
+    ],
+    [
+     798.0,
+     798
+    ],
+    [
+     917.5,
+     798
+    ],
+    [
+     1036.0,
+     798
+    ],
+    [
+     1154.5,
+     800
+    ],
+    [
+     1274.5,
+     797
+    ]
+   ]
+  },
+  "bomber_drop": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "DROP",
+   "note": "thruster drop / descent (arrival)",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     643,
+     826,
+     74,
+     64
+    ],
+    [
+     760,
+     824,
+     75,
+     70
+    ],
+    [
+     877,
+     824,
+     77,
+     83
+    ],
+    [
+     1000,
+     824,
+     72,
+     85
+    ],
+    [
+     1118,
+     824,
+     74,
+     60
+    ],
+    [
+     1234,
+     824,
+     78,
+     71
+    ]
+   ],
+   "anchors": [
+    [
+     680.0,
+     824
+    ],
+    [
+     797.5,
+     824
+    ],
+    [
+     915.5,
+     824
+    ],
+    [
+     1036.0,
+     824
+    ],
+    [
+     1155.0,
+     824
+    ],
+    [
+     1272.5,
+     824
+    ]
+   ]
+  },
+  "bomber_walk": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "WALK",
+   "note": "orbital patrol bank A",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     640,
+     945,
+     76,
+     63
+    ],
+    [
+     760,
+     942,
+     75,
+     72
+    ],
+    [
+     879,
+     942,
+     74,
+     78
+    ],
+    [
+     1000,
+     943,
+     72,
+     84
+    ]
+   ],
+   "anchors": [
+    [
+     678.0,
+     942
+    ],
+    [
+     797.5,
+     942
+    ],
+    [
+     916.0,
+     942
+    ],
+    [
+     1036.0,
+     942
+    ]
+   ]
+  },
+  "bomber_walk2": {
+   "sheet": "Free-Drones-Pack-Pixel-Art2.webp",
+   "label": "WALK2",
+   "note": "orbital patrol bank B (tilted)",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     641,
+     1064,
+     76,
+     58
+    ],
+    [
+     760,
+     1061,
+     75,
+     71
+    ],
+    [
+     879,
+     1061,
+     74,
+     79
+    ],
+    [
+     1000,
+     1062,
+     72,
+     86
+    ]
+   ],
+   "anchors": [
+    [
+     680.5,
+     1061
+    ],
+    [
+     797.5,
+     1061
+    ],
+    [
+     916.0,
+     1061
+    ],
+    [
+     1036.0,
+     1061
+    ]
+   ]
+  },
+  "platform_death": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "DEATH",
+   "note": "platform drops and sags (destroyed)",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     481,
+     138,
+     79,
+     45
+    ],
+    [
+     597,
+     167,
+     78,
+     43
+    ],
+    [
+     712,
+     178,
+     78,
+     41
+    ],
+    [
+     827,
+     178,
+     77,
+     41
+    ],
+    [
+     941,
+     178,
+     79,
+     41
+    ],
+    [
+     1056,
+     177,
+     78,
+     42
+    ]
+   ],
+   "anchors": [
+    [
+     520.5,
+     138
+    ],
+    [
+     635.5,
+     138
+    ],
+    [
+     750.5,
+     138
+    ],
+    [
+     865.5,
+     138
+    ],
+    [
+     980.5,
+     138
+    ],
+    [
+     1095.5,
+     138
+    ]
+   ]
+  },
+  "platform_idle": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "IDLE",
+   "note": "hover with down-thrust lines",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     482,
+     252,
+     78,
+     54
+    ],
+    [
+     597,
+     252,
+     78,
+     56
+    ],
+    [
+     712,
+     248,
+     78,
+     64
+    ],
+    [
+     825,
+     252,
+     79,
+     61
+    ]
+   ],
+   "anchors": [
+    [
+     521.0,
+     248
+    ],
+    [
+     636.0,
+     248
+    ],
+    [
+     751.0,
+     248
+    ],
+    [
+     865.5,
+     248
+    ]
+   ]
+  },
+  "platform_walk": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "WALK",
+   "note": "lateral move with side streak",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     471,
+     368,
+     89,
+     57
+    ],
+    [
+     592,
+     368,
+     84,
+     60
+    ],
+    [
+     706,
+     368,
+     83,
+     62
+    ],
+    [
+     818,
+     368,
+     86,
+     65
+    ]
+   ],
+   "anchors": [
+    [
+     520.0,
+     368
+    ],
+    [
+     633.5,
+     368
+    ],
+    [
+     751.0,
+     368
+    ],
+    [
+     866.0,
+     368
+    ]
+   ]
+  },
+  "inter_back": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "BACK",
+   "note": "disengage (reverse thrust)",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     477,
+     484,
+     87,
+     44
+    ],
+    [
+     592,
+     482,
+     88,
+     45
+    ],
+    [
+     707,
+     485,
+     87,
+     43
+    ],
+    [
+     822,
+     488,
+     88,
+     44
+    ]
+   ],
+   "anchors": [
+    [
+     520.5,
+     482
+    ],
+    [
+     636.0,
+     482
+    ],
+    [
+     750.5,
+     482
+    ],
+    [
+     866.0,
+     482
+    ]
+   ]
+  },
+  "inter_death": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "DEATH",
+   "note": "hit, smoke, falls and crashes",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     478,
+     600,
+     87,
+     44
+    ],
+    [
+     581,
+     595,
+     102,
+     45
+    ],
+    [
+     694,
+     605,
+     104,
+     43
+    ],
+    [
+     818,
+     620,
+     96,
+     44
+    ],
+    [
+     937,
+     631,
+     87,
+     44
+    ],
+    [
+     1051,
+     644,
+     87,
+     33
+    ],
+    [
+     1166,
+     644,
+     87,
+     33
+    ],
+    [
+     1281,
+     644,
+     87,
+     33
+    ]
+   ],
+   "anchors": [
+    [
+     521.5,
+     595
+    ],
+    [
+     636.2,
+     595
+    ],
+    [
+     750.9,
+     595
+    ],
+    [
+     865.6,
+     595
+    ],
+    [
+     980.4,
+     595
+    ],
+    [
+     1095.1,
+     595
+    ],
+    [
+     1209.8,
+     595
+    ],
+    [
+     1324.5,
+     595
+    ]
+   ]
+  },
+  "inter_fire1": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "FIRE1",
+   "note": "firing stage 1 (recoil cycle)",
+   "ticksPerFrame": 3,
+   "rects": [
+    [
+     476,
+     713,
+     89,
+     45
+    ],
+    [
+     592,
+     712,
+     88,
+     44
+    ],
+    [
+     707,
+     713,
+     88,
+     44
+    ],
+    [
+     823,
+     717,
+     87,
+     43
+    ],
+    [
+     936,
+     714,
+     88,
+     45
+    ],
+    [
+     1052,
+     712,
+     86,
+     44
+    ],
+    [
+     1166,
+     714,
+     89,
+     43
+    ],
+    [
+     1281,
+     717,
+     87,
+     43
+    ],
+    [
+     1396,
+     714,
+     89,
+     44
+    ],
+    [
+     1512,
+     712,
+     86,
+     44
+    ],
+    [
+     1625,
+     714,
+     89,
+     43
+    ]
+   ],
+   "anchors": [
+    [
+     520.5,
+     712
+    ],
+    [
+     636.0,
+     712
+    ],
+    [
+     751.0,
+     712
+    ],
+    [
+     866.5,
+     712
+    ],
+    [
+     980.0,
+     712
+    ],
+    [
+     1095.0,
+     712
+    ],
+    [
+     1210.0,
+     712
+    ],
+    [
+     1324.5,
+     712
+    ],
+    [
+     1440.5,
+     712
+    ],
+    [
+     1555.0,
+     712
+    ],
+    [
+     1669.5,
+     712
+    ]
+   ]
+  },
+  "inter_fire2": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "FIRE2",
+   "note": "firing stage 2 (cyan afterburner variant)",
+   "ticksPerFrame": 3,
+   "rects": [
+    [
+     477,
+     826,
+     88,
+     46
+    ],
+    [
+     592,
+     824,
+     88,
+     46
+    ],
+    [
+     707,
+     825,
+     88,
+     47
+    ],
+    [
+     823,
+     828,
+     87,
+     48
+    ],
+    [
+     936,
+     826,
+     88,
+     46
+    ],
+    [
+     1051,
+     824,
+     88,
+     48
+    ],
+    [
+     1167,
+     827,
+     87,
+     45
+    ],
+    [
+     1280,
+     828,
+     88,
+     48
+    ],
+    [
+     1395,
+     827,
+     89,
+     45
+    ],
+    [
+     1512,
+     824,
+     87,
+     48
+    ],
+    [
+     1625,
+     827,
+     88,
+     45
+    ]
+   ],
+   "anchors": [
+    [
+     521.0,
+     824
+    ],
+    [
+     635.5,
+     824
+    ],
+    [
+     751.0,
+     824
+    ],
+    [
+     866.5,
+     824
+    ],
+    [
+     980.0,
+     824
+    ],
+    [
+     1095.0,
+     824
+    ],
+    [
+     1210.5,
+     824
+    ],
+    [
+     1324.5,
+     824
+    ],
+    [
+     1439.5,
+     824
+    ],
+    [
+     1555.5,
+     824
+    ],
+    [
+     1669.0,
+     824
+    ]
+   ]
+  },
+  "inter_fwd": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "FORWARD",
+   "note": "approach (forward thrust)",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     477,
+     940,
+     88,
+     48
+    ],
+    [
+     592,
+     939,
+     88,
+     45
+    ],
+    [
+     704,
+     940,
+     90,
+     48
+    ],
+    [
+     822,
+     944,
+     88,
+     45
+    ]
+   ],
+   "anchors": [
+    [
+     521.0,
+     939
+    ],
+    [
+     636.0,
+     939
+    ],
+    [
+     751.0,
+     939
+    ],
+    [
+     866.0,
+     939
+    ]
+   ]
+  },
+  "inter_idle": {
+   "sheet": "Free-Drones-Pack-Pixel-Art3.webp",
+   "label": "IDLE",
+   "note": "acquisition hover",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     477,
+     1057,
+     88,
+     45
+    ],
+    [
+     592,
+     1056,
+     88,
+     44
+    ],
+    [
+     707,
+     1057,
+     88,
+     44
+    ],
+    [
+     823,
+     1060,
+     87,
+     44
+    ]
+   ],
+   "anchors": [
+    [
+     521.0,
+     1056
+    ],
+    [
+     636.0,
+     1056
+    ],
+    [
+     751.0,
+     1056
+    ],
+    [
+     866.5,
+     1056
+    ]
+   ]
+  },
+  "crew_a": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "DEATH (mislabelled)",
+   "note": "operator A: raises and fires a sidearm, holsters",
+   "ticksPerFrame": 7,
+   "rects": [
+    [
+     298,
+     64,
+     75,
+     136
+    ],
+    [
+     493,
+     66,
+     76,
+     134
+    ],
+    [
+     671,
+     65,
+     79,
+     135
+    ],
+    [
+     855,
+     66,
+     102,
+     134
+    ],
+    [
+     1034,
+     64,
+     112,
+     136
+    ],
+    [
+     1223,
+     65,
+     95,
+     135
+    ],
+    [
+     1435,
+     65,
+     69,
+     135
+    ],
+    [
+     1619,
+     66,
+     75,
+     134
+    ]
+   ],
+   "anchors": [
+    [
+     335.5,
+     200
+    ],
+    [
+     531.0,
+     200
+    ],
+    [
+     710.5,
+     200
+    ],
+    [
+     906.0,
+     200
+    ],
+    [
+     1090.0,
+     200
+    ],
+    [
+     1270.5,
+     200
+    ],
+    [
+     1469.5,
+     200
+    ],
+    [
+     1656.5,
+     200
+    ]
+   ]
+  },
+  "crew_b": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "IDLE (mislabelled)",
+   "note": "operator B: draws and fires, recovers",
+   "ticksPerFrame": 7,
+   "rects": [
+    [
+     302,
+     253,
+     67,
+     135
+    ],
+    [
+     491,
+     253,
+     67,
+     135
+    ],
+    [
+     673,
+     253,
+     87,
+     135
+    ],
+    [
+     850,
+     253,
+     105,
+     135
+    ],
+    [
+     1040,
+     253,
+     84,
+     135
+    ],
+    [
+     1248,
+     252,
+     62,
+     136
+    ],
+    [
+     1439,
+     253,
+     68,
+     135
+    ],
+    [
+     1627,
+     253,
+     65,
+     135
+    ]
+   ],
+   "anchors": [
+    [
+     335.5,
+     388
+    ],
+    [
+     524.5,
+     388
+    ],
+    [
+     716.5,
+     388
+    ],
+    [
+     902.5,
+     388
+    ],
+    [
+     1082.0,
+     388
+    ],
+    [
+     1279.0,
+     388
+    ],
+    [
+     1473.0,
+     388
+    ],
+    [
+     1659.5,
+     388
+    ]
+   ]
+  },
+  "crew_c": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "WALK (mislabelled)",
+   "note": "operator C (cyber arm): aims and fires, recovers \u2014 standing in place, not walking",
+   "ticksPerFrame": 7,
+   "rects": [
+    [
+     294,
+     437,
+     75,
+     139
+    ],
+    [
+     479,
+     437,
+     78,
+     139
+    ],
+    [
+     668,
+     437,
+     92,
+     139
+    ],
+    [
+     850,
+     437,
+     94,
+     139
+    ],
+    [
+     1034,
+     437,
+     89,
+     139
+    ],
+    [
+     1250,
+     437,
+     59,
+     139
+    ],
+    [
+     1439,
+     437,
+     73,
+     139
+    ],
+    [
+     1624,
+     437,
+     68,
+     139
+    ]
+   ],
+   "anchors": [
+    [
+     331.5,
+     576
+    ],
+    [
+     518.0,
+     576
+    ],
+    [
+     714.0,
+     576
+    ],
+    [
+     897.0,
+     576
+    ],
+    [
+     1078.5,
+     576
+    ],
+    [
+     1279.5,
+     576
+    ],
+    [
+     1475.5,
+     576
+    ],
+    [
+     1658.0,
+     576
+    ]
+   ]
+  },
+  "carrier_back": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "BACK (= collapse)",
+   "note": "carrier frame sags and its deck buckles \u2014 the actual destruction",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     288,
+     619,
+     155,
+     117
+    ],
+    [
+     460,
+     642,
+     156,
+     117
+    ],
+    [
+     634,
+     653,
+     156,
+     110
+    ],
+    [
+     808,
+     650,
+     156,
+     113
+    ],
+    [
+     983,
+     650,
+     154,
+     113
+    ],
+    [
+     1156,
+     650,
+     156,
+     113
+    ]
+   ],
+   "anchors": [
+    [
+     365.5,
+     619
+    ],
+    [
+     539.1,
+     619
+    ],
+    [
+     712.7,
+     619
+    ],
+    [
+     886.3,
+     619
+    ],
+    [
+     1059.9,
+     619
+    ],
+    [
+     1233.5,
+     619
+    ]
+   ]
+  },
+  "carrier_hover": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "DEATH (= hover)",
+   "note": "intact carrier with down-thrust lines \u2014 arrival / delivery hover",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     288,
+     793,
+     156,
+     125
+    ],
+    [
+     460,
+     793,
+     156,
+     127
+    ],
+    [
+     634,
+     794,
+     157,
+     128
+    ],
+    [
+     808,
+     793,
+     157,
+     131
+    ]
+   ],
+   "anchors": [
+    [
+     365.5,
+     793
+    ],
+    [
+     538.0,
+     793
+    ],
+    [
+     712.5,
+     793
+    ],
+    [
+     886.5,
+     793
+    ]
+   ]
+  },
+  "carrier_move": {
+   "sheet": "Free-Drones-Pack-Pixel-Art4.webp",
+   "label": "IDLE (= lateral)",
+   "note": "intact carrier with side jets \u2014 lateral transit",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     278,
+     968,
+     165,
+     125
+    ],
+    [
+     458,
+     968,
+     158,
+     130
+    ],
+    [
+     630,
+     968,
+     161,
+     132
+    ],
+    [
+     802,
+     968,
+     163,
+     135
+    ]
+   ],
+   "anchors": [
+    [
+     365.5,
+     968
+    ],
+    [
+     537.0,
+     968
+    ],
+    [
+     712.5,
+     968
+    ],
+    [
+     886.5,
+     968
+    ]
+   ]
+  },
+  "heli_death": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "DEATH",
+   "note": "flash silhouette \u2192 debris scatter (destroyed)",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     340,
+     56,
+     205,
+     170
+    ],
+    [
+     543,
+     56,
+     205,
+     170
+    ],
+    [
+     745,
+     56,
+     205,
+     170
+    ],
+    [
+     950,
+     56,
+     205,
+     170
+    ],
+    [
+     1160,
+     56,
+     205,
+     170
+    ],
+    [
+     1370,
+     56,
+     205,
+     170
+    ]
+   ],
+   "anchors": [
+    [
+     442.5,
+     56
+    ],
+    [
+     648.5,
+     56
+    ],
+    [
+     854.5,
+     56
+    ],
+    [
+     1060.5,
+     56
+    ],
+    [
+     1266.5,
+     56
+    ],
+    [
+     1472.5,
+     56
+    ]
+   ]
+  },
+  "heli_idle": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "IDLE",
+   "note": "hover, hook hanging (extraction approach)",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     340,
+     261,
+     180,
+     132
+    ],
+    [
+     548,
+     260,
+     179,
+     131
+    ],
+    [
+     757,
+     261,
+     179,
+     132
+    ],
+    [
+     965,
+     264,
+     179,
+     132
+    ]
+   ],
+   "anchors": [
+    [
+     430.0,
+     260
+    ],
+    [
+     637.5,
+     260
+    ],
+    [
+     846.5,
+     260
+    ],
+    [
+     1054.5,
+     260
+    ]
+   ]
+  },
+  "heli_land": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "LANDING",
+   "note": "descent with hook lowered (pickup approach); 8th cell clipped by the sheet edge \u2014 not used",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     340,
+     470,
+     180,
+     131
+    ],
+    [
+     548,
+     480,
+     180,
+     131
+    ],
+    [
+     756,
+     494,
+     180,
+     131
+    ],
+    [
+     965,
+     500,
+     179,
+     132
+    ],
+    [
+     1173,
+     509,
+     179,
+     131
+    ],
+    [
+     1383,
+     516,
+     178,
+     134
+    ],
+    [
+     1591,
+     527,
+     178,
+     132
+    ]
+   ],
+   "anchors": [
+    [
+     430.0,
+     470
+    ],
+    [
+     638.0,
+     470
+    ],
+    [
+     847.0,
+     470
+    ],
+    [
+     1054.5,
+     470
+    ],
+    [
+     1262.5,
+     470
+    ],
+    [
+     1472.0,
+     470
+    ],
+    [
+     1680.0,
+     470
+    ]
+   ]
+  },
+  "heli_walk": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "WALK",
+   "note": "lateral transit, hook swinging",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     341,
+     680,
+     179,
+     132
+    ],
+    [
+     548,
+     676,
+     180,
+     135
+    ],
+    [
+     757,
+     680,
+     179,
+     131
+    ],
+    [
+     964,
+     681,
+     180,
+     134
+    ]
+   ],
+   "anchors": [
+    [
+     430.5,
+     676
+    ],
+    [
+     638.0,
+     676
+    ],
+    [
+     846.5,
+     676
+    ],
+    [
+     1055.0,
+     676
+    ]
+   ]
+  },
+  "plane_drop": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "DROP",
+   "note": "bomb-bay opens, payload shows under the fuselage",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     343,
+     893,
+     176,
+     43
+    ],
+    [
+     552,
+     893,
+     175,
+     43
+    ],
+    [
+     760,
+     893,
+     176,
+     43
+    ],
+    [
+     968,
+     893,
+     176,
+     50
+    ],
+    [
+     1177,
+     893,
+     175,
+     51
+    ],
+    [
+     1385,
+     893,
+     177,
+     51
+    ]
+   ],
+   "anchors": [
+    [
+     431.0,
+     893
+    ],
+    [
+     639.5,
+     893
+    ],
+    [
+     848.0,
+     893
+    ],
+    [
+     1056.0,
+     893
+    ],
+    [
+     1264.5,
+     893
+    ],
+    [
+     1473.5,
+     893
+    ]
+   ]
+  },
+  "bombs": {
+   "sheet": "Free-Drones-Pack-Pixel-Art6.webp",
+   "label": "BOMBS",
+   "note": "bomb tumbling horizontal \u2192 vertical (6 attitudes)",
+   "ticksPerFrame": 3,
+   "rects": [
+    [
+     328,
+     1083,
+     30,
+     20
+    ],
+    [
+     358,
+     1083,
+     34,
+     20
+    ],
+    [
+     392,
+     1083,
+     35,
+     20
+    ],
+    [
+     437,
+     1080,
+     22,
+     27
+    ],
+    [
+     473,
+     1080,
+     19,
+     29
+    ],
+    [
+     512,
+     1076,
+     12,
+     34
+    ]
+   ],
+   "anchors": [
+    [
+     343.0,
+     1093.0
+    ],
+    [
+     375.0,
+     1093.0
+    ],
+    [
+     409.5,
+     1093.0
+    ],
+    [
+     448.0,
+     1093.5
+    ],
+    [
+     482.5,
+     1094.5
+    ],
+    [
+     518.0,
+     1093.0
+    ]
+   ]
+  },
+  "hunter": {
+   "sheet": "drones_test002.webp",
+   "label": "Hunter row 1",
+   "note": "bipedal walker: step, step, fire (muzzle flash), fire",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     9,
+     5,
+     23,
+     29
+    ],
+    [
+     45,
+     5,
+     30,
+     29
+    ],
+    [
+     91,
+     5,
+     33,
+     29
+    ],
+    [
+     134,
+     5,
+     40,
+     29
+    ]
+   ],
+   "anchors": [
+    [
+     20.5,
+     34
+    ],
+    [
+     60.0,
+     34
+    ],
+    [
+     104.0,
+     34
+    ],
+    [
+     150.5,
+     34
+    ]
+   ]
+  },
+  "hunter_turn": {
+   "sheet": "drones_test002.webp",
+   "label": "Hunter row 2",
+   "note": "the same walker facing back, firing behind it",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     9,
+     45,
+     23,
+     29
+    ],
+    [
+     47,
+     45,
+     30,
+     29
+    ],
+    [
+     86,
+     45,
+     36,
+     29
+    ],
+    [
+     136,
+     45,
+     43,
+     29
+    ]
+   ],
+   "anchors": [
+    [
+     20.5,
+     74
+    ],
+    [
+     62.0,
+     74
+    ],
+    [
+     107.5,
+     74
+    ],
+    [
+     161.0,
+     74
+    ]
+   ]
+  },
+  "lurker": {
+   "sheet": "drones_test002.webp",
+   "label": "Lurker",
+   "note": "tracked cannon: rest, firing (the long line is its shot streak)",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     6,
+     100,
+     81,
+     31
+    ],
+    [
+     97,
+     99,
+     103,
+     34
+    ]
+   ],
+   "anchors": [
+    [
+     46.5,
+     131
+    ],
+    [
+     148.5,
+     133
+    ]
+   ]
+  },
+  "steelwing": {
+   "sheet": "drones_test002.webp",
+   "label": "Steel Wing",
+   "note": "winged gun flyer: three banking cells (muzzle flashes included) + level strafe with flash",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     12,
+     153,
+     36,
+     47
+    ],
+    [
+     65,
+     154,
+     37,
+     34
+    ],
+    [
+     120,
+     152,
+     37,
+     40
+    ],
+    [
+     173,
+     162,
+     40,
+     26
+    ]
+   ],
+   "anchors": [
+    [
+     30.0,
+     176.5
+    ],
+    [
+     83.5,
+     171.0
+    ],
+    [
+     138.5,
+     172.0
+    ],
+    [
+     193.0,
+     175.0
+    ]
+   ]
+  },
+  "defender": {
+   "sheet": "drones_test002.webp",
+   "label": "Defender row 1",
+   "note": "tracked launcher: rack flat, rack raised, gun mount, gun firing",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     11,
+     214,
+     51,
+     35
+    ],
+    [
+     76,
+     210,
+     51,
+     39
+    ],
+    [
+     138,
+     214,
+     54,
+     35
+    ],
+    [
+     201,
+     214,
+     54,
+     35
+    ]
+   ],
+   "anchors": [
+    [
+     36.5,
+     249
+    ],
+    [
+     101.5,
+     249
+    ],
+    [
+     165.0,
+     249
+    ],
+    [
+     228.0,
+     249
+    ]
+   ]
+  },
+  "defender2": {
+   "sheet": "drones_test002.webp",
+   "label": "Defender row 2",
+   "note": "launcher variant: rack raised (alt), scanner dome mount",
+   "ticksPerFrame": 6,
+   "rects": [
+    [
+     11,
+     263,
+     51,
+     39
+    ],
+    [
+     80,
+     267,
+     51,
+     35
+    ]
+   ],
+   "anchors": [
+    [
+     36.5,
+     302
+    ],
+    [
+     105.5,
+     302
+    ]
+   ]
+  },
+  "ammo": {
+   "sheet": "drones_test002.webp",
+   "label": "Defender pieces",
+   "note": "loose launcher pieces: missile pod (flat), gun mount, missile pod (angled) \u2014 used as arcing rounds",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     151,
+     273,
+     30,
+     11
+    ],
+    [
+     147,
+     290,
+     34,
+     15
+    ],
+    [
+     190,
+     279,
+     24,
+     23
+    ]
+   ],
+   "anchors": [
+    [
+     166.0,
+     278.5
+    ],
+    [
+     164.0,
+     297.5
+    ],
+    [
+     202.0,
+     290.5
+    ]
+   ]
+  },
+  "auto_a1": {
+   "sheet": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "label": "ATTACK1",
+   "note": "arm blaster: aim, beam, beam breaks up, recover",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     405,
+     128,
+     73,
+     84
+    ],
+    [
+     583,
+     128,
+     167,
+     83
+    ],
+    [
+     762,
+     128,
+     116,
+     83
+    ],
+    [
+     939,
+     128,
+     84,
+     83
+    ]
+   ],
+   "anchors": [
+    [
+     439,
+     128
+    ],
+    [
+     617,
+     128
+    ],
+    [
+     796,
+     128
+    ],
+    [
+     973,
+     128
+    ]
+   ]
+  },
+  "auto_a2": {
+   "sheet": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "label": "ATTACK2",
+   "note": "stepping blaster follow-through",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     410,
+     307,
+     68,
+     83
+    ],
+    [
+     593,
+     307,
+     157,
+     83
+    ],
+    [
+     766,
+     305,
+     114,
+     85
+    ],
+    [
+     939,
+     307,
+     88,
+     83
+    ],
+    [
+     1121,
+     307,
+     72,
+     83
+    ],
+    [
+     1307,
+     305,
+     64,
+     85
+    ]
+   ],
+   "anchors": [
+    [
+     444,
+     305
+    ],
+    [
+     627,
+     305
+    ],
+    [
+     800,
+     305
+    ],
+    [
+     973,
+     305
+    ],
+    [
+     1155,
+     305
+    ],
+    [
+     1341,
+     305
+    ]
+   ]
+  },
+  "auto_a3": {
+   "sheet": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "label": "ATTACK3",
+   "note": "crouch, shoulder cannon forward, heavy cyan beam, recover",
+   "ticksPerFrame": 4,
+   "rects": [
+    [
+     407,
+     494,
+     53,
+     74
+    ],
+    [
+     587,
+     510,
+     68,
+     58
+    ],
+    [
+     766,
+     513,
+     67,
+     55
+    ],
+    [
+     944,
+     510,
+     163,
+     58
+    ],
+    [
+     1121,
+     506,
+     138,
+     62
+    ],
+    [
+     1299,
+     495,
+     97,
+     73
+    ]
+   ],
+   "anchors": [
+    [
+     441,
+     494
+    ],
+    [
+     621,
+     494
+    ],
+    [
+     800,
+     494
+    ],
+    [
+     978,
+     494
+    ],
+    [
+     1155,
+     494
+    ],
+    [
+     1333,
+     494
+    ]
+   ]
+  },
+  "auto_a4": {
+   "sheet": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "label": "ATTACK4",
+   "note": "arm thrust stepping in place \u2014 used as the brace / reposition stride (no damage)",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     401,
+     663,
+     57,
+     83
+    ],
+    [
+     580,
+     666,
+     56,
+     81
+    ],
+    [
+     758,
+     666,
+     57,
+     80
+    ],
+    [
+     936,
+     663,
+     58,
+     83
+    ],
+    [
+     1116,
+     666,
+     56,
+     80
+    ],
+    [
+     1294,
+     666,
+     57,
+     80
+    ]
+   ],
+   "anchors": [
+    [
+     435,
+     663
+    ],
+    [
+     614,
+     663
+    ],
+    [
+     792,
+     663
+    ],
+    [
+     970,
+     663
+    ],
+    [
+     1150,
+     663
+    ],
+    [
+     1328,
+     663
+    ]
+   ]
+  },
+  "auto_death": {
+   "sheet": "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp",
+   "label": "DEATH",
+   "note": "shutdown: red silhouette \u2192 disintegrates",
+   "ticksPerFrame": 5,
+   "rects": [
+    [
+     405,
+     843,
+     62,
+     83
+    ],
+    [
+     581,
+     843,
+     63,
+     83
+    ],
+    [
+     758,
+     838,
+     63,
+     88
+    ],
+    [
+     936,
+     848,
+     65,
+     78
+    ],
+    [
+     1113,
+     854,
+     59,
+     72
+    ],
+    [
+     1297,
+     863,
+     50,
+     63
+    ]
+   ],
+   "anchors": [
+    [
+     436.0,
+     838
+    ],
+    [
+     614.4,
+     838
+    ],
+    [
+     792.8,
+     838
+    ],
+    [
+     971.2,
+     838
+    ],
+    [
+     1149.6,
+     838
+    ],
+    [
+     1328.0,
+     838
+    ]
+   ]
+  }
+ },
+ "labels_excluded": {
+  "drones_test002.webp": [
+   [
+    200,
+    28,
+    50,
+    25
+   ],
+   [
+    218,
+    104,
+    42,
+    24
+   ],
+   [
+    230,
+    157,
+    48,
+    34
+   ],
+   [
+    223,
+    280,
+    60,
+    22
+   ]
+  ],
+  "promo sheets": "row labels lie left of every art rect (x < first rect) \u2014 never sampled"
+ }
+}

@@ -1,0 +1,984 @@
+{
+ "batman": {
+  "goku": {
+   "light": {
+    "dmg": 28,
+    "hits": [
+     28
+    ],
+    "pctOfTargetHp": 2.8,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 57,
+    "hits": [
+     57
+    ],
+    "pctOfTargetHp": 5.7,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "chain Square ×3": {
+    "dmg": 91,
+    "hits": [
+     28,
+     28,
+     35
+    ],
+    "pctOfTargetHp": 9.1,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel Breaker": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 13,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel → KNIGHTFALL": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 13,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "launcher → jump → air strike": {
+    "dmg": 45,
+    "hits": [
+     45
+    ],
+    "pctOfTargetHp": 4.5,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "KNIGHTFALL (raw, point blank)": {
+    "dmg": 420,
+    "hits": [
+     40,
+     40,
+     90,
+     200,
+     50
+    ],
+    "pctOfTargetHp": 42,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "Gotham Airspace alone": {
+    "dmg": 77,
+    "hits": [
+     11,
+     11,
+     10,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 7.7,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.1
+   },
+   "Interceptor alone": {
+    "dmg": 49.05000000000723,
+    "hits": [
+     8,
+     7.9500000000000455,
+     6.9500000000000455,
+     6.9500000000000455,
+     5.9500000000000455,
+     4.9500000000000455,
+     3.9500000000000455,
+     3.9500000000000455,
+     3.9500000000000455,
+     3.9500000000000455
+    ],
+    "pctOfTargetHp": 4.9,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.12
+   },
+   "Carrier barrage alone": {
+    "dmg": 78,
+    "hits": [
+     15,
+     15,
+     14,
+     13,
+     11,
+     10
+    ],
+    "pctOfTargetHp": 7.8,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.15
+   },
+   "Skyhook alone": {
+    "dmg": 72,
+    "hits": [
+     26,
+     46
+    ],
+    "pctOfTargetHp": 7.2,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.15
+   },
+   "Capsule cover alone": {
+    "dmg": 30,
+    "hits": [
+     5,
+     5,
+     8,
+     3,
+     3,
+     3,
+     3
+    ],
+    "pctOfTargetHp": 3,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.15
+   },
+   "Automaton alone": {
+    "dmg": 73,
+    "hits": [
+     20,
+     20,
+     33
+    ],
+    "pctOfTargetHp": 7.3,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.15
+   },
+   "Airspace + chain under the bombs": {
+    "dmg": 143,
+    "hits": [
+     25,
+     25,
+     9,
+     28,
+     7,
+     7,
+     6,
+     6,
+     6,
+     6,
+     6,
+     6,
+     6
+    ],
+    "pctOfTargetHp": 14.3,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1.15
+   }
+  },
+  "superman": {
+   "light": {
+    "dmg": 28,
+    "hits": [
+     28
+    ],
+    "pctOfTargetHp": 2.4,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 57,
+    "hits": [
+     57
+    ],
+    "pctOfTargetHp": 5,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "chain Square ×3": {
+    "dmg": 91,
+    "hits": [
+     28,
+     28,
+     35
+    ],
+    "pctOfTargetHp": 7.9,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel Breaker": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 11.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel → KNIGHTFALL": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 11.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "launcher → jump → air strike": {
+    "dmg": 45,
+    "hits": [
+     45
+    ],
+    "pctOfTargetHp": 3.9,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "KNIGHTFALL (raw, point blank)": {
+    "dmg": 420,
+    "hits": [
+     40,
+     40,
+     90,
+     200,
+     50
+    ],
+    "pctOfTargetHp": 36.5,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Gotham Airspace alone": {
+    "dmg": 90,
+    "hits": [
+     12,
+     12,
+     11,
+     10,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 7.8,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Interceptor alone": {
+    "dmg": 66,
+    "hits": [
+     9,
+     9,
+     8,
+     8,
+     6,
+     6,
+     5,
+     5,
+     5,
+     5
+    ],
+    "pctOfTargetHp": 5.7,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Carrier barrage alone": {
+    "dmg": 92,
+    "hits": [
+     18,
+     18,
+     16,
+     15,
+     13,
+     12
+    ],
+    "pctOfTargetHp": 8,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Skyhook alone": {
+    "dmg": 84,
+    "hits": [
+     30,
+     54
+    ],
+    "pctOfTargetHp": 7.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Capsule cover alone": {
+    "dmg": 36,
+    "hits": [
+     6,
+     6,
+     10,
+     4,
+     4,
+     3,
+     3
+    ],
+    "pctOfTargetHp": 3.1,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Automaton alone": {
+    "dmg": 86,
+    "hits": [
+     24,
+     24,
+     38
+    ],
+    "pctOfTargetHp": 7.5,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Airspace + chain under the bombs": {
+    "dmg": 165,
+    "hits": [
+     28,
+     28,
+     11,
+     32,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 14.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   }
+  },
+  "higuruma": {
+   "light": {
+    "dmg": 28,
+    "hits": [
+     28
+    ],
+    "pctOfTargetHp": 2.6,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 57,
+    "hits": [
+     57
+    ],
+    "pctOfTargetHp": 5.3,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "chain Square ×3": {
+    "dmg": 91,
+    "hits": [
+     28,
+     28,
+     35
+    ],
+    "pctOfTargetHp": 8.4,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel Breaker": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 12,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel → KNIGHTFALL": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 12,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "launcher → jump → air strike": {
+    "dmg": 45,
+    "hits": [
+     45
+    ],
+    "pctOfTargetHp": 4.2,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "KNIGHTFALL (raw, point blank)": {
+    "dmg": 420,
+    "hits": [
+     40,
+     40,
+     90,
+     200,
+     50
+    ],
+    "pctOfTargetHp": 38.9,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Gotham Airspace alone": {
+    "dmg": 90,
+    "hits": [
+     12,
+     12,
+     11,
+     10,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 8.3,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Interceptor alone": {
+    "dmg": 66,
+    "hits": [
+     9,
+     9,
+     8,
+     8,
+     6,
+     6,
+     5,
+     5,
+     5,
+     5
+    ],
+    "pctOfTargetHp": 6.1,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Carrier barrage alone": {
+    "dmg": 92,
+    "hits": [
+     18,
+     18,
+     16,
+     15,
+     13,
+     12
+    ],
+    "pctOfTargetHp": 8.5,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Skyhook alone": {
+    "dmg": 84,
+    "hits": [
+     30,
+     54
+    ],
+    "pctOfTargetHp": 7.8,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Capsule cover alone": {
+    "dmg": 36,
+    "hits": [
+     6,
+     6,
+     10,
+     4,
+     4,
+     3,
+     3
+    ],
+    "pctOfTargetHp": 3.3,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Automaton alone": {
+    "dmg": 86,
+    "hits": [
+     24,
+     24,
+     38
+    ],
+    "pctOfTargetHp": 8,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "Airspace + chain under the bombs": {
+    "dmg": 165,
+    "hits": [
+     28,
+     28,
+     11,
+     32,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 15.3,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   }
+  },
+  "arlong": {
+   "light": {
+    "dmg": 28,
+    "hits": [
+     28
+    ],
+    "pctOfTargetHp": 2.3,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 57,
+    "hits": [
+     57
+    ],
+    "pctOfTargetHp": 4.7,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "chain Square ×3": {
+    "dmg": 91,
+    "hits": [
+     28,
+     28,
+     35
+    ],
+    "pctOfTargetHp": 7.5,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel Breaker": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 10.7,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "chain → Grapnel → KNIGHTFALL": {
+    "dmg": 130,
+    "hits": [
+     28,
+     28,
+     35,
+     12,
+     27
+    ],
+    "pctOfTargetHp": 10.7,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "launcher → jump → air strike": {
+    "dmg": 45,
+    "hits": [
+     45
+    ],
+    "pctOfTargetHp": 3.7,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "KNIGHTFALL (raw, point blank)": {
+    "dmg": 404,
+    "hits": [
+     40,
+     40,
+     82,
+     192,
+     50
+    ],
+    "pctOfTargetHp": 33.1,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Gotham Airspace alone": {
+    "dmg": 90,
+    "hits": [
+     12,
+     12,
+     11,
+     10,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 7.4,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Interceptor alone": {
+    "dmg": 66,
+    "hits": [
+     9,
+     9,
+     8,
+     8,
+     6,
+     6,
+     5,
+     5,
+     5,
+     5
+    ],
+    "pctOfTargetHp": 5.4,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Carrier barrage alone": {
+    "dmg": 92,
+    "hits": [
+     18,
+     18,
+     16,
+     15,
+     13,
+     12
+    ],
+    "pctOfTargetHp": 7.5,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Skyhook alone": {
+    "dmg": 84,
+    "hits": [
+     30,
+     54
+    ],
+    "pctOfTargetHp": 6.9,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Capsule cover alone": {
+    "dmg": 36,
+    "hits": [
+     6,
+     6,
+     10,
+     4,
+     4,
+     3,
+     3
+    ],
+    "pctOfTargetHp": 3,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Automaton alone": {
+    "dmg": 86,
+    "hits": [
+     24,
+     24,
+     38
+    ],
+    "pctOfTargetHp": 7,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "Airspace + chain under the bombs": {
+    "dmg": 165,
+    "hits": [
+     28,
+     28,
+     11,
+     32,
+     9,
+     8,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7,
+     7
+    ],
+    "pctOfTargetHp": 13.5,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   }
+  }
+ },
+ "reference": {
+  "goku": {
+   "light": {
+    "dmg": 27,
+    "hits": [
+     27
+    ],
+    "pctOfTargetHp": 2.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 51,
+    "hits": [
+     51
+    ],
+    "pctOfTargetHp": 4.4,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Light ×3 (tapped)": {
+    "dmg": 27,
+    "hits": [
+     27
+    ],
+    "pctOfTargetHp": 2.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Ultimate (point blank)": {
+    "dmg": 0,
+    "hits": [],
+    "pctOfTargetHp": 0,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   }
+  },
+  "superman": {
+   "light": {
+    "dmg": 27,
+    "hits": [
+     27
+    ],
+    "pctOfTargetHp": 2.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 48,
+    "hits": [
+     48
+    ],
+    "pctOfTargetHp": 4.2,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Light ×3 (tapped)": {
+    "dmg": 27,
+    "hits": [
+     27
+    ],
+    "pctOfTargetHp": 2.3,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Ultimate (point blank)": {
+    "dmg": 380,
+    "hits": [
+     30,
+     350
+    ],
+    "pctOfTargetHp": 33,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   }
+  },
+  "higuruma": {
+   "light": {
+    "dmg": 18,
+    "hits": [
+     18
+    ],
+    "pctOfTargetHp": 1.6,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "heavy": {
+    "dmg": 67,
+    "hits": [
+     67
+    ],
+    "pctOfTargetHp": 5.8,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Light ×3 (tapped)": {
+    "dmg": 71,
+    "hits": [
+     18,
+     23,
+     30
+    ],
+    "pctOfTargetHp": 6.2,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "Ultimate (point blank)": {
+    "dmg": 316,
+    "hits": [
+     35,
+     82,
+     199
+    ],
+    "pctOfTargetHp": 27.5,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   }
+  }
+ },
+ "notes": [
+  "KNIGHTFALL needs a full 100 bar: the \"chain → Grapnel → KNIGHTFALL\" row never fires the ultimate (Grapnel spends 14); the legal ultimate string is chain → KNIGHTFALL (supplement).",
+  "The \"launcher → jump → air strike\" row only lands the launcher: the shared Balanced launcher (launchVy −32) lifts the target ≈590 px and the jump press is swallowed during the hit freeze; the working juggle is launcher → (≥20 f) jump → double jump → air strike (supplement)."
+ ],
+ "supplement": {
+  "goku": {
+   "chain Square ×3 → KNIGHTFALL (bL3 cancel)": {
+    "dmg": 412,
+    "hits": [
+     28,
+     28,
+     35,
+     33,
+     30,
+     68,
+     152,
+     38
+    ],
+    "pctOfTargetHp": 41.2,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   },
+   "launcher → jump → double jump → air strike": {
+    "dmg": 77,
+    "hits": [
+     45,
+     32
+    ],
+    "pctOfTargetHp": 7.7,
+    "targetMaxHp": 1000,
+    "targetDefMult": 1
+   }
+  },
+  "superman": {
+   "chain Square ×3 → KNIGHTFALL (bL3 cancel)": {
+    "dmg": 412,
+    "hits": [
+     28,
+     28,
+     35,
+     33,
+     30,
+     68,
+     152,
+     38
+    ],
+    "pctOfTargetHp": 35.8,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   },
+   "launcher → jump → double jump → air strike": {
+    "dmg": 77,
+    "hits": [
+     45,
+     32
+    ],
+    "pctOfTargetHp": 6.7,
+    "targetMaxHp": 1150,
+    "targetDefMult": 1
+   }
+  },
+  "higuruma": {
+   "chain Square ×3 → KNIGHTFALL (bL3 cancel)": {
+    "dmg": 412,
+    "hits": [
+     28,
+     28,
+     35,
+     33,
+     30,
+     68,
+     152,
+     38
+    ],
+    "pctOfTargetHp": 38.1,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   },
+   "launcher → jump → double jump → air strike": {
+    "dmg": 77,
+    "hits": [
+     45,
+     32
+    ],
+    "pctOfTargetHp": 7.1,
+    "targetMaxHp": 1080,
+    "targetDefMult": 1
+   }
+  },
+  "arlong": {
+   "chain Square ×3 → KNIGHTFALL (bL3 cancel)": {
+    "dmg": 397,
+    "hits": [
+     28,
+     28,
+     35,
+     33,
+     30,
+     61,
+     144,
+     38
+    ],
+    "pctOfTargetHp": 32.5,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   },
+   "launcher → jump → double jump → air strike": {
+    "dmg": 77,
+    "hits": [
+     45,
+     32
+    ],
+    "pctOfTargetHp": 6.3,
+    "targetMaxHp": 1220,
+    "targetDefMult": 1
+   }
+  }
+ }
+}

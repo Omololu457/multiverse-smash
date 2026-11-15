@@ -30,3 +30,8 @@
 - **Docs:** owned files + every shared hook `docs/mmpr_white/INTEGRATION.md`; frame data `MOVE_FRAME_MAP.md`; measured routes `COMBOS_BALANCE.md`; Megazord orders + Formation rule `docs/power_rangers/ninja_megazord/README.md`.
 - **Shared changes:** `falconzord.js` per-contact `gate` (White's Formation follow-ups; also relies on Pink's `box.dx`); `mmprBlackFx.js` exports the shared `drawZordCell`; `mmprBlackState.js` only clears Black's own leftovers; `rangers.js` `clearRanger` releases `_rooted` when a live blink is cleared (a reset mid-blink froze any Ranger).
 - **Known / pending:** Formation Crane Rise now air-converts (follow-up pops −15 + signal-pose jump-cancel; 94 dmg true combo); no White-specific CPU AI; rosterParity.js ×1.3 opt-in not applied.
+
+## Batman (`batman`, DC) rebuilt — 2026-11-14
+- **State:** playable (Lv10 unlock gate kept). Owned modules `batman*.js`, art `assets/batman/**`, pipeline `tools/batman/`. Harnesses: `batman_rebuild.test.mjs` (70/0), `batman_determinism.mjs` (17/0), `batman_skins.test.mjs` (57/0), `batman_visual.mjs` (27/0 real menus → KO → rematch), `batman_framedata_diff.mjs` (zero diff), `batman_damage_audit.mjs [--supplement]`.
+- **Docs:** `docs/batman/` — owned files + all 46 shared hooks in `INTEGRATION.md` (`python3 tools/batman/apply_hooks.py --check`).
+- **Known:** legacy `preloadManifest.js` still preloads the wiped `batman_baterang_proj.png` (harmless 404; shared generated file untouched). Legacy `harness/batman.test.mjs` tests the old kit (superseded). Physical DualSense not tested.

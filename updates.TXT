@@ -518,3 +518,38 @@
 - Tests: mmpr_white 103/0, determinism/replay/LAN/pad 23/0, skins 70/0, real-menu visual 22/0; frame-data diff zero for all 134 other fighters; mmpr_black 85/0, spd_red_final 33/0, krybot 58/0, spd_blue 54/0, spd_blue_teleport 26/0, spd_green 60/0, luffy_combos pass.
 - Docs: docs/mmpr_white/ (START_STATE, CODEX_OWNERSHIP, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/ninja_megazord/.
 - Follow-up: Formation Crane Rise now air-converts. The follow-up push kick pops the foe (knockbackY -15, not a launch) and its hit makes Tommy's signal pose jump-cancellable; Crane Rise -> follow-up -> jump -> air kick is a true 3-hit combo (94 dmg). mmpr_white 104/0, determinism 23/0, visual 22/0.
+
+2026-11-14 - Batman (batman, DC) rebuilt: gadgets + automated support fleet (Claude)
+- Batman is playable again in DC (only the "batman" wipe entry revived; dark_knight
+  stays wiped; the existing Lv10 unlock gate is kept). Tactical Brawler / Fleet
+  Commander, HP 1150, Gadget Energy 100, double jump, physical dash. Body = the
+  supplied SNES "Batman Returns" sheet; machines = the supplied drone / vehicle /
+  robot packs (custom game adaptations of generic art, not official Batman vehicle
+  designs). All source sheets preserved byte-for-byte.
+- You control Batman only. Kit: Jab -> Cross -> Rising Knee (48/48/64 raw), Low 42,
+  Heavy 95, Spinning Advance, Balanced launcher 75, Sweep, Cape Counter 100, air
+  65/65, Cape Dive 90, throw 45. Gadgets: Batarang 70, Grapnel Breaker 85, Rooftop
+  Extraction, Smoke and Shadow (Shadow Dash), Gotham Airspace (200 budget).
+- Support orders (hold L2 / P, then R1 / L + direction; one major operation at a
+  time, cost on commit, cooldowns, destroyable machines): Interceptor 150, Carrier
+  ground barrage 180, Skyhook ~140, Capsule Cover ~80, Wayne Automaton 150.
+  L2 + Up on the ground is an order direction, never a jump (command stance).
+- Ultimate KNIGHTFALL: ORBITAL IMPACT (420 raw): grapnel opener -> fixed-wing
+  aircraft tether -> sky -> space (reuses Superman's World of Cardboard moon
+  backdrop; Superman unchanged) -> reentry -> ground slam + explosion.
+- 10 arsenal-wide skins (body + fleet + portrait + explosion + HUD/FX colours):
+  Blue Crusader, Gotham Beyond, White Knight, Arkham Bronze, Red Rain, Alien X
+  Cosmic Knight, Upgrade Wayne Systems, Cursed Midnight, Glacier Stealth, Gilded
+  Eclipse. Cosmetic only (identical gameplay traces vs Default).
+- Measured live (vs Goku / Superman / Higuruma / Arlong): light 28, heavy 57,
+  chain 91, chain -> Grapnel 130, chain -> KNIGHTFALL 412 (397 vs Arlong), launcher
+  -> double jump -> air 77, KNIGHTFALL 420. References on the same target: Goku
+  27/51, Superman 27/48 ult 380, Higuruma 18/67 ult 316.
+- Tests: batman_rebuild 70/0, determinism + snapshot + batching 17/0, skins 57/0,
+  real-menu visual 27/0 (both facings, all ops, ult phases, KO, rematch), frame-
+  data diff zero for every other character (Superman identical). Global det 14/0,
+  roster integrity pass, combo-standard 233/9 and up-attack 77/2 and credits 11/3
+  unchanged (pre-existing, not Batman). Legacy harness/batman.test.mjs tests the
+  wiped old kit (12/21, superseded). Physical DualSense hardware NOT tested.
+- Docs: docs/batman/ (ASSET_MANIFEST, SPRITE_TO_MOVE_MAP, ARSENAL, DAMAGE_AUDIT,
+  ULTIMATE_TIMELINE, CONTROLS, SKINS, VERIFICATION, INTEGRATION + evidence images).

@@ -1,0 +1,284 @@
+{
+ "skins": {
+  "bm_blue_crusader": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_blue_crusader",
+    "tag": "blue_crusader",
+    "idle": "./assets/batman/skins/blue_crusader/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_gotham_beyond": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_gotham_beyond",
+    "tag": "gotham_beyond",
+    "idle": "./assets/batman/skins/gotham_beyond/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_white_knight": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_white_knight",
+    "tag": "white_knight",
+    "idle": "./assets/batman/skins/white_knight/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_arkham_bronze": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_arkham_bronze",
+    "tag": "arkham_bronze",
+    "idle": "./assets/batman/skins/arkham_bronze/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_red_rain": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_red_rain",
+    "tag": "red_rain",
+    "idle": "./assets/batman/skins/red_rain/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_alienx_cosmic_knight": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_alienx_cosmic_knight",
+    "tag": "alienx_cosmic_knight",
+    "idle": "./assets/batman/skins/alienx_cosmic_knight/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_upgrade_wayne_systems": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_upgrade_wayne_systems",
+    "tag": "upgrade_wayne_systems",
+    "idle": "./assets/batman/skins/upgrade_wayne_systems/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_cursed_midnight": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_cursed_midnight",
+    "tag": "cursed_midnight",
+    "idle": "./assets/batman/skins/cursed_midnight/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_glacier_stealth": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_glacier_stealth",
+    "tag": "glacier_stealth",
+    "idle": "./assets/batman/skins/glacier_stealth/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  },
+  "bm_gilded_eclipse": {
+   "geometry": {
+    "body.png": [
+     true,
+     255840
+    ],
+    "fleet.png": [
+     true,
+     715005
+    ],
+    "portrait.png": [
+     true,
+     8784
+    ],
+    "explosion.png": [
+     true,
+     4823
+    ]
+   },
+   "applied": {
+    "id": "bm_gilded_eclipse",
+    "tag": "gilded_eclipse",
+    "idle": "./assets/batman/skins/gilded_eclipse/body.png",
+    "p2": "default",
+    "p2tag": null
+   },
+   "frames": 670
+  }
+ }
+}

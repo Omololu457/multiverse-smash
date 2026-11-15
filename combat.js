@@ -7,6 +7,7 @@ import { spdBlueHitbox, spdBlueBlock, spdBlueHit, absorbSpdBlue } from './spdBlu
 import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js'   // S.P.D. Green hooks (spd_green-gated)
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
+import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -702,6 +703,7 @@ export function getAttackHitbox(fighter) {
   if (a?.mb && fighter.rosterKey === 'mmpr_pink') return mmprPinkHitbox(fighter)   // Pink Ranger: per-move box; body-less bow / call / Crane Escape have none
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
   if (a?.mw && fighter.rosterKey === 'mmpr_white') return mmprWhiteHitbox(fighter)   // White Ranger: per-move box; body-less order / signal / feint have none
+  if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -3264,6 +3266,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // LUFFY — Gum-Gum guard absorb: when his defensive window holds, the incoming strike is absorbed
   // outright. luffy-gated → a strict no-op for every other fighter.
   if (absorbSpdBlue(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }
+  if (absorbBatman(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Batman cape counter: one frontal strike caught; batman-gated
   if (absorbLuffyStrike(defender, attacker)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3417,6 +3420,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) mmprPinkBlock(attacker, defender, atk)   // Pink Ranger: authored blockstun; mmpr_pink-gated
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
     if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
+    if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
@@ -3475,6 +3479,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
     mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
     mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
+    batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
     spdRedHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8

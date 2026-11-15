@@ -1,0 +1,202 @@
+{
+  "lockedAtStart": false,
+  "unlockedAtLv10": true,
+  "roster": [
+    "batman"
+  ],
+  "detail": {
+    "key": "batman",
+    "name": "Batman",
+    "stats": {
+      "maxHealth": 1150,
+      "maxEnergy": 100,
+      "attack": 94,
+      "defense": 90,
+      "speed": 94,
+      "jumpPower": 26,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 20,
+      "dashDuration": 10,
+      "dashCooldownMax": 24
+    },
+    "kitType": "Tactical Brawler / Fleet Commander",
+    "difficulty": "Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 521,
+    "mouseY": 203
+  },
+  "chosenSkin": "bm_white_knight",
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "introActions": [
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro"
+  ],
+  "introCard": {
+    "p": true,
+    "k": 43,
+    "act": "intro"
+  },
+  "match": {
+    "p1": "batman",
+    "skin": "bm_white_knight",
+    "tag": "white_knight",
+    "p2": "superman"
+  },
+  "tag": "white_knight",
+  "counter_R": {
+    "counters": 0,
+    "hits": 0
+  },
+  "ultPhases_R": [
+    {
+      "want": "strafe",
+      "got": "strafe",
+      "frame": 5,
+      "ty": 400,
+      "floor": 500,
+      "plane": {
+        "x": 749,
+        "y": 339
+      }
+    },
+    {
+      "want": "ascent",
+      "got": "ascent",
+      "frame": 38,
+      "ty": 376,
+      "floor": 500,
+      "plane": {
+        "x": 1464,
+        "y": 330
+      }
+    },
+    {
+      "want": "space",
+      "got": "space",
+      "frame": 100,
+      "ty": -60,
+      "floor": 500,
+      "plane": {
+        "x": 1828,
+        "y": -132
+      }
+    },
+    {
+      "want": "reentry",
+      "got": "reentry",
+      "frame": 138,
+      "ty": -50,
+      "floor": 500,
+      "plane": {
+        "x": 1820,
+        "y": -96
+      }
+    },
+    {
+      "want": "impact",
+      "got": "impact",
+      "frame": 172,
+      "ty": 400,
+      "floor": 500,
+      "plane": {
+        "x": 1928,
+        "y": 236
+      }
+    }
+  ],
+  "counter_L": {
+    "counters": 0,
+    "hits": 0
+  },
+  "ultPhases_L": [
+    {
+      "want": "strafe",
+      "got": "strafe",
+      "frame": 5,
+      "ty": 400,
+      "floor": 500,
+      "plane": {
+        "x": 1911,
+        "y": 339
+      }
+    },
+    {
+      "want": "ascent",
+      "got": "ascent",
+      "frame": 38,
+      "ty": 376,
+      "floor": 500,
+      "plane": {
+        "x": 1244,
+        "y": 330
+      }
+    },
+    {
+      "want": "space",
+      "got": "space",
+      "frame": 100,
+      "ty": -60,
+      "floor": 500,
+      "plane": {
+        "x": 1576,
+        "y": -132
+      }
+    },
+    {
+      "want": "reentry",
+      "got": "reentry",
+      "frame": 138,
+      "ty": -50,
+      "floor": 500,
+      "plane": {
+        "x": 1592,
+        "y": -96
+      }
+    },
+    {
+      "want": "impact",
+      "got": "impact",
+      "frame": 172,
+      "ty": 400,
+      "floor": 500,
+      "plane": {
+        "x": 1484,
+        "y": 236
+      }
+    }
+  ],
+  "profile": {
+    "msPerFrameIdle": 0.222,
+    "msPerFrameOps": 1.037,
+    "msPerFrameUlt": 0.067,
+    "fxCacheBefore": 4,
+    "fxCacheAfter": 4,
+    "fxEntries": 1
+  },
+  "victoryAction": "win",
+  "defeat": "win",
+  "passes": 27,
+  "failures": 0,
+  "errors": []
+}

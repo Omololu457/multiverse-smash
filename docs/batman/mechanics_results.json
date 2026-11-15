@@ -1,0 +1,283 @@
+{
+ "moves": {
+  "light (Square)": {
+   "dmg": 28,
+   "hits": [
+    28
+   ]
+  },
+  "low (Down+Square)": {
+   "dmg": 25,
+   "hits": [
+    25
+   ]
+  },
+  "heavy (Triangle)": {
+   "dmg": 57,
+   "hits": [
+    57
+   ]
+  },
+  "advancing heavy (Fwd+Triangle)": {
+   "dmg": 57,
+   "hits": [
+    57
+   ]
+  },
+  "launcher (Up+Triangle / I)": {
+   "dmg": 45,
+   "hits": [
+    45
+   ]
+  },
+  "sweep (Down+Triangle)": {
+   "dmg": 48,
+   "hits": [
+    48
+   ]
+  },
+  "chain": {
+   "dmg": 91,
+   "hits": [
+    28,
+    28,
+    35
+   ]
+  },
+  "air": [
+   39
+  ],
+  "dive": [
+   54
+  ],
+  "counter": {
+   "hits": [
+    60
+   ],
+   "stats": 1
+  },
+  "grab": [
+   54
+  ]
+ },
+ "gadgets": {
+  "batarang": {
+   "hits": [
+    24,
+    18
+   ],
+   "energy": 3.02
+  },
+  "grapnel": {
+   "hits": [
+    15,
+    36
+   ],
+   "energy": 9.62
+  },
+  "rooftopGround": [
+   33
+  ],
+  "shadow": {
+   "sp": 29,
+   "du": 14,
+   "n": 1
+  }
+ },
+ "orders": {
+  "airspace": {
+   "dmg": 90,
+   "hits": [
+    12,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    7,
+    7,
+    7
+   ],
+   "assistRaw": 200,
+   "budget": 200,
+   "cost": 35,
+   "energyNet": 11,
+   "stats": {
+    "hits": 10,
+    "blocked": 0,
+    "cap": {
+     "airspace": 1
+    }
+   }
+  },
+  "interceptor": {
+   "dmg": 66,
+   "hits": [
+    9,
+    9,
+    8,
+    8,
+    6,
+    6,
+    5,
+    5,
+    5,
+    5
+   ],
+   "assistRaw": 150,
+   "budget": 150,
+   "cost": 25,
+   "energyNet": 11.8,
+   "stats": {
+    "hits": 10,
+    "blocked": 0,
+    "cap": {
+     "interceptor": 1
+    }
+   }
+  },
+  "carrier": {
+   "dmg": 92,
+   "hits": [
+    18,
+    18,
+    16,
+    15,
+    13,
+    12
+   ],
+   "assistRaw": 180,
+   "budget": 180,
+   "cost": 30,
+   "energyNet": 12.6,
+   "stats": {
+    "hits": 6,
+    "blocked": 0,
+    "cap": {
+     "carrier": 1
+    }
+   }
+  },
+  "skyhook": {
+   "dmg": 84,
+   "hits": [
+    30,
+    54
+   ],
+   "assistRaw": 140,
+   "budget": 140,
+   "cost": 25,
+   "energyNet": 13,
+   "stats": {
+    "hits": 2,
+    "blocked": 0,
+    "cap": {
+     "skyhook": 1
+    }
+   }
+  },
+  "cover": {
+   "dmg": 36,
+   "hits": [
+    6,
+    6,
+    10,
+    4,
+    4,
+    3,
+    3
+   ],
+   "assistRaw": 80,
+   "budget": 80,
+   "cost": 18,
+   "energyNet": 10.74,
+   "stats": {
+    "hits": 8,
+    "blocked": 0,
+    "cap": {
+     "cover": 1
+    }
+   }
+  },
+  "automaton": {
+   "dmg": 86,
+   "hits": [
+    24,
+    24,
+    38
+   ],
+   "assistRaw": 150,
+   "budget": 150,
+   "cost": 25,
+   "energyNet": 15.4,
+   "stats": {
+    "hits": 3,
+    "blocked": 0,
+    "cap": {
+     "automaton": 1
+    }
+   }
+  }
+ },
+ "rules": {
+  "handoff": [
+   [
+    "airspace",
+    true
+   ],
+   [
+    "interceptor",
+    false
+   ]
+  ],
+  "machineDestroyed": {
+   "lost": 1,
+   "rawDelivered": 80
+  },
+  "blockedAirspace": {
+   "dmg": 10,
+   "blocked": 10
+  },
+  "caps": {
+   "maxPay": 1,
+   "maxMach": 3
+  }
+ },
+ "ultimate": {
+  "standalone": [
+   40,
+   40,
+   90,
+   200,
+   50
+  ],
+  "dmg": 400,
+  "phases": [
+   "strafe",
+   "ascent",
+   "space",
+   "reentry",
+   "impact",
+   "recovery"
+  ],
+  "minY": -60,
+  "minX": 1411.5,
+  "maxX": 1837,
+  "floor": 500,
+  "after": {
+   "hp": 750,
+   "x": 1792,
+   "y": 400,
+   "w": 60,
+   "h": 100,
+   "grounded": true,
+   "knockdown": true,
+   "juggle": 0,
+   "key": "batman"
+  },
+  "opsBefore": 1,
+  "opsExited": true,
+  "payDuring": 0
+ }
+}

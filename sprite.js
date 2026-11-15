@@ -761,6 +761,7 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Down → isBlocking, so without this the cast strip would be shadowed by the guard pose.
   if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter.blockstun || 0) > 0) return 'guard_hit';
   if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter._luffyLandingVisual || 0) > 0) return 'land';
+  if (fighter.rosterKey === 'batman' && !fighter.attacking && fighter._bmPose && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1 && (fighter._skinAnim?.[fighter._bmPose] || fighter.animationData?.[fighter._bmPose])) return fighter._bmPose;   // Batman: supplied landing frames (sim-set pose, render only)
   if (fighter.isBlocking && !fighter.attacking && !((fighter._spriteCastTimer || 0) > 0 && fighter._spriteCastMove)) {
     return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
   }
@@ -1136,6 +1137,7 @@ export class SpriteHandler {
       const clearance = Math.max(0, (fighter.groundY ?? fighter.y + fighter.h) - (fighter.y + fighter.h));
       while (this.frameIndex > 0 && profileAction.groundClearance[this.frameIndex] * scale > clearance) this.frameIndex--;
     }
+    if (fighter.rosterKey === 'batman') fighter._lastSpriteFrame = this.frameIndex;   // Batman: presentation read for grapnel / rope anchors (batmanFx)
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 

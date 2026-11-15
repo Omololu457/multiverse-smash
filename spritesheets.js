@@ -587,7 +587,7 @@ export const SPRITE_MANIFEST = {
   // flips Batman from procedural box to sprite. Per-action rendering reads characters.js →
   // batman.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
   batman: {
-    actions: { idle: "./batman_idle_uniform.png" }
+    actions: { idle: "./assets/batman/body.png" }   /* Batman REBUILT: the body atlas (batman*.js) */
   },
 
   // Batman NEW VARIANT (rosterKey "dark_knight", universe: dc). Gates spritesReady() by decoding the

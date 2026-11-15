@@ -31,6 +31,9 @@ export const SOURCED_ART = {
   mmpr_pink: { work: 'Pink Ranger + Thunder Megazord — Mighty Morphin Power Rangers: The Movie (Sega Genesis)', artists: ['Belial (ripper)'],
     source: 'Supplied sheets. Visible credit on the Pink Ranger sheet: "Sprites (shamefully) ripped by Belial."; on the Thunder Megazord sheet: "Sprites Ripped by Belial" (both excluded from animation). Original pixels; GIF transparency only. SHA-256 + rects in docs/mmpr_pink/source_rects.json and docs/power_rangers/thunder_megazord/source_rects.json',
     files: ['assets/mmpr_pink/**', 'assets/power_rangers/thunder_megazord/**'] },
+  batman: { work: 'Batman (DC) — SNES "Batman Returns" sprite sheet + generic drone / vehicle / robot packs', artists: ['DAD34853 (sheet upgrade, per the on-sheet caption)'],
+    source: 'Supplied "SNES - Batman Returns - Playable Characters - Batman.png" (SHA-256 12f83f42…; on-sheet caption credits the upgrade to DAD34853 — caption and HUD icon excluded from extraction); supplied generic packs "Free-Drones-Pack-Pixel-Art2/3/4/6.webp", "drones_test002.webp" and "Robots-Pixel-Art-Sprite-Sheet-Pack6-1536x1024.webp" (publisher not named on the sheets). Machine names are custom game adaptations, not official Batman vehicle designs. Ground explosion reuses the committed Krybot strip (assets/krybot/explosion.png). Original pixels; promo sheets matted + 32-colour quantized. Rects in docs/batman/source_rects.json; skins precomputed (tools/batman/build_skins.py).',
+    files: ['assets/batman/**'] },
   spd_green: { work: 'S.P.D. Green Ranger — Power Rangers S.P.D.: Escape of the Five Fugitives (Plug & Play)', artists: ['the FRANKETE (ripper, for TSR)'],
     source: 'Supplied sheet; visible credit panel: "ripped by the FRANKETE for TSR" (WANTED poster, excluded from animation). Original pixels; only the exact cell fill keyed. Source SHA-256 + rects in docs/spd_green/source_rects.json.',
     files: ['assets/spd_green/*.png', 'assets/spd_green/cells/*.png', 'assets/spd_green/skins/**'] },
@@ -657,7 +660,7 @@ export const PROJECT_ART_KEYS = [
   "rick", "morty", "evilMorty", "rickPrime",
   "beerus", "ben10", "albedo", "omniman",
   "omega_ranger", "samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger",
-  "netero", "saiki", "killua", "flash", "batman", "hisoka", "superman",   // gon MOVED to SOURCED_ART (AmandioHype re-skin)
+  "netero", "saiki", "killua", "flash", "hisoka", "superman",   /* batman → SOURCED_ART (rebuild) */   // gon MOVED to SOURCED_ART (AmandioHype re-skin)
   "chrollo", "ghostface", "miwa", "ichigo", "zaraki", "zaraki_shikai",
   // Toji Fushiguro (JJK) — JUS-style sheet titled only "Toji sprite jus sheet"; VERIFIED to carry NO
   // artist/ripper/watermark text anywhere on-sheet or in any (generic toji_*.png) filename. A real,

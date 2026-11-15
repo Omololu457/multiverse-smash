@@ -10,6 +10,7 @@ import { spd_pink } from './spdPinkData.js'   // S.P.D. Pink Ranger (Syd Drew) �
 import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmprPink*.js + shared falconzord.js (Thunder Megazord)
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
 import { mmpr_white } from './mmprWhiteData.js'   // White Ranger (Tommy Oliver, MMPR) — mmprWhite*.js + shared falconzord.js (Ninja Megazord orders)
+import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11420,7 +11421,7 @@ export const characters = {
   killua,
   flash,
   gon,
-  batman,
+  batman: batmanRebuild,             // Batman (DC) REBUILT — Tactical Brawler / Fleet Commander (gadgets, automated support fleet, KNIGHTFALL); batman*.js. Legacy const kept for reference only.
   hisoka,
   superman,
   superman_dcuc: supermanDcuc,
@@ -11514,7 +11515,7 @@ export const characters = {
 const _WIPED_FOR_REDO = [
   "albedo", "ben10",   // vilgax REMOVED: rebuilt onto the new regulardor8go sheet (full kit + brutalities) — stays live
   "yamamoto",
-  "batman", "dark_knight", "brainiac", "deathstroke", "green_lantern",
+  /* "batman" REVIVED 2026-11-14 (rebuild, batman*.js) */ "dark_knight", "brainiac", "deathstroke", "green_lantern",
   // superman REMOVED from the wipe (2026-10-23, feat/superman): full rebuild on the JUS-addons sheet
   // (flight.js flight + new moveset) — stays LIVE. The other four variants stay wiped (separate art).
   "superman_classic", "superman_dcuc", "superman_fighter", "superman_new52",

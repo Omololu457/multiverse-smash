@@ -1,0 +1,87 @@
+{
+ "replay": {
+  "frames": 4600,
+  "identical": true,
+  "exercised": [
+   "light",
+   "bL2",
+   "bL3",
+   "heavy",
+   "up",
+   "bBatarang",
+   "batHit",
+   "bGrapnel",
+   "bRopeKick",
+   "ropeKick",
+   "bSmoke",
+   "cmdSky",
+   "op:airspace",
+   "cmdPoint",
+   "op:interceptor",
+   "cmdAuto",
+   "op:automaton",
+   "bRooftop",
+   "ultOpen",
+   "ult"
+  ],
+  "stats": {
+   "light": 1,
+   "chains": 2,
+   "batarangs": 1,
+   "batHits": 2,
+   "grapnels": 1,
+   "grapnelHits": 1,
+   "pulls": 1,
+   "ropeKicks": 1,
+   "rooftops": 1,
+   "smokes": 1,
+   "shadowDashes": 0,
+   "counters": 0,
+   "counterHits": 0,
+   "rejects": 0,
+   "orders": {
+    "airspace": 1,
+    "interceptor": 1,
+    "automaton": 1
+   },
+   "opsStarted": 3,
+   "opsRejected": 0,
+   "assistHits": 26,
+   "assistBlocked": 0,
+   "assistRaw": 595,
+   "machinesLost": 0,
+   "ultStarts": 1,
+   "ultWhiffs": 0,
+   "ultDone": 1,
+   "dj": 0
+  }
+ },
+ "renderBatching": {
+  "samples": 700,
+  "identical": true
+ },
+ "snapshotRestore": {
+  "same": true,
+  "at": -1,
+  "ops": [
+   [
+    "carrier",
+    93,
+    3
+   ]
+  ],
+  "a": "",
+  "b": ""
+ },
+ "lifecycle": {
+  "sameUlt": true,
+  "ultRan": true,
+  "trainingClears": true,
+  "ultCleared": true,
+  "identityClears": true,
+  "had": {
+   "ops": 1,
+   "pay": 1
+  }
+ }
+}

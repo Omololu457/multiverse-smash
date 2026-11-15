@@ -1,0 +1,82 @@
+{
+  "rules": {
+    "mask": "black touching skin \u2192 stays black",
+    "logo": "black enclosed by emblem gold/white \u2192 stays black",
+    "trim": "other black (gloves, boots, trunks band) \u2192 recoloured",
+    "untouched": "white streaks/flash/dust, skin, hair, emblem gold, shadow grey, portrait"
+  },
+  "skins": {
+    "incredibles2": {
+      "name": "Incredibles 2",
+      "files": 30,
+      "blackPixels": {
+        "mask": 1956,
+        "logo": 76,
+        "trim": 4622
+      },
+      "suitMap": {
+        "(216, 16, 56)": [
+          72,
+          68,
+          80
+        ],
+        "(176, 16, 48)": [
+          50,
+          47,
+          57
+        ],
+        "(144, 16, 40)": [
+          32,
+          30,
+          37
+        ]
+      },
+      "trim": [
+        200,
+        22,
+        46
+      ],
+      "gloveHighlight": [
+        238,
+        74,
+        92
+      ]
+    },
+    "trackstar": {
+      "name": "Track Star",
+      "files": 30,
+      "blackPixels": {
+        "mask": 1956,
+        "logo": 76,
+        "trim": 4622
+      },
+      "suitMap": {
+        "(216, 16, 56)": [
+          44,
+          104,
+          224
+        ],
+        "(176, 16, 48)": [
+          30,
+          76,
+          176
+        ],
+        "(144, 16, 40)": [
+          20,
+          52,
+          126
+        ]
+      },
+      "trim": [
+        236,
+        186,
+        42
+      ],
+      "gloveHighlight": [
+        255,
+        226,
+        120
+      ]
+    }
+  }
+}

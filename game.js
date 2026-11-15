@@ -28,7 +28,8 @@ import { updateBatmanCommandCombat as updateBatmanRebuildCombat } from './batman
 import { tickBatman, isBatman, clearBatman, batmanLocked, batmanOwnsCharge, isBatmanUltActive, updateBatmanUlt, clearBatmanUlt, batmanUltCamera } from './batmanState.js'
 import { drawBatmanFx, drawBatmanUnder, drawBatmanHud, drawBatmanIntroCard, drawBatmanSky, playBatmanCues } from './batmanFx.js'
 import { batmanHarnessApi } from './batmanHarness.js'
-import { tickViolet, isViolet, clearViolet } from './violetState.js'   // Violet Parr (The Incredibles) — violet-gated sim
+import { tickViolet, isViolet, clearViolet, violetFacingFix } from './violetState.js'   // Violet Parr (The Incredibles) — violet-gated sim
+import { updateVioletCommandCombat } from './violet.js'   // Violet Parr command layer (violet-gated)
 import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)
 import { mmprPinkHarnessApi } from './mmprPinkHarness.js'
 import { drawBarrierRing } from './barrierRingFx.js'
@@ -4140,6 +4141,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isMmprWhite(fighter)) { const mc=updateMmprWhiteCommandCombat(fighter,inputState,nearest,MMPR_WHITE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprPink(fighter)) { const mc=updateMmprPinkCommandCombat(fighter,inputState,nearest,MMPR_PINK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isBatman(fighter)) { const mc=updateBatmanRebuildCombat(fighter,inputState,nearest,BATMAN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isViolet(fighter)) { const vc=updateVioletCommandCombat(fighter,inputState,nearest,VIOLET_WORLD);if(vc)ctrlState=vc==='grab'?{grab:!!inputState.grab}:{} }
   if (isKrybot(fighter)) {
     const kc = updateKrybotCommandCombat(fighter, inputState, nearest, KRYBOT_WORLD)
     ctrlState = kc === 'grab' ? { grab: !!inputState.grab } : {}
@@ -10219,9 +10221,11 @@ function handlePauseInput(key) {
 // ------------------------------------------------------------------
 function updateFacing() {
   if (!p1 || !p2) return
+  const _vioPrevFacing = [p1.facing, p2.facing]   // Violet: pre-auto-turn facings (an invisible Violet is not auto-faced)
   if (p1.x < p2.x) { p1.facing =  1; p2.facing = -1 }
   else             { p1.facing = -1; p2.facing =  1 }
   rangerFacingFix(p1, p2); rangerFacingFix(p2, p1)   // Ranger PHASE STEP: a crossed-up foe keeps facing the wrong way (no-op otherwise)
+  violetFacingFix(p1, p2, _vioPrevFacing[0]); violetFacingFix(p2, p1, _vioPrevFacing[1])   // Violet VANISH: the opponent does not auto-turn toward her (no-op otherwise)
 }
 
 // P (charge) is HOLD-to-charge / TAP-to-toggle. On keydown we only remember when
@@ -11784,6 +11788,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isBatman(fighter)) {   // Batman (rebuilt) command layer: 'consumed' | 'grab' (the legacy batman paths below are never reached)
     const mc=updateBatmanRebuildCombat(fighter,inputState,getOpponent(fighter),BATMAN_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isViolet(fighter)) {   // Violet Parr command layer: 'consumed' | 'grab' | false (fall through to the engine)
+    const vc=updateVioletCommandCombat(fighter,inputState,getOpponent(fighter),VIOLET_WORLD)
+    if (vc) { updateCombat(fighter,getOpponent(fighter),vc==='grab'?{grab:!!inputState.grab}:{},opts); return }
   }
   if (isBuggy(fighter)) {   // Buggy the Clown command layer: 'consumed' | 'grab' | false
     const bc = updateBuggyCommandCombat(fighter, inputState, getOpponent(fighter), { world: BUGGY_WORLD })

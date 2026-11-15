@@ -8,7 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
-import { violetHit, violetKnockback } from './violetState.js'   // Violet Parr hooks (violet-gated)
+import { violetHit, violetBlock, violetKnockback } from './violetState.js'   // Violet Parr hooks (violet-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -3422,6 +3422,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
     if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
+    violetBlock(attacker, defender, atk)   // Violet: a blocked strike still ends Vanish; violet-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated

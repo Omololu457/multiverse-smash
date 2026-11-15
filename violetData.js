@@ -13,6 +13,12 @@ export const SCALE = 2                       // 1x GBA cell → world px (55 px 
 export const WALK_SPEED_STAT = 81.6, RUN_SPEED_STAT = 92
 export const ENERGY = { max: 100, regenPerSec: 5, onHitLanded: 4, onHitTaken: 3 }
 
+// ── PHASE 3: VANISH (↓↓ + Special toggles). Frames are sim ticks (60 / s). ──
+// enter cost 15, drain 6 / s while invisible (no regen), max 6 s, 8 s cooldown after it ends (any end).
+// Her first hit out of Vanish deals +20 % and ends it (R12 reappear); any hit she takes ends it instantly.
+export const VANISH = { cost: 15, drainPerSec: 6, maxFrames: 360, cooldown: 480, ambush: 1.2, alpha: 0.35,
+  fadeOut: 24, fadeIn: 24, tapWindow: 16, pressWindow: 12 }   // fadeOut / fadeIn = R7 / R12 strips (6 frames × 4)
+
 // Deterministic hash for every simulation "random" choice and the sound pitch / noise: (match seed, frame, player index).
 export function vhash(seed, frame, pid) {
   let h = (Math.imul((seed | 0) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul((frame | 0) + 0x632be5ab, 0xc2b2ae35) ^ Math.imul((pid | 0) + 1, 0x27d4eb2f)) | 0

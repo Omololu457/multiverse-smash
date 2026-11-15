@@ -20,6 +20,7 @@ import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 
 import { MMPR_BLACK_SKINS } from './mmprBlackSkins.js'   // Black Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { MMPR_WHITE_SKINS } from './mmprWhiteSkins.js'   // White Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { BATMAN_SKINS } from './batmanSkins.js'   // Batman (rebuilt) default + 10 arsenal-wide skins (cosmetic, precomputed)
+import { ELASTIGIRL_SKINS } from './elastigirlSkins.js'   // Elastigirl default + palette skins (cosmetic, precomputed)
 import { SPD_GREEN_SKINS } from './spdGreenSkins.js'   // S.P.D. Green default + 6 appearance skins (cosmetic, precomputed)
 import { SPD_BLUE_SKINS } from './spdBlueSkins.js'   // S.P.D. Blue default + 6 appearance skins (cosmetic)
 import { getLevel, isFullyUnlocked } from "./progression.js"
@@ -139,6 +140,7 @@ export const SKINS = {
   spd_green: SPD_GREEN_SKINS,
   spd_pink: SPD_PINK_SKINS,
   mmpr_black: MMPR_BLACK_SKINS,
+  elastigirl: ELASTIGIRL_SKINS,
   mmpr_white: MMPR_WHITE_SKINS,
   mmpr_pink: MMPR_PINK_SKINS,
   krybot: KRYBOT_SKINS,

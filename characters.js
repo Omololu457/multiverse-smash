@@ -11,6 +11,7 @@ import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, M
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
 import { mmpr_white } from './mmprWhiteData.js'   // White Ranger (Tommy Oliver, MMPR) — mmprWhite*.js + shared falconzord.js (Ninja Megazord orders)
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
+import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, The Incredibles GBA sheet) — universe 'pixar'; elastigirl*.js
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11500,6 +11501,7 @@ export const characters = {
   mmpr_pink,                         // Pink Ranger (Kimberly Hart, MMPR) — Acrobatic Archer / Precision Assist (Thunder Megazord strikes); mmprPink*.js
   mmpr_black,                        // Black Ranger (Adam Park, MMPR) — Martial Artist / Aerial Assist Commander (Falconzord sorties); mmprBlack*.js
   mmpr_white,                        // White Ranger (Tommy Oliver, MMPR) — Saba Duelist / Formation Leader (Ninja Megazord orders); mmprWhite*.js
+  elastigirl,                        // Elastigirl (Helen Parr, The Incredibles) — Footsies / Grappler (Long Arm, Slingshot, Parachute, Family Raft); elastigirl*.js
   luffy
 }
 

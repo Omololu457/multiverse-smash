@@ -1,0 +1,4908 @@
+{
+ "source": "assets/sprites/elastigirl.png (byte copy of \"Game Boy Advance - The Incredibles - Playable Characters - Elastigirl.png\")",
+ "sha256": "70f6aefe71dcc45345c95ddc807769aeee572a673517b542170d0c2147e46603",
+ "size": [
+  600,
+  1623
+ ],
+ "background": [
+  0,
+  128,
+  128
+ ],
+ "backgroundTolerance": 0,
+ "excluded": {
+  "annotationPixels(255,0,0)": 351,
+  "creditTextPixels": 878,
+  "total": 1229
+ },
+ "rows": {
+  "1": [
+   2,
+   30
+  ],
+  "2": [
+   32,
+   83
+  ],
+  "3": [
+   85,
+   137
+  ],
+  "4": [
+   139,
+   202
+  ],
+  "5": [
+   204,
+   264
+  ],
+  "6": [
+   275,
+   326
+  ],
+  "7": [
+   328,
+   388
+  ],
+  "8": [
+   390,
+   435
+  ],
+  "9": [
+   437,
+   474
+  ],
+  "10": [
+   475,
+   522
+  ],
+  "11": [
+   524,
+   677
+  ],
+  "12": [
+   678,
+   839
+  ],
+  "13": [
+   840,
+   938
+  ],
+  "14": [
+   940,
+   1100
+  ],
+  "15": [
+   1102,
+   1127
+  ],
+  "16": [
+   1129,
+   1192
+  ],
+  "17": [
+   1194,
+   1275
+  ],
+  "18": [
+   1277,
+   1331
+  ],
+  "19": [
+   1333,
+   1396
+  ],
+  "20": [
+   1398,
+   1449
+  ],
+  "21": [
+   1453,
+   1487
+  ],
+  "22": [
+   1489,
+   1531
+  ],
+  "23": [
+   1533,
+   1577
+  ],
+  "24": [
+   1579,
+   1620
+  ]
+ },
+ "r7Bounds": [
+  0,
+  135,
+  296,
+  408,
+  600
+ ],
+ "cells": [
+  {
+   "name": "r1_1",
+   "row": 1,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    2,
+    32,
+    27
+   ],
+   "parts": [
+    [
+     2,
+     2
+    ]
+   ],
+   "anchor": [
+    16,
+    27
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 683,
+   "sheet": "helen",
+   "usedIn": [
+    "portrait (HUD / select)"
+   ]
+  },
+  {
+   "name": "r2_1",
+   "row": 2,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    32,
+    24,
+    50
+   ],
+   "parts": [
+    [
+     2,
+     32
+    ]
+   ],
+   "anchor": [
+    12,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 514,
+   "sheet": "helen",
+   "usedIn": [
+    "idle",
+    "intro"
+   ]
+  },
+  {
+   "name": "r2_2",
+   "row": 2,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    28,
+    33,
+    24,
+    49
+   ],
+   "parts": [
+    [
+     28,
+     33
+    ]
+   ],
+   "anchor": [
+    12,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 512,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_3",
+   "row": 2,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    54,
+    35,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     54,
+     35
+    ]
+   ],
+   "anchor": [
+    12,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 499,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_4",
+   "row": 2,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    80,
+    35,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     80,
+     35
+    ]
+   ],
+   "anchor": [
+    12,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 507,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_5",
+   "row": 2,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    106,
+    35,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     106,
+     35
+    ]
+   ],
+   "anchor": [
+    12,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 508,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_6",
+   "row": 2,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    132,
+    34,
+    24,
+    48
+   ],
+   "parts": [
+    [
+     132,
+     34
+    ]
+   ],
+   "anchor": [
+    12,
+    48
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 512,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_7",
+   "row": 2,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    158,
+    33,
+    24,
+    49
+   ],
+   "parts": [
+    [
+     158,
+     33
+    ]
+   ],
+   "anchor": [
+    12,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 514,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r2_8",
+   "row": 2,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    184,
+    32,
+    23,
+    50
+   ],
+   "parts": [
+    [
+     184,
+     32
+    ]
+   ],
+   "anchor": [
+    12,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 512,
+   "sheet": "helen",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "r3_1",
+   "row": 3,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    85,
+    28,
+    51
+   ],
+   "parts": [
+    [
+     2,
+     85
+    ]
+   ],
+   "anchor": [
+    16,
+    51
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 539,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_2",
+   "row": 3,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    32,
+    87,
+    30,
+    49
+   ],
+   "parts": [
+    [
+     32,
+     87
+    ]
+   ],
+   "anchor": [
+    17,
+    48
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 538,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_3",
+   "row": 3,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    64,
+    86,
+    25,
+    50
+   ],
+   "parts": [
+    [
+     64,
+     86
+    ]
+   ],
+   "anchor": [
+    13,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 532,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_4",
+   "row": 3,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    91,
+    85,
+    23,
+    51
+   ],
+   "parts": [
+    [
+     91,
+     85
+    ]
+   ],
+   "anchor": [
+    9,
+    51
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 505,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_5",
+   "row": 3,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    116,
+    85,
+    27,
+    51
+   ],
+   "parts": [
+    [
+     116,
+     85
+    ]
+   ],
+   "anchor": [
+    15,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 536,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_6",
+   "row": 3,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    145,
+    87,
+    29,
+    49
+   ],
+   "parts": [
+    [
+     145,
+     87
+    ]
+   ],
+   "anchor": [
+    19,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 510,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_7",
+   "row": 3,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    176,
+    86,
+    24,
+    50
+   ],
+   "parts": [
+    [
+     176,
+     86
+    ]
+   ],
+   "anchor": [
+    15,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 497,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r3_8",
+   "row": 3,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    202,
+    86,
+    19,
+    50
+   ],
+   "parts": [
+    [
+     202,
+     86
+    ]
+   ],
+   "anchor": [
+    10,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 479,
+   "sheet": "helen",
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "r4_1",
+   "row": 4,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    162,
+    25,
+    39
+   ],
+   "parts": [
+    [
+     2,
+     162
+    ]
+   ],
+   "anchor": [
+    13,
+    39
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 506,
+   "sheet": "helen",
+   "usedIn": [
+    "crouch"
+   ]
+  },
+  {
+   "name": "r4_2",
+   "row": 4,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    29,
+    154,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     29,
+     154
+    ]
+   ],
+   "anchor": [
+    12,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 507,
+   "sheet": "helen",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_3",
+   "row": 4,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    57,
+    139,
+    22,
+    62
+   ],
+   "parts": [
+    [
+     57,
+     139
+    ]
+   ],
+   "anchor": [
+    11,
+    62
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 581,
+   "sheet": "helen",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_4",
+   "row": 4,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    81,
+    139,
+    22,
+    61
+   ],
+   "parts": [
+    [
+     81,
+     139
+    ]
+   ],
+   "anchor": [
+    11,
+    61
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 582,
+   "sheet": "helen",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_5",
+   "row": 4,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    105,
+    139,
+    30,
+    49
+   ],
+   "parts": [
+    [
+     105,
+     139
+    ]
+   ],
+   "anchor": [
+    14,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 585,
+   "sheet": "helen",
+   "usedIn": [
+    "eBounce",
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_6",
+   "row": 4,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    137,
+    139,
+    28,
+    43
+   ],
+   "parts": [
+    [
+     137,
+     139
+    ]
+   ],
+   "anchor": [
+    12,
+    43
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 548,
+   "sheet": "helen",
+   "usedIn": [
+    "eBounce",
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_7",
+   "row": 4,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    167,
+    139,
+    28,
+    43
+   ],
+   "parts": [
+    [
+     167,
+     139
+    ]
+   ],
+   "anchor": [
+    13,
+    43
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 536,
+   "sheet": "helen",
+   "usedIn": [
+    "eBounce",
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_8",
+   "row": 4,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    197,
+    139,
+    27,
+    49
+   ],
+   "parts": [
+    [
+     197,
+     139
+    ]
+   ],
+   "anchor": [
+    13,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 572,
+   "sheet": "helen",
+   "usedIn": [
+    "eBounce",
+    "jump"
+   ]
+  },
+  {
+   "name": "r4_9",
+   "row": 4,
+   "frame": 9,
+   "kind": "body",
+   "rect": [
+    226,
+    139,
+    23,
+    62
+   ],
+   "parts": [
+    [
+     226,
+     139
+    ]
+   ],
+   "anchor": [
+    14,
+    62
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 598,
+   "sheet": "helen",
+   "usedIn": [
+    "fall"
+   ]
+  },
+  {
+   "name": "r4_10",
+   "row": 4,
+   "frame": 10,
+   "kind": "body",
+   "rect": [
+    251,
+    162,
+    25,
+    39
+   ],
+   "parts": [
+    [
+     251,
+     162
+    ]
+   ],
+   "anchor": [
+    13,
+    39
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 506,
+   "sheet": "helen",
+   "usedIn": [
+    "eBounce",
+    "land"
+   ]
+  },
+  {
+   "name": "r4_11",
+   "row": 4,
+   "frame": 11,
+   "kind": "body",
+   "rect": [
+    278,
+    154,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     278,
+     154
+    ]
+   ],
+   "anchor": [
+    12,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 507,
+   "sheet": "helen",
+   "usedIn": [
+    "land"
+   ]
+  },
+  {
+   "name": "r4s_1",
+   "row": 4,
+   "frame": "s1",
+   "kind": "shadow",
+   "rect": [
+    304,
+    192,
+    24,
+    9
+   ],
+   "parts": [
+    [
+     304,
+     192
+    ]
+   ],
+   "anchor": [
+    12,
+    9
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 176,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r4s_2",
+   "row": 4,
+   "frame": "s2",
+   "kind": "shadow",
+   "rect": [
+    331,
+    194,
+    19,
+    7
+   ],
+   "parts": [
+    [
+     331,
+     194
+    ]
+   ],
+   "anchor": [
+    10,
+    7
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 103,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r4s_3",
+   "row": 4,
+   "frame": "s3",
+   "kind": "shadow",
+   "rect": [
+    354,
+    195,
+    15,
+    6
+   ],
+   "parts": [
+    [
+     354,
+     195
+    ]
+   ],
+   "anchor": [
+    8,
+    6
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 66,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r4s_4",
+   "row": 4,
+   "frame": "s4",
+   "kind": "shadow",
+   "rect": [
+    371,
+    196,
+    13,
+    5
+   ],
+   "parts": [
+    [
+     371,
+     196
+    ]
+   ],
+   "anchor": [
+    6,
+    5
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 49,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r4s_5",
+   "row": 4,
+   "frame": "s5",
+   "kind": "shadow",
+   "rect": [
+    386,
+    197,
+    9,
+    4
+   ],
+   "parts": [
+    [
+     386,
+     197
+    ]
+   ],
+   "anchor": [
+    4,
+    4
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 28,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r4s_6",
+   "row": 4,
+   "frame": "s6",
+   "kind": "shadow",
+   "rect": [
+    397,
+    198,
+    7,
+    3
+   ],
+   "parts": [
+    [
+     397,
+     198
+    ]
+   ],
+   "anchor": [
+    4,
+    3
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 13,
+   "sheet": "helen",
+   "usedIn": [
+    "fx:parachuteShadow"
+   ]
+  },
+  {
+   "name": "r5_1",
+   "row": 5,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    204,
+    37,
+    44
+   ],
+   "parts": [
+    [
+     2,
+     204
+    ]
+   ],
+   "anchor": [
+    15,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 642,
+   "sheet": "helen",
+   "usedIn": [
+    "dash",
+    "eDome"
+   ]
+  },
+  {
+   "name": "r5_2",
+   "row": 5,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    41,
+    204,
+    46,
+    26
+   ],
+   "parts": [
+    [
+     41,
+     204
+    ]
+   ],
+   "anchor": [
+    13,
+    26
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 674,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome"
+   ]
+  },
+  {
+   "name": "r5_3",
+   "row": 5,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    89,
+    204,
+    66,
+    51
+   ],
+   "parts": [
+    [
+     89,
+     204
+    ]
+   ],
+   "anchor": [
+    27,
+    51
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1762,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeFloat"
+   ]
+  },
+  {
+   "name": "r5_4",
+   "row": 5,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    157,
+    204,
+    68,
+    53
+   ],
+   "parts": [
+    [
+     157,
+     204
+    ]
+   ],
+   "anchor": [
+    27,
+    53
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1892,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeFloat"
+   ]
+  },
+  {
+   "name": "r5_5",
+   "row": 5,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    227,
+    204,
+    68,
+    57
+   ],
+   "parts": [
+    [
+     227,
+     204
+    ]
+   ],
+   "anchor": [
+    26,
+    57
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1931,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeFloat"
+   ]
+  },
+  {
+   "name": "r5_6",
+   "row": 5,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    297,
+    204,
+    67,
+    53
+   ],
+   "parts": [
+    [
+     297,
+     204
+    ]
+   ],
+   "anchor": [
+    26,
+    53
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1899,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeFloat",
+    "eDomeSlam"
+   ]
+  },
+  {
+   "name": "r5_7",
+   "row": 5,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    366,
+    204,
+    46,
+    26
+   ],
+   "parts": [
+    [
+     366,
+     204
+    ]
+   ],
+   "anchor": [
+    13,
+    26
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 674,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeSlam"
+   ]
+  },
+  {
+   "name": "r5_8",
+   "row": 5,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    414,
+    204,
+    37,
+    44
+   ],
+   "parts": [
+    [
+     414,
+     204
+    ]
+   ],
+   "anchor": [
+    15,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 642,
+   "sheet": "helen",
+   "usedIn": [
+    "eDome",
+    "eDomeSlam"
+   ]
+  },
+  {
+   "name": "r6_1",
+   "row": 6,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    275,
+    28,
+    50
+   ],
+   "parts": [
+    [
+     2,
+     275
+    ]
+   ],
+   "anchor": [
+    16,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 569,
+   "sheet": "helen",
+   "usedIn": [
+    "light"
+   ]
+  },
+  {
+   "name": "r6_2",
+   "row": 6,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    32,
+    275,
+    33,
+    50
+   ],
+   "parts": [
+    [
+     32,
+     275
+    ]
+   ],
+   "anchor": [
+    20,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 589,
+   "sheet": "helen",
+   "usedIn": [
+    "light"
+   ]
+  },
+  {
+   "name": "r6_3",
+   "row": 6,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    67,
+    287,
+    84,
+    38
+   ],
+   "parts": [
+    [
+     67,
+     287
+    ]
+   ],
+   "anchor": [
+    36,
+    38
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 867,
+   "sheet": "helen",
+   "usedIn": [
+    "light"
+   ]
+  },
+  {
+   "name": "r6_4",
+   "row": 6,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    153,
+    287,
+    77,
+    38
+   ],
+   "parts": [
+    [
+     153,
+     287
+    ]
+   ],
+   "anchor": [
+    36,
+    38
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 717,
+   "sheet": "helen",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "r6_5",
+   "row": 6,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    232,
+    283,
+    59,
+    42
+   ],
+   "parts": [
+    [
+     232,
+     283
+    ]
+   ],
+   "anchor": [
+    32,
+    42
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 716,
+   "sheet": "helen",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "r6_6",
+   "row": 6,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    293,
+    280,
+    40,
+    45
+   ],
+   "parts": [
+    [
+     293,
+     280
+    ]
+   ],
+   "anchor": [
+    20,
+    45
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 638,
+   "sheet": "helen",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "r7_1",
+   "row": 7,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    328,
+    125,
+    59
+   ],
+   "parts": [
+    [
+     23,
+     328
+    ],
+    [
+     44,
+     328
+    ],
+    [
+     21,
+     339
+    ],
+    [
+     16,
+     345
+    ],
+    [
+     47,
+     345
+    ],
+    [
+     14,
+     348
+    ],
+    [
+     13,
+     351
+    ],
+    [
+     15,
+     360
+    ],
+    [
+     16,
+     363
+    ],
+    [
+     2,
+     364
+    ],
+    [
+     21,
+     371
+    ],
+    [
+     23,
+     373
+    ],
+    [
+     90,
+     378
+    ],
+    [
+     56,
+     379
+    ],
+    [
+     29,
+     381
+    ],
+    [
+     44,
+     382
+    ],
+    [
+     77,
+     382
+    ],
+    [
+     88,
+     382
+    ],
+    [
+     124,
+     382
+    ],
+    [
+     60,
+     383
+    ],
+    [
+     126,
+     383
+    ],
+    [
+     56,
+     384
+    ],
+    [
+     87,
+     384
+    ],
+    [
+     121,
+     385
+    ],
+    [
+     124,
+     385
+    ],
+    [
+     51,
+     386
+    ]
+   ],
+   "anchor": [
+    65,
+    59
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 952,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhirl"
+   ]
+  },
+  {
+   "name": "r7_2",
+   "row": 7,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    141,
+    335,
+    147,
+    52
+   ],
+   "parts": [
+    [
+     182,
+     335
+    ],
+    [
+     141,
+     352
+    ],
+    [
+     266,
+     352
+    ],
+    [
+     145,
+     355
+    ],
+    [
+     147,
+     357
+    ],
+    [
+     149,
+     369
+    ],
+    [
+     149,
+     371
+    ],
+    [
+     151,
+     371
+    ],
+    [
+     147,
+     373
+    ],
+    [
+     149,
+     374
+    ],
+    [
+     233,
+     377
+    ],
+    [
+     155,
+     378
+    ],
+    [
+     160,
+     382
+    ],
+    [
+     167,
+     382
+    ],
+    [
+     284,
+     382
+    ],
+    [
+     189,
+     383
+    ],
+    [
+     205,
+     383
+    ],
+    [
+     215,
+     383
+    ],
+    [
+     282,
+     383
+    ],
+    [
+     183,
+     385
+    ],
+    [
+     221,
+     385
+    ],
+    [
+     284,
+     385
+    ],
+    [
+     287,
+     385
+    ],
+    [
+     196,
+     386
+    ],
+    [
+     203,
+     386
+    ],
+    [
+     213,
+     386
+    ],
+    [
+     225,
+     386
+    ],
+    [
+     227,
+     386
+    ]
+   ],
+   "anchor": [
+    78,
+    52
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1072,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhirl"
+   ]
+  },
+  {
+   "name": "r7_3",
+   "row": 7,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    304,
+    328,
+    104,
+    59
+   ],
+   "parts": [
+    [
+     364,
+     328
+    ],
+    [
+     366,
+     328
+    ],
+    [
+     387,
+     339
+    ],
+    [
+     325,
+     345
+    ],
+    [
+     391,
+     346
+    ],
+    [
+     393,
+     349
+    ],
+    [
+     393,
+     352
+    ],
+    [
+     392,
+     361
+    ],
+    [
+     391,
+     364
+    ],
+    [
+     360,
+     364
+    ],
+    [
+     388,
+     371
+    ],
+    [
+     367,
+     373
+    ],
+    [
+     350,
+     379
+    ],
+    [
+     305,
+     380
+    ],
+    [
+     312,
+     380
+    ],
+    [
+     347,
+     381
+    ],
+    [
+     380,
+     381
+    ],
+    [
+     304,
+     382
+    ],
+    [
+     306,
+     382
+    ],
+    [
+     365,
+     382
+    ],
+    [
+     317,
+     383
+    ],
+    [
+     327,
+     383
+    ],
+    [
+     351,
+     383
+    ],
+    [
+     315,
+     384
+    ],
+    [
+     349,
+     384
+    ],
+    [
+     333,
+     385
+    ]
+   ],
+   "anchor": [
+    42,
+    59
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 946,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhirl"
+   ]
+  },
+  {
+   "name": "r7_4",
+   "row": 7,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    410,
+    335,
+    119,
+    52
+   ],
+   "parts": [
+    [
+     410,
+     335
+    ],
+    [
+     528,
+     355
+    ],
+    [
+     522,
+     357
+    ],
+    [
+     524,
+     369
+    ],
+    [
+     522,
+     371
+    ],
+    [
+     524,
+     371
+    ],
+    [
+     526,
+     373
+    ],
+    [
+     520,
+     374
+    ],
+    [
+     414,
+     377
+    ],
+    [
+     518,
+     378
+    ],
+    [
+     448,
+     381
+    ],
+    [
+     465,
+     382
+    ],
+    [
+     471,
+     382
+    ],
+    [
+     506,
+     382
+    ],
+    [
+     501,
+     382
+    ],
+    [
+     458,
+     385
+    ],
+    [
+     443,
+     386
+    ],
+    [
+     478,
+     386
+    ]
+   ],
+   "anchor": [
+    44,
+    52
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1067,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhirl"
+   ]
+  },
+  {
+   "name": "r8_1",
+   "row": 8,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    390,
+    41,
+    44
+   ],
+   "parts": [
+    [
+     2,
+     390
+    ]
+   ],
+   "anchor": [
+    28,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 646,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongArm",
+    "grab"
+   ]
+  },
+  {
+   "name": "r8_2",
+   "row": 8,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    45,
+    393,
+    53,
+    41
+   ],
+   "parts": [
+    [
+     45,
+     393
+    ]
+   ],
+   "anchor": [
+    34,
+    41
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 709,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongArm",
+    "grab"
+   ]
+  },
+  {
+   "name": "r8_3",
+   "row": 8,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    100,
+    398,
+    86,
+    36
+   ],
+   "parts": [
+    [
+     100,
+     398
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 664,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongArm"
+   ]
+  },
+  {
+   "name": "r8_4",
+   "row": 8,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    188,
+    398,
+    104,
+    36
+   ],
+   "parts": [
+    [
+     188,
+     398
+    ],
+    [
+     284,
+     411
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 713,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongArm"
+   ]
+  },
+  {
+   "name": "r8_5",
+   "row": 8,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    294,
+    398,
+    238,
+    36
+   ],
+   "parts": [
+    [
+     294,
+     398
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1121,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongArm"
+   ]
+  },
+  {
+   "name": "r9_1",
+   "row": 9,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    437,
+    228,
+    36
+   ],
+   "parts": [
+    [
+     2,
+     437
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1119,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongWhiff"
+   ]
+  },
+  {
+   "name": "r9_2",
+   "row": 9,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    232,
+    437,
+    190,
+    36
+   ],
+   "parts": [
+    [
+     232,
+     437
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 977,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongWhiff"
+   ]
+  },
+  {
+   "name": "r9_3",
+   "row": 9,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    424,
+    437,
+    172,
+    36
+   ],
+   "parts": [
+    [
+     424,
+     437
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 943,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongWhiff"
+   ]
+  },
+  {
+   "name": "r10_1",
+   "row": 10,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    485,
+    142,
+    36
+   ],
+   "parts": [
+    [
+     2,
+     485
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 833,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongPull",
+    "grab"
+   ]
+  },
+  {
+   "name": "r10_2",
+   "row": 10,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    146,
+    485,
+    117,
+    36
+   ],
+   "parts": [
+    [
+     146,
+     485
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 776,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongPull"
+   ]
+  },
+  {
+   "name": "r10_3",
+   "row": 10,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    265,
+    485,
+    86,
+    36
+   ],
+   "parts": [
+    [
+     265,
+     485
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 664,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongPull"
+   ]
+  },
+  {
+   "name": "r10_4",
+   "row": 10,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    353,
+    485,
+    69,
+    36
+   ],
+   "parts": [
+    [
+     353,
+     485
+    ]
+   ],
+   "anchor": [
+    36,
+    36
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 630,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongRecover"
+   ]
+  },
+  {
+   "name": "r10_5",
+   "row": 10,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    424,
+    476,
+    61,
+    45
+   ],
+   "parts": [
+    [
+     424,
+     476
+    ]
+   ],
+   "anchor": [
+    32,
+    45
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 740,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongRecover"
+   ]
+  },
+  {
+   "name": "r10_6",
+   "row": 10,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    487,
+    477,
+    37,
+    44
+   ],
+   "parts": [
+    [
+     487,
+     477
+    ]
+   ],
+   "anchor": [
+    21,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 670,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongRecover"
+   ]
+  },
+  {
+   "name": "r10_7",
+   "row": 10,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    526,
+    475,
+    32,
+    46
+   ],
+   "parts": [
+    [
+     526,
+     475
+    ]
+   ],
+   "anchor": [
+    17,
+    46
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 581,
+   "sheet": "helen",
+   "usedIn": [
+    "eLongRecover"
+   ]
+  },
+  {
+   "name": "r11_1",
+   "row": 11,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    630,
+    32,
+    46
+   ],
+   "parts": [
+    [
+     2,
+     630
+    ]
+   ],
+   "anchor": [
+    17,
+    46
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 581,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r11_2",
+   "row": 11,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    36,
+    632,
+    41,
+    44
+   ],
+   "parts": [
+    [
+     36,
+     632
+    ]
+   ],
+   "anchor": [
+    28,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 646,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r11_3",
+   "row": 11,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    79,
+    634,
+    65,
+    42
+   ],
+   "parts": [
+    [
+     79,
+     634
+    ]
+   ],
+   "anchor": [
+    31,
+    42
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 744,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r11_4",
+   "row": 11,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    146,
+    614,
+    66,
+    62
+   ],
+   "parts": [
+    [
+     146,
+     614
+    ]
+   ],
+   "anchor": [
+    28,
+    62
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 730,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r11_5",
+   "row": 11,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    214,
+    604,
+    88,
+    72
+   ],
+   "parts": [
+    [
+     214,
+     604
+    ],
+    [
+     292,
+     611
+    ]
+   ],
+   "anchor": [
+    28,
+    72
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 791,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r11_6",
+   "row": 11,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    304,
+    524,
+    156,
+    152
+   ],
+   "parts": [
+    [
+     304,
+     524
+    ]
+   ],
+   "anchor": [
+    28,
+    152
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1001,
+   "sheet": "helen",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "r12_1",
+   "row": 12,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    678,
+    167,
+    160
+   ],
+   "parts": [
+    [
+     2,
+     678
+    ]
+   ],
+   "anchor": [
+    28,
+    160
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 1156,
+   "sheet": "helen",
+   "usedIn": [
+    "eSling"
+   ]
+  },
+  {
+   "name": "r12_2",
+   "row": 12,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    171,
+    706,
+    136,
+    132
+   ],
+   "parts": [
+    [
+     171,
+     706
+    ]
+   ],
+   "anchor": [
+    28,
+    132
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 941,
+   "sheet": "helen",
+   "usedIn": [
+    "eSling"
+   ]
+  },
+  {
+   "name": "r12_3",
+   "row": 12,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    309,
+    727,
+    128,
+    111
+   ],
+   "parts": [
+    [
+     309,
+     727
+    ]
+   ],
+   "anchor": [
+    28,
+    111
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 978,
+   "sheet": "helen",
+   "usedIn": [
+    "eSling"
+   ]
+  },
+  {
+   "name": "r13_1",
+   "row": 13,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    840,
+    101,
+    97
+   ],
+   "parts": [
+    [
+     2,
+     840
+    ]
+   ],
+   "anchor": [
+    28,
+    97
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 836,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_2",
+   "row": 13,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    105,
+    846,
+    87,
+    91
+   ],
+   "parts": [
+    [
+     105,
+     846
+    ]
+   ],
+   "anchor": [
+    28,
+    91
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 849,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_3",
+   "row": 13,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    194,
+    865,
+    76,
+    72
+   ],
+   "parts": [
+    [
+     194,
+     865
+    ]
+   ],
+   "anchor": [
+    28,
+    72
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 761,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_4",
+   "row": 13,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    272,
+    881,
+    64,
+    56
+   ],
+   "parts": [
+    [
+     272,
+     881
+    ]
+   ],
+   "anchor": [
+    28,
+    56
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 736,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_5",
+   "row": 13,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    338,
+    895,
+    63,
+    42
+   ],
+   "parts": [
+    [
+     338,
+     895
+    ]
+   ],
+   "anchor": [
+    31,
+    42
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 751,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_6",
+   "row": 13,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    403,
+    893,
+    33,
+    44
+   ],
+   "parts": [
+    [
+     403,
+     893
+    ]
+   ],
+   "anchor": [
+    21,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 645,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r13_7",
+   "row": 13,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    438,
+    887,
+    28,
+    50
+   ],
+   "parts": [
+    [
+     438,
+     887
+    ]
+   ],
+   "anchor": [
+    16,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 541,
+   "sheet": "helen",
+   "usedIn": [
+    "eSlingRelease"
+   ]
+  },
+  {
+   "name": "r14_1",
+   "row": 14,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1053,
+    32,
+    46
+   ],
+   "parts": [
+    [
+     2,
+     1053
+    ]
+   ],
+   "anchor": [
+    17,
+    46
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 581,
+   "sheet": "helen",
+   "usedIn": [
+    "eUltWindup",
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_2",
+   "row": 14,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    36,
+    1053,
+    41,
+    46
+   ],
+   "parts": [
+    [
+     36,
+     1053
+    ]
+   ],
+   "anchor": [
+    26,
+    46
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 664,
+   "sheet": "helen",
+   "usedIn": [
+    "eUltWindup",
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_3",
+   "row": 14,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    79,
+    1044,
+    42,
+    55
+   ],
+   "parts": [
+    [
+     79,
+     1044
+    ]
+   ],
+   "anchor": [
+    14,
+    55
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 693,
+   "sheet": "helen",
+   "usedIn": [
+    "eUltWindup",
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_4",
+   "row": 14,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    123,
+    1020,
+    25,
+    79
+   ],
+   "parts": [
+    [
+     123,
+     1020
+    ]
+   ],
+   "anchor": [
+    10,
+    79
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 664,
+   "sheet": "helen",
+   "usedIn": [
+    "eUltWindup",
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_5",
+   "row": 14,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    150,
+    1012,
+    30,
+    87
+   ],
+   "parts": [
+    [
+     150,
+     1012
+    ],
+    [
+     177,
+     1030
+    ]
+   ],
+   "anchor": [
+    10,
+    87
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 712,
+   "sheet": "helen",
+   "usedIn": [
+    "eUltWindup",
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_6",
+   "row": 14,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    182,
+    940,
+    25,
+    159
+   ],
+   "parts": [
+    [
+     182,
+     940
+    ]
+   ],
+   "anchor": [
+    10,
+    159
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 904,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_7",
+   "row": 14,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    209,
+    948,
+    25,
+    151
+   ],
+   "parts": [
+    [
+     209,
+     948
+    ]
+   ],
+   "anchor": [
+    10,
+    151
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 903,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_8",
+   "row": 14,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    236,
+    972,
+    25,
+    127
+   ],
+   "parts": [
+    [
+     236,
+     972
+    ]
+   ],
+   "anchor": [
+    10,
+    127
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 808,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_9",
+   "row": 14,
+   "frame": 9,
+   "kind": "body",
+   "rect": [
+    263,
+    988,
+    25,
+    111
+   ],
+   "parts": [
+    [
+     263,
+     988
+    ]
+   ],
+   "anchor": [
+    10,
+    111
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 781,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_10",
+   "row": 14,
+   "frame": 10,
+   "kind": "body",
+   "rect": [
+    290,
+    1012,
+    25,
+    87
+   ],
+   "parts": [
+    [
+     290,
+     1012
+    ]
+   ],
+   "anchor": [
+    10,
+    87
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 688,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_11",
+   "row": 14,
+   "frame": 11,
+   "kind": "body",
+   "rect": [
+    317,
+    1025,
+    26,
+    74
+   ],
+   "parts": [
+    [
+     317,
+     1025
+    ]
+   ],
+   "anchor": [
+    10,
+    74
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 681,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_12",
+   "row": 14,
+   "frame": 12,
+   "kind": "body",
+   "rect": [
+    345,
+    1056,
+    51,
+    43
+   ],
+   "parts": [
+    [
+     345,
+     1056
+    ]
+   ],
+   "anchor": [
+    22,
+    43
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 690,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_13",
+   "row": 14,
+   "frame": 13,
+   "kind": "body",
+   "rect": [
+    398,
+    1055,
+    33,
+    44
+   ],
+   "parts": [
+    [
+     398,
+     1055
+    ]
+   ],
+   "anchor": [
+    21,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 639,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r14_14",
+   "row": 14,
+   "frame": 14,
+   "kind": "body",
+   "rect": [
+    433,
+    1053,
+    32,
+    46
+   ],
+   "parts": [
+    [
+     433,
+     1053
+    ]
+   ],
+   "anchor": [
+    17,
+    46
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 578,
+   "sheet": "helen",
+   "usedIn": [
+    "eWhip"
+   ]
+  },
+  {
+   "name": "r15_1",
+   "row": 15,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1103,
+    54,
+    23
+   ],
+   "parts": [
+    [
+     2,
+     1103
+    ]
+   ],
+   "anchor": [
+    39,
+    23
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 462,
+   "sheet": "helen",
+   "usedIn": [
+    "eLow"
+   ]
+  },
+  {
+   "name": "r15_2",
+   "row": 15,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    58,
+    1102,
+    97,
+    24
+   ],
+   "parts": [
+    [
+     58,
+     1102
+    ],
+    [
+     110,
+     1115
+    ],
+    [
+     128,
+     1114
+    ]
+   ],
+   "anchor": [
+    35,
+    24
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 561,
+   "sheet": "helen",
+   "usedIn": [
+    "eLow"
+   ]
+  },
+  {
+   "name": "r15_3",
+   "row": 15,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    157,
+    1102,
+    87,
+    23
+   ],
+   "parts": [
+    [
+     157,
+     1102
+    ]
+   ],
+   "anchor": [
+    39,
+    23
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 550,
+   "sheet": "helen",
+   "usedIn": [
+    "eLow"
+   ]
+  },
+  {
+   "name": "r16_1",
+   "row": 16,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1143,
+    63,
+    48
+   ],
+   "parts": [
+    [
+     2,
+     1143
+    ],
+    [
+     38,
+     1148
+    ],
+    [
+     50,
+     1143
+    ]
+   ],
+   "anchor": [
+    24,
+    48
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 604,
+   "sheet": "helen",
+   "usedIn": [
+    "air"
+   ]
+  },
+  {
+   "name": "r16_2",
+   "row": 16,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    67,
+    1129,
+    57,
+    62
+   ],
+   "parts": [
+    [
+     67,
+     1129
+    ]
+   ],
+   "anchor": [
+    24,
+    62
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 599,
+   "sheet": "helen",
+   "usedIn": [
+    "air"
+   ]
+  },
+  {
+   "name": "r17_1",
+   "row": 17,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1194,
+    21,
+    60
+   ],
+   "parts": [
+    [
+     2,
+     1194
+    ]
+   ],
+   "anchor": [
+    13,
+    60
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 624,
+   "sheet": "helen",
+   "usedIn": [
+    "eGuard",
+    "guard",
+    "intro",
+    "taunt"
+   ]
+  },
+  {
+   "name": "r17_2",
+   "row": 17,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    25,
+    1195,
+    34,
+    59
+   ],
+   "parts": [
+    [
+     25,
+     1195
+    ],
+    [
+     49,
+     1210
+    ],
+    [
+     54,
+     1195
+    ]
+   ],
+   "anchor": [
+    14,
+    59
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 743,
+   "sheet": "helen",
+   "usedIn": [
+    "eGuard",
+    "intro",
+    "taunt"
+   ]
+  },
+  {
+   "name": "r17_3",
+   "row": 17,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    61,
+    1195,
+    21,
+    79
+   ],
+   "parts": [
+    [
+     61,
+     1195
+    ]
+   ],
+   "anchor": [
+    13,
+    79
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 676,
+   "sheet": "helen",
+   "usedIn": [
+    "eGuard",
+    "intro",
+    "taunt"
+   ]
+  },
+  {
+   "name": "r18_1",
+   "row": 18,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1277,
+    30,
+    53
+   ],
+   "parts": [
+    [
+     2,
+     1277
+    ]
+   ],
+   "anchor": [
+    15,
+    53
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 511,
+   "sheet": "helen",
+   "usedIn": [
+    "knockdown"
+   ]
+  },
+  {
+   "name": "r18_2",
+   "row": 18,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    34,
+    1277,
+    42,
+    48
+   ],
+   "parts": [
+    [
+     34,
+     1277
+    ]
+   ],
+   "anchor": [
+    17,
+    48
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 540,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt_air",
+    "knockdown"
+   ]
+  },
+  {
+   "name": "r18_3",
+   "row": 18,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    78,
+    1314,
+    67,
+    16
+   ],
+   "parts": [
+    [
+     78,
+     1314
+    ]
+   ],
+   "anchor": [
+    20,
+    16
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 507,
+   "sheet": "helen",
+   "usedIn": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  {
+   "name": "r18_4",
+   "row": 18,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    147,
+    1314,
+    59,
+    16
+   ],
+   "parts": [
+    [
+     147,
+     1314
+    ]
+   ],
+   "anchor": [
+    18,
+    16
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 510,
+   "sheet": "helen",
+   "usedIn": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  {
+   "name": "r18_5",
+   "row": 18,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    208,
+    1311,
+    59,
+    19
+   ],
+   "parts": [
+    [
+     208,
+     1311
+    ]
+   ],
+   "anchor": [
+    17,
+    19
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 513,
+   "sheet": "helen",
+   "usedIn": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  {
+   "name": "r18_6",
+   "row": 18,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    269,
+    1299,
+    53,
+    31
+   ],
+   "parts": [
+    [
+     269,
+     1299
+    ]
+   ],
+   "anchor": [
+    15,
+    31
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 585,
+   "sheet": "helen",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "r18_7",
+   "row": 18,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    324,
+    1289,
+    28,
+    41
+   ],
+   "parts": [
+    [
+     324,
+     1289
+    ]
+   ],
+   "anchor": [
+    10,
+    41
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 513,
+   "sheet": "helen",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "r18_8",
+   "row": 18,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    354,
+    1292,
+    28,
+    38
+   ],
+   "parts": [
+    [
+     354,
+     1292
+    ]
+   ],
+   "anchor": [
+    14,
+    38
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 535,
+   "sheet": "helen",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "r18_9",
+   "row": 18,
+   "frame": 9,
+   "kind": "body",
+   "rect": [
+    384,
+    1287,
+    36,
+    43
+   ],
+   "parts": [
+    [
+     384,
+     1287
+    ]
+   ],
+   "anchor": [
+    18,
+    43
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 569,
+   "sheet": "helen",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "r18_10",
+   "row": 18,
+   "frame": 10,
+   "kind": "body",
+   "rect": [
+    422,
+    1290,
+    28,
+    40
+   ],
+   "parts": [
+    [
+     422,
+     1290
+    ]
+   ],
+   "anchor": [
+    12,
+    40
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 569,
+   "sheet": "helen",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "r19_1",
+   "row": 19,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1333,
+    15,
+    62
+   ],
+   "parts": [
+    [
+     2,
+     1333
+    ]
+   ],
+   "anchor": [
+    8,
+    62
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 524,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt"
+   ]
+  },
+  {
+   "name": "r19_2",
+   "row": 19,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    19,
+    1333,
+    15,
+    62
+   ],
+   "parts": [
+    [
+     19,
+     1333
+    ]
+   ],
+   "anchor": [
+    9,
+    62
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 523,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt2"
+   ]
+  },
+  {
+   "name": "r19_3",
+   "row": 19,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    36,
+    1354,
+    28,
+    41
+   ],
+   "parts": [
+    [
+     36,
+     1354
+    ]
+   ],
+   "anchor": [
+    19,
+    41
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 477,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt"
+   ]
+  },
+  {
+   "name": "r19_4",
+   "row": 19,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    66,
+    1352,
+    28,
+    43
+   ],
+   "parts": [
+    [
+     66,
+     1352
+    ]
+   ],
+   "anchor": [
+    19,
+    43
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 492,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt2"
+   ]
+  },
+  {
+   "name": "r19_5",
+   "row": 19,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    96,
+    1351,
+    29,
+    44
+   ],
+   "parts": [
+    [
+     96,
+     1351
+    ]
+   ],
+   "anchor": [
+    20,
+    44
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 499,
+   "sheet": "helen",
+   "usedIn": [
+    "hurt2"
+   ]
+  },
+  {
+   "name": "r20_1",
+   "row": 20,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1398,
+    29,
+    50
+   ],
+   "parts": [
+    [
+     2,
+     1398
+    ]
+   ],
+   "anchor": [
+    16,
+    50
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 551,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_2",
+   "row": 20,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    33,
+    1399,
+    25,
+    49
+   ],
+   "parts": [
+    [
+     33,
+     1399
+    ]
+   ],
+   "anchor": [
+    12,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 534,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_3",
+   "row": 20,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    60,
+    1401,
+    23,
+    47
+   ],
+   "parts": [
+    [
+     60,
+     1401
+    ]
+   ],
+   "anchor": [
+    9,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 503,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_4",
+   "row": 20,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    85,
+    1401,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     85,
+     1401
+    ]
+   ],
+   "anchor": [
+    11,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 507,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_5",
+   "row": 20,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    111,
+    1401,
+    24,
+    47
+   ],
+   "parts": [
+    [
+     111,
+     1401
+    ]
+   ],
+   "anchor": [
+    11,
+    47
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 508,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_6",
+   "row": 20,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    137,
+    1400,
+    24,
+    48
+   ],
+   "parts": [
+    [
+     137,
+     1400
+    ]
+   ],
+   "anchor": [
+    11,
+    48
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 512,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r20_7",
+   "row": 20,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    163,
+    1399,
+    24,
+    49
+   ],
+   "parts": [
+    [
+     163,
+     1399
+    ]
+   ],
+   "anchor": [
+    11,
+    49
+   ],
+   "anchorFrom": "torso",
+   "opaquePixels": 515,
+   "sheet": "helen",
+   "usedIn": [
+    "win"
+   ]
+  },
+  {
+   "name": "r21_1",
+   "row": 21,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1453,
+    64,
+    33
+   ],
+   "parts": [
+    [
+     2,
+     1453
+    ],
+    [
+     8,
+     1485
+    ]
+   ],
+   "anchor": [
+    32,
+    33
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1325,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r21_2",
+   "row": 21,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    68,
+    1453,
+    63,
+    33
+   ],
+   "parts": [
+    [
+     68,
+     1453
+    ]
+   ],
+   "anchor": [
+    32,
+    33
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1330,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r21_3",
+   "row": 21,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    133,
+    1455,
+    67,
+    31
+   ],
+   "parts": [
+    [
+     135,
+     1455
+    ],
+    [
+     133,
+     1484
+    ],
+    [
+     143,
+     1485
+    ]
+   ],
+   "anchor": [
+    34,
+    31
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1288,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r22_1",
+   "row": 22,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1489,
+    60,
+    41
+   ],
+   "parts": [
+    [
+     2,
+     1489
+    ]
+   ],
+   "anchor": [
+    30,
+    41
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1321,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r22_2",
+   "row": 22,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    64,
+    1492,
+    58,
+    38
+   ],
+   "parts": [
+    [
+     64,
+     1492
+    ]
+   ],
+   "anchor": [
+    29,
+    38
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1253,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r22_3",
+   "row": 22,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    124,
+    1499,
+    63,
+    31
+   ],
+   "parts": [
+    [
+     124,
+     1499
+    ]
+   ],
+   "anchor": [
+    32,
+    31
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1288,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r23_1",
+   "row": 23,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1533,
+    63,
+    43
+   ],
+   "parts": [
+    [
+     2,
+     1533
+    ]
+   ],
+   "anchor": [
+    32,
+    43
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1567,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r23_2",
+   "row": 23,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    67,
+    1537,
+    58,
+    39
+   ],
+   "parts": [
+    [
+     67,
+     1537
+    ]
+   ],
+   "anchor": [
+    29,
+    39
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1260,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r23_3",
+   "row": 23,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    127,
+    1538,
+    62,
+    38
+   ],
+   "parts": [
+    [
+     129,
+     1538
+    ],
+    [
+     127,
+     1574
+    ],
+    [
+     137,
+     1575
+    ]
+   ],
+   "anchor": [
+    31,
+    38
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1255,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_1",
+   "row": 24,
+   "frame": 1,
+   "kind": "body",
+   "rect": [
+    2,
+    1584,
+    56,
+    35
+   ],
+   "parts": [
+    [
+     2,
+     1584
+    ]
+   ],
+   "anchor": [
+    28,
+    35
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1256,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_2",
+   "row": 24,
+   "frame": 2,
+   "kind": "body",
+   "rect": [
+    60,
+    1586,
+    44,
+    33
+   ],
+   "parts": [
+    [
+     60,
+     1586
+    ]
+   ],
+   "anchor": [
+    22,
+    33
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1043,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_3",
+   "row": 24,
+   "frame": 3,
+   "kind": "body",
+   "rect": [
+    106,
+    1584,
+    33,
+    35
+   ],
+   "parts": [
+    [
+     106,
+     1584
+    ]
+   ],
+   "anchor": [
+    16,
+    35
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 856,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_4",
+   "row": 24,
+   "frame": 4,
+   "kind": "body",
+   "rect": [
+    140,
+    1586,
+    44,
+    33
+   ],
+   "parts": [
+    [
+     140,
+     1586
+    ]
+   ],
+   "anchor": [
+    22,
+    33
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1048,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_5",
+   "row": 24,
+   "frame": 5,
+   "kind": "body",
+   "rect": [
+    186,
+    1584,
+    56,
+    35
+   ],
+   "parts": [
+    [
+     186,
+     1584
+    ]
+   ],
+   "anchor": [
+    28,
+    35
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1246,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_6",
+   "row": 24,
+   "frame": 6,
+   "kind": "body",
+   "rect": [
+    244,
+    1583,
+    45,
+    36
+   ],
+   "parts": [
+    [
+     244,
+     1583
+    ]
+   ],
+   "anchor": [
+    22,
+    36
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1008,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_7",
+   "row": 24,
+   "frame": 7,
+   "kind": "body",
+   "rect": [
+    291,
+    1579,
+    33,
+    40
+   ],
+   "parts": [
+    [
+     291,
+     1579
+    ]
+   ],
+   "anchor": [
+    16,
+    40
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 908,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  },
+  {
+   "name": "r24_8",
+   "row": 24,
+   "frame": 8,
+   "kind": "body",
+   "rect": [
+    326,
+    1581,
+    45,
+    38
+   ],
+   "parts": [
+    [
+     326,
+     1581
+    ]
+   ],
+   "anchor": [
+    22,
+    38
+   ],
+   "anchorFrom": "bbox",
+   "opaquePixels": 1149,
+   "sheet": "raft (Helen + Dash + Violet, ultimate only)",
+   "usedIn": [
+    "eRaft"
+   ]
+  }
+ ],
+ "sequences": {
+  "idle": [
+   "r2_1",
+   "r2_2",
+   "r2_3",
+   "r2_4",
+   "r2_5",
+   "r2_6",
+   "r2_7",
+   "r2_8"
+  ],
+  "walk": [
+   "r3_1",
+   "r3_2",
+   "r3_3",
+   "r3_4",
+   "r3_5",
+   "r3_6",
+   "r3_7",
+   "r3_8"
+  ],
+  "walk_back": [
+   "r3_8",
+   "r3_7",
+   "r3_6",
+   "r3_5",
+   "r3_4",
+   "r3_3",
+   "r3_2",
+   "r3_1"
+  ],
+  "run": [
+   "r3_1",
+   "r3_2",
+   "r3_3",
+   "r3_4",
+   "r3_5",
+   "r3_6",
+   "r3_7",
+   "r3_8"
+  ],
+  "dash": [
+   "r5_1"
+  ],
+  "crouch": [
+   "r4_1"
+  ],
+  "jump": [
+   "r4_2",
+   "r4_3",
+   "r4_4",
+   "r4_5",
+   "r4_6",
+   "r4_7",
+   "r4_8"
+  ],
+  "fall": [
+   "r4_9"
+  ],
+  "land": [
+   "r4_10",
+   "r4_11"
+  ],
+  "guard": [
+   "r17_1"
+  ],
+  "hurt": [
+   "r19_1",
+   "r19_3"
+  ],
+  "hurt2": [
+   "r19_2",
+   "r19_4",
+   "r19_5"
+  ],
+  "hurt_air": [
+   "r18_2"
+  ],
+  "knockdown": [
+   "r18_1",
+   "r18_2",
+   "r18_3",
+   "r18_4",
+   "r18_5"
+  ],
+  "getup": [
+   "r18_6",
+   "r18_7",
+   "r18_8",
+   "r18_9",
+   "r18_10"
+  ],
+  "lose": [
+   "r18_3",
+   "r18_4",
+   "r18_5"
+  ],
+  "win": [
+   "r20_1",
+   "r20_2",
+   "r20_3",
+   "r20_4",
+   "r20_5",
+   "r20_6",
+   "r20_7"
+  ],
+  "intro": [
+   "r17_1",
+   "r17_2",
+   "r17_3",
+   "r2_1"
+  ],
+  "taunt": [
+   "r17_1",
+   "r17_2",
+   "r17_3",
+   "r17_2"
+  ],
+  "grab": [
+   "r8_1",
+   "r8_2",
+   "r10_1"
+  ],
+  "light": [
+   "r6_1",
+   "r6_2",
+   "r6_3"
+  ],
+  "heavy": [
+   "r6_4",
+   "r6_5",
+   "r6_6"
+  ],
+  "eLow": [
+   "r15_1",
+   "r15_2",
+   "r15_3"
+  ],
+  "up": [
+   "r11_1",
+   "r11_2",
+   "r11_3",
+   "r11_4",
+   "r11_5",
+   "r11_6"
+  ],
+  "air": [
+   "r16_1",
+   "r16_2"
+  ],
+  "eLongArm": [
+   "r8_1",
+   "r8_2",
+   "r8_3",
+   "r8_4",
+   "r8_5"
+  ],
+  "eLongWhiff": [
+   "r9_1",
+   "r9_2",
+   "r9_3"
+  ],
+  "eLongPull": [
+   "r10_1",
+   "r10_2",
+   "r10_3"
+  ],
+  "eLongRecover": [
+   "r10_4",
+   "r10_5",
+   "r10_6",
+   "r10_7"
+  ],
+  "eWhirl": [
+   "r7_1",
+   "r7_2",
+   "r7_3",
+   "r7_4"
+  ],
+  "eDome": [
+   "r5_1",
+   "r5_2",
+   "r5_3",
+   "r5_4",
+   "r5_5",
+   "r5_6",
+   "r5_7",
+   "r5_8"
+  ],
+  "eDomeFloat": [
+   "r5_3",
+   "r5_4",
+   "r5_5",
+   "r5_6"
+  ],
+  "eDomeSlam": [
+   "r5_6",
+   "r5_7",
+   "r5_8"
+  ],
+  "eWhip": [
+   "r14_1",
+   "r14_2",
+   "r14_3",
+   "r14_4",
+   "r14_5",
+   "r14_6",
+   "r14_7",
+   "r14_8",
+   "r14_9",
+   "r14_10",
+   "r14_11",
+   "r14_12",
+   "r14_13",
+   "r14_14"
+  ],
+  "eSling": [
+   "r12_1",
+   "r12_2",
+   "r12_3"
+  ],
+  "eSlingRelease": [
+   "r13_1",
+   "r13_2",
+   "r13_3",
+   "r13_4",
+   "r13_5",
+   "r13_6",
+   "r13_7"
+  ],
+  "eGuard": [
+   "r17_1",
+   "r17_2",
+   "r17_3"
+  ],
+  "eBounce": [
+   "r4_5",
+   "r4_6",
+   "r4_7",
+   "r4_8",
+   "r4_10"
+  ],
+  "eUltWindup": [
+   "r14_1",
+   "r14_2",
+   "r14_3",
+   "r14_4",
+   "r14_5"
+  ],
+  "eRaft": [
+   "r21_1",
+   "r21_2",
+   "r21_3",
+   "r22_1",
+   "r22_2",
+   "r22_3",
+   "r23_1",
+   "r23_2",
+   "r23_3",
+   "r24_1",
+   "r24_2",
+   "r24_3",
+   "r24_4",
+   "r24_5",
+   "r24_6",
+   "r24_7",
+   "r24_8"
+  ]
+ }
+}

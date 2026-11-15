@@ -18,6 +18,7 @@ import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinSt
 import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
+import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
 import { frozoneHitbox, frozoneBlock, frozoneHit, frozoneProjectileHit } from './frozoneState.js'   // Frozone hooks (frozone-gated)
 import { mrHitbox, mrHit } from './mrIncredibleState.js'
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
@@ -734,6 +735,7 @@ export function getAttackHitbox(fighter) {
   if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
   if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
+  if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.fz && fighter.rosterKey === 'frozone') return frozoneHitbox(fighter)   // Frozone: the ice strike's box at the casting hand (body-less casts have none — Lance / Black Ice are projectiles)
   if (a?.mr && fighter.rosterKey === 'mr_incredible') return mrHitbox(fighter)
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
@@ -3473,6 +3475,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
     if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
+    if (!flawless) dseylBlock(attacker, defender, atk)   // Dseyl: authored blockstun; syndrome-gated
     if (!flawless) frozoneBlock(attacker, defender, atk)   // Frozone: authored blockstun; no Chill on block; frozone-gated
     if (!flawless) mrHit(attacker, defender, atk, true)
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
@@ -3547,6 +3550,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
     higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
+    dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     frozoneHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Frozone: clean flag (chain / cancels), Chill / Freeze / Shatter, ultimate confirm; frozone-gated
     mrHit(attacker, defender, atk, false)
     batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
@@ -4479,6 +4483,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       starfireProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Starfire: bolt / orb / burst contact → explosion, ultimate confirm; starfire-gated
       robinProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Robin: bomb contact → explosion; blast bookkeeping; robin-gated
       syndromeProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Syndrome: machine contact bookkeeping (Convergence, turret / Omnidroid confirms); syndrome-gated
+      dseylProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Dseyl: machine contact bookkeeping (Convergence, turret / Omnidroid confirms); syndrome-gated
       frozoneProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Frozone: Lance / Black Ice contact → Chill (clean only), thaw; frozone-gated
       megumiProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Megumi: summon contact bookkeeping (route confirm, Toad pull, Totality confirm); megumi-gated
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)

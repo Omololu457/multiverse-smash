@@ -69,6 +69,7 @@ export const SPRITE_MANIFEST = {
   megumi_fushiguro: { actions: { idle: './assets/megumi_fushiguro/idle.png' } },
   higuruma: { actions: { idle: './assets/higuruma/idle.png' } },
   syndrome: { actions: { idle: './assets/syndrome/idle.png' } },
+  dseyl: { actions: { idle: './assets/dseyl/idle.png' } },
   frozone: { actions: { idle: './assets/frozone/idle.png' } },
   mr_incredible: { actions: { idle: './assets/mr_incredible/default/veteran/idle.png' } },
   krybot: { actions: { idle: './assets/krybot/idle.png' } },

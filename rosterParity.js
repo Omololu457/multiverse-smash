@@ -19,6 +19,8 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
   luffy: 1.42, zoro: 1.3, sanji: 1.48, buggy: 1.35, arlong: 1.42,
   // The Incredibles
   violet: 1.31, dash_parr: 1.36, elastigirl: 2.1, syndrome: 1.11, frozone: 1.11, mr_incredible: 1.25,
+  // Original roster — Dseyl is Syndrome's kit, so he carries Syndrome's boost
+  dseyl: 1.11,
 })
 export function rosterDamageBoost(attacker) {
   if (!attacker) return 1

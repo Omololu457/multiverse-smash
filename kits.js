@@ -16,6 +16,7 @@ import { ROBIN_KIT } from './robinKit.js'   // Robin (robin) Move List
 import { MEGUMI_KIT } from './megumiKit.js'   // Megumi Fushiguro (megumi_fushiguro) Move List
 import { HIGURUMA_KIT } from './higurumaKit.js'   // Higuruma (higuruma) Move List
 import { SYNDROME_KIT } from './syndromeKit.js'   // Syndrome (syndrome) Move List
+import { DSEYL_KIT } from './dseylKit.js'   // Dseyl (dseyl) Move List
 import { FROZONE_KIT } from './frozoneKit.js'   // Frozone (frozone) Move List
 import { MR_KIT } from './mrIncredibleKit.js'
 import { BATMAN_KIT } from './batmanKit.js'   // Batman (batman, rebuilt) Move List
@@ -114,6 +115,7 @@ export const KITS = {
   megumi_fushiguro: MEGUMI_KIT,
   higuruma: HIGURUMA_KIT,
   syndrome: SYNDROME_KIT,
+  dseyl: DSEYL_KIT,
   frozone: FROZONE_KIT,
   mr_incredible: MR_KIT,
   batman: BATMAN_KIT,

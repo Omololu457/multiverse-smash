@@ -21,6 +21,7 @@ import { robin } from './robinData.js'   // Robin (Dick Grayson, DC / Teen Titan
 import { megumi_fushiguro } from './megumiData.js'   // Megumi Fushiguro (Jujutsu Kaisen, Ten Shadows) — megumi*.js
 import { higuruma } from './higurumaData.js'   // Hiromi Higuruma (Jujutsu Kaisen, supplied sheet by Mugen Matias) — higuruma*.js
 import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
+import { dseyl } from './dseylData.js'   // Dseyl (tribute fighter: edited copy of Syndrome + flight + Flash Time) — dseyl*.js
 import { frozone } from './frozoneData.js'   // Frozone (The Incredibles, GBA sheet) — frozone*.js
 import { mr_incredible } from './mrIncredibleData.js'
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
@@ -11417,7 +11418,7 @@ const soldierBoy = {
 
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
-  gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, jesus, maki, toji, yuji, baki, naoya,
+  gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, sasuke_adult: sasukeAdult, itachi, shisui_itachi_kids: shisuiItachiKids, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,

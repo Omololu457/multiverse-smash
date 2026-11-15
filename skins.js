@@ -29,6 +29,7 @@ import { ROBIN_SKINS } from './robinSkins.js'   // Robin default + 10 skins (cos
 import { MEGUMI_SKINS } from './megumiSkins.js'   // Megumi default + 10 skins (cosmetic, precomputed region recolours)
 import { HIGURUMA_SKINS } from './higurumaSkins.js'   // Higuruma default + 10 skins (cosmetic, precomputed; cached materials)
 import { SYNDROME_SKINS } from './syndromeSkins.js'   // Syndrome default + 12 whole-arsenal skins (cosmetic, precomputed)
+import { DSEYL_SKINS } from './dseylSkins.js'   // Dseyl default only
 import { FROZONE_SKINS } from './frozoneSkins.js'   // Frozone default + 10 skins (body, portrait, disc, ice; cosmetic, precomputed)
 import { MR_SKINS } from './mrIncredibleSkins.js'
 import { BATMAN_SKINS } from './batmanSkins.js'   // Batman (rebuilt) default + 10 arsenal-wide skins (cosmetic, precomputed)
@@ -167,6 +168,7 @@ export const SKINS = {
   megumi_fushiguro: MEGUMI_SKINS,
   higuruma: HIGURUMA_SKINS,
   syndrome: SYNDROME_SKINS,
+  dseyl: DSEYL_SKINS,
   frozone: FROZONE_SKINS,
   mr_incredible: MR_SKINS,
   mmpr_pink: MMPR_PINK_SKINS,

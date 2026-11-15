@@ -1161,6 +1161,7 @@ export class SpriteHandler {
     if (fighter.rosterKey === 'megumi_fushiguro') fighter._lastSpriteFrame = this.frameIndex;   // Megumi: presentation read for Shadow Step echoes (megumiFx)
     if (fighter.rosterKey === 'higuruma') fighter._lastSpriteFrame = this.frameIndex;   // Higuruma: presentation read for skin material overlays (higurumaFx)
     if (fighter.rosterKey === 'syndrome') fighter._lastSpriteFrame = this.frameIndex;   // Syndrome: presentation read for gesture-synced machine art (syndromeFx)
+    if (fighter.rosterKey === 'dseyl') fighter._lastSpriteFrame = this.frameIndex;   // Dseyl: presentation read for gesture-synced machine art (syndromeFx)
     if (fighter.rosterKey === 'frozone') fighter._lastSpriteFrame = this.frameIndex;   // Frozone: presentation read (harness frame checks)
     if (fighter.rosterKey === 'batman') fighter._lastSpriteFrame = this.frameIndex;   // Batman: presentation read for grapnel / rope anchors (batmanFx)
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;

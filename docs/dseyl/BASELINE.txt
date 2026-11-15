@@ -1,0 +1,12 @@
+Dseyl build — BASELINE (clean HEAD 3a8e7ae94, run from a `git archive HEAD` export so the
+uncommitted Controls-Lab edits in the shared worktree could not affect the counts). 2026-11-15.
+
+  test:determinism       14 passed, 0 failed
+  test:combo-standard   233 passed, 9 failed   (unclassified-roster list, covered/roster totals, true-zoner count,
+                                                gogeta/goku_rose missing normals x4, superman 5/4/12, ghostface 5/3/8)
+  test:up-attack-roster  77 passed, 2 failed
+  test:credits           11 passed, 3 failed   (unattributed green_arrow/homelander/kakashi_anbu/ghostface_exe/
+                                                soldier_boy; stale sasuke_war_susano; in-game set ≠ roster)
+  test:roster-integrity  PASS (6 checks, exit 0)
+
+"Green" for this build = no worse than these numbers (failures may not increase; the same failures only).

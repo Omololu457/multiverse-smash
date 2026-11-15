@@ -102,6 +102,11 @@ HOOKS = [
    "import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'", "violetProjectile, violetNoBox }"),
   (6, 'combat.js', "  if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)", 'after_line',
    "  if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated", "violetNoBox(fighter, a)) return null"),
+  # ── phase 8: SOUND (WebAudio placeholders; reads cue serials, never mutates sim state) ──
+  (8, 'game.js', "import { drawVioletFx, drawVioletScreen } from './violetFx.js'", 'after_line',
+   "import { playVioletCues } from './violetSound.js'   // Violet Parr synth SFX (SFX bus; hash pitch / noise; violet-gated)", "from './violetSound.js'"),
+  (8, 'game.js', "  tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)", 'after_line', "  playVioletCues(fighter)   // Violet SFX (FFA)", "playVioletCues(fighter)   // Violet SFX (FFA)"),
+  (8, 'game.js', "  tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)", 'after_line', "  playVioletCues(fighter)   // Violet SFX (1v1)", "playVioletCues(fighter)   // Violet SFX (1v1)"),
 ]
 
 def main():

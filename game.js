@@ -31,6 +31,7 @@ import { batmanHarnessApi } from './batmanHarness.js'
 import { tickViolet, isViolet, clearViolet, violetFacingFix, violetLocked } from './violetState.js'   // Violet Parr (The Incredibles) — violet-gated sim
 import { updateVioletCommandCombat } from './violet.js'   // Violet Parr command layer (violet-gated)
 import { drawVioletFx, drawVioletScreen } from './violetFx.js'   // Violet Parr FX (render-only, violet-gated)
+import { playVioletCues } from './violetSound.js'   // Violet Parr synth SFX (SFX bus; hash pitch / noise; violet-gated)
 import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)
 import { mmprPinkHarnessApi } from './mmprPinkHarness.js'
 import { drawBarrierRing } from './barrierRingFx.js'
@@ -4116,6 +4117,7 @@ function updateFFACombat(fighter, others, opts) {
   tickBatman(fighter,nearest,readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
   tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)
+  playVioletCues(fighter)   // Violet SFX (FFA)
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
   tickKrybot(fighter, nearest, readRawControls(fighter) || {}, KRYBOT_WORLD)
   playKrybotCues(fighter)
@@ -11575,6 +11577,7 @@ function _updatePlayerCombatBody(fighter) {
   tickBatman(fighter,getOpponent(fighter),readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
   tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)
+  playVioletCues(fighter)   // Violet SFX (1v1)
   tickKrybot(fighter, getOpponent(fighter), readRawControls(fighter) || {}, KRYBOT_WORLD)
   playKrybotCues(fighter)
   tickLuffy(fighter, getOpponent(fighter), readRawControls(fighter) || {})

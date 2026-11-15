@@ -15,7 +15,7 @@ const grounded = f => !!(f.onGround || f.grounded)
 const addEnergy = (f, n) => { f.energy = Math.min(f.maxEnergy || ENERGY.max, (f.energy || 0) + n) }
 export function cue(f, name, W) {
   // frame = this fighter's match tick (s.tick, reset every round) — never the global frame counter (menus / load time vary)
-  const s = vState(f); s.cues.push({ k: name, h: vhash(W?.seed?.() || 1, s.tick, f.side === 'p2' ? 2 : 1) })
+  const s = vState(f); s.cues.push({ k: name, h: vhash(W?.seed?.() || 1, s.tick, f.side === 'p2' ? 2 : 1), n: (s.cueN = (s.cueN || 0) + 1) })   // n: serial read by violetSound (never drained)
   if (s.cues.length > 16) s.cues.shift()
 }
 

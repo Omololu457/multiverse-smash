@@ -10,6 +10,7 @@
 // Bounded: images cached once per URL, no per-frame canvases / pixel reads / decoding, no Math.random. Every
 // skin swaps whole precomputed strips (Syndrome AND every machine) — assets/syndrome/skins/<tag>/.
 import { sound } from './sound.js'
+import { DSEYL_FLASH } from './dseylData.js'   // DSEYL: Flash Time HUD row
 import { getFlightProfile } from './flight.js'   // DSEYL: flight HUD row
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
@@ -362,6 +363,8 @@ export function drawDseylHud(c, cv, p1, p2) {
     const rows = [[`DRONES ${L.mobile === 'duet' ? 'ACTIVE' : L.mobile === 'velo' ? '— VELOCIPOD' : 'READY'}`, !L.mobile], [`SPINNER ${L.spin ? 'OUT' : 'READY'}`, !L.spin], [tur, !L.turret], [`OMNIDROID ${L.omni ? L.omni.toUpperCase() : 'READY'}`, !L.omni]]
     { const fc = f._flightCtl, fe = Math.round(100 * (fc?.energy ?? 0) / (getFlightProfile(f)?.energyMax || 1))   // DSEYL: flight readout
       rows.push([`FLIGHT ${fc && ['takeoff', 'flying', 'airdash'].includes(fc.phase) ? 'ON' : 'READY'} ${fe}%`, !(fc && ['takeoff', 'flying', 'airdash'].includes(fc.phase))]) }
+    { const p = f._dseyl?.ft   // DSEYL: Flash Time readout
+      rows.push([p?.left > 0 ? `FLASH TIME ${Math.ceil(p.left / 60)}s` : p?.cd > 0 ? `FLASH TIME COOLDOWN ${Math.ceil(p.cd / 60)}s` : `FLASH TIME READY (${DSEYL_FLASH.cost})`, !(p?.left > 0 || p?.cd > 0)]) }
     rows.forEach(([txt, ok], i) => { c.fillStyle = ok ? hud0 : 'rgba(255,255,255,0.55)'; c.fillText(txt, tx, y0 + i * 11) })
     c.restore()
   }

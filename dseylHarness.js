@@ -11,6 +11,8 @@ export function dseylHarnessApi(g) {
   const raw = (w = 'p1') => w === 'p2' ? g.p2() : g.p1()
   const clone = o => JSON.parse(JSON.stringify(o))
   return { raw,
+    ft: (w = 'p1') => { const p = raw(w)._dseyl?.ft; return p ? clone(p) : null },   // DSEYL: Flash Time counters
+    foeSlow: (w = 'p2') => ({ flag: !!raw(w)._timeSlowFlag, acc: raw(w)._timeSlowAcc || 0 }),
     flight: (w = 'p1') => { const c = raw(w)._flightCtl; return c ? clone({ phase: c.phase, energy: c.energy, airDashCount: c.airDashCount, groundedLock: c.groundedLock, tap: raw(w)._dseyl?.fl || null }) : null },   // DSEYL
     reset: () => { clearDseylUlt(); g.reset(); for (const f of [g.p1(), g.p2()]) clearDseyl(f, g.world) },
     move: (k, w = 'p1', o = {}) => startDsMove(raw(w), k, g.world, o),

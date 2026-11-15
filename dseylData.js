@@ -10,6 +10,9 @@ export const DSEYL_KEY = 'dseyl'
 // Flight takeoff = a Charge (L2 / P) TAP — Homelander's control — measured on the SIM clock (deterministic): released
 // within maxHold frames, no Special while held and none within modWindow frames after (that is Syndrome's L2 + R1 table).
 export const DSEYL_FLIGHT_TAP = { maxHold: 12, modWindow: 4 }
+// Flash Time (the shared game.js _oppTimeScaleOf time-slow engine, as the Flash / Dash Parr). Weaker than the Flash's:
+// fixed 180-frame window, opponent at 50 %, Dseyl NOT sped up, 600-frame (10 s) cooldown after it ends.
+export const DSEYL_FLASH = { cost: 40, oppSlow: 0.5, frames: 180, cooldown: 600 }
 const even = (n, total) => Array.from({ length: n }, (_, i) => [Math.round(i * total / n), i])
 export const dseyl = {
   ...SY,
@@ -19,7 +22,7 @@ export const dseyl = {
   energyConfig: { ...SY.energyConfig },
   stats: { ...SY.stats },
   spriteSheet: DSEYL_ANIM.idle.sheet, portrait: './assets/dseyl/portrait.png',
-  specials: { ...SY.specials },
+  specials: { ...SY.specials, flashTime: { name: 'Flash Time', cost: DSEYL_FLASH.cost } },
   animationData: {
     ...DSEYL_ANIM,
     ...Object.fromEntries(Object.entries(MOVE_STRIP).map(([k, s]) => [k, { ...DSEYL_ANIM[s], frameTimeline: TIMELINE[k] }])),

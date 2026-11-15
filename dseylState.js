@@ -16,6 +16,7 @@
 // projectile rules are the shared ones; each volume connects once. Ultimate damage goes through W.damage once per
 // scheduled contact with the combo scale captured at the capture. Nothing grants invulnerability or refunds jumps.
 import { tickDseylFlight } from './dseylFlight.js'   // DSEYL: Charge-tap flight (sim clock)
+import { tickDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Flash Time window / cooldown
 import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, ULT, NORMAL_KEYS, SPINNER_NORMALS, dmg } from './dseylData.js'
 
 export const DSEYL_STATE_KEY = 'dseyl'
@@ -374,6 +375,7 @@ export function tickDseyl(f, opp, raw, W) {
   if (!isDseyl(f)) { if (f?._dseyl) clearDseyl(f, W); return }
   const s = dsState(f); s.tick++
   tickDseylFlight(f, raw)   // DSEYL: Charge-tap takeoff / come-down (every sim frame)
+  tickDseylFlashTime(f, opp)   // DSEYL: Flash Time 180-frame window + cooldown (before the hitstop return → real frames)
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'charge', 'grab']) {
     const v = !!raw[k]

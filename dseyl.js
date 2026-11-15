@@ -11,6 +11,7 @@
 // OVERRIDES the unmodified command. One command per fresh R1 press.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
 import { isDseyl, dsState, startDsMove, registerDseylEngine, isDseylUltActive } from './dseylState.js'
+import { tryDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Guard + Special = Flash Time
 import { CHAIN, HEAVY_FROM, SPECIAL_FROM, ULT_FROM } from './dseylData.js'
 
 registerDseylEngine({ startMove, comboScale: getComboScale })
@@ -49,6 +50,7 @@ export function updateDseylCommandCombat(f, inp, opp, W) {
     return 'consumed'
   }
   if (a && !contact) return 'consumed'
+  if (!a && inp.block && fresh(s, 'special')) { use(s, 'special'); tryDseylFlashTime(f, opp, { ultActive: isDseylUltActive() }); return 'consumed' }   // DSEYL: Guard + Special = Flash Time (Syndrome's kit ignores Special while guarding)
   if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
   if (fresh(s, 'ultimate')) {   // the Ultimate owns its press (consumed even when illegal)
     use(s, 'ultimate')

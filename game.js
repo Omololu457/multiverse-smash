@@ -75,6 +75,7 @@ import { updateDseylCommandCombat } from './dseyl.js'   // DSEYL (tribute fighte
 import { tickDseyl, isDseyl, clearDseyl, dseylLocked, dseylOwnsCharge, isDseylUltActive, updateDseylUlt, clearDseylUlt } from './dseylState.js'
 import { drawDseylUnder, drawDseylOver, drawDseylHud, drawDseylIntroCard, playDseylCues } from './dseylFx.js'
 import { dseylHarnessApi } from './dseylHarness.js'
+import { dseylOppTimeScale } from './dseylFlashTime.js'   // DSEYL Flash Time → the shared _oppTimeScaleOf time-slow engine
 import { updateFrozoneCommandCombat } from './frozone.js'   // Frozone (The Incredibles) — frozone-gated command layer
 import { tickFrozone, isFrozone, clearFrozone, frozoneLocked, isFrozoneUltActive, updateFrozoneUlt, clearFrozoneUlt, updateFrozoneIntro, finalizeFrozoneIntro } from './frozoneState.js'
 import { drawFrozoneUnder, drawFrozoneOver, drawFrozoneHud, drawFrozoneIntroCard, playFrozoneCues } from './frozoneFx.js'
@@ -20666,6 +20667,7 @@ function _oppTimeScaleOf(user) {
   if (user._omoFlashActive) return user._omoOppTimeScale || 0.35   // OMOLOLU "Flash Time" — reuses this exact slow-time engine (no aura)
   if (user._shiFlickerActive) return user._shiOppTimeScale || 0.36 // SHISUI (FALLEN) "Flicker Time" — same slow-time engine, own emerald aura
   { const _dpTs = dashParrOppTimeScale(user); if (_dpTs > 0) return _dpTs }   // DASH "Flash Time" — same slow-time engine (0 for everyone else)
+  { const _dsTs = dseylOppTimeScale(user); if (_dsTs > 0) return _dsTs }   // DSEYL "Flash Time" — same slow-time engine (0 for everyone else)
   return 0
 }
 function _updateGodspeedTimeSlow() {
